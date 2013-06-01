@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.eclipse.ui.Examples"
+            class="net.sourceforge.usbdm.cdt.examplewizard.UsbdmExampleProjectsWizard"
+            icon="icons/file_obj.gif"
+            id="net.sourceforge.usbdm.cdt.exampleWizard.exampleProjectsWizard"
+            name="USBDM Example Projects Wizard"
+            project="true">
+      </wizard>
+      <category
+            id="net.sourceforge.usbdm.cdt.usbdmCategory"
+            name="USBDM Example Projects"
+            parentCategory="org.eclipse.ui.Examples">
+      </category>
+   </extension>
+
+</plugin>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<template
+   type="ProjTempl"
+   version="1.0"
+   supplier="pgo"
+   revision="1.0"
+   author="Peter O'Donoghue"
+   id="ColdfireVxCpp"
+   label="Coldfire V2,3,4 C++ Project"
+   description="A Basic GCC Project for Coldfire V2,3,4 with USBDM debug support."
+   help="help.html"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:noNamespaceSchemaLocation='..//TemplateDescriptorSchema.xsd'>
+   <property-group
+      id="usbdm_properties"
+      label="USBDM Settings"
+      description="USBDM specific project properties"
+      type="PAGES-ONLY"
+      help="help.html">
+   </property-group>
+   <process type="org.eclipse.cdt.managedbuilder.core.NewManagedProject">
+      <simple name="name" value="$(projectName)" /> 
+      <simple name="artifactExtension" value="elf" /> 
+      <simple name="isCProject" value="true" /> 
+   </process>
+   <process type="org.eclipse.cdt.core.CreateSourceFolder">
+      <simple name="projectName"  value="$(projectName)" />
+      <simple name="path"         value="Sources" />
+   </process>
+   <process type="org.eclipse.cdt.core.CreateSourceFolder">
+      <simple name="projectName"  value="$(projectName)" />
+      <simple name="path"         value="Startup_Code" />
+   </process>
+   <process type="org.eclipse.cdt.core.CreateFolder">
+      <simple name="projectName"  value="$(projectName)" />
+      <simple name="path"         value="Project_Settings" />
+   </process>
+   <process type="net.sourceforge.usbdm.cdt.wizard.CreateIncludeFolder">
+      <simple name="projectName"  value="$(projectName)" />
+      <simple name="path"         value="Project_Headers" />
+   </process>
+   <process type="org.eclipse.cdt.core.AddFiles">
+      <simple name="projectName"  value="$(projectName)" />
+      <complex-array name="files">
+         <element>
+            <simple name="source"      value="Project_Headers/derivative.h" />
+            <simple name="target"      value="Project_Headers/derivative.h" />
+            <simple name="replaceable" value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Project_Settings/Target-Debug.launch" />
+            <simple name="target"       value="Project_Settings/$(projectName)-Debug.launch" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Project_Settings/Target-ram.ld" />
+            <simple name="target"       value="Project_Settings/$(targetDeviceName)-ram.ld" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Project_Settings/Target-rom-hosted.ld" />
+            <simple name="target"       value="Project_Settings/$(targetDeviceName)-rom-hosted.ld" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Project_Settings/Target-ram-hosted.ld" />
+            <simple name="target"       value="Project_Settings/$(targetDeviceName)-ram-hosted.ld" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Sources/main.cpp" />
+            <simple name="target"       value="Sources/main.cpp" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Startup_Code/start_c.c" />
+            <simple name="target"       value="Startup_Code/start_c.c" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Startup_Code/start.S" />
+            <simple name="target"       value="Startup_Code/start.S" />
+            <simple name="replaceable"  value="true" />
+         </element>
+         <element>
+            <simple name="source"       value="Startup_Code/sysinit.c" />
+            <simple name="target"       value="Startup_Code/sysinit.c" />
+            <simple name="replaceable"  value="true" />
+         </element>
+      </complex-array>
+   </process>
+   <process
+      type="org.eclipse.cdt.managedbuilder.core.SetMBSStringOptionValue">
+      <simple name="projectName" value="$(projectName)" />
+      <complex-array name="resourcePaths">
+         <element>
+            <simple name="id"    value="net.sourceforge.usbdm.cdt.toolchain.c.linker.linkerFile" />
+            <simple name="value" value="${ProjDirPath}/Project_Settings/$(targetDeviceName)-rom.ld" />
+            <simple name="path"  value="" />
+         </element>
+         <element>
+            <simple name="id"    value="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile" />
+            <simple name="value" value="${ProjDirPath}/Project_Settings/$(targetDeviceName)-rom.ld" />
+            <simple name="path"  value="" />
+         </element>
+         <!-- element>
+            <simple name="id"    value="net.sourceforge.usbdm.cdt.toolchain.cross.prefix" />
+            <simple name="value" value="&quot;$(crossCommandPrefix)&quot;" />
+            <simple name="path"  value="" />
+         </element -->
+         <!-- element>
+            <simple name="id"    value="net.sourceforge.usbdm.cdt.toolchain.cross.codesourceryPath" />
+            <simple name="value" value="&quot;$(crossCommandPath)&quot;" />
+            <simple name="path"  value="" />
+         </element -->
+      </complex-array>
+   </process>
+   
+   <process type="org.eclipse.cdt.ui.OpenFiles">
+      <simple name="projectName" value="$(projectName)"/>
+      <complex-array name="files">
+         <element>
+            <simple name="target" value="Sources/main.cpp"/>
+         </element>
+      </complex-array>
+   </process>
+
+   <!-- process
+      type="net.sourceforge.usbdm.cdt.wizard.UsbdmSetCrossCommand">
+      <simple name="projectName"          value="$(projectName)" />
+      <simple name="crossCommandPath"     value="$(crossCommandPath)" />
+      <simple name="crossCommandPrefix"   value="$(crossCommandPrefix)" />
+   </process -->
+
+   <process
+      type="net.sourceforge.usbdm.cdt.wizard.AddExternalFiles">
+      <simple name="projectName"          value="$(projectName)" />
+      <complex-array name="copyList">
+         <element>
+            <simple name="externalSource"    value="$(externalLinkerScript)" />
+            <simple name="internalSource"    value="Project_Settings/Target-rom.ld" />
+            <simple name="target"            value="Project_Settings/$(targetDeviceName)-rom.ld" />
+            <simple name="replaceable"       value="true" />
+         </element>
+         <element>
+            <simple name="externalSource"    value="$(externalHeaderFile)" />
+            <simple name="internalSource"    value="Project_Headers/TargetDevice.h" />
+            <simple name="target"            value="Project_Headers/$(targetDevice).h" />
+            <simple name="replaceable"       value="true" />
+         </element>
+         <element>
+            <simple name="externalSource"    value="$(externalVectorTable)" />
+            <simple name="internalSource"    value="Startup_Code/vectors.c" />
+            <simple name="target"            value="Startup_Code/vectors.c" />
+            <simple name="replaceable"       value="true" />
+         </element>
+      </complex-array>
+   </process>
+   
+   <process
+      type="net.sourceforge.usbdm.cdt.wizard.ProcessUsbdmSettings">
+      <simple name="projectName"          value="$(projectName)" />
+      <simple name="targetDeviceFamily"   value="$(targetDeviceFamily)" />
+      <simple name="targetDevice"         value="$(targetDevice)" />
+   </process>
+</template>

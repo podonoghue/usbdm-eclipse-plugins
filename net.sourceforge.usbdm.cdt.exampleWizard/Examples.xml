@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE DeviceList SYSTEM "Examples.dtd">
+<!-- 
+      V4.10.6 - Added LCD example
+      V4.10.5 - Created
+ -->
+<root version="4.10.6">
+   <description>List of USBDM Examples</description>
+   <exampleList>
+      <example description="Freedom KL05Z Basic"         family="ARM"        path="MKL05Z32M4_FRDM.zip">
+Example project for Freedom KL05Z board
+Includes example port operations.
+      </example>
+      <example description="Freedom KL25Z Basic"         family="ARM"        path="MKL25Z128M4_FRDM.zip">
+Example project for Freedom KL25Z board
+Includes example clock initialisation and port operations.
+      </example>
+      <example description="Freedom K20D50M Basic"       family="ARM"        path="MK20DX128M5_FRDM.zip">
+Example project for Freedom KL20D50M board
+Includes example clock initialisation and port operations.
+      </example>
+      <example description="Freedom K20D50M Colour LCD driver"  family="ARM"        path="ColourLCD-K20D50M.zip">
+Example project for Freedom KL20D50M board
+Includes driver for colour LCD (Spark Fun LCD-09363).
+      </example>
+      <example description="Freedom K20D50M Serial"      family="ARM"        path="MK20DX128M5_FRDM(Serial).zip">
+Example project for Freedom KL20D50M board
+Includes example code demonstrating use of printf() with on-chip UART.
+Makes use of NewLib library. 
+      </example>
+      <example description="Tower MCF51JF128 Basic"        family="COLDFIRE"   path="MCF51JF128_Tower.zip">
+Example project for Tower MCF51JF128 board
+Includes example port operations.
+      </example>
+      <example description="Tower K40 Basic"          family="ARM"        path="MK40DX256Z_Tower.zip">
+Example project for Tower Kinetis K40 board
+Includes example port operations.
+      </example>
+      <example description="Tower K60 Basic"          family="ARM"        path="MK60DN512Z_Tower.zip">
+Example project for Tower Kinetis K60 board
+Includes example port operations.
+      </example>
+      <example description="Generic MCF52233 Basic"   family="COLDFIRE"   path="MCF52233_cpp.zip">
+Example project for Generic MCF52233 device
+Includes example port operations.
+      </example>
+      <example description="USBDM API"          family="NONE"       path="USBDM_API_Example.zip">
+Example project using USBDM API to read data from the Flash memory of a 
+target device using a USBDM interface.
+      </example>
+   </exampleList>
+</root>

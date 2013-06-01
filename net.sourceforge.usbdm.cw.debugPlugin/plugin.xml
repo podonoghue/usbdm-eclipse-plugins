@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+      point="com.freescale.core.debugger.ui.cdt.physicalConnectionType">
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.hcs08"
+            label="USBDM HCS08 Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+               name="HC08 GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.rs08"
+            label="USBDM RS08 Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+               name="RS08 GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv1"
+            label="USBDM Coldfire V1 Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+               name="CF - GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv234"
+            label="USBDM Coldfire V2,3,4 Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+               name="CF - GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.arm"
+            label="USBDM ARM Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+               name="ARM GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.s12z"
+            label="USBDM s12z Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+            name="S12Z GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+      <physicalConnectionType
+            attributeNameBase="net.sourceforge.usbdm.connections.usbdm."
+            class="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelFactory"
+            id="net.sourceforge.usbdm.connections.usbdm.dsc"
+            label="USBDM DSC Interface"
+            prefsBlockProvider="net.sourceforge.usbdm.connections.usbdm.UsbdmConnectionPanelPrefsBlockProvider">
+         <protocolPlugin
+            name="DSC GDI">
+         </protocolPlugin>
+      </physicalConnectionType>
+   </extension>
+   <extension
+         point="com.freescale.core.debugger.ui.cdt.connectionType">
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.hcs08"
+            name="USBDM HCS08 Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.rs08"
+            name="USBDM RS08 Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv1"
+            name="USBDM Coldfire V1 Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv234"
+            name="USBDM Coldfire V2,3,4 Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.arm"
+            name="USBDM ARM Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.s12z"
+            name="USBDM s12z Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+      <connectionType
+            class="com.freescale.mcu.debug.connections.rse.BaseGDIConnectionType"
+            id="net.sourceforge.usbdm.connections.usbdm.dsc"
+            name="USBDM DSC Interface"
+            rseSystemTypeId="com.freescale.cdt.debug.cw.core.ui.rse.systemtype.bareboard.hardware">
+      </connectionType>
+   </extension>
+   <extension
+         point="com.freescale.core.debugger.ui.cdt.connectionTypeConfiguration">
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.HCS08ConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.hcs08"
+            protocolPluginName="HC08 GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.hcs08.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.RS08ConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.rs08"
+            protocolPluginName="RS08 GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.rs08.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.ColdFireConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv1"
+            protocolPluginName="CF - GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.coldfire.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.ColdFireConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.cfv234"
+            protocolPluginName="CF - GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.coldfire.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.ARMConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.arm"
+            protocolPluginName="ARM GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.kinetis.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.rse.S12ZConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.s12z"
+            protocolPluginName="S12Z GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.s12z.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+      <connectionTypeConfiguration
+            class="com.freescale.mcu.debug.connections.dsc.DSCConfigurationCustomization"
+            id="net.sourceforge.usbdm.connections.usbdm.dsc"
+            protocolPluginName="DSC GDI">
+         <systemTypeFilter
+               id="com.freescale.cw.system.dsc.*">
+         </systemTypeFilter>
+      </connectionTypeConfiguration>
+   </extension>
+</plugin>
