@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Bundle-Name: USBDM JNI Plugin
+Bundle-NativeCode: 
+ libstdc++-6.dll;libgcc_s_dw2-1.dll;usbdm.4.dll;UsbdmJniWrapper.dll;osname=Win32;processor=x86;processor=x86_64,
+ libusb-1.0.so;libusbdm.so;libUsbdmJniWrapper.so;osname=Linux;processor=x86;processor=x86_64,
+ *
+Bundle-Vendor: pgo
+Bundle-Activator: net.sourceforge.usbdm.jni.Activator
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
+Bundle-Version: 4.10.5.qualifier
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.swt
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Import-Package: org.eclipse.swt,
+ org.eclipse.swt.widgets
+Export-Package: net.sourceforge.usbdm.jni
