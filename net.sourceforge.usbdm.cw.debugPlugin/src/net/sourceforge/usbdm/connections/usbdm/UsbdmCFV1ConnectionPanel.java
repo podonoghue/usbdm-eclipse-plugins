@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -50,8 +52,8 @@ public class UsbdmCFV1ConnectionPanel extends UsbdmConnectionPanel {
       deviceNameId       = UsbdmCommon.CFV1_DeviceNameAttributeKey;
       gdiDllName         = UsbdmCommon.CFV1_GdiWrapperLib;
       gdiDebugDllName    = UsbdmCommon.CFV1_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.E_ALL; 
-      lastEraseMethod    = EraseMethod.E_SELECTIVE; 
+      defaultEraseMethod = EraseMethod.ERASE_ALL; 
+      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
    }
 
    public void create() {

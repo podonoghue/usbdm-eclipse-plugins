@@ -6,6 +6,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -102,15 +104,19 @@ public class Usbdm {
     * Selects target Vdd on BDM supporting this function
     */
    public static enum TargetVddSelect {
-      BDM_TARGET_VDD_OFF     (0x00),  //!< Target Vdd Off
-      BDM_TARGET_VDD_3V3     (0x01),  //!< Target Vdd internal 3.3V
-      BDM_TARGET_VDD_5V      (0x02),  //!< Target Vdd internal 5.0V
-      BDM_TARGET_VDD_ENABLE  (0x10),  //!< Target Vdd internal at last set level
-      BDM_TARGET_VDD_DISABLE (0x11),  //!< Target Vdd Off but previously set level unchanged
+      BDM_TARGET_VDD_OFF     (0x00, "off",     "Do not supply power to the target.  An external target supply is required."),
+      BDM_TARGET_VDD_3V3     (0x01, "3V3",     "Supply 3.3V to the target through the BDM connection."),
+      BDM_TARGET_VDD_5V      (0x02, "5V",      "Supply 5V to the target through the BDM connection."),
+      BDM_TARGET_VDD_ENABLE  (0x10, "enable" , "Enable target supply at last used value"),
+      BDM_TARGET_VDD_DISABLE (0x11, "disable", "Disable target supply but previously used level unchanged"),
       ;
-      private int mask;
-      TargetVddSelect(int mask) {
+      private final int    mask;
+      private final String name;
+      private final String hint;
+      TargetVddSelect(int mask, String name, String hint) {
          this.mask = mask;
+         this.name = name;
+         this.hint = hint;
       }
       public int getMask() {
          return mask;
@@ -122,6 +128,43 @@ public class Usbdm {
             }
          }
          return BDM_TARGET_VDD_OFF;
+      }
+      public String getName() {
+         return name;
+      }
+      public String getHint() {
+         return hint;
+      }
+   };
+
+   /**
+    * Selects erase method
+    */
+   public static enum EraseMethod {
+      ERASE_NONE        (0x00, "None"),       //!< No erase is done
+      ERASE_MASS        (0x01, "Mass"),       //!< A Mass erase operation is done
+      ERASE_ALL         (0x02, "All"),        //!< All Flash is erased (by Flash Block)
+      ERASE_SELECTIVE   (0x03, "Selective"),  //!< A selective erase (by sector) is done
+      ;
+      private final int    mask;
+      private final String name;
+      EraseMethod(int mask, String name) {
+         this.mask = mask;
+         this.name = name;
+      }
+      public int getMask() {
+         return mask;
+      }
+      public static EraseMethod valueOf(int mask) {
+         for (EraseMethod type:values()) {
+            if (type.mask == mask) {
+               return type;
+            }
+         }
+         return ERASE_MASS;
+      }
+      public String getName() {
+         return name;
       }
    };
 
@@ -292,7 +335,7 @@ public class Usbdm {
          int mask;
          Mode(int mode) {
             this.mask = mode;
-         }
+         } 
       };
       enum Method {
          // Methods
@@ -322,6 +365,14 @@ public class Usbdm {
       }
       public int getMask() {
          return mask;
+      }
+      private static final String modes[]   = {"Special", "Normal"}; 
+      private static final String methods[] = {"All", "Hardware", "Software", "Power", "Invalid", "Invalid", "Invalid", "Default"}; 
+      public String toString() {
+         if ((mask&~(MODE_MASK|METHOD_MASK)) != 0) {
+            return "Invalid";
+         }
+         return (methods[mask&MODE_MASK]+"|"+modes[mask&METHOD_MASK]);
       }
    };
 
@@ -682,7 +733,7 @@ public class Usbdm {
          useResetSignal           = options.useResetSignal;  
          maskInterrupts           = options.maskInterrupts;  
          interfaceFrequency       = options.interfaceFrequency;  
-         usePSTSignals            = options.usePSTSignals;  
+         usePSTSignals            = options.usePstSignals;  
          powerOffDuration         = options.powerOffDuration;  
          powerOnRecoveryInterval  = options.powerOnRecoveryInterval;  
          resetDuration            = options.resetDuration;  
@@ -707,7 +758,7 @@ public class Usbdm {
       public boolean           useResetSignal;             //!< Whether to use RESET signal on BDM interface
       public boolean           maskInterrupts;             //!< Whether to mask interrupts when  stepping
       public int               interfaceFrequency;         //!< CFVx/JTAG etc - Interface speed (kHz)
-      public boolean           usePSTSignals;              //!< CFVx, PST Signal monitors
+      public boolean           usePstSignals;              //!< CFVx, PST Signal monitors
       public int               powerOffDuration;           //!< How long to remove power (ms)
       public int               powerOnRecoveryInterval;    //!< How long to wait after power enabled (ms)
       public int               resetDuration;              //!< How long to assert reset (ms)
@@ -732,7 +783,7 @@ public class Usbdm {
          useResetSignal           = options_.useResetSignal;  
          maskInterrupts           = options_.maskInterrupts;  
          interfaceFrequency       = options_.interfaceFrequency;  
-         usePSTSignals            = options_.usePSTSignals;  
+         usePstSignals            = options_.usePSTSignals;  
          powerOffDuration         = options_.powerOffDuration;  
          powerOnRecoveryInterval  = options_.powerOnRecoveryInterval;  
          resetDuration            = options_.resetDuration;  
@@ -752,7 +803,7 @@ public class Usbdm {
          "\n useResetSignal          = " + useResetSignal +         
          "\n maskInterrupts          = " + maskInterrupts +         
          "\n interfaceFrequency      = " + interfaceFrequency +     
-         "\n usePSTSignals           = " + usePSTSignals +          
+         "\n usePSTSignals           = " + usePstSignals +          
          "\n powerOffDuration        = " + powerOffDuration +       
          "\n powerOnRecoveryInterval = " + powerOnRecoveryInterval +
          "\n resetDuration           = " + resetDuration +          
@@ -1316,6 +1367,7 @@ public class Usbdm {
     *  Class describing the BDM
     */
    public static class USBDMDeviceInfo {
+      public static final USBDMDeviceInfo nullDevice = new USBDMDeviceInfo("Generic BDM", "[Any connected USBDM]", new BdmInformation());
       public String         deviceDescription;
       public String         deviceSerialNumber;
       public BdmInformation bdmInfo;
@@ -1332,69 +1384,86 @@ public class Usbdm {
       }
    };
 
-   /**
-    * Load USBDM JNI Library
-    * 
-    * @throws Throwable 
-    */
-   public static void loadLibrary() throws UsbdmException {
-      if (libraryLoaded) {
-         return;
-         }
-      try {
-         String os = System.getProperty("os.name");
-         if ((os != null) && os.toUpperCase().contains("LINUX")) {
-//            System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_so );
-//            System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_so);
-//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
-            System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
-         }
-         else {
-//            System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_dll );
-//            System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_dll);
-//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_dll);
-            System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
-            System.loadLibrary(UsbdmJniConstants.UsbdmLibGccName_dll);
-            System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
-         }
-//         System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-         if (debug) {
-            System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
-         }
-         else {
-            System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
-         }
-//         System.err.println("Calling init()");
-         usbdmInit();
-         libraryLoaded = true;
-//         System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-
-//         System.err.println("Libraries successfully loaded");
-      } catch (Exception e) {
-         // Report fist failure only
-         if (!libraryLoadFailed) {
-            Shell shell;
-            // Find the default display and get the active shell
-            final Display disp = Display.getDefault();
-            if (disp == null) {
-               shell = new Shell(new Display());
+   final static class LibraryLoader {
+      public LibraryLoader() {
+         if (libraryLoaded) {
+            return;
+            }
+         try {
+            String os = System.getProperty("os.name");
+            if ((os != null) && os.toUpperCase().contains("LINUX")) {
+//               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_so );
+//               System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_so);
+//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
+               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
             }
             else {
-               shell = new Shell(disp);
+//               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_dll );
+//               System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_dll);
+//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_dll);
+               System.loadLibrary(UsbdmJniConstants.UsbdmLibGccName_dll);
+               System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
+               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
             }
-            libraryLoadFailed = true;
-            MessageBox msgbox = new MessageBox(shell, SWT.OK);
-            msgbox.setText("USBDM Error");
-            msgbox.setMessage("Loading of USBDM native library failed.");
-            msgbox.open();
-            e.printStackTrace();
-            throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
+//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+            if (debug) {
+               System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
+            }
+            else {
+               System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
+            }
+//            System.err.println("Calling init()");
+            usbdmInit();
+            libraryLoaded = true;
+//            System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+
+//            System.err.println("Libraries successfully loaded");
+//            Shell shell;
+//            // Find the default display and get the active shell
+//            final Display disp = Display.getDefault();
+//            if (disp == null) {
+//               shell = new Shell(new Display());
+//            }
+//            else {
+//               shell = new Shell(disp);
+//            }
+//            MessageBox msgbox = new MessageBox(shell, SWT.OK);
+//            msgbox.setText("USBDM Notice");
+//            msgbox.setMessage("Loading of USBDM native library OK.");
+//            msgbox.open();
+
+         } catch (Exception e) {
+            // Report fist failure only
+            if (!libraryLoadFailed) {
+               Shell shell;
+               // Find the default display and get the active shell
+               final Display disp = Display.getDefault();
+               if (disp == null) {
+                  shell = new Shell(new Display());
+               }
+               else {
+                  shell = new Shell(disp);
+               }
+               libraryLoadFailed = true;
+               MessageBox msgbox = new MessageBox(shell, SWT.OK);
+               msgbox.setText("USBDM Error");
+               msgbox.setMessage("Loading of USBDM native library failed.");
+               msgbox.open();
+               e.printStackTrace();
+               try {
+                  throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
+               } catch (UsbdmException e1) {
+                  e1.printStackTrace();
+               }
+            }
+            System.err.println("USBDM Libraries failed to load");
+            return;
          }
-         System.err.println("USBDM Libraries failed to load");
-         return;
       }
    }
-
+   
+   static LibraryLoader library = new LibraryLoader();
+   
    /**
     * Get list of devices
     * 
@@ -1409,8 +1478,6 @@ public class Usbdm {
       ArrayList<USBDMDeviceInfo> deviceList = new ArrayList<USBDMDeviceInfo>();
 
       try {
-         loadLibrary();
-
          int deviceCount;
          BdmInformation   bdmInfo = new Usbdm.BdmInformation();
          USBDMDeviceInfo  deviceInfo;
@@ -1447,16 +1514,14 @@ public class Usbdm {
       return deviceList;
    } 
 
-
    /**
-    * Obtain USBDM Application path
+    *  Obtain USBDM Application path
     * 
-    * @return String containing path
+    *  @return Path to USBDM Application directory (executable, data etc)
     * 
-    * @throws UsbdmException
+    *  @throws UsbdmException
     */
    public static String getUsbdmApplicationPath() throws UsbdmException {
-      loadLibrary();
       Charset utf8Charset = Charset.forName("UTF-8");
       CharsetDecoder utf8CharsetDecoder = utf8Charset.newDecoder();
       byte[] pathArray   = new byte[2000];
@@ -1479,18 +1544,34 @@ public class Usbdm {
       } catch (CharacterCodingException e) {
          e.printStackTrace();
       }
-      return path.replace('\\', '/');
+      return path;
+   }
+
+
+   /**
+    *  Obtain USBDM Application path
+    * 
+    *  @return Path to USBDM Application directory (executable, data etc)
+    */
+   public static IPath getApplicationPath() {
+      Path path = null;
+      try {
+         path = new Path(getUsbdmApplicationPath());
+      } catch (UsbdmException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      return path;
    }
    
    /**
-    * Obtain USBDM Data path
+    *  Obtain USBDM Data path
     * 
-    * @return String containing path
+    *  @return Path to USBDM Data directory (user data etc)
     * 
-    * @throws UsbdmException
+    *  @throws UsbdmException
     */
    public static String getUsbdmDataPath() throws UsbdmException {
-      loadLibrary();
       Charset utf8Charset = Charset.forName("UTF-8");
       CharsetDecoder utf8CharsetDecoder = utf8Charset.newDecoder();
       byte[] pathArray   = new byte[2000];
@@ -1515,4 +1596,23 @@ public class Usbdm {
       }
       return path.replace('\\', '/');
    }
+   
+   /**
+    *  Obtain USBDM Data path
+    * 
+    *  @return Path to USBDM Data directory (user data etc)
+    * 
+    */
+   public static IPath getDataPath() {
+      Path path = null;
+      try {
+         path = new Path(getUsbdmDataPath());
+      } catch (UsbdmException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      return path;
+   }
+   
+   
 }

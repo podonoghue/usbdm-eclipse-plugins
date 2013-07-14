@@ -18,8 +18,9 @@ import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryType;
 import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.jni.UsbdmException;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -118,10 +119,10 @@ public class DeviceDatabase {
       return device;
    }
 
-   private long getIntAttribute(Element element, String name) throws UsbdmException {
+   private long getIntAttribute(Element element, String name) throws Exception {
       String s = element.getAttribute(name);
       if ((s == null) || (s.length()==0)) {
-         throw new UsbdmException("Attribute \'"+name+"\'not found");
+         throw new Exception("Attribute \'"+name+"\'not found");
       }
       long value      = 0;
       long multiplier = 1;
@@ -144,7 +145,7 @@ public class DeviceDatabase {
       } catch (NumberFormatException e) {
 //         System.err.println("getIntAttribute("+s+"), failed");
          e.printStackTrace();
-         throw new UsbdmException("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
+         throw new Exception("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
 //         throw e;
       }
       return value;
@@ -365,7 +366,7 @@ public class DeviceDatabase {
     * 
     * @return
     */
-   private boolean parseXmlFile(String databasePath) {
+   private boolean parseXmlFile(Path databasePath) {
       boolean valid = true;
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -375,7 +376,7 @@ public class DeviceDatabase {
          DocumentBuilder db = dbf.newDocumentBuilder();
          
          //  Parse using builder to get DOM representation of the XML file
-         dom = db.parse(databasePath);
+         dom = db.parse(databasePath.toOSString());
       }catch(ParserConfigurationException pce) {
          pce.printStackTrace();
          valid = false;
@@ -503,20 +504,22 @@ public class DeviceDatabase {
     *  Constructor
     * 
     *  @param xmlFilename device database file name e.g. arm_devices.xml
-    * @throws UsbdmException 
+    * @throws Exception 
     */
    public DeviceDatabase(String xmlFilename) {
       
       deviceList        = new ArrayList<Device>();
       sharedInformation = new SharedInformationMap();
       
-      String applicationPath;
+      IPath applicationPath = Usbdm.getApplicationPath();
+      if (applicationPath == null) {
+         return;
+      }
       try {
-         applicationPath = Usbdm.getUsbdmApplicationPath();
 //       System.err.println("DeviceDatabase(): Usbdm.getUsbdmApplicationPath() => " + applicationPath);
 //       String dataPath = Usbdm.getUsbdmDataPath();
 //       System.err.println("DeviceDatabase(): Usbdm.getUsbdmDataPath()        => " + dataPath);
-         String databasePath = applicationPath + "/DeviceData/" + xmlFilename;
+         Path databasePath = (Path) applicationPath.append("/DeviceData/").append(xmlFilename);
          // Parse the xml file
          if (!parseXmlFile(databasePath)) {
             return;
@@ -526,7 +529,7 @@ public class DeviceDatabase {
             return;
          }
          valid = true;
-      } catch (UsbdmException e) {
+      } catch (Exception e) {
          e.printStackTrace();
       }
    }

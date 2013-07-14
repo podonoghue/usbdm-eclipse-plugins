@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<contexts>
+   <context id="net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic" title="USBDM Configure Dialogue">
+      <description>Help for UBDM Configure dialogue</description>
+      <topic href="ConfigureHelp.html" label="Topic"/>
+   </context>
+   <context id="net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic" title="A title">
+      <description>some stuff</description>
+   </context>
+</contexts>

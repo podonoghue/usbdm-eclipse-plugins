@@ -3,8 +3,10 @@ package net.sourceforge.usbdm.connections.usbdm;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 import org.eclipse.core.runtime.CoreException;
@@ -525,13 +527,13 @@ implements ICWGdiInitializationData {
       comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
       comboEraseMethod.setToolTipText("Erase method used before programming");
       toolkit.adapt(comboEraseMethod, true, true);
-      comboEraseMethod.add(EraseMethod.E_NONE.name);
-      comboEraseMethod.add(EraseMethod.E_MASS.name);
-      if (lastEraseMethod.ordinal() >= EraseMethod.E_ALL.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.E_ALL.name);
+      comboEraseMethod.add(EraseMethod.ERASE_NONE.getName());
+      comboEraseMethod.add(EraseMethod.ERASE_MASS.getName());
+      if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_ALL.ordinal()) { 
+         comboEraseMethod.add(EraseMethod.ERASE_ALL.getName());
       }
-      if (lastEraseMethod.ordinal() >= EraseMethod.E_SELECTIVE.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.E_SELECTIVE.name);
+      if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_SELECTIVE.ordinal()) { 
+         comboEraseMethod.add(EraseMethod.ERASE_SELECTIVE.getName());
       }
       comboEraseMethod.select(defaultEraseMethod.ordinal());
    }

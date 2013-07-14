@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Bundle-Name: USBDM GDB Debugger Plugin
+Bundle-Vendor: pgo
+Bundle-Activator: net.sourceforge.usbdm.gdb.Activator
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: net.sourceforge.usbdm.gdb;singleton:=true
+Bundle-Version: 4.10.5.qualifier
+Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="1.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="[4.10.5,4.10.6)",
+ net.sourceforge.usbdm.jni;bundle-version="[4.10.5,4.10.6)",
+ org.eclipse.ui;bundle-version="3.7.0",
+ org.eclipse.core.runtime;bundle-version="3.7.0",
+ org.eclipse.debug.ui;bundle-version="3.7.0",
+ org.eclipse.cdt.debug.mi.core;bundle-version="7.1.0",
+ org.eclipse.cdt.dsf.gdb;bundle-version="4.0",
+ org.eclipse.core.variables;bundle-version="3.2.0",
+ org.eclipse.cdt.launch;bundle-version="7.0",
+ org.eclipse.cdt.debug.gdbjtag.core;bundle-version="8.0.0",
+ org.eclipse.cdt.debug.gdbjtag.ui;bundle-version="7.1.0",
+ org.eclipse.cdt.debug.gdbjtag.core
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: net.sourceforge.usbdm.gdb

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
-import net.sourceforge.usbdm.connections.usbdm.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -90,7 +91,7 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
       if (index < 0) {
          index = 0;
       }
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].frequency;
+      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].getFrequency();
    }
 
    /**
@@ -112,7 +113,7 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
       bdmOptions.autoReconnect   = defaultBdmOptions.autoReconnect;
       bdmOptions.usePSTSignals   = defaultBdmOptions.usePSTSignals;
       bdmOptions.connectionSpeed = defaultBdmOptions.connectionSpeed;
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).frequency;
+      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
    }
 
    /**
@@ -141,7 +142,7 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
          bdmOptions.autoReconnect = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect), bdmOptions.autoReconnect);
          bdmOptions.usePSTSignals   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUsePSTSignals),      bdmOptions.usePSTSignals);
          bdmOptions.connectionSpeed = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
-         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).frequency;
+         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
       } catch (Exception e) {
          e.printStackTrace();
       }

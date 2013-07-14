@@ -2,20 +2,20 @@ package net.sourceforge.usbdm.jni;
 
 public class UsbdmJniConstants {
 
-   public static final String UsbdmJniLibraryName      = "UsbdmJniWrapper";
-   public static final String UsbdmJniDebugLibraryName = "UsbdmJniWrapper-debug";
+   static final String UsbdmJniLibraryName      = "UsbdmJniWrapper";
+   static final String UsbdmJniDebugLibraryName = "UsbdmJniWrapper-debug";
 
    //Names of libraries to load (Win32)
    //public static final String LibUsbLibraryName_dll     = "libusb-1.0";
-   public static final String UsbdmLibGccName_dll       = "libgcc_s_dw2-1";
-   public static final String UsbdmLibStdcName_dll      = "libstdc++-6";
-   public static final String UsbdmLibraryName_dll      = "usbdm.4";
-   public static final String UsbdmDebugLibraryName_dll = "usbdm-debug.4";
+   static final String UsbdmLibGccName_dll       = "libgcc_s_dw2-1";
+   static final String UsbdmLibStdcName_dll      = "libstdc++-6";
+   static final String UsbdmLibraryName_dll      = "usbdm.4";
+   static final String UsbdmDebugLibraryName_dll = "usbdm-debug.4";
    
    //Names of libraries to load (Linux)
-   public static final String LibUsbLibraryName_so     = "usb-1.0";
-   public static final String UsbdmLibraryName_so      = "usbdm";
-   public static final String UsbdmDebugLibraryName_so = "usbdm-debug";
+   static final String LibUsbLibraryName_so     = "usb-1.0";
+   static final String UsbdmLibraryName_so      = "usbdm";
+   static final String UsbdmDebugLibraryName_so = "usbdm-debug";
    
    // Names of the Device information files
    public static final String ARM_DEVICE_FILE   = "arm_devices.xml";

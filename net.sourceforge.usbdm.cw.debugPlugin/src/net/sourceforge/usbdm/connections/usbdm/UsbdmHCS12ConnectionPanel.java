@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -50,8 +52,8 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
       deviceNameId       = UsbdmCommon.S12Z_DeviceNameAttributeKey;
       gdiDllName         = UsbdmCommon.S12Z_GdiWrapperLib;
       gdiDebugDllName    = UsbdmCommon.S12Z_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.E_ALL; 
-      lastEraseMethod    = EraseMethod.E_SELECTIVE; 
+      defaultEraseMethod = EraseMethod.ERASE_ALL; 
+      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
    }
 
    public void create() {

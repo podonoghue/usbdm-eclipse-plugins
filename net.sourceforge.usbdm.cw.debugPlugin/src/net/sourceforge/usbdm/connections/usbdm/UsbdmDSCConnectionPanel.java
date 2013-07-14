@@ -9,7 +9,9 @@ import org.eclipse.swt.widgets.Label;
 import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
 import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
 
-import net.sourceforge.usbdm.connections.usbdm.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 
 /**
  * @author podonoghue
@@ -52,8 +54,8 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       deviceNameId       = UsbdmCommon.DSC_DeviceNameAttributeKey;
       gdiDllName         = UsbdmCommon.DSC_GdiWrapperLib;
       gdiDebugDllName    = UsbdmCommon.DSC_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.E_ALL; 
-      lastEraseMethod    = EraseMethod.E_SELECTIVE; 
+      defaultEraseMethod = EraseMethod.ERASE_ALL; 
+      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
    }
 
    public void create() {
@@ -87,7 +89,7 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       if (index < 0) {
          index = 0;
       }
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].frequency;
+      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].getFrequency();
       eraseMethod = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
@@ -110,7 +112,7 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       eraseMethod = defaultEraseMethod;
       bdmOptions.autoReconnect   = defaultBdmOptions.autoReconnect;
       bdmOptions.connectionSpeed = defaultBdmOptions.connectionSpeed;
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).frequency;
+      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
    }
 
    /**
@@ -144,7 +146,7 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
 
          bdmOptions.autoReconnect   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect), bdmOptions.autoReconnect);
          bdmOptions.connectionSpeed = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
-         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).frequency;
+         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
       } catch (Exception e) {
          e.printStackTrace();
       }

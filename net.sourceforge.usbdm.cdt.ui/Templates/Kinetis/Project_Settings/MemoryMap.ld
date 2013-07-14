@@ -1,0 +1,4 @@
+
+MEMORY
+{
+$(linkerMemoryMap)}
