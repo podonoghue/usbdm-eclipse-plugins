@@ -10,7 +10,7 @@ Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
-Bundle-Version: 4.10.5.qualifier
+Bundle-Version: 4.10.6.qualifier
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.swt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

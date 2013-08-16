@@ -12,12 +12,18 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import net.sourceforge.usbdm.deviceDatabase.Device.ClockTypes;
+import net.sourceforge.usbdm.deviceDatabase.Device.FileInfo;
+import net.sourceforge.usbdm.deviceDatabase.Device.FileList;
 import net.sourceforge.usbdm.deviceDatabase.Device.GnuInfo;
 import net.sourceforge.usbdm.deviceDatabase.Device.GnuInfoList;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryType;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.jni.UsbdmJniConstants;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -30,8 +36,10 @@ public class DeviceDatabase {
 
    private ArrayList<Device> deviceList;       // List of all devices
    private Device            defaultDevice;    // Default device
+
    private Document          dom;
    private boolean           valid = false;
+   private TargetType        targetType;
    
    class SharedInformationMap extends HashMap<String, Object> {
       private static final long serialVersionUID = 1192713020204077765L;
@@ -51,6 +59,14 @@ public class DeviceDatabase {
          }
          return (GnuInfoList) item;
       }
+
+      public FileList findSharedFileList(String key) throws Throwable {
+         Object item = get(key);
+         if ((item == null) || !(item instanceof FileList)) {
+            throw new Throwable("findSharedFileList(): Item not found or incorrect type" + key);
+         }
+         return (FileList) item;
+      }
    }
    
    SharedInformationMap sharedInformation;
@@ -64,9 +80,9 @@ public class DeviceDatabase {
     */
    private Device parseDevice(Element deviceElement) {
       String name = deviceElement.getAttribute("name");
-
+      
       //  Create a new Device with the value read from the xml nodes
-      Device device = new Device(name);
+      Device device = new Device(targetType, name);
 
       if (deviceElement.hasAttribute("isDefault")) {
          device.setDefault();
@@ -87,7 +103,13 @@ public class DeviceDatabase {
                continue;
             }
             Element element = (Element) node;
-            if (element.getTagName() == "memory") {
+            if (element.getTagName() == "clock") {
+               device.setClockAddres(Integer.decode(element.getAttribute("registerAddress")));
+               device.setClockType(ClockTypes.parse(element.getAttribute("type")));
+               device.setClockNvAddress(device.getDefaultClockTrimNVAddress());
+               device.setClockTrimFrequency(device.getDefaultClockTrimFreq());
+            }
+            else if (element.getTagName() == "memory") {
                MemoryRegion memoryRegion = parseMemoryElements(element);
                device.addMemoryRegion(memoryRegion);
             }
@@ -104,6 +126,15 @@ public class DeviceDatabase {
                String key = element.getAttribute("ref"); 
                GnuInfoList gnuInfoMap = sharedInformation.findSharedGnuInfoMap(key);
                device.setGnuInfoMap(gnuInfoMap);
+            }
+            else if (element.getTagName() == "fileList") {
+               FileList fileMap = parseFileListElements(element);
+               device.setFileListMap(fileMap);
+            }
+            else if (element.getTagName() == "fileListRef") {
+               String key = element.getAttribute("ref"); 
+               FileList fileMap = sharedInformation.findSharedFileList(key);
+               device.setFileListMap(fileMap);
             }
             else if (element.getTagName() == "soptAddress") {
                long soptAddress = getIntAttribute(element, "value");
@@ -247,9 +278,9 @@ public class DeviceDatabase {
    /**
     * Parse a <GnuInfoMap> element
     * 
-    * @param    gnuInfoListElement <GnuInfoMap> element
+    * @param    gnuInfoListElement <gnuInfoList> element
     * 
-    * @return   Memory region described 
+    * @return   GNU information described 
     * @throws Throwable 
     */
    private Device.GnuInfoList parseGnuInfoListElements(Element gnuInfoListElement) throws Throwable {
@@ -276,6 +307,40 @@ public class DeviceDatabase {
          String command  = element.getAttribute("command");
          String text     = element.getTextContent();
          GnuInfo gnuInfo = new Device.GnuInfo(id, value, path, name, command, text);
+         list.put(gnuInfo);
+      }
+      return list;
+   }
+   
+   /**
+    * Parse a <GnuInfoMap> element
+    * 
+    * @param    fileListElement <fileList> element
+    * 
+    * @return   File list described 
+    * @throws Throwable 
+    */
+   private Device.FileList parseFileListElements(Element fileListElement) throws Throwable {
+
+      Device.FileList list = new Device.FileList();
+      
+      // <GnuInfoMap>
+      for (Node node = fileListElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         // element node for <gnuInfo>
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+//         System.err.println("parseFileListElements() " + node.getNodeName());
+         Element element = (Element) node;
+         if (element.getTagName() != "file") {
+            throw new Throwable("Unexpected element \""+element.getTagName()+"\" in fileList");
+         }
+         String id        = element.getAttribute("id");
+         String source    = element.getAttribute("source");
+         String target    = element.getAttribute("target");
+         FileInfo gnuInfo = new Device.FileInfo(id, source, target);
          list.put(gnuInfo);
       }
       return list;
@@ -315,6 +380,15 @@ public class DeviceDatabase {
                   throw new Throwable("parseSharedInformationElements() - null key");
                }
                sharedInformation.put(key, gnuInfoList);
+//               System.err.println("parseSharedInformationElements() GnuInfoMap:" + key);
+            }
+            if (element.getTagName() == "fileList") {
+               FileList fileList = parseFileListElements(element);
+               String key = element.getAttribute("id");
+               if (key == null) {
+                  throw new Throwable("parseSharedInformationElements() - null key");
+               }
+               sharedInformation.put(key, fileList);
 //               System.err.println("parseSharedInformationElements() GnuInfoMap:" + key);
             }
             // Ignore other node types <flashProgram> <tclScript> <securityEntry> <flexNVMInfo> 
@@ -439,20 +513,20 @@ public class DeviceDatabase {
     * List devices in database
     * 
     */
-  public void listDevices() {
-      System.out.println("No of Devices '" + deviceList.size() + "'.");
-      
+   public void listDevices(PrintStream stream) {
+      stream.println("No of Devices '" + deviceList.size() + "'.");
+
       if (defaultDevice == null) {
-         System.out.println("No default device set");
+         stream.println("No default device set");
       }
       else {
-         System.out.println("Default device = " + defaultDevice.toString());
+         stream.println("Default device = " + defaultDevice.toString());
       }
       Iterator<Device> it = deviceList.iterator();
       while(it.hasNext()) {
          Device device = it.next();
          if (!device.isAlias()) {
-            System.out.println(device.toString());
+            stream.println(device.toString());
          }
       }
    }
@@ -499,6 +573,48 @@ public class DeviceDatabase {
    public boolean isValid() {
       return valid;
    }
+
+   /*
+   T_HCS12     (0),   //!< HC12 or HCS12 target
+   T_HCS08     (1),   //!< HCS08 target
+   T_RS08      (2),   //!< RS08 target
+   T_CFV1      (3),   //!< Coldfire Version 1 target
+   T_CFVx      (4),   //!< Coldfire Version 2,3,4 target
+   T_JTAG      (5),   //!< JTAG target - TAP is set to \b RUN-TEST/IDLE
+   T_EZFLASH   (6),   //!< EzPort Flash interface (SPI?)
+   T_MC56F80xx (7),   //!< JTAG target with MC56F80xx optimised subroutines
+   T_ARM_JTAG  (8),   //!< ARM target using JTAG
+   T_ARM_SWD   (9),   //!< ARM target using SWD
+   T_ARM       (10),  //!< ARM target using either SWD (preferred) or JTAG as supported
+   T_OFF       (0xFF),
+*/
+  
+   Path getXmlFilepath(TargetType targetType) throws Exception {
+      String filename;
+      switch (targetType) {
+      case T_ARM:
+      case T_ARM_JTAG:
+      case T_ARM_SWD:
+         filename = UsbdmJniConstants.ARM_DEVICE_FILE;
+         break;
+      case T_CFV1:
+         filename = UsbdmJniConstants.CFV1_DEVICE_FILE;
+         break;
+      case T_CFVx:
+         filename = UsbdmJniConstants.CFVX_DEVICE_FILE;
+         break;
+      default:
+         throw new UsbdmException("Device file not found");
+      };
+      IPath applicationPath = Usbdm.getApplicationPath();
+      if (applicationPath == null) {
+         return null;
+      }
+     applicationPath = applicationPath.append("/DeviceData/").append(filename);
+     System.err.println("DeviceDatabase.getXmlFilepath(): XML file path = " + applicationPath);
+     
+     return (Path) applicationPath;
+   }
    
    /**
     *  Constructor
@@ -506,20 +622,15 @@ public class DeviceDatabase {
     *  @param xmlFilename device database file name e.g. arm_devices.xml
     * @throws Exception 
     */
-   public DeviceDatabase(String xmlFilename) {
+   public DeviceDatabase(TargetType targetType) {
+            
+      this.targetType   = targetType;
       
       deviceList        = new ArrayList<Device>();
       sharedInformation = new SharedInformationMap();
       
-      IPath applicationPath = Usbdm.getApplicationPath();
-      if (applicationPath == null) {
-         return;
-      }
       try {
-//       System.err.println("DeviceDatabase(): Usbdm.getUsbdmApplicationPath() => " + applicationPath);
-//       String dataPath = Usbdm.getUsbdmDataPath();
-//       System.err.println("DeviceDatabase(): Usbdm.getUsbdmDataPath()        => " + dataPath);
-         Path databasePath = (Path) applicationPath.append("/DeviceData/").append(xmlFilename);
+         Path databasePath = getXmlFilepath(targetType);
          // Parse the xml file
          if (!parseXmlFile(databasePath)) {
             return;
@@ -534,6 +645,10 @@ public class DeviceDatabase {
       }
    }
    
+   public TargetType getTargetType() {
+      return targetType;
+   }
+
    public Device getDevice(String name) {
       for (int index = 0; index<deviceList.size(); index++) {
          Device device = deviceList.get(index);
@@ -543,4 +658,9 @@ public class DeviceDatabase {
       }
       return null;
    }
+   
+   public Device getDefaultDevice() {
+      return defaultDevice;
+   }
+
 }

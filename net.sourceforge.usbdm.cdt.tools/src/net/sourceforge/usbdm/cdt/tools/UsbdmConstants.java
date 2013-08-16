@@ -6,25 +6,6 @@ public class UsbdmConstants {
    public static final String GCC_COMMAND_LINUX       = "gcc";             //$NON-NLS-1$
    public static final String GCC_COMMAND_WINDOWS     = "gcc.exe";         //$NON-NLS-1$
 
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_V1 = 
-         "  /* Default Map - Unknow device */\n" +              //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_Vx = 
-         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_KINETIS = 
-         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   
    // These constants are used for project templates keys
    public final static String TARGET_DEVICE_KEY                = "targetDevice";           //$NON-NLS-1$
    public final static String BUILD_TOOL_ID_KEY                = "buildToolId";            //$NON-NLS-1$
@@ -40,9 +21,14 @@ public class UsbdmConstants {
    public final static String EXTERNAL_VECTOR_TABLE_KEY        = "externalVectorTable";    //$NON-NLS-1$
    public final static String C_DEVICE_PARAMETERS_KEY          = "cDeviceParameters";      //$NON-NLS-1$
    public final static String USBDM_APPLICATION_PATH_KEY       = "usbdmApplicationPath";   //$NON-NLS-1$
-
+   public final static String CLOCK_TRIM_FREQUENCY_KEY         = "clockTrimFrequency";     //$NON-NLS-1$
+   public final static String NVM_CLOCK_TRIM_LOCATION_KEY      = "nvmClockTrimLocation";   //$NON-NLS-1$
+   public final static String PATH_SEPARATOR_KEY               = "pathSeparator";          //$NON-NLS-1$
+   public final static String FILE_COPY_LIST                   = "fileCopyList";          //$NON-NLS-1$
+   
    public final static String EXCLUDED_FILES_PATTERN_KEY       = "excludedFilesPattern";    //$NON-NLS-1$
    public final static String LINKER_FILE_KEY                  = "linkerFile";              //$NON-NLS-1$
+   public final static String ARM_LTD_STARTUP_S_FILE_KEY       = "startup_ARMLtdGCC_S";     //$NON-NLS-1$
    
    // These constants are used both for the dialogue persistent storage AND the page data map keys
    final static String SHARED_DEFAULTS_PREFIX_KEY       = "prefix";                 //$NON-NLS-1$

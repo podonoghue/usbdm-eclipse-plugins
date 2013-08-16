@@ -527,13 +527,13 @@ implements ICWGdiInitializationData {
       comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
       comboEraseMethod.setToolTipText("Erase method used before programming");
       toolkit.adapt(comboEraseMethod, true, true);
-      comboEraseMethod.add(EraseMethod.ERASE_NONE.getName());
-      comboEraseMethod.add(EraseMethod.ERASE_MASS.getName());
+      comboEraseMethod.add(EraseMethod.ERASE_NONE.toString());
+      comboEraseMethod.add(EraseMethod.ERASE_MASS.toString());
       if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_ALL.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.ERASE_ALL.getName());
+         comboEraseMethod.add(EraseMethod.ERASE_ALL.toString());
       }
       if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_SELECTIVE.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.ERASE_SELECTIVE.getName());
+         comboEraseMethod.add(EraseMethod.ERASE_SELECTIVE.toString());
       }
       comboEraseMethod.select(defaultEraseMethod.ordinal());
    }

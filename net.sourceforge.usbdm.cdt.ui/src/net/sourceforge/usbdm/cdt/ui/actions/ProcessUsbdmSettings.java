@@ -71,7 +71,7 @@ public class ProcessUsbdmSettings extends ProcessRunner {
          throw new ProcessFailureException("ProcessUsbdmSettings.process() - Missing arguments"); //$NON-NLS-1$
       }     
       InterfaceType deviceType = InterfaceType.valueOf(targetDeviceFamily);
-      DeviceDatabase deviceDatabase = new DeviceDatabase(deviceType.deviceFile);
+      DeviceDatabase deviceDatabase = new DeviceDatabase(deviceType.targetType);
       if (!deviceDatabase.isValid()) {
          throw new ProcessFailureException("Device database failed to load"); //$NON-NLS-1$ //$NON-NLS-2$
       }
@@ -131,6 +131,28 @@ public class ProcessUsbdmSettings extends ProcessRunner {
          }
       }
       ManagedBuildManager.saveBuildInfo(projectHandle, true);
+      
+      
+      // Another possible method
+      // see http://permalink.gmane.org/gmane.comp.ide.eclipse.cdt.devel/6456
+//      ICProjectDescription projectDescription = CoreModel.getDefault().getProjectDescription(projectHandle);
+//
+//      IConfiguration configuration = ManagedBuildManager.getConfigurationForDescription(projectDescription.getActiveConfiguration());
+//
+//      configuration.setBuildCommand("gmake");
+//
+//      configuration.setBuildArguments("-f Makefile.mine");
+//
+//      try {
+//         CoreModel.getDefault().setProjectDescription(projectHandle, projectDescription);
+//      } catch (CoreException e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      }
+
+
+      
+      
       
       for (IConfiguration config : projectConfigs) {
           ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, new NullProgressMonitor());    

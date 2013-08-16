@@ -6,14 +6,16 @@
  *******************************************************************************/
 package net.sourceforge.usbdm.constants;
 
-import org.eclipse.jface.resource.ImageDescriptor;
-
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.UsbdmJniConstants;
+
+import org.eclipse.jface.resource.ImageDescriptor;
 
 public class UsbdmSharedConstants {
 
    // IDs used in plugin.xml etc
+   public static final String USBDM_ARM_BUILD_TOOL_ID              = "net.sourceforge.usbdm.cdt.arm.toolchain.buildtools";
+   public static final String USBDM_COLDFIRE_BUILD_TOOL_ID         = "net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools";
    public static final String ARMLTD_ARM_BUILD_ID                  = "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM";
    public static final String CODESOURCERY_ARM_BUILD_ID            = "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryARM";
    public static final String CODESOURCERY_COLDFIRE_BUILD_ID       = "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryColdfire";
@@ -32,17 +34,8 @@ public class UsbdmSharedConstants {
    public static final String USBDM_RM_COMMAND_VAR                 = "usbdm_rm_command";
    public static final String USBDM_APPLICATION_PATH_VAR           = "usbdm_application_path";
 
-   // Keys used in GDB Launch configurations 
-   public final static String attributeKey             = "net.sourceforge.usbdm.gdb";   //$NON-NLS-1$
-   public final static String attributeKey_Family      = attributeKey+".family";        //$NON-NLS-1$
-   public final static String attributeKey_Device      = attributeKey+".device";        //$NON-NLS-1$
-   public final static String attributeKey_DebugMode   = attributeKey+".debugMode";     //$NON-NLS-1$
-   public final static String attributeKey_GdbBinPath  = attributeKey+".gdbBinPath";    //$NON-NLS-1$
-   public final static String attributeKey_GdbCommand  = attributeKey+".gdbCommand";    //$NON-NLS-1$
-   public final static String attributeKey_BuildToolId = attributeKey+".buildToolId";   //$NON-NLS-1$
-   
    // Names of external programs
-   public final static String GDB_NAME                        = "gdb";                         //$NON-NLS-1$
+   public final static String GDB_NAME                        = "gdb";                             //$NON-NLS-1$
    public final static String USBDM_ARM_GDB_SERVER            = "usbdm-arm-gdbPipeServer";         //$NON-NLS-1$
    public final static String USBDM_ARM_GDB_SERVER_DEBUG      = "usbdm-arm-gdbPipeServer-debug";   //$NON-NLS-1$
    public final static String USBDM_CFV1_GDB_SERVER           = "usbdm-cfv1-gdbPipeServer";        //$NON-NLS-1$
@@ -102,12 +95,10 @@ public class UsbdmSharedConstants {
          this.gdbServer       = gdbServer;
          this.gdbDebugServer  = gdbDebugServer;
       }
+      /**  Returns a legible name for use in GUI
+       */
       public String toString() {
          return legibleName;
-      }
-      public String getName() {
-         // name = enumerated name
-         return name();
       }
       public TargetType toTargetType() {
          return targetType;

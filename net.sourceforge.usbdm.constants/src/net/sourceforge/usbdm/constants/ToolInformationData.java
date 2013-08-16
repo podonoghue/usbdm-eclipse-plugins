@@ -12,7 +12,8 @@ public class ToolInformationData {
    protected String                    pathVariableName;
    protected String                    prefixVariableName;
    protected Collection<net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType> interfaceTypes = new HashSet<InterfaceType>();
-   
+   protected InterfaceType             preferredInterfaceType;
+
    static Hashtable<String, ToolInformationData> toolInformationTable = null;
 
    public ToolInformationData(String description, String buildToolId, String pathVariableName, String prefixVariableName) {
@@ -29,18 +30,26 @@ public class ToolInformationData {
       this.prefixVariableName    = other.prefixVariableName;
    }
 
-   public String getDescription()        { return description; }
-   public String getPathVariableName()   { return pathVariableName; }
-   public String getPrefixVariableName() { return prefixVariableName; }
-   public String getBuildToolId()        { return buildToolId; }
+   public String        getDescription()              { return description; }
+   public String        getPathVariableName()         { return pathVariableName; }
+   public String        getPrefixVariableName()       { return prefixVariableName; }
+   public String        getBuildToolId()              { return buildToolId; }
+   public InterfaceType getPreferredInterfaceType()   { return preferredInterfaceType; }
 
-   public boolean   applicableTo(InterfaceType interfacetype) { return interfaceTypes.contains(interfacetype); }
+   public boolean   applicableTo(InterfaceType interfaceType) { return interfaceTypes.contains(interfaceType); }
    
    protected ToolInformationData addInterfaceType(InterfaceType interfaceType) {
       interfaceTypes.add(interfaceType);
+      if (preferredInterfaceType == null) {
+         preferredInterfaceType = interfaceType;
+      }
       return this;
    }
 
+   public String toString() {
+      return getDescription();
+   }
+   
    public static Hashtable<String, ToolInformationData> getToolInformationTable() {
       if (toolInformationTable == null) {
          toolInformationTable = new Hashtable<String, ToolInformationData>();
@@ -72,7 +81,15 @@ public class ToolInformationData {
       }
       return toolInformationTable;
    }
-   public static ToolInformationData get(String key) {
-      return toolInformationTable.get(key);
+   
+   /**  Find Tool Information based on tool id e.g. 
+    *         net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.codesourceryColdfire
+    *         
+    * @param buildToolId Id - see above
+    * 
+    * @return Description of this tool
+    */
+   public static ToolInformationData get(String buildToolId) {
+      return toolInformationTable.get(buildToolId);
    }
 }

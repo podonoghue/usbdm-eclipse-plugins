@@ -1707,6 +1707,10 @@
                id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM0"
                command="-mcpu=cortex-m0" />
             <enumeratedOptionValue
+               name="Cortex M3"
+               id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM3"
+               command="-mcpu=cortex-m3" />
+            <enumeratedOptionValue
                name="Cortex M4"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM4"
                command="-mcpu=cortex-m4" />
@@ -1735,12 +1739,12 @@
                 command="-mfloat-abi=soft">
             </enumeratedOptionValue>
             <enumeratedOptionValue
-                name="Use Floating Point Unit (FPU) hardware with soft-float calling conventions (-mfloat-abi=softfp)"
+                name="Use Floating Point Unit (FPU) with soft-float ABI (-mfloat-abi=softfp)"
                 id="net.sourceforge.usbdm.cdt.toolchain.processor.option.misc.mfloat.softfp"
                 command="-mfloat-abi=softfp">
             </enumeratedOptionValue>
             <enumeratedOptionValue
-                name="Use Floating Point Unit (FPU) hardware with FPU-specific calling conventions (-mfloat-abi=hard)"
+                name="Use Floating Point Unit (FPU) with FPU-specific ABI (-mfloat-abi=hard)"
                 id="net.sourceforge.usbdm.cdt.toolchain.processor.option.misc.mfloat.hard"
                 command="-mfloat-abi=hard">
             </enumeratedOptionValue>

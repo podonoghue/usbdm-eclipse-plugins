@@ -55,10 +55,6 @@
             class="net.sourceforge.usbdm.cdt.ui.handlers.CfvxGdbServerHandler"
             commandId="net.sourceforge.usbdm.cdt.wizard.commands.startCfvxGdbServerCommand">
       </handler>
-      <handler
-            class="net.sourceforge.usbdm.cdt.ui.handlers.StartNewProjectWizard"
-            commandId="net.sourceforge.usbdm.cdt.ui.handler1">
-      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -179,8 +175,8 @@
       </template>
       <template
          filterPattern=".*gcc"
-         id="net.sourceforge.usbdm.template.kinetis.c"
-         location="Templates/Kinetis/Template_c.xml"
+         id="net.sourceforge.usbdm.template.arm.c"
+         location="Templates/ARM/Template_c.xml"
          pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$ArmPageProvider"
          projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
          <toolChain
@@ -192,8 +188,8 @@
       </template>
       <template
          filterPattern=".*g\+\+"
-         id="net.sourceforge.usbdm.template.kinetis.cpp"
-         location="Templates/Kinetis/Template_cpp.xml"
+         id="net.sourceforge.usbdm.template.arm.cpp"
+         location="Templates/ARM/Template_cpp.xml"
          pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$ArmPageProvider"
          projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
          <toolChain
@@ -243,16 +239,24 @@
          </complexArray>
       </processType>
       <processType
+         name="AddTargetFiles"
+         processRunner="net.sourceforge.usbdm.cdt.ui.actions.AddTargetFiles">
+         <simple
+            name="projectName" />
+         <simple
+            name="targetDeviceFamily" />
+         <simple
+            name="targetDevice" />
+      </processType>
+      <processType
          name="ProcessUsbdmSettings"
          processRunner="net.sourceforge.usbdm.cdt.ui.actions.ProcessUsbdmSettings">
          <simple
             name="projectName" />
          <simple
-            name="targetDeviceFamily"
-            external="true" />
+            name="targetDeviceFamily" />
          <simple
-            name="targetDevice"
-            external="true" />
+            name="targetDevice" />
       </processType>
       <processType
          name="CreateIncludeFolder"

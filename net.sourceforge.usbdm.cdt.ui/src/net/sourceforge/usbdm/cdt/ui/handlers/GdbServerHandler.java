@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.cdt.ui.handlers;
 
+import net.sourceforge.usbdm.gdb.GdbServerInterface;
+import net.sourceforge.usbdm.gdb.GdbServerParameters;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

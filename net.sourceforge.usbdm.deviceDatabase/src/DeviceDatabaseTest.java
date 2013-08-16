@@ -4,7 +4,8 @@
 //import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-import net.sourceforge.usbdm.jni.UsbdmJniConstants;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 
 public class DeviceDatabaseTest {
@@ -20,16 +21,18 @@ public class DeviceDatabaseTest {
 //            USBDMDeviceInfo di = it.next();
 //            System.err.println("Device \n" + di);
 //         }
-//         System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
-//         System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
+         System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
+         System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
          
-//         DeviceDatabase database = new DeviceDatabase(UsbdmJniConstants.CFVX_DEVICE_FILE);
-//         database.listDevices();
-//         database.toXML(System.err);
-         String[] targets = {UsbdmJniConstants.ARM_DEVICE_FILE, UsbdmJniConstants.CFV1_DEVICE_FILE, UsbdmJniConstants.CFVX_DEVICE_FILE};
-         for (String target:targets) {
-            DeviceDatabase database = new DeviceDatabase(target);
-            database.toOptionXML(System.err);
+         TargetType[] targetTypes = {
+               TargetType.T_ARM,  
+               TargetType.T_CFV1, 
+               TargetType.T_CFVx, };
+         for (TargetType targetType:targetTypes) {
+            DeviceDatabase database = new DeviceDatabase(targetType);
+            database.listDevices(System.err);
+//            database.toOptionXML(System.err);
+//            database.toXML(System.err);
          }
       } catch (Exception e) {
          e.printStackTrace();

@@ -161,11 +161,9 @@ public class AddExternalFiles extends ProcessRunner {
       for (ProcessArgument arg:args) {
 //         System.err.println("AddExternalFiles.process() - arg = "+arg.getName());
          if (arg.getName().equals("projectName")) {
-//            projectName   = args[0].getSimpleValue();        // name of project to get handle
             projectName   = arg.getSimpleValue();        // name of project to get handle
          }
          else if (arg.getName().equals("copyList")) {
-//            copyList      = args[1].getComplexArrayValue();  // list of files/directories to process
             copyList      = arg.getComplexArrayValue();  // list of files/directories to process
          }
          else {

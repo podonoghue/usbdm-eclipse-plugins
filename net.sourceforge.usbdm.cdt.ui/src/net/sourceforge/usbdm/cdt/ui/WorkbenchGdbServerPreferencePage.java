@@ -1,10 +1,14 @@
 package net.sourceforge.usbdm.cdt.ui;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 
-import net.sourceforge.usbdm.cdt.ui.handlers.GdbServerParameters;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.Device.ClockTypes;
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.gdb.GdbServerParameters;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -16,6 +20,8 @@ import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
@@ -40,39 +46,47 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    private static final int   NEEDS_RESET = 1<<1;
    private static final int   NEEDS_PST   = 1<<2;
 
-   private GdbServerParameters   gdbServerParameters = null;
-
+   private GdbServerParameters          gdbServerParameters;
+   private DeviceDatabase               deviceDatabase;
    protected ArrayList<USBDMDeviceInfo> deviceList;
-   private Label              lblTrimFrequency;
+                                        
+   private Combo                        comboTargetDeviceName;
+   
+   private Combo                        comboSelectBDM;
+   private Button                       btnRefreshBDMs;
+   private Label                        lblBDMInformation;
+   private Button                       btnRequireExactBdm;
+   
+   private Text                         gdbPortText;
+   private NumberTextAdapter            gdbPortAdapter;
+   private Button                       btnUseDebug;
+   private Button                       btnExitOnClose;
 
-   private Combo              comboSelectBDM;
-   private Button             btnRefreshBDMs;
-   private Label              lblBDMInformation;
-   private Text               txtTrimFrequency;
-   private Label              lblKhz;
-   private Label              lblNvtrimAddress;
-   private Text               txtNVTRIMAddress;
-   private Label              lblHex;
-   private Button             btnTrimTargetClock;
-   private Combo              comboEraseMethod;
-   private Composite          targetVddComposite;
-   private Button[]           targetVddButtons;
-   private Button             btnAutomaticallyReconnect;
-   private Button             btnDriveReset;
-   private Button             btnUsePstSignals;
-   private Combo              comboConnectionSpeed;
-   private InterfaceType      interfaceType;
-   private Text               gdbPortText;
-   private NumberTextAdapter  gdbPortAdapter;
+   private Combo                        comboConnectionSpeed;
+   private Button                       btnAutomaticallyReconnect;
+   private Button                       btnDriveReset;
+   private Button                       btnUsePstSignals;
 
-   private EraseMethod[]      eraseMethods;
-   private Button btnUseDebug;
+   private EraseMethod[]                eraseMethods;
+   private Combo                        comboEraseMethod;
+   
+   private TargetVddSelect[]            targetVdds;
+   private Combo                        comboTargetVdd;
+
+   private ClockTypes                   clockType;
+   private Button                       btnTrimTargetClock;
+   private Text                         txtTrimFrequency;
+   private Label                        lblKhz;
+   private Label                        lblNvtrimAddress;
+   private Text                         txtNVTRIMAddress;
+   private Label                        lblHex;
 
    static public class WorkbenchPreferenceArmPage extends WorkbenchGdbServerPreferencePage 
    implements IWorkbenchPreferencePage {
+      
       public WorkbenchPreferenceArmPage() {
-         super("GDB Server settings for ARM");
-         setGdbServerParameters(new GdbServerParameters.ArmGdbServerParameters());
+         super();
+         super.setTitle("GDB Server settings for ARM");
       }
 
       @Override
@@ -83,29 +97,29 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          composite.setLayout(new GridLayout(4, false));
 
          //-----
-         createPreferredBdmGroup(composite);
-         new Label(composite, SWT.FILL).setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+         createTargetGroup(composite);
+         new Label(composite, SWT.NONE);
          //-----
-         createGdbPortGroup(composite);
-         createConnectionGroup(composite, NEEDS_SPEED);
+         createPreferredBdmGroup(composite);
+         new Label(composite, SWT.NONE);
+         //-----
+         createGdbServerGroup(composite);
+         createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
-         //-----
          creatTargetVddGroup(composite);
-         new Label(composite, SWT.NONE);
          new Label(composite, SWT.NONE);
          //-----
 
          loadSettings();
 
-         //         setControl(composite); 
          return composite;
       }
 
       @Override
       public void init(IWorkbench workbench) {
          super.init(workbench);
-         GdbServerParameters params = new GdbServerParameters.ArmGdbServerParameters();
+         GdbServerParameters params = GdbServerParameters.getDefaultServerParameters(InterfaceType.T_ARM);
          params.loadDefaultSettings();
          super.setGdbServerParameters(params);
       }
@@ -113,9 +127,10 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
    static public class WorkbenchPreferenceCfv1Page extends WorkbenchGdbServerPreferencePage
    implements IWorkbenchPreferencePage {
+      
       public WorkbenchPreferenceCfv1Page() {
-         super("GDB Server settings for Coldfire V1");
-         setGdbServerParameters(new GdbServerParameters.Cfv1GdbServerParameters());
+         super();
+         super.setTitle("GDB Server settings for Coldfire V1");
       }
 
       @Override
@@ -125,19 +140,23 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          composite.setLayout(new GridLayout(4, false));
 
          //-----
+         createTargetGroup(composite);
+         new Label(composite, SWT.NONE);
+         //-----
          createPreferredBdmGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
-         createGdbPortGroup(composite);
-         createConnectionGroup(composite, NEEDS_RESET);
+         createGdbServerGroup(composite);
+         createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
-         //-----
          creatTargetVddGroup(composite);
+         new Label(composite, SWT.NONE);
+         //-----
          createTrimGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
-
+         
          loadSettings();
 
          return composite;
@@ -146,7 +165,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       @Override
       public void init(IWorkbench workbench) {
          super.init(workbench);
-         GdbServerParameters params = new GdbServerParameters.Cfv1GdbServerParameters();
+         GdbServerParameters params = GdbServerParameters.getDefaultServerParameters(InterfaceType.T_CFV1);
          params.loadDefaultSettings();
          super.setGdbServerParameters(params);
       }
@@ -154,9 +173,10 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
    static public class WorkbenchPreferenceCfvxPage extends WorkbenchGdbServerPreferencePage 
    implements IWorkbenchPreferencePage {
+      
       public WorkbenchPreferenceCfvxPage() {
-         super("GDB Server settings for Coldfire V2,3 & 4");
-         setGdbServerParameters(new GdbServerParameters.CfvxGdbServerParameters());
+         super();
+         super.setTitle("GDB Server settings for Coldfire V2,3 & 4");
       }
 
       @Override
@@ -166,16 +186,18 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
          composite.setLayout(new GridLayout(4, false));
 
+         //-----
+         createTargetGroup(composite);
+         new Label(composite, SWT.NONE);
+         //-----
          createPreferredBdmGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
-         createGdbPortGroup(composite);
-         createConnectionGroup(composite, NEEDS_SPEED|NEEDS_PST);
+         createGdbServerGroup(composite);
+         createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
-         //-----
          creatTargetVddGroup(composite);
-         new Label(composite, SWT.NONE);
          new Label(composite, SWT.NONE);
          //-----
 
@@ -187,7 +209,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       @Override
       public void init(IWorkbench workbench) {
          super.init(workbench);
-         GdbServerParameters params = new GdbServerParameters.CfvxGdbServerParameters();
+         GdbServerParameters params = GdbServerParameters.getDefaultServerParameters(InterfaceType.T_CFVX);
          params.loadDefaultSettings();
          super.setGdbServerParameters(params);
       }
@@ -195,13 +217,97 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
    protected abstract Control createContents(Composite parent);
 
-   public WorkbenchGdbServerPreferencePage(String title) {
-      super(title);
+   public WorkbenchGdbServerPreferencePage() {
+      super();
       setDescription("Select default settings for GDB Socket Server");
-      setInterfaceType(interfaceType);
    }
 
    //==========================================================
+
+   /** Create Device selection group
+    * 
+    *  @param parent parent of group
+    */
+   protected void createTargetGroup(Composite parent) {
+      Group grpSelectTarget = new Group(parent, SWT.NONE);
+      grpSelectTarget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
+      grpSelectTarget.setText("Target");
+      grpSelectTarget.setLayout(new GridLayout(2, false));
+      
+      Label label = new Label(grpSelectTarget, SWT.NONE);
+      label.setText("Target Device:"); //$NON-NLS-1$
+      comboTargetDeviceName = new Combo(grpSelectTarget, SWT.BORDER|SWT.READ_ONLY);
+      GridData gd = new GridData();
+      gd.widthHint = 170;
+      comboTargetDeviceName.setLayoutData(gd);
+      populateTargetDevices();
+      comboTargetDeviceName.select(0);
+
+      // Add watchers for user data entry
+      comboTargetDeviceName.addModifyListener(new ModifyListener() {
+         @Override
+         public void modifyText(ModifyEvent e) {
+            setDevice(comboTargetDeviceName.getText());
+         }
+      });         
+   }
+   
+   protected void setDevice(String deviceName) {
+      if (deviceDatabase == null) {
+         InterfaceType interfaceType = getInterfaceType();
+         deviceDatabase = new DeviceDatabase(interfaceType.targetType);
+      }
+      if (!deviceDatabase.isValid()) {
+         comboTargetDeviceName.add("Device database not found");
+      }
+      Device device = deviceDatabase.getDevice(deviceName);
+      if (device == null) {
+         // Use 1st device in list
+         comboTargetDeviceName.select(0);
+         deviceName = comboTargetDeviceName.getText();
+         device = deviceDatabase.getDevice(deviceName);
+      }
+      if (device == null) { 
+         clockType = ClockTypes.INVALID;
+      }
+      else {
+         clockType = device.getClockType();
+      }
+      if (btnTrimTargetClock != null) {
+         enableTrim(btnTrimTargetClock.getSelection());
+      }
+      comboTargetDeviceName.setText(deviceName);
+   }
+
+   /**
+    * Populate the Target Device combo
+    * Device list depends on currently selected Interface
+    */
+   private void populateTargetDevices() {
+      String currentDevice = null;
+      currentDevice = comboTargetDeviceName.getText();
+
+      comboTargetDeviceName.removeAll();
+      if ((deviceDatabase == null) || !deviceDatabase.isValid()) {
+         comboTargetDeviceName.add("Device database not found");
+      }
+      else {
+         Iterator<Device> it = deviceDatabase.iterator();
+         while(it.hasNext()) {
+            Device device = it.next();
+            if (!device.isAlias()) {
+               comboTargetDeviceName.add(device.getName());
+            }
+         }
+      }
+      // Try to restore original device
+      if (currentDevice != null) {
+         comboTargetDeviceName.setText(currentDevice);
+      }
+      if (comboTargetDeviceName.getSelectionIndex() < 0) {
+         comboTargetDeviceName.select(0);
+      }
+   }
 
    /** Create BDM Selection Group
     * 
@@ -211,13 +317,12 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       //    System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
 
       Group grpSelectBdm = new Group(parent, SWT.NONE);
-      grpSelectBdm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
-      grpSelectBdm.setText("Preferred BDM");
+      grpSelectBdm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+      grpSelectBdm.setText("BDM Selection");
       grpSelectBdm.setLayout(new GridLayout(2, false));
 
       comboSelectBDM = new Combo(grpSelectBdm, SWT.READ_ONLY);
-      comboSelectBDM.setToolTipText("Allows selection of  preferred BDM from those currently attached.\r\n" +
-            "Only used if multiple BDMs are attached when debugging.");
+      comboSelectBDM.setToolTipText("Allows selection of preferred or required BDM\nfrom those currently attached.");
       comboSelectBDM.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
             updateBdmDescription();
@@ -242,7 +347,12 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       lblBDMInformation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
       lblBDMInformation.setToolTipText("Description of selected BDM");
       lblBDMInformation.setText("BDM Information");
-      new Label(grpSelectBdm, SWT.NONE);
+
+      btnRequireExactBdm = new Button(grpSelectBdm, SWT.CHECK);
+      btnRequireExactBdm.setToolTipText("Use only the selected BDM.\n" +
+      		                        "Otherwise selection is preferred BDM.");
+      btnRequireExactBdm.setText("Exact");
+
    }
 
    /** Populates the BDM choice control
@@ -268,7 +378,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          deviceList = new ArrayList<USBDMDeviceInfo>(); 
       }
       // Always add a null device
-      //      System.err.println("populateBdmChoices() - Adding nullDevice");
+//      System.err.println("populateBdmChoices() - Adding nullDevice");
       deviceList.add(0, USBDMDeviceInfo.nullDevice);
 
       String preferredDevice;
@@ -314,7 +424,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
             deviceList.add(new USBDMDeviceInfo("Previously selected device (not connected)", previousDevice, new BdmInformation()));
             comboSelectBDM.add(previousDevice);
             comboSelectBDM.setText(previousDevice);
-//            System.err.println("populateBdmChoices() Adding preferredDevice = \'"+comboSelectBDM.getText()+"\'\n");
+            System.err.println("populateBdmChoices() Adding preferredDevice = \'"+comboSelectBDM.getText()+"\'\n");
          }
       }
       updateBdmDescription();
@@ -337,11 +447,11 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
     * 
     * @param parent parent of group
     */
-   protected void createGdbPortGroup(Composite parent) {
+   protected void createGdbServerGroup(Composite parent) {
       //    System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
 
       Group grpGdbControl = new Group(parent, SWT.NONE);
-      grpGdbControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      grpGdbControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
       grpGdbControl.setText("GDB Server Control");
       GridLayout gridLayout = new GridLayout(2,false);
       grpGdbControl.setLayout(gridLayout);
@@ -355,37 +465,97 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       btnUseDebug.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
       btnUseDebug.setToolTipText("Use debug version of server.");
       btnUseDebug.setText("Debug");
+      btnExitOnClose = new Button(grpGdbControl, SWT.CHECK);
+      btnExitOnClose.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      btnExitOnClose.setToolTipText("Exit the server when the client connection is closed.");
+      btnExitOnClose.setText("Exit on Close");
+   }
+
+   protected void createConnectionGroup(Composite comp) {
+
+      Group grpConnectionControl = new Group(comp, SWT.NONE);
+      grpConnectionControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
+
+      grpConnectionControl.setLayout(new GridLayout(1, false));
+      grpConnectionControl.setText("Connection Control"); //$NON-NLS-1$
+
+      if (gdbServerParameters.isRequiredDialogueComponents(NEEDS_SPEED)) {
+         comboConnectionSpeed = new Combo(grpConnectionControl, SWT.READ_ONLY);
+         comboConnectionSpeed.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+         comboConnectionSpeed.setItems(JTAGInterfaceData.getConnectionSpeeds());
+         comboConnectionSpeed.setToolTipText("Connection speed to use for BDM communications");
+         comboConnectionSpeed.select(4);
+      }
+      btnAutomaticallyReconnect = new Button(grpConnectionControl, SWT.CHECK);
+      btnAutomaticallyReconnect.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      btnAutomaticallyReconnect.setToolTipText("Automatically re-sync with the target whenever target state is polled."); //$NON-NLS-1$
+      btnAutomaticallyReconnect.setText("Automatically re-connect"); //$NON-NLS-1$
+
+      if (gdbServerParameters.isRequiredDialogueComponents(NEEDS_RESET)) {
+         btnDriveReset = new Button(grpConnectionControl, SWT.CHECK);
+         btnDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+         btnDriveReset.setToolTipText("Drive target reset pin when resetting the target."); //$NON-NLS-1$
+         btnDriveReset.setText("Drive RESET pin"); //$NON-NLS-1$
+         btnDriveReset.setBounds(0, 0, 140, 16);
+      }
+      if (gdbServerParameters.isRequiredDialogueComponents(NEEDS_PST)) {
+         btnUsePstSignals = new Button(grpConnectionControl, SWT.CHECK);
+         btnUsePstSignals.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+         btnUsePstSignals.setToolTipText("Use PST signal to determine execution state of target.");
+         btnUsePstSignals.setText("Use PST signals");
+      }         
+   }
+
+   protected void createEraseGroup(Composite comp) {
+
+      Group grpEraseOptions = new Group(comp, SWT.NONE);
+      grpEraseOptions.setText("Erase Options");
+      grpEraseOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+      
+      RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
+      rowLayout.pack = false;
+      rowLayout.justify = true;
+      
+      grpEraseOptions.setLayout(rowLayout);
+
+      eraseMethods = new EraseMethod[EraseMethod.values().length];
+      comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
+      comboEraseMethod.setToolTipText("Erase method used before programming");
+      int index = 0;
+      for (EraseMethod method :EraseMethod.values()) {
+         if (gdbServerParameters.isAllowedEraseMethod(method)) {
+            comboEraseMethod.add(method.toString());
+            eraseMethods[index++] = method;
+         }
+      }
+      comboEraseMethod.select(comboEraseMethod.getItemCount()-1);
    }
 
    protected void creatTargetVddGroup(Composite comp) {
 
       Group grpTargetVddSupply = new Group(comp, SWT.NONE);
-      grpTargetVddSupply.setText("Target Vdd Supply"); //$NON-NLS-1$
-      RowLayout rl_grpTargetVddSupply = new RowLayout(SWT.VERTICAL);
-      rl_grpTargetVddSupply.marginHeight = 3;
-      rl_grpTargetVddSupply.spacing = 5;
-      rl_grpTargetVddSupply.fill = true;
-      grpTargetVddSupply.setLayout(rl_grpTargetVddSupply);
-      grpTargetVddSupply.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
+      grpTargetVddSupply.setText("Target Vdd"); //$NON-NLS-1$
+      grpTargetVddSupply.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
-      targetVddComposite = new Composite(grpTargetVddSupply, SWT.NONE);
-      targetVddComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
+      RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
+      rowLayout.pack = false;
+      rowLayout.justify = false;
+      rowLayout.fill = true;
+      
+      grpTargetVddSupply.setLayout(rowLayout);
 
-      targetVddButtons = new Button[TargetVddSelect.values().length];
-      for(final TargetVddSelect targetVdd :TargetVddSelect.values()) {
+      targetVdds = new TargetVddSelect[TargetVddSelect.values().length];
+      comboTargetVdd = new Combo(grpTargetVddSupply, SWT.READ_ONLY);
+      comboTargetVdd.setToolTipText("Target Vdd supplied from BDM to target");
+
+      int index = 0;
+      for (TargetVddSelect targetVdd :TargetVddSelect.values()) {
          if (targetVdd.ordinal() > TargetVddSelect.BDM_TARGET_VDD_5V.ordinal()) {
             continue;
          }
-         Button button = new Button(targetVddComposite, SWT.RADIO);
-         targetVddButtons[targetVdd.ordinal()] = button;
-         button.setData(targetVdd);
-         button.setText(targetVdd.getName());
-         button.setToolTipText(targetVdd.getHint());
-         button.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-               gdbServerParameters.setTargetVdd(targetVdd);
-            }
-         });
+         comboTargetVdd.add(targetVdd.toString());
+         targetVdds[index++] = targetVdd;
+         comboTargetVdd.select(comboTargetVdd.getItemCount()-1);
       }
    }
 
@@ -393,23 +563,22 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
       Group grpClockTrim = new Group(comp, SWT.NONE);
       grpClockTrim.setText("Internal Clock Trim"); //$NON-NLS-1$
-      grpClockTrim.setLayout(new GridLayout(2, false));
-      grpClockTrim.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
+      grpClockTrim.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+
+      grpClockTrim.setLayout(new GridLayout(3, false));
 
       btnTrimTargetClock = new Button(grpClockTrim, SWT.CHECK);
-      btnTrimTargetClock.setText("Enable Clock Trim");
       btnTrimTargetClock.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
             enableTrim(((Button)e.getSource()).getSelection());
          }
       });
-      new Label(grpClockTrim, SWT.NONE);
+      btnTrimTargetClock.setText("Frequency"); //$NON-NLS-1$
+      btnTrimTargetClock.setToolTipText(
+            "The frequency to trim the internal clock source to.\r\n" +
+                  "Note this is NOT the bus clock frequency.");
 
-      lblTrimFrequency = new Label(grpClockTrim, SWT.NONE);
-      lblTrimFrequency.setText("Trim Frequency"); //$NON-NLS-1$
-      new Label(grpClockTrim, SWT.NONE);
-
-      btnTrimTargetClock.setToolTipText("Enable trimming of target internal clock source."); //$NON-NLS-1$
+      btnTrimTargetClock.setToolTipText("Enable trimming of target internal clock source\r\nto given frequency."); //$NON-NLS-1$
 
       txtTrimFrequency = new Text(grpClockTrim, SWT.BORDER);
       DoubleTextAdapter txtTrimFrequencyAdapter = new DoubleTextAdapter(txtTrimFrequency);
@@ -424,13 +593,15 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       lblKhz = new Label(grpClockTrim, SWT.NONE);
       lblKhz.setToolTipText(
             "The frequency to trim the internal clock source to.\r\n" +
-                  "Note this is NOT the bus clock frequency.\r\n" +
-            "Zero indicates use chip default value");
+                  "Note this is NOT the bus clock frequency.");
       lblKhz.setText("kHz"); //$NON-NLS-1$
 
       lblNvtrimAddress = new Label(grpClockTrim, SWT.NONE);
-      lblNvtrimAddress.setText("NVTRIM Address"); //$NON-NLS-1$
-      new Label(grpClockTrim, SWT.NONE);
+      GridData gd_lblNvtrimAddress = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+      lblNvtrimAddress.setLayoutData(gd_lblNvtrimAddress);
+      lblNvtrimAddress.setText("NVTRIM "); //$NON-NLS-1$
+      lblNvtrimAddress.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
+//      new Label(grpClockTrim, SWT.NONE);
 
       txtNVTRIMAddress = new Text(grpClockTrim, SWT.BORDER);
       HexTextAdapter txtNVTRIMAddressAdapter = new HexTextAdapter("NVTRIM Address", txtNVTRIMAddress, 0);
@@ -441,64 +612,8 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       txtNVTRIMAddress.setLayoutData(gd_txtNVTRIMAddress);
 
       lblHex = new Label(grpClockTrim, SWT.NONE);
-      lblHex.setToolTipText("Address of non-volatile memory location to write the trim value to.\r\n" +
-            "Zero indicates use chip default value"); //$NON-NLS-1$
+      lblHex.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
       lblHex.setText("hex"); //$NON-NLS-1$
-   }
-
-   protected void createEraseGroup(Composite comp) {
-
-      Group grpEraseOptions = new Group(comp, SWT.NONE);
-      grpEraseOptions.setText("Erase Options");
-      grpEraseOptions.setLayout(new RowLayout(SWT.HORIZONTAL));
-      grpEraseOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-
-      eraseMethods = new EraseMethod[EraseMethod.values().length];
-      comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
-      comboEraseMethod.setToolTipText("Erase method used before programming");
-      int index = 0;
-      for (EraseMethod method :EraseMethod.values()) {
-         if (gdbServerParameters.isAllowedEraseMethod(method)) {
-            comboEraseMethod.add(method.getName());
-            eraseMethods[index++] = method;
-         }
-      }
-      comboEraseMethod.select(comboEraseMethod.getItemCount()-1);
-   }
-
-   protected void createConnectionGroup(Composite comp, int flags) {
-
-      Group grpConnectionControl = new Group(comp, SWT.NONE);
-      grpConnectionControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-
-      grpConnectionControl.setLayout(new GridLayout(1, false));
-      grpConnectionControl.setText("Connection Control"); //$NON-NLS-1$
-
-      if ((flags&NEEDS_SPEED) != 0) {
-         comboConnectionSpeed = new Combo(grpConnectionControl, SWT.READ_ONLY);
-         comboConnectionSpeed.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-         comboConnectionSpeed.setItems(JTAGInterfaceData.getConnectionSpeeds());
-         comboConnectionSpeed.setToolTipText("Connection speed to use for BDM communications");
-         comboConnectionSpeed.select(4);
-      }
-      btnAutomaticallyReconnect = new Button(grpConnectionControl, SWT.CHECK);
-      btnAutomaticallyReconnect.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-      btnAutomaticallyReconnect.setToolTipText("Automatically re-sync with the target whenever target state is polled."); //$NON-NLS-1$
-      btnAutomaticallyReconnect.setText("Automatically re-connect"); //$NON-NLS-1$
-
-      if ((flags&NEEDS_RESET) != 0) {
-         btnDriveReset = new Button(grpConnectionControl, SWT.CHECK);
-         btnDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-         btnDriveReset.setToolTipText("Drive target reset pin when resetting the target."); //$NON-NLS-1$
-         btnDriveReset.setText("Drive RESET pin"); //$NON-NLS-1$
-         btnDriveReset.setBounds(0, 0, 140, 16);
-      }
-      if ((flags&NEEDS_PST) != 0) {
-         btnUsePstSignals = new Button(grpConnectionControl, SWT.CHECK);
-         btnUsePstSignals.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-         btnUsePstSignals.setToolTipText("Use PST signal to determine execution state of target.");
-         btnUsePstSignals.setText("Use PST signals");
-      }         
    }
 
    /* (non-Javadoc)
@@ -515,50 +630,63 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
    public void setGdbServerParameters(GdbServerParameters gdbServerParameters) {
       this.gdbServerParameters = gdbServerParameters;
+      this.deviceDatabase = new DeviceDatabase(gdbServerParameters.getInterfaceType().targetType);
    }
 
+   
+   /** Update Trim control group
+    * 
+    * @param enabled Whether trimming is enabled
+    * 
+    * @note The entire group will be disabled if the clock is not valid
+    */
    protected void enableTrim(boolean enabled) {
       if (btnTrimTargetClock != null) {
+         
+         boolean groupEnabled = (clockType != ClockTypes.INVALID) && (clockType != ClockTypes.EXTERNAL);
+
+         btnTrimTargetClock.setEnabled(groupEnabled);
+         txtTrimFrequency.setEnabled(groupEnabled&enabled);
+         lblKhz.setEnabled(groupEnabled&enabled);
+         lblNvtrimAddress.setEnabled(groupEnabled&enabled);
+         txtNVTRIMAddress.setEnabled(groupEnabled&enabled);
+         lblHex.setEnabled(groupEnabled&enabled);
+         
          btnTrimTargetClock.setSelection(enabled);
-         lblNvtrimAddress.setEnabled(enabled);
-         lblHex.setEnabled(enabled);
-         lblKhz.setEnabled(enabled);
-         lblTrimFrequency.setEnabled(enabled);
-         txtNVTRIMAddress.setEnabled(enabled);
-         txtTrimFrequency.setEnabled(enabled);
       }
    }
 
    protected void setTargetVdd(TargetVddSelect targetVdd) {
-      if (targetVddButtons[targetVdd.ordinal()] != null) {
-         targetVddButtons[targetVdd.ordinal()].setSelection(true);
+      if (targetVdds[targetVdd.ordinal()] != null) {
+         comboTargetVdd.setText(targetVdds[targetVdd.ordinal()].toString());
+      }
+      else {
+         comboTargetVdd.setText(TargetVddSelect.BDM_TARGET_VDD_OFF.toString());
       }
    }
 
    protected TargetVddSelect getTargetVdd() {
-      for (Button button :targetVddButtons) {
-         if ((button != null) && button.getSelection())  {
-            return (TargetVddSelect)button.getData();
-         }
+      int index = comboTargetVdd.getSelectionIndex();
+      if (index < 0) {
+         return TargetVddSelect.BDM_TARGET_VDD_OFF;
       }
-      return TargetVddSelect.BDM_TARGET_VDD_OFF;
+      else {
+         return targetVdds[index];
+      }
    }
 
    public EraseMethod getEraseMethod() {
-      if (comboEraseMethod.getSelectionIndex() < 0) {
+      int index = comboEraseMethod.getSelectionIndex();
+      if (index < 0) {
          return gdbServerParameters.getPreferredEraseMethod();
       }
       else {
-         return eraseMethods[comboEraseMethod.getSelectionIndex()];
+         return eraseMethods[index];
       }
    }
    
    public InterfaceType getInterfaceType() {
-      return interfaceType;
-   }
-
-   public void setInterfaceType(InterfaceType interfaceType) {
-      this.interfaceType = interfaceType;
+      return gdbServerParameters.getInterfaceType();
    }
 
    public void init(IWorkbench workbench) {
@@ -598,14 +726,19 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       System.err.println("loadSettings() loading settings");
       
       populateBdmChoices(gdbServerParameters.getBdmSerialNumber(), true);
+      btnRequireExactBdm.setSelection(gdbServerParameters.isBdmSerialNumberMatchRequired());
       gdbPortAdapter.setDecimalValue(gdbServerParameters.getGdbPortNumber());
-      btnUseDebug.setSelection(gdbServerParameters.isUseDebugServer());
-      comboEraseMethod.setText(gdbServerParameters.getEraseMethod().getName());
+      btnUseDebug.setSelection(gdbServerParameters.isUseDebugVersion());
+      btnExitOnClose.setSelection(gdbServerParameters.isExitOnClose());
+      
+      setDevice(gdbServerParameters.getDeviceName());
+
+      comboEraseMethod.setText(gdbServerParameters.getEraseMethod().toString());
       if (comboConnectionSpeed != null) {
          comboConnectionSpeed.setText(ClockSpeed.findSuitable(gdbServerParameters.getInterfaceFrequency()).toString());
       }
       if (btnTrimTargetClock != null) {
-         enableTrim(gdbServerParameters.isTrimclock());
+         enableTrim(gdbServerParameters.isTrimClock());
          txtTrimFrequency.setText(Integer.toString(gdbServerParameters.getClockTrimFrequency()));
          txtNVTRIMAddress.setText(Integer.toHexString(gdbServerParameters.getNvmClockTrimLocation()));
       }
@@ -628,15 +761,17 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 //      if (!isControlCreated()) {
 //         return true;
 //      }
-      gdbServerParameters.setBdmSerialNumber(comboSelectBDM.getText());
+      gdbServerParameters.setDeviceName(comboTargetDeviceName.getText());
+      gdbServerParameters.setBdmSerialNumber(comboSelectBDM.getText(), btnRequireExactBdm.getSelection());
       gdbServerParameters.setGdbPortNumber(gdbPortAdapter.getDecimalValue());
-      gdbServerParameters.enableUseDebugServer(btnUseDebug.getSelection());
+      gdbServerParameters.enableUseDebugVersion(btnUseDebug.getSelection());
+      gdbServerParameters.enableExitOnClose(btnExitOnClose.getSelection());
       gdbServerParameters.setEraseMethod(getEraseMethod());
       if (comboConnectionSpeed != null) {
-         gdbServerParameters.setInterfaceFrequency(ClockSpeed.lookup(comboConnectionSpeed.getText()).getFrequency());
+         gdbServerParameters.setInterfaceFrequency(ClockSpeed.parse(comboConnectionSpeed.getText()).getFrequency());
       }
       if (btnTrimTargetClock != null) {
-         gdbServerParameters.enableTrimClock(btnTrimTargetClock.getSelection());
+         gdbServerParameters.enableTrimClock(btnTrimTargetClock.isEnabled() && btnTrimTargetClock.getSelection());
          gdbServerParameters.setClockTrimFrequency(Integer.parseInt(txtTrimFrequency.getText()));
          gdbServerParameters.setNvmClockTrimLocation(Integer.parseInt(txtNVTRIMAddress.getText(),16));
       }
@@ -673,6 +808,13 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          @Override
          public void widgetSelected(SelectionEvent e) {
             topPage.saveSettings();
+            ArrayList<String> commandList = topPage.getGdbServerParameters().getServerCommandLine();
+            String commandArray[] = new String[commandList.size()];
+            commandArray = commandList.toArray(commandArray);
+            for (String s : commandArray) { 
+               System.err.print(s + " ");
+            }
+            System.err.print("\n");
          }
       });
       shell.open();

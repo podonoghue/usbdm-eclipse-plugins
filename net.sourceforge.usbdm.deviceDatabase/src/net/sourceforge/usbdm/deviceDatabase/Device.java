@@ -5,9 +5,200 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+
 public class Device {
+
+   //! RS08/HCS08/CFV1 clock types
+   //!
+   public static enum ClockTypes {
+      INVALID        (-1, "Invalid"      ),
+      EXTERNAL        (0, "External"     ),
+      S08ICGV1        (1, "S08ICGV1"     ),
+      S08ICGV2        (2, "S08ICGV2"     ),
+      S08ICGV3        (3, "S08ICGV3"     ),
+      S08ICGV4        (4, "S08ICGV4"     ),
+      S08ICSV1        (5, "S08ICSV1"     ),
+      S08ICSV2        (6, "S08ICSV2"     ),
+      S08ICSV2x512    (7, "S08ICSV2x512" ),
+      S08ICSV3        (8, "S08ICSV3"     ),
+      S08ICSV4        (9, "S08ICSV4"     ),
+      RS08ICSOSCV1   (10, "RS08ICSOSCV1" ),
+      RS08ICSV1      (11, "RS08ICSV1"    ),
+      S08MCGV1       (12, "S08MCGV1"     ),
+      S08MCGV2       (13, "S08MCGV2"     ),
+      S08MCGV3       (14, "S08MCGV3"     ),
+      ;
+
+      private final int    mask;
+      private final String name;
+
+      // Used for reverse lookup of frequency (Hz)
+      private static final Map<String,ClockTypes> lookupString 
+         = new HashMap<String, ClockTypes>();
+
+      static {
+         for(ClockTypes ct : ClockTypes.values()) {
+            lookupString.put(ct.name, ct);
+         }
+      }
+
+      ClockTypes(int mask, String name) {
+         this.mask = mask;
+         this.name = name;
+      }
+      public int getMask() {
+         return mask;
+      }
+      public String getName() {
+         return name;
+      }
+      /**
+       *   Get matching ClockType
+       *   
+       *   @param name Readable name of ClockType
+       * 
+       *   @return ClockSpeed matching (exactly) the frequency given or the default value if not found.
+       */
+      public static ClockTypes parse(String name) {
+         ClockTypes rv = lookupString.get(name);
+         if (rv == null) {
+            rv = INVALID;
+         }
+         return  rv;
+      }   
+   };
+
+   //! Returns the default non-volatile flash location for the clock trim value
+   //!
+   //! @param  clockType - clock type being queried
+   //!
+   //! @return Address of clock trim location(s)
+   //!
+   static public int getDefaultClockTrimNVAddress(TargetType targetType, ClockTypes clockType) {
+      if (targetType == TargetType.T_RS08) {
+         return 0x3FFA;
+      }
+      else if (targetType == TargetType.T_CFV1) {
+         return 0x3FE;
+      }
+      else if (targetType == TargetType.T_HCS08) {
+         switch (clockType) {
+         case S08ICGV1 :
+         case S08ICGV2 :
+         case S08ICGV3 :
+         case S08ICGV4 :      
+            return 0xFFBE;
+
+         case S08ICSV1 :
+         case S08ICSV2 :
+         case S08ICSV2x512 :
+         case S08ICSV3 :
+         case RS08ICSOSCV1 :
+         case RS08ICSV1 :     
+            return 0xFFAE;
+
+         case S08ICSV4 :      
+            return 0xFF6E;
+
+         case S08MCGV1 :
+         case S08MCGV2 :
+         case S08MCGV3 :      
+            return 0xFFAE;
+
+         case INVALID :
+         case EXTERNAL :
+         default :            
+            return 0;
+         }
+      }
+      else {
+         return 0;
+      }
+   }
+
+   //! Returns the default non-volatile flash location for the clock trim value
+   //!
+   //! @return Address of clock trim location(s) for the current clock type
+   //!
+   public int getDefaultClockTrimNVAddress() {
+      return getDefaultClockTrimNVAddress(targetType, clockType);
+   }
+
+   //! Returns the default (nominal) trim frequency for the currently selected clock
+   //!
+   //! @return clock trim frequency in Hz.
+   //!
+   static public int getDefaultClockTrimFreq(ClockTypes clockType) {
+      switch (clockType) {
+      case S08ICGV1 :
+      case S08ICGV2 :
+      case S08ICGV3 :
+      case S08ICGV4 :
+         return 243000;
+
+      case S08ICSV1 :
+      case S08ICSV2 :
+      case S08ICSV2x512 :
+      case S08ICSV3 :
+      case S08ICSV4 :
+      case RS08ICSOSCV1 :
+      case RS08ICSV1 :
+         return 31250;
+
+      case S08MCGV1 :
+      case S08MCGV2 :
+      case S08MCGV3 :
+         return 31250;
+
+      case INVALID :
+      case EXTERNAL :
+      default :
+         return 0;
+      }
+   }
+
+   //! Returns the default (nominal) trim frequency for the currently selected clock
+   //!
+   //! @return clock trim frequency in Hz.
+   //!
+   public int getDefaultClockTrimFreq()  {
+      return getDefaultClockTrimFreq(clockType);
+   }
+
+   /**
+    * Selects erase method
+    */
+   public static enum EraseMethod {
+      ERASE_NONE        (0x00, "None"),       //!< No erase is done
+      ERASE_MASS        (0x01, "Mass"),       //!< A Mass erase operation is done
+      ERASE_ALL         (0x02, "All"),        //!< All Flash is erased (by Flash Block)
+      ERASE_SELECTIVE   (0x03, "Selective"),  //!< A selective erase (by sector) is done
+      ;
+      private final int    mask;
+      private final String name;
+      EraseMethod(int mask, String name) {
+         this.mask = mask;
+         this.name = name;
+      }
+      public int getMask() {
+         return mask;
+      }
+      public static EraseMethod valueOf(int mask) {
+         for (EraseMethod type:values()) {
+            if (type.mask == mask) {
+               return type;
+            }
+         }
+         return ERASE_MASS;
+      }
+      public String getName() {
+         return name;
+      }
+   };
 
    public enum MemoryType {
       MemInvalid  ("MemInvalid", "",        false, false ), 
@@ -36,25 +227,74 @@ public class Device {
          this.isProgrammable = isProgrammable;
          this.isRam          = isRam;
       }
-      
+
       static public MemoryType getTypeFromXML(String memoryType) {
-//         System.err.println("getTypeFromXML(" + memoryType + ")");
+         //         System.err.println("getTypeFromXML(" + memoryType + ")");
          MemoryType[] memoryTypes = MemoryType.values();
          for (int index=0; index<memoryTypes.length; index++) {
-//            System.err.println("getTypeFromXML() checking \"" + memoryTypes[index].xmlName + "\"");
+            //            System.err.println("getTypeFromXML() checking \"" + memoryTypes[index].xmlName + "\"");
             if (memoryType.equals(memoryTypes[index].xmlName)) {
-//               System.err.println("getTypeFromXML() found it \"" + memoryTypes[index].xmlName + "\"");
-                return memoryTypes[index];
+               //               System.err.println("getTypeFromXML() found it \"" + memoryTypes[index].xmlName + "\"");
+               return memoryTypes[index];
             }
          }
          return null;
       }
-      
+
       public String toString() {
          return name;
       }
    };
 
+   public static class FileInfo {
+      String id;
+      String source;
+      String target;
+      
+      public FileInfo(String id, String source, String target) {
+         super();
+         this.id = id;
+         this.source = source;
+         this.target = target;
+      }
+      public String getId() {
+         return id;
+      }
+      public void setId(String id) {
+         this.id = id;
+      }
+      public String getSource() {
+         return source;
+      }
+      public void setSource(String source) {
+         this.source = source;
+      }
+      public String getTarget() {
+         return target;
+      }
+      public void setTarget(String copyPath) {
+         this.target = copyPath;
+      }
+      public boolean isReplaceable() {
+         return true;
+      }
+      public String toString() {
+         StringBuffer buffer = new StringBuffer(2000);
+         buffer.append(" source=\""+source+"\" => ");
+         buffer.append(" target=\""+target+"\"");
+         return buffer.toString();
+      }
+      public String toXML() {
+         StringBuffer buffer = new StringBuffer(2000);
+         buffer.append("<element>\n");
+         buffer.append("   <simple name=\"source\"      value=\""+source+"\" />\n");
+         buffer.append("   <simple name=\"target\"      value=\""+target+"\" />\n");
+         buffer.append("   <simple name=\"replaceable\" value=\"true\" />\n");
+         buffer.append("</element>\n");
+         return buffer.toString();
+      }
+   }
+   
    public static class GnuInfo {
       String id;
       String value;
@@ -62,8 +302,9 @@ public class Device {
       String text;
       String name;
       String command;
-      
+
       public GnuInfo(String id, String value, String path, String name, String command, String text) {
+         super();
          this.id        = id;
          this.value     = value;
          this.path      = path;
@@ -112,13 +353,13 @@ public class Device {
          return command;
       }
    }
-   
+
    public static class GnuInfoList extends ArrayList<GnuInfo> {
       private static final long serialVersionUID = -3917653198490307939L;
 
       void put(GnuInfo info) {
          this.add(info);
-//         System.err.println("GnuInfoList.put("+info.toString()+")");
+         //         System.err.println("GnuInfoList.put("+info.toString()+")");
       }
       GnuInfo find(String key) {
          Iterator<GnuInfo> it = this.iterator();
@@ -145,7 +386,36 @@ public class Device {
          return xmlOut;
       }
    }
-   
+
+   public static class FileList extends ArrayList<FileInfo> {
+
+      private static final long serialVersionUID = 3622396071313657392L;
+      
+      void put(FileInfo info) {
+         this.add(info);
+//         System.err.println("FileList.put("+info.toString()+")");
+      }
+      FileInfo find(String key) {
+         Iterator<FileInfo> it = this.iterator();
+         while(it.hasNext()) {
+            FileInfo fileInfo = it.next();
+            if (fileInfo.getId().equals(key)) {
+               return fileInfo;
+            }
+         }     
+         return null;
+      }
+      public String toString() {
+         StringBuffer buffer = new StringBuffer();
+         Iterator<FileInfo> it = this.iterator();
+         while(it.hasNext()) {
+            FileInfo fileInfo = it.next();
+            buffer.append(fileInfo.toString());
+         }
+         return buffer.toString();     
+      }
+   }
+
    // Represents a collection of related memory ranges
    //
    // This may be used to represent a non-contiguous range of memory locations that are related
@@ -178,7 +448,7 @@ public class Device {
          this.type = memType;
          memoryRanges = new Vector<Device.MemoryRegion.MemoryRange>();
       }
-      
+
       //! Add a memory range to this memory region
       //!
       //! @param startAddress - start address (inclusive)
@@ -247,21 +517,32 @@ public class Device {
    private String                   alias;
    private Vector<MemoryRegion>     memoryRegions;
    private GnuInfoList              gnuInfoMap;
+   private FileList                 fileListMap;
    private String                   family;
    private long                     soptAddress;
+   private TargetType               targetType;
+   private ClockTypes               clockType;
+   private int                      clockAddres;
+   private int                      clockNvAddress;
+   private int                      clockTrimFrequency;
    
-   public Device(String name) {
+   public Device(TargetType targetType, String name) {
       this.name          = name;
       this.defaultDevice = false;
+      this.targetType    = targetType;
+      
+      setClockType(ClockTypes.INVALID);
+      setClockAddres(0);
+      
       memoryRegions      = new Vector<Device.MemoryRegion>();
       gnuInfoMap         = null;
       family             = null;
    }
-   
+
    void addMemoryRegion(MemoryRegion memoryRegion) {
       memoryRegions.add(memoryRegion);
    }
-   
+
    public Iterator<MemoryRegion> getMemoryRegionIterator() {
       return memoryRegions.iterator();
    }
@@ -284,7 +565,7 @@ public class Device {
       }
       return xmlOut;
    }
-   
+
    public PrintStream toXML(PrintStream xmlOut, int indent) {
       doIndent(xmlOut, indent);
       xmlOut.print("<device name=\"" + getName() + "\"");
@@ -305,7 +586,7 @@ public class Device {
       xmlOut.print("</device>\n");
       return xmlOut;
    }
-   
+
    public void addOptionXML(HashMap<String, GnuInfo> map) {
       final String ID_GNU_MCPU="net.sourceforge.usbdm.cdt.toolchain.gcc.mcpu";
       GnuInfoList gnuInfoList = getGnuInfoMap();
@@ -361,5 +642,53 @@ public class Device {
    }
    public long getSoptAddress() {
       return soptAddress;
+   }
+
+   public ClockTypes getClockType() {
+      return clockType;
+   }
+
+   public void setClockType(ClockTypes clockType) {
+      this.clockType = clockType;
+   }
+
+   public int getClockAddres() {
+      return clockAddres;
+   }
+
+   public void setClockAddres(int clockAddres) {
+      this.clockAddres = clockAddres;
+   }
+
+   public int getClockNvAddress() {
+      return clockNvAddress;
+   }
+
+   public void setClockNvAddress(int clockNvAddress) {
+      this.clockNvAddress = clockNvAddress;
+   }
+
+   public int getClockTrimFrequency() {
+      return clockTrimFrequency;
+   }
+
+   public void setClockTrimFrequency(int clockTrimFrequency) {
+      this.clockTrimFrequency = clockTrimFrequency;
+   }
+
+   public boolean isDefaultDevice() {
+      return defaultDevice;
+   }
+
+   public TargetType getTargetType() {
+      return targetType;
+   }
+
+   public FileList getFileListMap() {
+      return fileListMap;
+   }
+
+   public void setFileListMap(FileList fileListMap) {
+      this.fileListMap = fileListMap;
    }
 }

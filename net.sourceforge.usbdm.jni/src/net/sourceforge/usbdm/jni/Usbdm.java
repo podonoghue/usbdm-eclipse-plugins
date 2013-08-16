@@ -104,19 +104,20 @@ public class Usbdm {
     * Selects target Vdd on BDM supporting this function
     */
    public static enum TargetVddSelect {
-      BDM_TARGET_VDD_OFF     (0x00, "off",     "Do not supply power to the target.  An external target supply is required."),
+      BDM_TARGET_VDD_OFF     (0x00, "Off",     "Do not supply power to the target.  An external target supply is required."),
       BDM_TARGET_VDD_3V3     (0x01, "3V3",     "Supply 3.3V to the target through the BDM connection."),
       BDM_TARGET_VDD_5V      (0x02, "5V",      "Supply 5V to the target through the BDM connection."),
       BDM_TARGET_VDD_ENABLE  (0x10, "enable" , "Enable target supply at last used value"),
       BDM_TARGET_VDD_DISABLE (0x11, "disable", "Disable target supply but previously used level unchanged"),
       ;
       private final int    mask;
-      private final String name;
+      private final String legibleName;
       private final String hint;
-      TargetVddSelect(int mask, String name, String hint) {
-         this.mask = mask;
-         this.name = name;
-         this.hint = hint;
+      
+      TargetVddSelect(int mask, String legibleName, String hint) {
+         this.mask         = mask;
+         this.legibleName  = legibleName;
+         this.hint         = hint;
       }
       public int getMask() {
          return mask;
@@ -129,8 +130,8 @@ public class Usbdm {
          }
          return BDM_TARGET_VDD_OFF;
       }
-      public String getName() {
-         return name;
+      public String toString() {
+         return legibleName;
       }
       public String getHint() {
          return hint;
@@ -147,10 +148,11 @@ public class Usbdm {
       ERASE_SELECTIVE   (0x03, "Selective"),  //!< A selective erase (by sector) is done
       ;
       private final int    mask;
-      private final String name;
-      EraseMethod(int mask, String name) {
-         this.mask = mask;
-         this.name = name;
+      private final String legibleName;
+      
+      EraseMethod(int mask, String legibleName) {
+         this.mask        = mask;
+         this.legibleName = legibleName;
       }
       public int getMask() {
          return mask;
@@ -163,8 +165,8 @@ public class Usbdm {
          }
          return ERASE_MASS;
       }
-      public String getName() {
-         return name;
+      public String toString() {
+         return legibleName;
       }
    };
 
@@ -257,6 +259,7 @@ public class Usbdm {
       CLKSW_ALT     (2),    //!< CLKSW selects Alt Clock for BDM
       ;
       private int mask;
+      
       ClkSwValues(int mask) {
          this.mask = mask;
       }
@@ -1248,6 +1251,8 @@ public class Usbdm {
     * @throws UsbdmException
     * 
     * @note No devices being present is not considered an error
+    * @note An internal device list is created and not released until 
+    *       open(deviceNum,true) or releaseDevices() is called.
     */
    public static int findDevices() throws UsbdmException {
       int deviceCount_[] = new int[1];
@@ -1487,21 +1492,22 @@ public class Usbdm {
          if (deviceCount == 0) {
             return deviceList;
          }
-         //      System.err.println("Usbdm.findDevices(): Found  " + deviceCount + " devices");
+//         System.err.println("Usbdm.findDevices(): Found  " + deviceCount + " devices");
          for (int deviceNum=0; deviceNum < deviceCount; deviceNum++) {
             String description = new String("Unresponsive device");
             String serialNum   = new String("Unknown");
-            open(deviceNum);
-            //         System.err.println("Usbdm.findDevices(): Opened device");
+            // Open device without releasing device list
+            open(deviceNum, false);
+//            System.err.println("Usbdm.findDevices(): Opened device");
             description = getBDMDescription();
-            //         System.err.println("Usbdm.findDevices(): Retrieved description \'"+description+"\'");
+//            System.err.println("Usbdm.findDevices(): Retrieved description \'"+description+"\'");
             serialNum   = getBDMSerialNumber();
-            //         System.err.println("Usbdm.findDevices(): Retrieved serial number \'"+serialNum+"\'");
+//            System.err.println("Usbdm.findDevices(): Retrieved serial number \'"+serialNum+"\'");
             bdmInfo     = getBDMInformation();
-            //         System.err.println("Usbdm.findDevices(): Retrieved BDM information\n"+bdmInfo.toString());
+//            System.err.println("Usbdm.findDevices(): Retrieved BDM information\n"+bdmInfo.toString());
             deviceInfo  = new USBDMDeviceInfo(description, serialNum, bdmInfo);
             deviceList.add(deviceInfo);
-            Usbdm.usbdmClose();
+            close();
          }
          // Release device list
          releaseDevices(); 

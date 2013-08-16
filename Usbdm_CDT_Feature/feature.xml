@@ -2,7 +2,7 @@
 <feature
       id="net.sourceforge.usbdm.cdt.feature"
       label="USBDM Eclipse CDT Feature"
-      version="4.10.5.qualifier"
+      version="4.10.6.qualifier"
       provider-name="pgo"
       os="linux,win32">
 
