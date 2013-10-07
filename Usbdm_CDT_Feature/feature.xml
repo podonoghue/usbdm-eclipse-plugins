@@ -23,14 +23,11 @@ Non-derivative components are licensed under the GPL.
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.swt"/>
-      <import plugin="net.sourceforge.usbdm.jni" version="4.10.5" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="4.10.5" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.constants" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="4.10.5" match="perfect"/>
-      <import plugin="net.sourceforge.usbdm.gdb" version="4.10.5" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.jni" version="4.10.5" match="perfect"/>
+      <import plugin="net.sourceforge.usbdm.jni" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.constants" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.gdb.ui" version="4.10.6" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui" version="3.5.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.core.runtime" version="3.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.ui" version="5.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.core" version="5.3.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core" version="8.0.0" match="greaterOrEqual"/>
@@ -38,18 +35,19 @@ Non-derivative components are licensed under the GPL.
       <import plugin="org.eclipse.core.resources" version="3.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.console" version="3.5.100" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.make.ui" version="7.2.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.cdt.tools" version="4.10.5" match="greaterOrEqual"/>
       <import plugin="org.eclipse.help" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.core"/>
       <import plugin="org.eclipse.jface" version="3.8.102" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.workbench" version="3.104.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui" version="3.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.debug.ui" version="3.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.mi.core" version="7.1.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf.gdb" version="4.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.core.variables" version="3.2.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.launch" version="7.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.gdbjtag.core" version="8.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.debug.gdbjtag.ui" version="7.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.cdt.dsf.gdb.ui"/>
+      <import plugin="net.sourceforge.usbdm.cdt.tools" version="4.10.5" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -88,7 +86,7 @@ Non-derivative components are licensed under the GPL.
          unpack="false"/>
 
    <plugin
-         id="net.sourceforge.usbdm.gdb"
+         id="net.sourceforge.usbdm.gdb.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"

@@ -1,7 +1,7 @@
 /*
  * sysinit-mk.c
  *
- * Generic system initialization for Kinetis
+ * Generic system initialization for Kinetis MKxx family
  *
  *  Created on: 07/12/2012
  *      Author: podonoghue
@@ -53,6 +53,12 @@ __attribute__((__weak__))
 void clock_initialise() {
 }
 
+/* This definition is overridden if UART initialisation is provided */
+__attribute__((__weak__))
+void uart_initialise(int baudRate) {
+   (void)baudRate;
+}
+
 void sysInit(void) {
    /* This is generic initialization code */
    /* It may not be correct for a specific target */
@@ -68,11 +74,14 @@ void sysInit(void) {
    // Enable trapping of divide by zero and unaligned access
    SCB_CCR |= SCB_CCR_DIV_0_TRP_MASK|SCB_CCR_UNALIGN_TRP_MASK;
 
-   /* Use FPU initialization - if present */
+   /* Use FPU initialisation - if present */
    fpu_init();
    
-   /* Use Clock initialization - if present */
+   /* Use Clock initialisation - if present */
    clock_initialise();
+
+   /* Use UART initialisation - if present */
+   uart_initialise(19200);
 }
 
 void _exit(int i) {

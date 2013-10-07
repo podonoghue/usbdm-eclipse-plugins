@@ -1226,17 +1226,78 @@
                name="C Linker"
                natureFilter="cnature"
                superClass="cdt.managedbuild.tool.gnu.c.linker">
-            <optionCategory
-               name="Options"
-               id="net.sourceforge.usbdm.cdt.toolchain.c.linker.optionCategory">
-            </optionCategory>
+            <option
+                  name="Use small Newlib library (--specs=nano.specs)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.linker.nanoNewlib"
+                  category="gnu.c.link.category.general"
+                  command="--specs=nano.specs"
+                  defaultValue="true"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                        optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                        isRegex="false"
+                        value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                  </checkOption>
+               </enablement>
+            </option>
+            <option
+                  name="Support %f format in printf (-u _printf_float)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.linker.printfFloat"
+                  category="gnu.c.link.category.general"
+                  command="-u _printf_float"
+                  defaultValue="false"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.c.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
+            <option
+                  name="Support %f format in scanf (-u _scanf_float)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.linker.scanfFloat"
+                  category="gnu.c.link.category.general"
+                  command="-u _scanf_float"
+                  defaultValue="false"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.c.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
             <option
                name="Linker File (-T option):"
                id="net.sourceforge.usbdm.cdt.toolchain.c.linker.linkerFile"
                browseFilterExtensions="*.ld"
                browseFilterPath="${HOME}"
                browseType="file"
-               category="net.sourceforge.usbdm.cdt.toolchain.c.linker.optionCategory"
+               category="gnu.c.link.category.general"
                command="-T &quot;${value}&quot;"
                tip="Name of linker file (empty for none)"
                valueType="string">
@@ -1244,7 +1305,7 @@
             <option
                name="Generate map file:"
                id="net.sourceforge.usbdm.cdt.toolchain.c.linker.mapFile"
-               category="net.sourceforge.usbdm.cdt.toolchain.c.linker.optionCategory"
+               category="gnu.c.link.category.general"
                command="-Xlinker -Map=&quot;${value}&quot;"
                tip="Name of map file (empty for none)"
                value="${ProjName}.map"
@@ -1263,14 +1324,75 @@
                name="C++ Linker"
                natureFilter="ccnature"
                superClass="cdt.managedbuild.tool.gnu.cpp.linker">
-            <optionCategory
-               id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.optionCategory"
-               name="Options">
-            </optionCategory>
+            <option
+                  name="Use small Newlib library (--specs=nano.specs)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.nanoNewlib"
+                  category="gnu.cpp.link.category.options"
+                  command="--specs=nano.specs"
+                  defaultValue="true"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                        value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                  </checkOption>
+               </enablement>
+            </option>
+            <option
+                  name="Support %f format in printf (-u _printf_float)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.printfFloat"
+                  category="gnu.cpp.link.category.options"
+                  command="-u _printf_float"
+                  defaultValue="false"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
+            <option
+                  name="Support %f format in scanf (-u _scanf_float)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.scanfFloat"
+                  category="gnu.cpp.link.category.options"
+                  command="-u _scanf_float"
+                  defaultValue="false"
+                  valueType="boolean">
+               <enablement
+                  type="ALL">
+                  <and>
+                     <checkOption
+                           holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
+                           optionId="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
+                           isRegex="false"
+                           value="net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM">
+                     </checkOption>
+                     <checkOption
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.nanoNewlib"
+                        value="true">
+                     </checkOption>
+                  </and>
+               </enablement>
+            </option>
             <option
                name="Linker File (-T option):"
                id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.linkerFile"
-               category="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.optionCategory"
+               category="gnu.cpp.link.category.options"
                browseFilterExtensions="*.ld"
                browseFilterPath="${HOME}"
                browseType="file"
@@ -1281,7 +1403,7 @@
             <option
                name="Generate map file:"
                id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.mapFileEnable"
-               category="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.optionCategory"
+               category="gnu.cpp.link.category.options"
                command="-Xlinker -Map=&quot;${value}&quot;"
                tip="Name of map file (empty for none)"
                value="${ProjName}.map"
@@ -1706,6 +1828,10 @@
                name="Cortex M0"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM0"
                command="-mcpu=cortex-m0" />
+            <enumeratedOptionValue
+               name="Cortex M0+"
+               id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM0plus"
+               command="-mcpu=cortex-m0plus" />
             <enumeratedOptionValue
                name="Cortex M3"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.mcpu.cortexM3"

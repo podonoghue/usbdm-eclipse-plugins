@@ -1,4 +1,4 @@
-/* MK, MKL version
+/* MK, MKL, MKE version
  * Linker script based on example scripts provided with ARM Ltd GCC
  *
  * It references the following symbols, which must be defined in code:
@@ -22,6 +22,7 @@
  *      __bss_end__
  *      __end__
  *      end
+ *      __HeapBottom
  *      __HeapLimit
  *      __StackLimit
  *      __StackTop
@@ -136,29 +137,34 @@ SECTIONS
 		__bss_end__ = .;
 	} > ram
 	
-	.heap (COPY):
-	{
-		__end__ = .;
-		end = __end__;
-		*(.heap*)
-		__HeapLimit = .;
-	} > ram
+   /* Dummy HEAP - from top of BSS */
+  .heap_dummy :
+  {
+    . = ALIGN(4);
+    PROVIDE ( end = . );
+    PROVIDE ( __end__ = . );
+    PROVIDE ( _end = . );
+   __HeapBottom = .;
+	__heap_addr = .;
+    . = . + __heap_size;
+   __HeapLimit = .;
+  } > ram
 
-	/* .stack_dummy section doesn't contains any symbols. It is only
-	 * used for linker to calculate size of stack sections, and assign
-	 * values to stack symbols later */
-	.stack_dummy (COPY):
-	{
-		*(.stack*)
-	} > ram
+   /* Dummy STACK space - between HEAP and end of RAM*/
+  .stack_dummy :
+  {
+    . = ALIGN(4);
+    . = . + __stack_size;
+  } > ram
 
-	/* Set stack top to end of ram, and stack limit move down by
-	 * size of stack_dummy section */
-	__StackTop = ORIGIN(ram) + LENGTH(ram);
-	__StackLimit = __StackTop - SIZEOF(.stack_dummy);
-	PROVIDE(__stack = __StackTop);
-	PROVIDE(__cs3_stack = __StackTop);
-	
-	/* Check if data + heap + stack exceeds ram limit */
-	ASSERT(__StackLimit >= __HeapLimit, "region ram overflowed with stack")
+  /* Set stack top to end of ram, and stack limit move down by
+   * size of stack_dummy section 
+   */
+  __StackTop = ORIGIN(ram) + LENGTH(ram);
+  __StackLimit = __StackTop - SIZEOF(.stack_dummy);
+  PROVIDE(__stack = __StackTop);
+  PROVIDE(__cs3_stack = __StackTop);
+
+  /* Check if data + heap + stack exceeds ram limit */
+  ASSERT(__StackLimit >= __HeapLimit, "region ram overflowed with stack")
 }

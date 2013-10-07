@@ -862,6 +862,7 @@ public class Usbdm {
    private static boolean        libraryLoaded     = false;
    private static boolean        libraryLoadFailed = false;
    
+   private static native int     usbdmGetUsbdmResourcePath(byte[] description);
    private static native int     usbdmGetUsbdmApplicationPath(byte[] description);
    private static native int     usbdmGetUsbdmDataPath(byte[] description);
 
@@ -1397,10 +1398,14 @@ public class Usbdm {
          try {
             String os = System.getProperty("os.name");
             if ((os != null) && os.toUpperCase().contains("LINUX")) {
-//               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_so );
-//               System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_so);
-//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
+//               String libusbLibrary = "usb-x86_64-1.0"; 
+//           	String libusbLibrary = UsbdmJniConstants.LibUsbLibraryName_so;
+//               System.err.println("Loading library: "+libusbLibrary );
+//               System.loadLibrary(libusbLibrary);
+
+               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
                System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
+               System.loadLibrary("usbdm");
             }
             else {
 //               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_dll );
@@ -1438,6 +1443,7 @@ public class Usbdm {
 //            msgbox.open();
 
          } catch (Exception e) {
+             e.printStackTrace();
             // Report fist failure only
             if (!libraryLoadFailed) {
                Shell shell;
@@ -1553,16 +1559,64 @@ public class Usbdm {
       return path;
    }
 
-
    /**
     *  Obtain USBDM Application path
     * 
-    *  @return Path to USBDM Application directory (executable, data etc)
+    *  @return Path to USBDM Application directory (executable)
     */
    public static IPath getApplicationPath() {
       Path path = null;
       try {
          path = new Path(getUsbdmApplicationPath());
+      } catch (UsbdmException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      return path;
+   }
+   
+   /**
+    *  Obtain USBDM Resource path
+    * 
+    *  @return Path to USBDM Application directory (executable, data etc)
+    * 
+    *  @throws UsbdmException
+    */
+   public static String getUsbdmResourcePath() throws UsbdmException {
+      Charset utf8Charset = Charset.forName("UTF-8");
+      CharsetDecoder utf8CharsetDecoder = utf8Charset.newDecoder();
+      byte[] pathArray   = new byte[2000];
+      String path = "";
+      try {
+         int rc = Usbdm.usbdmGetUsbdmResourcePath(pathArray);
+         if (rc == BDM_RC_OK) {
+//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() OK");
+            int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
+//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() len = " + len);
+            ByteBuffer buff = ByteBuffer.allocate(len);
+            buff.put(pathArray, 2, len);
+            buff.rewind();
+            path = utf8CharsetDecoder.decode(buff).toString();
+//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() path = " + path);
+         }
+//         else {
+//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() failed");
+//         }
+      } catch (CharacterCodingException e) {
+         e.printStackTrace();
+      }
+      return path;
+   }
+
+   /**
+    *  Obtain USBDM Resource path
+    * 
+    *  @return Path to USBDM Resource directory (data etc)
+    */
+   public static IPath getResourcePath() {
+      Path path = null;
+      try {
+         path = new Path(getUsbdmResourcePath());
       } catch (UsbdmException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();

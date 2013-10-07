@@ -21,6 +21,7 @@ Bundle-RequiredExecutionEnvironment:
 Export-Package: 
  net.sourceforge.usbdm.connections.usbdm;
   uses:="org.eclipse.debug.core,
+   net.sourceforge.usbdm.jni,
    org.eclipse.jface.resource,
    org.eclipse.swt.events,
    org.eclipse.ui.plugin,

@@ -1,7 +1,7 @@
 /*
- *  Vectors-mk.c
+ *  Vectors-mkl.c
  *
- *  Generic vectors and security for Kinetis
+ *  Generic vectors and security for Kinetis MKLxx
  *
  *  Created on: 07/12/2012
  *      Author: podonoghue
@@ -74,7 +74,6 @@ typedef struct {
    unsigned int scb_bfar;
 } ExceptionInfo;
 
-#ifdef DEVICE_SUBFAMILY_CortexM0
 /*  Low-level exception handler
  *
  *  Interface from asm to C.
@@ -100,28 +99,6 @@ void HardFault_Handler(void) {
           "       handler_addr_const: .word _HardFault_Handler  \n"
       );
 }
-#endif
-#if defined(DEVICE_SUBFAMILY_CortexM3) || defined(DEVICE_SUBFAMILY_CortexM3F) || \
-    defined(DEVICE_SUBFAMILY_CortexM4) || defined(DEVICE_SUBFAMILY_CortexM4F)
-
-/*  Low-level exception handler
- *
- *  Interface from asm to C.
- *  Passes address of exception handler to C-level handler
- *
- *  See http://www.freertos.org/Debugging-Hard-Faults-On-Cortex-M-Microcontrollers.html
- */
-__attribute__((__naked__, __weak__, __interrupt__))
-void HardFault_Handler(void) {
-        __asm volatile ( "  tst   lr, #4              \n");  // Check mode
-        __asm volatile ( "  ite   eq                  \n");  // Get active SP
-        __asm volatile ( "  mrseq r0, msp             \n");
-        __asm volatile ( "  mrsne r0, psp             \n");
-//        __asm volatile ( "  ldr   r1,[r0,#24]         \n");  // PC
-//        __asm volatile ( "  push  {r1}                \n");  // Dummy ?
-        __asm volatile ( "  bl    _HardFault_Handler  \n");  // Go to C handler
-}
-#endif
 
 /******************************************************************************/
 /* Exception frame without floating-point storage

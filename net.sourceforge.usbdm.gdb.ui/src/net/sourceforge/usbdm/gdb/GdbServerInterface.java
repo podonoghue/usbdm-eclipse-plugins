@@ -37,7 +37,7 @@ public class GdbServerInterface {
     * @return         true => Server appears to be running
     */
    private boolean independentServerRunning(int portNum) {
-      boolean success = true;
+      boolean isRunning = true;
       
       final Socket sock = new Socket();
       final int timeOut = (int)TimeUnit.SECONDS.toMillis(1); // 1 sec wait period
@@ -45,15 +45,21 @@ public class GdbServerInterface {
          // Open socket - only wait a short while
          sock.connect(new InetSocketAddress("localhost", portNum), timeOut);
       } catch (IOException e) {
-         success = false;
+         isRunning = false;
       }   
       try {
          // Immediately close it
          sock.close();
+         try {
+            // Give socket time to close?
+            Thread.sleep(100);
+         } catch (InterruptedException e) {
+            // Ignore
+         }
       } catch (IOException e) {
          // Ignore
       }
-      return success;
+      return isRunning;
    }
    
    /**

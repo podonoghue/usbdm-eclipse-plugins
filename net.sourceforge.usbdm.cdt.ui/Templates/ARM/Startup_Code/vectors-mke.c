@@ -1,7 +1,7 @@
 /*
- *  Vectors-mk.c
+ *  Vectors-mke.c
  *
- *  Generic vectors and security for Kinetis
+ *  Generic vectors and security for Kinetis MKExx
  *
  *  Created on: 07/12/2012
  *      Author: podonoghue
@@ -16,22 +16,22 @@
  * Security information
  */
 typedef struct {
-    uint8_t  backdoorKey[8];
-    uint32_t fprot;
-    uint8_t  fsec;
-    uint8_t  fopt;
-    uint8_t  feprot;
-    uint8_t  fdprot;
+   uint8_t  backdoorKey[8];
+   uint32_t reseved;
+   uint8_t  eeprot;
+   uint8_t  fprot;
+   uint8_t  fsec;
+   uint8_t  fopt;
 } SecurityInfo;
 
 __attribute__ ((section(".security_information")))
 const SecurityInfo securityInfo = {
     /* backdoor */ {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF},
-    /* fprot    */ 0xFFFFFFFF,
+    /* reseved  */ 0xFFFFFFFF,
+    /* eeprot   */ 0xFF,
+    /* fprot    */ 0xFF,
     /* fsec     */ 0xFE,
     /* fopt     */ 0xFF,
-    /* feprot   */ 0xFF,
-    /* fdprot   */ 0xFF,
 };
 
 /*
@@ -83,13 +83,21 @@ typedef struct {
  */
 __attribute__((__naked__, __weak__, __interrupt__))
 void HardFault_Handler(void) {
-        __asm volatile ( "  tst   lr, #4              \n");  // Check mode
-        __asm volatile ( "  ite   eq                  \n");  // Get active SP
-        __asm volatile ( "  mrseq r0, msp             \n");
-        __asm volatile ( "  mrsne r0, psp             \n");
-//        __asm volatile ( "  ldr   r1,[r0,#24]         \n");  // PC
-//        __asm volatile ( "  push  {r1}                \n");  // Dummy ?
-        __asm volatile ( "  bl    _HardFault_Handler  \n");  // Go to C handler
+   __asm volatile (
+          "       mov r0,lr                                     \n"
+          "       mov r1,#4                                     \n"
+          "       and r0,r1                                     \n"
+          "       bne skip1                                     \n"
+          "       mrs r0,msp                                    \n"
+          "       b   skip2                                     \n"
+          "skip1:                                               \n"
+          "       mrs r0,psp                                    \n"
+          "skip2:                                               \n"
+          "       nop                                           \n"
+          "       ldr r2, handler_addr_const                    \n"
+          "       bx r2                                         \n"
+          "       handler_addr_const: .word _HardFault_Handler  \n"
+      );
 }
 
 /******************************************************************************/

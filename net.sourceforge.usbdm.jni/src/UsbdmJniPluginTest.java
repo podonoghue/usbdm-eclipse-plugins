@@ -241,6 +241,7 @@ public class UsbdmJniPluginTest {
       try {
          // Print USBDM paths
          System.err.println("Application Path : " + Usbdm.getApplicationPath().toOSString());
+         System.err.println("Resource Path    : " + Usbdm.getResourcePath().toOSString());
          System.err.println("Data Path        : " + Usbdm.getDataPath().toOSString());
 
 //         listDevices();

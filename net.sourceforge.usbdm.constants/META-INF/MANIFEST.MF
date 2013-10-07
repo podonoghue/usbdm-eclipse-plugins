@@ -4,10 +4,10 @@ Bundle-Name: USBDM Constants
 Bundle-SymbolicName: net.sourceforge.usbdm.constants
 Bundle-Version: 4.10.6.qualifier
 Bundle-Activator: net.sourceforge.usbdm.constants.Activator
-Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="4.10.5",
+Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="4.10.6",
  org.eclipse.core.runtime,
- org.eclipse.jface;bundle-version="3.8.102",
- org.eclipse.ui.workbench;bundle-version="3.104.0"
+ org.eclipse.jface,
+ org.eclipse.ui.workbench
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.constants

@@ -4,7 +4,6 @@ Bundle-ClassPath: .
 Bundle-Name: USBDM JNI Plugin
 Bundle-NativeCode: 
  libgcc_s_dw2-1.dll;libstdc++-6.dll;usbdm.4.dll;UsbdmJniWrapper.dll;osname=Win32;processor=x86;processor=x86_64,
- libusb-1.0.so;libusbdm.so;libUsbdmJniWrapper.so;osname=Linux;processor=x86;processor=x86_64,
  *
 Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.jni.Activator

@@ -32,6 +32,7 @@
     .syntax unified
     .arch armv6-m
 
+#if 0
 /*
  *  Stack space
  */
@@ -72,6 +73,8 @@ __HeapBase:
 __HeapLimit:
     .size __HeapLimit, . - __HeapLimit
 
+#endif
+
 /*
  *  Low-level reset
  */
@@ -105,9 +108,9 @@ Reset_Handler:
     subs    r3, r2
     ble    .LC1    
 .LC0:
-    subs    r3, 4
-    ldr    r0, [r1, r3]
-    str    r0, [r2, r3]
+    subs    r3, #4
+    ldr     r0, [r1, r3]
+    str     r0, [r2, r3]
     bgt    .LC0
 .LC1:
 

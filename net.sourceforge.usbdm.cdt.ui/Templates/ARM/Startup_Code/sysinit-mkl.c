@@ -1,7 +1,7 @@
 /*
  * sysinit-mkl.c
  *
- * Generic system initialization for Kinetis
+ * Generic system initialization for Kinetis MKLxx family
  *
  *  Created on: 07/12/2012
  *      Author: podonoghue
@@ -34,6 +34,12 @@ __attribute__((__weak__))
 void clock_initialise() {
 }
 
+/* This definition is overridden if UART initialisation is provided */
+__attribute__((__weak__))
+void uart_initialise(int baudRate) {
+   (void)baudRate;
+}
+
 void sysInit(void) {
    /* This is generic initialization code */
    /* It may not be correct for a specific target */
@@ -44,8 +50,11 @@ void sysInit(void) {
    // Disable watch-dog
    SIM_COPC = 0x00;
 
-   /* Use Clock initialization - if present */
+   /* Use Clock initialisation - if present */
    clock_initialise();
+
+   /* Use UART initialisation - if present */
+   uart_initialise(19200);
 }
 
 void _exit(int i) {

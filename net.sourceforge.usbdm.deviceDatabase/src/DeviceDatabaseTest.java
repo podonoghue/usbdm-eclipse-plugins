@@ -22,6 +22,7 @@ public class DeviceDatabaseTest {
 //            System.err.println("Device \n" + di);
 //         }
          System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
+         System.err.println("Resource Path    : " + Usbdm.getResourcePath());
          System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
          
          TargetType[] targetTypes = {

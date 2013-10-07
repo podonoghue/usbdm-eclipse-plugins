@@ -16,7 +16,7 @@ public class UsbdmConstants {
    public final static String TARGET_DEVICE_FAMILY_KEY         = "targetDeviceFamily";     //$NON-NLS-1$
    public final static String TARGET_DEVICE_SUBFAMILY_KEY      = "targetDeviceSubFamily";  //$NON-NLS-1$
    public final static String TARGET_DEVICE_NAME_KEY           = "targetDeviceName";       //$NON-NLS-1$
-   public final static String LINKER_MEMORY_MAP_KEY            = "linkerMemoryMap";        //$NON-NLS-1$
+   public final static String LINKER_INFORMATION_KEY           = "linkerInformation";      //$NON-NLS-1$
    public final static String EXTERNAL_HEADER_FILE_KEY         = "externalHeaderFile";     //$NON-NLS-1$
    public final static String EXTERNAL_VECTOR_TABLE_KEY        = "externalVectorTable";    //$NON-NLS-1$
    public final static String C_DEVICE_PARAMETERS_KEY          = "cDeviceParameters";      //$NON-NLS-1$
@@ -24,7 +24,7 @@ public class UsbdmConstants {
    public final static String CLOCK_TRIM_FREQUENCY_KEY         = "clockTrimFrequency";     //$NON-NLS-1$
    public final static String NVM_CLOCK_TRIM_LOCATION_KEY      = "nvmClockTrimLocation";   //$NON-NLS-1$
    public final static String PATH_SEPARATOR_KEY               = "pathSeparator";          //$NON-NLS-1$
-   public final static String FILE_COPY_LIST                   = "fileCopyList";          //$NON-NLS-1$
+   public final static String FILE_COPY_LIST                   = "fileCopyList";           //$NON-NLS-1$
    
    public final static String EXCLUDED_FILES_PATTERN_KEY       = "excludedFilesPattern";    //$NON-NLS-1$
    public final static String LINKER_FILE_KEY                  = "linkerFile";              //$NON-NLS-1$

@@ -249,7 +249,7 @@ public class ExampleList {
       projectList = null;
       description = null;
       
-      IPath applicationPath = Usbdm.getApplicationPath();
+      IPath applicationPath = Usbdm.getResourcePath();
       if (applicationPath == null) {
          return;
       }

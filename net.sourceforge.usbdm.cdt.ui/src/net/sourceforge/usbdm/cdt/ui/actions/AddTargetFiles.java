@@ -102,9 +102,12 @@ public class AddTargetFiles extends ProcessRunner {
          if (!iFile.getParent().exists()) {
             ProcessHelper.mkdirs(projectHandle, projectHandle.getFolder(iFile.getParent().getProjectRelativePath()));
          }
-         iFile.create(contents, true, null);
-         iFile.refreshLocal(IResource.DEPTH_ONE, null);
-         projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
+         // Don't replace existing, more specific, file
+         if (!iFile.exists()) {
+            iFile.create(contents, true, null);
+            iFile.refreshLocal(IResource.DEPTH_ONE, null);
+            projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
+         }
       } catch (CoreException e) {
          throw new ProcessFailureException("Failed" + e.getMessage(), e); //$NON-NLS-1$
       }

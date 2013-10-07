@@ -180,7 +180,7 @@ public class AddExternalFiles extends ProcessRunner {
       for (ProcessArgument[] file:copyList) {
          String externalFile = null;
          String internalFile = null;
-         String target       = null;
+         String targetFile   = null;
          String replaceable  = null;
          for (ProcessArgument arg:file) {
             if (arg.getName().equals("externalSource")) {
@@ -190,15 +190,20 @@ public class AddExternalFiles extends ProcessRunner {
                internalFile = file[1].getSimpleValue(); // internally provided file (default if no external)
             }
             else if (arg.getName().equals("target")) {
-               target       = file[2].getSimpleValue(); // target resource
+               targetFile       = file[2].getSimpleValue(); // target resource
             }
             else if (arg.getName().equals("replaceable")) {
                replaceable  = file[3].getSimpleValue(); // do macro expansion on source
             }
          }
-         if (target == null) {
+         if (targetFile == null) {
             throw new ProcessFailureException("AddExternalFiles.process() - Missing arguments - target"); //$NON-NLS-1$
          }     
+         System.err.println("AddTargetFiles.process()");
+         System.err.println("   externalSource = "+externalFile);
+         System.err.println("   internalSource = "+internalFile);
+         System.err.println("   targetFile     = "+targetFile);
+
          boolean isReplaceable = (replaceable == null) || Boolean.valueOf(replaceable).booleanValue();
 //         System.err.println("AddExternalFiles.ProcessRunner(" + projectName
 //               + ", (" + externalFile + ", " + internalFile
@@ -224,7 +229,7 @@ public class AddExternalFiles extends ProcessRunner {
                path = TemplateEngineHelper.getTemplateResourceURLRelativeToTemplate(template, internalFile);
             }
             if (path != null) {
-               processItem(path, target, isReplaceable, template, projectHandle);
+               processItem(path, targetFile, isReplaceable, template, projectHandle);
             }
          } catch (MalformedURLException e) {
             throw new ProcessFailureException("\"" + internalFile + "\" failed open, reason "+ e.getMessage()); //$NON-NLS-1$

@@ -396,11 +396,19 @@ public class GdbServerParameters {
 
    protected IPath getServerPath() {
       IPath serverPath = Usbdm.getApplicationPath();
-      if (isUseDebugVersion()) {
-         return serverPath.append(getInterfaceType().gdbDebugServer+".exe");
+      String exeSuffix = "";
+      String os = System.getProperty("os.name");
+      if ((os != null) && os.toUpperCase().contains("LINUX")) {
+         exeSuffix = "";
       }
       else {
-         return serverPath.append(getInterfaceType().gdbServer+".exe");         
+         exeSuffix = ".exe";
+      }
+      if (isUseDebugVersion()) {
+         return serverPath.append(getInterfaceType().gdbDebugServer+exeSuffix);
+      }
+      else {
+         return serverPath.append(getInterfaceType().gdbServer+exeSuffix);         
       }
    }
 

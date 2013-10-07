@@ -606,14 +606,14 @@ public class DeviceDatabase {
       default:
          throw new UsbdmException("Device file not found");
       };
-      IPath applicationPath = Usbdm.getApplicationPath();
-      if (applicationPath == null) {
+      IPath usbdmResourcePath = Usbdm.getResourcePath();
+      if (usbdmResourcePath == null) {
          return null;
       }
-     applicationPath = applicationPath.append("/DeviceData/").append(filename);
-     System.err.println("DeviceDatabase.getXmlFilepath(): XML file path = " + applicationPath);
+     usbdmResourcePath = usbdmResourcePath.append("/DeviceData/").append(filename);
+     System.err.println("DeviceDatabase.getXmlFilepath(): XML file path = " + usbdmResourcePath);
      
-     return (Path) applicationPath;
+     return (Path) usbdmResourcePath;
    }
    
    /**

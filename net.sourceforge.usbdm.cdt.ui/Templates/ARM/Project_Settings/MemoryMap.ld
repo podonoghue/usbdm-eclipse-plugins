@@ -1,4 +1,3 @@
 
-MEMORY
-{
-$(linkerMemoryMap)}
+$(linkerInformation)
+

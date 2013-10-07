@@ -38,6 +38,12 @@ __attribute__((__weak__))
 void clock_initialise() {
 }
 
+/* This definition is overridden if UART initialisation is provided */
+__attribute__((__weak__))
+void uart_initialise(int baudRate) {
+   (void)baudRate;
+}
+
 void sysInit(void) {
    /* This is generic initialization code */
    /* It may not be correct for a specific target */
@@ -53,6 +59,9 @@ void sysInit(void) {
    
    /* Use Clock initialization - if present */
    clock_initialise();
+
+   /* Use UART initialisation - if present */
+   uart_initialise(19200);
 }
 
 void _exit(int i) {
