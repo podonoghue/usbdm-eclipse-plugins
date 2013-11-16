@@ -1,12 +1,9 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
-
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
 import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
@@ -49,14 +46,15 @@ public class UsbdmCFV1ConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId       = UsbdmCommon.CFV1_DeviceNameAttributeKey;
-      gdiDllName         = UsbdmCommon.CFV1_GdiWrapperLib;
-      gdiDebugDllName    = UsbdmCommon.CFV1_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.ERASE_ALL; 
-      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
+      deviceNameId        = UsbdmCommon.CFV1_DeviceNameAttributeKey;
+      gdiDllName          = UsbdmCommon.CFV1_GdiWrapperLib;
+      gdiDebugDllName     = UsbdmCommon.CFV1_DebugGdiWrapperLib;
+      defaultEraseMethod  = EraseMethod.ERASE_ALL; 
+      lastEraseMethod     = EraseMethod.ERASE_SELECTIVE; 
    }
 
    public void create() {
+//      System.err.println("UsbdmCFV1ConnectionPanel::create()");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -109,7 +107,7 @@ public class UsbdmCFV1ConnectionPanel extends UsbdmConnectionPanel {
          bdmOptions.clockTrimFrequency = 0;
          bdmOptions.clockTrimNVAddress = 0;
       }
-      eraseMethod = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
+      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -203,7 +201,7 @@ public class UsbdmCFV1ConnectionPanel extends UsbdmConnectionPanel {
       super.addSettingsChangedListeners();
       if (fListener != null) {
          comboEraseMethod.addModifyListener(fListener.getModifyListener());
-
+         comboSecurityOption.addModifyListener(fListener.getModifyListener());
          btnAutomaticallyReconnect.addSelectionListener(fListener.getSelectionListener());
          btnDriveReset.addSelectionListener(fListener.getSelectionListener());
          btnBDMClockAlt.addSelectionListener(fListener.getSelectionListener());
@@ -224,7 +222,8 @@ public class UsbdmCFV1ConnectionPanel extends UsbdmConnectionPanel {
       createConnectionGroup(comp, NEEDS_RESET);
       createTrimGroup(comp);
       createBdmClockGroup(comp);
-      new Label(this, SWT.NONE);
+//      new Label(this, SWT.NONE);
+      createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();
 

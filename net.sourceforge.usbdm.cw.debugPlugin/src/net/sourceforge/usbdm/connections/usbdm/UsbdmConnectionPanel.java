@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.jni.JTAGInterfaceData;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 import org.eclipse.core.runtime.CoreException;
@@ -84,6 +85,7 @@ implements ICWGdiInitializationData {
    protected EraseMethod       defaultEraseMethod; 
    protected EraseMethod       lastEraseMethod; 
    protected EraseMethod       eraseMethod;
+   protected SecurityOptions   securityOption;
    
    protected String            gdiDllName;
    protected String            gdiDebugDllName;
@@ -122,6 +124,7 @@ implements ICWGdiInitializationData {
    protected Button            btnBDMClockBus;
    protected Button            btnBDMClockAlt;
    protected Combo             comboEraseMethod;
+   protected Combo             comboSecurityOption;
 
    protected Button            btnUsePstSignals;
    protected Combo             comboConnectionSpeed;
@@ -538,6 +541,26 @@ implements ICWGdiInitializationData {
       comboEraseMethod.select(defaultEraseMethod.ordinal());
    }
    
+   protected void createSecurityGroup(Composite comp) {
+	      
+      Group grpSecurityOptions = new Group(this, SWT.NONE);
+      grpSecurityOptions.setText("Security Options");
+      grpSecurityOptions.setLayout(new RowLayout(SWT.HORIZONTAL));
+      grpSecurityOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      toolkit.adapt(grpSecurityOptions);
+      toolkit.paintBordersFor(grpSecurityOptions);
+
+      comboSecurityOption = new Combo(grpSecurityOptions, SWT.READ_ONLY);
+      comboSecurityOption.setToolTipText("Security options applied to the target when programming");
+      toolkit.adapt(comboSecurityOption, true, true);
+      
+      // Must be added in ordinal order
+	  comboSecurityOption.add(SecurityOptions.SECURITY_IMAGE.toString());
+	  comboSecurityOption.add(SecurityOptions.SECURITY_UNSECURED.toString());
+	  comboSecurityOption.add(SecurityOptions.SECURITY_SMART.toString());
+      comboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
+   }
+	   
    protected void createDebugGroup() {
       
       Group grpDebuggingOptions = new Group(this, SWT.NONE);
@@ -596,6 +619,8 @@ implements ICWGdiInitializationData {
 
       enableTrim(bdmOptions.doClockTrim);
       setTargetVdd(bdmOptions.targetVdd);
+
+      comboSecurityOption.select(securityOption.ordinal());
    }
 
    /**
@@ -624,6 +649,7 @@ implements ICWGdiInitializationData {
          bdmOptions.cycleVddOnReset    = btnCycleTargetVddOnReset.getSelection()?1:0;  
          bdmOptions.leaveTargetPowered = btnLeaveTargetPowered.getSelection()?1:0;     
       }
+      securityOption = SecurityOptions.values()[comboSecurityOption.getSelectionIndex()];
    }
    
    /**
@@ -632,9 +658,10 @@ implements ICWGdiInitializationData {
     */
    protected void restoreDefaultSettings() {
 //      System.err.println("UsbdmConnectionPanel.restoreDefaultSettings()");
-      bdmOptions    = new BdmOptions();
-      useDebugBuild = false;
-      preferredBdm  = "Any connected BDM";   
+      bdmOptions      = new BdmOptions();
+      useDebugBuild   = false;
+      preferredBdm    = "Any connected BDM";   
+      securityOption  = SecurityOptions.SECURITY_SMART;
    }
 
    /**
@@ -660,7 +687,11 @@ implements ICWGdiInitializationData {
          bdmOptions.powerOnRecoveryInterval = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyPowerOnRecoveryInterval), bdmOptions.powerOnRecoveryInterval); 
          bdmOptions.resetDuration           = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyResetDuration),           bdmOptions.resetDuration); 
          bdmOptions.resetReleaseInterval    = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyResetReleaseInterval),    bdmOptions.resetReleaseInterval); 
-         bdmOptions.resetRecoveryInterval   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval); 
+         bdmOptions.resetRecoveryInterval   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
+         
+         int securityOptionMask = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeySecurityOption), SecurityOptions.SECURITY_UNSECURED.getMask());
+         this.securityOption = SecurityOptions.valueOf(securityOptionMask);
+
       } catch (CoreException e) {
          e.printStackTrace();
       }
@@ -690,6 +721,9 @@ implements ICWGdiInitializationData {
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetDuration),           bdmOptions.resetDuration);
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetReleaseInterval),    bdmOptions.resetReleaseInterval);
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
+      
+      setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeySecurityOption),          securityOption.getMask());
+
 //      try {
 //         Map<String, String> allAttributes = iLaunchConfigurationWorkingCopy.getAttributes();
 //         for (Map.Entry<String, String> entry : allAttributes.entrySet()) {

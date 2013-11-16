@@ -10,14 +10,10 @@ import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-//import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-//import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
-//import net.sourceforge.usbdm.jni.Usbdm.TargetVppSelect;
-
 
 public class UsbdmJniPluginTest {
 

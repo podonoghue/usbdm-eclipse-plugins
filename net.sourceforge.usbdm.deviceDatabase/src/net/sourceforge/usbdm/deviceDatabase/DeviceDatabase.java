@@ -1,3 +1,11 @@
+/*
+ Change History
++===================================================================================
+| Revision History
++===================================================================================
+| 16 Nov 13 | Added subfamily field                                       4.10.6.100
++===================================================================================
+*/
 package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.IOException;
@@ -94,6 +102,10 @@ public class DeviceDatabase {
       if (deviceElement.hasAttribute("family")) {
          String family = deviceElement.getAttribute("family");
          device.setFamily(family);
+      }
+      if (deviceElement.hasAttribute("subfamily")) {
+         String subFamily = deviceElement.getAttribute("subfamily");
+         device.setSubFamily(subFamily);
       }
       try {
          for (Node node = deviceElement.getFirstChild();

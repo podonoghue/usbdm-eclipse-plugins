@@ -15,6 +15,7 @@ import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
@@ -70,6 +71,8 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    private EraseMethod[]                eraseMethods;
    private Combo                        comboEraseMethod;
    
+   private Combo                        comboSecurityOption;
+
    private TargetVddSelect[]            targetVdds;
    private Combo                        comboTargetVdd;
 
@@ -107,6 +110,10 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
+
+         createSecurityGroup(composite);
+         new Label(composite, SWT.NONE);
+         
          creatTargetVddGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
@@ -150,9 +157,11 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
-         creatTargetVddGroup(composite);
+
+         createSecurityGroup(composite);
          new Label(composite, SWT.NONE);
-         //-----
+         //-----       
+         creatTargetVddGroup(composite);
          createTrimGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
@@ -197,6 +206,9 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          createConnectionGroup(composite);
          createEraseGroup(composite);
          new Label(composite, SWT.NONE);
+         createSecurityGroup(composite);
+         new Label(composite, SWT.NONE);
+         
          creatTargetVddGroup(composite);
          new Label(composite, SWT.NONE);
          //-----
@@ -531,6 +543,28 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       comboEraseMethod.select(comboEraseMethod.getItemCount()-1);
    }
 
+   protected void createSecurityGroup(Composite comp) {
+
+      Group grpSecurityOptions = new Group(comp, SWT.NONE);
+      grpSecurityOptions.setText("Security Options");
+      grpSecurityOptions.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+      
+      RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
+      rowLayout.pack = false;
+      rowLayout.justify = true;
+      
+      grpSecurityOptions.setLayout(rowLayout);
+
+      comboSecurityOption = new Combo(grpSecurityOptions, SWT.READ_ONLY);
+      comboSecurityOption.setToolTipText("Security options applied to the target when programming ");
+
+      // Must be added in ordinal order
+      comboSecurityOption.add(SecurityOptions.SECURITY_IMAGE.toString());
+      comboSecurityOption.add(SecurityOptions.SECURITY_UNSECURED.toString());
+      comboSecurityOption.add(SecurityOptions.SECURITY_SMART.toString());
+      comboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
+   }
+
    protected void creatTargetVddGroup(Composite comp) {
 
       Group grpTargetVddSupply = new Group(comp, SWT.NONE);
@@ -685,6 +719,16 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       }
    }
    
+   public SecurityOptions getSecurityOption() {
+      int index = comboSecurityOption.getSelectionIndex();
+      if (index < 0) {
+         return SecurityOptions.SECURITY_SMART;
+      }
+      else {
+         return SecurityOptions.values()[index];
+      }
+   }
+   
    public InterfaceType getInterfaceType() {
       return gdbServerParameters.getInterfaceType();
    }
@@ -734,6 +778,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       setDevice(gdbServerParameters.getDeviceName());
 
       comboEraseMethod.setText(gdbServerParameters.getEraseMethod().toString());
+      comboSecurityOption.setText(gdbServerParameters.getSecurityOption().toString());
       if (comboConnectionSpeed != null) {
          comboConnectionSpeed.setText(ClockSpeed.findSuitable(gdbServerParameters.getInterfaceFrequency()).toString());
       }
@@ -767,6 +812,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       gdbServerParameters.enableUseDebugVersion(btnUseDebug.getSelection());
       gdbServerParameters.enableExitOnClose(btnExitOnClose.getSelection());
       gdbServerParameters.setEraseMethod(getEraseMethod());
+      gdbServerParameters.setSecurityOption(getSecurityOption());
       if (comboConnectionSpeed != null) {
          gdbServerParameters.setInterfaceFrequency(ClockSpeed.parse(comboConnectionSpeed.getText()).getFrequency());
       }

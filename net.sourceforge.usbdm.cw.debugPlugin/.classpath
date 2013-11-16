@@ -3,8 +3,9 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.freescale.core.debugger.ui.cdt"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.freescale.mcu.debug.connections"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.freescale.mcu.debugger.cdt"/>
+	<classpathentry exported="true" kind="lib" path="/usr/local/Freescale/CodeWarrior_MCU_10.2/eclipse/plugins/com.freescale.core.debugger.cdt_7.18.0.FSL_b10920/cdtcwcore.jar"/>
+	<classpathentry exported="true" kind="lib" path="/usr/local/Freescale/CodeWarrior_MCU_10.2/eclipse/plugins/com.freescale.core.debugger.ui.cdt_7.18.0.FSL_b10920/cdtcwcoreui.jar"/>
+	<classpathentry exported="true" kind="lib" path="/usr/local/Freescale/CodeWarrior_MCU_10.2/eclipse/plugins/com.freescale.mcu.debug.connections_10.2.0.FSL_b7430/mcuconn.jar"/>
+	<classpathentry exported="true" kind="lib" path="/usr/local/Freescale/CodeWarrior_MCU_10.2/eclipse/plugins/com.freescale.mcu.debugger.cdt_10.2.0.FSL_b7430/mcucommon.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

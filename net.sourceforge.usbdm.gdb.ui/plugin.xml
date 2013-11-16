@@ -65,9 +65,6 @@
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
          </associatedDelegate>
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.TestLaunchDelegate">
-         </associatedDelegate>
       </tab>
       <tab
             class="net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerTab"
@@ -76,9 +73,6 @@
             name="Debug">
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.TestLaunchDelegate">
          </associatedDelegate>
          <placement
                after="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab">
@@ -92,9 +86,6 @@
             <associatedDelegate
                   delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
             </associatedDelegate>
-            <associatedDelegate
-                  delegate="net.sourceforge.usbdm.gdb.TestLaunchDelegate">
-            </associatedDelegate>
             <placement
                   after="net.sourceforge.usbdm.gdb.debuggerTab">
             </placement>
@@ -107,9 +98,6 @@
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
          </associatedDelegate>
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.TestLaunchDelegate">
-         </associatedDelegate>
          <placement
                after="net.sourceforge.usbdm.gdb.ui.usbdmStartupTab">
          </placement>
@@ -121,9 +109,6 @@
             name="Common">
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.TestLaunchDelegate">
          </associatedDelegate>
          <placement
                after="org.eclipse.debug.ui.sourceLookupTab">

@@ -63,6 +63,7 @@ public class UsbdmCommon {
  //! BDM interface options
  //!
    public static class BdmOptions {
+	   
     // Options passed to the BDM
     public int      targetVdd;                //!< - Target Vdd (off, 3.3V or 5V)
     public int      cycleVddOnReset;          //!< - Cycle target Power  when resetting
@@ -89,6 +90,7 @@ public class UsbdmCommon {
     int             resetDuration;            //!< - How long to assert reset (ms)
     int             resetReleaseInterval;     //!< - How long to wait after reset release to release other signals (ms)
     int             resetRecoveryInterval;    //!< - How long to wait after reset sequence completes (ms)
+    
    public int getPowerOffDuration() {
       return powerOffDuration;
    }
@@ -146,4 +148,5 @@ public class UsbdmCommon {
     public static final String KeyClockTrimFrequency        = "clockTrimFrequency";
     public static final String KeyTrimTargetClock           = "trimTargetClock";
     public static final String KeyEraseMethod               = "eraseMethod";
+    public static final String KeySecurityOption            = "securityOption";
 }

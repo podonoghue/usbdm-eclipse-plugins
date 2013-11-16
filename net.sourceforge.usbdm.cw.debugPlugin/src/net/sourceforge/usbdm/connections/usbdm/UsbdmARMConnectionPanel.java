@@ -92,7 +92,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
          index = 0;
       }
       bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].getFrequency();
-      eraseMethod = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
+      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -111,7 +111,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreARMDefaultSettings() {
 //      System.err.println("UsbdmARMConnectionPanel.restoreARMDefaultSettings(bool)");
-      eraseMethod = defaultEraseMethod;
+      eraseMethod                = defaultEraseMethod;
       bdmOptions.autoReconnect   = defaultBdmOptions.autoReconnect;
       bdmOptions.connectionSpeed = defaultBdmOptions.connectionSpeed;
       bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
@@ -144,7 +144,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
          if (eraseMethod > lastEraseMethod.ordinal()) {
             eraseMethod = defaultEraseMethod.ordinal();
          }
-         this.eraseMethod = EraseMethod.values()[eraseMethod];
+         this.eraseMethod    = EraseMethod.values()[eraseMethod];
 
          bdmOptions.autoReconnect   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect), bdmOptions.autoReconnect);
          bdmOptions.connectionSpeed = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
@@ -177,7 +177,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
       super.addSettingsChangedListeners();
       if (fListener != null) {
          comboEraseMethod.addModifyListener(fListener.getModifyListener());
-
+         comboSecurityOption.addModifyListener(fListener.getModifyListener());
          btnAutomaticallyReconnect.addSelectionListener(fListener.getSelectionListener());
          comboConnectionSpeed.addSelectionListener(fListener.getSelectionListener());
       }
@@ -193,7 +193,8 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
       createConnectionGroup(comp, NEEDS_SPEED);
       new Label(this, SWT.NONE);
       new Label(this, SWT.NONE);
-      new Label(this, SWT.NONE);
+//      new Label(this, SWT.NONE);
+      createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();
 

@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
-
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -103,7 +102,7 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
          bdmOptions.clockTrimFrequency = 0;
          bdmOptions.clockTrimNVAddress = 0;
       }
-      eraseMethod = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
+      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -188,7 +187,7 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
       super.addSettingsChangedListeners();
       if (fListener != null) {
          comboEraseMethod.addModifyListener(fListener.getModifyListener());
-
+         comboSecurityOption.addModifyListener(fListener.getModifyListener());
          btnAutomaticallyReconnect.addSelectionListener(fListener.getSelectionListener());
          btnBDMClockAlt.addSelectionListener(fListener.getSelectionListener());
          btnBDMClockBus.addSelectionListener(fListener.getSelectionListener());
@@ -206,7 +205,8 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
       new Label(this, SWT.NONE);
       createBdmClockGroup(comp);
       new Label(this, SWT.NONE);
-      new Label(this, SWT.NONE);
+//      new Label(this, SWT.NONE);
+      createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();
 

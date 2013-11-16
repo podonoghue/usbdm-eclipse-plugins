@@ -1,3 +1,11 @@
+/*
+ Change History
++===================================================================================
+| Revision History
++===================================================================================
+| 16 Nov 13 | Added subfamily field                                       4.10.6.100
++===================================================================================
+*/
 package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.PrintStream;
@@ -519,6 +527,7 @@ public class Device {
    private GnuInfoList              gnuInfoMap;
    private FileList                 fileListMap;
    private String                   family;
+   private String                   subFamily;
    private long                     soptAddress;
    private TargetType               targetType;
    private ClockTypes               clockType;
@@ -537,6 +546,7 @@ public class Device {
       memoryRegions      = new Vector<Device.MemoryRegion>();
       gnuInfoMap         = null;
       family             = null;
+      subFamily          = null;
    }
 
    void addMemoryRegion(MemoryRegion memoryRegion) {
@@ -627,6 +637,12 @@ public class Device {
    }
    public String getFamily() {
       return family;
+   }
+   public void setSubFamily(String subFamily) {
+      this.subFamily = subFamily;
+   }
+   public String getSubFamily() {
+      return subFamily;
    }
    /**
     * @return the map

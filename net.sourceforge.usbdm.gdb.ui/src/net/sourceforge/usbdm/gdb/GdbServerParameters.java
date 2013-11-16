@@ -12,6 +12,7 @@ import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 import net.sourceforge.usbdm.jni.Usbdm.ExtendedOptions;
 import net.sourceforge.usbdm.jni.Usbdm.ResetType;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -50,6 +51,8 @@ public class GdbServerParameters {
    private int                   allowedEraseMethods;
    private int                   requiredDialogueComponents;
    
+   private SecurityOptions		 securityOption;
+   
    private static final String   deviceNameKey                   = "deviceName";
    private static final String   bdmSerialNumberKey              = "bdmSerialNumber";
    private static final String   bdmSerialNumberMatchRequiredKey = "bdmSerialNumberMatchRequired";
@@ -62,6 +65,7 @@ public class GdbServerParameters {
    private static final String   useResetKey                     = "driveReset";
    private static final String   usePstSignalsKey                = "usePstSignals";
    private static final String   eraseMethodKey                  = "eraseMethod";
+   private static final String   securityOptionKey               = "securityOption";
    private static final String   targetVddKey                    = "targetVdd";
    private static final String   trimClockKey                    = "trimClock";
    private static final String   clockTrimFrequencyKey           = "clockTrimFrequency";
@@ -316,9 +320,13 @@ public class GdbServerParameters {
    }
    
    private String getEraseMethodAsOption() {
-      return "-erase="+eraseMethod.toString();
-   }
-   
+	      return "-erase="+eraseMethod.getOptionName();
+	   }
+	   
+   private String getSecurityOptionAsOption() {
+	      return "-security="+securityOption.getOptionName();
+	   }
+	   
    public TargetVddSelect getTargetVdd() {
       return extendedOptions.targetVdd;
    }
@@ -393,6 +401,14 @@ public class GdbServerParameters {
    protected void setPreferredEraseMethod(EraseMethod preferredEraseMethod) {
       this.preferredEraseMethod = preferredEraseMethod;
    }
+
+   public SecurityOptions getSecurityOption() {
+		return securityOption;
+	}
+
+	public void setSecurityOption(SecurityOptions securityOption) {
+		this.securityOption = securityOption;
+	}
 
    protected IPath getServerPath() {
       IPath serverPath = Usbdm.getApplicationPath();
@@ -527,7 +543,7 @@ public class GdbServerParameters {
       }
       commandList.add("-speed="+getInterfaceFrequency()/1000);
       commandList.add(getEraseMethodAsOption());
-      
+      commandList.add(getSecurityOptionAsOption());
       return commandList;
    }
    
@@ -547,6 +563,7 @@ public class GdbServerParameters {
       enableUseReset(                                 settings.get(getKey(useResetKey),                     false));
       enableUsePstSignals(                            settings.get(getKey(usePstSignalsKey),                false));
       setEraseMethod(EraseMethod.valueOf(             settings.get(getKey(eraseMethodKey),                  getPreferredEraseMethod().name())));
+      setSecurityOption(SecurityOptions.valueOf(      settings.get(getKey(securityOptionKey),               SecurityOptions.SECURITY_SMART.name())));
       setTargetVdd(TargetVddSelect.valueOf(           settings.get(getKey(targetVddKey),                    TargetVddSelect.BDM_TARGET_VDD_OFF.name())));
       enableTrimClock(                                settings.get(getKey(trimClockKey),                    false));
       setClockTrimFrequency(                          settings.get(getKey(clockTrimFrequencyKey),           0));
@@ -569,6 +586,7 @@ public class GdbServerParameters {
       settings.put(getKey(useResetKey),                     isUseReset());
       settings.put(getKey(usePstSignalsKey),                isUsePstSignals());
       settings.put(getKey(eraseMethodKey),                  getEraseMethod().name());
+      settings.put(getKey(securityOptionKey),               getSecurityOption().name());
       settings.put(getKey(targetVddKey),                    getTargetVdd().name());
       settings.put(getKey(trimClockKey),                    isTrimClock());
       settings.put(getKey(clockTrimFrequencyKey),           getClockTrimFrequency());
@@ -595,6 +613,7 @@ public class GdbServerParameters {
       buff.append("isUseReset =                     " + isUseReset()+"\n");
       buff.append("isUsePstSignals =                " + isUsePstSignals()+"\n");
       buff.append("getEraseMethod =                 " + getEraseMethod()+"\n");
+      buff.append("getSecurityOption =              " + getSecurityOption()+"\n");
       buff.append("getTargetVdd =                   " + getTargetVdd()+"\n");
       buff.append("isTrimclock =                    " + isTrimClock()+"\n");
       buff.append("getClockTrimFrequency =          " + getClockTrimFrequency()+"\n");
@@ -618,6 +637,7 @@ public class GdbServerParameters {
       configuration.setAttribute((key+useResetKey),                      isUseReset());
       configuration.setAttribute((key+usePstSignalsKey),                 isUsePstSignals());
       configuration.setAttribute((key+eraseMethodKey),                   getEraseMethod().name());
+      configuration.setAttribute((key+securityOptionKey),                getSecurityOption().name());
       configuration.setAttribute((key+targetVddKey),                     getTargetVdd().name());
       configuration.setAttribute((key+trimClockKey),                     isTrimClock());
       configuration.setAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency());
@@ -644,7 +664,9 @@ public class GdbServerParameters {
       enableUseReset(           configuration.getAttribute((key+useResetKey),                      isUseReset()));
       enableUsePstSignals(      configuration.getAttribute((key+usePstSignalsKey),                 isUsePstSignals()));
       setEraseMethod(EraseMethod.valueOf(  
-                                configuration.getAttribute((key+eraseMethodKey),                   getEraseMethod().name())));
+              configuration.getAttribute((key+eraseMethodKey),                   getEraseMethod().name())));
+      setSecurityOption(SecurityOptions.valueOf(  
+              configuration.getAttribute((key+securityOptionKey),                getSecurityOption().name())));
       setTargetVdd(TargetVddSelect.valueOf( 
                                 configuration.getAttribute((key+targetVddKey),                     getTargetVdd().name())));
       enableTrimClock(          configuration.getAttribute((key+trimClockKey),                     isTrimClock()));

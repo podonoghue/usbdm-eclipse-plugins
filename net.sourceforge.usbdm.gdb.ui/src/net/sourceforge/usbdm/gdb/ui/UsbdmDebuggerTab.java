@@ -36,6 +36,7 @@ import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
@@ -139,6 +140,8 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    private Button                      btnAutomaticallyReconnect;
    private Button                      btnDriveReset;
    private Button                      btnUsePstSignals;
+
+   private Combo                       comboSecurityOption;
 
    private EraseMethod[]               eraseMethods;
    private Combo                       comboEraseMethod;
@@ -533,6 +536,28 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       }
       else {
          return targetVdds[index];
+      }
+   }
+
+   private void setSecurityOption(SecurityOptions securityOption) {
+	      System.err.println("setSecurityOption() "+ securityOption.toString());
+	      comboSecurityOption.setText(securityOption.toString());
+	   }
+	   
+   @SuppressWarnings("unused")
+   private void setSecurityOption(String securityOptionName) {
+      System.err.println("getSecurityOption() "+ securityOptionName);
+      SecurityOptions securityOption = SecurityOptions.valueOf(securityOptionName);
+      setSecurityOption(securityOption);
+   }
+   
+   public SecurityOptions getSecurityOption() {
+      int index = comboSecurityOption.getSelectionIndex();
+      if (index < 0) {
+         return SecurityOptions.SECURITY_SMART;
+      }
+      else {
+         return SecurityOptions.values()[index];
       }
    }
 
@@ -1041,6 +1066,40 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       });
    }
 
+   /** Create Security Selection Group
+    * 
+    * @param parent parent of group
+    */
+   protected void createSecurityGroup(Composite parent) {
+      //    System.err.println("UsbdmConnectionPanel::createSecurityGroup()");
+
+      Group grpSelectsecurity = new Group(parent, SWT.NONE);
+      grpSelectsecurity.setText("Security Options");
+      grpSelectsecurity.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 2, 1));
+
+      RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
+      rowLayout.pack = false;
+      rowLayout.justify = true;
+      grpSelectsecurity.setLayout(rowLayout);
+
+      comboSecurityOption = new Combo(grpSelectsecurity, SWT.READ_ONLY);
+      comboSecurityOption.setToolTipText("Security options applied to the target when programming ");
+
+      // Must be added in ordinal order
+      comboSecurityOption.add(SecurityOptions.SECURITY_IMAGE.toString());
+      comboSecurityOption.add(SecurityOptions.SECURITY_UNSECURED.toString());
+      comboSecurityOption.add(SecurityOptions.SECURITY_SMART.toString());
+      comboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
+
+      comboSecurityOption.addSelectionListener(new SelectionAdapter() {
+         public void widgetSelected(SelectionEvent e) {
+            updateBdmDescription();
+            doUpdate();
+         }
+      });   
+   }
+
+
    protected void createTargetVddGroup(Composite comp) {
    
       Group grpTargetVddSupply = new Group(comp, SWT.NONE);
@@ -1164,6 +1223,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       createGdbServerGroup(holder);
       createConnectionGroup(holder);
       createEraseGroup(holder);
+      createSecurityGroup(holder);
       createTrimGroup(holder);
       createTargetVddGroup(holder);
    }
@@ -1328,6 +1388,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       populateEraseMethods();
       setEraseMethod(                            gdbServerParameters.getEraseMethod());
       setTargetVdd(                              gdbServerParameters.getTargetVdd());
+      setSecurityOption(                         gdbServerParameters.getSecurityOption());
       populateTrim();
       disableUnusedControls();
    }
@@ -1350,6 +1411,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       gdbServerParameters.enableUseReset(                      btnDriveReset.getSelection());
       gdbServerParameters.enableUsePstSignals(                 btnUsePstSignals.getSelection());
       gdbServerParameters.setEraseMethod(                      getEraseMethod());
+      gdbServerParameters.setSecurityOption(                   getSecurityOption());
       gdbServerParameters.setTargetVdd(                        getTargetVdd());
       gdbServerParameters.enableTrimClock(                     btnTrimTargetClock.getSelection());
       gdbServerParameters.setClockTrimFrequency(          (int)Math.round(txtTrimFrequencyAdapter.getDoubleValue()*1000));

@@ -142,17 +142,19 @@ public class Usbdm {
     * Selects erase method
     */
    public static enum EraseMethod {
-      ERASE_NONE        (0x00, "None"),       //!< No erase is done
-      ERASE_MASS        (0x01, "Mass"),       //!< A Mass erase operation is done
-      ERASE_ALL         (0x02, "All"),        //!< All Flash is erased (by Flash Block)
-      ERASE_SELECTIVE   (0x03, "Selective"),  //!< A selective erase (by sector) is done
+      ERASE_NONE        (0x00, "None",      "No erase done"),                //!< No erase is done
+      ERASE_MASS        (0x01, "Mass",      "Mass erase device"),            //!< A Mass erase operation is done
+      ERASE_ALL         (0x02, "All",       "Block erase entire device"),    //!< All Flash is erased (by Flash Block)
+      ERASE_SELECTIVE   (0x03, "Selective", "Selective erase (by sector)"),  //!< A selective erase (by sector) is done
       ;
       private final int    mask;
       private final String legibleName;
-      
-      EraseMethod(int mask, String legibleName) {
+      private final String optionName;
+
+      EraseMethod(int mask, String optionName, String legibleName) {
          this.mask        = mask;
          this.legibleName = legibleName;
+         this.optionName  = optionName;
       }
       public int getMask() {
          return mask;
@@ -167,6 +169,47 @@ public class Usbdm {
       }
       public String toString() {
          return legibleName;
+      }
+      public String getOptionName() {
+         return optionName;
+      }
+   };
+
+   /**
+    * Selects erase method
+    */
+   public static enum SecurityOptions {
+      SECURITY_IMAGE     (0x00, "Image",     "Security field from flash image"),               //!< Security region is not modified by programmer
+      SECURITY_UNSECURED (0x02, "Unsecured", "Default unsecured configuration"),               //!< Security region is forced to a default secured state
+      SECURITY_SMART     (0x03, "Smart",     "Unsecured if no security field in flash image"), //!< Default unsecured is used if no security region in flash image
+      SECURITY_SECURED   (0x01, "Secured",   "Default secured configuration"),                 //!< Security region is forced to a default unsecured state
+      SECURITY_CUSTOM    (0x04, "Custom",    "Custom Settings"),                               //!< Custom settings used (not implemented)
+      ;
+      private final int    mask;
+      private final String legibleName;
+      private final String optionName;
+
+      SecurityOptions(int mask, String optionName, String legibleName) {
+         this.mask        = mask;
+         this.legibleName = legibleName;
+         this.optionName  = optionName;
+      }
+      public int getMask() {
+         return mask;
+      }
+      public static SecurityOptions valueOf(int mask) {
+         for (SecurityOptions type:values()) {
+            if (type.mask == mask) {
+               return type;
+            }
+         }
+         return SECURITY_UNSECURED;
+      }
+      public String toString() {
+         return legibleName;
+      }
+      public String getOptionName() {
+         return optionName;
       }
    };
 
@@ -1398,14 +1441,13 @@ public class Usbdm {
          try {
             String os = System.getProperty("os.name");
             if ((os != null) && os.toUpperCase().contains("LINUX")) {
-//               String libusbLibrary = "usb-x86_64-1.0"; 
-//           	String libusbLibrary = UsbdmJniConstants.LibUsbLibraryName_so;
+//             	 String libusbLibrary = UsbdmJniConstants.LibUsbLibraryName_so;
 //               System.err.println("Loading library: "+libusbLibrary );
 //               System.loadLibrary(libusbLibrary);
 
-               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
-               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
-               System.loadLibrary("usbdm");
+//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
+//               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
+//               System.loadLibrary("usbdm");
             }
             else {
 //               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_dll );
@@ -1415,7 +1457,7 @@ public class Usbdm {
                System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
                System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
             }
-//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
             if (debug) {
                System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
             }

@@ -1,5 +1,12 @@
 package net.sourceforge.usbdm.cdt.ui.wizards;
-
+/*
+ Change History
++===================================================================================
+| Revision History
++===================================================================================
+| 16 Nov 13 | Added default files based upon subfamily                    4.10.6.100
++===================================================================================
+*/
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -523,8 +530,12 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
     * 
     * @param paramMap Map to add attributes to
     */
-   private void addDeviceAttributes(Map<String, String> paramMap) {
-      String deviceName = targetDeviceNameCombo.getText();
+   private void addDeviceAttributes(String deviceName, Map<String, String> paramMap) {
+      
+      // Try to locate device specific header file
+      String externalDeviceHeaderFile = getExternalProjectHeaderFile(deviceName);
+      System.err.println("Looking for device header file" + externalDeviceHeaderFile); //$NON-NLS-1$
+
       String linkerInformation;
       String deviceSubFamily;
       // Set defaults
@@ -549,10 +560,19 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
       }
       else {
          Device device = deviceDatabase.getDevice(deviceName);
+         
          if (device == null) {
             System.err.println("Device \""+deviceName+"\" not found - using default memory map");             //$NON-NLS-1$ //$NON-NLS-2$
          }
          else {
+            if (externalDeviceHeaderFile.isEmpty()) {
+               // Try to get subFamily header file
+               String subFamilyName = device.getSubFamily();
+               System.err.println("Looking for subFamily header file" + subFamilyName); //$NON-NLS-1$
+               if (subFamilyName != null) {
+                  externalDeviceHeaderFile = getExternalProjectHeaderFile(subFamilyName);
+               }
+            }
             linkerInformation = createLinkerMemoryMap(device);
             deviceSubFamily = device.getFamily();
             addDatabaseValues(paramMap, device, deviceSubFamily);
@@ -563,8 +583,9 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
       if (deviceType == InterfaceType.T_ARM) {
          paramMap.put(UsbdmConstants.ARM_LTD_STARTUP_S_FILE_KEY, "startup_ARMLtdGCC_"+deviceSubFamily+".S");
       }
-      paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,       linkerInformation);
+      paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,      linkerInformation);
       paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, "DEVICE_SUBFAMILY_"+deviceSubFamily);
+      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalDeviceHeaderFile);
    }
    
    /*
@@ -629,7 +650,7 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
       paramMap.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,     deviceName.toLowerCase());
       paramMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,   deviceType.name());
       paramMap.put(UsbdmConstants.USBDM_GDB_SPRITE_KEY,       deviceType.gdbSprite);
-      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,   getExternalProjectHeaderFile(deviceName));
+//      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,   getExternalProjectHeaderFile(deviceName));
       paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,  getExternalVectorTable(deviceName));
          
       if (autoGenerateLinkerScript.getSelection()) {
@@ -649,7 +670,7 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
             e.printStackTrace();
          }
       }
-      addDeviceAttributes(paramMap);
+      addDeviceAttributes(deviceName, paramMap);
 
       IDialogSettings dialogSettings = getDialogSettings();
 //      System.err.println("getDialogSettings() => " + dialogSettings);             //$NON-NLS-1$
