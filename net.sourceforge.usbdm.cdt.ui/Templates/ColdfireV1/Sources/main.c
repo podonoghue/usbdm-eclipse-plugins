@@ -8,6 +8,7 @@
  ============================================================================
  */
 #include "derivative.h"
+#include "utilities.h"
 
 volatile int count = 0;
 
@@ -19,19 +20,19 @@ volatile int count = 0;
 __attribute__((__interrupt__))
 void AccessError_Handler(void) {
    for(;;) {
-      asm("halt");
+      __breakpoint();
    }
 }
 
 int main(void) {
 
    for(count =0; count < 100; count++) {
-      asm("nop");
+      __asm__("nop");
    }
    // Generate Access error (interrupt handler demonstration)
    // (*(unsigned int *) 101) = 100;
 
    for(;;) {
-      asm("nop");
+      __asm__("nop");
    }
 }

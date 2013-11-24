@@ -1620,7 +1620,7 @@ public class Usbdm {
    /**
     *  Obtain USBDM Resource path
     * 
-    *  @return Path to USBDM Application directory (executable, data etc)
+    *  @return Path to USBDM Resource directory (data etc)
     * 
     *  @throws UsbdmException
     */

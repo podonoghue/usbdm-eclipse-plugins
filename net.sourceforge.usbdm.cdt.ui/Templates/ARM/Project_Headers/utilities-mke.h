@@ -49,7 +49,7 @@ static inline void NVIC_DisableIrq(int irqNum) {
  * Set the priority of an interrupt.
  *
  * @param intIndex - Interrupt Index (16-255)
- * @param priority – Priority to set (0-3 for Kinetis KL)
+ * @param priority – Priority to set (0-3 for Kinetis MKE)
  */
 static inline void NVIC_SetIrqPriority(int intIndex,
                                        uint32_t priority) {
@@ -61,31 +61,31 @@ static inline void NVIC_SetIrqPriority(int intIndex,
 /*!
  *  Wait for interrupt event - used to reduce power
  */
-#define __waitForInterrupt() __asm__("wfi")
+#define __wait_for_interrupt() __asm__("wfi")
 
 /*!
  *  Debug breakpoint
  */
-#define __breakPoint() __asm__("bkpt")
+#define __breakpoint() __asm__("bkpt")
 
 /*!
  *  Enable interrupts
  */
-#define __enable_irq() __asm__("cpsie I")
+#define __enable_interrupt() __asm__("cpsie I")
 
 /*!
  *  Disable interrupts
  */
-#define __disable_irq() __asm__("cpsid I")
+#define __disable_interrupt() __asm__("cpsid I")
 
 /*!
  *  Enable fault interrupts
  */
-#define __enable_fault_irq() __asm__("cpsie F")
+#define __enable_fault_interrupt() __asm__("cpsie F")
 
 /*!
  *  Disable fault interrupts
  */
-#define __disable_fault_irq() __asm__("cpsid F")
+#define __disable_fault_interrupt() __asm__("cpsid F")
 
 #endif /* UTILTIES_H_ */

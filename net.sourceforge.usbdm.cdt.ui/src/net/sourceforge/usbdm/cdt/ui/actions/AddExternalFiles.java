@@ -199,7 +199,7 @@ public class AddExternalFiles extends ProcessRunner {
          if (targetFile == null) {
             throw new ProcessFailureException("AddExternalFiles.process() - Missing arguments - target"); //$NON-NLS-1$
          }     
-         System.err.println("AddTargetFiles.process()");
+         System.err.println("AddExternalFiles.process()");
          System.err.println("   externalSource = "+externalFile);
          System.err.println("   internalSource = "+internalFile);
          System.err.println("   targetFile     = "+targetFile);

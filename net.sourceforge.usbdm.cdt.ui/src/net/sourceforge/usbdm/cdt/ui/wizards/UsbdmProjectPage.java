@@ -1,11 +1,12 @@
 package net.sourceforge.usbdm.cdt.ui.wizards;
 /*
  Change History
-+===================================================================================
++============================================================================================
 | Revision History
-+===================================================================================
-| 16 Nov 13 | Added default files based upon subfamily                    4.10.6.100
-+===================================================================================
++============================================================================================
+| 16 Nov 13 | Fixed path lookup for resource files (e.g. header files) on linux   4.10.6.100
+| 16 Nov 13 | Added default files header & vector files based upon subfamily      4.10.6.100
++============================================================================================
 */
 import java.io.File;
 import java.net.MalformedURLException;
@@ -351,7 +352,7 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
    private String getExternalProjectHeaderFile(String deviceName) {
       
       IPath applicationPath;
-      applicationPath = Usbdm.getApplicationPath();
+      applicationPath = Usbdm.getResourcePath();
       if (applicationPath == null) {
          return "";
       }
@@ -377,7 +378,7 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
    
    private String getExternalVectorTable(String deviceName) {
       IPath applicationPath;
-      applicationPath = Usbdm.getApplicationPath();
+      applicationPath = Usbdm.getResourcePath();
       if (applicationPath == null) {
          return "";
       }
@@ -388,12 +389,12 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
       
       File f = new File(vectorTable);
       if(f.exists()) {
-//         System.err.println("getExternalVectorTable() looking for \'"+vectorTable+"\' => found");
-//         System.err.println("   return: \'" + f.toURI().toString() + "\'");
+         System.err.println("getExternalVectorTable() looking for \'"+vectorTable+"\' => found");
+         System.err.println("   return: \'" + f.toURI().toString() + "\'");
          return f.toURI().toString();
       }
       else {
-//         System.err.println("getExternalVectorTable() looking for \'"+vectorTable+"\' => not found");
+         System.err.println("getExternalVectorTable() looking for \'"+vectorTable+"\' => not found");
          return "";
       }
    }
@@ -533,25 +534,29 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
    private void addDeviceAttributes(String deviceName, Map<String, String> paramMap) {
       
       // Try to locate device specific header file
-      String externalDeviceHeaderFile = getExternalProjectHeaderFile(deviceName);
-      System.err.println("Looking for device header file" + externalDeviceHeaderFile); //$NON-NLS-1$
+      String externalHeaderFile = getExternalProjectHeaderFile(deviceName);
+      System.err.println("Looking for device header file: " + externalHeaderFile); //$NON-NLS-1$
+
+      // Try to locate device specific vector table file
+      String externalVectorTableFile = getExternalVectorTable(deviceName);
+      System.err.println("Looking forvector table file: " + externalVectorTableFile); //$NON-NLS-1$
 
       String linkerInformation;
-      String deviceSubFamily;
+      String deviceFamily;
       // Set defaults
       switch(deviceType) {
       case T_ARM: 
          linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_COLDFIRE_KINETIS+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
-         deviceSubFamily = UsbdmConstants.SUB_FAMILY_CORTEX_M4;
+         deviceFamily = UsbdmConstants.SUB_FAMILY_CORTEX_M4;
          break;
       case T_CFV1:
          linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_COLDFIRE_V1+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
-         deviceSubFamily = UsbdmConstants.SUB_FAMILY_CFV1;
+         deviceFamily = UsbdmConstants.SUB_FAMILY_CFV1;
          break;
       case T_CFVX:
       default:
          linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_COLDFIRE_Vx+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
-         deviceSubFamily = UsbdmConstants.SUB_FAMILY_CFV2;
+         deviceFamily = UsbdmConstants.SUB_FAMILY_CFV2;
          break;      
       }
       DeviceDatabase deviceDatabase = new DeviceDatabase(deviceType.targetType);
@@ -565,27 +570,39 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
             System.err.println("Device \""+deviceName+"\" not found - using default memory map");             //$NON-NLS-1$ //$NON-NLS-2$
          }
          else {
-            if (externalDeviceHeaderFile.isEmpty()) {
-               // Try to get subFamily header file
-               String subFamilyName = device.getSubFamily();
-               System.err.println("Looking for subFamily header file" + subFamilyName); //$NON-NLS-1$
-               if (subFamilyName != null) {
-                  externalDeviceHeaderFile = getExternalProjectHeaderFile(subFamilyName);
-               }
-            }
             linkerInformation = createLinkerMemoryMap(device);
-            deviceSubFamily = device.getFamily();
-            addDatabaseValues(paramMap, device, deviceSubFamily);
+            deviceFamily = device.getFamily();
+            addDatabaseValues(paramMap, device, deviceFamily);
+            
             paramMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
             paramMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY,    String.valueOf(device.getDefaultClockTrimNVAddress()));            
+
+            String deviceSubFamily = device.getSubFamily();
+            if (deviceSubFamily != null) {
+               if (externalHeaderFile.isEmpty()) {
+                  // Try to get subFamily header file
+                  System.err.println("Looking for subFamily header file: " + deviceSubFamily); //$NON-NLS-1$
+                  externalHeaderFile = getExternalProjectHeaderFile(deviceSubFamily);
+               }
+               if (externalVectorTableFile.isEmpty()) {
+                  // Try to get subFamily vector file
+                  System.err.println("Looking for subFamily vector file: " + deviceSubFamily); //$NON-NLS-1$
+                  externalVectorTableFile  = getExternalVectorTable(deviceSubFamily);
+               }
+            }
          }
       }
+      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
+      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
+
       if (deviceType == InterfaceType.T_ARM) {
-         paramMap.put(UsbdmConstants.ARM_LTD_STARTUP_S_FILE_KEY, "startup_ARMLtdGCC_"+deviceSubFamily+".S");
+         paramMap.put(UsbdmConstants.ARM_LTD_STARTUP_S_FILE_KEY, "startup_ARMLtdGCC_"+deviceFamily+".S");
       }
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,      linkerInformation);
-      paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, "DEVICE_SUBFAMILY_"+deviceSubFamily);
-      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalDeviceHeaderFile);
+      paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, "DEVICE_SUBFAMILY_"+deviceFamily);
+      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalHeaderFile);
+      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,   externalVectorTableFile);
+
    }
    
    /*
@@ -651,7 +668,7 @@ public class UsbdmProjectPage extends WizardPage implements IWizardDataPage, Usb
       paramMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,   deviceType.name());
       paramMap.put(UsbdmConstants.USBDM_GDB_SPRITE_KEY,       deviceType.gdbSprite);
 //      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,   getExternalProjectHeaderFile(deviceName));
-      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,  getExternalVectorTable(deviceName));
+//      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,  getExternalVectorTable(deviceName));
          
       if (autoGenerateLinkerScript.getSelection()) {
 //         System.err.println("getPageData() => "+"externalLinkerScript = \"\""); //$NON-NLS-1$ //$NON-NLS-2$

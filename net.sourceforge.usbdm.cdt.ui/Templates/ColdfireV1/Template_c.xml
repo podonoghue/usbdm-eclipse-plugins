@@ -182,6 +182,16 @@
    </process>
 
    <!-- 
+         Add target files based upon options from USBDM device database
+     -->
+   <process
+      type="net.sourceforge.usbdm.cdt.ui.AddTargetFiles">
+      <simple name="projectName"          value="$(projectName)" />
+      <simple name="targetDeviceFamily"   value="$(targetDeviceFamily)" />
+      <simple name="targetDevice"         value="$(targetDevice)" />
+   </process>
+
+   <!-- 
          Exclude unused files
      -->
    <process

@@ -165,7 +165,7 @@ public class AddTargetFiles extends ProcessRunner {
          String processId, IProgressMonitor monitor)
          throws ProcessFailureException {
 
-//      System.err.println("AddTargetFiles.process()"); //$NON-NLS-1$
+      System.err.println("AddTargetFiles.process()"); //$NON-NLS-1$
       
       String projectName          = null;
       String targetDeviceFamily   = null;

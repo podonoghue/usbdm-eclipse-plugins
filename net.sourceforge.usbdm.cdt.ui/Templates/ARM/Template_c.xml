@@ -148,7 +148,7 @@
             <simple name="replaceable"       value="true" />
          </element>
          <element>
-            <simple name="externalSource"    value= "$(externalVectorTable)" />
+            <simple name="externalSource"    value="$(externalVectorTable)" />
             <simple name="internalSource"    value="" />
             <simple name="target"            value="Startup_Code/vectors.c" />
             <simple name="replaceable"       value="true" />

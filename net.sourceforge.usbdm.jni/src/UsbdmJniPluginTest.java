@@ -18,10 +18,6 @@ import org.eclipse.swt.widgets.Shell;
 public class UsbdmJniPluginTest {
 
    public static void listDevices() throws UsbdmException {
-      // Print USBDM paths
-      System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
-      System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
-
       // List USBDM devices
       ArrayList<Usbdm.USBDMDeviceInfo>    deviceList = Usbdm.getDeviceList();
       if (deviceList.size() == 0) {
