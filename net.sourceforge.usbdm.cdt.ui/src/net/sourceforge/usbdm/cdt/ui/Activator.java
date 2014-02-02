@@ -1,7 +1,12 @@
 package net.sourceforge.usbdm.cdt.ui;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -47,15 +52,24 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
-   /**
-    * Returns an image descriptor for the image file at the given
-    * plug-in relative path
-    *
-    * @param path the path
-    * @return the image descriptor
-    */
-   public static ImageDescriptor getImageDescriptor(String path) {
-       return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	
+   @Override
+   protected void initializeImageRegistry(ImageRegistry registry) {
+       super.initializeImageRegistry(registry);
+       Bundle bundle = Platform.getBundle(PLUGIN_ID);
+       
+       ImageDescriptor imageDescriptor;
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-checked.png"), null));
+       registry.put(ID_CHECKBOX_CHECKED_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-unchecked.png"), null));
+       registry.put(ID_CHECKBOX_UNCHECKED_IMAGE, imageDescriptor);
+   }
+
+   public final static String ID_CHECKBOX_CHECKED_IMAGE    = "checkbox-checked";
+   public final static String ID_CHECKBOX_UNCHECKED_IMAGE  = "checkbox-unchecked";
+   
+   public ImageDescriptor getImageDescriptor(String key) {
+      return getImageRegistry().getDescriptor(key);
    }
 
 }

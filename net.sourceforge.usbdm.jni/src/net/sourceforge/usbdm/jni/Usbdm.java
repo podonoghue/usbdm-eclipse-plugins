@@ -1457,7 +1457,7 @@ public class Usbdm {
                System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
                System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
             }
-            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
             if (debug) {
                System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
             }
@@ -1611,7 +1611,6 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmApplicationPath());
       } catch (UsbdmException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       return path;
@@ -1660,7 +1659,6 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmResourcePath());
       } catch (UsbdmException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       return path;
@@ -1710,7 +1708,6 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmDataPath());
       } catch (UsbdmException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       return path;

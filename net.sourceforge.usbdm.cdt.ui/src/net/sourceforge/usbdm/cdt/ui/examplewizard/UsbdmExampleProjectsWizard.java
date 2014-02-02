@@ -17,12 +17,10 @@ import java.util.zip.ZipFile;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.ui.examplewizard.ExampleList.Attribute;
 import net.sourceforge.usbdm.cdt.ui.examplewizard.ExampleList.ProjectInformation;
-import net.sourceforge.usbdm.cdt.ui.wizards.UsbdmConfigurationPage;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
-import org.eclipse.cdt.ui.templateengine.IWizardDataPage;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -30,6 +28,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
@@ -300,15 +299,11 @@ public class UsbdmExampleProjectsWizard extends Wizard implements INewWizard {
    public void addPages() {
       
       usbdmSelectProjectWizardPage = new UsbdmExampleSelectionPage();
-      IWizardDataPage[] pages = {
+      IWizardPage[] pages = {
          usbdmSelectProjectWizardPage,
-         new UsbdmConfigurationPage(usbdmSelectProjectWizardPage),
+         new net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmToolSettingsPage(usbdmSelectProjectWizardPage),
       };
-      for (int index=1; index<pages.length; index++) {
-         pages[index-1].setNextPage(pages[index]);
-         pages[index].setPreviousPage(pages[index-1]);
-      }
-      for (IWizardDataPage page:pages) {
+      for (IWizardPage page:pages) {
          addPage(page);
       }
    }

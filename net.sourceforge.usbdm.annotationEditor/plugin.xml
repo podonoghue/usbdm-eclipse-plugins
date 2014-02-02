@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Configuration Editor"
+            extensions="c,h,ld"
+            icon="icons/cog.png"
+            contributorClass="net.sourceforge.usbdm.annotationEditor.MultiPageEditorContributor"
+            class="net.sourceforge.usbdm.annotationEditor.MultiPageAnnotationEditor"
+            id="editorexample.editors.MultiPageEditor">
+      </editor>
+   </extension>
+   <extension
+         id="net.sourceforge.usbm.annotationEditor.errorMarker"
+         name="Annotation Error"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <super
+            type="org.eclipse.core.resources.textmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+
+</plugin>

@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.cdt.ui;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
@@ -304,10 +303,8 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
          comboTargetDeviceName.add("Device database not found");
       }
       else {
-         Iterator<Device> it = deviceDatabase.iterator();
-         while(it.hasNext()) {
-            Device device = it.next();
-            if (!device.isAlias()) {
+         for (Device device : deviceDatabase.getDeviceList()) {
+            if (!device.isHidden()) {
                comboTargetDeviceName.add(device.getName());
             }
          }

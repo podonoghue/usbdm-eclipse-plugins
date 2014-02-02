@@ -16,6 +16,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase.FileType;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 public class Device {
@@ -249,152 +250,33 @@ public class Device {
          return null;
       }
 
+      @Override
       public String toString() {
          return name;
       }
    };
 
-   public static class FileInfo {
-      String id;
-      String source;
-      String target;
+   public static class Condition {
+      private final ProjectVariable  variable;
+      private final String  value;
+      private final boolean negated;
       
-      public FileInfo(String id, String source, String target) {
-         super();
-         this.id = id;
-         this.source = source;
-         this.target = target;
+      public Condition(ProjectVariable variable, String value, boolean negated) {
+         this.variable     = variable;
+         this.value        = value;
+         this.negated      = negated;
       }
-      public String getId() {
-         return id;
-      }
-      public void setId(String id) {
-         this.id = id;
-      }
-      public String getSource() {
-         return source;
-      }
-      public void setSource(String source) {
-         this.source = source;
-      }
-      public String getTarget() {
-         return target;
-      }
-      public void setTarget(String copyPath) {
-         this.target = copyPath;
-      }
-      public boolean isReplaceable() {
-         return true;
-      }
-      public String toString() {
-         StringBuffer buffer = new StringBuffer(2000);
-         buffer.append(" source=\""+source+"\" => ");
-         buffer.append(" target=\""+target+"\"");
-         return buffer.toString();
-      }
-      public String toXML() {
-         StringBuffer buffer = new StringBuffer(2000);
-         buffer.append("<element>\n");
-         buffer.append("   <simple name=\"source\"      value=\""+source+"\" />\n");
-         buffer.append("   <simple name=\"target\"      value=\""+target+"\" />\n");
-         buffer.append("   <simple name=\"replaceable\" value=\"true\" />\n");
-         buffer.append("</element>\n");
-         return buffer.toString();
-      }
-   }
-   
-   public static class GnuInfo {
-      String id;
-      String value;
-      String path;
-      String text;
-      String name;
-      String command;
-
-      public GnuInfo(String id, String value, String path, String name, String command, String text) {
-         super();
-         this.id        = id;
-         this.value     = value;
-         this.path      = path;
-         this.name      = name;
-         this.command   = command;
-         this.text      = text;
-      }
-      public String toString() {
-         return "GnuInfo["+id+", "+value+", "+path+", "+name+", "+command+", "+text+"]";
-      }
-      public PrintStream toXML(PrintStream xmlOut, int indent) {
-         doIndent(xmlOut, indent);
-         xmlOut.format("<gnuInfo id=\""+getId()+"\"");
-         String value = getValue();
-         if ((value != null) && !value.isEmpty()) { 
-            xmlOut.format(" value=\""+getId()+"\"");
-         }
-         xmlOut.print(">\n");
-         return xmlOut;
-      }
-      public PrintStream toOptionXML(PrintStream xmlOut) {
-         xmlOut.print("<enumeratedOptionValue");
-         xmlOut.print(" name=\"" + name + "\"");
-         xmlOut.print(" id=\"" + value + "\"");
-         xmlOut.print(" command=\"" +command + "\"");
-         xmlOut.print("/>\n");
-         return xmlOut;
-      }
-
-      public String getId() {
-         return id;
+      public ProjectVariable getVariable() {
+         return variable;
       }
       public String getValue() {
          return value;
       }
-      public String getPath() {
-         return path;
-      }
-      public String getText() {
-         return text;
-      }
-      public String getName() {
-         return name;
-      }
-      public String getCommand() {
-         return command;
+      public boolean isNegated() {
+         return negated;
       }
    }
-
-   public static class GnuInfoList extends ArrayList<GnuInfo> {
-      private static final long serialVersionUID = -3917653198490307939L;
-
-      void put(GnuInfo info) {
-         this.add(info);
-         //         System.err.println("GnuInfoList.put("+info.toString()+")");
-      }
-      GnuInfo find(String key) {
-         Iterator<GnuInfo> it = this.iterator();
-         while(it.hasNext()) {
-            GnuInfo gnuInfo = it.next();
-            if (gnuInfo.getId().equals(key)) {
-               return gnuInfo;
-            }
-         }     
-         return null;
-      }
-      public PrintStream toXML(PrintStream xmlOut, int indent) {
-         doIndent(xmlOut, indent);
-         xmlOut.print("<gnuInfoList");
-         // No attributes
-         xmlOut.print(">\n");
-         Iterator<GnuInfo> it = this.iterator();
-         while(it.hasNext()) {
-            GnuInfo gnuInfo = it.next();
-            gnuInfo.toXML(xmlOut, indent+3);
-         }     
-         doIndent(xmlOut, indent);
-         xmlOut.print("</gnuInfoList>\n");
-         return xmlOut;
-      }
-   }
-
+   
    public static class FileList extends ArrayList<FileInfo> {
 
       private static final long serialVersionUID = 3622396071313657392L;
@@ -413,6 +295,7 @@ public class Device {
          }     
          return null;
       }
+      @Override
       public String toString() {
          StringBuffer buffer = new StringBuffer();
          Iterator<FileInfo> it = this.iterator();
@@ -421,6 +304,184 @@ public class Device {
             buffer.append(fileInfo.toString());
          }
          return buffer.toString();     
+      }
+      public void add(FileList fileList) {
+         for(FileInfo i : fileList) {
+            this.add(i);
+         }
+
+      }
+   }
+   
+   public static class FileInfo extends ProjectAction {
+      private final String    source;
+      private final String    target;
+      private       String    root;
+      private final FileType  fileType;
+      private final boolean   replaceable;
+
+      public FileInfo(String id, String source, String target, FileType fileType, boolean isReplaceable) {
+         super(id);
+         this.source      = source;
+         this.target      = target;
+         this.fileType    = fileType;
+         this.replaceable = isReplaceable;
+         this.root        = null;
+      }
+      public String getSource() {
+         return source;
+      }
+      public String getTarget() {
+         return target;
+      }
+      public boolean isReplaceable() {
+         return replaceable;
+      }
+      
+      @Override
+      public String toString() {
+         StringBuffer buffer = new StringBuffer(2000);
+         buffer.append(" source=\""+root+source+"\" => ");
+         buffer.append(" target=\""+target+"\"");
+         return buffer.toString();
+      }
+
+      public void setRoot(String root) {
+         this.root = root;
+      }
+
+      public String getRoot() {
+         return root;
+      }
+      
+      public FileType getFileType() {
+         return fileType;
+      }
+   }
+   
+   public static class ProjectOption extends ProjectAction {
+      private final String   path;
+      private final String[] value;
+
+      public ProjectOption(String id, String path,  String[] value) {
+         super(id);
+         this.path     = path;
+         this.value    = value;
+//         System.err.println("ProjectOption() value = "+value[0]);
+      }
+      
+      @Override
+      public String toString() {
+         return "ProjectOption["+getId()+", "+path+", "+value[0]+"]";
+      }
+      
+      public String[]  getValue() {
+         return value;
+      }
+      public String getPath() {
+         return path;
+      }
+   }
+
+   public static class ProjectVariable extends ProjectAction {
+      private final String name;
+      private final String description;
+      private final String defaultValue;
+      private String value;
+      
+      public ProjectVariable(String id, String name, String description, String defaultValue) {
+         super(id);
+         this.name         = name;
+         this.description  = description;
+         this.defaultValue = defaultValue;
+         this.value        = defaultValue;
+      }
+      public String getName() {
+         return name;
+      }
+      public String getDescription() {
+         return description;
+      }
+      public String getDefaultValue() {
+         return defaultValue;
+      }
+      public String getValue() {
+         return value;
+      }
+      public void setValue(String value) {
+         this.value = value;
+      }
+   }
+
+   public static class CreateFolderAction extends ProjectAction {
+      
+      private String    target;
+      private String    type;
+      private String    root;
+  
+      public CreateFolderAction(String target, String type) {
+         super(null);
+         this.target = target;
+         this.type   = type;
+      }
+      
+      public String getTarget() {
+         return target;
+      }
+      
+      public String getType() {
+         return type;
+      }
+
+      public void setRoot(String root) {
+         this.root = root;
+      }
+
+      public String getRoot() {
+         return root;
+      }
+   }
+   
+   public static class ProjectAction {
+      private final String id;
+      private Condition condition;
+
+      public ProjectAction(String id) {
+         this.id        = id;
+         this.condition = null;
+      }
+      
+      public String getId() {
+         return id;
+      }
+      
+      public Condition getCondition() {
+         return condition;
+      }
+      
+      public void setCondition(Condition condition) {
+         this.condition = condition;
+      }
+   }
+   
+   public static class ProjectActionList extends ArrayList<ProjectAction> {
+
+      private static final long serialVersionUID = -1493390145777975399L;
+      
+      public String toString(String root) {
+         StringBuffer buffer = new StringBuffer();
+         Iterator<ProjectAction> it = this.iterator();
+         while(it.hasNext()) {
+            ProjectAction action = it.next();
+            buffer.append(action.toString());
+         }
+         return buffer.toString();     
+      }
+      
+      public void add(ProjectActionList actionList) {
+         for(ProjectAction i : actionList) {
+            this.add(i);
+         }
       }
    }
 
@@ -439,6 +500,7 @@ public class Device {
             this.start = memoryStartAddress;
             this.end   = memoryEndAddress;
          }
+         @Override
          public String toString() {
             return "[0x" + Long.toString(start,16) + ",0x" + Long.toString(end,16) + "]";
          }
@@ -508,6 +570,7 @@ public class Device {
          return type;
       }
 
+      @Override
       public String toString() {
          String rv = type.name + "(";
          ListIterator<MemoryRange> it = memoryRanges.listIterator();
@@ -524,8 +587,8 @@ public class Device {
    private boolean                  defaultDevice;
    private String                   alias;
    private Vector<MemoryRegion>     memoryRegions;
-   private GnuInfoList              gnuInfoMap;
-   private FileList                 fileListMap;
+   private FileList                 fileList;
+   private ProjectActionList        projectActionList;
    private String                   family;
    private String                   subFamily;
    private long                     soptAddress;
@@ -534,6 +597,7 @@ public class Device {
    private int                      clockAddres;
    private int                      clockNvAddress;
    private int                      clockTrimFrequency;
+   private boolean                  hidden;
    
    public Device(TargetType targetType, String name) {
       this.name          = name;
@@ -544,9 +608,9 @@ public class Device {
       setClockAddres(0);
       
       memoryRegions      = new Vector<Device.MemoryRegion>();
-      gnuInfoMap         = null;
       family             = null;
       subFamily          = null;
+      projectActionList  = null;
    }
 
    void addMemoryRegion(MemoryRegion memoryRegion) {
@@ -557,6 +621,7 @@ public class Device {
       return memoryRegions.iterator();
    }
 
+   @Override
    public String toString() {
       String rv = name;
       if (soptAddress != 0) {
@@ -588,27 +653,9 @@ public class Device {
          xmlOut.print(" alias=\"" + getAlias() + "\"");
       }
       xmlOut.print(">\n");
-      GnuInfoList gnuInfoList = getGnuInfoMap();
-      if (gnuInfoList != null) {
-         gnuInfoList.toXML(xmlOut, indent+3);
-      }
       doIndent(xmlOut, indent);
       xmlOut.print("</device>\n");
       return xmlOut;
-   }
-
-   public void addOptionXML(HashMap<String, GnuInfo> map) {
-      final String ID_GNU_MCPU="net.sourceforge.usbdm.cdt.toolchain.gcc.mcpu";
-      GnuInfoList gnuInfoList = getGnuInfoMap();
-      if (gnuInfoList != null) {
-         GnuInfo gnuInfo = gnuInfoList.find(ID_GNU_MCPU);
-         if (gnuInfo != null) {
-            String value   = gnuInfo.getValue();
-            if (!map.containsKey(value)) {
-               map.put(value, gnuInfo);
-            }
-         }
-      }
    }
 
    public void setDefault(boolean isDefault) {
@@ -644,15 +691,7 @@ public class Device {
    public String getSubFamily() {
       return subFamily;
    }
-   /**
-    * @return the map
-    */
-   public GnuInfoList getGnuInfoMap() {
-      return gnuInfoMap;
-   }
-   public void setGnuInfoMap(GnuInfoList map) {
-      gnuInfoMap = map;
-   }
+   
    public void setSoptAddress(long soptAddress) {
       this.soptAddress = soptAddress;
    }
@@ -701,10 +740,42 @@ public class Device {
    }
 
    public FileList getFileListMap() {
-      return fileListMap;
+      return fileList;
    }
 
-   public void setFileListMap(FileList fileListMap) {
-      this.fileListMap = fileListMap;
+   public void addToFileList(FileList fileList) {
+      if (getFileListMap() == null) {
+         // New map
+         this.fileList = new FileList();
+      }
+      this.fileList.add(fileList);
+   }
+
+   public void setHidden(boolean hidden) {
+      this.hidden = hidden;
+  }
+
+   public boolean isHidden() {
+      return hidden;
+  }
+
+   public void addToActionList(ProjectActionList actionList) {
+      if (getProjectActionList() == null) {
+         // New map
+         this.projectActionList = new ProjectActionList();
+      }
+      this.projectActionList.add(actionList);
+   }
+
+   public void addToActionList(ProjectAction action) {
+      if (getProjectActionList() == null) {
+         // New map
+         this.projectActionList = new ProjectActionList();
+      }
+      this.projectActionList.add(action);
+   }
+   
+   public ProjectActionList getProjectActionList() {
+      return projectActionList;
    }
 }

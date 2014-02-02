@@ -25,7 +25,7 @@ public class UsbdmStartupTab extends GDBJtagStartupTab {
    public String getId() {
       return TAB_ID;
    }   
-   
+
    @Override
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 	   

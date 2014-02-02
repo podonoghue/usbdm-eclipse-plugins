@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: View
+Bundle-SymbolicName: net.sourceforge.usbdm.cmsis.view;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: net.sourceforge.usbdm.cmsis.view.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy

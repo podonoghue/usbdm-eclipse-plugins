@@ -19,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.ListIterator;
 
 import net.sourceforge.usbdm.constants.ToolInformationData;
@@ -89,7 +88,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    private static final String         TAB_ID   = "net.sourceforge.usbdm.gdb.debuggerTab";
 
    // Keys used in GDB Launch configurations 
-   public  final static String USBDM_LAUNCH_ATTRIBUTE_KEY   = "net.sourceforge.usbdm.gdb.";        //$NON-NLS-1$
+   public  final static String USBDM_LAUNCH_ATTRIBUTE_KEY   = "net.sourceforge.usbdm.gdb.";               //$NON-NLS-1$
    public  final static String USBDM_GDB_INTERFACE_TYPE_KEY = USBDM_LAUNCH_ATTRIBUTE_KEY+"interfaceType";
    private final static String USBDM_GDB_BIN_PATH_KEY       = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbBinPath";    //$NON-NLS-1$
    private final static String USBDM_GDB_COMMAND_KEY        = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbCommand";    //$NON-NLS-1$
@@ -283,11 +282,8 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
             comboTargetDeviceName.add("Device database not found");
          }
          else {
-            // Populate device list
-            Iterator<Device> it = deviceDatabase.iterator();
-            while(it.hasNext()) {
-               Device device = it.next();
-               if (!device.isAlias()) {
+            for (Device device : deviceDatabase.getDeviceList()) {
+               if (!device.isHidden()) {
                   comboTargetDeviceName.add(device.getName());
                }
             }
@@ -328,7 +324,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    //      GDBJtagDeviceContribution[] availableDevices = deviceContributionFactory.getGDBJtagDeviceContribution();
    //      if (availableDevices == null) {
    //         System.err.println("availableDevices = null");
-   //         return null;
+   //         return null; 
    //      }
    //      for (GDBJtagDeviceContribution device : availableDevices) {
    //         if (device.getDeviceName().equals(name)) {
@@ -1591,17 +1587,6 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       shell.setSize(600, 450);
 
       UsbdmDebuggerTab usbdmTab = new UsbdmDebuggerTab();
-//      
-//      DebugPlugin debugPlugin = DebugPlugin.getDefault(); 
-//      ILaunchManager mgr = debugPlugin.getLaunchManager();
-//      ILaunchConfigurationType lct = mgr.getLaunchConfigurationType("net.sourceforge.usbdm.gdb.launchConfigurationType");
-//      try {
-//         lct.newInstance(null, "Debug");
-//      } catch (CoreException e) {
-//         e.printStackTrace();
-//      }
-//      ILaunchConfiguration[] lcs = mgr.getLaunchConfigurations(lct);
-      
       
       usbdmTab.createControl(shell);
       usbdmTab.initializeFrom(null);

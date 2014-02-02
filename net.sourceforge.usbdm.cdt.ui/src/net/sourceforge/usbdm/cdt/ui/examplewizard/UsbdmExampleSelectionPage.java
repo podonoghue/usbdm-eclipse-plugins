@@ -2,13 +2,11 @@ package net.sourceforge.usbdm.cdt.ui.examplewizard;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.ui.examplewizard.ExampleList.ProjectInformation;
-import net.sourceforge.usbdm.cdt.ui.wizards.UsbdmProjectTypeSelection;
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmProjectTypeSelection;
 import net.sourceforge.usbdm.constants.ToolInformationData;
 
-import org.eclipse.cdt.ui.templateengine.IWizardDataPage;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -23,7 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardDataPage, UsbdmProjectTypeSelection {
+public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPage, UsbdmProjectTypeSelection {
    
    private Composite                   container;
 
@@ -47,19 +45,6 @@ public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardDat
 
    private void setProjectInformation(ProjectInformation projectInformation) {
       this.projectInformation = projectInformation;
-
-//      if (projectInformation == null) {
-//         loadBuildtoolNames(null);
-//      }
-//      else if (projectInformation.getFamily().equalsIgnoreCase("ARM")) {
-//         loadBuildtoolNames(InterfaceType.T_ARM);
-//      }
-//      else if (projectInformation.getFamily().equalsIgnoreCase("Coldfire")) {
-//         loadBuildtoolNames(InterfaceType.T_CFV1);
-//      }
-//      else {
-//         loadBuildtoolNames(null);
-//      }
    }
 
    /**
@@ -261,17 +246,5 @@ public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardDat
 //      if (armPathVariable != null) {
 //         armPathText.setText(armPathVariable.getValue());
 //      }
-   }
-
-   @Override
-   public Map<String, String> getPageData() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
-   public void setNextPage(IWizardPage next) {
-      // TODO Auto-generated method stub
-      
    }
 } 

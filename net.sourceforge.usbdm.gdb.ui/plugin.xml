@@ -30,7 +30,7 @@
             type="net.sourceforge.usbdm.gdb.launchConfigurationType">
       </launchDelegate>
       <launchDelegate
-            delegate="org.eclipse.cdt.debug.gdbjtag.core.GDBJtagDSFLaunchConfigurationDelegate"
+            delegate="net.sourceforge.usbdm.gdb.UsbdmGdbDsfLaunchConfigurationDelegate"
             delegateDescription="Hardware debugging using the USBDM debugger Framework (DSF)"
             id="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"
             modes="debug"
@@ -43,7 +43,15 @@
    <extension
          point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
       <device
-            class="net.sourceforge.usbdm.gdb.UsbdmGdbJtagInterface"
+            class="net.sourceforge.usbdm.gdb.UsbdmGdbInterface"
+            id="net.sourceforge.usbdm.interface"
+            name="USBDM DSF Interface">
+      </device>
+   </extension>
+   <extension
+         point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
+      <device
+            class="net.sourceforge.usbdm.gdb.UsbdmGdbJtagConnection"
             id="net.sourceforge.usbdm.interface"
             name="USBDM Interface">
       </device>
@@ -65,6 +73,9 @@
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
          </associatedDelegate>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+         </associatedDelegate>
       </tab>
       <tab
             class="net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerTab"
@@ -73,6 +84,9 @@
             name="Debug">
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
+         </associatedDelegate>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
          <placement
                after="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab">
@@ -83,12 +97,15 @@
          group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
          id="net.sourceforge.usbdm.gdb.ui.usbdmStartupTab"
          name="Launch">
-            <associatedDelegate
-                  delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-            </associatedDelegate>
-            <placement
-                  after="net.sourceforge.usbdm.gdb.debuggerTab">
-            </placement>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
+         </associatedDelegate>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+         </associatedDelegate>
+         <placement
+               after="net.sourceforge.usbdm.gdb.debuggerTab">
+         </placement>
       </tab>
       <tab
             class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab"
@@ -97,6 +114,9 @@
             name="Source">
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
+         </associatedDelegate>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
          <placement
                after="net.sourceforge.usbdm.gdb.ui.usbdmStartupTab">
@@ -109,6 +129,9 @@
             name="Common">
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
+         </associatedDelegate>
+         <associatedDelegate
+               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
          <placement
                after="org.eclipse.debug.ui.sourceLookupTab">

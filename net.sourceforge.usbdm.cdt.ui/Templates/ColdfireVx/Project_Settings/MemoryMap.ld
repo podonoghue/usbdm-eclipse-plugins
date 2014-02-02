@@ -1,4 +1,0 @@
-
-MEMORY
-{
-$(linkerMemoryMap)}

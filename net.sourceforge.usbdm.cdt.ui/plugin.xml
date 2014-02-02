@@ -14,8 +14,18 @@
       </command>
       <command
             categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
+            id="net.sourceforge.usbdm.cdt.wizard.commands.openPeripheralsViewCommand"
+            name="Open Peripherals View">
+      </command>
+      <command
+            categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
             id="net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand"
             name="New Example...">
+      </command>
+      <command
+            categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
+            id="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand"
+            name="New Project...">
       </command>
       <command
             categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
@@ -40,8 +50,16 @@
             commandId="net.sourceforge.usbdm.cdt.wizard.commands.configureCommand">
       </handler>
       <handler
+            class="net.sourceforge.usbdm.cdt.ui.handlers.OpenPeripheralsViewHandler"
+            commandId="net.sourceforge.usbdm.cdt.wizard.commands.openPeripheralsViewCommand">
+      </handler>
+      <handler
             class="net.sourceforge.usbdm.cdt.ui.handlers.ExampleHandler"
             commandId="net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand">
+      </handler>
+      <handler
+            class="net.sourceforge.usbdm.cdt.ui.handlers.NewProjectHandler"
+            commandId="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand">
       </handler>
       <handler
             class="net.sourceforge.usbdm.cdt.ui.handlers.ArmGdbServerHandler"
@@ -68,18 +86,23 @@
                label="USBDM"
                mnemonic="U">
             <command
-                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.configureCommand"
-                  helpContextId="net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic"
+                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand"
                   icon="icons/cog.png"
-                  id="net.sourceforge.usbdm.cdt.wizard.menus.configureMenuItem"
-                  mnemonic="C">
+                  id="net.sourceforge.usbdm.cdt.wizard.menus.newProjectMenuItem"
+                  mnemonic="N">
+            </command>
+            <command
+                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.openPeripheralsViewCommand"
+                  icon="icons/cog.png"
+                  id="net.sourceforge.usbdm.cdt.wizard.menus.openPeripheralsViewMenuItem"
+                  mnemonic="P">
             </command>
             <command
                   commandId="net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand"
                   helpContextId="net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic"
                   icon="icons/cog.png"
                   id="net.sourceforge.usbdm.cdt.wizard.menus.exampleMenuItem"
-                  mnemonic="N">
+                  mnemonic="E">
             </command>
             <command
                   commandId="net.sourceforge.usbdm.cdt.wizard.commands.startArmGdbServerCommand"
@@ -102,103 +125,15 @@
                   id="net.sourceforge.usbdm.cdt.wizard.menus.startCfvxGdbServerMenuItem"
                   mnemonic="2">
             </command>
+            <command
+                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.configureCommand"
+                  helpContextId="net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic"
+                  icon="icons/cog.png"
+                  id="net.sourceforge.usbdm.cdt.wizard.menus.configureMenuItem"
+                  mnemonic="C">
+            </command>
          </menu>
       </menuContribution>
-   </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contextProvider
-            class="org.eclipse.help.internal.context.ContextFileProvider">
-      </contextProvider>
-      <contexts
-            file="Help/usbdmWizardHelp.xml"
-            plugin="net.sourceforge.usbdm.cdt.wizard">
-      </contexts>
-   </extension>
-   <extension
-      point="org.eclipse.cdt.core.templates">
-      <category
-         id="net.sourceforge.usbdm.projects"
-         label="USBDM">
-      </category>
-      <template
-            filterPattern=".*gcc"
-            id="net.sourceforge.usbdm.template.cfv1.c"
-            location="Templates/ColdfireV1/Template_c.xml"
-            pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$Cfv1PageProvider"
-            projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
-      <template
-         filterPattern=".*g\+\+"
-         id="net.sourceforge.usbdm.template.cfv1.cpp"
-         location="Templates/ColdfireV1/Template_cpp.xml"
-         pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$Cfv1PageProvider"
-         projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
-      <template
-         filterPattern=".*gcc"
-         id="net.sourceforge.usbdm.template.cfvx.c"
-         location="Templates/ColdfireVx/Template_c.xml"
-         pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$CfvxPageProvider"
-         projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
-      <template
-         filterPattern=".*g\+\+"
-         id="net.sourceforge.usbdm.template.cfvx.cpp"
-         location="Templates/ColdfireVx/Template_cpp.xml"
-         pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$CfvxPageProvider"
-         projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
-      <template
-         filterPattern=".*gcc"
-         id="net.sourceforge.usbdm.template.arm.c"
-         location="Templates/ARM/Template_c.xml"
-         pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$ArmPageProvider"
-         projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
-      <template
-         filterPattern=".*g\+\+"
-         id="net.sourceforge.usbdm.template.arm.cpp"
-         location="Templates/ARM/Template_cpp.xml"
-         pagesAfterTemplateSelectionProvider="net.sourceforge.usbdm.cdt.ui.wizards.ToolPageProviderFactory$ArmPageProvider"
-         projectType="org.eclipse.cdt.build.core.buildArtefactType.exe">
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.windows.toolchain" />
-         <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.linux.toolchain" />
-         <parentCategory
-            id="net.sourceforge.usbdm.projects" />
-      </template>
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">
@@ -215,68 +150,19 @@
             name="USBDM Example Projects Wizard"
             project="true">
       </wizard>
+      <wizard
+            category="org.eclipse.cdt.ui.newCWizards"
+            class="net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmNewProjectWizard"
+            icon="icons/cog.png"
+            id="net.sourceforge.usbdm.cdt.newProjectWizard"
+            name="C/C++ Project (USBDM)"
+            project="true">
+         <description>
+            Create a USBDM C/C++ Project
+         </description>
+      </wizard>
    </extension>
 
-   <extension
-      point="org.eclipse.cdt.core.templateProcessTypes">
-      <processType
-         name="AddExternalFiles"
-         processRunner="net.sourceforge.usbdm.cdt.ui.actions.AddExternalFiles">
-         <simple
-            name="projectName" />
-         <complexArray
-            name="copyList">
-            <baseType>
-               <simple
-                  name="externalSource" />
-               <simple
-                  name="internalSource" />
-               <simple
-                  name="target" />
-               <simple
-                  name="replaceable" />
-            </baseType>
-         </complexArray>
-      </processType>
-      <processType
-         name="AddTargetFiles"
-         processRunner="net.sourceforge.usbdm.cdt.ui.actions.AddTargetFiles">
-         <simple
-            name="projectName" />
-         <simple
-            name="targetDeviceFamily" />
-         <simple
-            name="targetDevice" />
-      </processType>
-      <processType
-         name="ProcessUsbdmSettings"
-         processRunner="net.sourceforge.usbdm.cdt.ui.actions.ProcessUsbdmSettings">
-         <simple
-            name="projectName" />
-         <simple
-            name="targetDeviceFamily" />
-         <simple
-            name="targetDevice" />
-      </processType>
-      <processType
-         name="CreateIncludeFolder"
-         processRunner="net.sourceforge.usbdm.cdt.ui.actions.CreateIncludeFolder">
-         <simple
-            name="projectName" />
-         <simple
-            name="path" />
-      </processType>
-      <processType
-            name="AddNature"
-            processRunner="net.sourceforge.usbdm.cdt.ui.actions.AddNature">
-         <simple
-               name="projectName">
-         </simple>
-         <simple
-               name="nature">
-         </simple>
-      </processType>
-   </extension>
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
@@ -334,5 +220,4 @@
          </filter>
       </page>
    </extension>
-
 </plugin>

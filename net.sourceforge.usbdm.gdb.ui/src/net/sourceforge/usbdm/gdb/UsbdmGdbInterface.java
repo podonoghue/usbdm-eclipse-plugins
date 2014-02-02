@@ -19,6 +19,9 @@ import java.util.Collection;
 import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConnection;
 import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl;
 
+/*
+ * Used for non-DSF connection
+ */
 public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJtagConnection {
    
    @Override
@@ -56,11 +59,13 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doRemote(String commandLine, Collection<String> commands) {
-      
-         addCmd(commands, "set remotetimeout 3000");    //$NON-NLS-1$
-         String pipedCommandLine = "-target-select remote " + commandLine; 
-         addCmd(commands, pipedCommandLine);
-         System.err.println("UsbdmInterface.doRemote(" + pipedCommandLine +")");
+      addCmd(commands, "set remotetimeout 3000");                                      //$NON-NLS-1$
+//      System.err.println("UsbdmGdbInterface.doRemote(\'"+commandLine+"\')");
+      if (commandLine != null) {
+         String completeCommandLine = "-target-select remote " + commandLine; 
+         addCmd(commands, completeCommandLine);
+//         System.err.println("UsbdmGdbInterface.doRemote(" + completeCommandLine +")");
+      }
    }
 
    /* (non-Javadoc)
@@ -83,6 +88,16 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
    public String getDefaultPortNumber() {
 //      System.err.println("UsbdmInterface::getDefaultPortNumber()");
       throw new UnsupportedOperationException();
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl#doStopAt(java.lang.String, java.util.Collection)
+    */
+   @Override
+   public void doStopAt(String stopAt, Collection<String> commands) {
+      String cmd = "-break-insert -t " + stopAt; //$NON-NLS-1$
+//      String cmd = "tbreak " + stopAt; //$NON-NLS-1$
+      addCmd(commands, cmd);
    }
 
 }

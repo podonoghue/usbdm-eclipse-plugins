@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="net.sourceforge.usbdm.peripherals.ui.category"
+            name="USBDM Category"
+            parentCategory="org.eclipse.debug.ui">
+      </category>
+      <view
+            name="Peripherals"
+            icon="icons/cog.png"
+            category="org.eclipse.debug.ui"
+            class="net.sourceforge.usbdm.peripherals.view.UsbdmDevicePeripheralsView"
+            id="net.sourceforge.usbdm.peripherals.ui.view">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.debug.ui.MemoryView"
+               relationship="stack"
+               id="net.sourceforge.usbdm.peripherals.ui.view">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+</plugin>

@@ -157,27 +157,22 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
       return arg;
    }
 
-   public void startServer(GdbServerParameters gdbServerParameters, SubMonitor submonitor) throws CoreException {
+   public void startServer(GdbServerParameters gdbServerParameters) throws CoreException {
       
-//      System.err.println("UsbdmGdbDebugger.startServer()");
+    System.err.println("UsbdmGdbDebugger.startServer()");
 
-      submonitor.subTask("Starting GDB Server"); //$NON-NLS-1$
+    GdbServerInterface gdbServerInterface = new GdbServerInterface(gdbServerParameters);  
+    try {
+       gdbServerInterface.startServer();
+    } catch (UsbdmException e1) {
+       e1.printStackTrace();
+       throw new CoreException(new Status( IStatus.ERROR,
+             Activator.getPluginId(),
+             -1, "Starting server failed.", null));
+    }
+ }  
 
-//      InterfaceType interfaceType = gdbServerParameters.getInterfaceType();
-//      System.err.println("UsbdmGdbDebugger.startServer() interfaceType = "+interfaceType.toString());
-
-      GdbServerInterface gdbServerInterface = new GdbServerInterface(gdbServerParameters);  
-      try {
-         gdbServerInterface.startServer();
-      } catch (UsbdmException e1) {
-         e1.printStackTrace();
-         throw new CoreException(new Status( IStatus.ERROR,
-               Activator.getPluginId(),
-               -1, "Starting server failed.", null));
-      }
-   }  
-
-   private void sessionDoRemote(ILaunchConfiguration config, UsbdmGdbInterface usbdmSocketInterface, MISession miSession, SubMonitor submonitor) throws CoreException {
+   private void sessionDoRemote(ILaunchConfiguration config, UsbdmGdbInterface usbdmGdbInterface, MISession miSession, SubMonitor submonitor) throws CoreException {
       
       GdbServerParameters gdbServerParameters = GdbServerParameters.getInitializedServerParameters(config);
       if (gdbServerParameters == null) {
@@ -185,44 +180,28 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
                Activator.getPluginId(),
                -1, "GDB Server Parameters not found.", null));
       }
-//      InterfaceType interfaceType = gdbServerParameters.getInterfaceType();
-//      System.err.println("UsbdmGdbDebugger.startServer() interfaceType = "+interfaceType.toString());
-      
-      if (gdbServerParameters.getServerType() == GdbServerType.SERVER_PIPE) {
-         submonitor.subTask("Connecting to remote"); //$NON-NLS-1$
-
-         ArrayList<String> serverCommandLine = gdbServerParameters.getSerialCommandLine();
-         // Create GDB pipe command '| exename args...
-         // exename is escaped as a path (i.e. \ are doubled)
-         // args are quoted if they contain spaces
-         String commandLine = new String();
-         commandLine = "| " + escapePath(serverCommandLine.get(0)) + " ";
-         for (int index=1; index<serverCommandLine.size(); index++) { 
-            commandLine += escapeArg(serverCommandLine.get(index)) + " ";
-         }
-//         System.err.println("sessionDoRemote() command = \'" + commandLine + "\'");
-         List<String> commands = new ArrayList<String>();
-         usbdmSocketInterface.doRemote(commandLine, commands);
-         executeGDBScript(getGDBScript(commands), miSession, submonitor.newChild(10));
-         if (submonitor.isCanceled()) {
-            throw new OperationCanceledException();
-         }
-      }
-      
       if (gdbServerParameters.getServerType() == GdbServerType.SERVER_SOCKET) {
-         submonitor.subTask("Connecting to remote"); //$NON-NLS-1$
-
-         startServer(gdbServerParameters, submonitor.newChild(50));
-         
-         String commandLine = new String();
-         commandLine = "localhost:" + Integer.toString(gdbServerParameters.getGdbPortNumber());
-//         System.err.println("sessionDoRemote() command = \'" + commandLine + "\'");
-         List<String> commands = new ArrayList<String>();
-         usbdmSocketInterface.doRemote(commandLine, commands);
-         executeGDBScript(getGDBScript(commands), miSession, submonitor.newChild(10));
-         if (submonitor.isCanceled()) {
-            throw new OperationCanceledException();
-         }
+         submonitor.subTask("Starting GDB Server"); //$NON-NLS-1$
+         startServer(gdbServerParameters);         
+     }
+      ArrayList<String> serverCommandLine = gdbServerParameters.getCommandLine();
+      if (serverCommandLine == null) {
+         throw new CoreException(new Status( IStatus.ERROR,
+               Activator.getPluginId(),
+               -1, "GDB Server command line invalid.", null));
+      }
+      submonitor.subTask("Connecting to remote"); //$NON-NLS-1$
+      String commandLine = new String();
+      commandLine = serverCommandLine.get(0) + " ";
+      for (int index=1; index<serverCommandLine.size(); index++) { 
+         commandLine += serverCommandLine.get(index) + " ";
+      }
+      System.err.println("sessionDoRemote() command = \'" + commandLine + "\'");
+      List<String> commands = new ArrayList<String>();
+      usbdmGdbInterface.doRemote(commandLine, commands);
+      executeGDBScript(getGDBScript(commands), miSession, submonitor.newChild(10));
+      if (submonitor.isCanceled()) {
+         throw new OperationCanceledException();
       }
    }
    

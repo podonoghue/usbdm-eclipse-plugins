@@ -41,6 +41,9 @@ public class UsbdmGdbLaunchConfigurationDelegate extends AbstractCLaunchDelegate
          ICProject project = CDebugUtils.verifyCProject(configuration);
          IPath exePath = CDebugUtils.verifyProgramPath(configuration);
          ICDISession session = debugger.createSession(launch, null, submonitor.newChild(1));
+         // Attache device name to session
+         String deviceName = configuration.getAttribute("net.sourceforge.usbdm.gdb.deviceName", (String)null);
+         session.setAttribute("net.sourceforge.usbdm.gdb.deviceName", deviceName);
          IBinaryObject exeBinary = null;
          if ( exePath != null ) {
             exeBinary = verifyBinary(project, exePath);

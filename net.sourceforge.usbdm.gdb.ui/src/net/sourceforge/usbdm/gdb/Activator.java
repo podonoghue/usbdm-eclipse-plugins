@@ -47,7 +47,7 @@ public class Activator extends AbstractUIPlugin {
     * )
     */
    public void stop(BundleContext context) throws Exception {
-      System.err.println("USBDM::Activator::stop()");
+//      System.err.println("USBDM::Activator::stop()");
       plugin = null;
       super.stop(context);
    }
@@ -94,5 +94,7 @@ public class Activator extends AbstractUIPlugin {
       getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, t.getMessage(), t));
    }
 
-
+   public static BundleContext getBundleContext() {
+      return getDefault().getBundle().getBundleContext();
+   }
 }

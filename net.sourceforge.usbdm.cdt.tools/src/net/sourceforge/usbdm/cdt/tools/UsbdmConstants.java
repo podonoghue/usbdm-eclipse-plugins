@@ -2,6 +2,12 @@ package net.sourceforge.usbdm.cdt.tools;
 
 public class UsbdmConstants {
    public final static String PAGE_ID = "net.sourceforge.usbdm.cdt.wizardPage"; //$NON-NLS-1$
+   public final static String PROJECT_PAGE_ID            = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectPage"; //$NON-NLS-1$
+   public final static String PROJECT_PAGE_NAME          = "UsbdmProjectPage"; //$NON-NLS-1$
+   public final static String PROJECT_OPTIONS_PAGE_ID    = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectOptionsPage"; //$NON-NLS-1$
+   public final static String PROJECT_OPTIONS_PAGE_NAME  = "UsbdmProjectOptionsPage"; //$NON-NLS-1$
+   public final static String CMSIS_OPTIONS_PAGE_ID      = "net.sourceforge.usbdm.cdt.wizardPage.CMSISOptionsPage"; //$NON-NLS-1$
+   public final static String CMSIS_OPTIONS_PAGE_NAME    = "CMSISOptionsPage"; //$NON-NLS-1$
 
    public static final String GCC_COMMAND_LINUX       = "gcc";             //$NON-NLS-1$
    public static final String GCC_COMMAND_WINDOWS     = "gcc.exe";         //$NON-NLS-1$
@@ -17,6 +23,9 @@ public class UsbdmConstants {
    public final static String TARGET_DEVICE_SUBFAMILY_KEY      = "targetDeviceSubFamily";  //$NON-NLS-1$
    public final static String TARGET_DEVICE_NAME_KEY           = "targetDeviceName";       //$NON-NLS-1$
    public final static String LINKER_INFORMATION_KEY           = "linkerInformation";      //$NON-NLS-1$
+   public final static String LINKER_RAM_SIZE_KEY              = "linkerRamSize";          //$NON-NLS-1$
+   public final static String LINKER_STACK_SIZE_KEY            = "linkerStackSize";        //$NON-NLS-1$
+   public final static String LINKER_HEAP_SIZE_KEY             = "linkerHeapSize";         //$NON-NLS-1$
    public final static String EXTERNAL_HEADER_FILE_KEY         = "externalHeaderFile";     //$NON-NLS-1$
    public final static String EXTERNAL_VECTOR_TABLE_KEY        = "externalVectorTable";    //$NON-NLS-1$
    public final static String C_DEVICE_PARAMETERS_KEY          = "cDeviceParameters";      //$NON-NLS-1$
@@ -24,7 +33,9 @@ public class UsbdmConstants {
    public final static String CLOCK_TRIM_FREQUENCY_KEY         = "clockTrimFrequency";     //$NON-NLS-1$
    public final static String NVM_CLOCK_TRIM_LOCATION_KEY      = "nvmClockTrimLocation";   //$NON-NLS-1$
    public final static String PATH_SEPARATOR_KEY               = "pathSeparator";          //$NON-NLS-1$
+   public final static String CONDITION_PREFIX_KEY             = "condition";              //$NON-NLS-1$
    public final static String FILE_COPY_LIST                   = "fileCopyList";           //$NON-NLS-1$
+   public final static String C_VECTOR_TABLE_KEY               = "cVectorTable";           //$NON-NLS-1$
    
    public final static String EXCLUDED_FILES_PATTERN_KEY       = "excludedFilesPattern";    //$NON-NLS-1$
    public final static String LINKER_FILE_KEY                  = "linkerFile";              //$NON-NLS-1$

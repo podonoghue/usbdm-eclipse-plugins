@@ -1,3 +1,6 @@
+/*
+ * Provides an interface that allows creating and monitoring of USBDM GDB socket-based server.
+ */
 package net.sourceforge.usbdm.gdb;
 
 import java.io.IOException;
@@ -64,7 +67,8 @@ public class GdbServerInterface {
    
    /**
     *   Checks if owned server is still running 
-    * @return
+    *   
+    * @return true if owned server is running
     */
    private boolean isServerRunning() {
       if (proc == null) {

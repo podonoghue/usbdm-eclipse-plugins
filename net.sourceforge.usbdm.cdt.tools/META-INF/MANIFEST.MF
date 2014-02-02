@@ -4,20 +4,15 @@ Bundle-Name: USBDM CDT New Project Wizard
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.tools;singleton:=true
 Bundle-Version: 4.10.6.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.tools.Activator
-Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="1.0.0",
- net.sourceforge.usbdm.deviceDatabase;bundle-version="4.10.6",
- net.sourceforge.usbdm.gdb.ui;bundle-version="4.10.6",
+Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="4.10.6",
  net.sourceforge.usbdm.jni;bundle-version="4.10.6",
  org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.cdt.ui,
  org.eclipse.cdt.core,
  org.eclipse.cdt.managedbuilder.core,
- org.eclipse.core.variables;bundle-version="3.2.600",
- org.eclipse.core.resources;bundle-version="3.7",
- org.eclipse.ui.console;bundle-version="3.5.100",
- org.eclipse.help;resolution:=optional,
- org.eclipse.cdt.make.ui
+ org.eclipse.core.variables,
+ org.eclipse.core.resources,
+ org.eclipse.ui.console
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: pgo

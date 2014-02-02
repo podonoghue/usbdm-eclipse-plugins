@@ -1,3 +1,7 @@
+/*
+ * Used to package USBDM GDB server parameters.
+ * 
+ */
 package net.sourceforge.usbdm.gdb;
 
 import java.util.ArrayList;
@@ -498,17 +502,51 @@ public class GdbServerParameters {
    String getKey(String base) {
       return "gdbServer."+getInterfaceType().name()+"."+base;
    }
-   
-   public ArrayList<String> getSerialCommandLine() {
-      ArrayList<String> commandList =  new ArrayList<String>(20);
-      
-      commandList.add(getSpritePath().toOSString());
-      if (getDeviceName() != null) {
-         commandList.add(getDeviceName());
+
+   protected String escapeArg(String arg) {
+      if (arg.indexOf(' ') >= 0) { 
+         return '"' + arg + '"'; 
       }
-      return commandList;
+      return arg;
+   }
+
+   protected String escapePath(String file) {
+      if (file.indexOf('\\') >= 0) {
+         return escapeArg(file.replace("\\", "\\\\"));
+      }
+      return escapeArg(file);
+   }
+
+   /*!
+    *  Determines command line to pass to GDB described as a ArrayList.
+    *  This will be either of these forms:
+    *    ["| pipe-server-path", "device-name"]
+    *  OR
+    *    ["localhost:nnnn"]
+    * 
+    * @return as described above or null on error
+    */
+   public ArrayList<String> getCommandLine() {
+      ArrayList<String> commandList =  new ArrayList<String>(20);
+      if (getServerType() == GdbServerType.SERVER_PIPE) {
+         commandList.add("| " + escapePath(getSpritePath().toOSString()));
+         if (getDeviceName() != null) {
+            commandList.add(escapeArg(getDeviceName()));
+         }
+         return commandList;
+      }
+      else if (getServerType() == GdbServerType.SERVER_SOCKET) {
+         commandList.add("localhost:" + Integer.toString(getGdbPortNumber()));
+         return commandList;
+      }
+      else {
+         return null;
+      }
    }
    
+   /*!
+    * @return ArrayList {"path-to-gdbServer", "args", ...}
+    */
    public ArrayList<String> getServerCommandLine() {
       ArrayList<String> commandList = new ArrayList<String>(20);
       
