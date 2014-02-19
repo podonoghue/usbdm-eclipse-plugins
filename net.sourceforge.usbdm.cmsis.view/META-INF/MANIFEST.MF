@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: View
+Bundle-Name: USBDM CMSIS RTOS View
 Bundle-SymbolicName: net.sourceforge.usbdm.cmsis.view;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 4.10.6.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cmsis.view.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime

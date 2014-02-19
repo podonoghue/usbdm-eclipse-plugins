@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.annotationEditor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -17,18 +18,20 @@ public class AnnotationModel {
    /**
     * The root of the model
     */
-   private AnnotationModelNode          modelRoot  = null;
-   private DocumentReferences           references = null;
-   private IDocument                    document   = null;
-   
+   private AnnotationModelNode                   modelRoot  = null;
+   private DocumentReferences                    references = null;
+   private IDocument                             document   = null;
+   private HashMap<String, AnnotationModelNode>  nameMap    = null;
+
    public AnnotationModel(IDocument document) {
       resetModel(document);
    }
    
    public void resetModel(IDocument document) {
-      references = new DocumentReferences();
-      this.document = document;
-      this.modelRoot = null;
+      this.references = new DocumentReferences();
+      this.document   = document;
+      this.modelRoot  = null;
+      this.nameMap    = new HashMap<String, AnnotationModelNode>();
    }
    
    public IDocument getDocument() {
@@ -42,8 +45,24 @@ public class AnnotationModel {
    public void setModelRoot(AnnotationModelNode modelRoot) {
       this.modelRoot = modelRoot;
    }
+   
+   public AnnotationModelNode getModelNode(String name) {
+      AnnotationModelNode t = nameMap.get(name);
+      return t;
+   }
 
-
+   public void addNamedModelNode(String name, AnnotationModelNode node) {
+      this.nameMap.put(name, node);
+   }
+   
+   public HashMap<String, AnnotationModelNode> getNameMap() {
+      return this.nameMap;
+   }
+   
+   public void clearNameMap() {
+      this.nameMap = new HashMap<String, AnnotationModel.AnnotationModelNode>();
+   }
+   
    /**
     * Get the list of references 
     * 
@@ -57,7 +76,8 @@ public class AnnotationModel {
       private final int     offset;
       private final int     length;
       private       boolean useHex;
-            
+      private       String  name = null;
+
       DocumentReference(int offset, int length) {
          this.offset = offset;
          this.length = length;
@@ -120,10 +140,20 @@ public class AnnotationModel {
       public String toString() {
          return String.format("Ref[%d,%d]", this.offset, this.length);
       }
+
+      public void setName(String name) {
+         this.name = name;
+      }
+      
+      public String getName() {
+         return this.name;
+      }
    }
 
    public class DocumentReferences {
+      
       private Vector<DocumentReference> references = null;
+      private HashMap<String, DocumentReference> map;
       
       public DocumentReferences() {
          references = new Vector<DocumentReference>();
@@ -135,7 +165,7 @@ public class AnnotationModel {
        * @return the references
        */
       public void clearReferences() {
-         System.err.println("DocumentReferences.clearReferences()");
+//         System.err.println("DocumentReferences.clearReferences()");
          references.clear();
       }
 
@@ -147,6 +177,9 @@ public class AnnotationModel {
       public void addReference(DocumentReference reference) {
 //         System.err.println("DocumentReferences.addReference("+reference.toString()+")");
          this.references.add(reference);
+         if (reference.getName() != null) {
+            this.map.put(reference.getName(), reference);
+         }
       }
       
       public int getReferenceCount() {
@@ -264,12 +297,15 @@ public class AnnotationModel {
     * Generic node in the model
     */
    public class AnnotationModelNode {
-      private String                            description;
-      private String                            toolTip;
-      private AnnotationModelNode               parent;
-      private ArrayList<AnnotationModelNode>    children = new ArrayList<AnnotationModelNode>();
-      private boolean                           enabled;
-      private boolean                           modifiable;
+      private String                            description    = null;
+      private String                            toolTip        = null;
+      private AnnotationModelNode               parent         = null;
+      private ArrayList<AnnotationModelNode>    children       = new ArrayList<AnnotationModelNode>();
+      private boolean                           enabled        = false;
+      private boolean                           modifiable     = true;
+      private String                            name           = null;
+//      private ArrayList<MyValidator>            listeners   = new ArrayList<MyValidator>();
+      private String                            errorMessage   = null;
       
       public AnnotationModelNode(String description) {
          this.setDescription(description);
@@ -286,6 +322,7 @@ public class AnnotationModel {
          this.children    = other.children;
          this.enabled     = other.enabled;
          this.modifiable  = other.modifiable;
+         this.name        = other.name;
       }
 
       public void copyFrom(Object other) throws Exception {
@@ -296,6 +333,7 @@ public class AnnotationModel {
          this.toolTip     = ((AnnotationModelNode)other).toolTip;
          this.enabled     = ((AnnotationModelNode)other).enabled;
          this.modifiable  = ((AnnotationModelNode)other).modifiable;
+         this.name        = ((AnnotationModelNode)other).name;
       }
       
       @Override
@@ -308,6 +346,7 @@ public class AnnotationModel {
                (other instanceof AnnotationModelNode) &&
                ((description == otherNode.description) || ((description != null) && (description.equals(otherNode.description)))) &&
                ((toolTip == otherNode.toolTip)         || ((toolTip != null)     && (toolTip.equals(otherNode.toolTip)))) &&
+               ((name == otherNode.name)               || ((name != null)        && name.equals(otherNode.name))) &&
                (enabled == otherNode.enabled) &&
                (modifiable == otherNode.modifiable);
          if (!res) {
@@ -366,6 +405,9 @@ public class AnnotationModel {
       }
 
       public String getToolTip() {
+         if (errorMessage != null) {
+            return errorMessage;
+         }
          return toolTip;
       }
 
@@ -374,7 +416,7 @@ public class AnnotationModel {
             this.toolTip = toolTip;
          }
          else {
-            this.toolTip = this.toolTip + ",\n" + toolTip;
+            this.toolTip = this.toolTip + "\n" + toolTip;
          }
       }
 
@@ -495,6 +537,37 @@ public class AnnotationModel {
       public boolean isOKValue(Object value) {
          return false;
       }
+
+//      public void clearListeners() {
+//         listeners = new ArrayList<MyValidator>();
+//      }
+//
+//      public void addListener(MyValidator function) {
+//         listeners.add(function);
+////         System.err.println("AnnotationModel.addListener()");
+//      }
+      
+//      protected void notifyListeners() throws Exception {
+//         for (MyValidator function : listeners) {
+//            function.changed();
+//         }
+//      }
+
+      public void setName(String name) {
+         this.name = name;
+      }
+
+      public String getName() {
+         return name;
+      }
+
+      public boolean isValid() {
+         return errorMessage == null;
+      }
+
+      public void setErrorMessage(String errorMessage) {
+         this.errorMessage = errorMessage;
+      }
    }
 
    class ErrorNode extends AnnotationModelNode {
@@ -534,7 +607,7 @@ public class AnnotationModel {
     *    <li> an reference index allowing the location in the C file to be accessed.
     */
    class OptionModelNode extends AnnotationModelNode {
-      int referenceIndex;
+      private int    referenceIndex;
 
       public OptionModelNode(String description, int offset) {
          super(description);
@@ -561,8 +634,7 @@ public class AnnotationModel {
             return false;
          }
          OptionModelNode otherNode = (OptionModelNode) other;
-         return (referenceIndex == otherNode.referenceIndex) &&
-               super.equals(otherNode);
+         return (referenceIndex == otherNode.referenceIndex) && super.equals(otherNode);
       }
 
       int getReferenceIndex() {
@@ -592,6 +664,13 @@ public class AnnotationModel {
       public DocumentReference getReference() throws Exception {
          try {
             return references.get(getReferenceIndex());
+         } catch (Exception e) {
+            throw new Exception("Illegal Reference @"+getReferenceIndex(), e);
+         }
+      }
+      public DocumentReference getReference(int offset) throws Exception {
+         try {
+            return references.get(getReferenceIndex()+offset);
          } catch (Exception e) {
             throw new Exception("Illegal Reference @"+getReferenceIndex(), e);
          }
@@ -689,7 +768,13 @@ public class AnnotationModel {
          return ((1L<<width)-1);
       }
       
-      public void setValue(Long value) throws Exception {
+      /**
+       * Returns the value rounded & limited to the acceptable range
+       * 
+       * @param value
+       * @return modified value
+       */
+      public long limitedValue(long value) {
          value = roundValue(value);
          if (range != null) {
             if (value < range.getStart()) {
@@ -699,6 +784,20 @@ public class AnnotationModel {
                value = range.getEnd();
             }
          }
+         return value;
+      }
+
+      /**
+       * Sets the value of the option
+       * 
+       * @param value
+       * @throws Exception
+       * 
+       * @note The value is modified by modifying factors before being applied to the file
+       * 
+       */
+      public void setValue(Long value) throws Exception {
+         value = limitedValue(value);
          if (getModifiers() != null) {
             for (int index = 0; index<getModifiers().size(); index++) {
                Modifier m = getModifiers().get(index);
@@ -727,6 +826,7 @@ public class AnnotationModel {
             value = originalValue | ((value & getMask()) << getBitField().getStart());
          }
          references.get(getReferenceIndex()).setIntegerValue(value);
+//         notifyListeners();
       }
 
       @Override
@@ -735,7 +835,11 @@ public class AnnotationModel {
          setValue((Long.decode(value) & 0xFFFFFFFFL));
       }
 
-      @Override
+      /**
+       * Gets the option value from the file
+       * 
+       * @note modifiers are applied when retrieving the value
+       */
       public Object getValue() throws Exception {
          long value = getReference().getIntegerValue();
 //         System.err.println(String.format("NumericOptionModelNode.getValue() => 0x%X", value));
@@ -764,9 +868,18 @@ public class AnnotationModel {
          return new Long(value);
       }
 
+      public long getValueAsLong() {
+         try {
+            return (Long) getValue();
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+         return 0;
+      }
+      
       @Override
       public String getValueAsString() throws Exception {
-         long value = (long) getValue();
+         long value = (Long)getValue();
          try {
             if (getReference().isUseHex()) {
                return String.format("0x%X", value);
@@ -828,6 +941,40 @@ public class AnnotationModel {
       }
    }
 
+   public class PllConfigurationModelNode extends NumericOptionModelNode {
+      public PllConfigurationModelNode(String description, int offset, BitField bitField) {
+         super(description, offset, null);
+      }
+
+      public PllConfigurationModelNode(PllConfigurationModelNode other) {
+         super(other);
+      }
+
+      public void copyFrom(Object other) throws Exception {
+         if (!(other instanceof PllConfigurationModelNode)) {
+            throw new Exception("Incompatible nodes in copyFrom()");
+         }
+         super.copyFrom(other);
+      }
+      
+      public boolean equals(Object other) {
+         if (!(other instanceof PllConfigurationModelNode)) {
+            return false;
+         }
+         PllConfigurationModelNode otherNode = (PllConfigurationModelNode) other;
+         return super.equals(otherNode);
+      }
+
+      /* (non-Javadoc)
+       * @see net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode#setValue(java.lang.Long)
+       */
+      @Override
+      public void setValue(Long value) throws Exception {
+         super.setValue(value);
+      }
+
+   }
+   
    /**
     * Describes an option that modifies a numeric value in the C file with an enumerated set of values
     */
@@ -841,7 +988,6 @@ public class AnnotationModel {
 
       public EnumeratedOptionModelNode(NumericOptionModelNode other) {
          super(other);
-         setModifiable(true);
       }
 
       @Override
@@ -874,11 +1020,11 @@ public class AnnotationModel {
 
       @Override
       public String getValueAsString() throws Exception {
-         long value = (long) getValue();
+         long value = (Long) getValue();
          for (int index=0; index<enumerationValues.size(); index++) {
             EnumValue enumValue = enumerationValues.get(index);
             if (enumValue.getValue() == value) {
-               System.err.println(String.format("getValueAsString() Found (0x%X => %s) ", value, enumValue.getName()));
+//               System.err.println(String.format("getValueAsString() Found (0x%X => %s) ", value, enumValue.getName()));
                return enumValue.getName();
             }
          }

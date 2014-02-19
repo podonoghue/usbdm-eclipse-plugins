@@ -63,10 +63,16 @@ public class Activator extends AbstractUIPlugin {
        registry.put(ID_CHECKBOX_CHECKED_IMAGE, imageDescriptor);
        imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-unchecked.png"), null));
        registry.put(ID_CHECKBOX_UNCHECKED_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/error.png"), null));
+       registry.put(ID_INVALID_NODE_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/padlock.png"), null));
+       registry.put(ID_LOCKED_NODE_IMAGE, imageDescriptor);
    }
 
    public final static String ID_CHECKBOX_CHECKED_IMAGE    = "checkbox-checked";
    public final static String ID_CHECKBOX_UNCHECKED_IMAGE  = "checkbox-unchecked";
+   public final static String ID_INVALID_NODE_IMAGE        = "error";
+   public final static String ID_LOCKED_NODE_IMAGE         = "locked";
    
    public ImageDescriptor getImageDescriptor(String key) {
       return getImageRegistry().getDescriptor(key);

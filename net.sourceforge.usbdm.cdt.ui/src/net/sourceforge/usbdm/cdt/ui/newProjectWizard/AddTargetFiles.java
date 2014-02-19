@@ -3,30 +3,31 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
  * 
  */
 
-
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.Device.FileInfo;
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase.FileType;
-import net.sourceforge.usbdm.jni.Usbdm;
 
 import org.eclipse.cdt.core.templateengine.process.ProcessFailureException;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 
 /**
  * @author pgo
@@ -34,24 +35,25 @@ import org.eclipse.core.runtime.Path;
  */
 public class AddTargetFiles {
 
-   static String readFile(String path) throws IOException {
-      byte[] encoded = Files.readAllBytes(Paths.get(path));
+   static String readFile(java.nio.file.Path path) throws IOException {
+      byte[] encoded = Files.readAllBytes((java.nio.file.Path) path);
       return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
    }
 
    /**
     * @param path                       path of source file
-    * @param target                     path of target file
+    * @param targetPath                 path of target file
     * @param isReplaceable              whether to macro substitution
     * @param variableMap                macro values
     * @param projectHandle              handle for access to project
     * 
     * @throws Exception 
     */
-   private void processFile(String path, String target, Boolean isReplaceable, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void processFile(Path path, Path targetPath, Boolean isReplaceable, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
 //      System.err.println("AddTargetFiles.processFile(): ");
 //      System.err.println("\tsource: \'"+ path.toString() + "\'");
-//      System.err.println("\ttarget: \'" + target + "\'");
+//      System.err.println("\ttarget: \'" + targetPath.toString() + "\'");
+
       InputStream contents = null;
       String fileContents;
       try {
@@ -64,7 +66,7 @@ public class AddTargetFiles {
       }
       contents = new ByteArrayInputStream(fileContents.getBytes());
       try {
-         IFile iFile = projectHandle.getFile(target);
+         IFile iFile = projectHandle.getFile(targetPath.toString());
          if (!iFile.getParent().exists()) {
             ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor);
          }
@@ -80,8 +82,8 @@ public class AddTargetFiles {
    }
 
    /**
-    * @param path                       path of source file or directory
-    * @param target                     path of target file (if source is a directory then parent is used)
+    * @param file2                       path of source file or directory
+    * @param path2                     path of target file (if source is a directory then parent is used)
     * @param isReplaceable              whether to macro substitution
     * @param variableMap                template for macro values
     * @param projectHandle              handle for access to project
@@ -90,68 +92,73 @@ public class AddTargetFiles {
     * 
     * @throws ProcessFailureException
     */
-   private void processItem(IPath path, String target, Boolean isReplaceable, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void processItem(Path path, Path targetPath, Boolean isReplaceable, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
       // Check if directory
-      File file = path.toFile();
-      if (file.isDirectory()) {
+//      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
+//      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
+//      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
+      if (Files.isDirectory(path)) {
          // Directory copy
-         // Remove last segment of path if it is
-         IPath targetPath = new Path(target);
-         if ((targetPath.getFileExtension() != null) && (targetPath.getFileExtension().equalsIgnoreCase("h"))) {
-            target = targetPath.removeLastSegments(1).toPortableString();
+         // Hack for case we expected a header file but given entire folder of header files
+         if (targetPath.getFileName().endsWith(".h") || targetPath.getFileName().endsWith(".H")) {
+            targetPath = targetPath.getParent();
          }
-         System.err.println("AddTargetFiles.processItem() folder  = " + file.toString());
-         String contents[] = file.list();
-         for (String filename:contents) {
-            IPath filePath = path.append(filename);
-            String newTarget = target + File.separator + filename;
-            processItem(filePath, newTarget, isReplaceable, variableMap, projectHandle, monitor);
+//         System.err.println("AddTargetFiles.processItem() folder  = " + path.toString());
+         DirectoryStream<Path> stream = Files.newDirectoryStream(path);
+         for (java.nio.file.Path entry: stream) {
+            processItem(entry, targetPath.resolve(entry.getFileName()), isReplaceable, variableMap, projectHandle, monitor);
          }
       }
       else {
          // Simple file copy
-         processFile(path.toPortableString(), target, isReplaceable, variableMap, projectHandle, monitor);
+         processFile(path, targetPath, isReplaceable, variableMap, projectHandle, monitor);
       }
    }
    
+   private URI resolveURI(URI uri) throws URISyntaxException {
+      
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      IPathVariableManager pathMan = workspace.getPathVariableManager();
+      return pathMan.resolveURI(uri);
+   }
+   
    public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileInfo fileInfo, IProgressMonitor monitor) throws Exception {
-      IPath usbdmDataPath = Usbdm.getResourcePath();
-
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
 
-      FileType fileType = fileInfo.getFileType();
-      
       if (source.isEmpty()) {
          return;
       }
-      IPath path = new Path(source);
-      if (!path.isAbsolute()) {
-         if (root != null) {
-            path = new Path(root).append(path);
-         }
-         if (!path.isAbsolute()) {
-            path = usbdmDataPath.append(path);
-         }
+      URI sourceURI = null;
+      if (root != null) {
+         sourceURI = new URI(null, root, null).resolve(source);
       }
-      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", source, target));
-      switch (fileType) {
+      else {
+         sourceURI = new URI(null, source, null);
+      }
+//      System.err.println(String.format("process()\t sourceURI => \'%s\'", sourceURI));
+      sourceURI = resolveURI(sourceURI);
+//      System.err.println(String.format("process()\t sourceURI => \'%s\'", sourceURI));
+      
+//      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourceURI.toString(), target));
+      switch (fileInfo.getFileType()) {
       case LINK :
-         createLink(path, target, projectHandle, monitor);
+         createLink(Paths.get(sourceURI), target, projectHandle, monitor);
          break;
       case NORMAL :
-         processItem(path, target, fileInfo.isReplaceable(), variableMap, projectHandle, monitor);
+         processItem(Paths.get(resolveURI(sourceURI)), Paths.get(target), fileInfo.isReplaceable(), variableMap, projectHandle, monitor);
          break;
       }
    }
 
-   private void createLink(IPath path, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void createLink(Path path, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+//      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", path.toString(), target));
       IFile iFile = projectHandle.getFile(target);
       if (!iFile.getParent().exists()) {
          ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor);
       }
-      iFile.createLink(path, IResource.NONE, monitor);
+      iFile.createLink(path.toUri(), IResource.ALLOW_MISSING_LOCAL, monitor);
    }
 
 }

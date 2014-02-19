@@ -5,7 +5,7 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            id="net.sourceforge.usbdm.peripherals.ui.category"
+            id="net.sourceforge.usbdm.peripherals.view.category"
             name="USBDM Category"
             parentCategory="org.eclipse.debug.ui">
       </category>
@@ -14,7 +14,7 @@
             icon="icons/cog.png"
             category="org.eclipse.debug.ui"
             class="net.sourceforge.usbdm.peripherals.view.UsbdmDevicePeripheralsView"
-            id="net.sourceforge.usbdm.peripherals.ui.view">
+            id="net.sourceforge.usbdm.peripherals.view">
       </view>
    </extension>
    <extension
@@ -25,7 +25,7 @@
                ratio="0.5"
                relative="org.eclipse.debug.ui.MemoryView"
                relationship="stack"
-               id="net.sourceforge.usbdm.peripherals.ui.view">
+               id="net.sourceforge.usbdm.peripherals.view">
          </view>
       </perspectiveExtension>
    </extension>

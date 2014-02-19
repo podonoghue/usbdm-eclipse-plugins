@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.cdt.tools;
 
 import java.util.Hashtable;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 import net.sourceforge.usbdm.constants.VariableInformationData;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -22,12 +23,12 @@ public class UsbdmDynamicVariableResolver implements IDynamicVariableResolver {
          usbdmApplicationPath = new Path("USBDM PATH NOT FOUND");
       }
    }
-
+   
    @Override
    public String resolveValue(IDynamicVariable variable, String argument)
          throws CoreException {
 
-      if (variable.getName().equals("usbdm_application_path")) {
+      if (variable.getName().equals(UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR)) {
 //         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_application_path) => " + usbdmApplicationPath.toOSString());
          return usbdmApplicationPath.toOSString();
       }

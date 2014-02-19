@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.viewers.TreeViewer;
 
 /**
  * Used to create a model from the wizard description embedded in the C file
@@ -37,15 +38,22 @@ public class AnnotationParser {
    private boolean              wizardEndFound  = false;
    private int                  lineNumber      = 0;
 
+   private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
+   private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
+   
    private final String  wizardStartString           = "<<<\\s*Use\\s*Configuration\\s*Wizard\\s*in\\s*Context\\s*Menu\\s*>>>";
    private final String  wizardEndString             = "<<<\\s*end\\s*of\\s*configuration\\s*section\\s*>>>";
     
-   private final String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>(?<text>[^<]*)";
+   private final String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>(?<text>[^<]*)";
+   private final String  nameString                  = "<\\s*name\\s*=\\s*(?<variableName>\\w*)\\s*>";
+
+   private final String  validateString              = "<\\s*validate\\s*=\\s*(?<className>[\\w|\\.]*)\\s*>";
+   private final String  constString                 = "<\\s*constant\\s*>";
    
    private final String rangePatternString          = "<\\s*(?<rStart>(0x[0-9a-fA-F]*)|(\\d+))(\\s*\\-\\s*(?<rEnd>(0x[0-9a-fA-F]*)|(\\d+))(\\s*:\\s*(?<rStep>(0x[0-9a-fA-F]*)|(\\d+)))?)?\\s*>";
    private final String enumerationPatternString    = "<\\s*(?<enumValue>\\d+)\\s*=\\s*>(?<enumName>[^<]*)";
    private final String modifierPatternString       = "<\\s*#\\s*(?<operation>.)\\s*(?<factor>(0x[0-9a-fA-F]*)|(\\d+))\\s*>";
-    
+
    private final int     matchFlags         = Pattern.DOTALL;
    private final String  wizardPatternString = 
          "(?<wizardStart>"+wizardStartString+")|"+
@@ -54,6 +62,10 @@ public class AnnotationParser {
          "(?<range>"+rangePatternString+")|"+
          "(?<modifier>"+modifierPatternString+")|"+
          "(?<enumeration>"+enumerationPatternString+")|"+
+         "(?<name>"+nameString+")|"+
+         "(?<validate>"+validateString+")|"+
+         "(?<constant>"+constString+")|"+
+//         "(?<pllConfigure>"+pllConfigureString+")|"+
          "(<[^>]*>[^<]*)"
          ;
    private final Pattern wizardPattern     = Pattern.compile(wizardPatternString, matchFlags);
@@ -143,6 +155,10 @@ public class AnnotationParser {
          currentOption = annotationModel.new NumericOptionModelNode(text, offset, bitField);
          currentNode.addChild(currentOption);
       }
+      else if (control.equals("pllConfigure")) {
+         currentOption = annotationModel.new PllConfigurationModelNode(text, offset, bitField);
+         currentNode.addChild(currentOption);
+      }
       else if (control.equals("q")) {
          currentOption = annotationModel.new BinaryOptionModelNode(text, offset, bitField);
          currentNode.addChild(currentOption);
@@ -204,12 +220,35 @@ public class AnnotationParser {
       ((NumericOptionModelNode)currentOption).addModifier(new Modifier(operation, factor));
    }
    
+   private void createName(String variableName) throws Exception {
+      currentOption.setName(variableName);
+   }
+
+   private void collectNamedNodes(AnnotationModelNode node) {
+      for (AnnotationModelNode child : node.getChildren()) {
+         if (child.getName() != null) {
+            annotationModel.addNamedModelNode(child.getName(), child);
+         }
+         collectNamedNodes(child);
+      }
+   }
+   
+   public void collectNamedNodes() {
+      annotationModel.clearNameMap();
+      collectNamedNodes(annotationModel.getModelRoot());
+      annotationModel.getNameMap().entrySet();
+//      System.err.println("collectNamedNodes()");
+//      for (Entry<String, AnnotationModelNode> name : annotationModel.getNameMap().entrySet()) {
+//         System.err.println(name.getKey() + " => " + name.getValue().getDescription());
+//      }
+   }
+   
    private void parseComment(String buff) throws Exception {
-      Matcher m = wizardPattern.matcher(buff);
       if (buff.startsWith("//!") || buff.startsWith("/*!")) {
          // Ignore these as may contain markup
          return;
       }
+      Matcher m = wizardPattern.matcher(buff);
       if (!m.find(0)) {
          return;
       }
@@ -274,18 +313,26 @@ public class AnnotationParser {
                createRange(useHex, startValue, endValue, stepSize);
             }
             else if (m.group("enumeration") != null) {
-               String name = null;
-               int    value = 0;
-               value = Integer.decode(m.group("enumValue"));
-               name = m.group("enumName").trim();
+               int    value = Integer.decode(m.group("enumValue"));
+               String name  = m.group("enumName").trim();
                createEnumerationValue(name, value);
             }
             else if (m.group("modifier") != null) {
-               String operation = null;
-               long   factor    = 0;
-               operation = m.group("operation");
-               factor = Long.decode(m.group("factor"));
+               String operation = m.group("operation");
+               long   factor    = Long.decode(m.group("factor"));
                createModifier(operation, factor);
+            }
+            else if (m.group("constant") != null) {
+              currentOption.setModifiable(false);
+            }
+            else if (m.group("name") != null) {
+               String variableName = m.group("variableName");
+               createName(variableName);
+//               System.err.println("Adding name = "+variableName);
+            }
+            else if (m.group("validate") != null) {
+               String className = m.group("className");
+               createValidator(className);
             }
             else {
 //               System.err.println("Other:"+m.group().trim());
@@ -302,7 +349,18 @@ public class AnnotationParser {
          addErrorMarker(new ErrorMarker(lineNumber, message));
       }
    }
-   
+ 
+   private void createValidator(String className) throws Exception {
+//      System.err.println(String.format("Creating function: %s(%s)", className, parameters));
+      try {
+         MyValidator validatorClass = (MyValidator) Class.forName(className).newInstance();
+         newValidators.add(validatorClass);
+         validatorClass.setModel(annotationModel);
+      } catch (Exception e) {
+         throw new Exception("Failed to instantiate function \'"+className+"\'", e);
+      }
+   }
+
    AnnotationParser(IDocument document) {
       this.document        = document;
       this.annotationModel = new AnnotationModel(document);
@@ -319,6 +377,7 @@ public class AnnotationParser {
       AnnotationModelNode rootNode =  annotationModel.new AnnotationModelNode("Root");
       currentNode = rootNode;
       currentNode.removeAllChildren();
+      newValidators.clear();
       
       currentOption   = null;
       wizardEndFound  = false;
@@ -349,9 +408,21 @@ public class AnnotationParser {
             annotationModel.getReferences().addReference(annotationModel.new DocumentReference(partition.getOffset(), partition.getLength()));
          }
       }
+      if (validators.size() != newValidators.size()) {
+         System.err.println("****************Replacing all validators");
+         validators = newValidators;
+      }
+      else {
+         for (int index=0; index<validators.size(); index++) {
+            if (validators.get(index).getClass() != newValidators.get(index).getClass()) {
+               validators.set(index, newValidators.get(index));
+               System.err.println("****************Replacing validator");
+            }
+         }
+      }
       return rootNode;
    }
-     
+
    public AnnotationModelNode getModelRoot() throws RuntimeException {
       if (annotationModel == null) {
          throw new RuntimeException(" No annotationModel available to get model root");
@@ -375,6 +446,13 @@ public class AnnotationParser {
    
    public void listNodes() throws Exception {
       getModelRoot().listNodes(0);
+   }
+
+   public void validate(TreeViewer viewer) throws Exception {
+      MyValidator[] lValidators = validators.toArray(new MyValidator[validators.size()]);
+      for (MyValidator validator : lValidators) {
+         validator.validate(viewer);
+      }
    }
    
  }

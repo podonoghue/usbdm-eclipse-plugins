@@ -102,14 +102,14 @@ Non-derivative components are licensed under the GPL.
          unpack="false"/>
 
    <plugin
-         id="net.sourceforge.usbdm.peripherals.ui"
+         id="net.sourceforge.usbdm.annotationEditor"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="net.sourceforge.usbdm.annotationEditor"
+         id="net.sourceforge.usbdm.peripherals.view"
          download-size="0"
          install-size="0"
          version="0.0.0"

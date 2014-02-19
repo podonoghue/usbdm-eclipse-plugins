@@ -9,6 +9,7 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 +============================================================================================
 */
 import java.io.File;
+import java.net.URI;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -357,11 +358,12 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
     * 
     * @return  URL (empty one if not found)
     */
-   String findExternalFile(String resourceDirectory, String deviceName, String preferredExtension) {
+   URI findExternalFile(String resourceDirectory, String deviceName, String preferredExtension) {
 
+      
       IPath applicationPath = Usbdm.getResourcePath();
       if (applicationPath == null) {
-         return "";
+         return null;
       }
       IPath resourceFolder = applicationPath.append(resourceDirectory);
       System.err.println("UsbdmProjectPage.findExternalFile(), resourceFolder = " + resourceFolder);
@@ -421,9 +423,9 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
       
       if (success) {
          System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
-         return filePath.toPortableString();
+         return filePath.toFile().toURI();
       }
-      return "";
+      return null;
    }
    
    /**
@@ -435,9 +437,9 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
     */
    private String getExternalProjectHeaderFile(Device device) {
       
-      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+      URI externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
       
-      if (externalHeaderFile.isEmpty()) { 
+      if (externalHeaderFile == null) { 
          String deviceSubFamily = device.getSubFamily();
          if (deviceSubFamily != null) {
             // Try to get subFamily header file
@@ -445,7 +447,10 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
             externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, deviceSubFamily, "h");
          }
       }
-      return externalHeaderFile;
+      if (externalHeaderFile == null) {
+         return "";
+      }
+      return externalHeaderFile.toString();
    }
    
    /**
@@ -457,9 +462,9 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
     */
    private String getExternalVectorTable(Device device) {
 
-      String externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, device.getName(), "c");
+      URI externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, device.getName(), "c");
       
-      if (externalVectorTableFile.isEmpty()) { 
+      if (externalVectorTableFile == null) { 
          String deviceSubFamily = device.getSubFamily();
          if (deviceSubFamily != null) {
             // Try to get subFamily header file
@@ -467,7 +472,10 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
             externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, deviceSubFamily, "c");
          }
       }
-      return externalVectorTableFile;
+      if (externalVectorTableFile == null) {
+         return "";
+      }
+      return externalVectorTableFile.toString();
    }
    
    /**
@@ -676,11 +684,11 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
       }
       // Try to locate device specific header file
       String externalHeaderFile = getExternalProjectHeaderFile(device);
-      System.err.println("Looking for device header file: " + externalHeaderFile); //$NON-NLS-1$
+      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
 
       // Try to locate device specific vector table file
       String externalVectorTableFile = getExternalVectorTable(device);
-      System.err.println("Looking for vector table file: " + externalVectorTableFile); //$NON-NLS-1$
+      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
       String deviceFamily;
       // Set defaults
