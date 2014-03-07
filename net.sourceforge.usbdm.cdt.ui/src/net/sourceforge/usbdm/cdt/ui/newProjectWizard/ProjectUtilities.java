@@ -101,8 +101,8 @@ public class ProjectUtilities {
    /**
     * Creates specified folder in the project recursively.
     *
-    * @param project    - project.
-    * @param targetPath - relative path to the new folder.
+    * @param project            - project.
+    * @param targetPath         - relative path to the new folder.
     * @param progressMonitor    - progress monitor.
     * 
     * @throws CoreException 
@@ -197,7 +197,7 @@ public class ProjectUtilities {
       if (target.isEmpty()) {
          return;
       }
-      System.err.println(String.format("ProjectUtilities.createFolder() \'%s\'", target));
+//      System.err.println(String.format("ProjectUtilities.createFolder() \'%s\'", target));
 
       String type = action.getType();
       if (type == null) {

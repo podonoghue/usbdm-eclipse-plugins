@@ -49,11 +49,12 @@ public class ICSClockValidate extends MyValidator {
       else if ((oscclk_clock >= FLL_CLOCK_RANGE2_MIN) && (oscclk_clock <= FLL_CLOCK_RANGE2_MAX)) {
          osc_cr_range = 1;
       }
+      
       if (osc_cr_range < 0) {
          if (osc_cr_oscosNode.safeGetValue()) {
             // External crystal selected but not suitable frequency
             osc_cr_oscos_message = "Frequency of the External Crystal is not suitable for use with the Oscillator\n";
-            osc_cr_oscos_message += String.format("Permitted range [%d-%d] or [%d-%d]", FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX);
+            osc_cr_oscos_message += String.format("Permitted ranges [%d-%d] and [%d-%d]", FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX);
          }
          // Set compromise value
          if (oscclk_clock <= FLL_CLOCK_RANGE2_MIN) {
@@ -75,8 +76,8 @@ public class ICSClockValidate extends MyValidator {
          externalfllInputFrequencyAfterDivider = oscclk_clock / (1<<5);
       }
       
-      String ics_c1_rdivMessage         = null;
-      int ics_c1_rdiv    = 0;
+      String ics_c1_rdivMessage = null;
+      int    ics_c1_rdiv        = 0;
 
       // Assume no errors
       boolean validFllInputClock = true;
@@ -107,8 +108,8 @@ public class ICSClockValidate extends MyValidator {
       }
       else {
          validFllInputClock = false;
-         ics_c1_rdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d", oscclk_clock);
-         ics_c1_rdiv =  7;
+         ics_c1_rdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d Hz", oscclk_clock);
+         ics_c1_rdiv        =  7;
       }
       System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
 
@@ -118,6 +119,7 @@ public class ICSClockValidate extends MyValidator {
       //  - Internal (slow) reference
       String fllTargetFrequencyMessage = null;
       double fllInputFrequency = 0;
+      
       if (ics_c1_irefsNode.getValueAsLong() == 0) {
          // Using external reference clock
          if (validFllInputClock) {
@@ -152,7 +154,7 @@ public class ICSClockValidate extends MyValidator {
          ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
          fllFrequencies.add(fllOutFrequency*1);
          if (fllOutFrequency != fllTargetFrequency) {
-            StringBuilder buff = new StringBuilder("Not possible to generate FLL frequency from input clock. Possible values = ");
+            StringBuilder buff = new StringBuilder("Not possible to generate desired FLL frequency from input clock. \nPossible values (Hz) = ");
             boolean needComma = false;
             for (Long freq : fllFrequencies) {
                if (needComma) {

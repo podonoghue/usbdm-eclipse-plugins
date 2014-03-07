@@ -123,7 +123,6 @@ public class ValueHandlerTest implements IManagedOptionValueHandler {
       try {
          return option.getStringValue().isEmpty();
       } catch (BuildException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       return false;
@@ -133,7 +132,6 @@ public class ValueHandlerTest implements IManagedOptionValueHandler {
    public boolean isEnumValueAppropriate(IBuildObject configuration,
          IHoldsOptions holder, IOption option, String extraArgument,
          String enumValue) {
-      // TODO Auto-generated method stub
       return false;
    }
 

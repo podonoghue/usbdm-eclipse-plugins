@@ -6,18 +6,20 @@ import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
-public class ClockValidate_MKxx extends MyValidator {
+public class ClockValidate_CFV1Plus extends MyValidator {
 
    private final long MAX_CORE_CLOCK_FREQ;
-   private final long MAX_BUS_CLOCK_FREQ;
-   private final long MAX_FLASH_CLOCK_FREQ;
+   private final long USB_CLOCK_FREQ      = 48000000L;
    
-   public enum ClockModes {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
+   public enum ClockModes      {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
+   public enum UsbClockSources {DividedPLL, DividedFLL, External};
    
-   protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency) {
+   public ClockValidate_CFV1Plus() {
+      this(50000000);
+   }
+   
+   protected ClockValidate_CFV1Plus(long maxCoreClockfrequency) {
       MAX_CORE_CLOCK_FREQ  = maxCoreClockfrequency;
-      MAX_BUS_CLOCK_FREQ   = maxBusClockFrequency;
-      MAX_FLASH_CLOCK_FREQ = maxFlashClockFrequency;
    }
    
    @Override
@@ -25,8 +27,9 @@ public class ClockValidate_MKxx extends MyValidator {
       super.validate(viewer);
       
       NumericOptionModelNode primaryClockModeNode       =  getNumericModelNode("clock_mode");
-      NumericOptionModelNode oscclk_clockNode           =  getNumericModelNode("oscclk_clock");
-      NumericOptionModelNode rtcclk_clockNode           =  getNumericModelNode("rtcclk_clock");
+//      NumericOptionModelNode osc1clk_clockNode          =  getNumericModelNode("osc1clk_clock");
+      NumericOptionModelNode osc2clk_clockNode          =  getNumericModelNode("osc2clk_clock");
+      NumericOptionModelNode usbclkin_clockNode         =  getNumericModelNode("usbclkin_clock");
       
       NumericOptionModelNode system_erc_clockNode       =  getNumericModelNode("system_erc_clock");
       NumericOptionModelNode slowIRCNode                =  getNumericModelNode("system_slow_irc_clock");
@@ -36,33 +39,25 @@ public class ClockValidate_MKxx extends MyValidator {
       BinaryOptionModelNode  mcg_c2_ircsNode            =  getBinaryModelNode("mcg_c2_ircs");
       NumericOptionModelNode mcg_c2_lpNode              =  getNumericModelNode("mcg_c2_lp");
       NumericOptionModelNode mcg_c6_pllsNode            =  getNumericModelNode("mcg_c6_plls");
-      NumericOptionModelNode mcg_sc_fcrdivNode          =  safeGetNumericModelNode("mcg_sc_fcrdiv");
-      BinaryOptionModelNode  mcg_c7_oscselNode          =  safeGetBinaryModelNode("mcg_c7_oscsel");
       NumericOptionModelNode system_mcgout_clockNode    =  getNumericModelNode("system_mcgout_clock");
       NumericOptionModelNode system_mcgir_clockNode     =  getNumericModelNode("system_mcgir_clock");
       NumericOptionModelNode fllTargetFrequencyNode     =  getNumericModelNode("fllTargetFrequency");
       NumericOptionModelNode pllTargetFrequencyNode     =  getNumericModelNode("pllTargetFrequency");
                                                         
-      NumericOptionModelNode sim_clkdiv1_outdiv1Node    =  getNumericModelNode("sim_clkdiv1_outdiv1");
-      NumericOptionModelNode sim_clkdiv1_outdiv2Node    =  getNumericModelNode("sim_clkdiv1_outdiv2");
-      NumericOptionModelNode sim_clkdiv1_outdiv3Node    =  safeGetNumericModelNode("sim_clkdiv1_outdiv3");
-      NumericOptionModelNode sim_clkdiv1_outdiv4Node    =  getNumericModelNode("sim_clkdiv1_outdiv4");
+      NumericOptionModelNode sim_clkdiv0_outdivNode     =  getNumericModelNode("sim_clkdiv0_outdiv");
       NumericOptionModelNode system_core_clockNode      =  getNumericModelNode("system_core_clock");
       NumericOptionModelNode system_bus_clockNode       =  getNumericModelNode("system_bus_clock");
-      NumericOptionModelNode system_flexbus_clockNode   =  safeGetNumericModelNode("system_flexbus_clock");
-      NumericOptionModelNode system_flash_clockNode     =  getNumericModelNode("system_flash_clock");
+
+      // USB
+      NumericOptionModelNode system_usb_clockNode       =  getNumericModelNode("system_usb_clock");
+      NumericOptionModelNode sim_clkdiv1_usbsrcNode     =  getNumericModelNode("sim_clkdiv1_usbsrc");
+      NumericOptionModelNode sim_clkdiv1_usbdivNode     =  getNumericModelNode("sim_clkdiv1_usbdiv");
+      NumericOptionModelNode sim_clkdiv1_usbfracNode    =  getNumericModelNode("sim_clkdiv1_usbfrac");
 
       long system_mcgir_clock;
       if (mcg_c2_ircsNode.safeGetValue()) {
-         if ( mcg_sc_fcrdivNode != null) {
-            // Variable divisor
-            long mcg_sc_fcrdiv = mcg_sc_fcrdivNode.getValueAsLong();
-            system_mcgir_clock = fastIRCNode.getValueAsLong() / (1<<mcg_sc_fcrdiv);
-         }
-         else {
-            // Fixed divisor of 2
-            system_mcgir_clock = fastIRCNode.getValueAsLong() / 2;
-         }
+         // Fixed divisor of 2
+         system_mcgir_clock = fastIRCNode.getValueAsLong() / 2;
       }
       else {
          system_mcgir_clock = slowIRCNode.getValueAsLong();
@@ -70,14 +65,8 @@ public class ClockValidate_MKxx extends MyValidator {
       System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
 
       long system_erc_clock;
-      if ((mcg_c7_oscselNode != null) && mcg_c7_oscselNode.safeGetValue()) {
-         // ERC = OSC32KCLK
-         system_erc_clock = rtcclk_clockNode.getValueAsLong();
-      }
-      else {
-         // ERC = OSCCLK
-         system_erc_clock = oscclk_clockNode.getValueAsLong();
-      }
+      // ERC = OSCCLK
+      system_erc_clock = osc2clk_clockNode.getValueAsLong();
       System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
 
       long clk = primaryClockModeNode.getValueAsLong();
@@ -164,7 +153,7 @@ public class ClockValidate_MKxx extends MyValidator {
       }
       // Core Clock
       //===========================================
-      long sim_clkdiv1_outdiv1 = sim_clkdiv1_outdiv1Node.getValueAsLong();
+      long sim_clkdiv1_outdiv1 = sim_clkdiv0_outdivNode.getValueAsLong();
       long system_core_clock   = system_mcgout_clock / sim_clkdiv1_outdiv1;
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
@@ -174,57 +163,75 @@ public class ClockValidate_MKxx extends MyValidator {
 
       // Bus Clock
       //===========================================
-      long sim_clkdiv1_outdiv2 = sim_clkdiv1_outdiv2Node.getValueAsLong();
-      long system_bus_clock = system_mcgout_clock / sim_clkdiv1_outdiv2;
-      String system_bus_clockMessage = null;
-      if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_BUS_CLOCK_FREQ/1000000);
-      }
-      else if (system_bus_clock>system_core_clock) {
-         system_bus_clockMessage = "Clock is too high. (Req. clock <= Core clock)";
-      }
-      else if ((system_core_clock/system_bus_clock)*system_bus_clock != system_core_clock) {
-         system_bus_clockMessage = "Clock frequency must be an integer divisor of Core clock frequency";
-      }
-      setValid(viewer, system_bus_clockNode, system_bus_clockMessage);
+      long system_bus_clock = system_core_clock / 2;
       
-      long system_flexbus_clock = 0;
-      if (sim_clkdiv1_outdiv3Node != null) {
-         // Flexbus Clock
-         //===========================================
-         long sim_clkdiv1_outdiv3 = sim_clkdiv1_outdiv3Node.getValueAsLong();
-         system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
-         String system_flexbus_clockMessage = null;
-         if (system_flexbus_clock>system_bus_clock) {
-            system_flexbus_clockMessage = "Clock is too high. (Req. clock <= Bus clock)";
-         }
-         setValid(viewer, system_flexbus_clockNode, system_flexbus_clockMessage);
-      }
-      
-      // Flash Clock
-      //===========================================
-      long sim_clkdiv1_outdiv4 = sim_clkdiv1_outdiv4Node.getValueAsLong();
-      long system_flash_clock = system_mcgout_clock / sim_clkdiv1_outdiv4;
-      String system_flash_clockMessage = null;
-      if (system_flash_clock > MAX_FLASH_CLOCK_FREQ) {
-         system_flash_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_FLASH_CLOCK_FREQ/1000000);
-      }
-      else if (system_flash_clock>system_bus_clock) {
-         system_flash_clockMessage = "Clock is too high. (Req. clock <= Bus clock)";
-      }
-      else if ((system_core_clock/system_flash_clock)*system_flash_clock != system_core_clock) {
-         system_flash_clockMessage = "Clock frequency must be an integer divisor of Core clock frequency";
-      }
-      setValid(viewer, system_flash_clockNode, system_flash_clockMessage);
-      
+      setValid(viewer, system_bus_clockNode, null);
       setValid(viewer, primaryClockModeNode, primaryClockModeMessage);
 
+      // USB
+      //=========================================================
+      UsbClockSources usbsrc = UsbClockSources.values()[(int)sim_clkdiv1_usbsrcNode.getValueAsLong()];
+      long sim_clkdiv1_usbfrac = sim_clkdiv1_usbfracNode.getValueAsLong();
+      long sim_clkdiv1_usbdiv = sim_clkdiv1_usbdivNode.getValueAsLong();
+      
+      long system_usb_clock = 0;
+      if (usbsrc == UsbClockSources.External) {
+         system_usb_clock = usbclkin_clockNode.getValueAsLong();
+      } 
+      else {
+         boolean exact = false;
+         double clockIn = 0;
+         if (usbsrc == UsbClockSources.DividedFLL) {
+            clockIn = fllTargetFrequency;
+         } 
+         else {
+            clockIn = pllTargetFrequency;
+         }
+         // Try each possible DIV & FRAC
+         for (sim_clkdiv1_usbdiv=1; sim_clkdiv1_usbdiv<=8; sim_clkdiv1_usbdiv++) {
+            for (sim_clkdiv1_usbfrac = 1; sim_clkdiv1_usbfrac<=2; sim_clkdiv1_usbfrac++) {
+               system_usb_clock = Math.round((clockIn*sim_clkdiv1_usbfrac)/sim_clkdiv1_usbdiv);
+               exact = system_usb_clock == USB_CLOCK_FREQ;
+               if (exact) {
+                  break;
+               }
+            }
+            if (exact) {
+               break;
+            }
+         }
+         if (!exact) {
+            sim_clkdiv1_usbdiv  = 1;
+            sim_clkdiv1_usbfrac = 1;
+            system_usb_clock = Math.round((clockIn*sim_clkdiv1_usbfrac)/sim_clkdiv1_usbdiv);
+         }
+      }
+      switch(usbsrc) {
+      case DividedFLL:
+         system_usb_clock = Math.round((fllTargetFrequency*sim_clkdiv1_usbfrac)/sim_clkdiv1_usbdiv);
+         break;
+      case DividedPLL:
+         system_usb_clock = Math.round((pllTargetFrequency*sim_clkdiv1_usbfrac)/sim_clkdiv1_usbdiv);
+         break;
+      case External:
+         system_usb_clock = usbclkin_clockNode.getValueAsLong();
+         break;
+      }
+      String system_usb_clock_clockMessage = null;
+      String sim_clkdiv1_usbsrcMessage     = null;
+      if (system_usb_clock != USB_CLOCK_FREQ) {
+         system_usb_clock_clockMessage = String.format("USB Clock frequency must be %d MHz", USB_CLOCK_FREQ/1000000);
+         sim_clkdiv1_usbsrcMessage     = String.format("It is not possible to generate a valid USB clock from this source");
+      }
+      setValid(viewer, system_usb_clockNode,   system_usb_clock_clockMessage);
+      setValid(viewer, sim_clkdiv1_usbsrcNode, sim_clkdiv1_usbsrcMessage);
+
+      update(viewer, system_usb_clockNode,    system_usb_clock);
+      update(viewer, sim_clkdiv1_usbfracNode, sim_clkdiv1_usbfrac);
+      update(viewer, sim_clkdiv1_usbdivNode,  sim_clkdiv1_usbdiv);
+      
       update(viewer, system_core_clockNode, system_core_clock);
       update(viewer, system_bus_clockNode, system_bus_clock);
-      if (system_flexbus_clockNode != null) {
-         update(viewer, system_flexbus_clockNode, system_flexbus_clock);
-      }
-      update(viewer, system_flash_clockNode, system_flash_clock);
       update(viewer, system_erc_clockNode, system_erc_clock);
       update(viewer, system_mcgir_clockNode, system_mcgir_clock);
       update(viewer, system_mcgout_clockNode, system_mcgout_clock);

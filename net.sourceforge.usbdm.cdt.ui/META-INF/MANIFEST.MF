@@ -16,7 +16,8 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="4.10.6",
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.jface,
  org.eclipse.ui.workbench,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.eclipse.debug.ui
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.cdt.ui;

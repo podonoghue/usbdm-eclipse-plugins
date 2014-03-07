@@ -12,3 +12,4 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: pgo
+Import-Package: org.eclipse.core.resources

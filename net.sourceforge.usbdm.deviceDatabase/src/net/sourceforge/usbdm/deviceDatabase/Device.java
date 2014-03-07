@@ -357,6 +357,10 @@ public class Device {
       public FileType getFileType() {
          return fileType;
       }
+      
+      public String tosString() {
+         return String.format("FileInfo[root=%s, source=%s, target=%s]", root, source, target);
+      }
    }
    
    public static class ProjectOption extends ProjectAction {
@@ -380,6 +384,10 @@ public class Device {
       }
       public String getPath() {
          return path;
+      }
+      
+      public String tosString() {
+         return String.format("ProjectOption[path=%s, value=%s]", path, value);
       }
    }
 
@@ -411,6 +419,10 @@ public class Device {
       public void setValue(String value) {
          this.value = value;
       }
+      
+      public String tosString() {
+         return String.format("ProjectVariable[name=%s, description=%s, value=%s]", name, description, value);
+      }
    }
 
    public static class CreateFolderAction extends ProjectAction {
@@ -439,6 +451,10 @@ public class Device {
 
       public String getRoot() {
          return root;
+      }
+      
+      public String tosString() {
+         return String.format("CreateFolderAction[root=%s, target=%s, type=%s]", root, target, type);
       }
    }
    

@@ -366,7 +366,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          return null;
       }
       IPath resourceFolder = applicationPath.append(resourceDirectory);
-      System.err.println("UsbdmProjectPage.findExternalFile(), resourceFolder = " + resourceFolder);
+//      System.err.println("UsbdmProjectPage.findExternalFile(), resourceFolder = " + resourceFolder);
       
       IPath   filePath = null;
       boolean success     = false;
@@ -408,13 +408,13 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          }
          fileName = m.replaceAll("$1$2");
          filePath = resourceFolder.append(fileName);
-         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && filePath.toFile().isDirectory()) {
             success = true;
             continue;
          }
          filePath = filePath.addFileExtension(preferredExtension);
-         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && !filePath.toFile().isDirectory()) {
             success = true;
             continue;
@@ -422,7 +422,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
       } while (!success && stillTrying);
       
       if (success) {
-         System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
+//         System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
          return filePath.toFile().toURI();
       }
       return null;
@@ -443,7 +443,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          String deviceSubFamily = device.getSubFamily();
          if (deviceSubFamily != null) {
             // Try to get subFamily header file
-            System.err.println("Looking for subFamily header file: " + deviceSubFamily + ".h"); //$NON-NLS-1$
+//            System.err.println("Looking for subFamily header file: " + deviceSubFamily + ".h"); //$NON-NLS-1$
             externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, deviceSubFamily, "h");
          }
       }
@@ -468,7 +468,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          String deviceSubFamily = device.getSubFamily();
          if (deviceSubFamily != null) {
             // Try to get subFamily header file
-            System.err.println("Looking for subFamily vector table file: " + deviceSubFamily + ".c"); //$NON-NLS-1$
+//            System.err.println("Looking for subFamily vector table file: " + deviceSubFamily + ".c"); //$NON-NLS-1$
             externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, deviceSubFamily, "c");
          }
       }
@@ -670,7 +670,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          "          PendSV_Handler,           /* Vec #14  PendSV Handler                               */ \n"+
          "          SysTick_Handler,          /* Vec #15  SysTick Handler                              */ \n"+
          "    } \n"+
-         " } \n\n";
+         " }; \n\n";
    
    /**
     * Adds device specific attributes to map
@@ -684,11 +684,11 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
       }
       // Try to locate device specific header file
       String externalHeaderFile = getExternalProjectHeaderFile(device);
-      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
+//      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
 
       // Try to locate device specific vector table file
       String externalVectorTableFile = getExternalVectorTable(device);
-      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
+//      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
       String deviceFamily;
       // Set defaults
@@ -711,8 +711,8 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
       paramMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
       paramMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY,    String.valueOf(device.getDefaultClockTrimNVAddress()));            
 
-      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
-      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
+//      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
+//      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
 
       if (externalVectorTableFile.isEmpty()) {
          // Generate vector table from SVD files
@@ -804,7 +804,7 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
          paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Custom.ld");
       }
       addDeviceAttributes(device, paramMap);
-      System.err.println("UsbdmProjectPage.getPageData()");
+//      System.err.println("UsbdmProjectPage.getPageData()");
    }
 
    public Device getDevice() {

@@ -5,14 +5,9 @@ import java.util.Hashtable;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 import net.sourceforge.usbdm.constants.VariableInformationData;
-import net.sourceforge.usbdm.jni.Usbdm;
 
-import org.eclipse.core.resources.IPathVariableManager;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.PreferencePage;
@@ -404,33 +399,9 @@ IWorkbenchPreferencePage {
    protected void loadSettings() {
       System.err.println("loadSettings() loading settings");
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
-      loadUsbdmPath();
       loadPaths(settings);
       loadVariables(settings);
       validate();
-   }
-
-   protected void loadUsbdmPath() {
-      String name = UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR;
-
-      System.err.println("loadUsbdmPath()");
-      IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      IPath usbdmApplicationPath = Usbdm.getApplicationPath();
-      IPathVariableManager pathMan = workspace.getPathVariableManager();
-      if (!pathMan.validateName(name).isOK() || !pathMan.validateValue(usbdmApplicationPath).isOK()) {
-         usbdmApplicationPath = new Path("USBDM PATH NOT FOUND");
-         System.err.println("loadUsbdmPath() - set USBDM Application path variable");
-      }
-      if (pathMan.validateName(name).isOK() && pathMan.validateValue(usbdmApplicationPath).isOK()) {
-         try {
-            pathMan.setURIValue(name, usbdmApplicationPath.toFile().toURI());
-            System.err.println("loadUsbdmPath() - loaded");
-         } catch (Exception e) {
-            System.err.println("loadUsbdmPath() - Failed to set USBDM Application path variable, Exception = "+e.getMessage());
-         }
-      } else {
-         System.err.println("loadUsbdmPath() - Failed to set USBDM Application path variable");
-      }   
    }
 
    protected boolean saveSettings() {

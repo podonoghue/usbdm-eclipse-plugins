@@ -2215,7 +2215,13 @@
             supportsArgument="false">
       </variable>
       <variable
-            description="USBDM path to installation directory"
+            description="Path to USBDM resource directory"
+            name="usbdm_resource_path"
+            resolver="net.sourceforge.usbdm.cdt.tools.UsbdmDynamicVariableResolver"
+            supportsArgument="false">
+      </variable>
+      <variable
+            description="Path to USBDM application directory"
             name="usbdm_application_path"
             resolver="net.sourceforge.usbdm.cdt.tools.UsbdmDynamicVariableResolver"
             supportsArgument="false">

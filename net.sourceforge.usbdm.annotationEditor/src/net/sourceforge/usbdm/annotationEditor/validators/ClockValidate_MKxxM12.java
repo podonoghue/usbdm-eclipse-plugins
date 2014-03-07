@@ -6,18 +6,20 @@ import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
-public class ClockValidate_MKxx extends MyValidator {
+public class ClockValidate_MKxxM12 extends MyValidator {
 
    private final long MAX_CORE_CLOCK_FREQ;
    private final long MAX_BUS_CLOCK_FREQ;
+   private final long MAX_FLEXBUS_CLOCK_FREQ;
    private final long MAX_FLASH_CLOCK_FREQ;
    
    public enum ClockModes {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
    
-   protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency) {
-      MAX_CORE_CLOCK_FREQ  = maxCoreClockfrequency;
-      MAX_BUS_CLOCK_FREQ   = maxBusClockFrequency;
-      MAX_FLASH_CLOCK_FREQ = maxFlashClockFrequency;
+   public ClockValidate_MKxxM12() {
+      MAX_CORE_CLOCK_FREQ    = 150000000;
+      MAX_BUS_CLOCK_FREQ     =  75000000;
+      MAX_FLEXBUS_CLOCK_FREQ =  50000000;
+      MAX_FLASH_CLOCK_FREQ   =  25000000;
    }
    
    @Override
@@ -25,7 +27,7 @@ public class ClockValidate_MKxx extends MyValidator {
       super.validate(viewer);
       
       NumericOptionModelNode primaryClockModeNode       =  getNumericModelNode("clock_mode");
-      NumericOptionModelNode oscclk_clockNode           =  getNumericModelNode("oscclk_clock");
+      NumericOptionModelNode oscclk0_clockNode          =  getNumericModelNode("oscclk0_clock");
       NumericOptionModelNode rtcclk_clockNode           =  getNumericModelNode("rtcclk_clock");
       
       NumericOptionModelNode system_erc_clockNode       =  getNumericModelNode("system_erc_clock");
@@ -38,10 +40,12 @@ public class ClockValidate_MKxx extends MyValidator {
       NumericOptionModelNode mcg_c6_pllsNode            =  getNumericModelNode("mcg_c6_plls");
       NumericOptionModelNode mcg_sc_fcrdivNode          =  safeGetNumericModelNode("mcg_sc_fcrdiv");
       BinaryOptionModelNode  mcg_c7_oscselNode          =  safeGetBinaryModelNode("mcg_c7_oscsel");
+      BinaryOptionModelNode  mcg_c11_pllcsNode          =  safeGetBinaryModelNode("mcg_c11_pllcs");
       NumericOptionModelNode system_mcgout_clockNode    =  getNumericModelNode("system_mcgout_clock");
       NumericOptionModelNode system_mcgir_clockNode     =  getNumericModelNode("system_mcgir_clock");
       NumericOptionModelNode fllTargetFrequencyNode     =  getNumericModelNode("fllTargetFrequency");
-      NumericOptionModelNode pllTargetFrequencyNode     =  getNumericModelNode("pllTargetFrequency");
+      NumericOptionModelNode pll0TargetFrequencyNode    =  getNumericModelNode("pll0TargetFrequency");
+      NumericOptionModelNode pll1TargetFrequencyNode    =  getNumericModelNode("pll1TargetFrequency");
                                                         
       NumericOptionModelNode sim_clkdiv1_outdiv1Node    =  getNumericModelNode("sim_clkdiv1_outdiv1");
       NumericOptionModelNode sim_clkdiv1_outdiv2Node    =  getNumericModelNode("sim_clkdiv1_outdiv2");
@@ -52,6 +56,7 @@ public class ClockValidate_MKxx extends MyValidator {
       NumericOptionModelNode system_flexbus_clockNode   =  safeGetNumericModelNode("system_flexbus_clock");
       NumericOptionModelNode system_flash_clockNode     =  getNumericModelNode("system_flash_clock");
 
+      
       long system_mcgir_clock;
       if (mcg_c2_ircsNode.safeGetValue()) {
          if ( mcg_sc_fcrdivNode != null) {
@@ -76,7 +81,7 @@ public class ClockValidate_MKxx extends MyValidator {
       }
       else {
          // ERC = OSCCLK
-         system_erc_clock = oscclk_clockNode.getValueAsLong();
+         system_erc_clock = oscclk0_clockNode.getValueAsLong();
       }
       System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
 
@@ -92,7 +97,13 @@ public class ClockValidate_MKxx extends MyValidator {
       int mcg_c2_lp       = 0;
       
       long fllTargetFrequency = fllTargetFrequencyNode.getValueAsLong();
-      long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
+      long pllTargetFrequency;
+      if (mcg_c11_pllcsNode.safeGetValue()) {
+         pllTargetFrequency = pll1TargetFrequencyNode.getValueAsLong();
+      }
+      else {
+         pllTargetFrequency = pll0TargetFrequencyNode.getValueAsLong();
+      }
       long system_mcgout_clock = 0;
       String primaryClockModeMessage = null;
       
@@ -195,7 +206,10 @@ public class ClockValidate_MKxx extends MyValidator {
          long sim_clkdiv1_outdiv3 = sim_clkdiv1_outdiv3Node.getValueAsLong();
          system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
          String system_flexbus_clockMessage = null;
-         if (system_flexbus_clock>system_bus_clock) {
+         if (system_flexbus_clock > MAX_FLEXBUS_CLOCK_FREQ) {
+            system_flexbus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000);
+         }
+         else if (system_flexbus_clock>system_bus_clock) {
             system_flexbus_clockMessage = "Clock is too high. (Req. clock <= Bus clock)";
          }
          setValid(viewer, system_flexbus_clockNode, system_flexbus_clockMessage);

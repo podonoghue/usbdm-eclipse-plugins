@@ -16,11 +16,16 @@ import org.eclipse.core.variables.IDynamicVariableResolver;
 public class UsbdmDynamicVariableResolver implements IDynamicVariableResolver {
 
    static IPath usbdmApplicationPath  = null;
+   static IPath usbdmResourcePath     = null;
 
    public UsbdmDynamicVariableResolver() {
       usbdmApplicationPath = Usbdm.getApplicationPath();
       if (usbdmApplicationPath == null) {
-         usbdmApplicationPath = new Path("USBDM PATH NOT FOUND");
+         usbdmApplicationPath = new Path("USBDM APPLICATION PATH NOT FOUND");
+      }
+      usbdmResourcePath = Usbdm.getApplicationPath();
+      if (usbdmResourcePath == null) {
+    	  usbdmResourcePath = new Path("USBDM RESOURCE PATH NOT FOUND");
       }
    }
    
@@ -29,8 +34,12 @@ public class UsbdmDynamicVariableResolver implements IDynamicVariableResolver {
          throws CoreException {
 
       if (variable.getName().equals(UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR)) {
-//         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_application_path) => " + usbdmApplicationPath.toOSString());
+//	         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_application_path) => " + usbdmApplicationPath.toOSString());
          return usbdmApplicationPath.toOSString();
+      }
+      if (variable.getName().equals(UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR)) {
+//	         System.err.println("UsbdmDynamicVariableResolver.resolveValue(usbdm_application_path) => " + usbdmApplicationPath.toOSString());
+         return usbdmResourcePath.toOSString();
       }
       UsbdmSharedSettings usbdmSharedSettings = UsbdmSharedSettings.getSharedSettings();
       String variableValue = usbdmSharedSettings.get(variable.getName());

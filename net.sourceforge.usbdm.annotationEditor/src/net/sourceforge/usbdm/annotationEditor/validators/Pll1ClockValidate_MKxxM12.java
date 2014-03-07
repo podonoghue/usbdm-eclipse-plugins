@@ -3,41 +3,45 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
-public class PllClockValidate extends MyValidator {
+public class Pll1ClockValidate_MKxxM12 extends MyValidator {
 
-   static final long PLL_IN_MINIMUM_FREQUENCY = 2000000;
-   static final long PLL_IN_MAXIMUM_FREQUENCY = 4000000;
+   static final long PLL_IN_MINIMUM_FREQUENCY = 8000000;
+   static final long PLL_IN_MAXIMUM_FREQUENCY = 16000000;
    
-   static final long PLL_OUT_MINIMUM_FREQUENCY = 48000000;
-   static final long PLL_OUT_MAXIMUM_FREQUENCY = 100000000;
+   static final long PLL_OUT_MINIMUM_FREQUENCY = 90000000;
+   static final long PLL_OUT_MAXIMUM_FREQUENCY = 180000000;
    
    static final int  PRDIV_MIN = 1;
-   static final int  PRDIV_MAX = 24;
+   static final int  PRDIV_MAX = 8;
    
-   static final int  VDIV_MIN = 24;
-   static final int  VDIV_MAX = 55;
+   static final int  VDIV_MIN = 16;
+   static final int  VDIV_MAX = 47;
    
    @Override
    public void validate(final TreeViewer viewer) throws Exception {
       super.validate(viewer);
       
-      NumericOptionModelNode system_erc_clockNode   =  safeGetNumericModelNode("system_erc_clock");
-      NumericOptionModelNode pllTargetFrequencyNode =  getNumericModelNode("pllTargetFrequency");
-      NumericOptionModelNode mcg_prdivNode          =  getNumericModelNode("mcg_c5_prdiv0");
-      NumericOptionModelNode mcg_vdivNode           =  getNumericModelNode("mcg_c6_vdiv0");
-      if (system_erc_clockNode == null) {
-         // Default to oscillator clock
-         system_erc_clockNode                       =  getNumericModelNode("oscclk_clock");
-      }
+      NumericOptionModelNode oscclk0_clockNode      =  getNumericModelNode("oscclk0_clock");
+      NumericOptionModelNode oscclk1_clockNode      =  getNumericModelNode("oscclk1_clock");
+      NumericOptionModelNode pllTargetFrequencyNode =  getNumericModelNode("pll1TargetFrequency");
+      BinaryOptionModelNode  mcg_pllrefselNode      =  getBinaryModelNode("mcg_c11_pllrefsel1");
+      NumericOptionModelNode mcg_prdivNode          =  getNumericModelNode("mcg_c11_prdiv1");
+      NumericOptionModelNode mcg_vdivNode           =  getNumericModelNode("mcg_c12_vdiv1");
 
       // Main clock used by FLL
-      long system_erc_clock = system_erc_clockNode.getValueAsLong();
-
+      long system_erc_clock;
+      if (mcg_pllrefselNode.safeGetValue()) {
+         system_erc_clock = oscclk1_clockNode.getValueAsLong();
+      }
+      else {
+         system_erc_clock = oscclk0_clockNode.getValueAsLong();
+      }
       long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
 
       System.err.println(String.format("\nPllClockValidate.validate(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
@@ -62,7 +66,7 @@ public class PllClockValidate extends MyValidator {
          }
          // Try each multiplier value
          for (mcg_vdiv=VDIV_MIN; mcg_vdiv<=VDIV_MAX; mcg_vdiv++) {
-            long pllOutFrequency = Math.round(mcg_vdiv*pllInFrequency);
+            long pllOutFrequency = Math.round(mcg_vdiv*(pllInFrequency/2.0));
             if (pllOutFrequency<PLL_OUT_MINIMUM_FREQUENCY) {
                continue;
             }

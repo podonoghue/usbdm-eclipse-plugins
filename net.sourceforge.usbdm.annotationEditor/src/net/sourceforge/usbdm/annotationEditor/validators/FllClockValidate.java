@@ -33,14 +33,18 @@ public class FllClockValidate extends MyValidator {
       NumericOptionModelNode fllTargetFrequencyNode         =  getNumericModelNode("fllTargetFrequency");
       NumericOptionModelNode system_erc_clockNode           =  safeGetNumericModelNode("system_erc_clock");
       if (system_erc_clockNode == null) {
-         // Default to oscillator clock
+         // Try oscillator 0 clock
+         system_erc_clockNode                               =  getNumericModelNode("oscclk0_clock");
+      }
+      if (system_erc_clockNode == null) {
+         // Try oscillator clock
          system_erc_clockNode                               =  getNumericModelNode("oscclk_clock");
       }
       NumericOptionModelNode internalReferenceClockNode     =  getNumericModelNode("system_slow_irc_clock");
       NumericOptionModelNode mcg_c1_frdivNode               =  getNumericModelNode("mcg_c1_frdiv");
       NumericOptionModelNode mcg_c1_irefsNode               =  getNumericModelNode("mcg_c1_irefs");
-      NumericOptionModelNode mcg_c2_rangeNode               =  getNumericModelNode("mcg_c2_range");
-      BinaryOptionModelNode  mcg_c2_erefsNode               =  getBinaryModelNode("mcg_c2_erefs");
+      NumericOptionModelNode mcg_c2_rangeNode               =  getNumericModelNode("mcg_c2_range0");
+      BinaryOptionModelNode  mcg_c2_erefsNode               =  getBinaryModelNode("mcg_c2_erefs0");
       BinaryOptionModelNode  mcg_c4_dmx32Node               =  getBinaryModelNode("mcg_c4_dmx32");
       NumericOptionModelNode mcg_c4_drst_drsNode            =  getNumericModelNode("mcg_c4_drst_drs");
       
@@ -67,7 +71,9 @@ public class FllClockValidate extends MyValidator {
       if (mcg_c2_range < 0) {
          if (mcg_c2_erefsNode.safeGetValue()) {
             // External crystal selected but not suitable frequency
-            mcg_c2_erefs_message = "Frequency of the External Crystal is not suitable for use with the Oscillator";
+            mcg_c2_erefs_message = "Frequency of the External Crystal is not suitable for use with the Oscillator\n";
+            mcg_c2_erefs_message += String.format("Permitted ranges [%d-%d], [%d-%d] or [%d-%d]", 
+                  FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX, FLL_CLOCK_RANGE3_MIN, FLL_CLOCK_RANGE3_MAX);
          }
          // Set compromise value
          if (system_erc_clock <= FLL_CLOCK_RANGE2_MIN) {
@@ -130,7 +136,7 @@ public class FllClockValidate extends MyValidator {
       }
       else {
          validFllInputClock = false;
-         mcg_c1_frdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d", system_erc_clock);
+         mcg_c1_frdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d Hz", system_erc_clock);
          mcg_c1_frdiv =  7;
       }
       System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
@@ -205,7 +211,7 @@ public class FllClockValidate extends MyValidator {
          }
          if (mcg_c4_drst_drs < 0) {
             mcg_c4_drst_drs = 0;
-            StringBuilder buff = new StringBuilder("Not possible to generate FLL frequency from input clock. Possible values = ");
+            StringBuilder buff = new StringBuilder("Not possible to generate desired FLL frequency from input clock. \nPossible values (Hz) = ");
             boolean needComma = false;
             for (Long freq : fllFrequencies) {
                if (needComma) {

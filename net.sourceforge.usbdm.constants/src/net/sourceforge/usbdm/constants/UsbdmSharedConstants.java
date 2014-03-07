@@ -33,6 +33,7 @@ public class UsbdmSharedConstants {
    public static final String USBDM_MAKE_COMMAND_VAR               = "usbdm_make_command";
    public static final String USBDM_RM_COMMAND_VAR                 = "usbdm_rm_command";
    public static final String USBDM_APPLICATION_PATH_VAR           = "usbdm_application_path";
+   public static final String USBDM_RESOURCE_PATH_VAR              = "usbdm_resource_path";
 
    // Names of external programs
    public final static String GDB_NAME                        = "gdb";                             //$NON-NLS-1$

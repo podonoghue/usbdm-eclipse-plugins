@@ -125,6 +125,26 @@ public abstract class MyValidator {
       });
    }
 
+   protected void update(final TreeViewer viewer, final BinaryOptionModelNode node, final boolean value) {
+      if (node.safeGetValue() == value) {
+         // No update needed
+         return;
+      }
+      Display.getDefault().asyncExec(new Runnable () {
+         @Override
+         public void run () {
+            try {
+               System.err.println(String.format("Update(%s,%d)", node.getName(), value));
+               node.setErrorMessage(null);
+               node.setValue(value);
+               refresh(viewer);
+            } catch (Exception e) {
+            }
+         }
+      });
+   }
+
+
    /**
     * Sets the node error message & refreshes the viewer
     * 

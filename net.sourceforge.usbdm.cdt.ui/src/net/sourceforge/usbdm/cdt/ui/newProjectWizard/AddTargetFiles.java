@@ -19,7 +19,6 @@ import java.util.Map;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.Device.FileInfo;
 
-import org.eclipse.cdt.core.templateengine.process.ProcessFailureException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IProject;
@@ -41,11 +40,11 @@ public class AddTargetFiles {
    }
 
    /**
-    * @param path                       path of source file
-    * @param targetPath                 path of target file
-    * @param isReplaceable              whether to macro substitution
-    * @param variableMap                macro values
-    * @param projectHandle              handle for access to project
+    * @param path           path of source file
+    * @param targetPath     path of target file
+    * @param isReplaceable  whether to macro substitution
+    * @param variableMap    macro values
+    * @param projectHandle  handle for access to project
     * 
     * @throws Exception 
     */
@@ -82,15 +81,15 @@ public class AddTargetFiles {
    }
 
    /**
-    * @param file2                       path of source file or directory
-    * @param path2                     path of target file (if source is a directory then parent is used)
-    * @param isReplaceable              whether to macro substitution
-    * @param variableMap                template for macro values
-    * @param projectHandle              handle for access to project
     * 
-    * @throws Exception 
+    * @param path           path of source file or directory
+    * @param targetPath     path of target file (if source is a directory then parent is used)
+    * @param isReplaceable  whether to macro substitution
+    * @param variableMap    template for macro values
+    * @param projectHandle  handle for access to project
+    * @param monitor
     * 
-    * @throws ProcessFailureException
+    * @throws Exception
     */
    private void processItem(Path path, Path targetPath, Boolean isReplaceable, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
       // Check if directory

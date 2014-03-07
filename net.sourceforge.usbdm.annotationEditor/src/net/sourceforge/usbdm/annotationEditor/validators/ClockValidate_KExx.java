@@ -99,6 +99,7 @@ public class ClockValidate_KExx extends MyValidator {
       default:
          throw new Exception("Illegal Clock mode");
       }
+      
       // Core Clock
       //===========================================
       long system_core_clock = system_icsout_clock;
@@ -107,7 +108,6 @@ public class ClockValidate_KExx extends MyValidator {
          system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
       }
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
-
 
       // Bus Clock
       //===========================================

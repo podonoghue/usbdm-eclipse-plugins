@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.cdt.tools;
 
+
 public class UsbdmConstants {
    public final static String PAGE_ID = "net.sourceforge.usbdm.cdt.wizardPage"; //$NON-NLS-1$
    public final static String PROJECT_PAGE_ID            = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectPage"; //$NON-NLS-1$
@@ -83,5 +84,4 @@ public class UsbdmConstants {
    public static final String PATH_NOT_SET      = "PATH NOT SET";
    public static final String COMMAND_NOT_SET   = "COMMAND NOT SET";
    public static final String PREFIX_NOT_SET    = "PREFIX NOT SET";
-   
 }

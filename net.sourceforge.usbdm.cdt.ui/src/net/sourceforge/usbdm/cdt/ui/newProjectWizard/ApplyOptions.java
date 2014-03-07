@@ -15,7 +15,6 @@ import org.eclipse.cdt.managedbuilder.core.IResourceConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ITool;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
-import org.eclipse.cdt.managedbuilder.core.OptionStringValue;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -33,7 +32,7 @@ public class ApplyOptions {
 
    public void process(IProject projectHandle, Device device, Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor progressMonitor) throws Exception {
 
-      System.err.println("ApplyOptions.process() - "+projectOption.toString());
+//      System.err.println("ApplyOptions.process() - "+projectOption.toString());
       String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);
       String path     = MacroSubstitute.substitute(projectOption.getPath(),   variableMap);
       String value[] = projectOption.getValue();
@@ -93,14 +92,45 @@ public class ApplyOptions {
       }
       return modified;
    }
-
+//
+//   private static void printArray(String name, String ar[]) {
+//      System.err.print(name + " = ");
+//      boolean needComma = false;
+//      for (String arg : ar) {
+//         if (needComma) {
+//            System.err.print(",");
+//         }
+//         System.err.print(arg);
+//         needComma = true;
+//      }
+//      System.err.println();
+//   }
+   
+   /**
+    * Appends two arrays
+    * 
+    * @param object
+    * @param ar2
+    * @return
+    * @throws Exception 
+    */
+   public static String[] appendArrays(String[] ar1, String[] ar2) throws Exception {
+      String[] newValues = new String[ar1.length+ar2.length];
+//      printArray("ar1", ar1);
+//      printArray("ar2", ar2);
+      System.arraycopy(ar1, 0, newValues, 0,          ar1.length);
+      System.arraycopy(ar2, 0, newValues, ar1.length, ar2.length);
+//      printArray("newValues", newValues);
+      return newValues;
+   }
+   
    private static boolean addToOptionForResourceConfig(String id, String value[], IResourceConfiguration resourceConfig, IOption[] options, IHoldsOptions optionHolder) 
-         throws BuildException, ProcessFailureException {
+         throws Exception {
       boolean modified = false;
       String lowerId = id.toLowerCase();
       for (IOption option : options) {
          if (option.getBaseId().toLowerCase().matches(lowerId)) {
-            int optionType = option.getValueType();
+            int optionType = option.getBasicValueType();
             if ((optionType == IOption.STRING)) {
                String oldValue = option.getStringValue();
                String newValue = oldValue + value[0];
@@ -115,21 +145,13 @@ public class ApplyOptions {
                ManagedBuildManager.setOption(resourceConfig, optionHolder, option, value[0].equals("true"));
                modified = true;
             }
-            else if ((optionType == IOption.INCLUDE_FILES)) {
-               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, value);
-               modified = true;
-            }
-            else if ((optionType == IOption.INCLUDE_PATH)) {
-               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, value);
-               modified = true;
-            }
-            else if ((optionType == IOption.PREPROCESSOR_SYMBOLS)) {
-               OptionStringValue x[] = null;
-               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, x);
+            else if ((optionType == IOption.STRING_LIST)) {
+               // Append values
+               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, appendArrays(option.getBasicStringListValue(), value));
                modified = true;
             }
             else {
-               throw new ProcessFailureException("Unexpected option type"+optionType); //$NON-NLS-1$ //$NON-NLS-2$
+               throw new ProcessFailureException("Unexpected option type "+optionType); //$NON-NLS-1$ //$NON-NLS-2$
             }
          }
       }
@@ -142,13 +164,12 @@ public class ApplyOptions {
       String lowerId = id.toLowerCase();
       for (IOption option : options) {
          if (option.getBaseId().toLowerCase().matches(lowerId)) {
-            int optionType = option.getValueType();
+            int optionType = option.getBasicValueType();
             if ((optionType == IOption.STRING)) {
                String oldValue = option.getStringValue();
                String newValue = oldValue + value[0];
                ManagedBuildManager.setOption(config, optionHolder, option, newValue);
                modified = true;
-            
             }
             else if ((optionType == IOption.ENUMERATED)) {
                ManagedBuildManager.setOption(config, optionHolder, option, value[0]);
@@ -158,20 +179,13 @@ public class ApplyOptions {
                ManagedBuildManager.setOption(config, optionHolder, option, value[0].equals("true"));
                modified = true;
             }
-            else if ((optionType == IOption.INCLUDE_FILES)) {
-               ManagedBuildManager.setOption(config, optionHolder, option, value);
-               modified = true;
-            }
-            else if ((optionType == IOption.INCLUDE_PATH)) {
-               ManagedBuildManager.setOption(config, optionHolder, option, value);
-               modified = true;
-            }
-            else if ((optionType == IOption.PREPROCESSOR_SYMBOLS)) {
-               ManagedBuildManager.setOption(config, optionHolder, option, value);
+            else if ((optionType == IOption.STRING_LIST)) {
+               // Append values
+               ManagedBuildManager.setOption(config, optionHolder, option, appendArrays(option.getBasicStringListValue(), value));
                modified = true;
             }
             else {
-               throw new Exception("Unexpected option type"+optionType); //$NON-NLS-1$ //$NON-NLS-2$
+               throw new Exception("Unexpected option type "+optionType); //$NON-NLS-1$ //$NON-NLS-2$
             }
          }
       }

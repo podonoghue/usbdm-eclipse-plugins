@@ -684,7 +684,7 @@ public class DeviceDatabase {
          return null;
       }
      usbdmResourcePath = usbdmResourcePath.append("/DeviceData/").append(filename);
-     System.err.println("DeviceDatabase.getXmlFilepath(): XML file path = " + usbdmResourcePath);
+//     System.err.println("DeviceDatabase.getXmlFilepath(): XML file path = " + usbdmResourcePath);
      
      return (Path) usbdmResourcePath;
    }

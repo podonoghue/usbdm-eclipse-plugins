@@ -19,13 +19,13 @@ public class ProcessProjectActions {
 
    public void process(IProject projectHandle, Device device, Map<String,String> variableMap, IProgressMonitor monitor) throws Exception {
 
-      System.err.println("ProcessProjectActions.process("+device.getName()+")");
+//      System.err.println("ProcessProjectActions.process("+device.getName()+")");
       ProjectActionList actionList = device.getProjectActionList();
       if (actionList == null) {
          return;
       }
       ApplyOptions applyOptions = null;
-      System.err.println("ProcessProjectActions.process() - has map");
+//      System.err.println("ProcessProjectActions.process() - has map");
       for (ProjectAction action : actionList) {
          Condition condition = action.getCondition();
          if (condition != null) {
@@ -37,21 +37,27 @@ public class ProcessProjectActions {
                conditionValue = !conditionValue;
             }
             if (!conditionValue) {
-               System.err.println("ProcessProjectActions.process() - not doing action based on: " + variable.getName());
+//               System.err.println("ProcessProjectActions.process() - not doing action based on: " + variable.getName());
                continue;
             }
          }
-         if (action instanceof FileInfo) {
-            new AddTargetFiles().process(projectHandle, device, variableMap, (FileInfo)action, monitor);
-         }
-         else if (action instanceof CreateFolderAction) {
-            ProjectUtilities.createFolder(projectHandle, device, variableMap, (CreateFolderAction)action, monitor);
-         }
-         else if (action instanceof ProjectOption) {
-            if (applyOptions == null) {
-               applyOptions = new ApplyOptions();
+         try {
+            if (action instanceof FileInfo) {
+               new AddTargetFiles().process(projectHandle, device, variableMap, (FileInfo)action, monitor);
             }
-            applyOptions.process(projectHandle, device, variableMap, (ProjectOption)action, monitor);
+            else if (action instanceof CreateFolderAction) {
+               ProjectUtilities.createFolder(projectHandle, device, variableMap, (CreateFolderAction)action, monitor);
+            }
+            else if (action instanceof ProjectOption) {
+               if (applyOptions == null) {
+                  applyOptions = new ApplyOptions();
+               }
+               applyOptions.process(projectHandle, device, variableMap, (ProjectOption)action, monitor);
+            }
+         } catch (Exception e) {
+            System.err.println("Unable to process Action "+action.toString());
+            e.printStackTrace();
+//            new Exception("Unable to process Action"+action.toString(), e).printStackTrace();
          }
       }     
       if (applyOptions != null) {
