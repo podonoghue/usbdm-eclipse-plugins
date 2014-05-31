@@ -13,14 +13,24 @@ public class PllClockValidate extends MyValidator {
    static final long PLL_IN_MINIMUM_FREQUENCY = 2000000;
    static final long PLL_IN_MAXIMUM_FREQUENCY = 4000000;
    
-   static final long PLL_OUT_MINIMUM_FREQUENCY = 48000000;
-   static final long PLL_OUT_MAXIMUM_FREQUENCY = 100000000;
+   static long PLL_OUT_MINIMUM_FREQUENCY;
+   static long PLL_OUT_MAXIMUM_FREQUENCY;
    
    static final int  PRDIV_MIN = 1;
-   static final int  PRDIV_MAX = 24;
+   static final int  PRDIV_MAX = 25;
    
    static final int  VDIV_MIN = 24;
    static final int  VDIV_MAX = 55;
+   
+   protected PllClockValidate(long pllOutMinimumFrequency, long pllOutMaximumFrequency) {
+      PLL_OUT_MINIMUM_FREQUENCY = pllOutMinimumFrequency;
+      PLL_OUT_MAXIMUM_FREQUENCY = pllOutMaximumFrequency;
+   }
+   
+   // Backwards compatibility
+   public PllClockValidate() {
+      this(48000000, 100000000);
+   }
    
    @Override
    public void validate(final TreeViewer viewer) throws Exception {

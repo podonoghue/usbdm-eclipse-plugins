@@ -167,8 +167,7 @@ public class DeviceFileList  extends SVD_XML_BaseParser {
     * @return filename e.g.  MK11DN512M5 -> MK11D5.svd
     */
    public String getSvdFilename(String deviceName) {
-      String mappedDeviceName = null;
-      mappedDeviceName = deviceList.get(deviceName);
+      String mappedDeviceName = deviceList.get(deviceName);
       if (mappedDeviceName == null) {
          // Map the name using default mapping
          mappedDeviceName = getMappedSvdName(deviceName);
@@ -179,16 +178,16 @@ public class DeviceFileList  extends SVD_XML_BaseParser {
    /**
     *  Creates peripheral database for device
     * 
-    *  @param deviceName device name e.g. "MKL25Z128M5"
+    *  @param devicenameOrFilename svd file path or device name
     *  
     *  @return device peripheral description or null on error
     * @throws Exception 
     */
-   public static DeviceFileList createDeviceFileList(String fileName) throws Exception {
+   public static DeviceFileList createDeviceFileList(String devicenameOrFilename) throws Exception {
       DeviceFileList deviceFileList = new DeviceFileList();
       
       // Parse the XML file into the XML internal DOM representation
-      Document dom = parseXmlFile(fileName);
+      Document dom = parseXmlFile(devicenameOrFilename);
       
       // Get the root element
       Element documentElement = dom.getDocumentElement();

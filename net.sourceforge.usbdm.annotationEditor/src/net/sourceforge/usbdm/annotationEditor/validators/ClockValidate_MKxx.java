@@ -11,13 +11,19 @@ public class ClockValidate_MKxx extends MyValidator {
    private final long MAX_CORE_CLOCK_FREQ;
    private final long MAX_BUS_CLOCK_FREQ;
    private final long MAX_FLASH_CLOCK_FREQ;
+   private final long MAX_FLEXBUS_CLOCK_FREQ;
    
    public enum ClockModes {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
    
+   protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency, long maxFlexbusFrequency) {
+      MAX_CORE_CLOCK_FREQ     = maxCoreClockfrequency;
+      MAX_BUS_CLOCK_FREQ      = maxBusClockFrequency;
+      MAX_FLASH_CLOCK_FREQ    = maxFlashClockFrequency;
+      MAX_FLEXBUS_CLOCK_FREQ  = maxFlexbusFrequency;
+   }
+   
    protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency) {
-      MAX_CORE_CLOCK_FREQ  = maxCoreClockfrequency;
-      MAX_BUS_CLOCK_FREQ   = maxBusClockFrequency;
-      MAX_FLASH_CLOCK_FREQ = maxFlashClockFrequency;
+      this(maxCoreClockfrequency, maxBusClockFrequency, maxFlashClockFrequency, 50000000);
    }
    
    @Override
@@ -26,7 +32,9 @@ public class ClockValidate_MKxx extends MyValidator {
       
       NumericOptionModelNode primaryClockModeNode       =  getNumericModelNode("clock_mode");
       NumericOptionModelNode oscclk_clockNode           =  getNumericModelNode("oscclk_clock");
-      NumericOptionModelNode rtcclk_clockNode           =  getNumericModelNode("rtcclk_clock");
+      NumericOptionModelNode rtcclk_clockNode           =  safeGetNumericModelNode("rtcclk_clock");
+      NumericOptionModelNode irc48m_clockNode           =  safeGetNumericModelNode("irc48m_clock");
+      
       
       NumericOptionModelNode system_erc_clockNode       =  getNumericModelNode("system_erc_clock");
       NumericOptionModelNode slowIRCNode                =  getNumericModelNode("system_slow_irc_clock");
@@ -37,7 +45,7 @@ public class ClockValidate_MKxx extends MyValidator {
       NumericOptionModelNode mcg_c2_lpNode              =  getNumericModelNode("mcg_c2_lp");
       NumericOptionModelNode mcg_c6_pllsNode            =  getNumericModelNode("mcg_c6_plls");
       NumericOptionModelNode mcg_sc_fcrdivNode          =  safeGetNumericModelNode("mcg_sc_fcrdiv");
-      BinaryOptionModelNode  mcg_c7_oscselNode          =  safeGetBinaryModelNode("mcg_c7_oscsel");
+      NumericOptionModelNode mcg_c7_oscselNode          =  safeGetNumericModelNode("mcg_c7_oscsel");
       NumericOptionModelNode system_mcgout_clockNode    =  getNumericModelNode("system_mcgout_clock");
       NumericOptionModelNode system_mcgir_clockNode     =  getNumericModelNode("system_mcgir_clock");
       NumericOptionModelNode fllTargetFrequencyNode     =  getNumericModelNode("fllTargetFrequency");
@@ -69,14 +77,22 @@ public class ClockValidate_MKxx extends MyValidator {
       }
       System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
 
-      long system_erc_clock;
-      if ((mcg_c7_oscselNode != null) && mcg_c7_oscselNode.safeGetValue()) {
-         // ERC = OSC32KCLK
-         system_erc_clock = rtcclk_clockNode.getValueAsLong();
-      }
-      else {
-         // ERC = OSCCLK
-         system_erc_clock = oscclk_clockNode.getValueAsLong();
+      // Default if no MCG_C7_OSCSEL register field
+      long system_erc_clock = oscclk_clockNode.getValueAsLong();
+      if (mcg_c7_oscselNode != null) {
+         switch ((int)mcg_c7_oscselNode.getValueAsLong()) {
+         case 0: // ERC = OSCCLK
+            system_erc_clock = oscclk_clockNode.getValueAsLong();
+            break;
+         case 1: // ERC = OSC32KCLK
+            system_erc_clock = rtcclk_clockNode.getValueAsLong();
+            break;
+         case 2: // ERC = IRC48M
+            system_erc_clock = irc48m_clockNode.getValueAsLong();
+            break;
+         default:
+            throw new Exception("Illegal Clock source (mcg_c7_oscsel)");
+         }
       }
       System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
 
@@ -168,7 +184,7 @@ public class ClockValidate_MKxx extends MyValidator {
       long system_core_clock   = system_mcgout_clock / sim_clkdiv1_outdiv1;
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
+         system_core_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
       }
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
@@ -178,13 +194,13 @@ public class ClockValidate_MKxx extends MyValidator {
       long system_bus_clock = system_mcgout_clock / sim_clkdiv1_outdiv2;
       String system_bus_clockMessage = null;
       if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_BUS_CLOCK_FREQ/1000000);
+         system_bus_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_BUS_CLOCK_FREQ/1000000);
       }
       else if (system_bus_clock>system_core_clock) {
-         system_bus_clockMessage = "Clock is too high. (Req. clock <= Core clock)";
+         system_bus_clockMessage = "Clock is too high. (Req. <= Core clock)";
       }
-      else if ((system_core_clock/system_bus_clock)*system_bus_clock != system_core_clock) {
-         system_bus_clockMessage = "Clock frequency must be an integer divisor of Core clock frequency";
+      else if ((sim_clkdiv1_outdiv2 % sim_clkdiv1_outdiv1) != 0) {
+         system_bus_clockMessage = "Frequency must be an integer divisor of Core clock frequency";
       }
       setValid(viewer, system_bus_clockNode, system_bus_clockMessage);
       
@@ -195,8 +211,14 @@ public class ClockValidate_MKxx extends MyValidator {
          long sim_clkdiv1_outdiv3 = sim_clkdiv1_outdiv3Node.getValueAsLong();
          system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
          String system_flexbus_clockMessage = null;
-         if (system_flexbus_clock>system_bus_clock) {
-            system_flexbus_clockMessage = "Clock is too high. (Req. clock <= Bus clock)";
+         if (system_flexbus_clock > MAX_FLEXBUS_CLOCK_FREQ) {
+            system_flexbus_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000);
+         }
+         else if ((sim_clkdiv1_outdiv3 % sim_clkdiv1_outdiv1) != 0) {
+            system_flexbus_clockMessage = "Frequency must be an integer divisor of Core clock frequency";
+         }
+         else if (system_flexbus_clock>system_bus_clock) {
+            system_flexbus_clockMessage = "Clock is too high. (Req. <= Bus clock)";
          }
          setValid(viewer, system_flexbus_clockNode, system_flexbus_clockMessage);
       }
@@ -210,10 +232,10 @@ public class ClockValidate_MKxx extends MyValidator {
          system_flash_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_FLASH_CLOCK_FREQ/1000000);
       }
       else if (system_flash_clock>system_bus_clock) {
-         system_flash_clockMessage = "Clock is too high. (Req. clock <= Bus clock)";
+         system_flash_clockMessage = "Clock is too high. (Req. <= Bus clock)";
       }
-      else if ((system_core_clock/system_flash_clock)*system_flash_clock != system_core_clock) {
-         system_flash_clockMessage = "Clock frequency must be an integer divisor of Core clock frequency";
+      else if ((sim_clkdiv1_outdiv4 % sim_clkdiv1_outdiv1) != 0) {
+         system_flash_clockMessage = "Frequency must be an integer divisor of Core clock frequency";
       }
       setValid(viewer, system_flash_clockNode, system_flash_clockMessage);
       

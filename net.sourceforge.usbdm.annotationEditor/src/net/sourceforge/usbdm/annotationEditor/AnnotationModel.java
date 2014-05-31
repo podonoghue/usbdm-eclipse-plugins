@@ -870,7 +870,11 @@ public class AnnotationModel {
 
       public long getValueAsLong() {
          try {
-            return (Long) getValue();
+            Object value = getValue();
+            if (value instanceof Boolean) {
+               return (Boolean) value?1:0;
+            }
+            return (Long) value;
          } catch (Exception e) {
             e.printStackTrace();
          }

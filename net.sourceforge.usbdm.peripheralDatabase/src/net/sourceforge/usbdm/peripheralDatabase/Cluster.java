@@ -280,8 +280,8 @@ public class Cluster extends ModeControl implements Cloneable {
 
    public void setDimensionIndexes(String dimensionIndexes) {
       String[] x = dimensionIndexes.split(",", 0);
-      for (String s: x) {
-         s = s.trim();
+      for (int index = 0; index < x.length; index++) {
+         x[index] = x[index].trim();
       }
       this.dimensionIndexes = new ArrayList<String>(Arrays.asList(x));
    }

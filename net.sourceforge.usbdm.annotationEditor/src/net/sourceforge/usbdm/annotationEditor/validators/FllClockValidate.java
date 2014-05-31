@@ -97,12 +97,13 @@ public class FllClockValidate extends MyValidator {
       else {
          externalfllInputFrequencyAfterDivider = system_erc_clock / (1<<5);
       }
-      
-      String mcg_c1_frdivMessage         = null;
-      int mcg_c1_frdiv    = 0;
+      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider (after predivider) = " + externalfllInputFrequencyAfterDivider);
+
+      String mcg_c1_frdivMessage  = null;
+      int    mcg_c1_frdiv         = 0;
 
       // Assume no errors
-      boolean validFllInputClock = true;
+      boolean validFllInputClock  = true;
       
       if      (((externalfllInputFrequencyAfterDivider/1)>=FLL_CLOCK_WIDE_MIN)   && ((externalfllInputFrequencyAfterDivider/1)<=FLL_CLOCK_WIDE_MAX)) {
          mcg_c1_frdiv =  0; externalfllInputFrequencyAfterDivider /= 1;
@@ -122,16 +123,16 @@ public class FllClockValidate extends MyValidator {
       else if (((externalfllInputFrequencyAfterDivider/32)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/32)<=FLL_CLOCK_WIDE_MAX)) {
          mcg_c1_frdiv =  5; externalfllInputFrequencyAfterDivider /= 32;
       }
-      else if (((externalfllInputFrequencyAfterDivider/64)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/64)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range  == 0)) {
+      else if (((externalfllInputFrequencyAfterDivider/64)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/64)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range == 0)) {
          mcg_c1_frdiv =  6; externalfllInputFrequencyAfterDivider /= 64;
       }
-      else if (((externalfllInputFrequencyAfterDivider/40)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/40)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range == 1)) {
+      else if (((externalfllInputFrequencyAfterDivider/40)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/40)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range != 0)) {
          mcg_c1_frdiv =  6; externalfllInputFrequencyAfterDivider /= 40;
       }
       else if (((externalfllInputFrequencyAfterDivider/128)>=FLL_CLOCK_WIDE_MIN) && ((externalfllInputFrequencyAfterDivider/128)<=FLL_CLOCK_WIDE_MAX) && (mcg_c2_range == 0)) {
          mcg_c1_frdiv =  7; externalfllInputFrequencyAfterDivider /= 128;
       }
-      else if (((externalfllInputFrequencyAfterDivider/48)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/48)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range == 1)) {
+      else if (((externalfllInputFrequencyAfterDivider/48)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/48)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range != 0)) {
          mcg_c1_frdiv =  7; externalfllInputFrequencyAfterDivider /= 48;
       }
       else {

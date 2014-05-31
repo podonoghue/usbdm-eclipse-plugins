@@ -134,6 +134,16 @@
             </command>
          </menu>
       </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.debug.ui.launchActionSet?after=additions">
+            <command
+                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand"
+                  icon="icons/cog.png"
+                  id="net.sourceforge.usbdm.cdt.wizard.menus.newProjectMenuItem"
+                  mnemonic="N">
+            </command>
+      </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">

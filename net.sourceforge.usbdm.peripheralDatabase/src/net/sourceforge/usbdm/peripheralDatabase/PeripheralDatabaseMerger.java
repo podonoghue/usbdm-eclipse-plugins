@@ -213,6 +213,7 @@ public class PeripheralDatabaseMerger {
    private String currentDeviceName;
 
    public final static String VECTOR_TABLE_ENTITY = "VECTOR_TABLE";
+   
    /**
     * Writes a description of the device to a SVD file.
     * Adds device peripherals to the list of shared peripherals.

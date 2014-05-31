@@ -920,11 +920,11 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    /**
     *  Creates peripheral database for device
     * 
-    *  @param deviceName device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
+    *  @param devicenameOrFilename Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
     *  
     *  @return device peripheral description or null on error
     */
-   public static DevicePeripherals createDatabase(String deviceName) {
+   public static DevicePeripherals createDatabase(String devicenameOrFilename) {
       SVD_XML_Parser database = new SVD_XML_Parser();
 
       DevicePeripherals devicePeripherals = null;
@@ -932,15 +932,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       // Parse the XML file into the XML internal DOM representation
       Document dom;
       try {
-         // Try name as given
-         dom = parseXmlFile(deviceName+".svd");
+         // Try name as given (may be full path)
+         dom = parseXmlFile(devicenameOrFilename);
+         if (dom == null) {
+            // Try name with default extension
+            dom = parseXmlFile(devicenameOrFilename+".svd");
+         }
          if (dom == null) {
             // Retry with mapped name
-            String mappedFilename = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME).getSvdFilename(deviceName);
+            String mappedFilename = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME).getSvdFilename(devicenameOrFilename);
             dom = parseXmlFile(mappedFilename);
          }
          if (dom == null) {
-            System.err.println("Unable to locate SVD data for \""+deviceName+"\"");
+            System.err.println("SVD_XML_Parser.createDatabase() - Unable to locate SVD data for \""+devicenameOrFilename+"\"");
          }
          else {
             // Get the root element
@@ -950,7 +954,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             devicePeripherals = database.parseDocument(documentElement);
          }
       } catch (Exception e) {
-         System.err.println("Exception in SVD_XML_Parser.createDatabase(), reason: " + e.getMessage());
+         System.err.println("SVD_XML_Parser.createDatabase() - Exception in SVD_XML_Parser.createDatabase(), reason: " + e.getMessage());
       }
       return devicePeripherals;
    }

@@ -1,7 +1,8 @@
 package net.sourceforge.usbdm.peripherals.view;
 
-import net.sourceforge.usbdm.peripherals.view.UsbdmDevicePeripheralsModel.FieldModel;
-import net.sourceforge.usbdm.peripherals.view.UsbdmDevicePeripheralsModel.RegisterModel;
+import net.sourceforge.usbdm.peripherals.model.BaseModel;
+import net.sourceforge.usbdm.peripherals.model.FieldModel;
+import net.sourceforge.usbdm.peripherals.model.RegisterModel;
 
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;

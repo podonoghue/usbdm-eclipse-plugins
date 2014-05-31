@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: UsbdmPeripheralView
+Bundle-Name: USBDM Peripheral View
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.view;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.view.Activator
@@ -9,7 +9,11 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.cdt.dsf.gdb
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Import-Package: net.sourceforge.usbdm.peripheralDatabase,
+Import-Package: net.sourceforge.usbdm.constants,
+ net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.gdb,
+ net.sourceforge.usbdm.jni,
+ net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.cdt.debug.core.cdi,
  org.eclipse.cdt.debug.core.cdi.model,
  org.eclipse.cdt.debug.internal.core.model,
@@ -19,6 +23,7 @@ Import-Package: net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.cdt.debug.mi.core.output,
  org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,
+ org.eclipse.cdt.dsf.debug.service,
  org.eclipse.cdt.dsf.debug.service.command,
  org.eclipse.cdt.dsf.gdb.internal,
  org.eclipse.cdt.dsf.gdb.launching,

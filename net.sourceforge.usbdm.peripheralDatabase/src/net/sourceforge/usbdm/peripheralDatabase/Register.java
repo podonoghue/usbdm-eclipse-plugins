@@ -334,7 +334,7 @@ public class Register extends Cluster implements Cloneable {
             doComma = true;
             writer.print(SVD_XML_BaseParser.escapeString(s));
          }
-         writer.println(String.format(indent+"</dimIndex>"));
+         writer.println(String.format("</dimIndex>"));
       }
    }
    
@@ -377,7 +377,7 @@ public class Register extends Cluster implements Cloneable {
          writer.println(String.format(indenter+"   <resetMask>0x%X</resetMask>",         getResetMask()));
       }
 
-      writeDimensionList(writer, indenter);
+      writeDimensionList(writer, indenter+"   ");
 
       if ((getFields() != null) && (getFields().size() > 0)) {
          writer.println(              indenter+"   <fields>");

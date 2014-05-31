@@ -44,7 +44,6 @@ public class UsbdmGDBJtagControl extends GDBControl {
     */
    @Override
    public CommandFactory getCommandFactory() {
-      // TODO Auto-generated method stub
       return super.getCommandFactory();
    }
 	

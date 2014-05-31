@@ -47,7 +47,7 @@ IConfigurationEnvironmentVariableSupplier {
    /**
     * @param buildToolOptionId - option id for build tool
     */
-   public ConfigurationEnvironmentVariableSupplier(String buildToolOptionId) {
+   protected ConfigurationEnvironmentVariableSupplier(String buildToolOptionId) {
       this.buildToolOptionId = buildToolOptionId;
    }
 
@@ -56,12 +56,28 @@ IConfigurationEnvironmentVariableSupplier {
     * @return                    The path to the build tools bin directory or null if error
     */
    private String getToolPath(IConfiguration configuration) {
-      
-      if (buildToolOptionId == null) {
-         return null;
+      if (configuration == null) {
+         // No configuration - Use default settings
+         System.err.println("ConfigEnvVarSupplier.getToolPath() configuration = null");
+         String toolPath = "";
+         String pathVariableId = null; 
+         if (buildToolOptionId.equals(UsbdmConstants.COLDFIRE_BUILDTOOLS_OPTIONS)) {
+            pathVariableId = "usbdm_codesourcery_coldfire_path";
+         }
+         else if (buildToolOptionId.equals(UsbdmConstants.ARM_BUILDTOOLS_OPTIONS)) {
+            pathVariableId = "usbdm_armLtd_arm_path";
+         }
+         UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+         if ((settings != null) && (pathVariableId != null)) {
+            toolPath = settings.get(pathVariableId);
+         }
+//         System.err.println("ConfigEnvVarSupplier.getToolPath() Found tool path = " + toolPath);
+         return toolPath;
       }
+//      System.err.println("ConfigEnvVarSupplier.getToolPath() configuration = "+configuration.getId());
       IToolChain toolChain = configuration.getToolChain();
       if (toolChain == null) {
+         System.err.println("ConfigEnvVarSupplier.getToolPath() toolChain = null");
          return null;
       }
 //      System.err.println("ConfigEnvVarSupplier.getToolPath() Checking toolchain: " + toolChain.getId());
@@ -73,18 +89,22 @@ IConfigurationEnvironmentVariableSupplier {
 //         System.err.println("ConfigEnvVarSupplier.getToolPath() Checking toolchain: Found value = " + buildToolOption.getValue().toString());
 //      }
       if (buildToolOption == null) {
+         System.err.println("ConfigEnvVarSupplier.getToolPath() buildToolOption = null");
          return null;
       }
 
       // Get build path variable
       ToolInformationData toolData = ToolInformationData.getToolInformationTable().get(buildToolOption.getValue().toString());
       if (toolData == null) {
+         System.err.println("ConfigEnvVarSupplier.getToolPath() toolData = null");
          return null;
       }
       String pathVariableId = toolData.getPathVariableName();
       if (pathVariableId == null) {
+         System.err.println("ConfigEnvVarSupplier.getToolPath() pathVariableId = null");
          return null;
       }
+//      System.err.println("ConfigEnvVarSupplier.getToolPath() pathVariableId = "+pathVariableId);
 
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
       String toolPath = "";

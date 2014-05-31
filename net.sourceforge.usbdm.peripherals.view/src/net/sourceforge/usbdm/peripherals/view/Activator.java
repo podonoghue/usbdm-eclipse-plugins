@@ -81,6 +81,8 @@ public class Activator extends AbstractUIPlugin {
        registry.put(ID_RESET_IMAGE, imageDescriptor);
        imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/showColumn.png"), null));
        registry.put(ID_SHOW_COLUMN_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/usbdm.png"), null));
+       registry.put(ID_USBDM_IMAGE, imageDescriptor);
    }
 
    public final static String ID_PERIPHERAL_IMAGE             = "peripheral-image";
@@ -94,6 +96,7 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_REFRESH_SELECTION_IMAGE      = "refresh-selection-image";
    public final static String ID_RESET_IMAGE                  = "reset-image";
    public final static String ID_SHOW_COLUMN_IMAGE            = "show-column-image";
+   public final static String ID_USBDM_IMAGE                  = "usbdm-image";
 	
    public ImageDescriptor getImageDescriptor(String key) {
 	   return getImageRegistry().getDescriptor(key);

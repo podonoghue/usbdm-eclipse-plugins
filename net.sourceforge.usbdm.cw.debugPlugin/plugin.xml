@@ -170,7 +170,7 @@
          </systemTypeFilter>
       </connectionTypeConfiguration>
       <connectionTypeConfiguration
-            class="com.freescale.mcu.debug.connections.dsc.DSCConfigurationCustomization"
+            class="com.freescale.mcu.debug.connections.rse.DSCConfigurationCustomization"
             id="net.sourceforge.usbdm.connections.usbdm.dsc"
             protocolPluginName="DSC GDI">
          <systemTypeFilter

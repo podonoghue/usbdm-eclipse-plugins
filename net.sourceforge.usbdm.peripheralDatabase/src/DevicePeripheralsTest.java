@@ -20,7 +20,6 @@ import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-
 public class DevicePeripheralsTest {
 
    static IPath mainFolder                                      = new Path("C:/Users/podonoghue/Development/USBDM/Arm_Devices/Generated");
@@ -55,7 +54,8 @@ public class DevicePeripheralsTest {
 
    static final String onlyFileToProcess = null;
 //   static final String onlyFileToProcess = "^(MKE|MKL).*(64).*";
-// static final String onlyFileToProcess = "^(MKE).*(64).*";
+//   static final String onlyFileToProcess = "^(MKE).*";
+//   static final String onlyFileToProcess = "^(MK[26][42]).*";
 //   static final String onlyFileToProcess = "^(MK20).*";
 //   static final String onlyFileToProcess = "^(STM).*";
    
@@ -626,33 +626,45 @@ public class DevicePeripheralsTest {
    /**
     * @param args
     */
+   @SuppressWarnings("unused")
    public static void main(String[] args) {
       System.err.println("Starting");
 
       try {
-//         createReducedDeviceList(stmicroSvdFolder, stmicroSvdExpandedFolder);
-//         ModeControl.setStripWhiteSpace(true);
-//         mergeFiles(stmicroSvdExpandedFolder, stmicroSvdMergedFolder, true);
-//         mergeFiles(stmicroSvdMergedFolder, stmicroSvdMerged2Folder, true);
-//         createHeaderFilesFromList(stmicroSvdMergedFolder, stMicroHeaderFilesFolder, true);
+         if (false) {
+            // Create final header files & SVD Test
+            createHeaderFilesFromList(freescaleSvdFolder, freescaleHeaderFilesFolder, true);
+            mergeFiles(freescaleSvdFolder, freescaleSvdTestFolder, true);
+         }
+         else {
+            // Manual optimisation
+            ModeControl.setExpandDerivedRegisters(false);
+            mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
+            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+            //createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
+            //createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         }
+
          
-         
-       createHeaderFilesFromList(freescaleSvdFolder, freescaleHeaderFilesFolder, true);
-       mergeFiles(freescaleSvdFolder, freescaleSvdTestFolder, true);
-         
-         
-//         createHeaderFiles(svdRaw, headerFolder, false);                        // svdRaw     +-> header  (for reference)
-//         createReducedDeviceList(svdRaw, svdReducedFolder);                     // svdRaw     +-> svdReduced (extracts common devices)
-//         mergeFiles(svdReducedFolder, svdReducedMergedFolder, false);           // svdReduced +-> svdReducedMerged (extracts common peripherals across devices)
-//         mergeFiles(svdReducedFolder, svdReducedMergedOptimisedFolder, true);   // svdReduced +-> svdReducedMerged (extracts common peripherals across devices + optimisation)
-//         createHeaderFilesFromList(svdReducedMergedOptimisedFolder, headerReducedMergedOptimisedFolder, true);  // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-//
-//         // Manual optimisation
-//         ModeControl.setExpandDerivedRegisters(false);
-//         mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
-//         createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-//         createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-//         createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         //         createReducedDeviceList(stmicroSvdFolder, stmicroSvdExpandedFolder);
+         //         ModeControl.setStripWhiteSpace(true);
+         //         mergeFiles(stmicroSvdExpandedFolder, stmicroSvdMergedFolder, true);
+         //         mergeFiles(stmicroSvdMergedFolder, stmicroSvdMerged2Folder, true);
+         //         createHeaderFilesFromList(stmicroSvdMergedFolder, stMicroHeaderFilesFolder, true);
+
+
+         //         createHeaderFiles(svdRaw, headerFolder, false);                        // svdRaw     +-> header  (for reference)
+         //         createReducedDeviceList(svdRaw, svdReducedFolder);                     // svdRaw     +-> svdReduced (extracts common devices)
+         //         mergeFiles(svdReducedFolder, svdReducedMergedFolder, false);           // svdReduced +-> svdReducedMerged (extracts common peripherals across devices)
+         //         mergeFiles(svdReducedFolder, svdReducedMergedOptimisedFolder, true);   // svdReduced +-> svdReducedMerged (extracts common peripherals across devices + optimisation)
+         //         createHeaderFilesFromList(svdReducedMergedOptimisedFolder, headerReducedMergedOptimisedFolder, true);  // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         //
+         //         // Manual optimisation
+         //         ModeControl.setExpandDerivedRegisters(false);
+         //         mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
+         //         createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         //         createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
+         //         createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
       } catch (Exception e) {
          e.printStackTrace();
       }

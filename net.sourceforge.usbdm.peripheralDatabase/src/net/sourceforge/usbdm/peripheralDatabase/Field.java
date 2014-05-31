@@ -273,7 +273,7 @@ public class Field extends ModeControl implements Cloneable {
       if ((getEnumerations() != null) && (!getEnumerations().isEmpty())) {
          writer.println(              indenter+"   <enumeratedValues>");
          for (Enumeration enumeration : getEnumerations()) {
-            enumeration.writeSVD(writer, standardFormat, indent+3);
+            enumeration.writeSVD(writer, standardFormat, indent+6);
          }
          writer.println(              indenter+"   </enumeratedValues>");
       }
@@ -295,58 +295,61 @@ public class Field extends ModeControl implements Cloneable {
     * e.g. PORTA_PCR_MUX() -> PORT_PCR_MUX()
     * 
     * @param   Name to map
-    * @return  Mapped name (unchanged if not mapped)
+    * @return  Mapped name (unchanged if not mapped, null if to be deleted)
+    * TODO Manual name optimisations
     */
    static String getMappedBitfieldMacroName(String name) {
 
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
-         if (!isExtractDerivedPeripherals()) {
-            // Manually eliminate redundant definitions
-            mappedMacros.add(new Pair(Pattern.compile("^(PORT)[^A](_.*)$"),      null));
-            mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)[^A](_.*)$"), null));
-            mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[^A](_.*)$"),      null));
-            mappedMacros.add(new Pair(Pattern.compile("^(UART)[^0](_.*)$"),      null));
-            mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[^0](_.*)$"),    null));
-            mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(ADC)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(I2C)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[^0](_.*)$"),      null));
-            mappedMacros.add(new Pair(Pattern.compile("^(CAN)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(I2S)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(OSC)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(DAC)[^0](_.*)$"),       null));
-            mappedMacros.add(new Pair(Pattern.compile("^(CMP)[^0](_.*)$"),       null));
-         }
-         mappedMacros.add(new Pair(Pattern.compile("^(PORT)A(_.*)$"),             "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)A(_.*)$"),        "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(UART)0(_.*)$"),             "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)0(_.*)$"),           "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(ADC)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2C)0(_.*)$"),              "$1$2"));
-//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)A(.*)$"),      "$1$2$3")); // AIPS0_PACRA_TP7_SHIFT -> AIPS_PACR_TP7_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)[^A](.*)$"),   null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_.*)$"),             "$1$2"));   // AIPS0_MPRA_MPL5_SHIFT -> AIPS_MPRA_MPL5_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(CAN)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2S)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[^0](_.*)$"),           null));     // Remove as present when FTMs differ in # of channels
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM0_C\\d)Cn(.*)$"),        "$1$2"));   // Fix inconsistent name
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM)[^0](_.*)$"),           null));     // Remove as present when TPMs differ in # of channels
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM0_C\\d)Cn(.*)$"),        "$1$2"));   // Fix inconsistent name
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(OSC)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(CMP)0(_.*)$"),              "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"), "$1$3$2")); // Fix inconsistent name DAC0_DATL0 -> DAC0_DAT0L
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY)3(_KEY.*)$"),    "$1$2"));   // NV_BACKKEY3_KEY_SHIFT -> NV_BACKKEY_KEY_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY\\d_KEY.*)$"),    null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT)3(.*)$"),          "$1$2"));   // NV_FPROT3_PROT_SHIFT -> NV_FPROT_PROT_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT\\d.*)$"),          null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(FTF._F.*)3(.*)$"),          "$1$2"));   // FTFA_FCCOB3_CCOBn_SHIFT -> FTFA_FCCOB_CCOBn_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(DMA_DCHPRI)3(.*)$"),        "$1$2"));   // DMA_DCHPRI3_CHPRI_SHIFT -> DMA_DCHPRI_CHPRI_SHIFT etc
+         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
+         mappedMacros.add(new Pair(Pattern.compile("^(PORT)[^A](_.*)$"),      null));
+         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)[^A](_.*)$"), null));
+         mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[^A](_.*)$"),      null));
+         mappedMacros.add(new Pair(Pattern.compile("^(UART)[^0](_.*)$"),      null));
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[^0](_.*)$"),    null));
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(ADC)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2C)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[^0](_.*)$"),      null));
+         mappedMacros.add(new Pair(Pattern.compile("^(CAN)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2S)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(OSC)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC)[^0](_.*)$"),       null));
+         mappedMacros.add(new Pair(Pattern.compile("^(CMP)[^0](_.*)$"),       null));
+
+         mappedMacros.add(new Pair(Pattern.compile("^(PORT)A(_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)[ABC](_P(([DSCT]O)|(D[ID])|(ID))R_PT.)$"),    "$1$2")); // MKL FGPIO.. => GPIO..
+         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)A(_.*)$"),                "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(UART)0(_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)0(_.*)$"),                   "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(ADC)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2C)0(_.*)$"),                      "$1$2"));
+//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)A(.*)$"),            "$1$2$3")); // AIPS0_PACRA_TP7_SHIFT -> AIPS_PACR_TP7_SHIFT etc
+//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)[^A](.*)$"),         null));     // Remove as redundant
+         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_.*)$"),                     "$1$2"));   // AIPS0_MPRA_MPL5_SHIFT -> AIPS_MPRA_MPL5_SHIFT etc
+         mappedMacros.add(new Pair(Pattern.compile("^(CAN)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2S)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[^0](_.*)$"),                   null));     // Remove as present when FTMs differ in # of channels
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM0_C\\d)Cn(.*)$"),                "$1$2"));   // Fix inconsistent name
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),                   null));     // Remove as present when SPIs differ in FIFO depth
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM)[^0](_.*)$"),                   null));     // Remove as present when TPMs differ in # of channels
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM0_C\\d)Cn(.*)$"),                "$1$2"));   // Fix inconsistent name
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(OSC)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(CMP)0(_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"),         "$1$3$2")); // Fix inconsistent name DAC0_DATL0 -> DAC0_DAT0L
+         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY)3(_KEY.*)$"),            "$1$2"));   // NV_BACKKEY3_KEY_SHIFT -> NV_BACKKEY_KEY_SHIFT etc
+//         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY\\d_KEY.*)$"),            null));     // Remove as redundant
+         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT)3(.*)$"),                  "$1$2"));   // NV_FPROT3_PROT_SHIFT -> NV_FPROT_PROT_SHIFT etc
+//         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT\\d.*)$"),                  null));     // Remove as redundant
+         mappedMacros.add(new Pair(Pattern.compile("^(FTF._F.*)3(.*)$"),                  "$1$2"));   // FTFA_FCCOB3_CCOBn_SHIFT -> FTFA_FCCOB_CCOBn_SHIFT etc
+         mappedMacros.add(new Pair(Pattern.compile("^(DMA_DCHPRI)3(.*)$"),                "$1$2"));   // DMA_DCHPRI3_CHPRI_SHIFT -> DMA_DCHPRI_CHPRI_SHIFT etc
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);

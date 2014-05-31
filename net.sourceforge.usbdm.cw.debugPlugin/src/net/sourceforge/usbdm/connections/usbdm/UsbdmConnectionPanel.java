@@ -628,7 +628,6 @@ implements ICWGdiInitializationData {
     * 
     */
    protected void transferFromWindow() {
-
       preferredBdm = comboSelectBDM.getText();
       useDebugBuild = btnUseDebugBuild.getSelection();
       
@@ -649,7 +648,12 @@ implements ICWGdiInitializationData {
          bdmOptions.cycleVddOnReset    = btnCycleTargetVddOnReset.getSelection()?1:0;  
          bdmOptions.leaveTargetPowered = btnLeaveTargetPowered.getSelection()?1:0;     
       }
-      securityOption = SecurityOptions.values()[comboSecurityOption.getSelectionIndex()];
+      if (comboSecurityOption == null) {
+         securityOption = SecurityOptions.SECURITY_UNSECURED;
+      }
+      else {
+         securityOption = SecurityOptions.values()[comboSecurityOption.getSelectionIndex()];
+      }
    }
    
    /**
@@ -706,7 +710,7 @@ implements ICWGdiInitializationData {
 //      System.err.println("UsbdmConnectionPanel.saveSettings()");
       
       transferFromWindow();
-      
+
       iLaunchConfigurationWorkingCopy.setAttribute(attrib(UsbdmCommon.KeyDefaultBdmSerialNumber), preferredBdm);
       
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyUseDebugBuild),           useDebugBuild);
@@ -723,7 +727,6 @@ implements ICWGdiInitializationData {
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
       
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeySecurityOption),          securityOption.getMask());
-
 //      try {
 //         Map<String, String> allAttributes = iLaunchConfigurationWorkingCopy.getAttributes();
 //         for (Map.Entry<String, String> entry : allAttributes.entrySet()) {

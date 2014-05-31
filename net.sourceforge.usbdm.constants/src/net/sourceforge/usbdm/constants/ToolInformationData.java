@@ -53,14 +53,14 @@ public class ToolInformationData {
    public static Hashtable<String, ToolInformationData> getToolInformationTable() {
       if (toolInformationTable == null) {
          toolInformationTable = new Hashtable<String, ToolInformationData>();
-         toolInformationTable.put(
-               UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
-               new ToolInformationData(
-                  "Codesourcery Tools for ARM",   
-                  UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
-                  UsbdmSharedConstants.CODESOURCERY_ARM_PATH_VAR,
-                  UsbdmSharedConstants.CODESOURCERY_ARM_PREFIX_VAR).addInterfaceType(InterfaceType.T_ARM)
-               );
+//         toolInformationTable.put(
+//               UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
+//               new ToolInformationData(
+//                  "Codesourcery Tools for ARM",   
+//                  UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID,
+//                  UsbdmSharedConstants.CODESOURCERY_ARM_PATH_VAR,
+//                  UsbdmSharedConstants.CODESOURCERY_ARM_PREFIX_VAR).addInterfaceType(InterfaceType.T_ARM)
+//               );
          toolInformationTable.put(
                UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID,
                new ToolInformationData(

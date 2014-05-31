@@ -266,10 +266,5 @@ public class ExampleList {
       }
       valid = true;
    }
-   
-   /**
-    * @param args
-    */
-      // TODO Auto-generated method stub
 
 }

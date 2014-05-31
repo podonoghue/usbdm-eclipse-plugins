@@ -19,6 +19,17 @@ public class ICSClockValidate extends MyValidator {
    private static final long FLL_CLOCK_WIDE_MIN = 31250L;
    private static final long FLL_CLOCK_WIDE_MAX = 39063L;
    
+   private static long FLL_FACTOR;
+   
+   // Backwards compatible
+   public ICSClockValidate() {
+      this(1024);
+   }
+   
+   public ICSClockValidate(long fllFactor) {
+      FLL_FACTOR = fllFactor;
+   }
+   
    @Override
    public void validate(TreeViewer viewer) throws Exception {
       super.validate(viewer);
@@ -150,7 +161,7 @@ public class ICSClockValidate extends MyValidator {
          // Determine possible output frequencies & check against desired value
          //
          long fllTargetFrequency = fllTargetFrequencyNode.getValueAsLong();
-         long fllOutFrequency    = Math.round(fllInputFrequency * 1024);
+         long fllOutFrequency    = Math.round(fllInputFrequency * FLL_FACTOR);
          ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
          fllFrequencies.add(fllOutFrequency*1);
          if (fllOutFrequency != fllTargetFrequency) {

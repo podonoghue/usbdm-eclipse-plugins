@@ -364,7 +364,7 @@ protected static long getNumberElement(Element element) throws Exception {
     */
    public static IPath getXmlFilepath(String fileName) {
       IPath path = xmlRootPath.append(fileName).addFileExtension(xmlExtension);
-      System.out.println("getXmlFilepath() => \"" + path.toOSString() + "\"");
+//      System.out.println("getXmlFilepath() => \"" + path.toOSString() + "\"");
       return path;
    }
 
@@ -409,24 +409,30 @@ protected static long getNumberElement(Element element) throws Exception {
    /**
     * Parse the XML file into the XML internal DOM representation
     * 
-    * @param databasePath name of XML file to process (in default location & default extension will be added)
+    * @param devicenameOrFilename Either a full path to device SVD file or device name (default location & default extension will be added)
     * 
     * @return DOM Document representation (or null if locating file fails)
     * 
     * @throws Exception on XML parsing error or similar unexpected event
     */
-   protected static Document parseXmlFile(String deviceName) throws Exception {
+   protected static Document parseXmlFile(String devicenameOrFilename) throws Exception {
       
-      IPath databasePath = getXmlFilepath(deviceName);
+      // Try deviceName as full path
+      IPath databasePath = new Path(devicenameOrFilename);
+//      System.err.println("SVD_XML_BaseParser.parseXmlFile()" + devicenameOrFilename);
+      if (!databasePath.toFile().exists()) {
+         // Retry using deviceName as simply name
+         databasePath = getXmlFilepath(devicenameOrFilename);
+      }
       if (!databasePath.toFile().exists()) {
          // Retry after stripping speed grade e.g. MK20DX128M5 => MK20DX128
-         deviceName = deviceName.replaceAll("^(.*)M\\d$", "$1");
-         databasePath = getXmlFilepath(deviceName);
+         devicenameOrFilename = devicenameOrFilename.replaceAll("^(.*)M\\d$", "$1");
+         databasePath = getXmlFilepath(devicenameOrFilename);
       }
       if (!databasePath.toFile().exists()) {
          // Retry after stripping speed grade e.g. MK20DX128M5Z => MK20DX128Z
-         deviceName = deviceName.replaceAll("^(.*)M\\dZ$", "$1Z");
-         databasePath = getXmlFilepath(deviceName);
+         devicenameOrFilename = devicenameOrFilename.replaceAll("^(.*)M\\dZ$", "$1Z");
+         databasePath = getXmlFilepath(devicenameOrFilename);
       }
       if (!databasePath.toFile().exists()) {
          return null;

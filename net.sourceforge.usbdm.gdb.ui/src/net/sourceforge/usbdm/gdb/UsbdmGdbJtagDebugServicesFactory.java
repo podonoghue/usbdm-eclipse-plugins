@@ -16,6 +16,7 @@ import org.eclipse.cdt.dsf.gdb.service.GdbDebugServicesFactory;
 import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
@@ -30,6 +31,21 @@ public class UsbdmGdbJtagDebugServicesFactory extends GdbDebugServicesFactory {
 
 	@Override
 	protected ICommandControl createCommandControl(DsfSession session, ILaunchConfiguration config) {
+	   
+      String newDeviceName = null;
+      try {
+         newDeviceName = config.getAttribute("net.sourceforge.usbdm.gdb.deviceName", (String)null);
+      } catch (CoreException e) {
+      }
+      if (newDeviceName != null) {
+         System.err.println("UsbdmGdbJtagDebugServicesFactory.createCommandControl() adding adapter");
+         UsbdmGdbLaunchInformation launchInformation = new UsbdmGdbLaunchInformation();
+         launchInformation.addValue("net.sourceforge.usbdm.gdb.deviceName", newDeviceName);
+         session.registerModelAdapter(UsbdmGdbLaunchInformation.class, launchInformation);
+      }
+      else {
+         System.err.println("UsbdmGdbJtagDebugServicesFactory.createCommandControl() failed to get device name");
+      }
 
 	   GdbServerParameters gdbServerParameters = GdbServerParameters.getInitializedServerParameters(config);
 	   

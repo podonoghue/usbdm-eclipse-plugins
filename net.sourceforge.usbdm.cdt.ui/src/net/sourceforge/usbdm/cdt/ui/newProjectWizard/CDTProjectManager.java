@@ -119,14 +119,14 @@ public class CDTProjectManager {
       String os = System.getProperty("os.name");
       if ((os != null) && os.toUpperCase().contains("LINUX")) {
          switch (interfaceType) {
-         case T_ARM: configurationName  = LINUX_ARM_CONFIGURATION_ID;      break;
+         case T_ARM:  configurationName = LINUX_ARM_CONFIGURATION_ID;      break;
          case T_CFV1: configurationName = LINUX_COLDFIRE_CONFIGURATION_ID; break;
          case T_CFVX: configurationName = LINUX_COLDFIRE_CONFIGURATION_ID; break;
          }
       }
       else {
          switch (interfaceType) {
-         case T_ARM: configurationName  = WINDOWS_ARM_CONFIGURATION_ID;      break;
+         case T_ARM:  configurationName = WINDOWS_ARM_CONFIGURATION_ID;      break;
          case T_CFV1: configurationName = WINDOWS_COLDFIRE_CONFIGURATION_ID; break;
          case T_CFVX: configurationName = WINDOWS_COLDFIRE_CONFIGURATION_ID; break;
          }

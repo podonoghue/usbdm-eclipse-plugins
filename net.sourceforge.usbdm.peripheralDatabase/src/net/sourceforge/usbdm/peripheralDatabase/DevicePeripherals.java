@@ -793,7 +793,6 @@ public class DevicePeripherals extends ModeControl {
       try {
          devicePeripherals.writeHeaderFile(headerFilePath);
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }

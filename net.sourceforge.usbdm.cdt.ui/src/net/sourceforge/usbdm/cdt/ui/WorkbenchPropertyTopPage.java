@@ -13,7 +13,6 @@ public class WorkbenchPropertyTopPage extends PropertyPage implements
       IWorkbenchPropertyPage {
 
    public WorkbenchPropertyTopPage() {
-      // TODO Auto-generated constructor stub
    }
 
    @Override
@@ -28,11 +27,5 @@ public class WorkbenchPropertyTopPage extends PropertyPage implements
 
       return composite;
    }
-
-   /**
-    * @param args
-    */
-      // TODO Auto-generated method stub
-
 
 }

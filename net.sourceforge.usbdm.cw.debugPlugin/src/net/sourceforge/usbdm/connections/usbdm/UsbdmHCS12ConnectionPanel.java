@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -92,16 +94,6 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
       } else if (btnBDMClockAlt.getSelection()) {
          bdmOptions.useAltBDMClock = UsbdmCommon.BDM_CLK_ALT;
       }
-      bdmOptions.doClockTrim = btnTrimTargetClock.getSelection();
-      if (bdmOptions.doClockTrim) {
-         // Trimming
-         bdmOptions.clockTrimFrequency = (int) (txtTrimFrequencyAdapter.getDoubleValue() * 1000);
-         bdmOptions.clockTrimNVAddress = txtNVTRIMAddressAdapter.getHexValue();
-      } else {
-         // Not Trimming
-         bdmOptions.clockTrimFrequency = 0;
-         bdmOptions.clockTrimNVAddress = 0;
-      }
       eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
@@ -148,7 +140,7 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
     *           - Settings object to load from
     */
    public void loadHCS12Settings(ILaunchConfiguration iLaunchConfiguration) {
-//      System.err.println("UsbdmHCS08ConnectionPanel.loadHCS08Settings()");
+//      System.err.println("UsbdmHCS12ConnectionPanel.loadHCS12Settings()");
       restoreHCS12DefaultSettings();
       try {
          int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
@@ -172,12 +164,9 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
     */
    @Override
    public void saveSettings( ILaunchConfigurationWorkingCopy paramILaunchConfigurationWorkingCopy)throws PrefException {
-//      System.err.println("UsbdmHCS12ConnectionPanel.saveSettings()");
-
       super.saveSettings(paramILaunchConfigurationWorkingCopy);
 
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),         eraseMethod.ordinal());
-
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
    }

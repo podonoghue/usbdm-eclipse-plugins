@@ -31,7 +31,7 @@
       </launchDelegate>
       <launchDelegate
             delegate="net.sourceforge.usbdm.gdb.UsbdmGdbDsfLaunchConfigurationDelegate"
-            delegateDescription="Hardware debugging using the USBDM debugger Framework (DSF)"
+            delegateDescription="Hardware debugging using the USBDM debugger framework (DSF)"
             id="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"
             modes="debug"
             name="USBDM Hardware Debugger (DSF)"

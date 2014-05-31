@@ -207,13 +207,13 @@
       <xs:element name="usage">
         <xs:simpleType>
           <xs:restriction base="xs:token">
-            <xs:enumeration value="RAM"/>
-            <xs:enumeration value="ROM"/>
-            <xs:enumeration value="FLASH"/>
+            <xs:enumeration value="RAM" />
+            <xs:enumeration value="ROM" />
+            <xs:enumeration value="FLASH" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
-      <xs:element name="mirroredFrom" type="identifierType" minOccurs="0"/>
+            <xs:element name="mirroredFrom" type="identifierType" minOccurs="0"/>
       <xs:element name="isCached" type="xs:boolean" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
@@ -252,7 +252,7 @@
     </xs:sequence> 
   </xs:group>
   <!-- dimElementGroup specifies the number of array elements (dim), the address offset
-       between to consecutive array elements and an a comma seperated list of strings 
+       between two consecutive array elements and an a comma separated list of strings 
        being used for identifying each element in the array -->
   <xs:group name="dimElementGroup">
     <xs:sequence>
