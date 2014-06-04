@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.view.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.cdt.dsf.gdb
+ org.eclipse.cdt.dsf.gdb,
+ net.sourceforge.usbdm.constants;bundle-version="4.10.6"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.constants,

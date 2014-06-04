@@ -111,8 +111,10 @@ public class AddressBlock extends ModeControl implements Cloneable {
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat) {
       writer.println(              "         <addressBlock>");
+      if (getWidth() != 32) {
+         writer.println(String.format("            <?width \"%d\" ?>",        getWidth()));
+      }
       writer.println(String.format("            <offset>0x%X</offset>",    getOffset()));
-      writer.println(String.format("            <width>%d</width>",        getWidth()));
       writer.println(String.format("            <size>0x%X</size>",        getSize()));
       writer.println(String.format("            <usage>%s</usage>",        SVD_XML_BaseParser.escapeString(getUsage())));
       writer.println(              "         </addressBlock>");

@@ -329,8 +329,6 @@ public class ModeControl implements Cloneable {
       ModeControl.reasonForDifference = reasonForDifference;
    }
 
-   private static final Pattern p = Pattern.compile("((.*)(\\.$))|((.*)( [R|r]egisters)( )*$)");
-
    /**
     * Does some simple modifications to descriptions to increase the likelihood of folding.
     * @param description String to operate on
@@ -338,6 +336,8 @@ public class ModeControl implements Cloneable {
     * @return     Modified string
     */
    public static String getSanitizedDescription(String description) {
+      final Pattern p = Pattern.compile("((.*)(\\.$))|((.*)( [R|r]egisters)( )*$)");
+
       Matcher m = p.matcher(description);
       return m.replaceAll("$2$5");
    }

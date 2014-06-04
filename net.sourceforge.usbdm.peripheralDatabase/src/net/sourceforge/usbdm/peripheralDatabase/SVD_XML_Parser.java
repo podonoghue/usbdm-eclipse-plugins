@@ -8,10 +8,17 @@
  */
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
+
 import org.eclipse.core.runtime.IPath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.ProcessingInstruction;
 
 /**
  * @author podonoghue
@@ -114,7 +121,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             enumeration.setDescription(element.getTextContent().trim());
          }
          else if (element.getTagName() == VALUE_TAG) {
-            enumeration.setValue(element.getTextContent());
+            enumeration.setValue(getMappedEnumeratedValue(element.getTextContent()));
          }
          else if (element.getTagName() == ISDEFAULT_TAG) {
             enumeration.setAsDefault();
@@ -125,6 +132,25 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       return enumeration;
    }
+   
+   private String getMappedEnumeratedValue(String value) {
+      final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
+
+      if (mappedMacros.size() == 0) {
+         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
+         mappedMacros.add(new Pair(Pattern.compile("^\\#(.*)$"),                "0b$1"));
+      }
+      for (Pair p : mappedMacros) {
+         Matcher matcher = p.regex.matcher(value);
+         if (matcher.matches()) {
+            if (p.replacement == null) {
+               return null;
+            }
+            return matcher.replaceAll(p.replacement);
+         }
+      }
+      return value;
+}
    
    /**
     * Parse a <enumeratedValues> element
@@ -381,6 +407,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             //TODO: Implement readAction
          }
          else if (element.getTagName() == FIELDS_TAG) {
+//            System.err.println("parseRegister() Peripheral = " + peripheral.getName() + "register = " + register.getName());
             parseFields(register, element);
          }
          else if (element.getTagName() == ALTERNATEREGISTER_TAG) {
@@ -514,6 +541,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             node = node.getNextSibling()) {
 //            System.out.println("parseAddressBlock - " + node.getTextContent());
 
+         if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+            ProcessingInstruction element = (ProcessingInstruction) node;
+            if (element.getNodeName() == WIDTH_TAG) {
+               addressBlock.setWidth((int)getIntElement(element));
+            }            
+            continue;
+         }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
@@ -558,7 +592,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-            interruptEntry.setName(element.getTextContent());
+            String name = element.getTextContent();
+            interruptEntry.setName(name.replace("INT_", ""));
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
             interruptEntry.setDescription(element.getTextContent().trim());
@@ -595,7 +630,11 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             // Try unmapped name
             referencedPeripheral = device.findPeripheral(peripheralElement.getAttribute(DERIVEDFROM_ATTRIB));
             if (referencedPeripheral == null) {
-               throw new Exception("Referenced peripheral cannot be found: \""+peripheralElement.getAttribute(DERIVEDFROM_ATTRIB)+"\"");
+               for (Peripheral x : device.getPeripherals()) {
+                  System.err.println("Peripherals :" + x.getName());
+               }
+               throw new Exception(
+                     "Referenced peripheral cannot be found: \""+peripheralElement.getAttribute(DERIVEDFROM_ATTRIB)+"\"\n");
             }
          }
          peripheral = (Peripheral) referencedPeripheral.clone();
@@ -621,13 +660,28 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       for (Node node = peripheralElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
+         if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+            ProcessingInstruction element = (ProcessingInstruction) node;
+            if (element.getNodeName() == SOURCEFILE_ATTRIB) {
+               peripheral.setSourceFilename(stripQuotes(element.getTextContent()));
+            }            
+            if (element.getNodeName() == PREFERREDACCESSWIDTH_ATTRIB) {
+               peripheral.setBlockAccessWidth((int)getIntElement(element));
+            }            
+            if (element.getNodeName() == BLOCKALIGNMENT_ATTRIB) {
+               peripheral.setForcedAccessWidth((int)getIntElement(element));
+            }            
+            continue;
+         }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-//            System.out.println("parsePeripheral() name = "+element.getTextContent());
             peripheral.setName(element.getTextContent());
+//            if (peripheral.getName().equalsIgnoreCase("USB0")) {
+//               System.out.println("parsePeripheral() name = "+element.getTextContent());
+//            }
          }
          else if (element.getTagName() == VERSION_TAG) {
             //TODO: Implement version
@@ -656,7 +710,11 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                peripheral.clearInterruptEntries();
                interruptsSet = true;
             }
-            peripheral.addInterruptEntry(parseInterrupt(element));
+            InterruptEntry interruptEntry = parseInterrupt(element);
+            if ((interruptEntry.getDescription() == null) || (interruptEntry.getDescription().length() == 0)) {
+               interruptEntry.setDescription(peripheral.getDescription());
+            }
+            peripheral.addInterruptEntry(interruptEntry);
          }
          else if (derived) {
             throw new Exception("Unexpected field in derived PERIPHERAL', value = \'"+element.getTagName()+"\'");
@@ -934,19 +992,24 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       try {
          // Try name as given (may be full path)
          dom = parseXmlFile(devicenameOrFilename);
+//         System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+"\"");
          if (dom == null) {
             // Try name with default extension
             dom = parseXmlFile(devicenameOrFilename+".svd");
+//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+".svd"+"\"");
+         }
+         if (dom == null) {
+            // Try name with default extension
+            dom = parseXmlFile(devicenameOrFilename+".xml");
+//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+".xml"+"\"");
          }
          if (dom == null) {
             // Retry with mapped name
             String mappedFilename = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME).getSvdFilename(devicenameOrFilename);
+//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+mappedFilename+"\"");
             dom = parseXmlFile(mappedFilename);
          }
-         if (dom == null) {
-            System.err.println("SVD_XML_Parser.createDatabase() - Unable to locate SVD data for \""+devicenameOrFilename+"\"");
-         }
-         else {
+         if (dom != null) {
             // Get the root element
             Element documentElement = dom.getDocumentElement();
 
@@ -954,7 +1017,10 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             devicePeripherals = database.parseDocument(documentElement);
          }
       } catch (Exception e) {
-         System.err.println("SVD_XML_Parser.createDatabase() - Exception in SVD_XML_Parser.createDatabase(), reason: " + e.getMessage());
+         System.err.println("SVD_XML_Parser.createDatabase() - Exception: reason: " + e.getMessage());
+      }
+      if (devicePeripherals == null) {
+         System.err.println("SVD_XML_Parser.createDatabase() - Unable to locate SVD data for \""+devicenameOrFilename+"\"");
       }
       return devicePeripherals;
    }

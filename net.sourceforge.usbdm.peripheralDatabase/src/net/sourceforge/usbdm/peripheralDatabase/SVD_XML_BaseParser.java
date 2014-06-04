@@ -11,10 +11,12 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class SVD_XML_BaseParser {
 
    static final Pattern whiteSpacePattern = Pattern.compile("\\s+");
+   static final String USBDM_SVD_DEFAULT_PATH = "/DeviceData/Device.SVD/Internal";
    
    /**
     * Escapes a string for writing to an XML file
@@ -167,6 +169,8 @@ protected static long getNumberElement(Element element) throws Exception {
       return Long.parseLong(s, 10);
    }
    
+
+
    /**
     * @param element - XML element to parse
     * 
@@ -174,9 +178,27 @@ protected static long getNumberElement(Element element) throws Exception {
     * 
     * @throws Exception
     */
-   protected static long getIntElement(Element element) throws Exception {
+   protected static String stripQuotes(String s) {
+      final Pattern x = Pattern.compile("^(\\s)*\\\"(.*)\\\"(\\s)*$");
       
-      String s = element.getTextContent();
+      if (s != null) {
+         // Strip enclosing quotes and white space
+         s = x.matcher(s).replaceAll("$2");
+      }
+      return s;
+   }
+   
+   /**
+    * @param element - XML element to parse
+    * 
+    * @return integer
+    * 
+    * @throws Exception
+    */
+   protected static long getIntElement(Node element) throws Exception {
+      
+      String s = stripQuotes(element.getTextContent());
+
       if ((s == null) || (s.length()==0)) {
          throw new Exception("Text not found");
       }
@@ -394,14 +416,14 @@ protected static long getNumberElement(Element element) throws Exception {
    public static void setXmlExtension(String xmlExtension) {
       SVD_XML_BaseParser.xmlExtension = xmlExtension;
    }
-
+   
    public SVD_XML_BaseParser() {
       IPath usbdmResourcePath = Usbdm.getResourcePath();
       if (usbdmResourcePath == null) {
          xmlRootPath = Path.EMPTY;
       }
       else {
-         xmlRootPath = usbdmResourcePath.append("/DeviceData/Device.SVD/");
+         xmlRootPath = usbdmResourcePath.append(USBDM_SVD_DEFAULT_PATH);
       }
 //      System.out.println("SVD_XML_BaseParser() xmlRootPath = \"" + xmlRootPath.toOSString() + "\"");
    }

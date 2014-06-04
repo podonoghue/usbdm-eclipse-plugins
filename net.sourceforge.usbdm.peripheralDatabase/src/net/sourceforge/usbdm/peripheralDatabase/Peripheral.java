@@ -166,12 +166,27 @@ public class Peripheral extends ModeControl implements Cloneable {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
    }
    
+   /*
+    * Strips a trailing acronym in brackets from the description e.g. (SPI0)
+    */
+   private String simplifyDescription(String s) {
+      final Pattern p = Pattern.compile("(^.*?)\\s*\\([A-Z0-9\\s]*\\)\\s*$");
+      Matcher m = p.matcher(description);
+      String ss = m.replaceAll("$1");
+//      if (ss != s) {
+//         System.err.println("simplifyDescription() \""+s+"\"\n"
+//                          + "                   => \""+ss+"\"");
+//      }
+      return ss;
+   }
+   
    /** 
     * Set description of peripheral
     * 
     */
    public void setDescription(String description) {
       this.description = getSanitizedDescription(description.trim());
+      this.description = simplifyDescription(this.description);
    }
 
    /**
@@ -351,11 +366,11 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void createAddressBlocks() throws Exception {
       if (derivedFrom != null) {
-         // Address blocks are determined from registers which are in a derived peripheral
-         // so it should always agree.
+         // Address blocks are determined from registers which are determined by the peripheral
+         // derived from so they should always agree.
          return;
       }
-      boolean debug = false; //this.getName().matches("Core.*");
+      boolean debug = false; //this.getName().matches("USB.*");
       if (debug) {
          System.err.println("Creating address blocks for "+getName());
       }
@@ -1381,17 +1396,27 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
 
       writer.print(                       indenter+"<peripheral");
-      if (getSourceFilename() != null) {
-         writer.print(String.format(      " "+SVD_XML_Parser.SOURCEFILE_ATTRIB+"=\"%s\"", SVD_XML_BaseParser.escapeString(getSourceFilename())));
-      }
-      if (getPreferredAccessWidth() != 0) {
-         writer.print(String.format(      " "+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+"=\"%d\"", getPreferredAccessWidth()));
-      }
-      if (getForcedAccessWidth() != 0) {
-         writer.print(String.format(      " "+SVD_XML_Parser.BLOCKALIGNMENT_ATTRIB+"=\"%d\"", getForcedAccessWidth()));
-      }
+//      if (getSourceFilename() != null) {
+//         writer.print(String.format(      " "+SVD_XML_Parser.SOURCEFILE_ATTRIB+"=\"%s\"", SVD_XML_BaseParser.escapeString(getSourceFilename())));
+//      }
+//      if (getPreferredAccessWidth() != 0) {
+//         writer.print(String.format(      " "+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+"=\"%d\"", getPreferredAccessWidth()));
+//      }
+//      if (getForcedAccessWidth() != 0) {
+//         writer.print(String.format(      " "+SVD_XML_Parser.BLOCKALIGNMENT_ATTRIB+"=\"%d\"", getForcedAccessWidth()));
+//      }
       writer.println(">");
 
+      if (getSourceFilename() != null) {
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.SOURCEFILE_ATTRIB+" \"%s\" ?>", SVD_XML_BaseParser.escapeString(getSourceFilename())));
+      }
+      if (getPreferredAccessWidth() != 0) {
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+" \"%d\" ?>", getPreferredAccessWidth()));
+      }
+      if (getForcedAccessWidth() != 0) {
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.BLOCKALIGNMENT_ATTRIB+" \"%d\" ?>", getForcedAccessWidth()));
+      }
+      
       String name = getName();
       writer.println(String.format(       indenter+"   <name>%s</name>",                   SVD_XML_BaseParser.escapeString(name)));
       writer.println(String.format(       indenter+"   <description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));

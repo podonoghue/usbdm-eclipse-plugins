@@ -300,6 +300,9 @@ public class Register extends Cluster implements Cloneable {
       }
       Register derived = (Register) derivedCluster;
 
+      if (getDimensionIndexes() != derived.getDimensionIndexes()) {
+         writeDimensionList(writer, indent);
+      }
       writer.println(String.format(   indent+"               <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
       
       if ((getDescription() != null) && !getDescription().equals(derived.getDescription())) {
@@ -314,9 +317,6 @@ public class Register extends Cluster implements Cloneable {
       }
       if (getResetMask() != derived.getResetMask()) {
          writer.println(String.format(indent+"               <resetMask>0x%X</resetMask>",         getResetMask()));
-      }
-      if (getDimensionIndexes() != derived.getDimensionIndexes()) {
-         writeDimensionList(writer, indent);
       }
       writer.println(                 indent+"            </register>");
    }
@@ -358,6 +358,8 @@ public class Register extends Cluster implements Cloneable {
       final String indenter = RegisterUnion.getIndent(indent);
       writer.println(                 indenter+"<register>");
       
+      writeDimensionList(writer, indenter+"   ");
+
       writer.println(String.format(   indenter+"   <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
 
       if ((getDescription() != null) && (getDescription().length() > 0)) {
@@ -376,8 +378,6 @@ public class Register extends Cluster implements Cloneable {
       if ((owner == null) || (owner.getResetMask() != getResetMask())) {
          writer.println(String.format(indenter+"   <resetMask>0x%X</resetMask>",         getResetMask()));
       }
-
-      writeDimensionList(writer, indenter+"   ");
 
       if ((getFields() != null) && (getFields().size() > 0)) {
          writer.println(              indenter+"   <fields>");

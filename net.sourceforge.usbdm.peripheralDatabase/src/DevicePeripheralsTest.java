@@ -29,6 +29,7 @@ public class DevicePeripheralsTest {
    static IPath headerReducedMergedOptimisedFolder              = mainFolder.append("HeaderReducedMergedOptimised");
    static IPath headerReducedMergedOptimisedManualFolder        = mainFolder.append("HeaderReducedMergedOptimisedManual");
    static IPath headerReducedMergedOptimisedManualIterationFolder = mainFolder.append("HeaderReducedMergedOptimisedManualIteration");
+   static IPath headerReducedMergedOptimisedManualExpandedFolder = mainFolder.append("HeaderReducedMergedOptimisedManualExpanded");
    
    static IPath svdReducedFolder                                = mainFolder.append("svdReduced");
    static IPath svdReducedMergedFolder                          = mainFolder.append("svdReducedMerged");
@@ -47,6 +48,11 @@ public class DevicePeripheralsTest {
    static IPath stmicroSvdMerged2Folder                         = mainFolder.append("STMicroMerged2");
    static IPath stMicroHeaderFilesFolder                        = mainFolder.append("STMicroHeaderFiles");
 
+   static IPath freescaleFolder                                 = mainFolder.append("Freescale");
+   static IPath freescaleSortedFolder                           = mainFolder.append("FreescaleSorted");
+   static IPath freescaleCommonFolder                           = mainFolder.append("FreescaleCommon");
+   static IPath freescaleReducedFolder                          = mainFolder.append("FreescaleReduced");
+
    
    static final String deviceListFilename       = "DeviceList.xml";
    static final String cmsisSchemaFilename      = "CMSIS-SVD_Schema_1_1.xsd";
@@ -56,12 +62,11 @@ public class DevicePeripheralsTest {
 //   static final String onlyFileToProcess = "^(MKE|MKL).*(64).*";
 //   static final String onlyFileToProcess = "^(MKE).*";
 //   static final String onlyFileToProcess = "^(MK[26][42]).*";
-//   static final String onlyFileToProcess = "^(MK20).*";
+// static final String onlyFileToProcess = "^(MK20).*";
+//    static final String onlyFileToProcess = "^(MK.4).*";
 //   static final String onlyFileToProcess = "^(STM).*";
    
-//   static final String onlyFileToProcess = "MK20DX128.svd.xml";
-// String final onlyFileToProcess = "MK10DN32.svd.xml";
-// String final onlyFileToProcess = "MKL14Z32M4.svd.xml";
+//   static final String onlyFileToProcess = "MK20D5.svd.xml";
 
    static void copyFile(IPath source, IPath destination) throws IOException {
       System.out.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
@@ -152,9 +157,9 @@ public class DevicePeripheralsTest {
       IPath destinationDeviceList = destinationFolderPath.append(deviceListFilename);
       if (sourceDeviceList.toFile().exists()) {
          copyFile(sourceDeviceList, destinationDeviceList);
-         copyFile(mainFolder.removeLastSegments(1).append(deviceListSchemaFilename), destinationFolderPath.append(deviceListSchemaFilename));
+         copyFile(mainFolder.append(deviceListSchemaFilename), destinationFolderPath.append(deviceListSchemaFilename));
       }
-      copyFile(mainFolder.removeLastSegments(1).append(cmsisSchemaFilename), destinationFolderPath.append(cmsisSchemaFilename));
+      copyFile(mainFolder.append(cmsisSchemaFilename), destinationFolderPath.append(cmsisSchemaFilename));
    }
 
    /*
@@ -380,7 +385,7 @@ public class DevicePeripheralsTest {
       
       for (DevicePeripherals device : deviceList) {
          String deviceName                = device.getName();
-         String mappedDestinationFileName = DeviceFileList.getMappedSvdName(device.getName());
+         String mappedDestinationFileName = deviceName;//DeviceFileList.getMappedSvdName(device.getName());
          if (copiedMappedFiles.contains(mappedDestinationFileName)) {
             throw new Exception(String.format("Mapped name collision %s => %s", deviceName, mappedDestinationFileName));
          }
@@ -636,11 +641,35 @@ public class DevicePeripheralsTest {
             createHeaderFilesFromList(freescaleSvdFolder, freescaleHeaderFilesFolder, true);
             mergeFiles(freescaleSvdFolder, freescaleSvdTestFolder, true);
          }
-         else {
+         else if (false) {
             // Manual optimisation
+            ModeControl.setExpandDerivedRegisters(false);
+//            mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
+            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+            //createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
+            //createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         }
+         else if (true) {
+            // Expand SVD
             ModeControl.setExpandDerivedRegisters(false);
             mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
             createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+            createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
+            createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true); // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+         }
+         else {
+            // Playing with Freescale files
+            ModeControl.setExpandDerivedRegisters(false);
+            createReducedDeviceList(freescaleFolder,        freescaleSortedFolder);
+            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true);
+            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder,  true);
+            
+//
+//            
+//            mergeFiles(freescaleFolder,        freescaleSortedFolder,  false);
+//            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true);
+//            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder, true);
+//            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
             //createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
             //createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
          }
@@ -669,6 +698,6 @@ public class DevicePeripheralsTest {
          e.printStackTrace();
       }
       System.out.flush();
-      System.err.println("Done");
+      System.out.println("Done");
    }
 }
