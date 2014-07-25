@@ -20,12 +20,15 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
 
+/**
+ * @since 4.10
+ */
 public class UsbdmGdbLaunchConfigurationDelegate extends AbstractCLaunchDelegate implements
       ILaunchConfigurationDelegate {
 
    @Override
    protected String getPluginID() {
-      return Activator.getPluginId();
+      return UsbdmGdbServer.getPluginId();
    };
 
    @Override

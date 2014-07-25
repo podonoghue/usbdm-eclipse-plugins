@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.Status;
 
 /**
  * Version for GDB 7.2 and higher.
- * @since 8.2
+ * @since 4.10
  */
 public class UsbdmGdbJtagDSFFinalLaunchSequence_7_2 extends UsbdmGdbJtagDSFFinalLaunchSequence {
 
@@ -60,13 +60,13 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence_7_2 extends UsbdmGdbJtagDSFFinal
 	 */
 	@Execute
 	public void stepInitializeJTAGSequence_7_2(RequestMonitor rm) {
-		DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), fSession.getId());
+		DsfServicesTracker tracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
 		IGDBControl gdbControl = tracker.getService(IGDBControl.class);
 		IGDBProcesses procService = tracker.getService(IGDBProcesses.class);
 		tracker.dispose();
 		
         if (gdbControl == null || procService == null) {
-			rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot obtain service", null)); //$NON-NLS-1$
+			rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain service", null)); //$NON-NLS-1$
 			rm.done();
 			return;
 		}

@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.Device.CreateFolderAction;
+import net.sourceforge.usbdm.deviceDatabase.Device.ExcludeAction;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.CModelException;
@@ -19,6 +20,7 @@ import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.core.settings.model.ICSourceEntry;
 import org.eclipse.cdt.core.settings.model.WriteAccessException;
+import org.eclipse.cdt.core.settings.model.util.CDataUtil;
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IHoldsOptions;
@@ -36,9 +38,55 @@ import org.eclipse.core.runtime.Path;
 
 public class ProjectUtilities {
    
-   public static void createIncludeFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException, BuildException {
-      createSourceFolder(project, targetPath, progressMonitor);
+   static void listSourceEntries(ICSourceEntry[] sourceEntries) {
+      for (ICSourceEntry cSourceEntry : sourceEntries) {
+         System.err.println(String.format("entry = \"%s\" => ", 
+               cSourceEntry.getFullPath()));
+         for (IPath path : cSourceEntry.getExclusionPatterns()) {
+            System.err.println(String.format("exclusion path = \"%s\" => ", path));
+         }
+      }
+   }
+   
+   private static void changeExcludedItem(IProject project, String targetPath, boolean isFolder, boolean excluded, IProgressMonitor progressMonitor) 
+         throws CoreException, BuildException {
+      
+      System.err.println(String.format("changeExcludedItem(p=%s, f=%s, e=%s)", targetPath, Boolean.toString(isFolder), Boolean.toString(excluded)));
+
       IManagedBuildInfo info = ManagedBuildManager.getBuildInfo(project);
+      // Add to Include search paths
+      IConfiguration[] configurations = info.getManagedProject().getConfigurations();
+      for (IConfiguration configuration : configurations) {
+         // Exclude in each configuration
+         IPath path = project.getFolder(targetPath).getProjectRelativePath();
+         System.err.println("changeExcludedItem() - Path = " + path.toPortableString());
+         System.err.println("Before");
+         ICSourceEntry[] sourceEntries = configuration.getSourceEntries();
+         listSourceEntries(sourceEntries);
+         ICSourceEntry[] x = CDataUtil.setExcludedIfPossible(path, isFolder, excluded, sourceEntries);
+         System.err.println("After #1");
+         listSourceEntries(x);
+         System.err.println("After #2");
+         listSourceEntries(sourceEntries);
+         configuration.setSourceEntries(x);
+      }
+   }
+
+   public static void excludeItem(IProject project, ExcludeAction action, IProgressMonitor monitor) 
+         throws Exception {
+
+      String  target      = action.getTarget();
+      boolean isFolder    = action.isFolder();
+      boolean isExcluded  = action.isExcluded();
+      
+      changeExcludedItem(project, target, isFolder, isExcluded, monitor);
+   }
+   
+   public static void createIncludeFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException, BuildException {
+//      createSourceFolder(project, targetPath, progressMonitor);
+      createFolder(project, targetPath, progressMonitor);
+      IManagedBuildInfo info = ManagedBuildManager.getBuildInfo(project);
+      // Add to Include search paths
       IConfiguration[] configs = info.getManagedProject().getConfigurations();
       for (IConfiguration config : configs) {
          // Creates include folder path that is portable (e.g. rename project doesn't break paths)
@@ -203,7 +251,6 @@ public class ProjectUtilities {
       if (type == null) {
          type = "";
       }
-      
       try {
          if (type.equalsIgnoreCase("source")) {
             createSourceFolder(projectHandle, target, monitor);

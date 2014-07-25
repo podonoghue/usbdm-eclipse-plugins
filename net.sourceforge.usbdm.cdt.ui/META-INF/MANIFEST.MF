@@ -14,10 +14,9 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="4.10.6",
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
  org.eclipse.cdt.managedbuilder.core,
- org.eclipse.jface,
- org.eclipse.ui.workbench,
- org.eclipse.ui.ide,
- org.eclipse.debug.ui
+ org.eclipse.debug.ui,
+ org.eclipse.cdt.dsf.ui,
+ org.eclipse.core.expressions
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.cdt.ui;
@@ -46,11 +45,18 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
  net.sourceforge.usbdm.cdt.ui.newProjectWizard
 Import-Package: org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.core.model,
- org.eclipse.cdt.debug.mi.core.cdi.model.type,
- org.eclipse.core.internal.resources,
+ org.eclipse.cdt.debug.core.cdi.model,
+ org.eclipse.cdt.dsf.concurrent,
+ org.eclipse.cdt.dsf.datamodel,
+ org.eclipse.cdt.dsf.debug.service,
+ org.eclipse.cdt.dsf.debug.service.command,
+ org.eclipse.cdt.dsf.gdb.launching,
+ org.eclipse.cdt.dsf.gdb.service.command,
+ org.eclipse.cdt.dsf.mi.service,
+ org.eclipse.cdt.dsf.mi.service.command,
+ org.eclipse.cdt.dsf.mi.service.command.commands,
+ org.eclipse.cdt.dsf.mi.service.command.output,
+ org.eclipse.cdt.dsf.service,
  org.eclipse.core.resources,
- org.eclipse.core.variables,
- org.eclipse.jface.text,
- org.eclipse.ui.editors.text,
- org.eclipse.ui.texteditor
+ org.eclipse.core.variables
 Bundle-Vendor: pgo

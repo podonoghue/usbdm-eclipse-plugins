@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
+package net.sourceforge.usbdm.cdt.ui.actions;
 /**
  * 
  */
@@ -16,8 +16,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.ProjectUtilities;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.Device.FileInfo;
+import net.sourceforge.usbdm.deviceDatabase.Device.FileAction;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IPathVariableManager;
@@ -121,7 +123,7 @@ public class AddTargetFiles {
       return pathMan.resolveURI(uri);
    }
    
-   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileInfo fileInfo, IProgressMonitor monitor) throws Exception {
+   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);

@@ -48,6 +48,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        */
       public RegisterModel(PeripheralModel peripheral, Register register, int registerIndex) throws Exception {
          super(peripheral, register.getName(registerIndex), register.getCDescription(registerIndex));
+//         System.err.println(String.format("RegisterModel#1(%s)", peripheral.getName()));
          assert(parent != null) : "parent can't be null";
          assert(register.getDimension() != 0) : "Only applicable to register array";
          this.address    = peripheral.getAddress() + register.getAddressOffset(registerIndex);
@@ -72,6 +73,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        */
       public RegisterModel(PeripheralModel peripheral, Cluster cluster, Register register) {
          super(peripheral, register.getName(), register.getCDescription());
+//         System.err.println(String.format("RegisterModel#2(%s)", peripheral.getName()));
          assert(parent != null) : "parent can't be null";
          assert(cluster.getDimension() == 0) : "Only applicable to simple cluster";
          assert(register.getDimension() == 0) : "Only applicable to simple register";
@@ -89,7 +91,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
       /**
        * Constructor - applicable to simple register within a cluster array
        * 
-       * @param peripheral       Peripheral that contains register
+       * @param peripheral       Peripheral that contains cluster
        * @param cluster          Cluster that contains register
        * @param clusterIndex     Index of cluster within cluster array
        * @param register         Register being created
@@ -97,7 +99,8 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        * @throws Exception 
        */
       public RegisterModel(PeripheralModel peripheral, Cluster cluster, int clusterIndex, Register register) throws Exception {
-         super(peripheral, cluster.getName(clusterIndex), register.getCDescription());
+         super(peripheral, cluster.getName(clusterIndex), register.getCDescription(clusterIndex));
+//         System.err.println(String.format("RegisterModel#3(%s)", peripheral.getName()));
          assert(parent != null) : "parent can't be null";
          assert(cluster.getDimension() != 0) : "Only applicable to array cluster";
          assert(register.getDimension() == 0) : "Only applicable to simple register";
@@ -125,6 +128,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        */
       public RegisterModel(PeripheralModel peripheral, Cluster cluster, int clusterIndex, Register register, int registerIndex) throws Exception {
          super(peripheral, cluster.getName(clusterIndex), register.getCDescription(registerIndex));
+//         System.err.println(String.format("RegisterModel#4(%s)", peripheral.getName()));
          assert(parent != null) : "parent can't be null";
          assert(cluster.getDimension() != 0) : "Only applicable to array cluster";
          assert(register.getDimension() != 0) : "Only applicable to simple register";
@@ -152,22 +156,24 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        * Get value of register
        * 
        * @return Value
+       * @throws MemoryException 
        */
-      public long getValue() {
+      public long getValue() throws MemoryException {
          if (memoryBlockCache == null) {
-            return 0x11111115L;
-         }
-         return memoryBlockCache.getValue(address, size);
-      }
+            throw new MemoryException("memoryBlockCache not set");
+          }
+          return memoryBlockCache.getValue(address, size);
+       }
       
       /**
        * Get last value of register i.e. register value before last change
        * 
        * @return Value
+       * @throws MemoryException 
        */
-      public long getLastValue() {
+      public long getLastValue() throws MemoryException {
          if (memoryBlockCache == null) {
-            return 0x11111113L;
+            return 0;
          }
          return memoryBlockCache.getLastValue(address, size);
       }
@@ -175,7 +181,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
       /**
        *  Updates the register value from target if needed.
        */
-      void update() {
+      public void update() {
 //         System.err.println(String.format("RegisterModel.update(%s)", getName()));
          if (memoryBlockCache != null) {
             memoryBlockCache.update(parent);
@@ -232,9 +238,13 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        * @throws Exception 
        */
       public void setValue(long value) {
-         if (getValue() == value) {
-            // Quietly swallow non-changes
-            return;
+         try {
+            if (getValue() == value) {
+               // Quietly swallow non-changes
+               return;
+            }
+         } catch (MemoryException e) {
+            // Ignore
          }
          if (memoryBlockCache != null) {
             memoryBlockCache.setValue(address, value, (size+7)/8);
@@ -259,7 +269,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
        */
       @Override
-      public String getValueAsString() {
+      public String getValueAsString() throws MemoryException {
          if (isNeedsUpdate()) {
             update();
 //            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));

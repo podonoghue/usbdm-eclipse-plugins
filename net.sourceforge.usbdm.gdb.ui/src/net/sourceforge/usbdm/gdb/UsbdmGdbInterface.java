@@ -22,6 +22,9 @@ import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl;
 /*
  * Used for non-DSF connection
  */
+/**
+ * @since 4.10
+ */
 public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJtagConnection {
    
    @Override

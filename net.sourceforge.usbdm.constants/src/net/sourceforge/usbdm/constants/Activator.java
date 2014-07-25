@@ -32,14 +32,18 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
 		Activator.context = bundleContext;
-		loadUsbdmPaths();
+		try {
+         loadUsbdmPaths();
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
 	}
 
    protected void loadUsbdmPaths() {
       String appPathName = UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR;
       String resPathName = UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR;
 
-      System.err.println("loadUsbdmPathx()");
+      System.err.println("loadUsbdmPaths()");
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
       IPath usbdmApplicationPath = Usbdm.getApplicationPath();
       IPath usbdmResourcePath    = Usbdm.getResourcePath();
@@ -65,6 +69,7 @@ public class Activator extends AbstractUIPlugin {
          System.err.println("loadUsbdmPath() - Failed to set USBDM path variables");
       }   
    }
+   
 	/*
 	 * (non-Javadoc)
 	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)

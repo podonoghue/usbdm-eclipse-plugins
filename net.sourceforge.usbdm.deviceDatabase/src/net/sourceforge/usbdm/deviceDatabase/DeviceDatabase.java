@@ -17,13 +17,16 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.sourceforge.usbdm.deviceDatabase.Device.ClockTypes;
+import net.sourceforge.usbdm.deviceDatabase.Device.Condition;
 import net.sourceforge.usbdm.deviceDatabase.Device.CreateFolderAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.FileInfo;
+import net.sourceforge.usbdm.deviceDatabase.Device.ExcludeAction;
+import net.sourceforge.usbdm.deviceDatabase.Device.FileAction;
 import net.sourceforge.usbdm.deviceDatabase.Device.FileList;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.Device.MemoryType;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectActionList;
+import net.sourceforge.usbdm.deviceDatabase.Device.ProjectCustomAction;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectOption;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectVariable;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -201,18 +204,21 @@ public class DeviceDatabase {
     * Parse a <projectOption> element
     * 
     * @param    element <projectOption> element
-    * @param condition 
     * 
     * @return   element described 
     * 
     * @throws Exception 
     */
-   private ProjectOption parseOptionElement(Element optionElement) throws Exception {
+   private ProjectOption parseProjectOptionElement(Element optionElement) throws Exception {
       // <projectOption>
       String id       = optionElement.getAttribute("id");
       String path     = null;
       if (optionElement.hasAttribute("path")) {
          path = optionElement.getAttribute("path");
+      }
+      boolean replace = false;
+      if (optionElement.hasAttribute("replace")) {
+         replace = optionElement.getAttribute("replace").equalsIgnoreCase("true");
       }
       if (id.isEmpty()) {
          throw new Exception("<projectOption> is missing required attribute");
@@ -235,7 +241,40 @@ public class DeviceDatabase {
       }
 //      System.err.println("parseOptionElement() value = "+values.get(0));
 
-      return new ProjectOption(id, path, values.toArray(new String[values.size()]));
+      return new ProjectOption(id, path, values.toArray(new String[values.size()]), replace);
+   }
+
+   /**
+    * Parse a <customAction> element
+    * 
+    * @param    element <customAction> element
+    * 
+    * @return   element described 
+    * 
+    * @throws Exception 
+    */
+   private ProjectCustomAction parseCustomActionElement(Element customActionElement) throws Exception {
+      // <projectOption>
+      String className  = customActionElement.getAttribute("class");
+      if (className.isEmpty()) {
+         throw new Exception("<customAction> is missing required attribute");
+      }
+      ArrayList<String> values = new ArrayList<String>();
+      
+      for (Node node = customActionElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "value") {
+            values.add(element.getTextContent().trim());
+         }
+      }
+      System.err.println(String.format("parseCustomActionElement(%s, %s)", className, (values.size()==0)?"<empty>":values.get(0)));
+
+      return new ProjectCustomAction(className, values.toArray(new String[values.size()]));
    }
 
    public enum FileType {
@@ -251,7 +290,7 @@ public class DeviceDatabase {
     * @return   File list described 
     * @throws Exception 
     */
-   private Device.FileInfo parseCopyElement(Element element) throws Exception {
+   private FileAction parseCopyElement(Element element) throws Exception {
       // <copy  >
       String source     = element.getAttribute("source");
       String target     = element.getAttribute("target");
@@ -267,23 +306,61 @@ public class DeviceDatabase {
       String sReplacable = element.getAttribute("replacable");
       boolean isReplacable = !sReplacable.equalsIgnoreCase("false");
       
-      FileInfo fileInfo = new Device.FileInfo(null, source, target, fileType, isReplacable);
+      FileAction fileInfo = new FileAction(null, source, target, fileType, isReplacable);
       
       return fileInfo;
    }
      
    /**
+   * Parse a <excludeFolder> element
+   * 
+   * @param    fileElement <excludeFolder> element
+   * 
+   * @return   File list described 
+   * @throws Exception 
+   */
+  private ExcludeAction parseExcludeSourceFolderElement(Element element) throws Exception {
+     // <excludeFolder target="..." excluded="..."  >
+     String target     = element.getAttribute("target");
+     boolean isExcluded = true;
+     if (element.hasAttribute("excluded")) {
+        isExcluded = !element.getAttribute("excluded").equalsIgnoreCase("false");
+     }
+     ExcludeAction fileInfo = new ExcludeAction(null, target, isExcluded, true);
+     return fileInfo;
+  }
+    
+  /**
+  * Parse a <excludeFolder> element
+  * 
+  * @param    fileElement <excludeFolder> element
+  * 
+  * @return   File list described 
+  * @throws Exception 
+  */
+ private ExcludeAction parseExcludeSourceFileElement(Element element) throws Exception {
+    // <excludeFile target="..." excluded="..."  >
+    String target     = element.getAttribute("target");
+    boolean isExcluded = true;
+    if (element.hasAttribute("excluded")) {
+       isExcluded = !element.getAttribute("excluded").equalsIgnoreCase("false");
+    }
+    ExcludeAction fileInfo = new ExcludeAction(null, target, isExcluded, false);
+    return fileInfo;
+ }
+   
+   /**
     * Parse a <condition> element
     * The child nodes are added top the actionlist
     * 
-    * @param    conditionElement <conditionElement> element
+    * @param    conditionElement <condition> element
     * @param    variableList 
     * @param    projectActionList The device to add action to
     * 
     * @return   File list described 
     * @throws Exception 
     */
-   private Device.Condition parseConditionElement(
+   private Condition parseConditionElement(
          Element conditionElement, 
          Map<String, ProjectVariable> variableList, 
          ProjectActionList projectActionList, 
@@ -317,16 +394,15 @@ public class DeviceDatabase {
          }
 //         System.err.println("parseFileListElements() " + node.getNodeName());
          Element element = (Element) node;
-         if (element.getTagName() == "copy") {
-            FileInfo fileInfo = parseCopyElement(element);
-            fileInfo.setRoot(root);
-            fileInfo.setCondition(condition);
-            projectActionList.add(fileInfo);
+         if (element.getTagName() == "excludeSourceFile") {
+            ExcludeAction excludeAction = parseExcludeSourceFileElement(element);
+            excludeAction.setCondition(condition);
+            projectActionList.add(excludeAction);
          }
-         else if (element.getTagName() == "projectOption") {
-            ProjectOption projectOption = parseOptionElement(element);
-            projectOption.setCondition(condition);
-            projectActionList.add(projectOption);
+         else if (element.getTagName() == "excludeSourceFolder") {
+            ExcludeAction excludeAction = parseExcludeSourceFolderElement(element);
+            excludeAction.setCondition(condition);
+            projectActionList.add(excludeAction);
          }
          else if (element.getTagName() == "createFolder") {
             CreateFolderAction action = parseCreateFolderElement(element);
@@ -334,8 +410,24 @@ public class DeviceDatabase {
             action.setRoot(root);
             projectActionList.add(action);
          }
+         else if (element.getTagName() == "copy") {
+            FileAction fileInfo = parseCopyElement(element);
+            fileInfo.setRoot(root);
+            fileInfo.setCondition(condition);
+            projectActionList.add(fileInfo);
+         }
+         else if (element.getTagName() == "projectOption") {
+            ProjectOption projectOption = parseProjectOptionElement(element);
+            projectOption.setCondition(condition);
+            projectActionList.add(projectOption);
+         }
+         else if (element.getTagName() == "customAction") {
+            ProjectCustomAction action = parseCustomActionElement(element);
+            action.setCondition(condition);
+            projectActionList.add(action);
+         }
          else {
-            throw new Exception("Unexpected element \""+element.getTagName()+"\" in fileList");
+            throw new Exception("Unexpected element \""+element.getTagName()+"\" in <condition>");
          }
       }
       return condition;
@@ -358,10 +450,10 @@ public class DeviceDatabase {
       return new ProjectVariable(id, name, description, defaultValue);
    }
 
-   /**
+      /**
     * Parse a <createFolder> element
     * 
-    * @param    <createFolder> element
+    * @param  createFolderElement <createFolder> element
     * 
     * @return   File list described 
     * @throws Exception 
@@ -383,7 +475,7 @@ public class DeviceDatabase {
     * @throws Exception 
     */
    private ProjectActionList parseProjectActionListElement(Element projectActionListElement) throws Exception {
-      return parseProjectActionListElement(projectActionListElement, new ProjectActionList(), new HashMap<String, Device.ProjectVariable>());
+      return parseProjectActionListElement(projectActionListElement, new ProjectActionList(), new HashMap<String, ProjectVariable>());
    }
    
    /**
@@ -402,7 +494,7 @@ public class DeviceDatabase {
       if (listElement.hasAttribute("root")) {
          root = listElement.getAttribute("root");
       }
-      // <fileList>
+      // <projectActionList>
       for (Node node = listElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -411,29 +503,44 @@ public class DeviceDatabase {
          }
          // child node for <projectActionList>
          Element element = (Element) node;
-         if (element.getTagName() == "copy") {
-            FileInfo t = parseCopyElement(element);
-            t.setRoot(root);
-            projectActionList.add(t);
+         if (element.getTagName() == "projectActionListRef") {
+            projectActionList.add(sharedInformation.findSharedActionList(element.getAttribute("ref")));
+         }
+         else if (element.getTagName() == "projectActionList") {
+            parseProjectActionListElement(element, projectActionList, variableList);
          }
          else if (element.getTagName() == "variable") {
             ProjectVariable variable = parseVariableElement(element);
             variableList.put(variable.getId(), variable);
          }
-         else if (element.getTagName() == "projectOption") {
-            projectActionList.add(parseOptionElement(element));
-         }
-         else if (element.getTagName() == "createFolder") {
-            projectActionList.add(parseCreateFolderElement(element));
-         }
          else if (element.getTagName() == "condition") {
             parseConditionElement(element, variableList, projectActionList, root);
          }
-         else if (element.getTagName() == "projectActionList") {
-            parseProjectActionListElement(element, projectActionList, variableList);
+         else if (element.getTagName() == "excludeSourceFile") {
+            ExcludeAction excludeAction = parseExcludeSourceFileElement(element);
+            projectActionList.add(excludeAction);
          }
-         else if (element.getTagName() == "projectActionListRef") {
-            projectActionList.add(sharedInformation.findSharedActionList(element.getAttribute("ref")));
+         else if (element.getTagName() == "excludeSourceFolder") {
+            ExcludeAction excludeAction = parseExcludeSourceFolderElement(element);
+            projectActionList.add(excludeAction);
+         }
+         else if (element.getTagName() == "createFolder") {
+            CreateFolderAction createFolderAction = parseCreateFolderElement(element);
+            createFolderAction.setRoot(root);
+            projectActionList.add(createFolderAction);
+         }
+         else if (element.getTagName() == "copy") {
+            FileAction fileAction = parseCopyElement(element);
+            fileAction.setRoot(root);
+            projectActionList.add(fileAction);
+         }
+         else if (element.getTagName() == "customAction") {
+            ProjectCustomAction projectCustomAction = parseCustomActionElement(element);
+            projectActionList.add(projectCustomAction);
+         }
+         else if (element.getTagName() == "projectOption") {
+            ProjectOption projectOption = parseProjectOptionElement(element);
+            projectActionList.add(projectOption);
          }
          else {
             throw new Exception("Unexpected element \""+element.getTagName()+"\" in <projectActionList>");

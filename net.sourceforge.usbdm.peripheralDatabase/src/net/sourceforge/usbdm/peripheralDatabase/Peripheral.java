@@ -162,6 +162,11 @@ public class Peripheral extends ModeControl implements Cloneable {
       return description;
    }
 
+   /**
+    * Get description of peripheral
+    * 
+    * @return
+    */
    public String getCDescription() {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
    }

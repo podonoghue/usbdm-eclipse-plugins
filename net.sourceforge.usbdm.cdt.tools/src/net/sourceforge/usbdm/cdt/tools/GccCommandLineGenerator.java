@@ -6,6 +6,9 @@ package net.sourceforge.usbdm.cdt.tools;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
+
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IManagedCommandLineInfo;
 import org.eclipse.cdt.managedbuilder.core.IOption;
@@ -103,13 +106,21 @@ public class GccCommandLineGenerator extends PrefixedCommandLineGenerator {
       }
       String[] allFlags = new String[newFlags.size()+flags.length];
       int index = 0;
+      StringBuffer allFlagsBuffer = new StringBuffer();
+      boolean firstFlag = false;
       for(String flag:newFlags) {
          allFlags[index] = flag;
+         if (!firstFlag) {
+            allFlagsBuffer.append(" ");
+         }
+         allFlagsBuffer.append(flag);
          index++;
       }
       for(String flag:flags) {
          allFlags[index++] = flag; 
       }
+      UsbdmSharedSettings.getSharedSettings().put(UsbdmSharedConstants.USBDM_COMPILER_FLAGS_VAR, allFlagsBuffer.toString());
+//      String flag = UsbdmSharedSettings.getSharedSettings().get(UsbdmSharedConstants.USBDM_COMPILER_FLAGS_VAR);
       return allFlags;
    }
 

@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -16,7 +15,7 @@ import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
  * @author podonoghue
  * 
  */
-public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
+public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
 
    /**
     * Dummy constructor for WindowBuilder Pro.
@@ -24,7 +23,7 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
     * @param parent
     * @param style
     */
-   public UsbdmHCS12ConnectionPanel(Composite parent, int style) {
+   public UsbdmS12zConnectionPanel(Composite parent, int style) {
       super(parent, style);
       init();
    }
@@ -38,7 +37,7 @@ public class UsbdmHCS12ConnectionPanel extends UsbdmConnectionPanel {
     * @param protocolPlugin    Indicates the connection type e.g. "HCS08 GDI"
     * @param connectionTypeId  A long string indicating the architecture??
     */
-   public UsbdmHCS12ConnectionPanel(ISettingsListener listener, 
+   public UsbdmS12zConnectionPanel(ISettingsListener listener, 
          Composite         parent,
          int               swtstyle, 
          String            protocolPlugin,  // "CF - GDI", "HC08 GDI" etc

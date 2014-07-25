@@ -38,14 +38,14 @@ public class UsbdmCommon {
    public static final String CFVx_GdiWrapperLib        = "usbdm-cfvx-gdi";  //$NON-NLS-1$
    public static final String ARM_GdiWrapperLib         = "usbdm-arm-gdi";  //$NON-NLS-1$
    public static final String DSC_GdiWrapperLib         = "usbdm-dsc-gdi";  //$NON-NLS-1$
-   public static final String S12Z_GdiWrapperLib        = "usbdm-hcs12-gdi";  //$NON-NLS-1$
+   public static final String S12Z_GdiWrapperLib        = "usbdm-s12z-gdi";  //$NON-NLS-1$
    public static final String RS08_DebugGdiWrapperLib   = "usbdm-rs08-gdi-debug";  //$NON-NLS-1$
    public static final String HCS08_DebugGdiWrapperLib  = "usbdm-hcs08-gdi-debug"; //$NON-NLS-1$
    public static final String CFV1_DebugGdiWrapperLib   = "usbdm-cfv1-gdi-debug";  //$NON-NLS-1$
    public static final String CFVx_DebugGdiWrapperLib   = "usbdm-cfvx-gdi-debug";  //$NON-NLS-1$
    public static final String ARM_DebugGdiWrapperLib    = "usbdm-arm-gdi-debug";  //$NON-NLS-1$
    public static final String DSC_DebugGdiWrapperLib    = "usbdm-dsc-gdi-debug";  //$NON-NLS-1$
-   public static final String S12Z_DebugGdiWrapperLib   = "usbdm-hcs12-gdi-debug";  //$NON-NLS-1$
+   public static final String S12Z_DebugGdiWrapperLib   = "usbdm-s12z-gdi-debug";  //$NON-NLS-1$
 
    public static final int BDM_TARGET_VDD_OFF = 0;   //!< - Target Vdd internal 3.3V
    public static final int BDM_TARGET_VDD_3V3 = 1;   //!< - Target Vdd internal 3.3V

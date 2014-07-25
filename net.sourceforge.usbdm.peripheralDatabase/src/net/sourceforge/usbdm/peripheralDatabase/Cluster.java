@@ -138,23 +138,50 @@ public class Cluster extends ModeControl implements Cloneable {
     * @throws Exception
     */
    public String format(String format, int index) throws Exception {
-      final Pattern pattern = Pattern.compile("(^.*):(.*$)");
-      if ((name == null) || ((index>=0) && (dimensionIndexes == null))) {
-         throw new Exception("name or dimensionIndexes is null");
+      //XXX
+      if (format.matches("^Channel")) {
+         System.err.println("format()" + format);
       }
+      final Pattern pattern = Pattern.compile("(^.*):(.*$)");
+      if (name == null) {
+         throw new Exception("name is null");
+      }
+      
       String sIndex   = "";
       String modifier = null;
       if (index>=0) {
-         String dimensionIndex = dimensionIndexes.get(index);
-         Matcher matcher = pattern.matcher(dimensionIndex);
-         if (matcher.matches()) {
-            sIndex   = matcher.replaceAll("$1");
-            modifier = matcher.replaceAll("$2");
+         if (dimensionIndexes != null) {
+            String dimensionIndex = dimensionIndexes.get(index);
+            Matcher matcher = pattern.matcher(dimensionIndex);
+            if (matcher.matches()) {
+               sIndex   = matcher.replaceAll("$1");
+               modifier = matcher.replaceAll("$2");
+            }
+            else {
+               sIndex = dimensionIndex;
+            }
          }
          else {
-            sIndex = dimensionIndex;
+            sIndex = Integer.toString(index);
          }
       }
+      
+//      if ((index>=0) && (dimensionIndexes == null)) {
+//         throw new Exception("name or dimensionIndexes is null");
+//      }
+//      String sIndex   = "";
+//      String modifier = null;
+//      if ((index>=0) && (dimensionIndexes != null)) {
+//         String dimensionIndex = dimensionIndexes.get(index);
+//         Matcher matcher = pattern.matcher(dimensionIndex);
+//         if (matcher.matches()) {
+//            sIndex   = matcher.replaceAll("$1");
+//            modifier = matcher.replaceAll("$2");
+//         }
+//         else {
+//            sIndex = dimensionIndex;
+//         }
+//      }
       String rv =  format.replaceAll("%s", sIndex);
       if (modifier != null) {
          rv =  rv.replaceAll("%m", modifier);
@@ -474,6 +501,7 @@ public class Cluster extends ModeControl implements Cloneable {
       if (getDimension()>0) {
          for(int index=0; index<getDimension(); index++) {
             for (Register register : registers) {
+               //e.g. #define DMA_SAR0                       (DMA->DMA[0].SAR)
                String name;
                name = nameFormat.replaceAll("@f", register.getName());
                name = name.replaceAll("@i", String.format("%d", index));

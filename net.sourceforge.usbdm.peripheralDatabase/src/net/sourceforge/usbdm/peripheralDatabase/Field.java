@@ -19,7 +19,7 @@ public class Field extends ModeControl implements Cloneable {
       final String prettyName;
       final String abbreviatedName;
       final int    mask;
-      
+
       // Used for reverse lookup of AccessType from prettyName
       private static final Map<String,AccessType> lookupPrettyName
          = new HashMap<String,AccessType>();
@@ -71,7 +71,7 @@ public class Field extends ModeControl implements Cloneable {
    private AccessType             accessType;
    private ArrayList<Enumeration> enumerations;
    private final Register         owner;
-   
+
    public Field(Register owner) {
       name         = "";
       description  = "";
@@ -296,60 +296,54 @@ public class Field extends ModeControl implements Cloneable {
     * 
     * @param   Name to map
     * @return  Mapped name (unchanged if not mapped, null if to be deleted)
-    * TODO Manual name optimisations
     */
    static String getMappedBitfieldMacroName(String name) {
-
+      // TODO: Common names in macros are done here
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
-         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
-         mappedMacros.add(new Pair(Pattern.compile("^(PORT)[^A](_.*)$"),      null));
-         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)[^A](_.*)$"), null));
-         mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[^A](_.*)$"),      null));
-         mappedMacros.add(new Pair(Pattern.compile("^(UART)[^0](_.*)$"),      null));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[^0](_.*)$"),    null));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(ADC)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2C)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[^0](_.*)$"),      null));
-         mappedMacros.add(new Pair(Pattern.compile("^(CAN)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2S)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(OSC)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC)[^0](_.*)$"),       null));
-         mappedMacros.add(new Pair(Pattern.compile("^(CMP)[^0](_.*)$"),       null));
 
-         mappedMacros.add(new Pair(Pattern.compile("^(PORT)A(_.*)$"),                     "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)[ABC](_P(([DSCT]O)|(D[ID])|(ID))R_PT.)$"),    "$1$2")); // MKL FGPIO.. => GPIO..
-         mappedMacros.add(new Pair(Pattern.compile("^F{01}(GPIO)A(_.*)$"),                "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(UART)0(_.*)$"),                     "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)0(_.*)$"),                   "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(ADC)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2C)0(_.*)$"),                      "$1$2"));
-//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)A(.*)$"),            "$1$2$3")); // AIPS0_PACRA_TP7_SHIFT -> AIPS_PACR_TP7_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)[^A](.*)$"),         null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_.*)$"),                     "$1$2"));   // AIPS0_MPRA_MPL5_SHIFT -> AIPS_MPRA_MPL5_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(CAN)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2S)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[^0](_.*)$"),                   null));     // Remove as present when FTMs differ in # of channels
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM0_C\\d)Cn(.*)$"),                "$1$2"));   // Fix inconsistent name
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[^0](_.*)$"),                   null));     // Remove as present when SPIs differ in FIFO depth
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM)[^0](_.*)$"),                   null));     // Remove as present when TPMs differ in # of channels
+
+         // Prevent multiple definitions of bit fields that are common to multiple instances of a device e.g. ADC0, ADC1 etc
+         // Fields are masked to a root name e.g. GPIOA_PDOR_PDO_MASK => GPIO_PDOR_PDO_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(ADC)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[0-9](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(CAN)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(CMP)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^F(GPIO)[A-Z](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[A-Z](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2C)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(I2S)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(OSC)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(LPTMR)[0-9](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(PDB)[A-Z](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
+         
+         /*
+         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_C\\d)Cn(.*)$"),                "$1$2$3"));   // Fix inconsistent name
+
+         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)A(.*)$"),             "$1$2$3")); // AIPS0_PACRA_TP7_SHIFT -> AIPS_PACR_TP7_SHIFT etc
+         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)[^A](.*)$"),           null));     // Remove as redundant
          mappedMacros.add(new Pair(Pattern.compile("^(TPM0_C\\d)Cn(.*)$"),                "$1$2"));   // Fix inconsistent name
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(OSC)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC)0(_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(CMP)0(_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"),         "$1$3$2")); // Fix inconsistent name DAC0_DATL0 -> DAC0_DAT0L
          mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY)3(_KEY.*)$"),            "$1$2"));   // NV_BACKKEY3_KEY_SHIFT -> NV_BACKKEY_KEY_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY\\d_KEY.*)$"),            null));     // Remove as redundant
+         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY\\d_KEY.*)$"),            null));     // Remove as redundant
          mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT)3(.*)$"),                  "$1$2"));   // NV_FPROT3_PROT_SHIFT -> NV_FPROT_PROT_SHIFT etc
-//         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT\\d.*)$"),                  null));     // Remove as redundant
+         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT\\d.*)$"),                  null));     // Remove as redundant
          mappedMacros.add(new Pair(Pattern.compile("^(FTF._F.*)3(.*)$"),                  "$1$2"));   // FTFA_FCCOB3_CCOBn_SHIFT -> FTFA_FCCOB_CCOBn_SHIFT etc
          mappedMacros.add(new Pair(Pattern.compile("^(DMA_DCHPRI)3(.*)$"),                "$1$2"));   // DMA_DCHPRI3_CHPRI_SHIFT -> DMA_DCHPRI_CHPRI_SHIFT etc
+         
+         */
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
@@ -366,7 +360,7 @@ public class Field extends ModeControl implements Cloneable {
    static final String BitfieldMacroPosFormat   = "#define %-40s %d";
    static final String BitfieldMacroMskFormat   = "#define %-40s (0x%02XUL << %s)";
    static final String BitfieldMacroFieldFormat = "#define %-40s (((x)<<%s)&%s)";
-   static final String BitfieldFormatComment    =  " /*!< %-40s*/\n";
+   static final String BitfieldFormatComment    = " /*!< %-40s*/\n";
 
    String getBaseName() {
       return getName().replaceAll("%s", "n");
@@ -378,15 +372,31 @@ public class Field extends ModeControl implements Cloneable {
     * 
     * @param  writer    Where to write 
     * @param  baseName  Basename of the peripheral
+    * @throws Exception 
     */
-   public void writeHeaderFileFieldMacros(PrintWriter writer, String baseName) {
+   public void writeHeaderFileFieldMacros(PrintWriter writer, String baseName) throws Exception {
       String fieldname = baseName+"_"+getBaseName();
       if (isMapFreescaleCommonNames()) {
+         // Filter names
          fieldname = getMappedBitfieldMacroName(fieldname);
          if (fieldname == null) {
             return;
          }
       }
+      int newHashcode = (int) (getBitwidth() + (getBitOffset()<<8));
+      
+      Integer hashCode = fieldMacros.get(fieldname);
+      if (hashCode != null) {
+         // Check if re-definition is the same
+         if (hashCode != newHashcode) {
+            throw new Exception("Redefined MACRO has different hashcode");
+         }
+//         System.err.println("writeHeaderFileFieldMacros() " + fieldname + " - Deleted");
+         // Filter repeated macros
+         return;
+      };
+      fieldMacros.put(fieldname, newHashcode);
+
       String posName   = fieldname+getFieldOffsetSuffixName();
       String mskName   = fieldname+getFieldMaskSuffixName();
       

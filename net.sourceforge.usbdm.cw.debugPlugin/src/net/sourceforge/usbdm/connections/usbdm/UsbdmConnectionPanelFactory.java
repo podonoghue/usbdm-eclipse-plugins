@@ -35,7 +35,7 @@ implements IPhysicalConnectionPanelFactory {
          panel = new UsbdmDSCConnectionPanel(listener, parent, swtstyle, protocolPlugin, connectionTypeId);
       }
       else if (connectionTypeId.equalsIgnoreCase(UsbdmCommon.S12Z_TypeID)) {
-         panel = new UsbdmHCS12ConnectionPanel(listener, parent, swtstyle, protocolPlugin, connectionTypeId);
+         panel = new UsbdmS12zConnectionPanel(listener, parent, swtstyle, protocolPlugin, connectionTypeId);
       }
       if (panel != null) {
          System.err.println("UsbdmConnectionPanelFactory() - connectionTypeId = "+connectionTypeId);

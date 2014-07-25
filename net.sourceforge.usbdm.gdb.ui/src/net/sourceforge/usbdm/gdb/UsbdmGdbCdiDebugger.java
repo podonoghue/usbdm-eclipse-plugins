@@ -39,6 +39,9 @@ import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+/**
+ * @since 4.10
+ */
 public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
 
    private String    miVersion;
@@ -69,7 +72,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
       
       ICDITarget[] targets = session.getTargets();
       if (targets.length == 0 || !(targets[0] instanceof Target)) {
-         throw new CoreException(new Status( IStatus.ERROR, Activator.getPluginId(),
+         throw new CoreException(new Status( IStatus.ERROR, UsbdmGdbServer.getPluginId(),
                -1, "Error getting debug target.", null));
       }
       MISession miSession = ((Target)targets[0]).getMISession();
@@ -123,7 +126,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
          if (symbolsFileName == null) {
             // The launch config GUI should prevent this from happening, but just in case             
             throw new CoreException(new Status( IStatus.ERROR,
-                  Activator.getPluginId(),
+                  UsbdmGdbServer.getPluginId(),
                   -1, "Symbolics loading was requested but file was not specified or not found.", null));
          }
          // Escape windows path separator characters TWICE, once for Java and once for GDB.
@@ -167,7 +170,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
     } catch (UsbdmException e1) {
        e1.printStackTrace();
        throw new CoreException(new Status( IStatus.ERROR,
-             Activator.getPluginId(),
+             UsbdmGdbServer.getPluginId(),
              -1, "Starting server failed.", null));
     }
  }  
@@ -177,7 +180,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
       GdbServerParameters gdbServerParameters = GdbServerParameters.getInitializedServerParameters(config);
       if (gdbServerParameters == null) {
          throw new CoreException(new Status( IStatus.ERROR,
-               Activator.getPluginId(),
+               UsbdmGdbServer.getPluginId(),
                -1, "GDB Server Parameters not found.", null));
       }
       if (gdbServerParameters.getServerType() == GdbServerType.SERVER_SOCKET) {
@@ -187,7 +190,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
       ArrayList<String> serverCommandLine = gdbServerParameters.getCommandLine();
       if (serverCommandLine == null) {
          throw new CoreException(new Status( IStatus.ERROR,
-               Activator.getPluginId(),
+               UsbdmGdbServer.getPluginId(),
                -1, "GDB Server command line invalid.", null));
       }
       submonitor.subTask("Connecting to remote"); //$NON-NLS-1$
@@ -264,7 +267,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
          if (imageFileName == null) {
             // The launch config GUI should prevent this from happening, but just in case
             throw new CoreException(new Status( IStatus.ERROR,
-                  Activator.getPluginId(),
+                  UsbdmGdbServer.getPluginId(),
                   -1, "Image loading was requested but file was not specified or not ", null));
          }
          imageFileName = imageFileName.replace("\\", "\\\\");
@@ -404,13 +407,13 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
             }
          } catch (MIException e) {
             MultiStatus status = new MultiStatus(
-                  Activator.PLUGIN_ID,
+                  UsbdmGdbServer.PLUGIN_ID,
                   ICDTLaunchConfigurationConstants.ERR_INTERNAL_ERROR,
                   "Failed command", e); //$NON-NLS-1$
             status
                   .add(new Status(
                         IStatus.ERROR,
-                        Activator.PLUGIN_ID,
+                        UsbdmGdbServer.PLUGIN_ID,
                         ICDTLaunchConfigurationConstants.ERR_INTERNAL_ERROR,
                         e == null ? "" : e.getLocalizedMessage(), //$NON-NLS-1$
                         e));
@@ -430,7 +433,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
          return new UsbdmGdbInterface();
       } catch (NullPointerException e) {
          throw new CoreException(new Status( IStatus.ERROR,
-               Activator.getPluginId(),
+               UsbdmGdbServer.getPluginId(),
                -1, "Unable to get device.", null));
       }
    }

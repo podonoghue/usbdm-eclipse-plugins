@@ -8,19 +8,20 @@ import org.osgi.framework.BundleContext;
 
 /**
  * The activator class controls the plug-in life cycle
+ * @since 4.10
  */
-public class Activator extends AbstractUIPlugin {
+public class UsbdmGdbServer extends AbstractUIPlugin {
 
    // The plug-in ID
    public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb"; //$NON-NLS-1$
 
    // The shared instance
-   private static Activator plugin;
+   private static UsbdmGdbServer plugin;
 
    /**
     * The constructor
     */
-   public Activator() {
+   public UsbdmGdbServer() {
 //      System.err.println("USBDM::Activator() - Ver 4.10.0");
    }
 
@@ -57,7 +58,7 @@ public class Activator extends AbstractUIPlugin {
     * 
     * @return the shared instance
     */
-   public static Activator getDefault() {
+   public static UsbdmGdbServer getDefault() {
       // System.err.println("USBDM::Activator::getDefault()");
       return plugin;
    }

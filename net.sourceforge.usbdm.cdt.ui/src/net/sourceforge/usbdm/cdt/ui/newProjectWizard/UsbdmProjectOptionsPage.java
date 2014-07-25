@@ -17,6 +17,7 @@ import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.Device.Condition;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectAction;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectActionList;
+import net.sourceforge.usbdm.deviceDatabase.Device.ProjectCustomAction;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectVariable;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -103,6 +104,10 @@ public class UsbdmProjectOptionsPage extends WizardPage {
          if (actionList != null) {
             for (ProjectAction action : actionList) {
                Condition condition = action.getCondition();
+               if (action instanceof ProjectCustomAction) {
+                  System.err.println("createOptionsControl() - " + action.toString());
+                  System.err.println("                       - " + ((condition==null)?"<null>":condition.getVariable().getName()));
+               }
                if (condition != null) {
                   if (!conditionMap.contains(condition.getVariable())) {
                      conditionMap.add(condition.getVariable());

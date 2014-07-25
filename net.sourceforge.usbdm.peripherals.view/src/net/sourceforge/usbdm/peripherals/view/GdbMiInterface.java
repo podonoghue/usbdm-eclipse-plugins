@@ -166,5 +166,4 @@ public class GdbMiInterface implements GdbCommonInterface {
       System.err.println(String.format("GDBInterface.writeMemory(0x%08X, %d)", address, data.length));
       writeMemory(address, data);
    }
-
 }

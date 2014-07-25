@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.peripheralDatabase;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -373,7 +374,7 @@ public class ModeControl implements Cloneable {
    }
 
    /**
-    * Maps a Register macro name to a Freescale new name
+    * Maps a Register macro name to a Freescale style name
     * e.g. DAC0_DATL0 -> DAC0_DAT0L
     * 
     * @param   Name to map
@@ -382,14 +383,16 @@ public class ModeControl implements Cloneable {
    static String getMappedRegisterMacroName(String name) {
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
       if (mappedMacros.size() == 0) {
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM\\d_C\\d)Cn(.*)$"),      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM\\d_C\\d)Cn(.*)$"),      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"), "$1$3$2")); // Fix inconsistent name DAC0_DATL0 -> DAC0_DAT0L
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM\\d_C\\d)Cn(.*)$"),      "$1$2"));   // e.g. FTM0_C1CnV  -> FTM0_C1V
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM\\d_C\\d)Cn(.*)$"),      "$1$2"));   // e.g. TPM0_C0CnSC -> TPM0_C0SC
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"), "$1$3$2")); // e.g. DAC0_DATL0 -> DAC0_DAT0L
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
          if (matcher.matches()) {
+//            String oldName = name;
             name = matcher.replaceAll(p.replacement);
+//            System.err.println(String.format("getMappedRegisterMacroName() : %s -> %s", oldName, name));
             break;
          }
       }
@@ -409,6 +412,13 @@ public class ModeControl implements Cloneable {
          line = line.substring(0,  newlineIndex);
       }
       return line;
+   }
+   
+   // Bit dodgy - assumes you only write the Macros once!
+   protected static HashMap<String, Integer> fieldMacros = new HashMap<String,Integer>();
+
+   static void resetMacroCache() {
+      fieldMacros = new HashMap<String, Integer>();
    }
    
 }

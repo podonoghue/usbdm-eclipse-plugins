@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.jni;
 
+/**
+ * @since 4.10
+ */
 public class UsbdmException extends Exception {
 
    private static final long serialVersionUID = -3089219531225345831L;

@@ -1,12 +1,20 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
+import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 
 import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvider;
+import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvidersKeeper;
+import org.eclipse.cdt.core.language.settings.providers.LanguageSettingsManager;
 import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.core.settings.model.extension.CConfigurationData;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -83,7 +91,7 @@ public class CDTProjectManager {
    private final String LINUX_ARM_CONFIGURATION_ID          = "net.sourceforge.usbdm.cdt.arm.linux";
    private final String LINUX_COLDFIRE_CONFIGURATION_ID     = "net.sourceforge.usbdm.cdt.coldfire.linux";
    
-   void createCDTProj(
+   IProject createCDTProj(
          String               projectName, 
          String               directoryPath, 
          InterfaceType        interfaceType, 
@@ -141,7 +149,26 @@ public class CDTProjectManager {
          config.setArtifactName("${ProjName}");
          CConfigurationData data = config.getConfigurationData();
          Assert.isNotNull(data, "data is null for created configuration");
-         projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+   
+         System.err.println("createCDTProj() ==================================================");
+         final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
+         Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
+         for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
+            System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+         }
+         languageSettingsProviderIdsList.remove(idToRemove);
+         String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
+         for (String languageSettingsProviderId : languageSettingsProviderIds) {
+            System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
+         }
+         ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+         if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
+            ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
+            languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
+         }
+         else {
+            System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
+         }
       }
       try {
          if (hasCCNature) {
@@ -161,21 +188,9 @@ public class CDTProjectManager {
 
       // Persist project description.
       coreModel.setProjectDescription(project, projectDescription);
-
-      String sourceDirectories[]  = {"Sources", "Startup_Code"};
-      String includeFolders[]     = {"Project_Headers"};
-      String folders[]            = {"Project_Settings"};
+      ProcessProjectActions.process(project, device, map, progressMonitor);
       
-      for (String s : sourceDirectories) {
-         ProjectUtilities.createSourceFolder(project, s, progressMonitor);
-      }
-      for (String s : includeFolders) {
-         ProjectUtilities.createIncludeFolder(project, s, progressMonitor);
-      }
-      for (String s : folders) {
-         ProjectUtilities.createFolder(project, s, progressMonitor);
-      }
-      new ProcessProjectActions().process(project, device, map, progressMonitor);
+      return project;
    }
 
 

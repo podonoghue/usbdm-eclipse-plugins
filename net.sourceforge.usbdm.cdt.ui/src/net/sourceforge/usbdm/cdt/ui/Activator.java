@@ -19,12 +19,6 @@ public class Activator extends AbstractUIPlugin {
 
 	// The shared instance
 	private static Activator plugin;
-	
-	/**
-	 * The constructor
-	 */
-    public Activator() {
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -71,5 +65,14 @@ public class Activator extends AbstractUIPlugin {
    public ImageDescriptor getImageDescriptor(String key) {
       return getImageRegistry().getDescriptor(key);
    }
+   
+   public static String getId() {
+      return PLUGIN_ID;
+   }
+
+   public static BundleContext getBundleContext() {
+      return getDefault().getBundle().getBundleContext();
+   }
+
 
 }

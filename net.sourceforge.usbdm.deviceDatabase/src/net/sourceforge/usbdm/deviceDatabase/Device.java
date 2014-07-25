@@ -277,18 +277,18 @@ public class Device {
       }
    }
    
-   public static class FileList extends ArrayList<FileInfo> {
+   public static class FileList extends ArrayList<FileAction> {
 
       private static final long serialVersionUID = 3622396071313657392L;
       
-      void put(FileInfo info) {
+      void put(FileAction info) {
          this.add(info);
 //         System.err.println("FileList.put("+info.toString()+")");
       }
-      FileInfo find(String key) {
-         Iterator<FileInfo> it = this.iterator();
+      FileAction find(String key) {
+         Iterator<FileAction> it = this.iterator();
          while(it.hasNext()) {
-            FileInfo fileInfo = it.next();
+            FileAction fileInfo = it.next();
             if (fileInfo.getId().equals(key)) {
                return fileInfo;
             }
@@ -298,29 +298,29 @@ public class Device {
       @Override
       public String toString() {
          StringBuffer buffer = new StringBuffer();
-         Iterator<FileInfo> it = this.iterator();
+         Iterator<FileAction> it = this.iterator();
          while(it.hasNext()) {
-            FileInfo fileInfo = it.next();
+            FileAction fileInfo = it.next();
             buffer.append(fileInfo.toString());
          }
          return buffer.toString();     
       }
       public void add(FileList fileList) {
-         for(FileInfo i : fileList) {
+         for(FileAction i : fileList) {
             this.add(i);
          }
 
       }
    }
    
-   public static class FileInfo extends ProjectAction {
+   public static class FileAction extends ProjectAction {
       private final String    source;
       private final String    target;
       private       String    root;
       private final FileType  fileType;
       private final boolean   replaceable;
 
-      public FileInfo(String id, String source, String target, FileType fileType, boolean isReplaceable) {
+      public FileAction(String id, String source, String target, FileType fileType, boolean isReplaceable) {
          super(id);
          this.source      = source;
          this.target      = target;
@@ -341,8 +341,8 @@ public class Device {
       @Override
       public String toString() {
          StringBuffer buffer = new StringBuffer(2000);
-         buffer.append(" source=\""+root+source+"\" => ");
-         buffer.append(" target=\""+target+"\"");
+         buffer.append("FileAction[\""+root+source+"\" => \n");
+         buffer.append("           \""+target+"\"");
          return buffer.toString();
       }
 
@@ -357,45 +357,68 @@ public class Device {
       public FileType getFileType() {
          return fileType;
       }
+   }
+   
+   public static class ExcludeAction extends ProjectAction {
+      private final String    target;
+      private final boolean   excluded;
+      private final boolean   folder;
       
-      public String tosString() {
-         return String.format("FileInfo[root=%s, source=%s, target=%s]", root, source, target);
+      public ExcludeAction(String id, String target, boolean isExcluded, boolean isFolder) {
+         super(id);
+         this.target      = target;
+         this.excluded  = isExcluded;
+         this.folder    = isFolder;
+      }
+      public String getTarget() {
+         return target;
+      }
+      public boolean isExcluded() {
+         return excluded;
+      }
+      public boolean isFolder() {
+         return folder;
+      }
+      @Override
+      public String toString() {
+         StringBuffer buffer = new StringBuffer(2000);
+         buffer.append("ExcludeAction[\""+target+"\"\n");
+         return buffer.toString();
       }
    }
    
    public static class ProjectOption extends ProjectAction {
       private final String   path;
       private final String[] value;
+      private final boolean  replace;
 
-      public ProjectOption(String id, String path,  String[] value) {
+      public ProjectOption(String id, String path,  String[] value, boolean replace) {
          super(id);
          this.path     = path;
          this.value    = value;
+         this.replace  = replace;
 //         System.err.println("ProjectOption() value = "+value[0]);
       }
-      
-      @Override
-      public String toString() {
-         return "ProjectOption["+getId()+", "+path+", "+value[0]+"]";
-      }
-      
       public String[]  getValue() {
          return value;
       }
       public String getPath() {
          return path;
       }
-      
-      public String tosString() {
-         return String.format("ProjectOption[path=%s, value=%s]", path, value);
+      public boolean isReplace() {
+         return replace;
+      }
+      @Override
+      public String toString() {
+         return String.format("ProjectOption[id=%s, path=%s, value=%s ...]", getId(), path, (value.length==0)?"<empty>":value[0]);
       }
    }
 
    public static class ProjectVariable extends ProjectAction {
-      private final String name;
-      private final String description;
-      private final String defaultValue;
-      private String value;
+      protected final String name;
+      protected final String description;
+      protected final String defaultValue;
+      protected String value;
       
       public ProjectVariable(String id, String name, String description, String defaultValue) {
          super(id);
@@ -420,10 +443,36 @@ public class Device {
          this.value = value;
       }
       
-      public String tosString() {
+      @Override
+      public String toString() {
          return String.format("ProjectVariable[name=%s, description=%s, value=%s]", name, description, value);
       }
    }
+
+   public static class ProjectCustomAction extends ProjectAction {
+      private final String   className;
+      private final String[] value;
+
+      public ProjectCustomAction(String className, String[] value) {
+         super("");
+         this.className     = className;
+         this.value    = value;
+//         System.err.println("ProjectCustomAction() value = "+value[0]);
+      }
+      
+      public String[]  getValue() {
+         return value;
+      }
+      public String getclassName() {
+         return className;
+      }
+      
+      @Override
+      public String toString() {
+         return String.format("ProjectCustomAction[class=%s, value=%s]", className, (value.length==0)?"<empty>":value[0]);
+      }
+   }
+
 
    public static class CreateFolderAction extends ProjectAction {
       
@@ -453,7 +502,8 @@ public class Device {
          return root;
       }
       
-      public String tosString() {
+      @Override
+      public String toString() {
          return String.format("CreateFolderAction[root=%s, target=%s, type=%s]", root, target, type);
       }
    }

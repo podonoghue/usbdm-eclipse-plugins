@@ -170,7 +170,7 @@ public class Cpu extends ModeControl {
          return "core_cm3.h";
       }
       if (getName().startsWith("CM0")) {
-         return "core_cm0.h";
+         return "core_cm0plus.h";
       }
       return "core_cm3.h";
    }
@@ -180,7 +180,7 @@ public class Cpu extends ModeControl {
          return "__CM4_REV";
       }
       if (getName().startsWith("CM0")) {
-         return "__CM0_REV";
+         return "__CM0PLUS_REV";
       }
       if (getName().startsWith("CM3")) {
          return "__CM3_REV";

@@ -48,8 +48,9 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * Get value of register
     * 
     * @return Value
+    * @throws MemoryException 
     */
-   public long getValue() {
+   public long getValue() throws MemoryException {
       RegisterModel parent = (RegisterModel) this.parent;
       return ((1l<<size)-1)&(parent.getValue()>>bitOffset);
    }
@@ -58,8 +59,9 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * Get last value of register
     * 
     * @return Value
+    * @throws MemoryException 
     */
-   public long getLastValue() {
+   public long getLastValue() throws MemoryException {
       RegisterModel parent = (RegisterModel) this.parent;
       return ((1l<<size)-1)&(parent.getLastValue()>>bitOffset);
    }
@@ -69,7 +71,12 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public boolean isChanged() {
-      return getValue() != getLastValue();
+      try {
+         return getValue() != getLastValue();
+      } catch (MemoryException e) {
+         // Quietly ignore
+      }
+      return false;
    }
 
    /* (non-Javadoc)
@@ -77,11 +84,15 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getValueAsString() {
-      if ((enumerations != null) || (size<9)) {
-         return super.getValueAsBinaryString(getValue(), size);
-      }
-      else {
-         return super.getValueAsHexString(getValue(), size);
+      try {
+         if ((enumerations != null) || (size<9)) {
+            return super.getValueAsBinaryString(getValue(), size);
+         }
+         else {
+            return super.getValueAsHexString(getValue(), size);
+         }
+      } catch (MemoryException e) {
+         return "-- invalid --";
       }
    }
 
@@ -125,7 +136,12 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @throws Exception 
     */
    public void setValue(Long bitField) {
-      Long currentValue = ((RegisterModel)(this.parent)).getValue();
+      Long currentValue;
+      try {
+         currentValue = ((RegisterModel)(this.parent)).getValue();
+      } catch (MemoryException e) {
+         currentValue = 0L;
+      }
       Long mask         = ((1l<<size)-1)<<bitOffset;
       ((RegisterModel)(this.parent)).setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
    }

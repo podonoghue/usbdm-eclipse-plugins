@@ -2,6 +2,9 @@ package net.sourceforge.usbdm.gdb;
 
 import java.util.HashMap;
 
+/**
+ * @since 4.10
+ */
 public class UsbdmGdbLaunchInformation {
 
    private HashMap<String, String> map = new HashMap<String, String>();

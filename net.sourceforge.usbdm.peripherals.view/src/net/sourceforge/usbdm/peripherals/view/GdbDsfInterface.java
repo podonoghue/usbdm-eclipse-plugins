@@ -9,7 +9,6 @@ import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.ImmediateExecutor;
 import org.eclipse.cdt.dsf.concurrent.Query;
 import org.eclipse.cdt.dsf.debug.service.command.ICommand;
-import org.eclipse.cdt.dsf.gdb.internal.GdbPlugin;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIDataReadMemoryInfo;
@@ -18,10 +17,14 @@ import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.model.MemoryByte;
 
-@SuppressWarnings("restriction")
 public class GdbDsfInterface implements GdbCommonInterface {
 
-   private DsfSession dsfSession  = null;
+//   private static final int maxResetWaitTimeInMilliseconds      = 10000;  
+   private static final int defaultMemoryWaitTimeInMilliseconds = 1000; // Usual time to wait for memory accesses
+   private static final int reducedMemoryWaitTimeInMilliseconds =  100; // Reduced time to wait after an initial failure
+   private int              memoryWaitTimeInMilliseconds        = defaultMemoryWaitTimeInMilliseconds; // Active memory wait time
+   
+   private DsfSession          dsfSession  = null;
 
    GdbDsfInterface(DsfSession dsfSession) {
       this.dsfSession  = dsfSession;
@@ -38,24 +41,25 @@ public class GdbDsfInterface implements GdbCommonInterface {
     *  @param address   address in target memory
     *  @param size      number of bytes to read
     *  
-    *  @return byte[size] containing the data read 
+    *  @return byte[size] containing the data read or null on failure
     */
    private byte[] readMemory(long address, int size) throws TimeoutException {
       
       System.err.println("GDBInterface.readMemory(DSF)");
       if (dsfSession == null) {
+         System.err.println("GDBInterface.readMemory(DSF) dsfSession = null");
          return null;
       }
       byte[] ret = null;
-      DsfServicesTracker tracker = new DsfServicesTracker(GdbPlugin.getBundleContext(), dsfSession.getId());
+      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
 
       final IGDBControl fGdb = (IGDBControl) tracker.getService(IGDBControl.class);
       if (fGdb == null) {
+         System.err.println("GDBInterface.readMemory(DSF) fGdb = null");
          return null;
       }
       CommandFactory factory = fGdb.getCommandFactory();
-      final ICommand<MIDataReadMemoryInfo> info_rm = 
-            factory.createMIDataReadMemory(fGdb.getContext(), 0L, Long.toString(address), 0, 1, 1, size, null);
+      final ICommand<MIDataReadMemoryInfo> info_rm = factory.createMIDataReadMemory(fGdb.getContext(), 0L, Long.toString(address), 0, 1, 1, size, null);
 
       Query<MIDataReadMemoryInfo> query = new Query<MIDataReadMemoryInfo>() {
          @Override
@@ -70,32 +74,36 @@ public class GdbDsfInterface implements GdbCommonInterface {
          }
       };
       ImmediateExecutor.getInstance().execute(query);
-      MIDataReadMemoryInfo data = null;
+      MIDataReadMemoryInfo result = null;
       try {
-         data = (MIDataReadMemoryInfo) query.get(maxWaitTimeInInMilliseconds, TimeUnit.MILLISECONDS);
-         if (data.isError()) {
-            data = null;
-         }
-         if (data != null) {
-            MemoryByte[] bytes = data.getMIMemoryBlock();
+         result = (MIDataReadMemoryInfo) query.get(memoryWaitTimeInMilliseconds, TimeUnit.MILLISECONDS);
+         // Reset wait time
+         memoryWaitTimeInMilliseconds = defaultMemoryWaitTimeInMilliseconds;
+         if ((result != null) && !result.isError()) {
+            MemoryByte[] bytes = result.getMIMemoryBlock();
             byte[] arraybytes = new byte[bytes.length];
             for (int i = 0; i < bytes.length; i++) {
                arraybytes[i] = bytes[i].getValue();
             }
             ret = arraybytes;
          }
+         else {
+            System.err.println("GDBInterface.readMemory(DSF) - failed, result == null or result.isError()");
+         }
       } catch (InterruptedException localInterruptedException) {
+         System.err.println("GDBInterface.readMemory(DSF) localInterruptedException");
       } catch (ExecutionException localExecutionException) {
+         System.err.println("GDBInterface.readMemory(DSF) localExecutionException");
       } catch (TimeoutException localTimeoutException) {
-         throw new TimeoutException("readMemory - failed, ErrorMessage: waiting time of " + maxWaitTimeInInMilliseconds + " ms passed");
+         System.err.println("GDBInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
+         // Reduced wait on next failure
+         memoryWaitTimeInMilliseconds = reducedMemoryWaitTimeInMilliseconds;
       } finally {
          tracker.dispose();
       }
       return ret;
    }
    
-   private static int maxWaitTimeInInMilliseconds = 1000;
-
    /**
     * Wrapper that handles DSF or MI memory reads
     * 
@@ -156,7 +164,7 @@ public class GdbDsfInterface implements GdbCommonInterface {
     * @return Number of bytes written (-1 => error)
     */
    private int writeMemory(long address, byte[] data) {
-      System.err.println("GDBInterface.writeMemory(DSF)");
+//      System.err.println("GDBInterface.writeMemory(DSF)");
 
       if ((dsfSession == null)) {
          return -1;
@@ -170,13 +178,12 @@ public class GdbDsfInterface implements GdbCommonInterface {
 
       String value = buffer.toString();
 
-      int ret = -1;
-      DsfServicesTracker tracker = new DsfServicesTracker(GdbPlugin.getBundleContext(), dsfSession.getId());
+      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
       final IGDBControl fGdb = tracker.getService(IGDBControl.class);
       if (fGdb == null) {
          return -1;
       }
-      org.eclipse.cdt.dsf.mi.service.command.CommandFactory factory = fGdb.getCommandFactory();
+      CommandFactory factory = fGdb.getCommandFactory();
       int format;
       if (value.contains("x")) {
          format = MIFormat.HEXADECIMAL;
@@ -197,20 +204,25 @@ public class GdbDsfInterface implements GdbCommonInterface {
          }
       };
       ImmediateExecutor.getInstance().execute(query);
-      MIDataWriteMemoryInfo data2 = null;
+      int ret = -1;
       try {
-         data2 = (MIDataWriteMemoryInfo) query.get(maxWaitTimeInInMilliseconds,
-               TimeUnit.MILLISECONDS);
-         if (data2.isError()) {
-            data2 = null;
+         MIDataWriteMemoryInfo result = (MIDataWriteMemoryInfo) query.get(memoryWaitTimeInMilliseconds, TimeUnit.MILLISECONDS);
+         // Reset wait time
+         memoryWaitTimeInMilliseconds = defaultMemoryWaitTimeInMilliseconds;
+         if ((result != null) && !result.isError()) {
+            ret = data.length;
          }
-         ret = data2 != null ? data.length : -1;
+         else {
+            System.err.println("GDBInterface.writeMemory() - failed, result == null or result.isError()");
+         }
       } catch (InterruptedException localInterruptedException) {
-         System.err.println("GDBInterface.readMemory() - failed, ErrorMessage: Interrupted Exception");
+         System.err.println("GDBInterface.writeMemory() - failed, ErrorMessage: Interrupted Exception");
       } catch (ExecutionException localExecutionException) {
-         System.err.println("GDBInterface.readMemory() - failed, ErrorMessage: Execution Exception");
+         System.err.println("GDBInterface.writeMemory() - failed, ErrorMessage: Execution Exception");
       } catch (TimeoutException localTimeoutException) {
-         System.err.println("GDBInterface.readMemory() - failed, ErrorMessage: waiting time of " + maxWaitTimeInInMilliseconds + " ms expired");
+         System.err.println("GDBInterface.writeMemory() - failed, ErrorMessage: waiting time of " + memoryWaitTimeInMilliseconds + " ms expired");
+         // Reduced wait time on next access
+         memoryWaitTimeInMilliseconds = reducedMemoryWaitTimeInMilliseconds;
       } finally {
          tracker.dispose();
       }
@@ -218,7 +230,7 @@ public class GdbDsfInterface implements GdbCommonInterface {
    }
        
    /**
-    * Wrapper that handles DSF or MI memory writes
+    * Wrapper that handles memory writes
     * 
     * @param address    Address to write at
     * @param data       Data to write.  This must be 1, 2, 4 or 8 bytes due to limitations of underlying GDB command used
@@ -227,8 +239,7 @@ public class GdbDsfInterface implements GdbCommonInterface {
     */
    @Override
    public void writeMemory(long address, byte[] data, int accessWidth) throws TimeoutException {
-      System.err.println(String.format("GDBInterface.writeMemory(0x%08X, %d)", address, data.length));
+//      System.err.println(String.format("GDBInterface.writeMemory(0x%08X, %d)", address, data.length));
       writeMemory(address, data);
    }
-
 }

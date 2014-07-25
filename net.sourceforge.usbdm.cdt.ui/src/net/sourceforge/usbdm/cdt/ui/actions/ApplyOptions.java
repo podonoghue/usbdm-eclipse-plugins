@@ -1,7 +1,8 @@
-package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
+package net.sourceforge.usbdm.cdt.ui.actions;
 
 import java.util.Map;
 
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.Device.ProjectOption;
 
@@ -35,13 +36,14 @@ public class ApplyOptions {
 //      System.err.println("ApplyOptions.process() - "+projectOption.toString());
       String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);
       String path     = MacroSubstitute.substitute(projectOption.getPath(),   variableMap);
-      String value[] = projectOption.getValue();
+      String value[]  = projectOption.getValue();
+      boolean replace = projectOption.isReplace();
       for (int index=0; index<value.length; index++) {
          value[index] = MacroSubstitute.substitute(value[index], variableMap);
 //         System.err.println("ApplyOptions.process() value[n] = "+value[index]);
       }
       try {
-         modified |= setOptionValue(projectHandle, id, value, path, progressMonitor);
+         modified |= setOptionValue(projectHandle, id, value, path, replace, progressMonitor);
       } catch (BuildException e) {
          e.printStackTrace();
       }
@@ -57,7 +59,8 @@ public class ApplyOptions {
       }
    }
 
-   private static boolean setOptionValue(IProject projectHandle, String id, String[] value, String path, IProgressMonitor progressMonitor) throws Exception {
+   private static boolean setOptionValue(IProject projectHandle, String id, String[] value, String path, boolean replace, IProgressMonitor progressMonitor) 
+         throws Exception {
       IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
 
       boolean resource = !(path == null || path.equals("") || path.equals("/")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -78,15 +81,15 @@ public class ApplyOptions {
             }
             ITool[] tools = resourceConfig.getTools();
             for (ITool tool : tools) {
-               modified |= addToOptionForResourceConfig(id, value, resourceConfig, tool.getOptions(), tool);
+               modified |= addToOptionForResourceConfig(id, value, replace, resourceConfig, tool.getOptions(), tool );
             }
          } else {
             IToolChain toolChain = config.getToolChain();
-            modified |= addToOptionForConfig(id, value, config, toolChain.getOptions(), toolChain);
+            modified |= addToOptionForConfig(id, value, replace, config, toolChain.getOptions(), toolChain);
 
             ITool[] tools = config.getTools();
             for (ITool tool : tools) {
-               modified |= addToOptionForConfig(id, value, config, tool.getOptions(), tool);
+               modified |= addToOptionForConfig(id, value, replace, config, tool.getOptions(), tool);
             }
          }
       }
@@ -124,7 +127,13 @@ public class ApplyOptions {
       return newValues;
    }
    
-   private static boolean addToOptionForResourceConfig(String id, String value[], IResourceConfiguration resourceConfig, IOption[] options, IHoldsOptions optionHolder) 
+   private static boolean addToOptionForResourceConfig(
+         String id, 
+         String value[], 
+         boolean replace,
+         IResourceConfiguration resourceConfig, 
+         IOption[] options, 
+         IHoldsOptions optionHolder) 
          throws Exception {
       boolean modified = false;
       String lowerId = id.toLowerCase();
@@ -132,7 +141,11 @@ public class ApplyOptions {
          if (option.getBaseId().toLowerCase().matches(lowerId)) {
             int optionType = option.getBasicValueType();
             if ((optionType == IOption.STRING)) {
-               String oldValue = option.getStringValue();
+               String oldValue = "";
+               if (!replace) {
+                  // Append to existing values
+                  option.getStringValue();
+               }
                String newValue = oldValue + value[0];
                ManagedBuildManager.setOption(resourceConfig, optionHolder, option, newValue);
                modified = true;
@@ -146,8 +159,12 @@ public class ApplyOptions {
                modified = true;
             }
             else if ((optionType == IOption.STRING_LIST)) {
-               // Append values
-               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, appendArrays(option.getBasicStringListValue(), value));
+               String[] oldValues = new String[] {};
+               if (!replace) {
+                  // Append to existing values
+                  oldValues = option.getBasicStringListValue();
+               }
+               ManagedBuildManager.setOption(resourceConfig, optionHolder, option, appendArrays(oldValues, value));
                modified = true;
             }
             else {
@@ -158,7 +175,7 @@ public class ApplyOptions {
       return modified;
    }
 
-   private static boolean addToOptionForConfig(String id, String value[], IConfiguration config, IOption[] options, IHoldsOptions optionHolder) 
+   private static boolean addToOptionForConfig(String id, String value[], boolean replace, IConfiguration config, IOption[] options, IHoldsOptions optionHolder) 
          throws Exception {
       boolean modified = false;
       String lowerId = id.toLowerCase();
@@ -166,7 +183,11 @@ public class ApplyOptions {
          if (option.getBaseId().toLowerCase().matches(lowerId)) {
             int optionType = option.getBasicValueType();
             if ((optionType == IOption.STRING)) {
-               String oldValue = option.getStringValue();
+               String oldValue = "";
+               if (!replace) {
+                  // Append to existing values
+                  oldValue = option.getStringValue();
+               }
                String newValue = oldValue + value[0];
                ManagedBuildManager.setOption(config, optionHolder, option, newValue);
                modified = true;
@@ -180,8 +201,12 @@ public class ApplyOptions {
                modified = true;
             }
             else if ((optionType == IOption.STRING_LIST)) {
-               // Append values
-               ManagedBuildManager.setOption(config, optionHolder, option, appendArrays(option.getBasicStringListValue(), value));
+               String[] oldValues = new String[] {};
+               if (!replace) {
+                  // Append to existing values
+                  oldValues = option.getBasicStringListValue();
+               }
+               ManagedBuildManager.setOption(config, optionHolder, option, appendArrays(oldValues, value));
                modified = true;
             }
             else {

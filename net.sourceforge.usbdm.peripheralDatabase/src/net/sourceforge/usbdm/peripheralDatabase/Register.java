@@ -184,11 +184,15 @@ public class Register extends Cluster implements Cloneable {
    }
 
    public String getDescription() {
+      if (description.matches("Channel")) {
+         System.err.println("getDescription()" + description);
+      }
       return description;
    }
 
    public String getDescription(int index) throws Exception {
-      return this.format(getDescription(), index);
+      String description = getDescription();
+      return this.format(description, index);
    }
 
    public String getCDescription() {

@@ -22,36 +22,36 @@ import org.eclipse.core.runtime.Path;
 
 public class DevicePeripheralsTest {
 
-   static IPath mainFolder                                      = new Path("C:/Users/podonoghue/Development/USBDM/Arm_Devices/Generated");
-   static IPath svdRaw                                          = mainFolder.append("svdRaw");
-   
-   static IPath headerFolder                                    = mainFolder.append("Header");
-   static IPath headerReducedMergedOptimisedFolder              = mainFolder.append("HeaderReducedMergedOptimised");
-   static IPath headerReducedMergedOptimisedManualFolder        = mainFolder.append("HeaderReducedMergedOptimisedManual");
+   static IPath mainFolder                                        = new Path("C:/Users/podonoghue/Development/USBDM/Arm_Devices/Generated");
+   static IPath svdRaw                                            = mainFolder.append("svdRaw");
+                                                                  
+   static IPath headerFolder                                      = mainFolder.append("Header");
+   static IPath headerReducedMergedOptimisedFolder                = mainFolder.append("HeaderReducedMergedOptimised");
+   static IPath headerReducedMergedOptimisedManualFolder          = mainFolder.append("HeaderReducedMergedOptimisedManual");
    static IPath headerReducedMergedOptimisedManualIterationFolder = mainFolder.append("HeaderReducedMergedOptimisedManualIteration");
-   static IPath headerReducedMergedOptimisedManualExpandedFolder = mainFolder.append("HeaderReducedMergedOptimisedManualExpanded");
+   static IPath headerReducedMergedOptimisedManualExpandedFolder  = mainFolder.append("HeaderReducedMergedOptimisedManualExpanded");
    
-   static IPath svdReducedFolder                                = mainFolder.append("svdReduced");
-   static IPath svdReducedMergedFolder                          = mainFolder.append("svdReducedMerged");
-   static IPath svdReducedMergedOptimisedFolder                 = mainFolder.append("svdReducedMergedOptimised");
-   static IPath svdReducedMergedOptimisedManualFolder           = mainFolder.append("svdReducedMergedOptimisedManual");
-   static IPath svdReducedMergedOptimisedManualIterationFolder  = mainFolder.append("svdReducedMergedOptimisedManualIteration");
-   static IPath svdReducedMergedOptimisedManualExpandedFolder   = mainFolder.append("svdReducedMergedOptimisedManualExpanded");
-
-   static IPath freescaleSvdFolder                              = mainFolder.append("Freescale");
-   static IPath freescaleSvdTestFolder                          = mainFolder.append("FreescaleTest");
-   static IPath freescaleHeaderFilesFolder                      = mainFolder.append("FreescaleHeaderFiles");
-
-   static IPath stmicroSvdFolder                                = mainFolder.append("STMicro");
-   static IPath stmicroSvdExpandedFolder                        = mainFolder.append("STMicroExpanded");
-   static IPath stmicroSvdMergedFolder                          = mainFolder.append("STMicroMerged");
-   static IPath stmicroSvdMerged2Folder                         = mainFolder.append("STMicroMerged2");
-   static IPath stMicroHeaderFilesFolder                        = mainFolder.append("STMicroHeaderFiles");
-
-   static IPath freescaleFolder                                 = mainFolder.append("Freescale");
-   static IPath freescaleSortedFolder                           = mainFolder.append("FreescaleSorted");
-   static IPath freescaleCommonFolder                           = mainFolder.append("FreescaleCommon");
-   static IPath freescaleReducedFolder                          = mainFolder.append("FreescaleReduced");
+   static IPath svdReducedFolder                                  = mainFolder.append("svdReduced");
+   static IPath svdReducedMergedFolder                            = mainFolder.append("svdReducedMerged");
+   static IPath svdReducedMergedOptimisedFolder                   = mainFolder.append("svdReducedMergedOptimised");
+   static IPath svdReducedMergedOptimisedManualFolder             = mainFolder.append("svdReducedMergedOptimisedManual");
+   static IPath svdReducedMergedOptimisedManualCheckFolder        = mainFolder.append("svdReducedMergedOptimisedManual.Check");
+   static IPath svdReducedMergedOptimisedManualExpandedFolder     = mainFolder.append("svdReducedMergedOptimisedManualExpanded");
+                                                                  
+   static IPath freescaleSvdFolder                                = mainFolder.append("Freescale");
+   static IPath freescaleSvdTestFolder                            = mainFolder.append("FreescaleTest");
+   static IPath freescaleHeaderFilesFolder                        = mainFolder.append("FreescaleHeaderFiles");
+                                                                  
+   static IPath stmicroSvdFolder                                  = mainFolder.append("STMicro");
+   static IPath stmicroSvdExpandedFolder                          = mainFolder.append("STMicroExpanded");
+   static IPath stmicroSvdMergedFolder                            = mainFolder.append("STMicroMerged");
+   static IPath stmicroSvdMerged2Folder                           = mainFolder.append("STMicroMerged2");
+   static IPath stMicroHeaderFilesFolder                          = mainFolder.append("STMicroHeaderFiles");
+                                                                  
+   static IPath freescaleFolder                                   = mainFolder.append("Freescale");
+   static IPath freescaleSortedFolder                             = mainFolder.append("FreescaleSorted");
+   static IPath freescaleCommonFolder                             = mainFolder.append("FreescaleCommon");
+   static IPath freescaleReducedFolder                            = mainFolder.append("FreescaleReduced");
 
    
    static final String deviceListFilename       = "DeviceList.xml";
@@ -103,6 +103,11 @@ public class DevicePeripheralsTest {
 
       File[] listOfFiles = sourceFolderPath.toFile().listFiles();
 
+      if (listOfFiles == null) {
+         System.out.flush();
+         System.err.println("Source doesn't exist " + sourceFolderPath.toOSString());
+         return;
+      }
       // Using complete file name so no automatic extension
       SVD_XML_Parser.setXmlExtension("");
 
@@ -652,10 +657,10 @@ public class DevicePeripheralsTest {
          else if (true) {
             // Expand SVD
             ModeControl.setExpandDerivedRegisters(false);
-            mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
+            mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
             createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-            createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-            createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true); // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+//            createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
+//            createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true); // svdReducedMerged +-> headerReducedMerged (== headerReduced)
          }
          else {
             // Playing with Freescale files

@@ -14,15 +14,12 @@ public class NewProjectHandler extends AbstractHandler {
 	 *  Display the USBDM Configuration dialogue
 	 */
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-	   
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-		
-		UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
-      wizard.init(window.getWorkbench(), null );
       
-      // Instantiates the wizard container with the wizard and opens it
-      WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
-      dialog.create();
-		return dialog.open();
-	}
+      IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+      UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
+      wizard.init(window.getWorkbench(), null);
+      WizardDialog wizardDialog = new  WizardDialog(window.getShell(), wizard);
+      wizardDialog.setTitle(wizard.getWindowTitle());
+      return wizardDialog.open();
+   }
 }

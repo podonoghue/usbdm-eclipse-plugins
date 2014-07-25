@@ -3,7 +3,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Name: USBDM GDB Debugger Plugin
 Bundle-Vendor: pgo
-Bundle-Activator: net.sourceforge.usbdm.gdb.Activator
+Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
 Bundle-Version: 4.10.6.qualifier
@@ -29,7 +29,6 @@ Import-Package: org.eclipse.cdt.core.model,
  org.eclipse.cdt.debug.core.cdi,
  org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,
- org.eclipse.cdt.dsf.debug.internal.provisional.service,
  org.eclipse.cdt.dsf.debug.service,
  org.eclipse.cdt.dsf.debug.service.command,
  org.eclipse.cdt.dsf.service,

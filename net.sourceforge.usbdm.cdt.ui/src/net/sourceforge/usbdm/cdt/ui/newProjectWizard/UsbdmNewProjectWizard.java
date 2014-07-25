@@ -29,13 +29,19 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       
       IDialogSettings settings = null;
       Activator plugin = Activator.getDefault();
+      if (plugin == null) {
+         System.err.println("*************************** plugin is null *********************");
+      }
       if (plugin != null) {
          settings = plugin.getDialogSettings();
+         if (settings == null) {
+            System.err.println("*************************** settings is null *********************");
+         }
       }
       setDialogSettings(settings);
    }
 
-   UsbdmProjectSelectionPage  usbdmProjectSelectionPage  = null;
+   UsbdmProjectSelectionPage        usbdmProjectSelectionPage  = null;
    UsbdmProjectPage                 usbdmProjectPage           = null;
    UsbdmProjectOptionsPage          usbdmProjectOptionsPage    = null;
    UsbdmToolSettingsPage            usbdmToolSettingsPage      = null;
@@ -84,7 +90,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     */
    @Override
    public boolean canFinish() {
-      super.canFinish();
+//      super.canFinish();
       return ((usbdmProjectSelectionPage != null) && usbdmProjectSelectionPage.isPageComplete()) &&
              ((usbdmProjectPage != null)          && usbdmProjectPage.isPageComplete()) &&
              ((usbdmProjectOptionsPage != null)   && usbdmProjectOptionsPage.isPageComplete()) &&
@@ -179,6 +185,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
                map,
                monitor);
       } catch (Exception e) {
+         e.printStackTrace();
          throw new InvocationTargetException(e);
       }      
    }
@@ -220,4 +227,5 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       dialog.open();
    }
 
+   
 }

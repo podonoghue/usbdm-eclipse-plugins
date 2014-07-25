@@ -101,4 +101,9 @@ public class Activator extends AbstractUIPlugin {
    public ImageDescriptor getImageDescriptor(String key) {
 	   return getImageRegistry().getDescriptor(key);
 	}
+   
+   public static BundleContext getBundleContext() {
+      return getDefault().getBundle().getBundleContext();
+   }
+
 }

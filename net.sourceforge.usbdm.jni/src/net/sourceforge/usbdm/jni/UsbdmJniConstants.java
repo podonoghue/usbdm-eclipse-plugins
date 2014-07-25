@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.jni;
 
+/**
+ * @since 4.10
+ */
 public class UsbdmJniConstants {
 
    static final String UsbdmJniLibraryName      = "UsbdmJniWrapper";

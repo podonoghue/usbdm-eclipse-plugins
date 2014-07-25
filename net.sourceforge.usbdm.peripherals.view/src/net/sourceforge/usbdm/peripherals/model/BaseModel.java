@@ -67,7 +67,7 @@ public abstract class BaseModel extends ObservableModel {
     * @param size  Number of bits in number (<= 32)
     * @return      String representation in form "0xhhhhh.."
     */
-   public String  getValueAsHexString(long value, int size) {
+   public static String  getValueAsHexString(long value, int size) {
       String format;
       switch ((int)((size+3)/4)) {
       case 1  : format = "0x%01X"; break;
@@ -90,7 +90,7 @@ public abstract class BaseModel extends ObservableModel {
     * @param size  Number of bits in number
     * @return      String representation in form "0bbbbbb..."
     */
-   public String  getValueAsBinaryString(long value, int size) {
+   public static String  getValueAsBinaryString(long value, int size) {
       String result = "0b";
       for (int index=size-1; index>=0; index--) {
          result += ((value&(1<<index)) !=0 )?"1":"0";
@@ -102,9 +102,24 @@ public abstract class BaseModel extends ObservableModel {
     * Returns a string representing the value in an appropriate form for model
     * 
     * @return String representation e.g. "0xhhh"
+    * @throws MemoryException 
     */
-   public String getValueAsString() {
+   public String getValueAsString() throws MemoryException {
       return "";
+   }
+
+   /**
+    * Returns a string representing the value in an appropriate form for model
+    * 
+    * @return String representation e.g. "0xhhh"
+    * @throws MemoryException 
+    */
+   public String safeGetValueAsString() {
+      try {
+         return getValueAsString();
+      } catch (MemoryException e) {
+         return "-- invalid --";
+      }
    }
 
    /**
@@ -224,7 +239,7 @@ public abstract class BaseModel extends ObservableModel {
     * 
     * @return converted value
     */
-   public long getValue16bit(byte[] bytes) {
+   public static long getValue16bit(byte[] bytes) {
       return getValue16bit(bytes, 0);
    }
 
@@ -235,12 +250,12 @@ public abstract class BaseModel extends ObservableModel {
     * 
     * @return converted value
     */
-   public long getValue8bit(byte[] bytes) {
+   public static long getValue8bit(byte[] bytes) {
       return getValue8bit(bytes, 0);
    }
    
    /**
-    * Calculates a 32-bit unsigned value from the 2st four element of a byte[]
+    * Calculates a 32-bit unsigned value from the 1st four elements of a byte[]
     * 
     * @param bytes to process
     * 

@@ -32,7 +32,7 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
    private UsbdmDevicePeripheralsModel peripheralsModel  = null;
 
    private GdbMiSessionListener() {
-      System.err.println("GdbMiSessionListener()");
+//      System.err.println("GdbMiSessionListener()");
       gdbSessionListeners = new ArrayList<GdbSessionListener>();
       
       if (DebugPlugin.getDefault() != null) {
@@ -69,7 +69,7 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
       else if (source instanceof org.eclipse.cdt.debug.internal.core.model.CThread) {
          deviceName = ((org.eclipse.cdt.debug.internal.core.model.CThread)source).getCDISession().getAttribute("net.sourceforge.usbdm.gdb.deviceName");
       }
-      System.err.println("getDeviceName(DebugEvent) => " + ((deviceName==null)?"null":deviceName));
+//      System.err.println("getDeviceName(DebugEvent) => " + ((deviceName==null)?"null":deviceName));
       return deviceName;
    }
 
@@ -228,25 +228,25 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
             return;
          }
 
-         System.err.println("================================================================================================");
-         System.err.println(String.format("handleDebugEvents() DebugEvent = (K=%s, D=%s)", 
-               getKind(event.getKind()), getDetail(event.getDetail())));
-         System.err.println(              "handleDebugEvents() DebugEvent = " + event.toString());
-         System.err.println(String.format("handleDebugEvents() Source     = (S=%s, C=%s)", source, source.getClass()));
+//         System.err.println("================================================================================================");
+//         System.err.println(String.format("handleDebugEvents() DebugEvent = (K=%s, D=%s)", 
+//               getKind(event.getKind()), getDetail(event.getDetail())));
+//         System.err.println(              "handleDebugEvents() DebugEvent = " + event.toString());
+//         System.err.println(String.format("handleDebugEvents() Source     = (S=%s, C=%s)", source, source.getClass()));
 
          if ((session != null) && (sourceSession != session)) {
             // Not from the session we are interested in - ignore it
-            System.err.println("handleDebugEvents() sourceSession differs = " + sourceSession);
+//            System.err.println("handleDebugEvents() sourceSession differs = " + sourceSession);
             return;
          }
-         System.err.println("handleDebugEvents() sourceSession            = " + sourceSession);
-         System.err.println("handleDebugEvents() sourceSession.getclass() = " +  sourceSession.getClass());
+//         System.err.println("handleDebugEvents() sourceSession            = " + sourceSession);
+//         System.err.println("handleDebugEvents() sourceSession.getclass() = " +  sourceSession.getClass());
          if (session == null) {
             // Attach to session - Either a new session of we have just become interested (view opened)
             session = sourceSession;
             String deviceName = getDeviceName(event); 
             if (deviceName != null) {
-               System.err.println("handleDebugEvents() Device Name = " + deviceName);
+//               System.err.println("handleDebugEvents() Device Name = " + deviceName);
                peripheralsModel = new UsbdmDevicePeripheralsModel(deviceName, new GdbMiInterface(session));
             }
 //            System.err.println(String.format("handleDebugEvents() new session on the fly, device = \'%s\', session = \'%s\'", deviceName, session.toString()));

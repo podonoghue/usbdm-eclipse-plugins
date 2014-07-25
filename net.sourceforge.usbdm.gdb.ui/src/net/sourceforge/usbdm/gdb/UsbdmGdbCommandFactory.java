@@ -4,6 +4,7 @@ import org.eclipse.cdt.debug.mi.core.command.CommandFactory;
 
 /**
  *  Wrapper for default GDB CommandFactory 
+ * @since 4.10
  *
  */
 public class UsbdmGdbCommandFactory extends CommandFactory {

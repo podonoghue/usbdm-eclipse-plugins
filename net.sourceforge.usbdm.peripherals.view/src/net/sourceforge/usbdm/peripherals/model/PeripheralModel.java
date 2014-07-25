@@ -26,7 +26,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
          address = peripheral.getBaseAddress();
          
          // Use address blocks to create target memory cache
-         // The Model registers as change listener
+         // The Model is registered as a change listener
          for (AddressBlock memoryAddressBlock : peripheral.getAddressBlocks()) {
             MemoryBlockCache memoryBlockCache = new MemoryBlockCache(peripheral, memoryAddressBlock, gdbInterface);
             memoryBlockCaches.add(memoryBlockCache);
@@ -66,7 +66,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
       /**
        *  Updates all storage associated with this peripheral from target as needed.
        */
-      void update() {
+      public void update() {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
             memoryBlockCache.update(this);
          }

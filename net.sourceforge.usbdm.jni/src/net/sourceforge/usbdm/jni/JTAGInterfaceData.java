@@ -2,6 +2,9 @@ package net.sourceforge.usbdm.jni;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @since 4.10
+ */
 public class JTAGInterfaceData {
 
    public static final String connectionSpeeds[] = new String[] {

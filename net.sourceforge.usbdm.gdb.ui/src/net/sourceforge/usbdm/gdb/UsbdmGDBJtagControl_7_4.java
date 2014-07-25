@@ -22,7 +22,8 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
  * Jtag control service which selects the Jtag CompleteInitializationSequence.
- * Use for GDB >= 7.2
+ * Use for GDB >= 7.4
+ * @since 4.10
  */
 public class UsbdmGDBJtagControl_7_4 extends GDBControl_7_4 {
 
@@ -40,4 +41,5 @@ public class UsbdmGDBJtagControl_7_4 extends GDBControl_7_4 {
 //      System.err.println("UsbdmGDBJtagControl_7_4.getCompleteInitializationSequence()");
 		return new UsbdmGdbJtagDSFFinalLaunchSequence_7_2(getSession(), attributes, rm, fGdbServerParameters);
 	}
+	
 }

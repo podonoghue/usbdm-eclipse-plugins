@@ -73,6 +73,7 @@ import org.eclipse.core.variables.VariablesPlugin;
  * <p>
  * It adds Jtag hardware debugging specific steps to initialize remote target
  * and start the remote Jtag debugging.
+ * @since 4.10
  */
 public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
 
@@ -189,22 +190,22 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepInitializeJTAGFinalLaunchSequence(RequestMonitor rm) {
-      fTracker = new DsfServicesTracker(Activator.getBundleContext(), fSession.getId());
+      fTracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
       fGDBBackend = fTracker.getService(IGDBBackend.class);
       if (fGDBBackend == null) {
-         rm.done(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot obtain GDBBackend service", null)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain GDBBackend service", null)); //$NON-NLS-1$
          return;
       }
 
       fCommandControl = fTracker.getService(IGDBControl.class);
       if (fCommandControl == null) {
-         rm.done(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot obtain control service", null)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain control service", null)); //$NON-NLS-1$
          return;
       }
 
       fProcService = fTracker.getService(IMIProcesses.class);
       if (fProcService == null) {
-         rm.done(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot obtain process service", null)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain process service", null)); //$NON-NLS-1$
          return;
       }
 
@@ -232,7 +233,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
 //      System.err.println("stepLaunchUsbdmGdbServer.stepLaunchUsbdmGdbServer()");
 
       if (fGdbServerParameters == null) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
          rm.done();
          return;
       }
@@ -244,7 +245,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
                gdbServerInterface.startServer();
             } catch (UsbdmException e1) {
                e1.printStackTrace();
-               rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, e1.getMessage(), null)); //$NON-NLS-1$
+               rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, e1.getMessage(), null)); //$NON-NLS-1$
                rm.done();
                return;
             }
@@ -290,7 +291,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             }
 
             if (symbolsFileName == null) {
-               rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "GDBJtagDebugger.err_no_img_file", null)); //$NON-NLS-1$
+               rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "GDBJtagDebugger.err_no_img_file", null)); //$NON-NLS-1$
                rm.done();
                return;
             }
@@ -310,7 +311,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot load symbol", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot load symbol", e)); //$NON-NLS-1$
          rm.done();
       }
    }
@@ -322,14 +323,14 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
    public void stepConnectToTarget(final RequestMonitor rm) {
 
       if (fGdbServerParameters == null) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
          rm.done();
          return;
       }
 
       ArrayList<String> serverCommandLine = fGdbServerParameters.getCommandLine();
       if (serverCommandLine == null) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1,"Unable to obtain server command line", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1,"Unable to obtain server command line", null)); //$NON-NLS-1$
          rm.done();
          return;
       }
@@ -409,7 +410,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot run user defined init commands", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot run user defined init commands", e)); //$NON-NLS-1$
          rm.done();
       }
    }
@@ -441,7 +442,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             }
 
             if (imageFileName == null) {
-               rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Error - No image file found", null)); //$NON-NLS-1$
+               rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Error - No image file found", null)); //$NON-NLS-1$
                rm.done();
                return;
             }
@@ -461,7 +462,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot load image", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot load image", e)); //$NON-NLS-1$
          rm.done();
       }
    }
@@ -498,7 +499,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot get inferior arguments", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot get inferior arguments", e)); //$NON-NLS-1$
          rm.done();
       }    		
    }
@@ -515,7 +516,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
          clear = fGDBBackend.getClearEnvironment();
          properties = fGDBBackend.getEnvironmentVariables();
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot get environment information", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot get environment information", e)); //$NON-NLS-1$
          rm.done();
          return;
       }
@@ -604,7 +605,7 @@ public class UsbdmGdbJtagDSFFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.PLUGIN_ID, -1, "Cannot run user defined run commands", e)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot run user defined run commands", e)); //$NON-NLS-1$
          rm.done();
       }
    }

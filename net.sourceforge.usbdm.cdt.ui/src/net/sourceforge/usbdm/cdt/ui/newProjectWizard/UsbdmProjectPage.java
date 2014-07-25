@@ -173,6 +173,9 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
 
       IDialogSettings dialogSettings = getDialogSettings();
       
+      if (dialogSettings == null) {
+         System.err.println("createUsbdmParametersControl() dialogSettings == null!");
+      }
       Label label;
       GridData gd;
       

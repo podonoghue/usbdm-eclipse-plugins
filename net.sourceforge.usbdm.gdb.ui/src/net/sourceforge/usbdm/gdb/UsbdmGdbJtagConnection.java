@@ -26,6 +26,9 @@ import org.eclipse.core.runtime.Path;
 /*
  * Used for DSF connection
  */
+/**
+ * @since 4.10
+ */
 public class UsbdmGdbJtagConnection extends DefaultGDBJtagDeviceImpl implements IGDBJtagConnection {
 
    private static IPath usbdmApplicationPath = null;

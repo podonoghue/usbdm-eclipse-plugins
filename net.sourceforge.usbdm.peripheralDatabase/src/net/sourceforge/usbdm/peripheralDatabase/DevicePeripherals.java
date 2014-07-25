@@ -623,7 +623,7 @@ public class DevicePeripherals extends ModeControl {
          "#define %-30s ((%-20s *) %s)\n";
  
    final String cortexHeaderFileInclusion = 
-         "#include <%s>   /*!< Cortex-M4 processor and core peripherals                              */\n\n";
+         "#include <%s>   /*!< Cortex-M processor and core peripherals                              */\n\n";
    
    private String getEquivalentDevicesList() {
       StringBuffer s = new StringBuffer();
@@ -656,6 +656,7 @@ public class DevicePeripherals extends ModeControl {
          excludedPeripherals.add("SCB");
          excludedPeripherals.add("SysTick");
          excludedPeripherals.add("CoreDebug");
+         excludedPeripherals.add("FPU");
       }
       return excludedPeripherals.contains(name);
    }
@@ -679,7 +680,8 @@ public class DevicePeripherals extends ModeControl {
       writer.print(String.format(commonIncludes));
       
       writer.print(String.format(cppOpening));
-      
+
+      ModeControl.resetMacroCache();
       
       if (vectorTable == null) {
          vectorTable = new VectorTable();

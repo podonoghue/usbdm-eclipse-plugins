@@ -27,5 +27,4 @@ public interface GdbCommonInterface {
     * @throws TimeoutException
     */
    public void writeMemory(long address, byte[] data, int accessWidth) throws TimeoutException;
-
 }

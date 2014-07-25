@@ -3,6 +3,9 @@ package net.sourceforge.usbdm.jni;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+/**
+ * @since 4.10
+ */
 public class Activator implements BundleActivator {
 
 	private static BundleContext context;

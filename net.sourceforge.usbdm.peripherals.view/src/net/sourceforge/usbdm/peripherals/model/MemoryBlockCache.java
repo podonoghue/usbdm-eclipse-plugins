@@ -14,12 +14,17 @@ public class MemoryBlockCache {
       public final long size;
       public final long width;
       
+      // Data caching the value from target
       private byte[]             data;
+      // Reference copy of data for change indication
       private byte[]             lastData;
+      // Indicates data is invalid (out of date)
       private boolean            needsUpdate;
+      // Update from target has been scheduled
       private boolean            updatePending;
+      // Interface to target
       private GdbCommonInterface gdbInterface = null;
-      
+      // Listeners on changes in the block data
       private ArrayList<MemoryBlockChangeListener> changeListeners = new ArrayList<MemoryBlockChangeListener>();
           
       public MemoryBlockCache(Peripheral peripheral, AddressBlock memoryBlockCache, GdbCommonInterface gdbInterface) {
@@ -50,29 +55,26 @@ public class MemoryBlockCache {
          }
       }
       
-      private long get8bitValue(long address) {
+      private long get8bitValue(long address) throws MemoryException {
          long offset = address-this.address;
          if ((data == null) || (offset<0) || (offset>=data.length)) {
-//            System.err.println("MemoryBlockCache.get8bitValue() - Data null or invalid address range");
-            return 0xAAL;
+            throw new MemoryException("memoryBlockCache.get8bitValue() no data read");
          }
          return BaseModel.getValue8bit(data, (int)offset);
       }
       
-      private long get16bitValue(long address) {
+      private long get16bitValue(long address) throws MemoryException {
          long offset = address-this.address;
          if ((data == null) || (offset<0) || ((offset+1)>=data.length)) {
-//            System.err.println("MemoryBlockCache.get16bitValue() - Data null or invalid address range");
-            return 0xAAAAL;
+            throw new MemoryException("memoryBlockCache.get16bitValue() no data read");
          }
          return BaseModel.getValue16bit(data, (int)offset);
       }
 
-      private long get32bitValue(long address) {
+      private long get32bitValue(long address) throws MemoryException {
          long offset = address-this.address;
          if ((data == null) || (offset<0) || ((offset+3)>=data.length)) {
-//            System.err.println("MemoryBlockCache.get32bitValue() - Data null or invalid address range");
-            return 0xCCCCCCC1L;
+            throw new MemoryException("memoryBlockCache.get32bitValue() no data read");
          }
          return BaseModel.getValue32bit(data, (int)offset);
       }
@@ -85,19 +87,19 @@ public class MemoryBlockCache {
        * @param size  size in bytes!
        * 
        * @return value
+       * @throws MemoryException 
        */
-      public long getValue(long address, int size) {
+      public long getValue(long address, int size) throws MemoryException {
          switch ((size+7)/8) {
          case 1:  return get8bitValue(address);
          case 2:  return get16bitValue(address);
          case 4:  return get32bitValue(address);
          }
-         return 0xCCCCCCC2L;
+         throw new MemoryException("memoryBlockCache invalid data size");
       }
 
       private void set8bitValue(long address, long value) {
          if (data == null) {
-            System.err.println("MemoryBlockCache.set8bits() - Attempt to modify memory before initial read");
             return;
          }
          long offset = address-this.address;
@@ -110,7 +112,6 @@ public class MemoryBlockCache {
 
       private void set16bitValue(long address, long value) {
          if (data == null) {
-            System.err.println("MemoryBlockCache.set16bits() - Attempt to modify memory before initial read");
             return;
          }
          long offset = address-this.address;
@@ -125,7 +126,6 @@ public class MemoryBlockCache {
 
       private void set32bitValue(long address, long value) {
          if (data == null) {
-            System.err.println("MemoryBlockCache.set32bits() - Attempt to modify memory before initial read");
             return;
          }
          long offset = address-this.address;
@@ -155,31 +155,35 @@ public class MemoryBlockCache {
          }
       }
       
-      private long get8bitLastValue(long address) {
+      private long get8bitLastValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((lastData == null) || (offset<0) || (offset>=lastData.length)) {
-//            System.err.println("MemoryBlockCache.get8bitLastValue() - lastData null or invalid address range");
-//            System.err.println(String.format("MemoryBlockCache.get8bitLastValue() - lastData=%s, offset=0x%x, lastData.length=0x%X",
-//                  (lastData==null)?"null":"non-null", offset, this.size));
-            return 0xAAL;
+         if (lastData == null) {
+            throw new MemoryException("memoryBlockCache.get8bitLastValue() no data read");
+         }
+         if ((offset<0) || (offset>=lastData.length)) {
+            return 0;
          }
          return BaseModel.getValue8bit(lastData, (int)offset);
       }
       
-      private long get16bitLastValue(long address) {
+      private long get16bitLastValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((lastData == null) || (offset<0) || ((offset+1)>=lastData.length)) {
-//            System.err.println("MemoryBlockCache.get16bitLastValue() - lastData null or invalid address range");
-            return 0xAAAAL;
+         if (lastData == null) {
+            throw new MemoryException("memoryBlockCache.get16bitLastValue() no data read");
+         }
+         if ((offset<0) || (offset>=lastData.length)) {
+            return 0;
          }
          return BaseModel.getValue16bit(lastData, (int)offset);
       }
 
-      private long get32bitLastValue(long address) {
+      private long get32bitLastValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((lastData == null) || ((offset<0) || (offset+3)>=lastData.length)) {
-//            System.err.println("MemoryBlockCache.get32bitLastValue() - lastData null or invalid address range");
-            return 0xCCCCCCC4L;
+         if (lastData == null) {
+            throw new MemoryException("memoryBlockCache.get32bitLastValue() no data read");
+         }
+         if ((offset<0) || (offset>=lastData.length)) {
+            return 0;
          }
          return BaseModel.getValue32bit(lastData, (int)offset);
       }
@@ -192,14 +196,15 @@ public class MemoryBlockCache {
        * @param size    Size in bytes!
        * 
        * @return Value
+       * @throws MemoryException 
        */
-      public long getLastValue(long address, int size) {
+      public long getLastValue(long address, int size) throws MemoryException {
          switch ((size+7)/8) {
          case 1:  return get8bitLastValue(address);
          case 2:  return get16bitLastValue(address);
          case 4:  return get32bitLastValue(address);
          }
-         return 0xCCCCCCC3L;
+         throw new MemoryException("memoryBlockCache.getLastValue() invalid size");
       }
 
       /**
@@ -294,7 +299,7 @@ public class MemoryBlockCache {
             return;
          }
          updatePending = true;
-         System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue schedule action", getAddress(), getAddress()+getSize()-1));
+//         System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue schedule action", getAddress(), getAddress()+getSize()-1));
          Runnable r = new Runnable() {
             public void run() {
                if (!isNeedsUpdate()) {
@@ -309,7 +314,7 @@ public class MemoryBlockCache {
                   value = gdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidth());
                } catch (Exception e) {
                   System.err.println("Unable to access target");
-                  value = new byte[(int) getSize()];
+                  value = null;
                }
 //               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.run() - read from target", getAddress(), getAddress()+getSize()-1));
                setData(value);
@@ -427,6 +432,10 @@ public class MemoryBlockCache {
          long offset = address-this.address;
          assert (offset>=0)                : "Invalid address range";
          assert ((offset+size)<=this.size) : "Invalid address";
+         if (data == null) {
+            // Ignore 
+            return;
+         }
          final byte[] writeData = new byte[size];
          System.arraycopy(data, (int) offset, writeData, 0, size);
          Runnable r = new Runnable() {
@@ -435,7 +444,7 @@ public class MemoryBlockCache {
                try {
                   gdbInterface.writeMemory(address, writeData, (int)getWidth());
                } catch (TimeoutException e1) {
-                  System.err.println("Unable to access target");
+//                  System.err.println("Unable to access target");
                }
 //               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).synchronizeValue.run() - reading from target", address, address+size-1));
                setNeedsUpdate(true);

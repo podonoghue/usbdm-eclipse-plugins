@@ -20,7 +20,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
- * @since 8.0
+ * @since 4.10
  */
 public class UsbdmGdbJtagDebugServicesFactory extends GdbDebugServicesFactory {
 

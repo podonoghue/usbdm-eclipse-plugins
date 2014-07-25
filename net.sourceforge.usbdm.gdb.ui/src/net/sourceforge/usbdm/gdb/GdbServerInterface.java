@@ -22,6 +22,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * @since 4.10
+ */
 public class GdbServerInterface {
 
    Process             proc;

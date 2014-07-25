@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author podonoghue
+ * @since 4.10
  *
  */
 public class Usbdm {
