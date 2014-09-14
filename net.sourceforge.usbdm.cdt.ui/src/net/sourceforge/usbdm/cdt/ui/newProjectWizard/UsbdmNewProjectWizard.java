@@ -41,8 +41,8 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       setDialogSettings(settings);
    }
 
-   UsbdmProjectSelectionPage        usbdmProjectSelectionPage  = null;
-   UsbdmProjectPage                 usbdmProjectPage           = null;
+   UsbdmNewProjectPage              usbdmProjectSelectionPage  = null;
+   UsbdmProjectParametersPage       usbdmProjectPage           = null;
    UsbdmProjectOptionsPage          usbdmProjectOptionsPage    = null;
    UsbdmToolSettingsPage            usbdmToolSettingsPage      = null;
 //   CMSISOptionsPage                 cmsisOptionsPage           = null;
@@ -57,6 +57,9 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       }
       if (usbdmProjectOptionsPage != null) {
          usbdmProjectOptionsPage.saveSettings();
+      }
+      if (usbdmToolSettingsPage != null) {
+         usbdmToolSettingsPage.saveSettings();
       }
 //      if (cmsisOptionsPage != null) {
 //         cmsisOptionsPage.saveSettings();
@@ -73,7 +76,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    @Override
    public void addPages() {
-      usbdmProjectSelectionPage  = new UsbdmProjectSelectionPage();
+      usbdmProjectSelectionPage  = new UsbdmNewProjectPage();
       addPage(usbdmProjectSelectionPage);
    }
 
@@ -116,7 +119,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       if (page == usbdmProjectSelectionPage) {
          InterfaceType interfaceType = usbdmProjectSelectionPage.getInterfaceType();
          if ((usbdmProjectPage == null) || (usbdmProjectPage.getInterfaceType() != interfaceType)) {
-            usbdmProjectPage = new UsbdmProjectPage(usbdmProjectSelectionPage);
+            usbdmProjectPage = new UsbdmProjectParametersPage(usbdmProjectSelectionPage);
             usbdmProjectPage.setWizard(this);
             usbdmProjectOptionsPage = null;
             usbdmToolSettingsPage   = null;
@@ -173,6 +176,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       try {
          usbdmProjectPage.getPageData(map);
          usbdmProjectOptionsPage.getPageData(map);
+         usbdmToolSettingsPage.getPageData(map);
          map.put("projectName", usbdmProjectSelectionPage.getProjectName());
 
          System.err.println("UsbdmNewProjectWizard.run()");

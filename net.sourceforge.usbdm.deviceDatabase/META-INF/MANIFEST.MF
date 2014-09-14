@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Device Database
-Bundle-SymbolicName: net.sourceforge.usbdm.deviceDatabase
+Bundle-SymbolicName: net.sourceforge.usbdm.deviceDatabase;singleton:=true
 Bundle-Version: 4.10.6.qualifier
 Bundle-Activator: net.sourceforge.usbdm.deviceDatabase.Activator
 Bundle-Vendor: pgo

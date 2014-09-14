@@ -221,6 +221,24 @@ public class UsbdmJniPluginTest {
 //      }
 //   }
 
+   static void listEnvironment() {
+	   String envs[] = {
+		   "os.name",
+		   "java.vm.specification.version",
+		   "java.vm.specification.name",
+		   "java.version",
+		   "java.vm.version",
+		   "java.vm.name",
+		   "java.compiler",
+		   "java.library.path",
+		   "os.arch",
+	   };
+	   for (String env : envs) {
+		   String prop = System.getProperty(env);
+		   System.err.println(env + " => " + prop);
+	   } 
+   }
+   
    /**
     * @param args
     * @throws InterruptedException 
@@ -231,6 +249,7 @@ public class UsbdmJniPluginTest {
 //      Usbdm.setDebug(true);
 //      testDatabase();
       try {
+    	  listEnvironment();
          // Print USBDM paths
          System.err.println("Application Path : " + Usbdm.getApplicationPath().toOSString());
          System.err.println("Resource Path    : " + Usbdm.getResourcePath().toOSString());

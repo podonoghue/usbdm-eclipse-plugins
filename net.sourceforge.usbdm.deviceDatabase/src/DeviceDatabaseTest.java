@@ -21,14 +21,15 @@ public class DeviceDatabaseTest {
 //            USBDMDeviceInfo di = it.next();
 //            System.err.println("Device \n" + di);
 //         }
-         System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
-         System.err.println("Resource Path    : " + Usbdm.getResourcePath());
-         System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
+         System.err.println("Application Path : " + Usbdm.getApplicationPath().toPortableString());
+         System.err.println("Resource Path    : " + Usbdm.getResourcePath().toPortableString());
+         System.err.println("Data Path        : " + Usbdm.getDataPath().toPortableString());
          
          TargetType[] targetTypes = {
                TargetType.T_ARM,  
                TargetType.T_CFV1, 
-               TargetType.T_CFVx, };
+               TargetType.T_CFVx, 
+               };
          for (TargetType targetType:targetTypes) {
             DeviceDatabase database = new DeviceDatabase(targetType);
             database.listDevices(System.err);

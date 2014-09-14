@@ -48,7 +48,7 @@ IWorkbenchPreferencePage {
 
    @Override
    public void init(IWorkbench workbench) {
-      System.err.println("WorkbenchPreferenceTopPage.init()\n");
+      //System.err.println("WorkbenchPreferenceTopPage.init()\n");
       String os = System.getProperty("os.name");
       if ((os != null) && os.toUpperCase().contains("LINUX")) {
          gccCommand = UsbdmConstants.GCC_COMMAND_LINUX;
@@ -405,7 +405,7 @@ IWorkbenchPreferencePage {
    }
 
    protected boolean saveSettings() {
-      System.err.println("saveSetting() saving settings");
+//    System.err.println("saveSetting() saving settings");
       if (!validate()) {
          return false;
       }
@@ -426,18 +426,6 @@ IWorkbenchPreferencePage {
    public boolean performOk() {
       return super.performOk() && saveSettings();
    }
-
-   // public Map<String, String> getPageData() {
-   // Map<String, String> paramMap = new HashMap<String, String>();
-   // 
-   // // Save variables
-   // saveSettings();
-   // 
-   // // This page has no parameters
-   // return paramMap;
-   //}
-   //
-
    /**
     * @param args
     */

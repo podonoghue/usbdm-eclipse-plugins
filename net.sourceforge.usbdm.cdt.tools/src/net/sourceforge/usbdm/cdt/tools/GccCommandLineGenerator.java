@@ -18,30 +18,14 @@ import org.eclipse.cdt.managedbuilder.core.IToolChain;
 public class GccCommandLineGenerator extends PrefixedCommandLineGenerator {
 
    // Shared flags that are added to the command line 
-   private static final String optionKeys[] = {
-      UsbdmConstants.USBDM_GCC_PROC_ARM_MCPU_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_ARM_MTHUMB_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_ARM_MFLOAT_ABI_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_ARM_MFPU_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_ARM_FSHORT_DOUBLE_OPTION_KEY,
-      
-      UsbdmConstants.USBDM_GCC_PROC_COLDFIRE_MCPU_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_COLDFIRE_MFLOAT_ABI_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_COLDFIRE_MFPU_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_PROC_COLDFIRE_FSHORT_DOUBLE_OPTION_KEY,
-      
-      UsbdmConstants.USBDM_GCC_DEBUG_LEVEL_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_DEBUG_FORMAT_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_DEBUG_OTHER_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_DEBUG_PROF_OPTION_KEY,
-      UsbdmConstants.USBDM_GCC_DEBUG_GPROF_OPTION_KEY,
-   };
-
+   private final String optionKeys[];
+   
    /**
     * @param codesourceryPathVariableName - environment variable name containing path e.g. codesourcery_arm_prefix
     */
-   public GccCommandLineGenerator(String buildToolOptionId) {
+   public GccCommandLineGenerator(String buildToolOptionId, final String optionKeys[]) {
       super(buildToolOptionId);
+      this.optionKeys = optionKeys;
    }
 
    private String[] addFlags(ITool tool, String[] flags) {
@@ -84,7 +68,7 @@ public class GccCommandLineGenerator extends PrefixedCommandLineGenerator {
                value = "";
             }
             if ((command.isEmpty()) && (value.isEmpty())) {
-               //                  System.err.println("GccCommandLineGenerator.addFlags() - option("+newFlag+"): Command && value ==> null/empty");
+//                  System.err.println("GccCommandLineGenerator.addFlags() - option("+newFlag+"): Command && value ==> null/empty");
                continue;
             }
             String flag = "";
@@ -94,7 +78,7 @@ public class GccCommandLineGenerator extends PrefixedCommandLineGenerator {
             else {
                flag = command + value;
             }
-            //               System.err.println("GccCommandLineGenerator.addFlags() - option("+newFlag+") ==> \'"+flag+"\'");
+//               System.err.println("GccCommandLineGenerator.addFlags() - option("+newFlag+") ==> \'"+flag+"\'");
             newFlags.add(flag);
          } catch (BuildException e) {
             e.printStackTrace();

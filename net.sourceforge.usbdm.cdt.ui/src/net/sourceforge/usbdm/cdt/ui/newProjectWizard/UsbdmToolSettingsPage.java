@@ -138,20 +138,6 @@ public class UsbdmToolSettingsPage extends WizardPage {
          variableInformation.getValueText().setText(variable);
 //         System.err.println("UsbdmConfigurationPage.loadVariables() Found variable = " + variable);
       }
-//      VariablesPlugin variablesPlugin = VariablesPlugin.getDefault();
-//      if (variablesPlugin == null) {
-//         return;
-//      }
-//      IStringVariableManager manager = variablesPlugin.getStringVariableManager();
-//      if (manager == null) {
-//         return;
-//      }
-//      for (final ExtendedVariableInformationData variableInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
-//         IValueVariable variable = manager.getValueVariable(variableInformation.getId());
-//         if (variable != null) {
-//            variableInformation.getValueText().setText(variable.getValue());
-//         }
-//      }
    }
          
    private void saveVariables(UsbdmSharedSettings settings) {
@@ -159,13 +145,6 @@ public class UsbdmToolSettingsPage extends WizardPage {
       for (final ExtendedVariableInformationData toolInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
          settings.put(toolInformation.getVariableName(), toolInformation.getValueText().getText());
       }
-//      for (final ExtendedVariableInformationData toolInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
-//         IValueVariable variable = stringManager.getValueVariable(toolInformation.getId());
-//         if (variable == null) {
-//            variable = stringManager.newValueVariable(toolInformation.getId(), toolInformation.getDescription());
-//         }
-//         variable.setValue(toolInformation.getValueText().getText());
-//      }
    }
    
    static class ExtendedToolInformationData extends ToolInformationData {
@@ -348,24 +327,6 @@ public class UsbdmToolSettingsPage extends WizardPage {
             }
             toolInformation.getPrefixText().setText(toolPrefix);
       }
-//      VariablesPlugin variablesPlugin = VariablesPlugin.getDefault();
-//      if (variablesPlugin == null) {
-//         return;
-//      }
-//      IStringVariableManager manager = variablesPlugin.getStringVariableManager();
-//      if (manager == null) {
-//         return;
-//      }
-//      for (final ExtendedToolInformationData toolInformation : ExtendedToolInformationData.getExtendedToolInformationTable().values()) {
-//         IValueVariable prefixVariable = manager.getValueVariable(toolInformation.getPrefixVariableName());
-//         if (prefixVariable != null) {
-//            toolInformation.getPrefixText().setText(prefixVariable.getValue());
-//         }
-//         IValueVariable pathVariable = manager.getValueVariable(toolInformation.getPathVariableName());
-//         if (pathVariable != null) {
-//            toolInformation.getPathText().setText(pathVariable.getValue());
-//         }
-//      }
    }
 
    private void savePaths(UsbdmSharedSettings settings) {
@@ -374,18 +335,6 @@ public class UsbdmToolSettingsPage extends WizardPage {
          settings.put(toolInformation.getPrefixVariableName(), toolInformation.getPrefixText().getText());
          settings.put(toolInformation.getPathVariableName(),   toolInformation.getPathText().getText());
       }
-//      for (final ExtendedToolInformationData toolInformation : ExtendedToolInformationData.getExtendedToolInformationTable().values()) {
-//         IValueVariable prefixVariable = stringManager.getValueVariable(toolInformation.getPrefixVariableName());
-//         if (prefixVariable == null) {
-//            prefixVariable = stringManager.newValueVariable(toolInformation.getPrefixVariableName(), toolInformation.getDescription() + " prefix");
-//         }
-//         prefixVariable.setValue(toolInformation.getPrefixText().getText());
-//         IValueVariable pathVariable = stringManager.getValueVariable(toolInformation.getPathVariableName());
-//         if (pathVariable == null) {
-//            pathVariable = stringManager.newValueVariable(toolInformation.getPathVariableName(), toolInformation.getDescription() + " path");
-//         }
-//         pathVariable.setValue(toolInformation.getPathText().getText());
-//      }
    }
    
    private void createCheckboxComposite(Composite parent) {
@@ -486,29 +435,34 @@ public class UsbdmToolSettingsPage extends WizardPage {
    }
 
    protected boolean saveSettings() {
-//    System.err.println("saveSetting() saving settings");
+    System.err.println("UsbdmToolSettingsPage.saveSetting() saving settings");
       if (!validate()) {
+         System.err.println("UsbdmToolSettingsPage.saveSetting() not valid");
          return false;
       }
       if (!isControlCreated()) {
          return true;
       }
-      
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+      
+      System.err.println("UsbdmToolSettingsPage.saveSetting() still saving settings");
 
       savePaths(settings);
       saveVariables(settings);
 
+      System.err.println("UsbdmToolSettingsPage.saveSetting() flushing settings");
+      
       settings.flush();
       return true;
    }
 
    public Map<String, String> getPageData() {
-      Map<String, String> paramMap = new HashMap<String, String>();
-      
+      return getPageData(new HashMap<String, String>());
+   }
+
+   public Map<String, String> getPageData(Map<String, String> paramMap) {
       // Save variables
       saveSettings();
-      
       // This page has no parameters
       return paramMap;
    }

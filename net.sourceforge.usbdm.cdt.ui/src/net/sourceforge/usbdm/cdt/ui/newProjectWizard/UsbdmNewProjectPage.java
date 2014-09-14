@@ -24,17 +24,17 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class UsbdmProjectSelectionPage extends WizardPage {
+public class UsbdmNewProjectPage extends WizardPage {
 
    static final String PAGE_NAME  = "USBDMProjectPage";
-   static final String PAGE_TITLE = "USBDM Project";
+   static final String PAGE_TITLE = "New USBDM Project";
    private Button    projectLocationBrowseButton;
    private Text      projectNameText;
    private Label     locationText;
    private Button    useDefaultLocationButton;
    private boolean   hasCCNature;
    
-   protected UsbdmProjectSelectionPage() {
+   protected UsbdmNewProjectPage() {
       super(PAGE_NAME);
       setTitle(PAGE_TITLE);
       setDescription("Creates a new USBDM C/C++ Project");

@@ -389,7 +389,7 @@ public class Field extends ModeControl implements Cloneable {
       if (hashCode != null) {
          // Check if re-definition is the same
          if (hashCode != newHashcode) {
-            throw new Exception("Redefined MACRO has different hashcode");
+            throw new Exception("Redefined MACRO has different hashcode \""+fieldname+"\"");
          }
 //         System.err.println("writeHeaderFileFieldMacros() " + fieldname + " - Deleted");
          // Filter repeated macros

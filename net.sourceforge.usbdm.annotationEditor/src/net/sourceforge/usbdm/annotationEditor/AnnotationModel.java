@@ -358,6 +358,9 @@ public class AnnotationModel {
          if ((children == null) || (otherNode.children == null)) {
             return false;
          }
+         if (children.size() != otherNode.children.size()) {
+            return false;
+         }
          for (int index = 0; index< children.size(); index++) {
             if (!children.get(index).equals(otherNode.children.get(index))) {
                return false;

@@ -1440,8 +1440,34 @@ public class Usbdm {
             return;
             }
          try {
-            String os = System.getProperty("os.name");
+            String os    = System.getProperty("os.name");            
+            String arch  = System.getProperty("os.arch");            
+            String jvm   = System.getProperty("java.vm.name");
+            System.err.println("os.name      => "+os );
+            System.err.println("java.vm.name => "+jvm );
+            System.err.println("os.arch      => "+arch );
             if ((os != null) && os.toUpperCase().contains("LINUX")) {
+               if (arch.toUpperCase().contains("I386")) {
+                  // Running 32-bit VM
+                  if (debug) {
+                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName32);
+                     System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName32);
+                  }
+                  else {
+                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName32);
+                     System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName32);
+                  }
+               }
+               else {
+                  if (debug) {
+                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName);
+                     System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
+                  }
+                  else {
+                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+                     System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
+                  }
+               }
 //             	 String libusbLibrary = UsbdmJniConstants.LibUsbLibraryName_so;
 //               System.err.println("Loading library: "+libusbLibrary );
 //               System.loadLibrary(libusbLibrary);
@@ -1457,13 +1483,14 @@ public class Usbdm {
                System.loadLibrary(UsbdmJniConstants.UsbdmLibGccName_dll);
                System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
                System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
-            }
-//            System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-            if (debug) {
-               System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
-            }
-            else {
-               System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
+               if (debug) {
+                  System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName);
+                  System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
+               }
+               else {
+                  System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+                  System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
+               }
             }
 //            System.err.println("Calling init()");
             usbdmInit();
@@ -1485,7 +1512,7 @@ public class Usbdm {
 //            msgbox.setMessage("Loading of USBDM native library OK.");
 //            msgbox.open();
 
-         } catch (Exception e) {
+         } catch (Error e) {
              e.printStackTrace();
             // Report fist failure only
             if (!libraryLoadFailed) {

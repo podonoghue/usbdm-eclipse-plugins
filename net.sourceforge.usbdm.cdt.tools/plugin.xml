@@ -239,6 +239,141 @@
             name="Generate gprof information (-pg)"
             valueType="boolean">
          </option>
+         <optionCategory
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               name="Optimization">
+         </optionCategory>
+            <option
+               name="Optimization level"
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.level"
+               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               valueType="enumerated">
+               <enumeratedOptionValue
+                  name="None (-O0)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.none"
+                  isDefault="false"
+                  command="-O0">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimise (-O1)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.optimize"
+                  command="-O1">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimise more (-O2)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.more"
+                  isDefault="true"
+                  command="-O2">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimise most (-O3)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.most"
+                  command="-O3">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimise size (-Os)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.size"
+                  command="-Os">
+               </enumeratedOptionValue>
+               <enablement
+                  type="CONTAINER_ATTRIBUTE"
+                  attribute="defaultValue"
+                  value="net.sourceforge.usbdm.gnu.c.optimization.level.most"
+                  extensionAdjustment="false">
+                  <checkBuildProperty
+                     property="org.eclipse.cdt.build.core.buildType"
+                     value="org.eclipse.cdt.build.core.buildType.release" />
+               </enablement>
+               <enablement
+                  type="CONTAINER_ATTRIBUTE"
+                  attribute="defaultValue"
+                  value="net.sourceforge.usbdm.gnu.c.optimization.level.none"
+                  extensionAdjustment="false">
+                  <checkBuildProperty
+                     property="org.eclipse.cdt.build.core.buildType"
+                     value="org.eclipse.cdt.build.core.buildType.debug" />
+               </enablement>
+            </option>
+            <option
+               name="Pack Structs (-fpack-struct)"
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs"
+               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               valueType="enumerated">
+               <enumeratedOptionValue
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.none"
+                  isDefault="true"
+                  name="None">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-fpack-struct"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.close"
+                  name="Close packed (no holes)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-fpack-struct=2"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.2"
+                  name="Alignment boundary = 2">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-fpack-struct=4"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.4"
+                  name="Alignment boundary = 4">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-fpack-struct=8"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.8"
+                  name="Alignment boundary = 8">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  command="-fpack-struct=16"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.16"
+                  name="Alignment boundary = 16">
+               </enumeratedOptionValue>
+            </option>
+            <option
+               name="Short enumerations (-fshort-enums)"
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations"
+               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               valueType="boolean"
+               command="-fshort-enums">
+            </option>
+            <option
+                  category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+                  command="-ffunction-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections"
+                  name="Place each function in own section (-ffunction-sections)"
+                  valueType="boolean">
+            </option>
+            <option
+                  category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+                  command="-fdata-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections"
+                  name="Place each data item in own section (-fdata-sections)"
+                  valueType="boolean">
+            </option>
+            <option
+                  category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+                  command="-Wl,--gc-sections "
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.cdt.toolchain.optimization.deadCodeElimination"
+                  name="Dead code elimination (-Wl,--gc-sections )"
+                  tip="Requires  -ffunction-sections/-fdata-sections to be effective"
+                  valueType="boolean">
+            </option>
+            <option
+               name="Other flags (compiler)"
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther"
+               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               valueType="string">
+            </option>
+            <option
+               name="Other flags (linker)"
+               id="net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther"
+               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+               valueType="string">
+            </option>
       </toolChain>
       <toolChain
          id="net.sourceforge.usbdm.cdt.holder"
@@ -2049,13 +2184,13 @@
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker"
                name="ARM C Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.c.linker">
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker"
                name="ARM C++ Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker">
@@ -2173,13 +2308,13 @@
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker"
                name="Coldfire C Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.c.linker">
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireLinkerCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker"
                name="Coldfire C++ Linker"
                superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.linker">

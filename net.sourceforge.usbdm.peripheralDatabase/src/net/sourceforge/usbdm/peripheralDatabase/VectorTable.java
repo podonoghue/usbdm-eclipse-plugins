@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class VectorTable {
-   private InterruptEntry[]   interrupts        = new InterruptEntry[255];
+   private InterruptEntry[]   interrupts        = new InterruptEntry[256];
    private ArrayList<String>  usedBy            = new ArrayList<String>();
    private String             name              = null;
    private boolean            addDefaultVectors = true;
@@ -242,11 +242,12 @@ public class VectorTable {
     */
    public void writeCVectorTable(Writer writer) throws IOException {
 
+      // Add default entries
       if (addDefaultVectors) {
          addDefaultInterruptEntries();
          addDefaultVectors = false;
       }
-
+      // Write out handler prototypes
       String suffix = exceptionHandlerNameSuffix;
       for (int index=2; index<=getLastUsedEntry()+10; index++) {
          InterruptEntry entry = interrupts[index];
@@ -259,17 +260,23 @@ public class VectorTable {
       }
       writer.write('\n');
       
+      // Write out vector table
       writer.write(vectorTableTypedef);
       writer.write(vectorTableOpen);
       suffix = exceptionHandlerNameSuffix;
-      for (int index=2; index<=getLastUsedEntry()+10; index++) {
+      for (int index=2; index<=255; index++) {
          if (index==VECTOR_OFFSET) {
             suffix = interruptHandlerNameSuffix;
             writer.write(vectorTableDeviceSeparator);
          }
          InterruptEntry entry = interrupts[index];
          if (entry == null) {
-            writer.write(String.format(vectorTableEntry, "Default_Handler,", index, index-VECTOR_OFFSET, "Reserved"));
+            if (index<=15) {
+               writer.write(String.format(vectorTableEntry, "0,              ", index, index-VECTOR_OFFSET, "Reserved"));
+            }
+            else {
+               writer.write(String.format(vectorTableEntry, "Default_Handler,", index, index-VECTOR_OFFSET, "Reserved"));
+            }
          }
          else {
             writer.write(String.format(vectorTableEntry, entry.getHandlerName()+suffix+",", index, index-VECTOR_OFFSET, entry.getCDescription()));

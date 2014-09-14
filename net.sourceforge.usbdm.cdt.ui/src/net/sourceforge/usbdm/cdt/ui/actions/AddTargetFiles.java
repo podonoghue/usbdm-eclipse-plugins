@@ -139,13 +139,12 @@ public class AddTargetFiles {
          sourceURI = new URI(null, source, null);
       }
 //      System.err.println(String.format("process()\t sourceURI => \'%s\'", sourceURI));
-      sourceURI = resolveURI(sourceURI);
 //      System.err.println(String.format("process()\t sourceURI => \'%s\'", sourceURI));
       
 //      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourceURI.toString(), target));
       switch (fileInfo.getFileType()) {
       case LINK :
-         createLink(Paths.get(sourceURI), target, projectHandle, monitor);
+         createLink(/*Paths.get(sourceURI)*/sourceURI, target, projectHandle, monitor);
          break;
       case NORMAL :
          processItem(Paths.get(resolveURI(sourceURI)), Paths.get(target), fileInfo.isReplaceable(), variableMap, projectHandle, monitor);
@@ -153,13 +152,13 @@ public class AddTargetFiles {
       }
    }
 
-   private void createLink(Path path, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
-//      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", path.toString(), target));
+   private void createLink(URI sourceURI, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", sourceURI.toString(), target));
       IFile iFile = projectHandle.getFile(target);
       if (!iFile.getParent().exists()) {
          ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor);
       }
-      iFile.createLink(path.toUri(), IResource.ALLOW_MISSING_LOCAL, monitor);
+      iFile.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, monitor);
    }
 
 }

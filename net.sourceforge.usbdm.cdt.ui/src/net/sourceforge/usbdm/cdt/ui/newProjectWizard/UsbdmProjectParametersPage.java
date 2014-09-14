@@ -49,10 +49,11 @@ import org.eclipse.swt.widgets.Label;
  *  USBDM New Project Wizard page "USBDM Project"
  *
  */
-public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSelection {
+public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProjectTypeSelection {
 
    private final static String PAGE_ID    = UsbdmConstants.PROJECT_PAGE_ID;
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_PAGE_NAME;
+   private final static String PAGE_TITLE = "USBDM Project Parameters";
 
    // These constants are used both for the dialogue persistent storage AND the page data map keys
    private final static String TARGET_DEVICE_KEY                = "targetDevice";               //$NON-NLS-1$
@@ -71,10 +72,10 @@ public class UsbdmProjectPage extends WizardPage implements UsbdmProjectTypeSele
    
    private DeviceDatabase     deviceDatabase = null;
 
-   public UsbdmProjectPage(UsbdmProjectSelectionPage projectSelectionPage) {
+   public UsbdmProjectParametersPage(UsbdmNewProjectPage projectSelectionPage) {
       super(PAGE_NAME);
       this.deviceType = projectSelectionPage.getInterfaceType();
-      setTitle("USBDM Project");
+      setTitle(PAGE_TITLE);
       setDescription("Select project parameters");
       setPageComplete(false);
       getName();

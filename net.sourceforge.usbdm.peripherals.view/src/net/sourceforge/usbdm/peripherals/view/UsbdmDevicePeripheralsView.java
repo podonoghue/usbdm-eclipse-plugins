@@ -188,16 +188,20 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             // Only provide images for column 1
             if (element instanceof PeripheralModel) {
                return getMyImage(Activator.ID_PERIPHERAL_IMAGE);
-            } else if (element instanceof RegisterModel) {
+            }
+            else if (element instanceof RegisterModel) {
                if (((RegisterModel) element).getAccessMode() == "RO") {
                   return getMyImage(Activator.ID_REGISTER_READ_ONLY_IMAGE);
-               } else {
+               } 
+               else {
                   return getMyImage(Activator.ID_REGISTER_READ_WRITE_IMAGE);
                }
-            } else if (element instanceof FieldModel) {
+            } 
+            else if (element instanceof FieldModel) {
                if (((FieldModel) element).getAccessMode() == "RO") {
                   return getMyImage(Activator.ID_FIELD_READ_ONLY_IMAGE);
-               } else {
+               } 
+               else {
                   return getMyImage(Activator.ID_FIELD_READ_WRITE_IMAGE);
                }
             }
@@ -532,40 +536,84 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
       ITreeSelection selection = (ITreeSelection) peripheralsTreeViewer.getSelection();
       Object uModel = selection.getFirstElement();
-      if ((uModel != null) && (uModel instanceof BaseModel)) {
-         String description = ((BaseModel) uModel).getDescription();
-         StyleRange styleRange = new StyleRange(0, description.length(), null, null, SWT.BOLD);
-         if (!(uModel instanceof FieldModel)) {
-            peripheralsInformationPanel.setText(description);
-            peripheralsInformationPanel.setStyleRange(styleRange);
+      if ((uModel == null) || !(uModel instanceof BaseModel)) {
+         return;
+      }
+      String basicDescription = ((BaseModel) uModel).getDescription();
+      String valueString = "";
+      try {
+         long value = 0;
+         if (uModel instanceof RegisterModel) {
+            value = ((RegisterModel)uModel).getValue();
+            valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
+         }
+         else if (uModel instanceof FieldModel) {
+            value = ((FieldModel)uModel).getValue();
+            valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
+         }
+      } catch (MemoryException e) {
+//         System.err.println("Opps");      
+//         long value = 1234;
+//         valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
+      }
+      StringBuffer description = new StringBuffer();
+      StyleRange valueStyleRange = null;
+      int splitAt = basicDescription.indexOf("\n");
+      if (!valueString.isEmpty()) {
+         if (splitAt != -1) {
+            description.append(basicDescription.substring(0, splitAt));
+            valueStyleRange = new StyleRange(description.length(), valueString.length(), Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE), null, SWT.NORMAL);
+            description.append(valueString);
+            description.append(basicDescription.substring(splitAt)); 
          } else {
-            int enumerationIndex = description.length(); // Start of enumeration
-                                                         // text
-            int enumerationlength = 0; // Length of enumeration text
-            int selectionIndex = 0;    // Start of highlighted enumeration
-            int selectionLength = 0;   // Length of highlighted enumeration
-            long enumerationValue;
-            try {
-               enumerationValue = ((FieldModel) uModel).getValue();
-               for (Enumeration enumeration : ((FieldModel) uModel).getEnumeratedDescription()) {
-                  description += "\n";
-                  String enumerationValueDescription = enumeration.getName() + ": " + enumeration.getDescription();
-                  if (enumeration.isSelected(enumerationValue)) {
-                     selectionIndex  = description.length();
-                     selectionLength = enumerationValueDescription.length();
-                  }
-                  enumerationlength += enumerationValueDescription.length();
-                  description += enumerationValueDescription;
-               }
-            } catch (MemoryException e) {
-               System.err.println("");
+            description.append(basicDescription);
+            valueStyleRange = new StyleRange(description.length(), valueString.length(), Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE), null, SWT.NORMAL);
+            description.append(valueString);
+         }
+      }
+      else {
+         description.append(basicDescription);
+      }
+      StyleRange styleRange = new StyleRange(0, description.length(), null, null, SWT.BOLD);
+      if (uModel instanceof FieldModel) {
+         FieldModel uField = (FieldModel) uModel;
+         int enumerationIndex = description.length(); // Start of enumeration
+         // text
+         int enumerationlength = 0; // Length of enumeration text
+         int selectionIndex = 0;    // Start of highlighted enumeration
+         int selectionLength = 0;   // Length of highlighted enumeration
+         long enumerationValue = 0;
+         boolean enumerationValid = false;
+         try {
+            enumerationValue = uField.getValue();
+            enumerationValid = true;
+         } catch (MemoryException e) {
+         }
+         for (Enumeration enumeration : uField.getEnumeratedDescription()) {
+            description.append("\n");
+            String enumerationValueDescription = enumeration.getName() + ": " + enumeration.getDescription();
+            if (enumerationValid && enumeration.isSelected(enumerationValue)) {
+               selectionIndex  = description.length();
+               selectionLength = enumerationValueDescription.length();
             }
-            peripheralsInformationPanel.setText(description);
-            peripheralsInformationPanel.setStyleRange(styleRange);
-            styleRange = new StyleRange(enumerationIndex, enumerationlength, null, null, SWT.NORMAL);
-            peripheralsInformationPanel.setStyleRange(styleRange);
-            styleRange = new StyleRange(selectionIndex, selectionLength, Display.getCurrent().getSystemColor(SWT.COLOR_RED), null, SWT.NORMAL);
-            peripheralsInformationPanel.setStyleRange(styleRange);
+            enumerationlength += enumerationValueDescription.length();
+            description.append(enumerationValueDescription);
+         }
+         peripheralsInformationPanel.setText(description.toString());
+         peripheralsInformationPanel.setStyleRange(styleRange);
+         if (valueStyleRange != null) {
+            peripheralsInformationPanel.setStyleRange(valueStyleRange);
+         }
+         styleRange = new StyleRange(enumerationIndex, enumerationlength, null, null, SWT.NORMAL);
+         peripheralsInformationPanel.setStyleRange(styleRange);
+         styleRange = new StyleRange(selectionIndex, selectionLength, Display.getCurrent().getSystemColor(SWT.COLOR_RED), null, SWT.NORMAL);
+         peripheralsInformationPanel.setStyleRange(styleRange);
+
+      } else {
+         peripheralsInformationPanel.setText(description.toString());
+         peripheralsInformationPanel.setStyleRange(styleRange);
+         if (valueStyleRange != null) {
+            peripheralsInformationPanel.setStyleRange(valueStyleRange);
          }
       }
    }
@@ -1062,6 +1110,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                   peripheralsTreeViewer.refresh(node);
                }
             }
+            updatePeripheralsInformationPanel();
          }
       });
    }

@@ -43,7 +43,7 @@ public class UsbdmProjectOptionsPage extends WizardPage {
    private final static String PAGE_ID    = UsbdmConstants.PROJECT_OPTIONS_PAGE_ID;
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_OPTIONS_PAGE_NAME;
 
-   private UsbdmProjectPage   usbdmProjectPage;
+   private UsbdmProjectParametersPage   usbdmProjectPage;
 
 //   private Device             currentDevice = null;
 
@@ -55,7 +55,7 @@ public class UsbdmProjectOptionsPage extends WizardPage {
       setPageComplete(true);
    }
 
-   public UsbdmProjectOptionsPage(UsbdmProjectPage usbdmProjectPage) {
+   public UsbdmProjectOptionsPage(UsbdmProjectParametersPage usbdmProjectPage) {
       super(PAGE_NAME);
       this.usbdmProjectPage = usbdmProjectPage;
       setTitle("USBDM Project Options");
@@ -201,7 +201,7 @@ public class UsbdmProjectOptionsPage extends WizardPage {
    
    private Device getDevice() {
       if (usbdmProjectPage == null) {
-         usbdmProjectPage = (UsbdmProjectPage) getWizard().getPage(UsbdmConstants.PROJECT_PAGE_ID);
+         usbdmProjectPage = (UsbdmProjectParametersPage) getWizard().getPage(UsbdmConstants.PROJECT_PAGE_ID);
       }
       if (usbdmProjectPage == null) {
          return null;

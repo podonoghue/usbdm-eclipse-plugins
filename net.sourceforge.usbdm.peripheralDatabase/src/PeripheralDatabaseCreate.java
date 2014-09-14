@@ -20,7 +20,7 @@ import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
-public class DevicePeripheralsTest {
+public class PeripheralDatabaseCreate {
 
    static IPath mainFolder                                        = new Path("C:/Users/podonoghue/Development/USBDM/Arm_Devices/Generated");
    static IPath svdRaw                                            = mainFolder.append("svdRaw");
@@ -59,12 +59,14 @@ public class DevicePeripheralsTest {
    static final String deviceListSchemaFilename = "DeviceListSchema.dtd";
 
    static final String onlyFileToProcess = null;
+// static final String onlyFileToProcess = "^(MKM).*";
 //   static final String onlyFileToProcess = "^(MKE|MKL).*(64).*";
 //   static final String onlyFileToProcess = "^(MKE).*";
 //   static final String onlyFileToProcess = "^(MK[26][42]).*";
 // static final String onlyFileToProcess = "^(MK20).*";
 //    static final String onlyFileToProcess = "^(MK.4).*";
-//   static final String onlyFileToProcess = "^(STM).*";
+// static final String onlyFileToProcess = "^(STM).*";
+//   static final String onlyFileToProcess = "^(MK22).*";
    
 //   static final String onlyFileToProcess = "MK20D5.svd.xml";
 

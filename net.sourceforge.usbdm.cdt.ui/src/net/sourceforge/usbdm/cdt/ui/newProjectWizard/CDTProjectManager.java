@@ -38,7 +38,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 
-@SuppressWarnings("restriction")
+@SuppressWarnings({ "restriction", "unused" })
 public class CDTProjectManager {
 
    // Based on org.eclipse.cdt.managedbuilder.testplugin
@@ -149,26 +149,34 @@ public class CDTProjectManager {
          config.setArtifactName("${ProjName}");
          CConfigurationData data = config.getConfigurationData();
          Assert.isNotNull(data, "data is null for created configuration");
-   
-         System.err.println("createCDTProj() ==================================================");
-         final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
-         Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
-         for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
-            System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+         projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+
+         //======================================================================
+         //======================================================================
+         // Not working
+         if (false) {
+            System.err.println("createCDTProj() ==================================================");
+            final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
+            Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
+            for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
+               System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+            }
+            languageSettingsProviderIdsList.remove(idToRemove);
+            String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
+            for (String languageSettingsProviderId : languageSettingsProviderIds) {
+               System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
+            }
+            ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+            if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
+               ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
+               languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
+            }
+            else {
+               System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
+            }
          }
-         languageSettingsProviderIdsList.remove(idToRemove);
-         String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
-         for (String languageSettingsProviderId : languageSettingsProviderIds) {
-            System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
-         }
-         ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-         if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
-            ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
-            languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
-         }
-         else {
-            System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
-         }
+         //======================================================================
+         //======================================================================
       }
       try {
          if (hasCCNature) {
@@ -184,7 +192,7 @@ public class CDTProjectManager {
       } catch (CoreException e) {
          throw new Exception("Failed to set CC nature", e);
       }
-      Assert.isTrue(projectDescription.getConfigurations().length > 0);
+      Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
 
       // Persist project description.
       coreModel.setProjectDescription(project, projectDescription);
