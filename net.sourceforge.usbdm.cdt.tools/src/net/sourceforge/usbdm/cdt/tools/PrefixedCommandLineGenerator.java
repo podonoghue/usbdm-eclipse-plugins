@@ -25,18 +25,17 @@ public class PrefixedCommandLineGenerator extends ManagedCommandLineGenerator {
    String buildToolOptionId = null;
 
    /**
-    * @param codesourceryPathVariableName - environment variable name containing path e.g. codesourcery_arm_prefix
+    * @param buildToolOptionId - option id
     */
    public PrefixedCommandLineGenerator(String buildToolOptionId) {
       this.buildToolOptionId = buildToolOptionId;
    }
 
    /**
-    * @param configuration       The configuration to look in for options
-    * @return                    The path to the build tools bin directory or "" if error
+    * @param tool       The tool to look in for options
+    * @return           The tool prefix e.g.arm-none-eabi-
     */
    private String getToolPrefix(ITool tool) {
-      
 
       if (buildToolOptionId == null) {
 //         System.err.println("PrefixedCmdLineGenerator.getToolPrefix() buildToolOptionId null");

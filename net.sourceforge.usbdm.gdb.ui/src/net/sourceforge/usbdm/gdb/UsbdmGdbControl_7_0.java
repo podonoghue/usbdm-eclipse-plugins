@@ -14,39 +14,29 @@ import java.util.Map;
 
 import org.eclipse.cdt.dsf.concurrent.RequestMonitorWithProgress;
 import org.eclipse.cdt.dsf.concurrent.Sequence;
-import org.eclipse.cdt.dsf.gdb.service.command.GDBControl;
+import org.eclipse.cdt.dsf.gdb.service.command.GDBControl_7_0;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
  * Jtag control service which selects the Jtag CompleteInitializationSequence.
- * Use for GDB < 7.0
+ * Use for GDB >= 7.0
  * @since 4.10
  */
-public class UsbdmGDBJtagControl extends GDBControl {
+public class UsbdmGdbControl_7_0 extends GDBControl_7_0 {
 
    GdbServerParameters fGdbServerParameters;
 
-	public UsbdmGDBJtagControl(DsfSession session, ILaunchConfiguration config, CommandFactory factory, GdbServerParameters gdbServerParameters) {
+	public UsbdmGdbControl_7_0(DsfSession session, ILaunchConfiguration config, CommandFactory factory, GdbServerParameters gdbServerParameters) {
 		super(session, config, factory);
-//      System.err.println("UsbdmGDBJtagControl()");
+//      System.err.println("UsbdmGDBJtagControl_7_2()");
       fGdbServerParameters = gdbServerParameters;
 	}
 
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-//      System.err.println("UsbdmGDBJtagControl.getCompleteInitializationSequence()");
-		return new UsbdmGdbJtagDSFFinalLaunchSequence(getSession(), attributes, rm, fGdbServerParameters);
+//      System.err.println("UsbdmGDBJtagControl_7_0.getCompleteInitializationSequence()");
+		return new UsbdmGdbDsfFinalLaunchSequence(getSession(), attributes, rm, fGdbServerParameters);
 	}
-
-   /* (non-Javadoc)
-    * @see org.eclipse.cdt.dsf.mi.service.command.AbstractMIControl#getCommandFactory()
-    */
-   @Override
-   public CommandFactory getCommandFactory() {
-      return super.getCommandFactory();
-   }
-	
-	
 }

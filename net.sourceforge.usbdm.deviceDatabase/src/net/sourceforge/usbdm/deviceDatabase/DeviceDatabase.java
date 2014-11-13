@@ -272,7 +272,7 @@ public class DeviceDatabase {
             values.add(element.getTextContent().trim());
          }
       }
-      System.err.println(String.format("parseCustomActionElement(%s, %s)", className, (values.size()==0)?"<empty>":values.get(0)));
+//      System.err.println(String.format("parseCustomActionElement(%s, %s)", className, (values.size()==0)?"<empty>":values.get(0)));
 
       return new ProjectCustomAction(className, values.toArray(new String[values.size()]));
    }

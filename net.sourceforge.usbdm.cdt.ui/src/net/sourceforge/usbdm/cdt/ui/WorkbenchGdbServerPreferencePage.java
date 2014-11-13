@@ -782,7 +782,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       if (btnTrimTargetClock != null) {
          enableTrim(gdbServerParameters.isTrimClock());
          txtTrimFrequency.setText(Integer.toString(gdbServerParameters.getClockTrimFrequency()));
-         txtNVTRIMAddress.setText(Integer.toHexString(gdbServerParameters.getNvmClockTrimLocation()));
+         txtNVTRIMAddress.setText(Long.toHexString(gdbServerParameters.getNvmClockTrimLocation()));
       }
       setTargetVdd(gdbServerParameters.getTargetVdd());
       btnAutomaticallyReconnect.setSelection(gdbServerParameters.getAutoReconnect() != AutoConnect.AUTOCONNECT_NEVER);

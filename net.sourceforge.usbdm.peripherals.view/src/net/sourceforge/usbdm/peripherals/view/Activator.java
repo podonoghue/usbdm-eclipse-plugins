@@ -83,6 +83,14 @@ public class Activator extends AbstractUIPlugin {
        registry.put(ID_SHOW_COLUMN_IMAGE, imageDescriptor);
        imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/usbdm.png"), null));
        registry.put(ID_USBDM_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/bug.png"), null));
+       registry.put(ID_BUG_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-checked.png"), null));
+       registry.put(ID_CHECKBOX_CHECKED_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-unchecked.png"), null));
+       registry.put(ID_CHECKBOX_UNCHECKED_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/exception.png"), null));
+       registry.put(ID_EXCEPTION_IMAGE, imageDescriptor);
    }
 
    public final static String ID_PERIPHERAL_IMAGE             = "peripheral-image";
@@ -97,6 +105,10 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_RESET_IMAGE                  = "reset-image";
    public final static String ID_SHOW_COLUMN_IMAGE            = "show-column-image";
    public final static String ID_USBDM_IMAGE                  = "usbdm-image";
+   public final static String ID_BUG_IMAGE                    = "bug-image";
+   public final static String ID_CHECKBOX_CHECKED_IMAGE       = "checkbox-checked";
+   public final static String ID_CHECKBOX_UNCHECKED_IMAGE     = "checkbox-unchecked";
+   public final static String ID_EXCEPTION_IMAGE              = "exception";
 	
    public ImageDescriptor getImageDescriptor(String key) {
 	   return getImageRegistry().getDescriptor(key);

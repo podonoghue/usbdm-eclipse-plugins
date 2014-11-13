@@ -218,12 +218,12 @@ public class VectorTable {
    static final String vectorTableOpen     = 
          "__attribute__ ((section(\".interrupt_vectors\")))\n"+
          "VectorTable const __vector_table = {\n"+
-         "                                     /*  Vec Irq */\n"+
-         "   &__StackTop,                      /*   0  -16  Initial stack pointer                                                            */\n"+
+         "                                     /*  Exc# Irq# */\n"+
+         "   &__StackTop,                      /*    0   -16  Initial stack pointer                                                            */\n"+
          "   {\n"+
-         "      __HardReset,                   /*   1  -15  Reset Handler                                                                    */\n";
+         "      __HardReset,                   /*    1   -15  Reset Handler                                                                    */\n";
    static final String vectorTableEntry    = 
-         "      %-30s /* %3d, %-3d  %-80s */\n";
+         "      %-30s /* %4d, %4d  %-80s */\n";
    static final String vectorTableDeviceSeparator =
          "\n                                     /* External Interrupts */\n";
    static final String vectorTableClose    = 

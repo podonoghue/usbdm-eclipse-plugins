@@ -43,31 +43,16 @@ public class UsbdmGdbJtagConnection extends DefaultGDBJtagDeviceImpl implements 
       return usbdmApplicationPath;
    }
 
-   /* (non-Javadoc)
-    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#doSetPC(java.lang.String, java.util.Collection)
-    */
-   @Override
-   public void doSetPC(String pc, Collection<String> commands) {
-      String cmd = "set $pc=" + pc; //$NON-NLS-1$
-      addCmd(commands, cmd);
-   }
-   
-   @Override
-   public void doReset(Collection<String> commands) {
-//      System.err.println("UsbdmInterface.doReset()");
-      super.doReset(commands);
-   }
-
    @Override
    public void doRemote(String ip, int port, Collection<String> commands) {
-//      System.err.println("UsbdmInterface.doRemote(ip, port, commands)");
+//      System.err.println("UsbdmGdbJtagConnection.doRemote(ip, port, commands)");
       super.doRemote(ip, port, commands);
    }
 
    @Override
    public void doLoadSymbol(String symbolFileName, String symbolOffset,
          Collection<String> commands) {
-//      System.err.println("UsbdmInterface.doLoadSymbol()");
+//      System.err.println("UsbdmGdbJtagConnection.doLoadSymbol()");
       super.doLoadSymbol(symbolFileName, symbolOffset, commands);
    }
 
@@ -78,7 +63,7 @@ public class UsbdmGdbJtagConnection extends DefaultGDBJtagDeviceImpl implements 
     */
    @Override
    public final void setDefaultDeviceConnection(String connection) {
-//      System.err.println("UsbdmInterface::setDefaultDeviceConnection(\'"+connection+"\')");
+//      System.err.println("UsbdmGdbJtagConnection::setDefaultDeviceConnection(\'"+connection+"\')");
       this.connection = connection;
    }
 
@@ -115,20 +100,69 @@ public class UsbdmGdbJtagConnection extends DefaultGDBJtagDeviceImpl implements 
    @Override
    public String getDefaultDeviceConnection() {
       String retVal = connection;
-//       System.err.println("UsbdmInterface::getDefaultDeviceConnection() => \'"+retVal+"\'");
+//       System.err.println("UsbdmGdbJtagConnection::getDefaultDeviceConnection() => \'"+retVal+"\'");
       return retVal;
    }
 
    @Override
    public String getDefaultIpAddress() {
-//      System.err.println("UsbdmInterface::getDefaultIpAddress()");
+//      System.err.println("UsbdmGdbJtagConnection::getDefaultIpAddress()");
       throw new UnsupportedOperationException();
    }
 
    @Override
    public String getDefaultPortNumber() {
-//      System.err.println("UsbdmInterface::getDefaultPortNumber()");
+//      System.err.println("UsbdmGdbJtagConnection::getDefaultPortNumber()");
       throw new UnsupportedOperationException();
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl#doStopAt(java.lang.String, java.util.Collection)
+    */
+   @Override
+   public void doStopAt(String stopAt, Collection<String> commands) {
+      addCmd(commands, "-break-insert -t " + stopAt); //$NON-NLS-1$
+   }
+
+   @Override
+   public void doReset(Collection<String> commands) {
+      System.err.println("UsbdmGdbJtagConnection.doReset()");
+      addCmd(commands, "monitor reset run");
+      addCmd(commands, "-exec-step");  //$NON-NLS-1$
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl#doStopAt(java.lang.String, java.util.Collection)
+    */
+   @Override
+   public void doSetPC(String pcValue, Collection<String> commands) {
+      addCmd(commands, "set $pc=" + pcValue); //$NON-NLS-1$
+      addCmd(commands, "-exec-step");  //$NON-NLS-1$
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#doHalt(java.util.Collection)
+    */
+   @Override
+   public void doHalt(Collection<String> commands) {
+      addCmd(commands, "-exec-interrupt"); //$NON-NLS-1$
+      addCmd(commands, "-exec-step");  //$NON-NLS-1$
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#doContinue(java.util.Collection)
+    */
+   @Override
+   public void doContinue(Collection<String> commands) {
+      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl#getDefaultDelay()
+    */
+   @Override
+   public int getDefaultDelay() {
+      return 0;
    }
 
 }

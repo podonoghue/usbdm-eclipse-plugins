@@ -95,6 +95,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    private Action hideShowDescriptionColumnAction;
    private Action setDeviceAction;
 
+   private Action openFaultDialogue;
+
    private GdbDsfSessionListener gdbDsfSessionListener = null;
    private GdbMiSessionListener gdbMiSessionListener = null;
 
@@ -813,6 +815,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 //      manager.add(resetPeripheralAction);
       manager.add(hideShowLocationColumnAction);
       manager.add(hideShowDescriptionColumnAction);
+      manager.add(openFaultDialogue);
       // manager.add(filterPeripheralAction);
       // manager.add(hideShowColumnAction);
       // Other plug-ins can contribute there actions here
@@ -824,6 +827,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       manager.add(refreshCurrentSelectionAction);
       manager.add(refreshAllAction);
       manager.add(filterPeripheralAction);
+      manager.add(openFaultDialogue);
    }
 
    /**
@@ -872,6 +876,27 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       if (Activator.getDefault() != null) {
          ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_REFRESH_SELECTION_IMAGE);
          refreshCurrentSelectionAction.setImageDescriptor(imageDescriptor);
+      }
+
+      /*
+       * Refresh current selection action
+       */
+      openFaultDialogue = new Action() {
+         public void run() {
+            if (peripheralsModel == null) {
+               return;
+            }
+            FaultDialogue dialogue = new FaultDialogue(getSite().getShell());
+            dialogue.setTitleImage(Activator.getDefault().getImageDescriptor(Activator.ID_USBDM_IMAGE).createImage());
+            dialogue.create(peripheralsModel.getGdbInterface());
+            dialogue.open();
+         }
+      };
+      openFaultDialogue.setText("Exception Report");
+      openFaultDialogue.setToolTipText("Open Target Exception Report");
+      if (Activator.getDefault() != null) {
+         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_EXCEPTION_IMAGE);
+         openFaultDialogue.setImageDescriptor(imageDescriptor);
       }
 
 //      /*

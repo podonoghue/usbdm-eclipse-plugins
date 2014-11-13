@@ -860,7 +860,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                entry.setNumber(++lastEntryNumber);
             }
             else if (entry.getNumber() <= lastEntryNumber) {
-               throw new Exception("Interrupt vectors must be monotonic");
+               throw new Exception("Interrupt vectors must be monotonic, # + " + entry.getNumber());
             }
             lastEntryNumber = entry.getNumber();
             if (vectorTable.getEntry(lastEntryNumber) != null) {

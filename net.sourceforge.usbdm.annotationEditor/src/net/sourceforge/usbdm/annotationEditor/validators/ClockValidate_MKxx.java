@@ -75,7 +75,7 @@ public class ClockValidate_MKxx extends MyValidator {
       else {
          system_mcgir_clock = slowIRCNode.getValueAsLong();
       }
-      System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
+      System.err.println("ClockValidate_MKxx.validate() system_mcgir_clock = " + system_mcgir_clock);
 
       // Default if no MCG_C7_OSCSEL register field
       long system_erc_clock = oscclk_clockNode.getValueAsLong();
@@ -94,7 +94,7 @@ public class ClockValidate_MKxx extends MyValidator {
             throw new Exception("Illegal Clock source (mcg_c7_oscsel)");
          }
       }
-      System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
+      System.err.println("ClockValidate_MKxx.validate() system_erc_clock = " + system_erc_clock);
 
       long clk = primaryClockModeNode.getValueAsLong();
       if (clk > ClockModes.values().length) {
@@ -102,79 +102,79 @@ public class ClockValidate_MKxx extends MyValidator {
       }
       ClockModes primaryClockMode = ClockModes.values()[(int)primaryClockModeNode.getValueAsLong()];
       
-      int mcg_c1_clks     = 0;
-      int mcg_c1_irefs    = 1;
-      int mcg_c6_plls     = 0;
-      int mcg_c2_lp       = 0;
+      int     mcg_c1_clks                = 0;
+      int     mcg_c1_irefs               = 1;
+      int     mcg_c6_plls                = 0;
+      int     mcg_c2_lp                  = 0;
       
-      long fllTargetFrequency = fllTargetFrequencyNode.getValueAsLong();
-      long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
-      long system_mcgout_clock = 0;
-      String primaryClockModeMessage = null;
+      long    fllTargetFrequency         = fllTargetFrequencyNode.getValueAsLong();
+      long    pllTargetFrequency         = pllTargetFrequencyNode.getValueAsLong();
+      long    system_mcgout_clock        = 0;
+      String  primaryClockModeMessage    = null;
       
       switch (primaryClockMode) {
       case NONEClock:
-         mcg_c1_clks          = 0;
-         mcg_c1_irefs         = 1;
-         mcg_c6_plls          = 0;
-         mcg_c2_lp            = 0;
-         system_mcgout_clock  = fllTargetFrequency;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
+         system_mcgout_clock = fllTargetFrequency;
          primaryClockModeMessage = "No clock settings are applied";
          break;
       case FEIClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = fllTargetFrequency;
          break;
       case FEEClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = fllTargetFrequency;
          break;
       case FBIClock:
-         mcg_c1_clks     = 1;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 1;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_mcgir_clock;
          break;
       case BLPIClock:
-         mcg_c1_clks     = 1;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 1;
+         mcg_c1_clks         = 1;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 1;
          system_mcgout_clock = system_mcgir_clock;
          break;
       case FBEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_erc_clock;
          break;
       case BLPEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 1;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 1;
          system_mcgout_clock = system_erc_clock;
          break;
       case PBEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 1;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 1;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_erc_clock;
          break;
       case PEEClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 1;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 1;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = pllTargetFrequency;
          break;
       }
@@ -185,7 +185,10 @@ public class ClockValidate_MKxx extends MyValidator {
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
          system_core_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
+         System.err.println("ClockValidate_MKxx.validate() Core clock frequency is too high = " + system_core_clock);
       }
+      System.err.println("ClockValidate_MKxx.validate() Core clock frequency = " + system_core_clock + 
+            ", MAX_BUS_CLOCK_FREQ = " + MAX_CORE_CLOCK_FREQ );
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
       // Bus Clock

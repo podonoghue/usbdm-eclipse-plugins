@@ -25,11 +25,11 @@ import org.eclipse.debug.core.ILaunchConfiguration;
  * Use for GDB >= 7.4
  * @since 4.10
  */
-public class UsbdmGDBJtagControl_7_4 extends GDBControl_7_4 {
+public class UsbdmGdbControl_7_4 extends GDBControl_7_4 {
 
    GdbServerParameters fGdbServerParameters;
    
-	public UsbdmGDBJtagControl_7_4(DsfSession session, ILaunchConfiguration config, CommandFactory factory, GdbServerParameters gdbServerParameters) {
+	public UsbdmGdbControl_7_4(DsfSession session, ILaunchConfiguration config, CommandFactory factory, GdbServerParameters gdbServerParameters) {
 		super(session, config, factory);
 //      System.err.println("UsbdmGDBJtagControl_7_4()");
       fGdbServerParameters = gdbServerParameters;
@@ -37,9 +37,7 @@ public class UsbdmGDBJtagControl_7_4 extends GDBControl_7_4 {
 	
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-	   
 //      System.err.println("UsbdmGDBJtagControl_7_4.getCompleteInitializationSequence()");
-		return new UsbdmGdbJtagDSFFinalLaunchSequence_7_2(getSession(), attributes, rm, fGdbServerParameters);
+		return new UsbdmGdbDsfFinalLaunchSequence_7_2(getSession(), attributes, rm, fGdbServerParameters);
 	}
-	
 }

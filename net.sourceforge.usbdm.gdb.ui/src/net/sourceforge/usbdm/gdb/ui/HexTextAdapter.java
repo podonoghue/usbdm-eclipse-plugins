@@ -10,11 +10,11 @@ import org.eclipse.swt.widgets.Text;
       Text textField;
       String name;
 
-      String formatString = "%X";
-      int min = 0;
-      int max = 0xFFFFFFFF;
+      final String FORMAT_STRING = "%X";
+      long min = 0L;
+      long max = 0xFFFFFFFFL;
       
-      public void setRange(int min, int max) {
+      public void setRange(long min, long max) {
          this.min = min; 
          this.max = max; 
       }
@@ -22,10 +22,10 @@ import org.eclipse.swt.widgets.Text;
          return textField;
       }
      
-      public HexTextAdapter(String name, Text textField, int value) {
+      public HexTextAdapter(String name, Text textField, long value) {
          this.textField = textField;
          this.name = name;
-         setHexValue(value);
+         setValue(value);
 //         formatString = new String("%5X");
          textField.setTextLimit(10);
          textField.addVerifyListener(new HexVerifyListener());
@@ -56,10 +56,10 @@ import org.eclipse.swt.widgets.Text;
          }
       };
       
-      public int getHexValue() {
-         int value = 0;
+      public long getHexValue() {
+         long value = 0;
          try {
-            value = Integer.parseInt(textField.getText(), 16);
+            value = Long.parseLong(textField.getText(), 16);
          } catch (NumberFormatException e) {
             // Quietly default to 0
          }
@@ -67,7 +67,7 @@ import org.eclipse.swt.widgets.Text;
       }
       
       public boolean validate() {
-         int value = getHexValue();
+         long value = getHexValue();
          boolean ok = ((value >= min) && (value <= max));
          
          if (!ok) {
@@ -80,10 +80,28 @@ import org.eclipse.swt.widgets.Text;
          return ok;
       }
       
-      public void setHexValue(int value) {
-//         if (value == 0)
-//            textField.setText("default");
-         textField.setText(String.format(formatString, value));
+      public void setValue(long l) {
+         textField.setText(String.format(FORMAT_STRING, l));
+      }
+
+      public void setHexValue(String s) {
+         if (s==null) {
+            setValue(0);
+         }
+         if (s.trim().isEmpty()) {
+            setValue(0);
+         }
+         setValue(Long.parseLong(s, 16));
+      }
+
+      public void setValue(String s) {
+         if (s==null) {
+            setValue(0);
+         }
+         if (s.trim().isEmpty()) {
+            setValue(0);
+         }
+         setValue(Long.parseLong(s));
       }
    }
    

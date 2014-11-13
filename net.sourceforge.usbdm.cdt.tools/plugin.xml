@@ -164,8 +164,7 @@
             <enumeratedOptionValue
                name="Default(-g)"
                id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.default"
-               command="-g"
-               isDefault="true" />
+               command="-g" />
             <enumeratedOptionValue
                name="Maximum (-g3)"
                id="net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel.max"
@@ -250,9 +249,7 @@
                valueType="enumerated">
                <enumeratedOptionValue
                   name="None (-O0)"
-                  id="net.sourceforge.usbdm.gnu.c.optimization.level.none"
-                  isDefault="false"
-                  command="-O0">
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.none">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="Optimise (-O1)"
@@ -262,7 +259,6 @@
                <enumeratedOptionValue
                   name="Optimise more (-O2)"
                   id="net.sourceforge.usbdm.gnu.c.optimization.level.more"
-                  isDefault="true"
                   command="-O2">
                </enumeratedOptionValue>
                <enumeratedOptionValue
@@ -331,11 +327,12 @@
                </enumeratedOptionValue>
             </option>
             <option
-               name="Short enumerations (-fshort-enums)"
-               id="net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations"
-               category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
-               valueType="boolean"
-               command="-fshort-enums">
+                  category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+                  command="-fshort-enums"
+                  defaultValue="false"
+                  id="net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations"
+                  name="Short enumerations (-fshort-enums)"
+                  valueType="boolean">
             </option>
             <option
                   category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
@@ -638,8 +635,7 @@
                <enumeratedOptionValue
                   name="None (-O0)"
                   id="net.sourceforge.usbdm.gnu.c.optimization.level.none"
-                  isDefault="false"
-                  command="-O0">
+                  isDefault="true">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="Optimise (-O1)"
@@ -649,7 +645,6 @@
                <enumeratedOptionValue
                   name="Optimise more (-O2)"
                   id="net.sourceforge.usbdm.gnu.c.optimization.level.more"
-                  isDefault="true"
                   command="-O2">
                </enumeratedOptionValue>
                <enumeratedOptionValue
@@ -663,22 +658,14 @@
                   command="-Os">
                </enumeratedOptionValue>
                <enablement
-                  type="CONTAINER_ATTRIBUTE"
-                  attribute="defaultValue"
-                  value="net.sourceforge.usbdm.gnu.c.optimization.level.most"
-                  extensionAdjustment="false">
-                  <checkBuildProperty
-                     property="org.eclipse.cdt.build.core.buildType"
-                     value="org.eclipse.cdt.build.core.buildType.release" />
-               </enablement>
-               <enablement
-                  type="CONTAINER_ATTRIBUTE"
-                  attribute="defaultValue"
-                  value="net.sourceforge.usbdm.gnu.c.optimization.level.none"
-                  extensionAdjustment="false">
-                  <checkBuildProperty
-                     property="org.eclipse.cdt.build.core.buildType"
-                     value="org.eclipse.cdt.build.core.buildType.debug" />
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.level"
+                        value="net.sourceforge.usbdm.gnu.c.optimization.level.none">
+                  </checkOption>
                </enablement>
             </option>
             <option
@@ -716,6 +703,16 @@
                   id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.16"
                   name="Alignment boundary = 16">
                </enumeratedOptionValue>
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs"
+                        value="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.none">
+                  </checkOption>
+               </enablement>
             </option>
             <option
                name="Short enumerations (-fshort-enums)"
@@ -723,38 +720,52 @@
                category="net.sourceforge.usbdm.gnu.c.compiler.optimization"
                valueType="boolean"
                command="-fshort-enums">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
-               name="Place each function in own section (-ffunction-sections)"
-               id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.functionSections"
-               category="net.sourceforge.usbdm.gnu.c.compiler.optimization"
-               valueType="boolean"
-               command="-ffunction-sections">
-	            <enablement
-	               type="CONTAINER_ATTRIBUTE"
-	               attribute="defaultValue"
-	               value="true"
-	               extensionAdjustment="false">
-	               <checkBuildProperty
-	                  property="org.eclipse.cdt.build.core.buildType"
-	                  value="org.eclipse.cdt.build.core.buildType.release" />
-	            </enablement>
+                  category="net.sourceforge.usbdm.gnu.c.compiler.optimization"
+                  command="-ffunction-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.functionSections"
+                  name="Place each function in own section (-ffunction-sections)"
+                  valueType="boolean">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
-               name="Place each data item in own section (-fdata-sections)"
-               id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.dataSections"
-               category="net.sourceforge.usbdm.gnu.c.compiler.optimization"
-               valueType="boolean"
-               command="-fdata-sections">
-	            <enablement
-	               type="CONTAINER_ATTRIBUTE"
-	               attribute="defaultValue"
-	               value="true"
-	               extensionAdjustment="false">
-	               <checkBuildProperty
-	                  property="org.eclipse.cdt.build.core.buildType"
-	                  value="org.eclipse.cdt.build.core.buildType.release" />
-	            </enablement>
+                  category="net.sourceforge.usbdm.gnu.c.compiler.optimization"
+                  command="-fdata-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.dataSections"
+                  name="Place each data item in own section (-fdata-sections)"
+                  valueType="boolean">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
                name="Other"
@@ -867,7 +878,6 @@
                valueType="enumerated">
                <enumeratedOptionValue
                      id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.systemDefault"
-                     isDefault="true"
                      name="System default">
                </enumeratedOptionValue>
                <enumeratedOptionValue
@@ -881,9 +891,10 @@
                   command="-std=iso9899:199409">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="ISO C99 (-std=c99)"
-                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c99"
-                  command="-std=c99">
+                     command="-std=c99"
+                     id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c99"
+                     isDefault="true"
+                     name="ISO C99 (-std=c99)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="ISO C11, the 2011 revision of the ISO C standard (-std=c11)"
@@ -949,12 +960,12 @@
                </enumeratedOptionValue>
             </option>
             <option
-               name="Create Listing"
-               id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.listing"
-               category="net.sourceforge.usbdm.gnu.c.compiler.other"
-               command="-Wa,${value}"
-               defaultValue="-adhls=&quot;$@.lst&quot;"
-               valueType="string">
+                  category="net.sourceforge.usbdm.gnu.c.compiler.other"
+                  command="-Wa,-adhls=&quot;$@.lst&quot;"
+                  defaultValue="false"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.listing"
+                  name="Create Listing (-Wa,-adhls=&quot;$@.lst&quot;)"
+                  valueType="boolean">
             </option>
             <option
                name="Other flags"
@@ -1058,8 +1069,7 @@
                <enumeratedOptionValue
                   name="None (-O0)"
                   id="net.sourceforge.usbdm.gnu.cpp.optimization.level.none"
-                  isDefault="false"
-                  command="-O0">
+                  isDefault="true">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="Optimise (-O1)"
@@ -1069,7 +1079,6 @@
                <enumeratedOptionValue
                   name="Optimise more (-O2)"
                   id="net.sourceforge.usbdm.gnu.cpp.optimization.level.more"
-                  isDefault="true"
                   command="-O2">
                </enumeratedOptionValue>
                <enumeratedOptionValue
@@ -1083,22 +1092,14 @@
                   command="-Os">
                </enumeratedOptionValue>
                <enablement
-                  type="CONTAINER_ATTRIBUTE"
-                  attribute="defaultValue"
-                  value="net.sourceforge.usbdm.gnu.cpp.optimization.level.most"
-                  extensionAdjustment="false">
-                  <checkBuildProperty
-                     property="org.eclipse.cdt.build.core.buildType"
-                     value="org.eclipse.cdt.build.core.buildType.release" />
-               </enablement>
-               <enablement
-                  type="CONTAINER_ATTRIBUTE"
-                  attribute="defaultValue"
-                  value="net.sourceforge.usbdm.gnu.cpp.optimization.level.none"
-                  extensionAdjustment="false">
-                  <checkBuildProperty
-                     property="org.eclipse.cdt.build.core.buildType"
-                     value="org.eclipse.cdt.build.core.buildType.debug" />
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.level"
+                        value="net.sourceforge.usbdm.gnu.c.optimization.level.none">
+                  </checkOption>
                </enablement>
             </option>
             <option
@@ -1136,6 +1137,16 @@
                   id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.packStructs.16"
                   name="Alignment boundary = 16 (-fpack-struct=16)">
                </enumeratedOptionValue>
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs"
+                        value="net.sourceforge.usbdm.gnu.c.compiler.option.optimization.packStructs.none">
+                  </checkOption>
+               </enablement>
             </option>
             <option
                name="Short enumerations (-fshort-enums)"
@@ -1143,38 +1154,52 @@
                category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
                valueType="boolean"
                command="-fshort-enums">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
-               name="Place each function in own section (-ffunction-sections)"
-               id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.functionSections"
-               category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
-               valueType="boolean"
-               command="-ffunction-sections">
-	            <enablement
-	               type="CONTAINER_ATTRIBUTE"
-	               attribute="defaultValue"
-	               value="true"
-	               extensionAdjustment="false">
-	               <checkBuildProperty
-	                  property="org.eclipse.cdt.build.core.buildType"
-	                  value="org.eclipse.cdt.build.core.buildType.release" />
-	            </enablement>
+                  category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
+                  command="-ffunction-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.functionSections"
+                  name="Place each function in own section (-ffunction-sections)"
+                  valueType="boolean">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
-               name="Place each data item in own section (-fdata-sections)"
-               id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.dataSections"
-               category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
-               valueType="boolean"
-               command="-fdata-sections">
-	            <enablement
-	               type="CONTAINER_ATTRIBUTE"
-	               attribute="defaultValue"
-	               value="true"
-	               extensionAdjustment="false">
-	               <checkBuildProperty
-	                  property="org.eclipse.cdt.build.core.buildType"
-	                  value="org.eclipse.cdt.build.core.buildType.release" />
-	            </enablement>
+                  category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
+                  command="-fdata-sections"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.dataSections"
+                  name="Place each data item in own section (-fdata-sections)"
+                  valueType="boolean">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections"
+                        value="false">
+                  </checkOption>
+               </enablement>
             </option>
             <option
                name="Other"
@@ -1297,13 +1322,13 @@
                valueType="enumerated">
                <enumeratedOptionValue
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.systemDefault"
-                     isDefault="true"
                      name="System default">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="1998 ISO C++ standard plus amendments (-std=c++98)"
-                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp98"
-                  command="-std=c++98">
+                     command="-std=c++98"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp98"
+                     isDefault="true"
+                     name="1998 ISO C++ standard plus amendments (-std=c++98)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="GNU dialect of C++98 (-std=gnu++98)"
@@ -1364,12 +1389,12 @@
                </enumeratedOptionValue>
             </option>
             <option
-               name="Create Listing"
+               name="Create Listing (-Wa,-adhls=&quot;$@.lst&quot;)"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.listing"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.other"
-               command="-Wa,${value}"
-               defaultValue="-adhls=&quot;$@.lst&quot;"
-               valueType="string">
+               command="-Wa,-adhls=&quot;$@.lst&quot;"
+               defaultValue="false"
+               valueType="boolean">
             </option>
             <option
                name="Other flags"
@@ -1585,32 +1610,32 @@
                   name="CPP Linker output"
                   superClass="cdt.managedbuild.tool.gnu.cpp.linker.output">
             </outputType>
+            <outputType
+                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.map.outputType"
+                  name="Map File"
+                  outputNames="${BuildArtifactFileBaseName}.map"
+                  outputs="map">
+            </outputType>
          </tool>
          <tool
                command="objdump"
                commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT}"
                id="net.sourceforge.usbdm.cdt.toolchain.lister"
                isAbstract="true"
-               name="Create Listing"
+               name="Disassembler"
                outputFlag="&gt;">
             <inputType
-               id="net.sourceforge.usbdm.cdt.toolchain.lister.inputType"
-               multipleOfType="true"
-               option="net.sourceforge.usbdm.cdt.toolchain.lister.inFile"
-               sources="elf">
+                  id="net.sourceforge.usbdm.cdt.toolchain.lister.inputType"
+                  multipleOfType="false"
+                  primaryInput="true">
             </inputType>
             <outputType
-               name="List file"
-               id="net.sourceforge.usbdm.cdt.toolchain.lister.outputType"
-               buildVariable="SECONDARY_LIST"
-               outputNames="${BuildArtifactFileBaseName}.lst"
-               outputs="lst">
+                  id="net.sourceforge.usbdm.cdt.toolchain.lister.outputType"
+                  name="List file"
+                  outputNames="${BuildArtifactFileBaseName}.lis"
+                  outputs="lis"
+                  primaryOutput="true">
             </outputType>
-            <option
-               id="net.sourceforge.usbdm.cdt.toolchain.lister.inFile"
-               value="${BuildArtifactFileName}"
-               valueType="string">
-            </option>
             <optionCategory
                name="Options"
                id="net.sourceforge.usbdm.cdt.toolchain.lister.optionCategory">
@@ -1644,7 +1669,7 @@
                id="net.sourceforge.usbdm.cdt.toolchain.lister.sectionHeaders"
                command="-h"
                category="net.sourceforge.usbdm.cdt.toolchain.lister.optionCategory"
-               defaultValue="true"
+               defaultValue="false"
                valueType="boolean">
             </option>
             <option
@@ -1660,7 +1685,7 @@
                id="net.sourceforge.usbdm.cdt.toolchain.lister.disassemble"
                command="-d"
                category="net.sourceforge.usbdm.cdt.toolchain.lister.optionCategory"
-               defaultValue="false"
+               defaultValue="true"
                valueType="boolean">
             </option>
             <option
@@ -1684,7 +1709,7 @@
                id="net.sourceforge.usbdm.cdt.toolchain.lister.sourceCodeAllSections"
                command="-s"
                category="net.sourceforge.usbdm.cdt.toolchain.lister.optionCategory"
-               defaultValue="true"
+               defaultValue="false"
                valueType="boolean">
             </option>
             <option
@@ -1716,7 +1741,7 @@
                id="net.sourceforge.usbdm.cdt.toolchain.lister.symbolTable"
                command="-t"
                category="net.sourceforge.usbdm.cdt.toolchain.lister.optionCategory"
-               defaultValue="false"
+               defaultValue="true"
                valueType="boolean">
             </option>
             <option
@@ -1773,17 +1798,17 @@
                name="Sizer"
                outputFlag="&gt;">
             <inputType
-               id="net.sourceforge.usbdm.cdt.toolchain.sizer.inputType"
-               multipleOfType="true"
-               option="net.sourceforge.usbdm.cdt.toolchain.sizer.inFile"
-               sources="elf">
+                  id="net.sourceforge.usbdm.cdt.toolchain.sizer.inputType"
+                  multipleOfType="true"
+                  option="net.sourceforge.usbdm.cdt.toolchain.sizer.inFile"
+                  sourceContentType="org.eclipse.cdt.managedbuilder.core.executableFile">
             </inputType>
             <outputType
-               name="Size file"
-               id="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType"
-               buildVariable="SECONDARY_LIST"
-               outputNames="${BuildArtifactFileBaseName}.size"
-               outputs="size">
+                  id="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType"
+                  name="Size file"
+                  outputNames="${BuildArtifactFileBaseName}.size"
+                  outputs="size"
+                  primaryOutput="true">
             </outputType>
             <option
                id="net.sourceforge.usbdm.cdt.toolchain.sizer.inFile"
@@ -1864,17 +1889,17 @@
                name="Symbol Table"
                outputFlag="&gt;">
             <inputType
-               id="net.sourceforge.usbdm.cdt.toolchain.sym.inputType"
-               multipleOfType="true"
-               option="net.sourceforge.usbdm.cdt.toolchain.sym.inFile"
-               sources="elf">
+                  id="net.sourceforge.usbdm.cdt.toolchain.sym.inputType"
+                  multipleOfType="true"
+                  option="net.sourceforge.usbdm.cdt.toolchain.sym.inFile"
+                  sourceContentType="org.eclipse.cdt.managedbuilder.core.executableFile">
             </inputType>
             <outputType
-               name="Symbol list file"
-               id="net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
-               buildVariable="SECONDARY_LIST"
-               outputNames="${BuildArtifactFileBaseName}.sym"
-               outputs="size">
+                  id="net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+                  name="Symbol list file"
+                  outputNames="${BuildArtifactFileBaseName}.sym"
+                  outputs="sym"
+                  primaryOutput="true">
             </outputType>
             <option
                id="net.sourceforge.usbdm.cdt.toolchain.sym.inFile"
@@ -1964,7 +1989,7 @@
             id="net.sourceforge.usbdm.cdt.arm.toolchain"
             isAbstract="true"
             name="ARM ToolChain"
-            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType"
+            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
             targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker;net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
          <option
@@ -2198,7 +2223,7 @@
          <tool
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmPrefixedCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.lister"
-               name="ARM Lister"
+               name="ARM Disassembler"
                superClass="net.sourceforge.usbdm.cdt.toolchain.lister">
          </tool>
          <tool
@@ -2220,7 +2245,7 @@
             id="net.sourceforge.usbdm.cdt.coldfire.toolchain"
             isAbstract="true"
             name="Coldfire Toolchain"
-            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType"
+            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
             targetTool="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.archiver">
          <option
@@ -2250,7 +2275,6 @@
             <enumeratedOptionValue
                   command="-mcpu=51"
                   id="net.sourceforge.usbdm.cdt.coldfire.toolchain.mcpu.51"
-                  isDefault="true"
                   name="MCF51 family"/>
             <enumeratedOptionValue
                name="MCF52223 family"
@@ -2322,7 +2346,7 @@
          <tool
                commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfirePrefixedCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.lister"
-               name="Coldfire Lister"
+               name="Coldfire Disassembler"
                superClass="net.sourceforge.usbdm.cdt.toolchain.lister">
          </tool>
          <tool

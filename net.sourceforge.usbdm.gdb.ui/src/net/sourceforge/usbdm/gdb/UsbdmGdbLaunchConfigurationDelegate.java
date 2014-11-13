@@ -1,5 +1,9 @@
 package net.sourceforge.usbdm.gdb;
 
+import java.util.Map;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+
 import org.eclipse.cdt.core.IBinaryParser.IBinaryObject;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.debug.core.CDIDebugModel;
@@ -45,8 +49,8 @@ public class UsbdmGdbLaunchConfigurationDelegate extends AbstractCLaunchDelegate
          IPath exePath = CDebugUtils.verifyProgramPath(configuration);
          ICDISession session = debugger.createSession(launch, null, submonitor.newChild(1));
          // Attache device name to session
-         String deviceName = configuration.getAttribute("net.sourceforge.usbdm.gdb.deviceName", (String)null);
-         session.setAttribute("net.sourceforge.usbdm.gdb.deviceName", deviceName);
+         String deviceName = configuration.getAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY, (String)null);
+         session.setAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY, deviceName);
          IBinaryObject exeBinary = null;
          if ( exePath != null ) {
             exeBinary = verifyBinary(project, exePath);
@@ -60,8 +64,9 @@ public class UsbdmGdbLaunchConfigurationDelegate extends AbstractCLaunchDelegate
                IProcess iprocess = null;
 //               System.err.println("UsbdmGdbLaunchConfigurationDelegate.launch() process = " + process);
                if ( process != null ) {
-                  iprocess = DebugPlugin.newProcess(launch, process, renderProcessLabel(exePath != null ? exePath.toOSString() : "???"),
-                        getDefaultProcessMap() );
+                  @SuppressWarnings("unchecked")
+                  Map<String,String> map = getDefaultProcessMap();
+                  iprocess = DebugPlugin.newProcess(launch, process, renderProcessLabel(exePath != null ? exePath.toOSString() : "???"), map);
 //                  System.err.println("UsbdmGdbLaunchConfigurationDelegate.launch() iprocess = " + iprocess);
                }
                CDIDebugModel.newDebugTarget(launch, project.getProject(), targets[i],

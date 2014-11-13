@@ -2,7 +2,12 @@ package net.sourceforge.usbdm.gdb;
 
 import org.eclipse.cdt.dsf.debug.service.IDsfDebugServicesFactory;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 /**
@@ -10,6 +15,50 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
  */
 public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate
       implements ILaunchConfigurationDelegate {
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#launch(org.eclipse.debug.core.ILaunchConfiguration, java.lang.String, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
+    */
+   @Override
+   public void launch(ILaunchConfiguration config, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+
+      org.eclipse.cdt.launch.LaunchUtils.enableActivity("org.eclipse.cdt.debug.dsfgdbActivity", true); //$NON-NLS-1$
+      if ( monitor == null ) {
+         monitor = new NullProgressMonitor();
+      }
+      if ( mode.equals( ILaunchManager.DEBUG_MODE ) ) {
+         launchDebugger( config, launch, monitor );
+      }
+      else if ( mode.equals( ILaunchManager.RUN_MODE ) ) {
+         launchDebugger( config, launch, monitor );
+         
+//         final GdbLaunch gdbLaunch = (GdbLaunch)launch;
+//         Executor executor = ImmediateExecutor.getInstance();
+//         gdbLaunch.shutdownSession(new RequestMonitor(executor, null));
+      }
+   }
+
+   private void launchDebugger( ILaunchConfiguration config, ILaunch launch, IProgressMonitor monitor ) throws CoreException {
+      monitor.beginTask("Launching debugger session", 10);  //$NON-NLS-1$
+      if ( monitor.isCanceled() ) {
+         cleanupLaunch();
+         return;
+      }
+      try {
+         launchDebugSession( config, launch, monitor );
+      }
+      finally {
+         monitor.done();
+      }     
+   }
+
+   /* (non-Javadoc)
+    * @see org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate#launchDebugSession(org.eclipse.debug.core.ILaunchConfiguration, org.eclipse.debug.core.ILaunch, org.eclipse.core.runtime.IProgressMonitor)
+    */
+   @Override
+   protected void launchDebugSession(ILaunchConfiguration config, ILaunch l, IProgressMonitor monitor) throws CoreException {
+      super.launchDebugSession(config, l, monitor);
+   }
 
    /**
     * 
@@ -34,8 +83,8 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate
     * @since 4.1
     */
    protected IDsfDebugServicesFactory newServiceFactory(ILaunchConfiguration config, String version) {
-//      System.err.println("net.sourceforge.usbdm.gdb.newServiceFactory()");
-      return new UsbdmGdbJtagDebugServicesFactory(version);
+//      System.err.println("UsbdmGdbDsfLaunchConfigurationDelegate.newServiceFactory()");
+      return new UsbdmGdbDebugServicesFactory(version);
    }
 
 }

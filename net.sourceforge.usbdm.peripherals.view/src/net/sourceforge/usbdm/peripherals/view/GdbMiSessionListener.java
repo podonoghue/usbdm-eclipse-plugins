@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.peripherals.view;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
 
 import org.eclipse.cdt.debug.core.cdi.ICDISession;
@@ -64,10 +65,10 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
       String deviceName = null;
       Object source = event.getSource();
       if (source instanceof org.eclipse.cdt.debug.internal.core.model.CDebugTarget) {
-         deviceName = ((org.eclipse.cdt.debug.internal.core.model.CDebugTarget)(source)).getCDISession().getAttribute("net.sourceforge.usbdm.gdb.deviceName");
+         deviceName = ((org.eclipse.cdt.debug.internal.core.model.CDebugTarget)(source)).getCDISession().getAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY);
       }
       else if (source instanceof org.eclipse.cdt.debug.internal.core.model.CThread) {
-         deviceName = ((org.eclipse.cdt.debug.internal.core.model.CThread)source).getCDISession().getAttribute("net.sourceforge.usbdm.gdb.deviceName");
+         deviceName = ((org.eclipse.cdt.debug.internal.core.model.CThread)source).getCDISession().getAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY);
       }
 //      System.err.println("getDeviceName(DebugEvent) => " + ((deviceName==null)?"null":deviceName));
       return deviceName;

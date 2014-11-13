@@ -108,72 +108,72 @@ public class ClockValidate_MKxxM12_DualPll extends MyValidator {
       else {
          pllTargetFrequency = pll0TargetFrequencyNode.getValueAsLong();
       }
-      long system_mcgout_clock = 0;
-      String primaryClockModeMessage = null;
+      long    system_mcgout_clock        = 0;
+      String  primaryClockModeMessage    = null;
       
       switch (primaryClockMode) {
       case NONEClock:
-         mcg_c1_clks          = 0;
-         mcg_c1_irefs         = 1;
-         mcg_c6_plls          = 0;
-         mcg_c2_lp            = 0;
-         system_mcgout_clock  = fllTargetFrequency;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
+         system_mcgout_clock = fllTargetFrequency;
          primaryClockModeMessage = "No clock settings are applied";
          break;
       case FEIClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = fllTargetFrequency;
          break;
       case FEEClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = fllTargetFrequency;
          break;
       case FBIClock:
-         mcg_c1_clks     = 1;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 1;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_mcgir_clock;
          break;
       case BLPIClock:
-         mcg_c1_clks     = 1;
-         mcg_c1_irefs    = 1;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 1;
+         mcg_c1_clks         = 1;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 1;
          system_mcgout_clock = system_mcgir_clock;
          break;
       case FBEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_erc_clock;
          break;
       case BLPEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 0;
-         mcg_c2_lp       = 1;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 1;
          system_mcgout_clock = system_erc_clock;
          break;
       case PBEClock:
-         mcg_c1_clks     = 2;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 1;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 2;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 1;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = system_erc_clock;
          break;
       case PEEClock:
-         mcg_c1_clks     = 0;
-         mcg_c1_irefs    = 0;
-         mcg_c6_plls     = 1;
-         mcg_c2_lp       = 0;
+         mcg_c1_clks         = 0;
+         mcg_c1_irefs        = 0;
+         mcg_c6_plls         = 1;
+         mcg_c2_lp           = 0;
          system_mcgout_clock = pllTargetFrequency;
          break;
       }

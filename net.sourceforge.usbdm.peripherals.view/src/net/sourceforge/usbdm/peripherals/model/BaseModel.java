@@ -222,7 +222,7 @@ public abstract class BaseModel extends ObservableModel {
    }
    
    /**
-    * Calculates a 32-bit unsigned value from the 2st four element of a byte[]
+    * Calculates a 32-bit unsigned value from the 1st four element of a byte[]
     * 
     * @param bytes to process
     * 
@@ -233,7 +233,7 @@ public abstract class BaseModel extends ObservableModel {
    }
    
    /**
-    * Calculates a 16-bit unsigned value from the 1st two element of a byte[]
+    * Calculates a 16-bit unsigned value from the 1st two elements of a byte[]
     * 
     * @param bytes to process
     * 

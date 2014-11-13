@@ -67,6 +67,18 @@ public class UsbdmSharedSettings {
     * Save Key-Value pair
     * 
     * @param Key  Key to save value under
+    * @param item integer value to be saved
+    */
+   public void put(String Key, long item) {
+      synchronized (USBDM_COMMON_SETTINGS) {
+         sharedSettings.put(Key, item);
+      }
+   }
+
+   /**
+    * Save Key-Value pair
+    * 
+    * @param Key  Key to save value under
     * @param item boolean value to be saved
     */
    public void put(String Key, boolean item) {
@@ -114,6 +126,26 @@ public class UsbdmSharedSettings {
       return value;
    }
    
+   /**
+    * Retrieve value for key
+    * 
+    * @param key           Key to look under
+    * @param defaultValue  Value returned if not found
+    * 
+    * @return  Value corresponding to key or defaultValue
+    */
+   public long get(String key, long defaultValue) {
+      long value = defaultValue;
+      String s = null;
+      synchronized (key) {
+         s = sharedSettings.get(key);
+      }
+      if (s != null) {
+         value = Long.parseLong(s);
+      }
+      return value;
+   }
+  
    /**
     * Retrieve value for key
     * 

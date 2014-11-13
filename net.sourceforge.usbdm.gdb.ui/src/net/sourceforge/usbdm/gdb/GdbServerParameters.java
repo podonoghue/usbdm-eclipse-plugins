@@ -47,7 +47,7 @@ public class GdbServerParameters {
    private EraseMethod           eraseMethod;
    private boolean               trimClock;
    private int                   clockTrimFrequency;
-   private int                   nvmClockTrimLocation;
+   private long                  nvmClockTrimLocation;
                                  
    private ExtendedOptions       extendedOptions;
                                  
@@ -367,12 +367,16 @@ public class GdbServerParameters {
       this.clockTrimFrequency = clockTrimFrequency;
    }
    
-   public int getNvmClockTrimLocation() {
+   public long getNvmClockTrimLocation() {
       return nvmClockTrimLocation;
    }
 
-   public void setNvmClockTrimLocation(int nvmClockTrimLocation) {
-      this.nvmClockTrimLocation = nvmClockTrimLocation;
+   public void setNvmClockTrimLocation(int i) {
+      this.nvmClockTrimLocation = ((long)i)&0xFFFFFFFFL;
+   }
+
+   public void setNvmClockTrimLocation(long l) {
+      this.nvmClockTrimLocation = l;
    }
 
    public AutoConnect getAutoReconnect() {
@@ -606,7 +610,7 @@ public class GdbServerParameters {
       setTargetVdd(TargetVddSelect.valueOf(           settings.get(getKey(targetVddKey),                    TargetVddSelect.BDM_TARGET_VDD_OFF.name())));
       enableTrimClock(                                settings.get(getKey(trimClockKey),                    false));
       setClockTrimFrequency(                          settings.get(getKey(clockTrimFrequencyKey),           0));
-      setNvmClockTrimLocation(                        settings.get(getKey(nvmClockTrimLocationKey),         0));
+      setNvmClockTrimLocation(                        settings.get(getKey(nvmClockTrimLocationKey),         0L));
 //      System.err.println("GdbServerParameters.loadDefaultSettings(), getGdbPortNumber() = "+getGdbPortNumber());
       }
    
@@ -680,7 +684,7 @@ public class GdbServerParameters {
       configuration.setAttribute((key+targetVddKey),                     getTargetVdd().name());
       configuration.setAttribute((key+trimClockKey),                     isTrimClock());
       configuration.setAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency());
-      configuration.setAttribute((key+nvmClockTrimLocationKey),          getNvmClockTrimLocation());
+      configuration.setAttribute((key+nvmClockTrimLocationKey),          (int)getNvmClockTrimLocation());
    }
    
    private static final String key = UsbdmDebuggerTab.USBDM_LAUNCH_ATTRIBUTE_KEY;      
@@ -710,6 +714,6 @@ public class GdbServerParameters {
                                 configuration.getAttribute((key+targetVddKey),                     getTargetVdd().name())));
       enableTrimClock(          configuration.getAttribute((key+trimClockKey),                     isTrimClock()));
       setClockTrimFrequency(    configuration.getAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency()));
-      setNvmClockTrimLocation(  configuration.getAttribute((key+nvmClockTrimLocationKey),          getNvmClockTrimLocation()));
+      setNvmClockTrimLocation(  configuration.getAttribute((key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
    }
 }

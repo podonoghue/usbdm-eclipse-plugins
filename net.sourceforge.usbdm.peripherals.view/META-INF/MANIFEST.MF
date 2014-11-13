@@ -7,7 +7,8 @@ Bundle-Activator: net.sourceforge.usbdm.peripherals.view.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.dsf.gdb,
- net.sourceforge.usbdm.constants;bundle-version="4.10.6"
+ net.sourceforge.usbdm.constants;bundle-version="4.10.6",
+ org.eclipse.cdt.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.constants,
@@ -17,6 +18,7 @@ Import-Package: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.cdt.debug.core.cdi,
  org.eclipse.cdt.debug.core.cdi.model,
+ org.eclipse.cdt.debug.core.model,
  org.eclipse.cdt.debug.internal.core.model,
  org.eclipse.cdt.debug.mi.core,
  org.eclipse.cdt.debug.mi.core.cdi.model,
@@ -24,14 +26,19 @@ Import-Package: net.sourceforge.usbdm.constants,
  org.eclipse.cdt.debug.mi.core.output,
  org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,
+ org.eclipse.cdt.dsf.debug.model,
  org.eclipse.cdt.dsf.debug.service,
  org.eclipse.cdt.dsf.debug.service.command,
+ org.eclipse.cdt.dsf.debug.ui.viewmodel.launch,
+ org.eclipse.cdt.dsf.debug.ui.viewmodel.register,
  org.eclipse.cdt.dsf.gdb.service.command,
  org.eclipse.cdt.dsf.mi.service.command,
  org.eclipse.cdt.dsf.mi.service.command.commands,
  org.eclipse.cdt.dsf.mi.service.command.output,
  org.eclipse.cdt.dsf.service,
+ org.eclipse.cdt.dsf.ui.viewmodel.datamodel,
  org.eclipse.cdt.launch,
  org.eclipse.debug.core,
- org.eclipse.debug.core.model
+ org.eclipse.debug.core.model,
+ org.eclipse.debug.ui
 Bundle-Vendor: pgo

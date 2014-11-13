@@ -30,7 +30,6 @@ public class ClockValidate_MKMxx extends MyValidator {
       NumericOptionModelNode oscclk_clockNode           =  getNumericModelNode("oscclk_clock");
       NumericOptionModelNode osc32kclk_clockNode        =  safeGetNumericModelNode("osc32kclk_clock");
       
-      
       NumericOptionModelNode system_erc_clockNode       =  getNumericModelNode("system_erc_clock");
       NumericOptionModelNode slowIRCNode                =  getNumericModelNode("system_slow_irc_clock");
       NumericOptionModelNode fastIRCNode                =  getNumericModelNode("system_fast_irc_clock");
@@ -61,7 +60,7 @@ public class ClockValidate_MKMxx extends MyValidator {
       else {
          system_mcgir_clock = slowIRCNode.getValueAsLong();
       }
-      System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
+      System.err.println("ClockValidate_MKMxx.validate() system_mcgir_clock = " + system_mcgir_clock);
 
       // Default if no MCG_C7_OSCSEL register field
       long system_erc_clock = oscclk_clockNode.getValueAsLong();
@@ -77,7 +76,7 @@ public class ClockValidate_MKMxx extends MyValidator {
             throw new Exception("Illegal Clock source (mcg_c7_oscsel)");
          }
       }
-      System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
+      System.err.println("ClockValidate_MKMxx.validate() system_erc_clock = " + system_erc_clock);
 
       long clk = primaryClockModeNode.getValueAsLong();
       if (clk > ClockModes.values().length) {
@@ -91,6 +90,7 @@ public class ClockValidate_MKMxx extends MyValidator {
       int     mcg_c2_lp                  = 0;
       int     mcg_c7_pll32krefsel        = (int) mcg_c7_pll32krefselNode.getValueAsLong();
       boolean mcg_c7_pll32krefsel_lock   = false;
+      String  mcg_c7_pll32krefselMessage = null;
       long    fllTargetFrequency         = fllTargetFrequencyNode.getValueAsLong();
       long    pllTargetFrequency         = pllTargetFrequencyNode.getValueAsLong();
       long    system_mcgout_clock        = 0;
@@ -160,8 +160,9 @@ public class ClockValidate_MKMxx extends MyValidator {
          mcg_c1_clks         = 0;
          mcg_c1_irefs        = 0;
          mcg_c6_plls         = 1;
-         mcg_c7_pll32krefsel &= ~1; // 0 or 2
-         mcg_c7_pll32krefsel_lock = true;
+         if ((mcg_c7_pll32krefsel&1) != 0) {
+            mcg_c7_pll32krefselMessage = "Setting must be 0 or 2 for PEE mode";
+         }
          mcg_c2_lp           = 0;
          system_mcgout_clock = pllTargetFrequency;
          break;
@@ -191,7 +192,10 @@ public class ClockValidate_MKMxx extends MyValidator {
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
          system_core_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
+         System.err.println("ClockValidate_MKMxx.validate() Core clock frequency is too high = " + system_core_clock);
       }
+      System.err.println("ClockValidate_MKMxx.validate() Core clock frequency = " + system_core_clock + 
+            ", MAX_BUS_CLOCK_FREQ = " + MAX_CORE_CLOCK_FREQ );
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
       // Bus Clock
@@ -211,7 +215,10 @@ public class ClockValidate_MKMxx extends MyValidator {
       String system_bus_clockMessage = null;
       if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
          system_bus_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_BUS_CLOCK_FREQ/1000000);
+         System.err.println("ClockValidate_MKMxx.validate() Bus clock frequency is too high = " + system_bus_clock);
       }
+      System.err.println("ClockValidate_MKMxx.validate() Bus clock = " + system_bus_clock + 
+            ", MAX_BUS_CLOCK_FREQ = " + MAX_BUS_CLOCK_FREQ );
       setValid(viewer, system_bus_clockNode, system_bus_clockMessage);
       setValid(viewer, primaryClockModeNode, primaryClockModeMessage);
 
@@ -223,6 +230,7 @@ public class ClockValidate_MKMxx extends MyValidator {
       update(viewer, mcg_c1_clksNode, mcg_c1_clks);
       update(viewer, mcg_c1_irefsNode, mcg_c1_irefs);
       update(viewer, mcg_c6_pllsNode, mcg_c6_plls);
+      setValid(viewer, mcg_c7_pll32krefselNode, mcg_c7_pll32krefselMessage);
       mcg_c7_pll32krefselNode.setModifiable(!mcg_c7_pll32krefsel_lock);
       update(viewer, mcg_c7_pll32krefselNode, mcg_c7_pll32krefsel);
       update(viewer, mcg_c2_lpNode, mcg_c2_lp);

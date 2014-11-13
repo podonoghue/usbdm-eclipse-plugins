@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.peripherals.view;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import net.sourceforge.usbdm.gdb.UsbdmGdbLaunchInformation;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.peripherals.model.DeviceModel;
 import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
 
@@ -14,6 +14,9 @@ import org.eclipse.cdt.dsf.service.DsfServiceEventHandler;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.cdt.dsf.service.DsfSession.SessionEndedListener;
 import org.eclipse.cdt.dsf.service.DsfSession.SessionStartedListener;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 
 public class GdbDsfSessionListener implements SessionStartedListener, SessionEndedListener {
 
@@ -50,13 +53,14 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
       if (dsfSession == null) {
          return null;
       }
-      UsbdmGdbLaunchInformation infoFromAdapter = (UsbdmGdbLaunchInformation) dsfSession.getModelAdapter(UsbdmGdbLaunchInformation.class);
-//      System.err.println("getDeviceName(DsfSession) : infoFromAdapter = " + ((infoFromAdapter==null)?"null":infoFromAdapter.getClass()));
-      if (infoFromAdapter == null) {
-         return null;
+      ILaunch launch = (ILaunch)dsfSession.getModelAdapter(ILaunch.class);
+      ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
+      String deviceName = null;
+      try {
+         deviceName = launchConfiguration.getAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY, "");
+      } catch (CoreException e) {
+         e.printStackTrace();
       }
-      String deviceName = infoFromAdapter.getValue("net.sourceforge.usbdm.gdb.deviceName");
-//      System.err.println("getDeviceName(DsfSession) => " + ((deviceName==null)?"null":deviceName));
       return deviceName;
    }
 

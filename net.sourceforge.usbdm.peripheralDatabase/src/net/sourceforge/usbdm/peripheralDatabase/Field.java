@@ -327,23 +327,6 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
-         
-         /*
-         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_C\\d)Cn(.*)$"),                "$1$2$3"));   // Fix inconsistent name
-
-         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)A(.*)$"),             "$1$2$3")); // AIPS0_PACRA_TP7_SHIFT -> AIPS_PACR_TP7_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(AIPS)0(_PACR)[^A](.*)$"),           null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM0_C\\d)Cn(.*)$"),                "$1$2"));   // Fix inconsistent name
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"),         "$1$3$2")); // Fix inconsistent name DAC0_DATL0 -> DAC0_DAT0L
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY)3(_KEY.*)$"),            "$1$2"));   // NV_BACKKEY3_KEY_SHIFT -> NV_BACKKEY_KEY_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_BACKKEY\\d_KEY.*)$"),            null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT)3(.*)$"),                  "$1$2"));   // NV_FPROT3_PROT_SHIFT -> NV_FPROT_PROT_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(NV_FPROT\\d.*)$"),                  null));     // Remove as redundant
-         mappedMacros.add(new Pair(Pattern.compile("^(FTF._F.*)3(.*)$"),                  "$1$2"));   // FTFA_FCCOB3_CCOBn_SHIFT -> FTFA_FCCOB_CCOBn_SHIFT etc
-         mappedMacros.add(new Pair(Pattern.compile("^(DMA_DCHPRI)3(.*)$"),                "$1$2"));   // DMA_DCHPRI3_CHPRI_SHIFT -> DMA_DCHPRI_CHPRI_SHIFT etc
-         
-         */
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);

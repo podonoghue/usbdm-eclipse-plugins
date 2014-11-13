@@ -16,10 +16,15 @@ public class UsbdmCMainTab extends CMainTab implements ILaunchConfigurationTab {
    @Override
    public void setDefaults(ILaunchConfigurationWorkingCopy config) {
       super.setDefaults(config);
-      System.err.println("UsbdmCMainTab.setDefaults() Setting PREFERRED_DEBUG_REMOTE_LAUNCH_DELEGATE");
-      HashSet<String> attributes =  new HashSet<String>();
+//      System.err.println("UsbdmCMainTab.setDefaults() Setting PREFERRED_DEBUG_REMOTE_LAUNCH_DELEGATE revised");
+      
+      HashSet<String> attributes = null;
+      attributes = new HashSet<String>();
       attributes.add(org.eclipse.debug.core.ILaunchManager.DEBUG_MODE);
       config.setPreferredLaunchDelegate(attributes, "net.sourceforge.usbdm.gdb.dsfLaunchDelegate");
+      attributes = new HashSet<String>();
+      attributes.add(org.eclipse.debug.core.ILaunchManager.RUN_MODE);
+      config.setPreferredLaunchDelegate(attributes, "net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate");
    }
 
    @Override

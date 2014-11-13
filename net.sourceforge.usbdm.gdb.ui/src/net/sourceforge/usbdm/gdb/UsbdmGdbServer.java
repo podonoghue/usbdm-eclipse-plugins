@@ -1,9 +1,14 @@
 package net.sourceforge.usbdm.gdb;
 
+import org.eclipse.cdt.utils.Platform;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -13,7 +18,7 @@ import org.osgi.framework.BundleContext;
 public class UsbdmGdbServer extends AbstractUIPlugin {
 
    // The plug-in ID
-   public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb"; //$NON-NLS-1$
+   public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
 
    // The shared instance
    private static UsbdmGdbServer plugin;
@@ -63,17 +68,27 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
       return plugin;
    }
 
-   /**
-    * Returns an image descriptor for the image file at the given plug-in
-    * relative path
-    * 
-    * @param path
-    *           the path
-    * @return the image descriptor
-    */
-   public static ImageDescriptor getImageDescriptor(String path) {
-//      System.err.println("USBDM::Activator::getImageDescriptor(" + path + ")");
-      return imageDescriptorFromPlugin(PLUGIN_ID, path);
+
+   @Override
+   protected void initializeImageRegistry(ImageRegistry registry) {
+       super.initializeImageRegistry(registry);
+       Bundle bundle = Platform.getBundle(PLUGIN_ID);
+       
+       ImageDescriptor imageDescriptor;
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
+       registry.put(ID_COG_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/bug.png"), null));
+       registry.put(ID_BUG_IMAGE, imageDescriptor);
+       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/arrow.png"), null));
+       registry.put(ID_ARROW_IMAGE, imageDescriptor);
+   }
+
+   public final static String ID_COG_IMAGE                    = "cog-image";
+   public final static String ID_BUG_IMAGE                    = "bug-image";
+   public final static String ID_ARROW_IMAGE                  = "arrow-image";
+   
+   public ImageDescriptor getImageDescriptor(String key) {
+      return getImageRegistry().getDescriptor(key);
    }
    
    public static String getPluginId() {

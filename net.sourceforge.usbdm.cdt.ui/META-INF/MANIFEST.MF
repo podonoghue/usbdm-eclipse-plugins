@@ -16,7 +16,8 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="4.10.6",
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.debug.ui,
  org.eclipse.cdt.dsf.ui,
- org.eclipse.core.expressions
+ org.eclipse.core.expressions,
+ org.eclipse.cdt.launch
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.cdt.ui;
@@ -46,6 +47,7 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
 Import-Package: org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.core.model,
  org.eclipse.cdt.debug.core.cdi.model,
+ org.eclipse.cdt.debug.gdbjtag.core,
  org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,
  org.eclipse.cdt.dsf.debug.service,
@@ -58,5 +60,6 @@ Import-Package: org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.dsf.mi.service.command.output,
  org.eclipse.cdt.dsf.service,
  org.eclipse.core.resources,
- org.eclipse.core.variables
+ org.eclipse.core.variables,
+ org.eclipse.ui.ide
 Bundle-Vendor: pgo

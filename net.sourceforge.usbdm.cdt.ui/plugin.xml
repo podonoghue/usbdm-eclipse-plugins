@@ -51,9 +51,14 @@
       </command>
       <command
             categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
-            description="Reset Target "
+            description="Restart Target "
             id="net.sourceforge.usbdm.cdt.ui.resetTarget"
-            name="Reset">
+            name="Restart">
+      </command>
+      <command
+            description="Disassemble C File"
+            id="net.sourceforge.usbdm.cdt.ui.disassembleCFile"
+            name="Disassemble">
       </command>
    </extension>
    <extension
@@ -101,6 +106,10 @@
                </iterate>
             </with>
          </enabledWhen>
+      </handler>
+      <handler
+            class="net.sourceforge.usbdm.cdt.ui.handlers.DisassembleCFileHandler"
+            commandId="net.sourceforge.usbdm.cdt.ui.disassembleCFile">
       </handler>
    </extension>
    <extension
@@ -178,20 +187,45 @@
                commandId="net.sourceforge.usbdm.cdt.ui.resetTarget"
                disabledIcon="icons/reset_disabled.png"
                icon="icons/reset.png"
-               label="Reset Target">
+               label="Restart Target"
+               tooltip="Restart">
          </command>
       </menuContribution>
-      <menuContribution
-            allPopups="true"
-            locationURI="toolbar:org.eclipse.debug.ui.DebugView?before=threadGroup">
-         <command
-               commandId="net.sourceforge.usbdm.cdt.ui.resetTarget"
-               disabledIcon="icons/reset_disabled.png"
-               icon="icons/reset.png"
-               label="Reset Target">
-         </command>
-      </menuContribution>
-   </extension>
+		<menuContribution
+		      allPopups="true"
+		      locationURI="toolbar:org.eclipse.debug.ui.DebugView?before=threadGroup">
+			<command
+         commandId="net.sourceforge.usbdm.cdt.ui.resetTarget"
+         disabledIcon="icons/reset_disabled.png"
+         icon="icons/reset.png"
+         label="Restart Target"
+         tooltip="Restart">
+			</command>
+		</menuContribution>
+		<menuContribution 
+				locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+			<command
+         commandId="net.sourceforge.usbdm.cdt.ui.disassembleCFile"
+         icon="icons/cog.png"
+         label="Disassemble"
+         style="push"
+         tooltip="Disassemble file (refer Disassembler settings)">
+		      <visibleWhen
+		            checkEnabled="false">
+		         <with
+				      variable="activeMenuSelection">
+				   <iterate
+				         ifEmpty="false"
+				         operator="or">
+          <adapt
+                type="org.eclipse.cdt.core.model.IBinary">
+          </adapt>
+				   </iterate>
+				</with>
+		      </visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
    <extension
          point="org.eclipse.ui.newWizards">
       <category

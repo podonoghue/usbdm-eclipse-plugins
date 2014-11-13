@@ -9,6 +9,8 @@ import org.eclipse.cdt.debug.mi.core.command.MIDataReadMemory;
 import org.eclipse.cdt.debug.mi.core.command.MIDataWriteMemory;
 import org.eclipse.cdt.debug.mi.core.output.MIMemory;
 import org.eclipse.cdt.debug.mi.core.output.MIResultRecord;
+import org.eclipse.cdt.dsf.debug.service.IExpressions;
+import org.eclipse.cdt.dsf.debug.service.IStack.IFrameDMContext;
 
 public class GdbMiInterface implements GdbCommonInterface {
 
@@ -66,7 +68,7 @@ public class GdbMiInterface implements GdbCommonInterface {
     * 
     * @param address       Address to read from
     * @param iByteCount    Number of bytes to read
-    * @param accessWidth   Access size (1,2,4) to use
+    * @param accessWidth   Access size (8, 16, 32 bits) to use
     * 
     * @return              Data read
     * 
@@ -156,8 +158,9 @@ public class GdbMiInterface implements GdbCommonInterface {
    /**
     * Wrapper that handles DSF or MI memory writes
     * 
-    * @param address    Address to write at
-    * @param data       Data to write.  This must be 1, 2, 4 or 8 bytes due to limitations of underlying GDB command used
+    * @param address      Address to write at
+    * @param data         Data to write.  This must be 1, 2, 4 or 8 bytes due to limitations of underlying GDB command used
+    * @param accessWidth  Access size (8, 16, 32 bits) to use
     * 
     * @throws TimeoutException
     */
@@ -165,5 +168,23 @@ public class GdbMiInterface implements GdbCommonInterface {
    public void writeMemory(long address, byte[] data, int accessWidth) throws TimeoutException {
       System.err.println(String.format("GDBInterface.writeMemory(0x%08X, %d)", address, data.length));
       writeMemory(address, data);
+   }
+
+   @Override
+   public long setFrame(int frameNum) throws Exception {
+      // TODO Auto-generated method stub
+      return 0;
+   }
+
+   @Override
+   public IFrameDMContext getExceptionStackFrameContext() throws Exception {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public long evaluateExpression(IExpressions expressionService, IFrameDMContext frame, String expression) {
+      // TODO Auto-generated method stub
+      return 0;
    }
 }
