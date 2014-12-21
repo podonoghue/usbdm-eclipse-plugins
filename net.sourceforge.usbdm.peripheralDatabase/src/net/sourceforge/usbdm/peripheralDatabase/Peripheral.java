@@ -33,10 +33,48 @@ public class Peripheral extends ModeControl implements Cloneable {
    private long                      resetValue;
    private long                      resetMask;
    private int                       preferredAccessWidth   = 0;
-   private int                       forcedAccessWidth      = 0;
+   private int                       forcedBlockMutiple      = 0;
    private ArrayList<AddressBlock>   addressBlocks          = new ArrayList<AddressBlock>();
    private ArrayList<Cluster>        registers              = new ArrayList<Cluster>();
+   
+   private boolean                   refreshAll;  
 
+   static class RegisterPair {
+      public Register cReg;
+      public Register sReg;
+      
+      public RegisterPair(Cluster c, Cluster s) {
+         cReg = (Register)c;
+         sReg = (Register)s;
+      }
+   }
+   
+   /**
+    * A bit of a hack to fold together registers than wrongly appear twice
+    * Uses the name only to decide
+    */
+   public void foldRegisters() {
+      ArrayList<RegisterPair> deletedRegisters = new ArrayList<RegisterPair>();
+      for (Cluster c1:registers) {
+         for (Cluster c2:registers) {
+            if ((c1 != c2) && 
+                (c1 instanceof Register) && (c2 instanceof Register) &&
+                c1.getName().matches("^"+c2.getName()+"%s$")) {
+//               System.err.println("foldRegisters() - " + c1.getName() + ", " + c2.getName() );
+               // Assume actually the same register
+               deletedRegisters.add(new RegisterPair(c1, c2));
+            }
+         }
+      }
+      for(RegisterPair rp:deletedRegisters) {
+         System.err.println("foldRegisters() - " + rp.cReg.getName() + ", " + rp.sReg.getName() );
+         registers.remove(rp.sReg);
+         for (Field f:rp.sReg.getFields()) {
+            rp.cReg.addField(f);
+         }
+      }
+   }
+   
    public Peripheral(DevicePeripherals owner) {
       if (owner != null) {
          width          = owner.getWidth();
@@ -54,7 +92,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    /**
     * Returns a relatively shallow copy of the peripheral
-    * The following should be changed:
+    * The following may be changed:
     *    - name
     *    - description
     *    - baseAddress
@@ -279,91 +317,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       registers.add(cluster);
       sorted = false;
    }
-   
-   /**
-    * Class used to merge address blocks
-    *
-    */
-   class AddressBlocksMerger {
-      long bStartAddress             = 0;
-      long bSize                     = 0;
-      long bWidth                    = 0;
-      int  preferredAccessWidth      = 0;  // addresss blocks will use this width to access memory
-      int  forcedAccessWidth         = 0;  // address blocks will be aligned to this size and use this width to access memory
-      long addressMask               = 0;
-      ArrayList<AddressBlock> blocks = null;
-      
-      public AddressBlocksMerger(Peripheral peripheral) throws Exception {
-         blocks               = peripheral.getAddressBlocks();
-         preferredAccessWidth = peripheral.getPreferredAccessWidth();
-         forcedAccessWidth    = peripheral.getForcedAccessWidth();
-         switch(forcedAccessWidth) {
-         case 0  : 
-         case 8  : addressMask = 0xFFFFFFFFL; break;
-         case 16 : addressMask = 0xFFFFFFFEL; break; 
-         case 32 : addressMask = 0xFFFFFFFCL; break;
-         default : throw new Exception("Unexpected forced address width");
-         }
-         if ((forcedAccessWidth != 0) && (preferredAccessWidth != 0)) {
-            throw new Exception("preferred and forced access widths both found");
-         }
-      }
 
-      private void completeBlock() {
-         long width = bWidth;
-         if (preferredAccessWidth != 0) {
-            // Try to use preferred access width
-            // This is modified by the size of the block
-            width = preferredAccessWidth;
-            if (((bSize&0x3) != 0) && (width>16)) {
-               width = 16;
-            }
-            if (((bSize&0x1) != 0) && (width>8)) {
-               width = 8;
-            }
-         }
-         blocks.add(new AddressBlock(bStartAddress, bSize, width, "registers"));
-      }
-
-      public void addBlock(long startAddress, long size, long width) {
-         if (forcedAccessWidth != 0) {
-            // Align block boundaries according to forced access width
-//            width         = forcedAccessWidth;
-            startAddress &= addressMask;
-            size          = (size+(forcedAccessWidth/8)-1) & addressMask;
-//            System.err.println(String.format("AddressBlocksMerger.addBlock(), forced=%d, mask=0x%X", forcedAccessWidth, addressMask));
-         }
-         if (bSize == 0) {
-            // New address range
-            bStartAddress = startAddress;
-            bSize         = size;
-            bWidth        = width;
-            return;
-         }
-         if ((startAddress <= (bStartAddress+bSize)) && ((preferredAccessWidth != 0) || (width == bWidth))) {
-            // Can add to current range
-            if ((size+startAddress) > (bSize+bStartAddress)) {
-               bSize = (size+startAddress)-bStartAddress;
-            }
-            return;
-         }
-         // Save current address range
-         completeBlock();
-         
-         // Start new address range
-         bStartAddress = startAddress;
-         bSize         = size;
-         bWidth        = width;
-      }
-      
-      public void finalise() {
-         if (bSize != 0) {
-            // Save current address range
-            completeBlock();
-         }
-      }
-   }
-   
    /**
     * Creates a set of address blocks to cover the current register set
     * 
@@ -375,20 +329,12 @@ public class Peripheral extends ModeControl implements Cloneable {
          // derived from so they should always agree.
          return;
       }
-      boolean debug = false; //this.getName().matches("USB.*");
-      if (debug) {
-         System.err.println("Creating address blocks for "+getName());
-      }
+//      System.err.println("Creating address blocks for ============= " + getName());
       sortRegisters();
       clearAddressBlocks();
       AddressBlocksMerger addressBlocksMerger = new AddressBlocksMerger(this);
       for (Cluster cluster : registers) {
-         if (cluster instanceof Register) {
-            addressBlocksMerger.addBlock(cluster.getAddressOffset(), cluster.getTotalSizeInBytes(), cluster.getWidth());
-         }
-         else {
-            cluster.addAddressBlocks(addressBlocksMerger);
-         }
+         cluster.addAddressBlocks(addressBlocksMerger);
       }
       addressBlocksMerger.finalise();
    }
@@ -500,7 +446,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Indicates the preferred access width for address blocks
+    * Indicates the preferred access width for address blocks<br>
     * Address blocks will be merged ignoring individual widths
     * 
     * @return Preferred access width for address blocks
@@ -510,7 +456,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    * Sets the preferred access width for address blocks
+    * Sets the preferred access width for address blocks<br>
     * Address blocks will be merged ignoring individual widths (if non-zero)
     * 
     * @param Preferred access width for address blocks
@@ -529,8 +475,8 @@ public class Peripheral extends ModeControl implements Cloneable {
     * 
     * @return Forced access width for address blocks
     */
-   public int getForcedAccessWidth() {
-      return forcedAccessWidth;
+   public int getForcedBlockMultiple() {
+      return forcedBlockMutiple;
    }
 
    /**
@@ -540,11 +486,11 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @param Forced access width for address blocks
     * @throws Exception 
     */
-   public void setForcedAccessWidth(int preferredAccessWidth) throws Exception {
+   public void setForcedBlockMultiple(int forcedBlockMutiple) throws Exception {
       if (derivedFrom != null) {
          throw new Exception("Cannot set forced access wdth for derived peripheral");
       }
-      this.forcedAccessWidth = preferredAccessWidth;
+      this.forcedBlockMutiple = forcedBlockMutiple;
    }
 
    public Peripheral getDerivedFrom() {
@@ -763,7 +709,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       Collections.sort(interrupts, new Comparator<InterruptEntry>() {
          @Override
          public int compare(InterruptEntry interruptEntry1, InterruptEntry interruptEntry2) {
-            return interruptEntry1.getNumber() - interruptEntry2.getNumber();
+            return interruptEntry1.getIndexNumber() - interruptEntry2.getIndexNumber();
          }
       });
       sorted = true;
@@ -935,6 +881,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    static HashMap<String, ArrayList<ComplexStructuresInformation>> freescaleComplexStructures = null;
    
    public static ArrayList<ComplexStructuresInformation> getFreescaleFreescaleComplexStructures(String name) {
+      //TODO - Where complex structures are defined
       if (freescaleComplexStructures == null) {
          freescaleComplexStructures = new HashMap<String,  ArrayList<ComplexStructuresInformation>>(20);
          ArrayList<ComplexStructuresInformation> entry = null;
@@ -1012,6 +959,32 @@ public class Peripheral extends ModeControl implements Cloneable {
          entry.add(new ComplexStructuresInformation("^(COMP|MASK|FCT)(\\d+)$",       "$1","$2","$1",   "COMPARATOR,@p@f@i"));
          freescaleComplexStructures.put("MTBDWT",  entry);
          
+         // ==== Coldfire V2 ====
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(CODE|CTRL|TIME|ID|DATA_WORD_1|DATA_WORD_2|DATA_WORD_3|DATA_WORD_4)_?(\\d+)$",
+               "$1","$2","$1", "MB,@p@f@i"));
+         freescaleComplexStructures.put("CANMB",  entry);
+
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$",
+               "$1","$2","$1", "CH,@p@f@i"));
+         freescaleComplexStructures.put("DMA",  entry);
+
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(DTMR|DTXMR|DTER|DTRR|DTCR|DTCN)_?(\\d+)$",
+               "$1","$2","$1", "CH,@p@f@i"));
+         freescaleComplexStructures.put("DTIM",  entry);
+
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(CSAR|CSMR|CSCR)_?(\\d+)$",
+               "$1","$2","$1", "CH,@p@f@i"));
+         freescaleComplexStructures.put("FBCS",  entry);
+
+//         entry = new ArrayList<ComplexStructuresInformation>();
+//         entry.add(new ComplexStructuresInformation("^(PORTT(?:E|F|G|H|I|J))(\\d+)$",
+//               "$1","$2","$1", "CH,@p@f@i"));
+//         freescaleComplexStructures.put("GPIO",  entry);
+
       }
       return freescaleComplexStructures.get(name);
    }
@@ -1117,7 +1090,9 @@ public class Peripheral extends ModeControl implements Cloneable {
                // Check stride matches
                if ((victimReg.getAddressOffset()-mergeReg.getAddressOffset()) != (index*stride)) {
                   System.err.println(
-                        String.format("   Expected offset %d, found %s ", 
+                        String.format("   %s <=> %s, Expected offset %d, found %s ",
+                              victimReg.getName(),
+                              mergeReg.getName(),
                               (index*stride), 
                               (victimReg.getAddressOffset()-mergeReg.getAddressOffset())));
                   continue;
@@ -1229,6 +1204,10 @@ public class Peripheral extends ModeControl implements Cloneable {
             continue;
          }
          Register mergeReg   = (Register)registers.get(reg1);
+         if (mergeReg.getDerivedFrom() != null) {
+            // Don't merge derived registers
+            continue;
+         }
          String   mergeName  = mergeReg.getName();
          boolean  debug      = false; // mergeName.matches("FCCOB.*");
          
@@ -1267,6 +1246,10 @@ public class Peripheral extends ModeControl implements Cloneable {
                continue;
             }
             Register victimReg  = (Register)registers.get(reg2);
+            if (victimReg.getDerivedFrom() != null) {
+               // Don't merge derived registers
+               continue;
+            }
             String   victimName = victimReg.getName();
 
             boolean debug2 = debug && victimName.matches("FCCOB.*");
@@ -1351,7 +1334,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    public void optimise() throws Exception {
-      // TODO: Modify optimisations done here
+      // TODO - Modify optimisations done here
       if (isExtractComplexStructures()) {
          extractComplexStructures();
       }
@@ -1363,6 +1346,9 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
       if (isExtractCommonPrefix()) {
          extractNamePrefix();
+      }
+      if (isFoldRegisters()) {
+         foldRegisters();
       }
    }
 
@@ -1401,15 +1387,6 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
 
       writer.print(                       indenter+"<peripheral");
-//      if (getSourceFilename() != null) {
-//         writer.print(String.format(      " "+SVD_XML_Parser.SOURCEFILE_ATTRIB+"=\"%s\"", SVD_XML_BaseParser.escapeString(getSourceFilename())));
-//      }
-//      if (getPreferredAccessWidth() != 0) {
-//         writer.print(String.format(      " "+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+"=\"%d\"", getPreferredAccessWidth()));
-//      }
-//      if (getForcedAccessWidth() != 0) {
-//         writer.print(String.format(      " "+SVD_XML_Parser.BLOCKALIGNMENT_ATTRIB+"=\"%d\"", getForcedAccessWidth()));
-//      }
       writer.println(">");
 
       if (getSourceFilename() != null) {
@@ -1418,10 +1395,12 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (getPreferredAccessWidth() != 0) {
          writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+" \"%d\" ?>", getPreferredAccessWidth()));
       }
-      if (getForcedAccessWidth() != 0) {
-         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.BLOCKALIGNMENT_ATTRIB+" \"%d\" ?>", getForcedAccessWidth()));
+      if (getForcedBlockMultiple() != 0) {
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.FORCED_BLOCK_WIDTH+" \"%d\" ?>", getForcedBlockMultiple()));
       }
-      
+      if (isRefreshAll()) {
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.REFRESH_WHOLE_PERIPHERAL_ATTRIB+"?>"));
+      }
       String name = getName();
       writer.println(String.format(       indenter+"   <name>%s</name>",                   SVD_XML_BaseParser.escapeString(name)));
       writer.println(String.format(       indenter+"   <description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));
@@ -1477,34 +1456,33 @@ public class Peripheral extends ModeControl implements Cloneable {
    private void writeDerivedFromSVD(PrintWriter writer, int indent) {
       Peripheral derived = getDerivedFrom();
 
-      final String indenter = RegisterUnion.getIndent(indent);
+      final String indenter = "";//RegisterUnion.getIndent(indent);
       
-      writer.println(String.format(   indenter+"<peripheral "+SVD_XML_Parser.DERIVEDFROM_ATTRIB+"=\"%s\">", SVD_XML_BaseParser.escapeString(derived.getName())));
+      writer.print(String.format(   indenter+"<peripheral "+SVD_XML_Parser.DERIVEDFROM_ATTRIB+"=\"%s\">", SVD_XML_BaseParser.escapeString(derived.getName())));
 
-      writer.println(String.format(   indenter+"   <name>%s</name>",                   SVD_XML_BaseParser.escapeString(getName())));
-      if ((getDescription() != null) && (getDescription() != derived.getDescription())) {
-         writer.println(String.format(indenter+"   <description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));
+      writer.print(String.format("<name>%s</name>",                   SVD_XML_BaseParser.escapeString(getName())));
+      if (!getDescription() .equals(getDescription())) {
+         writer.print(String.format(indenter+"<description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      if ((getGroupName() != null) && (getGroupName() != derived.getGroupName())) {
-         writer.println(String.format(indenter+"   <groupName>%s</groupName>",         SVD_XML_BaseParser.escapeString(getGroupName())));
+      if (!getGroupName().equals(derived.getGroupName())) {
+         writer.print(String.format(indenter+"<groupName>%s</groupName>",         SVD_XML_BaseParser.escapeString(getGroupName())));
       }
-      if ((getPrependToName() != null) && (getPrependToName() != derived.getPrependToName())) {
-         writer.println(String.format(indenter+"   <prependToName>%s</prependToName>", SVD_XML_BaseParser.escapeString(getPrependToName())));
+      if (!getPrependToName().equals(derived.getPrependToName())) {
+         writer.print(String.format(indenter+"<prependToName>%s</prependToName>", SVD_XML_BaseParser.escapeString(getPrependToName())));
       }
-      if ((getAppendToName() != null) && (getAppendToName() != derived.getAppendToName())) {
-         writer.println(String.format(indenter+"   <appendToName>%s</appendToName>",   SVD_XML_BaseParser.escapeString(getAppendToName())));
+      if (!getAppendToName().equals(derived.getAppendToName())) {
+         writer.print(String.format(indenter+"<appendToName>%s</appendToName>",   SVD_XML_BaseParser.escapeString(getAppendToName())));
       }
-      writer.println(String.format(   indenter+"   <baseAddress>0x%08X</baseAddress>", getBaseAddress()));
-      if ((getAccessType() != null) && (getAccessType() != derived.getAccessType())) {
-         writer.println(String.format(indenter+"   <access>%s</access>",               getAccessType().getPrettyName()));
+      writer.print(String.format("<baseAddress>0x%08X</baseAddress>", getBaseAddress()));
+      if (getAccessType() != derived.getAccessType()) {
+         writer.print(String.format(indenter+"<access>%s</access>",               getAccessType().getPrettyName()));
       }
-      if ((getInterruptEntries() != null) && (getInterruptEntries() != derived.getInterruptEntries())) {
+      if (getInterruptEntries() != derived.getInterruptEntries()) {
          for (InterruptEntry interrupt : getInterruptEntries()) {
             interrupt.writeSVD(writer, indent+3);
          }
       }
-      
-      writer.println(                 indenter+"</peripheral>");
+      writer.println(              "</peripheral>");
    }
 
    static final String DeviceHeaderFileStructPreamble =   
@@ -1519,7 +1497,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       ;
 
    private final String deviceOpenStruct  = "typedef struct {                                /*!<       %-60s */\n";
-   private final String deviceCloseStruct = "} %s_Type;\n\n";  
+   private final String deviceCloseStruct = "} %s_Type;\n\n";
 
    /**
     * Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers
@@ -1671,6 +1649,14 @@ public class Peripheral extends ModeControl implements Cloneable {
          reg.setAddressOffset(reg.getAddressOffset()-baseAddress);
       }
       this.setBaseAddress(baseAddress);
+   }
+
+   public void setRefreshAll(boolean value) {
+      refreshAll = value;
+   }
+
+   public boolean isRefreshAll() {
+      return refreshAll;
    }
 
 }

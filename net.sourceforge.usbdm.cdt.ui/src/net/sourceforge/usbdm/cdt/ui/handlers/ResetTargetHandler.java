@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.cdt.ui.handlers;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 
-import org.eclipse.cdt.core.parser.util.DebugUtil;
 import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.cdt.dsf.concurrent.CountingRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
@@ -21,8 +20,6 @@ import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.mi.service.command.commands.CLICommand;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIBreakInsertInfo;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIThread;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIThreadInfoInfo;
 import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.cdt.dsf.ui.viewmodel.datamodel.IDMVMContext;
@@ -33,12 +30,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.contexts.DebugContextEvent;
 import org.eclipse.debug.ui.contexts.IDebugContextListener;
-import org.eclipse.debug.ui.sourcelookup.ISourceLookupResult;
-import org.eclipse.ui.IWorkbenchPage;
 
 @SuppressWarnings({ "restriction" })
 public class ResetTargetHandler extends AbstractHandler implements IDebugContextListener {

@@ -50,6 +50,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
     * *********************************************************
     */
    private  Button  doInitialDownloadCheckButton;
+   private  Button  doResetButton;
    private  Button  loadExternalImageButton;
    private  Text    externalImagePath;
    private  Button  browseImageWorkspaceButton;
@@ -60,7 +61,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    private  Text    initialBreakpointText;
    private  Button  executeAfterLaunchButton;
                     
-   private  Button  doConnectTarget;
+   private  Button  doConnectTargetButton;
    private  Button  loadExternalSymbolButton;
    private  Text    externalSymbolPath;
    private  Button  browseSymbolProjectButton;
@@ -126,6 +127,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       boolean enabled;
       
       enabled = doInitialDownloadCheckButton.getSelection();
+      doResetButton.setEnabled(enabled);
       loadExternalImageButton.setEnabled(enabled);
       externalImagePath.setEnabled(enabled && loadExternalImageButton.getSelection());
       browseImageWorkspaceButton.setEnabled(enabled && loadExternalImageButton.getSelection());
@@ -137,7 +139,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       initialBreakpointText.setEnabled(enabled&&setInitialBreakpointButton.getSelection());
       executeAfterLaunchButton.setEnabled(enabled);
 
-      enabled = doConnectTarget.getSelection();
+      enabled = doConnectTargetButton.getSelection();
       loadExternalSymbolButton.setEnabled(enabled);
       externalSymbolPath.setEnabled(enabled && loadExternalSymbolButton.getSelection());
       browseSymbolExternalButton.setEnabled(enabled && loadExternalSymbolButton.getSelection());
@@ -183,6 +185,23 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       startUpGroup.setLayoutData(gd);
       startUpGroup.setText("Startup options");
       startUpGroup.setToolTipText("These options are applied when starting a target that will be programmed\n");
+      /*
+       * ===================================================================
+       */
+      doResetButton = new Button(startUpGroup, SWT.CHECK);
+      gd = new GridData();
+//      gd.horizontalAlignment = SWT.FILL;
+      gd.horizontalSpan = 4;
+      gd.grabExcessHorizontalSpace = true;
+      doResetButton.setLayoutData(gd);
+      doResetButton.setText("Reset target");
+      doResetButton.setToolTipText("Reset target when doing initial connection");
+      doResetButton.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            optionsChanged(true);
+         }
+      });
       /*
        * ===================================================================
        */
@@ -298,9 +317,9 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    }
 
    private void createConnectGroup(Composite parent) {
-      doConnectTarget = new Button(parent, SWT.RADIO);
-      doConnectTarget.setText("Connect to running target");
-      doConnectTarget.addSelectionListener(new SelectionAdapter() {
+      doConnectTargetButton = new Button(parent, SWT.RADIO);
+      doConnectTargetButton.setText("Connect to running target");
+      doConnectTargetButton.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             optionsChanged(true);
@@ -651,8 +670,9 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
          boolean doContinue = configuration.getAttribute(IGDBJtagConstants.ATTR_SET_RESUME,                                          UsbdmSharedConstants.LAUNCH_DEFAULT_SET_RESUME);
 
          // Program target
+         doResetButton.setSelection(doReset);
          doInitialDownloadCheckButton.setSelection(   configuration.getAttribute(IGDBJtagConstants.ATTR_LOAD_IMAGE,                  UsbdmSharedConstants.LAUNCH_DEFAULT_LOAD_IMAGE));
-         doConnectTarget.setSelection(!doInitialDownloadCheckButton.getSelection());                                               
+         doConnectTargetButton.setSelection(!doInitialDownloadCheckButton.getSelection());                                               
          executeAfterLaunchButton.setSelection(       doContinue);
 
          // File loading.  Ignores ATTR_USE_FILE_FOR_IMAGE, ATTR_USE_FILE_FOR_SYMBOLS, ATTR_IMAGE_OFFSET, ATTR_SYMBOLS_OFFSET
@@ -726,10 +746,6 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,                    externalImagePath.getText());
       configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_OFFSET,                       "");
                                                                                             
-      // Reset, halt and resume options                                                     
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                           resetAfterConnectButton.getSelection() ||
-                                                                                            resetAndContinueAfterConnectButton.getSelection());
-                                                                                            
       configuration.setAttribute(IGDBJtagConstants.ATTR_DO_HALT,                            resetAfterConnectButton.getSelection() ||
                                                                                             haltAfterConnectButton.getSelection());
       // Reset recovery delay is a USBDM option                                             
@@ -743,6 +759,9 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
                                                                                             
       // Note: The following options appear in two different locations in the TAB but only one is active (preserved)
       if (doInitialDownloadCheckButton.getSelection()) {                                    
+         // Reset options                                                     
+         configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                        doResetButton.getSelection());
+         
          // Load symbols from same file as image                                            
          configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_SYMBOLS,                    true);
          configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS,     !loadExternalImageButton.getSelection());
@@ -755,6 +774,9 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
          configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,                         initialBreakpointText.getText());
       }                                                                                     
       else {                                                                                
+         // Reset, halt and resume options                                                     
+         configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                           resetAfterConnectButton.getSelection() ||
+                                                                                               resetAndContinueAfterConnectButton.getSelection());
          // Load symbols from image or external symbol file                                 
          configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_SYMBOLS,                    true);
          configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS,     !loadExternalSymbolButton.getSelection());

@@ -4,7 +4,7 @@ import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectOption;
+import net.sourceforge.usbdm.deviceDatabase.ProjectOption;
 
 import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.core.templateengine.process.ProcessFailureException;

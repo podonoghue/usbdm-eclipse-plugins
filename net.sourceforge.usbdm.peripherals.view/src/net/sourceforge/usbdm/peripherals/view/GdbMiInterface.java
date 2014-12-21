@@ -77,7 +77,7 @@ public class GdbMiInterface implements GdbCommonInterface {
    @Override
    public byte[] readMemory(long address, int iByteCount, int accessWidth) throws Exception {
       
-      // TODO - This is a horrible hack - damn you GDB!
+      // TODO This is a horrible hack - damn you GDB!
       switch (accessWidth) {
       case 8:  
          // Check if either address or size is odd

@@ -13,25 +13,30 @@ import java.util.HashSet;
 import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.deviceDatabase.Condition;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.Device.Condition;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectActionList;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectCustomAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectVariable;
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.deviceDatabase.ProjectAction;
+import net.sourceforge.usbdm.deviceDatabase.ProjectActionList;
+import net.sourceforge.usbdm.deviceDatabase.ProjectVariable;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  *  USBDM New Project Wizard page "USBDM Project"
@@ -44,8 +49,6 @@ public class UsbdmProjectOptionsPage extends WizardPage {
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_OPTIONS_PAGE_NAME;
 
    private UsbdmProjectParametersPage   usbdmProjectPage;
-
-//   private Device             currentDevice = null;
 
    public UsbdmProjectOptionsPage() {
       super(PAGE_NAME);
@@ -81,6 +84,7 @@ public class UsbdmProjectOptionsPage extends WizardPage {
    ArrayList<ProjectVariable> variableList = new ArrayList<ProjectVariable>();
 
    private static final String OPTIONS_KEY = "usbdm.project.additionalOptions."; 
+   
    /**
     * Populate the Parameters controls
     * 
@@ -91,23 +95,44 @@ public class UsbdmProjectOptionsPage extends WizardPage {
 
       IDialogSettings dialogSettings = getDialogSettings();
       
-      Group group = new Group(parent, SWT.NONE);
-      group.setLayout(new GridLayout(2, false));
-      group.setText("Additional Project Options ("+getDevice().getName()+")");
+      ScrolledComposite sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL);
+      sc.setExpandHorizontal(true);
+      sc.setExpandVertical(true);
+      setControl(sc);
 
+      Composite comp = new Composite(sc, SWT.FILL);
+      sc.setContent(comp);
+      GridLayout layout = new GridLayout();
+      comp.setLayout(layout);
+
+      Device device = getDevice();
+//      Device device = getDevice("MKE06Z64M4");
+      
+      Group group = new Group(comp, SWT.NONE);
+      GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+      group.setLayoutData(gd);
+      group.setLayout(new GridLayout(2, false));
+
+      if (device == null) {
+         // Should be impossible
+         group.setText("No device selected!!");
+         return group;
+      }
+      group.setText("Additional Project Options ("+device.getName()+")");
+      
       HashSet<ProjectVariable> conditionMap = new HashSet<ProjectVariable>();
       variableList = new ArrayList<ProjectVariable>();
 
-      Device device = getDevice();
       if (device != null) {
-         ProjectActionList actionList = device.getProjectActionList();
-         if (actionList != null) {
+         ArrayList<ProjectActionList> projectActionLists = device.getProjectActionLists();
+         for (ProjectActionList actionList:projectActionLists) {
             for (ProjectAction action : actionList) {
                Condition condition = action.getCondition();
-               if (action instanceof ProjectCustomAction) {
-                  System.err.println("createOptionsControl() - " + action.toString());
-                  System.err.println("                       - " + ((condition==null)?"<null>":condition.getVariable().getName()));
-               }
+//               System.err.println("createOptionsControl() - " + action.toString());
+//               if (action instanceof ProjectCustomAction) {
+//                  System.err.println("createOptionsControl() - " + action.toString());
+//                  System.err.println("                       - " + ((condition==null)?"<null>":condition.getVariable().getName()));
+//               }
                if (condition != null) {
                   if (!conditionMap.contains(condition.getVariable())) {
                      conditionMap.add(condition.getVariable());
@@ -190,7 +215,6 @@ public class UsbdmProjectOptionsPage extends WizardPage {
       validate();
    }
    
-   
    public void refresh() {
       Composite control = (Composite) getControl();
       if (control != null) {
@@ -208,15 +232,29 @@ public class UsbdmProjectOptionsPage extends WizardPage {
       }
       return usbdmProjectPage.getDevice();
    }
+   /**
+    * For debug
+    * 
+    * @param currentDevice
+    * @return
+    */
+   @SuppressWarnings("unused")
+   private Device getDevice(String currentDevice) {
+      DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
+      if (!deviceDatabase.isValid()) {
+         return null;
+      }
+      return deviceDatabase.getDevice(currentDevice);
+   }
+   
    /*
     Names available in template:
-    
     */
    public void getPageData(Map<String, String> paramMap) {
       for (ProjectVariable variable : variableList) {
          paramMap.put(UsbdmConstants.CONDITION_PREFIX_KEY+"."+variable.getId(),  variable.getValue());
       }
-      System.err.println("UsbdmProjectOptionsPage.getPageData()");
+//      System.err.println("UsbdmProjectOptionsPage.getPageData()");
    }
 
    public void saveSettings() {
@@ -227,4 +265,31 @@ public class UsbdmProjectOptionsPage extends WizardPage {
          }
       }
    }
+   
+   /**
+    * Test main
+    * 
+    * @param args
+    */
+   public static void main(String[] args) {
+      Display display = new Display();
+
+      Shell shell = new Shell(display);
+      shell.setText("Packages Available");
+      shell.setLayout(new FillLayout());
+
+      Composite composite = new Composite(shell, SWT.NONE);
+      composite.setLayout(new FillLayout());
+
+      UsbdmProjectOptionsPage page = new UsbdmProjectOptionsPage();
+      page.createControl(composite);
+
+      shell.open();
+      while (!shell.isDisposed()) {
+         if (!display.readAndDispatch())
+            display.sleep();
+      }
+      display.dispose();
+   }
+
 }

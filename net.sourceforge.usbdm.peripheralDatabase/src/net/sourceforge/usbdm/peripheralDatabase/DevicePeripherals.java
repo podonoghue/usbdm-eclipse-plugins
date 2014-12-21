@@ -10,9 +10,9 @@ package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,7 +24,8 @@ import java.util.List;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
-import org.eclipse.core.runtime.IPath;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class DevicePeripherals extends ModeControl {
 
@@ -56,7 +57,7 @@ public class DevicePeripherals extends ModeControl {
       cpu               = new Cpu();
       sorted            = false;
       equivalentDevices = new ArrayList<String>();
-      vectorTable       = new VectorTable();
+      vectorTable       = null;
    }
 
   
@@ -65,12 +66,9 @@ public class DevicePeripherals extends ModeControl {
       sorted = false;
    }
 
-   public void addInterruptEntry(InterruptEntry entry) {
-      vectorTable.addEntry(entry);
-   }
    
-   public VectorTable getInterruptEntries() {
-      return vectorTable;
+   public void addInterruptEntry(InterruptEntry entry) {
+      getVectorTable().addEntry(entry);
    }
    
    public String getVersion() {
@@ -182,13 +180,18 @@ public class DevicePeripherals extends ModeControl {
    }
 
    /**
+    * Get vector table
+    * An empty vector is created if needed.
+    * 
     * @return the vectorTable
     */
    public VectorTable getVectorTable() {
+      if (vectorTable == null) {
+         vectorTable = VectorTable.factory(getCpu().getName());
+      }
       return vectorTable;
    }
-
-
+   
    /**
     * @param vectorTable the vectorTable to set
     */
@@ -375,11 +378,11 @@ public class DevicePeripherals extends ModeControl {
    /**
     *   Writes the Device description to file in SVF format
     *   
-    *  @param filePath The destination for the XML
+    *  @param path The destination for the XML
     * @throws Exception 
     */
-   public void writeSVD(IPath filePath) throws Exception {
-      File svdFile = filePath.toFile();
+   public void writeSVD(Path path) throws Exception {
+      File svdFile = path.toFile();
       PrintWriter writer = null;
       try {
          writer = new PrintWriter(svdFile);
@@ -399,15 +402,15 @@ public class DevicePeripherals extends ModeControl {
          ArrayList<InterruptEntry> interruptEntry = peripheral.getInterruptEntries();
          peripheral.clearInterruptEntries();
          for (InterruptEntry i : interruptEntry) {
-            if (vectorTable.getEntry(i.getNumber()) != null) {
+            if (getVectorTable().getEntry(i.getIndexNumber()) != null) {
                System.err.println("Interrupt vector already allocated");
-               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getNumber(), i.getDescription()));
-               i = vectorTable.getEntry(i.getNumber());
-               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getNumber(), i.getDescription()));
+               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getIndexNumber(), i.getDescription()));
+               i = getVectorTable().getEntry(i.getIndexNumber());
+               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getIndexNumber(), i.getDescription()));
 //               throw new Exception("Interrupt vector already allocated");
             }
             else {
-               vectorTable.addEntry(i);
+               getVectorTable().addEntry(i);
             }
          }
       }
@@ -433,7 +436,7 @@ public class DevicePeripherals extends ModeControl {
     *  @param writer         The destination for the XML
     *  @param standardFormat Flag that controls whether the peripherals are expanded in-line or by the use of ENTITY references
     *                        It also suppresses some other size optimisations 
-    * @throws Exception 
+    *  @throws Exception 
     *  
     *  @note If expansion is not done then it is assumed that the needed ENTITY lines have already be written to the writer
     *  @note In any case an XML header should already be written to the file.
@@ -453,7 +456,15 @@ public class DevicePeripherals extends ModeControl {
                peripheral.writeSVD(writer, standardFormat, this);
             }
             else {
-               writer.print(String.format("&%s;\n", peripheral.getName()));
+               if (peripheral.getDerivedFrom() == null) {
+                  writer.print(String.format("&%s;\n", peripheral.getName()));
+               }
+               else {
+                StringWriter sWriter = new StringWriter();
+                PrintWriter pWriter = new PrintWriter(sWriter);
+                peripheral.writeSVD(pWriter, false, null);
+                writer.print(sWriter.toString());
+               }
             }
          }
          writer.println("   </peripherals>");
@@ -462,7 +473,7 @@ public class DevicePeripherals extends ModeControl {
          collectVectors();
          
          writer.println("   <vendorExtensions>");
-         vectorTable.writeSVDInterruptEntries(writer, standardFormat);
+         getVectorTable().writeSVDInterruptEntries(writer, standardFormat);
          writer.println("   </vendorExtensions>");
          
          writer.print(devicePostamble);
@@ -571,12 +582,12 @@ public class DevicePeripherals extends ModeControl {
    /**
     *  Creates a header file from the device description
     *   
-    *  @param  filePath  The destination for the data
+    *  @param  headerFilePath  The destination for the data
     *  
     *  @throws Exception 
     */
-   public void writeHeaderFile(IPath filePath) throws Exception {
-      File headerFile = filePath.toFile();
+   public void writeHeaderFile(Path headerFilePath) throws Exception {
+      File headerFile = headerFilePath.toFile();
       PrintWriter writer = null;
       try {
          writer = new PrintWriter(headerFile);
@@ -622,8 +633,8 @@ public class DevicePeripherals extends ModeControl {
    final String peripheralDeclarationFormat = 
          "#define %-30s ((%-20s *) %s)\n";
  
-   final String cortexHeaderFileInclusion = 
-         "#include <%s>   /*!< Cortex-M processor and core peripherals                              */\n\n";
+   final String coreHeaderFileInclusion = 
+         "#include <%s>   /*!< Processor and core peripherals */\n\n";
    
    private String getEquivalentDevicesList() {
       StringBuffer s = new StringBuffer();
@@ -670,7 +681,7 @@ public class DevicePeripherals extends ModeControl {
     *  
     */
    @SuppressWarnings("unused")
-   private void writeHeaderFile(PrintWriter writer) throws Exception {
+   public void writeHeaderFile(PrintWriter writer) throws Exception {
       DateFormat dateFormat = new SimpleDateFormat("yyyy/MM");
       Date date = new Date();
       
@@ -683,17 +694,13 @@ public class DevicePeripherals extends ModeControl {
 
       ModeControl.resetMacroCache();
       
-      if (vectorTable == null) {
-         vectorTable = new VectorTable();
-      }
-//      vectorTable.writeCVectorTable(writer);
-      vectorTable.writeCInterruptHeader(writer);
+      getVectorTable().writeCInterruptHeader(writer);
       
       writer.print(processorAndCoreBanner);
       
       cpu.writeCHeaderFile(writer);
 
-      writer.print(String.format(cortexHeaderFileInclusion, cpu.getHeaderFileName()));
+      writer.print(String.format(coreHeaderFileInclusion, cpu.getHeaderFileName()));
 
       writer.print(String.format(commonDefinitions));
 
@@ -772,15 +779,13 @@ public class DevicePeripherals extends ModeControl {
       
       writer.print(String.format(headerFilePostamble, getName().toUpperCase()));
    }
-   
+   /**
+    * Create a vector table suitable for use in C code
+    * 
+    * @return String containing the Vector Table
+    */
    public String getCVectorTableEntries() {
-      StringWriter writer = new StringWriter();
-      try {
-         vectorTable.writeCVectorTable(writer);
-      } catch (IOException e) {
-         writer.write("Error Creating Vector table, reason:"+e.getMessage());
-      }
-      return writer.toString();
+      return getVectorTable().getCVectorTableEntries();
    }
    
    /**
@@ -788,10 +793,10 @@ public class DevicePeripherals extends ModeControl {
     * @param deviceName
     * @param headerFilePath
     */
-   public static void createHeaderFile(String deviceName, IPath headerFilePath) {
+   public static void createHeaderFile(String deviceName, Path headerFilePath) {
       // Read device description
-      DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(deviceName);
-      System.out.println("Creating : \""+headerFilePath.toOSString()+"\"");
+      DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(deviceName);
+      System.out.println("Creating : \""+headerFilePath+"\"");
       try {
          devicePeripherals.writeHeaderFile(headerFilePath);
       } catch (Exception e) {
@@ -799,4 +804,72 @@ public class DevicePeripherals extends ModeControl {
       }
    }
 
+   public static String DEVICELIST_FILENAME      = "DeviceList";
+
+   /**
+    *  Creates peripheral database for device
+    * 
+    *  @param device Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
+    *  
+    *  @return device peripheral description or null on error
+    */
+   public static DevicePeripherals createDatabase(String device) {
+      SVD_XML_Parser database = new SVD_XML_Parser();
+
+      DevicePeripherals devicePeripherals = null;
+      
+      // Parse the XML file into the XML internal DOM representation
+      Document dom;
+      try {
+         // Try name as given (may be full path)
+//         System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+"\"");
+         dom = SVD_XML_BaseParser.parseXmlFile(device);
+         if (dom == null) {
+            // Try name with default extension
+//            System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+".svd"+"\"");
+            dom = SVD_XML_BaseParser.parseXmlFile(device+".svd");
+         }
+         if (dom == null) {
+            // Try name with default extension
+//            System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+".xml"+"\"");
+            dom = SVD_XML_BaseParser.parseXmlFile(device+".xml");
+         }
+         if (dom == null) {
+            // Retry with mapped name
+//            System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \n");
+            DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME);
+            if (deviceFileList != null) {
+               String mappedFilename = deviceFileList.getSvdFilename(device);
+//               System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \""+mappedFilename+"\"");
+               if (mappedFilename != null) {
+                  dom = SVD_XML_BaseParser.parseXmlFile(mappedFilename);
+               }
+            }
+         }
+         if (dom != null) {
+            // Get the root element
+            Element documentElement = dom.getDocumentElement();
+
+            //  Process XML contents and generate Device description
+            devicePeripherals = database.parseDocument(documentElement);
+         }
+      } catch (Exception e) {
+         System.err.println("DevicePeripherals.createDatabase() - Exception while parsing: " + device);
+         System.err.println("DevicePeripherals.createDatabase() - Exception: reason: " + e.getMessage());
+         e.printStackTrace();
+      }
+      return devicePeripherals;
+   }
+   
+   /**
+    *  Creates peripheral database for device
+    * 
+    *  @param path Path to SVD file describing device peripherals
+    *  
+    *  @return device peripheral description or null on error
+    */
+   public static DevicePeripherals createDatabase(Path path) {
+      return createDatabase(path.toAbsolutePath().toString());
+   }
+   
 }

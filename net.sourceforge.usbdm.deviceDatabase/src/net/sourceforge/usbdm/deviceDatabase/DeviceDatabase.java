@@ -16,19 +16,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sourceforge.usbdm.deviceDatabase.Device.ClockTypes;
-import net.sourceforge.usbdm.deviceDatabase.Device.Condition;
-import net.sourceforge.usbdm.deviceDatabase.Device.CreateFolderAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.ExcludeAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.FileAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.FileList;
-import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion;
-import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion.MemoryRange;
-import net.sourceforge.usbdm.deviceDatabase.Device.MemoryType;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectActionList;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectCustomAction;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectOption;
-import net.sourceforge.usbdm.deviceDatabase.Device.ProjectVariable;
+import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -42,7 +30,7 @@ import org.w3c.dom.Node;
 
 public class DeviceDatabase {
 
-   private ArrayList<Device> deviceList;       // List of all devices
+   private ArrayList<Device> deviceList;       // List of all devices (including aliases)
    private Device            defaultDevice;    // Default device
 
    private Document          dom;
@@ -302,12 +290,11 @@ public class DeviceDatabase {
       if (type.equalsIgnoreCase("link")) {
          fileType = FileType.LINK;
       }
-      
-      String sReplacable = element.getAttribute("replacable");
-      boolean isReplacable = !sReplacable.equalsIgnoreCase("false");
-      
-      FileAction fileInfo = new FileAction(null, source, target, fileType, isReplacable);
-      
+      // Default to true
+      boolean doMacroReplacement = !element.getAttribute("macroReplacement").equalsIgnoreCase("false");
+      // Default to false
+      boolean doReplacement      =  element.getAttribute("replace").equalsIgnoreCase("true");
+      FileAction fileInfo        = new FileAction(null, source, target, fileType, doMacroReplacement, doReplacement);
       return fileInfo;
    }
      
@@ -382,7 +369,7 @@ public class DeviceDatabase {
          negated = Boolean.valueOf(conditionElement.getAttribute("negated"));
       }
       
-      Device.Condition condition = new Device.Condition(variable, defaultValue, negated);
+      Condition condition = new Condition(variable, defaultValue, negated);
       
       // <condition>
       for (Node node = conditionElement.getFirstChild();
@@ -450,7 +437,7 @@ public class DeviceDatabase {
       return new ProjectVariable(id, name, description, defaultValue);
    }
 
-      /**
+   /**
     * Parse a <createFolder> element
     * 
     * @param  createFolderElement <createFolder> element
@@ -563,11 +550,18 @@ public class DeviceDatabase {
       //  Create a new Device with the value read from the XML nodes
       Device device = new Device(targetType, name);
 
+      if (deviceElement.hasAttribute("alias")) {
+         String aliasName = deviceElement.getAttribute("alias");
+         // Make shallow copy from aliased device
+         Device aliasedDevice = getDevice(aliasName);
+         if (aliasedDevice == null) {
+            throw new Exception("Aliased device not found "+ aliasName);
+         }
+         device = Device.shallowCopy(name, aliasedDevice);
+         device.setAlias(aliasName);
+      }
       if (deviceElement.hasAttribute("isDefault")) {
          device.setDefault();
-      }
-      if (deviceElement.hasAttribute("alias")) {
-         device.setAlias(deviceElement.getAttribute("alias"));
       }
       if (deviceElement.hasAttribute("hidden")) {
          device.setHidden(deviceElement.getAttribute("hidden").equalsIgnoreCase("true"));
@@ -585,7 +579,13 @@ public class DeviceDatabase {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "clock") {
+         if ((element.getTagName() == "sdid") || (element.getTagName() == "sdidmask")) {
+            // Ignored but OK for aliased device
+         }
+         else if (device.isAlias()) {
+            throw new Exception("Aliased devices may not have full description");
+         }
+         else if (element.getTagName() == "clock") {
             device.setClockAddres(Integer.decode(element.getAttribute("registerAddress")));
             device.setClockType(ClockTypes.parse(element.getAttribute("type")));
             device.setClockNvAddress(device.getDefaultClockTrimNVAddress());
@@ -711,7 +711,7 @@ public class DeviceDatabase {
     * List devices in database
     * 
     */
-   public void listDevices(PrintStream stream) {
+   public void listDevices(PrintStream stream, boolean printAliases) {
       stream.println("No of Devices '" + deviceList.size() + "'.");
 
       if (defaultDevice == null) {
@@ -721,7 +721,7 @@ public class DeviceDatabase {
          stream.println("Default device = " + defaultDevice.toString());
       }
       for (Device device : deviceList) {
-         if (!device.isAlias()) {
+         if (printAliases || !device.isAlias()) {
             stream.println(device.toString());
          }
       }
@@ -849,23 +849,29 @@ public class DeviceDatabase {
       return targetType;
    }
 
-   private int nestingLimit = 0;
+//   private int nestingLimit = 0;
+   /**
+    * Returns the device with the given name
+    * 
+    * @param name
+    * @return
+    */
    public Device getDevice(String name) {
-      if (nestingLimit++ > 10) {
-         nestingLimit = 0;
-         return null;
-      }
+//      if (nestingLimit++ > 10) {
+//         nestingLimit = 0;
+//         return null;
+//      }
       for (int index = 0; index<deviceList.size(); index++) {
          Device device = deviceList.get(index);
          if (device.getName().equals(name)) {
-            if (device.isAlias()) {
-               return getDevice(device.getAlias());
-            }
-            nestingLimit = 0;
+//            if (device.isAlias()) {
+//               return getDevice(device.getAlias());
+//            }
+//            nestingLimit = 0;
             return device;
          }
       }
-      nestingLimit = 0;
+//      nestingLimit = 0;
       return null;
    }
    

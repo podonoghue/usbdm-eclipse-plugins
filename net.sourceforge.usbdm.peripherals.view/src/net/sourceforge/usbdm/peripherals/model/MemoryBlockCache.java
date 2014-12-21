@@ -10,9 +10,11 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
 import org.eclipse.swt.widgets.Display;
 
 public class MemoryBlockCache {
-      public final long address;
-      public final long size;
-      public final long width;
+      private final long address;
+      private final long sizeInBytes;
+      private final long widthInBits;
+      private boolean writeable;
+      private boolean readable;
       
       // Data caching the value from target
       private byte[]             data;
@@ -27,13 +29,14 @@ public class MemoryBlockCache {
       // Listeners on changes in the block data
       private ArrayList<MemoryBlockChangeListener> changeListeners = new ArrayList<MemoryBlockChangeListener>();
           
-      public MemoryBlockCache(Peripheral peripheral, AddressBlock memoryBlockCache, GdbCommonInterface gdbInterface) {
-         this.address       = peripheral.getBaseAddress()+memoryBlockCache.getOffset();
-         this.size          = memoryBlockCache.getSize();
-         this.width         = memoryBlockCache.getWidth();
+      public MemoryBlockCache(Peripheral peripheral, AddressBlock addressBlock, GdbCommonInterface gdbInterface) {
+         this.address       = peripheral.getBaseAddress()+addressBlock.getOffset();
+         this.sizeInBytes   = addressBlock.getSizeInBytes();
+         this.widthInBits   = addressBlock.getWidthInBits();
          this.needsUpdate   = true;
          this.updatePending = false;
          this.gdbInterface  = gdbInterface; 
+         this.writeable     = false;
       }
       
       /**
@@ -57,24 +60,24 @@ public class MemoryBlockCache {
       
       private long get8bitValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((data == null) || (offset<0) || (offset>=data.length)) {
-            throw new MemoryException("memoryBlockCache.get8bitValue() no data read");
+         if ((offset<0) || (offset>=data.length)) {
+            throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset, data.length-1));
          }
          return BaseModel.getValue8bit(data, (int)offset);
       }
       
       private long get16bitValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((data == null) || (offset<0) || ((offset+1)>=data.length)) {
-            throw new MemoryException("memoryBlockCache.get16bitValue() no data read");
+         if ((offset<0) || ((offset+1)>=data.length)) {
+            throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset+1, data.length-1));
          }
          return BaseModel.getValue16bit(data, (int)offset);
       }
 
       private long get32bitValue(long address) throws MemoryException {
          long offset = address-this.address;
-         if ((data == null) || (offset<0) || ((offset+3)>=data.length)) {
-            throw new MemoryException("memoryBlockCache.get32bitValue() no data read");
+         if ((offset<0) || ((offset+3)>=data.length)) {
+            throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset+3, data.length-1));
          }
          return BaseModel.getValue32bit(data, (int)offset);
       }
@@ -84,13 +87,14 @@ public class MemoryBlockCache {
        * 
        * @param address
        * @param value
-       * @param size  size in bytes!
+       * @param sizeInBytes size in bytes!
        * 
        * @return value
        * @throws MemoryException 
        */
-      public long getValue(long address, int size) throws MemoryException {
-         switch ((size+7)/8) {
+      public long getValue(long address, int sizeInBytes) throws MemoryException {
+         allocateDataIfNeeded();
+         switch (sizeInBytes) {
          case 1:  return get8bitValue(address);
          case 2:  return get16bitValue(address);
          case 4:  return get32bitValue(address);
@@ -98,41 +102,29 @@ public class MemoryBlockCache {
          throw new MemoryException("memoryBlockCache invalid data size");
       }
 
-      private void set8bitValue(long address, long value) {
-         if (data == null) {
-            return;
-         }
+      private void set8bitValue(long address, long value) throws Exception {
          long offset = address-this.address;
-         if ((offset<0) || (offset>=this.size)) {
-            System.err.println("set8bitValue() - Invalid address range");
-            return;
+         if ((offset<0) || (offset>=this.sizeInBytes)) {
+            throw new Exception(String.format("set8bitValue() - Invalid address range [%d..%d] for this[0..%d]", offset, offset+sizeInBytes-1, this.sizeInBytes-1));
          }
          data[(int)offset] = (byte)value;
       }
 
-      private void set16bitValue(long address, long value) {
-         if (data == null) {
-            return;
-         }
+      private void set16bitValue(long address, long value) throws Exception {
          long offset = address-this.address;
          long size = 2;
-         if ((offset<0) || ((offset+size)>this.size)) {
-            System.err.println("set16bitValue() - Invalid address range");
-            return;
+         if ((offset<0) || ((offset+size)>this.sizeInBytes)) {
+            throw new Exception(String.format("set16bitValue() - Invalid address range [%d..%d] for this[0..%d]", offset, offset+size-1, this.sizeInBytes-1));
          }
          data[(int)(offset++)] = (byte)(value);
          data[(int)(offset++)] = (byte)(value>>8);
       }
 
-      private void set32bitValue(long address, long value) {
-         if (data == null) {
-            return;
-         }
+      private void set32bitValue(long address, long value) throws Exception {
          long offset = address-this.address;
          long size = 4;
-         if ((offset<0) || ((offset+size)>this.size)) {
-            System.err.println("set32bitValue() - Invalid address range");
-            return;
+         if ((offset<0) || ((offset+size)>this.sizeInBytes)) {
+            throw new Exception(String.format("set32bitValue() - Invalid address range [%d..%d] for this[0..%d]", offset, offset+size-1, this.sizeInBytes-1));
          }
          data[(int)(offset++)] = (byte)(value);
          data[(int)(offset++)] = (byte)(value>>8);
@@ -145,16 +137,25 @@ public class MemoryBlockCache {
        * 
        * @param address
        * @param value
-       * @param size  size in bytes!
+       * @param sizeInBytes
+       * @throws Exception 
        */
-      public void setValue(long address, long value, int size) {
-         switch (size) {
-         case 1:  set8bitValue(address, value);
-         case 2:  set16bitValue(address, value);
-         case 4:  set32bitValue(address, value);
+      public void setValue(long address, long value, int sizeInBytes) throws Exception {
+//         System.err.println(String.format("MemoryBlockCache.setValue() a=0x%X, v=%d, s=%d bytes", address, value, sizeInBytes));
+         allocateDataIfNeeded();
+         switch (sizeInBytes) {
+         case 1:  set8bitValue(address, value);     break;
+         case 2:  set16bitValue(address, value);    break;
+         case 4:  set32bitValue(address, value);    break;
          }
       }
       
+      private void allocateDataIfNeeded() {
+         if (data == null) {
+            data = new byte[(int) getSize()];
+         }
+      }
+
       private long get8bitLastValue(long address) throws MemoryException {
          long offset = address-this.address;
          if (lastData == null) {
@@ -193,13 +194,13 @@ public class MemoryBlockCache {
        * 
        * @param address
        * @param value
-       * @param size    Size in bytes!
+       * @param sizeInBytes
        * 
        * @return Value
        * @throws MemoryException 
        */
-      public long getLastValue(long address, int size) throws MemoryException {
-         switch ((size+7)/8) {
+      public long getLastValue(long address, int sizeInBytes) throws MemoryException {
+         switch (sizeInBytes) {
          case 1:  return get8bitLastValue(address);
          case 2:  return get16bitLastValue(address);
          case 4:  return get32bitLastValue(address);
@@ -238,7 +239,35 @@ public class MemoryBlockCache {
        * @return The size (in bytes) of this block
        */
       public long getSize() {
-         return size;
+         return sizeInBytes;
+      }
+
+      /**
+       * @return the writeable
+       */
+      public boolean isWriteable() {
+         return writeable;
+      }
+
+      /**
+       * @param writeable the writeable to set
+       */
+      public void setWriteable(boolean writeable) {
+         this.writeable = writeable;
+      }
+
+      /**
+       * @return the readable
+       */
+      public boolean isReadable() {
+         return readable;
+      }
+
+      /**
+       * @param readable the readable to set
+       */
+      public void setReadable(boolean readable) {
+         this.readable = readable;
       }
 
       /**
@@ -246,8 +275,8 @@ public class MemoryBlockCache {
        * 
        * @return The width (in bits) of this block's elements (memory access size)
        */
-      public long getWidth() {
-         return width;
+      public long getWidthInBits() {
+         return widthInBits;
       }
       
       /**
@@ -277,7 +306,7 @@ public class MemoryBlockCache {
        * @return
        */
       public boolean containsAddress(long address, long size) {
-         return (address>=this.address) && ((address+size) <= (this.address+this.size));
+         return (address>=this.address) && ((address+size) <= (this.address+this.sizeInBytes));
       }
       
       /**
@@ -298,6 +327,7 @@ public class MemoryBlockCache {
          if (updatePending) {
             return;
          }
+         allocateDataIfNeeded();
          updatePending = true;
 //         System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue schedule action", getAddress(), getAddress()+getSize()-1));
          Runnable r = new Runnable() {
@@ -311,7 +341,7 @@ public class MemoryBlockCache {
 //               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.run() - reading from target", getAddress(), getAddress()+getSize()-1));
                byte[] value = null;
                try {
-                  value = gdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidth());
+                  value = gdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidthInBits());
                } catch (Exception e) {
                   System.err.println("Unable to access target");
                   value = null;
@@ -356,15 +386,15 @@ public class MemoryBlockCache {
       /**
        * Checks if a memory range has changed since changes last reset by setChangeReference()
        * 
-       * @param address Start address of range to check
-       * @param size    Size in bytes of range
+       * @param address       Start address of range to check
+       * @param sizeInBytes   Size in bytes of range
        * @return
        */
-      public boolean isChanged(long address, long size) {
+      public boolean isChanged(long address, long sizeInBytes) {
          long offset = address-this.address;
-         if ((offset<0) || ((offset+size)>this.size)) { 
-            System.err.println(String.format("MemoryBlockCache.isChanged() - Invalid address range [0x%X..0x%x]", offset, offset+size-1));
-            System.err.println(String.format("MemoryBlockCache.isChanged() - Should be within      [0x%X..0x%x]", 0,      this.size-1));
+         if ((offset<0) || ((offset+sizeInBytes)>this.sizeInBytes)) { 
+            System.err.println(String.format("MemoryBlockCache.isChanged() - Invalid address range [0x%X..0x%x]", offset, offset+sizeInBytes-1));
+            System.err.println(String.format("MemoryBlockCache.isChanged() - Should be within      [0x%X..0x%x]", 0,      this.sizeInBytes-1));
             return false;
          }
          if (lastData == null) {
@@ -373,7 +403,7 @@ public class MemoryBlockCache {
          if (data == null) {
             return false;
          }
-         for (int index=(int)offset; index<(offset+size); index++) {
+         for (int index=(int)offset; index<(offset+sizeInBytes); index++) {
             if (data[index] != lastData[index]) {
                return true;
             }
@@ -384,11 +414,11 @@ public class MemoryBlockCache {
       /**
        *  Set range to reset value - not yet implemented
        *  
-       * @param address    Address of start of value
-       * @param resetValue Reset value
-       * @param size       Size of value (in bytes)
+       * @param address      Address of start of value
+       * @param resetValue   Reset value
+       * @param sizeInBytes  Size of value (in bytes)
        */
-      public void loadResetValue(long address, long resetValue, int size) {
+      public void loadResetValue(long address, long resetValue, int sizeInBytes) {
 //         setValue(address, resetValue, size);
          setNeedsUpdate(false);
       }
@@ -410,7 +440,7 @@ public class MemoryBlockCache {
             return;
          }
          long offset = address-this.address;
-         if ((offset<0)|| ((offset+size)>this.size)) {
+         if ((offset<0)|| ((offset+size)>this.sizeInBytes)) {
             System.err.println("MemoryBlockCache.setChangeReference() - Invalid address range");
             return;
          }
@@ -421,30 +451,35 @@ public class MemoryBlockCache {
 
       /**
        * Synchronize a value between cached value and target
-       * This consist of:\n
-       *  - Writing the range of data values to target
-       *  - Reading the entire peripheral state back from target
+       * This consist of:<br>
+       *  - Writing the range of data values to target<br>
+       *  - Reading the entire peripheral state back from target (if readable)<br>
        * 
-       * @param address Start address of data range
-       * @param size    Size in bytes of data range
+       * @param address       Start address of data range
+       * @param sizeInBytes   Size in bytes of data range
        */
-      public void synchronizeValue(final long address, final int size) {
-         long offset = address-this.address;
-         assert (offset>=0)                : "Invalid address range";
-         assert ((offset+size)<=this.size) : "Invalid address";
-         if (data == null) {
-            // Ignore 
+      public void synchronizeValue(final long address, final int sizeInBytes) {
+//         System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X])", address, address+sizeInBytes-1));
+         if (!isWriteable()) {
+            System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]) - not writeable", address, address+sizeInBytes-1));
             return;
          }
-         final byte[] writeData = new byte[size];
-         System.arraycopy(data, (int) offset, writeData, 0, size);
+         long offset = address-this.address;
+         assert (offset>=0)                : "Invalid address range";
+         assert ((offset+sizeInBytes)<=this.sizeInBytes) : "Invalid address";
+         if (data == null) {
+            System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]) - data null", address, address+sizeInBytes-1));
+            return;
+         }
+         final byte[] writeData = new byte[sizeInBytes];
+         System.arraycopy(data, (int) offset, writeData, 0, sizeInBytes);
          Runnable r = new Runnable() {
             public void run() {
-//               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).synchronizeValue.run() - writing to target", address, address+size-1));
+//               System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]).run() - writing to target", address, address+sizeInBytes-1));
                try {
-                  gdbInterface.writeMemory(address, writeData, (int)getWidth());
+                  gdbInterface.writeMemory(address, writeData, (int)getWidthInBits());
                } catch (TimeoutException e1) {
-//                  System.err.println("Unable to access target");
+                  System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]).run() - Unable to access target", address, address+sizeInBytes-1));
                }
 //               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).synchronizeValue.run() - reading from target", address, address+size-1));
                setNeedsUpdate(true);

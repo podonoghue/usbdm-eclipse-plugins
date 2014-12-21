@@ -12,7 +12,8 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
     */
    public class PeripheralModel extends BaseModel implements UpdateInterface, MemoryBlockChangeListener {
     
-      ArrayList<MemoryBlockCache> memoryBlockCaches = new ArrayList<MemoryBlockCache>();
+      private ArrayList<MemoryBlockCache> memoryBlockCaches = new ArrayList<MemoryBlockCache>();
+      private boolean                   refreshAll;  
       
       /**
        * Constructor
@@ -24,6 +25,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
          super(parent, peripheral.getName(), peripheral.getCDescription());
          assert(parent != null) : "parent can't be null";
          address = peripheral.getBaseAddress();
+         refreshAll = peripheral.isRefreshAll();
          
          // Use address blocks to create target memory cache
          // The Model is registered as a change listener
@@ -59,7 +61,9 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        */
       public void setNeedsUpdate(boolean needsUpdate) {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
-            memoryBlockCache.setNeedsUpdate(needsUpdate);
+            if (memoryBlockCache.isReadable()) {
+               memoryBlockCache.setNeedsUpdate(needsUpdate);
+            }
          }
       }
 
@@ -68,16 +72,20 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        */
       public void update() {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
-            memoryBlockCache.update(this);
+            if (memoryBlockCache.isReadable()) {
+               memoryBlockCache.update(this);
+            }
          }
       }
       
       /**
-       *  Updates all storage associated with this peripheral from target.
+       *  Retrieves storage contents from target (if update not already pending). This may trigger a view update.
        */
       public void retrieveValue() {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
-            memoryBlockCache.retrieveValue(this);
+            if (memoryBlockCache.isReadable()) {
+               memoryBlockCache.retrieveValue(this);
+            }
          }
       }
 
@@ -95,13 +103,13 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        * Finds the MemoryBlockCache containing this register
        * 
        * @param address
-       * @param size in bytes!
+       * @param sizeInBytes in bytes!
        * 
        * @return null if not found, block otherwise
        */
-      public MemoryBlockCache findAddressBlock(long address, long size) {
+      public MemoryBlockCache findAddressBlock(long address, long sizeInBytes) {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
-            if (memoryBlockCache.containsAddress(address, size)) {
+            if (memoryBlockCache.containsAddress(address, sizeInBytes)) {
                return memoryBlockCache;
             }
          }
@@ -125,6 +133,25 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
       public void notifyMemoryChanged(MemoryBlockCache memoryBlockCache) {
 //         System.err.println("PeripheralModel.notifyMemoryChanged()");
          notifyListeners();
+      }
+
+      /* (non-Javadoc)
+       * @see net.sourceforge.usbdm.peripherals.model.BaseModel#safeGetValueAsString()
+       */
+      @Override
+      public String safeGetValueAsString() {
+         return "";
+      }
+
+      /**
+       * Receive notification that the child register has changed
+       * 
+       * @param child
+       */
+      public void registerChanged(RegisterModel child) {
+         if (refreshAll) {
+            forceUpdate();
+         }
       }
 
    }

@@ -14,8 +14,6 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
-import org.eclipse.core.runtime.IPath;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
@@ -26,10 +24,14 @@ import org.w3c.dom.ProcessingInstruction;
  */
 public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
-   public static String DERIVEDFROM_ATTRIB           = "derivedFrom";
-   public static String PREFERREDACCESSWIDTH_ATTRIB  = "preferredAccessWidth";
-   public static String BLOCKALIGNMENT_ATTRIB        = "forcedAccessWidth";
-   public static String SOURCEFILE_ATTRIB            = "sourceFile";
+   public static String DERIVEDFROM_ATTRIB               = "derivedFrom";
+   public static String REFRESH_WHOLE_PERIPHERAL_ATTRIB  = "refreshWholePeripheral";
+   public static String PREFERREDACCESSWIDTH_ATTRIB      = "preferredAccessWidth";
+   public static String FORCED_ACCESS_WIDTH              = "forcedAccessWidth";
+   public static String FORCED_BLOCK_WIDTH               = "forcedBlockWidth";
+   public static String SOURCEFILE_ATTRIB                = "sourceFile";
+   public static String IGNOREOVERLAP_ATTRIB             = "ignoreOverlap";
+   public static String HIDE_ATTRIB                      = "hide";
 
    public static String ALTERNATEREGISTER_TAG    = "alternateRegister";
    public static String ACCESS_TAG               = "access";
@@ -89,7 +91,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    public static String WIDTH_TAG                = "width";
    public static String WRITECONSTRAINT_TAG      = "writeConstraint";
    
-   public static String DEVICELIST_FILENAME      = "DeviceList";
 
    DevicePeripherals devicePeripherals = null;          
    
@@ -107,29 +108,35 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
       Enumeration enumeration = new Enumeration();
       
-      for (Node node = enumeratedValue.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
+         for (Node node = enumeratedValue.getFirstChild();
+               node != null;
+               node = node.getNextSibling()) {
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            Element element = (Element) node;
+            try {
+               if (element.getTagName() == NAME_TAG) {
+                  enumeration.setName(element.getTextContent());
+               }
+               else if (element.getTagName() == DESCRIPTION_TAG) {
+                  enumeration.setDescription(element.getTextContent().trim());
+               }
+               else if (element.getTagName() == VALUE_TAG) {
+                  enumeration.setValue(getMappedEnumeratedValue(element.getTextContent()));
+               }
+               else if (element.getTagName() == ISDEFAULT_TAG) {
+                  enumeration.setAsDefault();
+               }
+               else {
+                  throw new Exception("Unexpected field in ENUMERATEDVALUE', value = \'"+element.getTagName()+"\'");
+               }
+            } catch (Exception e) {
+               System.err.println("parseEnumeratedValue() - element =" + element.getTagName() + ", field =" + field.getName());
+               e.printStackTrace();
+               throw e;
+            }
          }
-         Element element = (Element) node;
-         if (element.getTagName() == NAME_TAG) {
-            enumeration.setName(element.getTextContent());
-         }
-         else if (element.getTagName() == DESCRIPTION_TAG) {
-            enumeration.setDescription(element.getTextContent().trim());
-         }
-         else if (element.getTagName() == VALUE_TAG) {
-            enumeration.setValue(getMappedEnumeratedValue(element.getTextContent()));
-         }
-         else if (element.getTagName() == ISDEFAULT_TAG) {
-            enumeration.setAsDefault();
-         }
-         else {
-            throw new Exception("Unexpected field in ENUMERATEDVALUE', value = \'"+element.getTagName()+"\'");
-         }
-      }
       return enumeration;
    }
    
@@ -190,15 +197,37 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @throws Exception 
     */
    private Field parseField(Register register, Element fieldElement) throws Exception {
-
-      Field field = new Field(register);
-
-      // Inherit defaults
-      field.setAccessType(register.getAccessType());
-
+      Field field = null;
+      if (fieldElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
+         Field referencedField = null;
+         if (register != null) {
+            referencedField = register.findField(Peripheral.getMappedPeripheralName(fieldElement.getAttribute(DERIVEDFROM_ATTRIB)));
+            if (referencedField == null) {
+               // Try unmapped name
+               referencedField = register.findField(fieldElement.getAttribute(DERIVEDFROM_ATTRIB));
+            }
+         }
+         if (referencedField == null) {
+            throw new Exception("Referenced field cannot be found: \"" + fieldElement.getAttribute(DERIVEDFROM_ATTRIB) + "\"");
+         }
+         field = new Field(referencedField);
+      }
+      else {
+         field = new Field(register);
+      }
       for (Node node = fieldElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
+         if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+            ProcessingInstruction element = (ProcessingInstruction) node;
+            if (element.getNodeName() == IGNOREOVERLAP_ATTRIB) {
+               field.setIgnoreOverlap(true);
+            }            
+            else if (element.getNodeName() == HIDE_ATTRIB) {
+               field.setHidden(true);
+            }            
+            continue;
+         }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
@@ -213,16 +242,17 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             field.setBitOffset(getIntElement(element));
          }
          else if (element.getTagName() == MSB_TAG) {
-            field.setBitWidth(getIntElement(element)-field.getBitOffset()+1);
+            field.setBitwidth(getIntElement(element)-field.getBitOffset()+1);
          }
          else if (element.getTagName() == BITOFFSET_TAG) {
             field.setBitOffset(getIntElement(element));
          }
          else if (element.getTagName() == BITWIDTH_TAG) {
-            field.setBitWidth(getIntElement(element));
+            field.setBitwidth(getIntElement(element));
          }
          else if (element.getTagName() == BITRANGE_TAG) {
             String bitRange = element.getTextContent();
+            // TODO change to regex
             if ((bitRange.charAt(0) != '[')||(bitRange.charAt(bitRange.length()-1) != ']')) {
                throw new Exception("Illegal BITRANGE in FIELD', value = \'"+bitRange+"\'");
             }
@@ -236,7 +266,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             int startBit = Integer.parseInt(start);
             int endBit   = Integer.parseInt(end);
             field.setBitOffset(startBit);
-            field.setBitWidth(endBit-startBit+1);
+            field.setBitwidth(endBit-startBit+1);
          }
          else if (element.getTagName() == ACCESS_TAG) {
             field.setAccessType(getAccessElement(element));
@@ -270,8 +300,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @throws Exception 
     */
    private void parseFields(Register register, Element fieldsElement) throws Exception {
-
-      long bitsUsed = 0;
       for (Node node = fieldsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -281,17 +309,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == FIELD_TAG) {
             Field field = parseField(register, element);
-            long bitsUsedThisField = 0;
-            for (long i=field.getBitOffset(); i<(field.getBitOffset()+field.getBitwidth()); i++) {
-               bitsUsedThisField |= 1L<<i;
-            }
-            if ((bitsUsed&bitsUsedThisField) != 0) {
-               throw new Exception(String.format("Bit fields overlap in register \'%s\'", register.getName()));
-            }
-            bitsUsed |= bitsUsedThisField;
-            if (field.getAccessType() == null) {
-               field.setAccessType(register.getAccessType());
-            }
             if (!field.getName().equals(RESERVED_TAG)) {
                register.addField(field);
             }
@@ -352,6 +369,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       for (Node node = registerElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
+         if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+            ProcessingInstruction element = (ProcessingInstruction) node;
+            if (element.getNodeName() == HIDE_ATTRIB) {
+               register.setHidden(true);
+            }            
+            continue;
+         }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
@@ -418,7 +442,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                   peripheral.getName(), register.getName(), element.getTagName()));
          }
       }
-      register.checkAccess();
+      if (register.getWidth() == 0) {
+         register.setWidth(peripheral.getWidth());
+      }
+      if (register.getAccessType() == null) {
+         register.setAccessType(peripheral.getAccessType());
+      }
+      register.checkFieldAccess();
+      register.checkFieldDimensions();
       return register;
    }
 
@@ -496,28 +527,33 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == REGISTER_TAG) {
-            Register register = parseRegister(peripheral, null, element);
-            peripheral.addRegister(register);
-            if (register.getWidth() == 0) {
-               register.setWidth(peripheral.getWidth());
+         try {
+            if (element.getTagName() == REGISTER_TAG) {
+               Register register = parseRegister(peripheral, null, element);
+               peripheral.addRegister(register);
+               if (register.getWidth() == 0) {
+                  register.setWidth(peripheral.getWidth());
+               }
+               if (register.getAccessType() == null) {
+                  register.setAccessType(peripheral.getAccessType());
+               }
             }
-            if (register.getAccessType() == null) {
-               register.setAccessType(peripheral.getAccessType());
-            }
-         }
-         else if (element.getTagName() == CLUSTER_TAG) {
-            Cluster cluster = parseCluster(peripheral, element);
-            peripheral.addRegister(cluster);
+            else if (element.getTagName() == CLUSTER_TAG) {
+               Cluster cluster = parseCluster(peripheral, element);
+               peripheral.addRegister(cluster);
 //            if (register.getSize() == 0) {
 //               register.setSize(peripheral.getSize());
 //            }
 //            if (register.getAccessType() == null) {
 //               register.setAccessType(peripheral.getAccessType());
 //            }
-         }
-         else {
-            throw new Exception("Unexpected field in REGISTERS', value = \'"+element.getTagName()+"\'");
+            }
+            else {
+               throw new Exception("Unexpected field in REGISTERS', value = \'"+element.getTagName()+"\'");
+            }
+         } catch (Exception e) {
+            System.err.println("parseRegisters() - peripheral = " + peripheral.getName() + ", element tag =" + element.getTagName());
+            throw e;
          }
       }
    }
@@ -544,7 +580,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == WIDTH_TAG) {
-               addressBlock.setWidth((int)getIntElement(element));
+               addressBlock.setWidthInBits((int)getIntElement(element));
             }            
             continue;
          }
@@ -559,7 +595,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             addressBlock.setSize(getIntElement(element));
          }
          else if (element.getTagName() == WIDTH_TAG) {
-            addressBlock.setWidth(getIntElement(element));
+            addressBlock.setWidthInBits(getIntElement(element));
          }
          else if (element.getTagName() == USAGE_TAG) {
             addressBlock.setUsage(element.getTextContent());
@@ -592,14 +628,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-            String name = element.getTextContent();
+            String name = element.getTextContent().trim();//.toUpperCase();
             interruptEntry.setName(name.replace("INT_", ""));
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
             interruptEntry.setDescription(element.getTextContent().trim());
          }
          else if (element.getTagName() == VALUE_TAG) {
-            interruptEntry.setNumber((int)getIntElement(element));
+            interruptEntry.setIndexNumber((int)getIntElement(element));
          }
          else {
             throw new Exception("Unexpected field in INTERRUPT', value = \'"+element.getTagName()+"\'");
@@ -647,15 +683,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          peripheral.setAccessType(device.getAccessType());
          peripheral.setResetValue(device.getResetValue());
          peripheral.setResetMask(device.getResetMask());
-      }
-      if (peripheralElement.hasAttribute(SOURCEFILE_ATTRIB)) {
-         peripheral.setSourceFilename(peripheralElement.getAttribute(SOURCEFILE_ATTRIB));
-      }
-      if (peripheralElement.hasAttribute(PREFERREDACCESSWIDTH_ATTRIB)) {
-         peripheral.setBlockAccessWidth((int)getIntAttribute(peripheralElement, PREFERREDACCESSWIDTH_ATTRIB));
-      }
-      if (peripheralElement.hasAttribute(BLOCKALIGNMENT_ATTRIB)) {
-         peripheral.setForcedAccessWidth((int)getIntAttribute(peripheralElement, BLOCKALIGNMENT_ATTRIB));
+//         peripheral.setForcedBlockMultiple(32);
+//         peripheral.setBlockAccessWidth(32);
       }
       for (Node node = peripheralElement.getFirstChild();
             node != null;
@@ -668,8 +697,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             if (element.getNodeName() == PREFERREDACCESSWIDTH_ATTRIB) {
                peripheral.setBlockAccessWidth((int)getIntElement(element));
             }            
-            if (element.getNodeName() == BLOCKALIGNMENT_ATTRIB) {
-               peripheral.setForcedAccessWidth((int)getIntElement(element));
+            if (element.getNodeName() == FORCED_ACCESS_WIDTH) {
+               System.err.println("OPPPS");
+            }            
+            if (element.getNodeName() == FORCED_BLOCK_WIDTH) {
+               peripheral.setForcedBlockMultiple((int)getIntElement(element));
+            }            
+            if (element.getNodeName() == REFRESH_WHOLE_PERIPHERAL_ATTRIB) {
+               peripheral.setRefreshAll(true);
             }            
             continue;
          }
@@ -738,9 +773,15 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             parseRegisters(peripheral, element);
          }
          else {
-            throw new Exception("Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
+            throw new Exception("parsePeripheral() - Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
       }
+//      if (peripheral.getPreferredAccessWidth() != 0) {
+//         System.err.println(String.format("%s uses %s", peripheral.getName(), PREFERREDACCESSWIDTH_ATTRIB));
+//      }
+//      if (peripheral.getForcedBlockMultiple() != 0) {
+//         System.err.println(String.format("%s uses %s", peripheral.getName(), FORCED_ACCESS_WIDTH));
+//      }
       return peripheral;
    }
 
@@ -765,7 +806,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == PERIPHERAL_TAG) {
-            Peripheral peripheral = parsePeripheral(device, element);
+            Peripheral peripheral;
+            try {
+               peripheral = parsePeripheral(device, element);
+            } catch (Exception e) {
+               System.err.println("parsePeripherals() device = " + device.getName() + ", Tag = " + peripheralsElement.getTagName());
+               throw e;
+            }
             device.addPeripheral(peripheral);
             if (peripheral.getWidth() == 0) {
                peripheral.setWidth(device.getWidth());
@@ -839,7 +886,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     */
    private void parseInterrupts(DevicePeripherals devicePeripherals, Element interruptElement) throws Exception {
       int lastEntryNumber = -1000;
-      VectorTable vectorTable = new VectorTable();
+      VectorTable vectorTable = VectorTable.factory(devicePeripherals.getCpu().getName());
 
       for (Node node = interruptElement.getFirstChild();
             node != null;
@@ -856,17 +903,17 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
             InterruptEntry entry = parseInterrupt(element);
-            if (entry.getNumber() <= -100) {
-               entry.setNumber(++lastEntryNumber);
+            if (entry.getIndexNumber() <= -100) {
+               entry.setIndexNumber(++lastEntryNumber);
             }
-            else if (entry.getNumber() <= lastEntryNumber) {
-               throw new Exception("Interrupt vectors must be monotonic, # + " + entry.getNumber());
+            else if (entry.getIndexNumber() <= lastEntryNumber) {
+               throw new Exception("Interrupt vectors must be monotonic, # + " + entry.getIndexNumber());
             }
-            lastEntryNumber = entry.getNumber();
+            lastEntryNumber = entry.getIndexNumber();
             if (vectorTable.getEntry(lastEntryNumber) != null) {
                throw new Exception("Repeated Interrupt number");
             }
-            if (entry.getNumber()<0) {
+            if (entry.getIndexNumber()<0) {
                System.err.println("Warning: Discarding predefined vector \""+entry.getName()+"\"");
                continue;
             }
@@ -910,7 +957,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private DevicePeripherals parseDocument(Element documentElement) throws Exception {
+   DevicePeripherals parseDocument(Element documentElement) throws Exception {
       
       if (documentElement == null) {
          System.out.println("DeviceDatabase.parseDocument() - failed to get documentElement");
@@ -969,88 +1016,4 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       return devicePeripherals;
    }
 
-   /**
-    *  Constructor
-    */
-   private SVD_XML_Parser() {
-   }
-   
-   /**
-    *  Creates peripheral database for device
-    * 
-    *  @param devicenameOrFilename Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
-    *  
-    *  @return device peripheral description or null on error
-    */
-   public static DevicePeripherals createDatabase(String devicenameOrFilename) {
-      SVD_XML_Parser database = new SVD_XML_Parser();
-
-      DevicePeripherals devicePeripherals = null;
-      
-      // Parse the XML file into the XML internal DOM representation
-      Document dom;
-      try {
-         // Try name as given (may be full path)
-         dom = parseXmlFile(devicenameOrFilename);
-//         System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+"\"");
-         if (dom == null) {
-            // Try name with default extension
-            dom = parseXmlFile(devicenameOrFilename+".svd");
-//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+".svd"+"\"");
-         }
-         if (dom == null) {
-            // Try name with default extension
-            dom = parseXmlFile(devicenameOrFilename+".xml");
-//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+devicenameOrFilename+".xml"+"\"");
-         }
-         if (dom == null) {
-            // Retry with mapped name
-            String mappedFilename = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME).getSvdFilename(devicenameOrFilename);
-//            System.err.println("SVD_XML_Parser.createDatabase() - Trying \""+mappedFilename+"\"");
-            dom = parseXmlFile(mappedFilename);
-         }
-         if (dom != null) {
-            // Get the root element
-            Element documentElement = dom.getDocumentElement();
-
-            //  Process XML contents and generate Device description
-            devicePeripherals = database.parseDocument(documentElement);
-         }
-      } catch (Exception e) {
-         System.err.println("SVD_XML_Parser.createDatabase() - Exception: reason: " + e.getMessage());
-      }
-      if (devicePeripherals == null) {
-         System.err.println("SVD_XML_Parser.createDatabase() - Unable to locate SVD data for \""+devicenameOrFilename+"\"");
-      }
-      return devicePeripherals;
-   }
-   
-   /**
-    *  Creates peripheral database for device
-    * 
-    *  @param path Path to SVD file describing device peripherals
-    *  
-    *  @return device peripheral description or null on error
-    */
-   public static DevicePeripherals createDatabase(IPath path) {
-      SVD_XML_Parser database = new SVD_XML_Parser();
-
-      DevicePeripherals devicePeripherals = null;
-      // Parse the XML file into the XML internal DOM representation
-      Document dom;
-      try {
-         dom = parseXmlFile(path);
-         // Get the root element
-         Element documentElement = dom.getDocumentElement();
-
-         //  Process XML contents and generate Device description
-         devicePeripherals = database.parseDocument(documentElement);
-      } catch (Exception e) {
-         System.err.println("Error while processing "+path.toOSString());
-         e.printStackTrace();
-      }
-
-      return devicePeripherals;
-   }
-   
 }

@@ -13,26 +13,29 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    protected  int                    size;
    private    int                    bitOffset;
    private    ArrayList<Enumeration> enumerations;
-   private    final String           accessMode;
-
-   public FieldModel(RegisterModel parent, Field field) {
-      super(parent, field.getName(), field.getCDescription());
+   private    String                 accessMode;
+   private    boolean                readable;
+   private    boolean                writeable;
+   
+   void init(RegisterModel parent, Field field) {
       assert(parent != null) : "parent can't be null";
-      size                  = (int)field.getBitwidth();
-      bitOffset             = (int)field.getBitOffset();
+      setEnumeratedDescription(field.getEnumerations());
       enumerations          = null;
       accessMode            = field.getAccessType().getAbbreviatedName();
-      setEnumeratedDescription(field.getEnumerations());
+      size                  = (int)field.getBitwidth();
+      bitOffset             = (int)field.getBitOffset();
+      readable  = field.getAccessType().isReadable();
+      writeable = field.getAccessType().isWriteable();      
+   }
+   
+   public FieldModel(RegisterModel parent, Field field) {
+      super(parent, field.getName(), field.getCDescription());
+      init(parent, field);
    }
    
    public FieldModel(RegisterModel parent, Field field, int index) throws Exception {
       super(parent, field.getName(index), field.getCDescription(index));
-      assert(parent != null) : "parent can't be null";
-      size                  = (int)field.getBitwidth();
-      bitOffset             = (int)field.getBitOffset();
-      enumerations          = null;
-      accessMode            = field.getAccessType().getAbbreviatedName();
-      setEnumeratedDescription(field.getEnumerations());
+      init(parent, field);
    }
    
    /**
@@ -83,17 +86,37 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
     */
    @Override
-   public String getValueAsString() {
+   public String getValueAsBinaryString() {
       try {
-         if ((enumerations != null) || (size<9)) {
-            return super.getValueAsBinaryString(getValue(), size);
-         }
-         else {
-            return super.getValueAsHexString(getValue(), size);
-         }
+         return super.getValueAsBinaryString(getValue(), size);
       } catch (MemoryException e) {
          return "-- invalid --";
       }
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
+    */
+   @Override
+   public String getValueAsHexString() {
+      try {
+         return super.getValueAsHexString(getValue(), size);
+      } catch (MemoryException e) {
+         return "-- invalid --";
+      }
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
+    */
+   @Override
+   public String getValueAsString() {
+         if ((enumerations != null) || (size<9)) {
+            return getValueAsBinaryString();
+         }
+         else {
+            return getValueAsHexString();
+         }
    }
 
    /**
@@ -106,7 +129,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    }
 
    /**
-    * Sets description of the various meanings of this field
+    * Gets list describing the various meanings of this field
     * 
     * @return description
     */
@@ -160,6 +183,20 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    @Override
    public boolean isNeedsUpdate() {
       return parent.isNeedsUpdate();
+   }
+
+   /**
+    * @return the readable
+    */
+   public boolean isReadable() {
+      return readable;
+   }
+
+   /**
+    * @return the writeable
+    */
+   public boolean isWriteable() {
+      return writeable;
    }
 
    @Override

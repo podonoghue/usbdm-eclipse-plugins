@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.cdt.ui.examplewizard.ExampleList.ProjectInformation;
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmProjectTypeSelection;
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.IUsbdmProjectTypeSelection;
 import net.sourceforge.usbdm.constants.ToolInformationData;
 
 import org.eclipse.core.variables.VariablesPlugin;
@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPage, UsbdmProjectTypeSelection {
+public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPage, IUsbdmProjectTypeSelection {
    
    private Composite                   container;
 

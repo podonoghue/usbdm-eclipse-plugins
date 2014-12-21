@@ -8,13 +8,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Field extends ModeControl implements Cloneable {
+   static final int READ_MASK  = (1<<1); 
+   static final int WRITE_MASK = (1<<2); 
+   static final int ONCE_MASK  = (1<<3); 
 
    public enum AccessType {
-      ReadOnly       ("read-only",        "RO",  (1<<4)       |(1<<1)),
-      WriteOnly      ("write-only",       "WO",  (1<<4)|(1<<2)       ),
-      ReadWrite      ("read-write",       "RW",  (1<<4)|(1<<2)|(1<<1)),
-      WriteOnce      ("write-once",       "W1",         (1<<2)       ),
-      ReadWriteOnce  ("readWrite-once",   "RW1",        (1<<2)|(1<<1)),
+      //                                       multiple write   read
+      ReadOnly       ("read-only",        "RO",                         READ_MASK),
+      WriteOnly      ("write-only",       "WO",             WRITE_MASK           ),
+      ReadWrite      ("read-write",       "RW",             WRITE_MASK| READ_MASK),
+      WriteOnce      ("write-once",       "W1",  ONCE_MASK| WRITE_MASK           ),
+      ReadWriteOnce  ("readWrite-once",   "RW1", ONCE_MASK| WRITE_MASK| READ_MASK),
       ;
       final String prettyName;
       final String abbreviatedName;
@@ -36,7 +40,7 @@ public class Field extends ModeControl implements Cloneable {
             lookupMask.put(accessType.mask, accessType);
          }
       }
-
+      
       AccessType(String prettyName, String abbreviatedName, int mask) {
          this.prettyName      = prettyName;
          this.abbreviatedName = abbreviatedName;
@@ -62,24 +66,42 @@ public class Field extends ModeControl implements Cloneable {
       public AccessType and(AccessType other) {
          return lookupMask.get(this.mask & other.mask);
       }
+      
+      public boolean isWriteable() {
+         return (this.mask & WRITE_MASK) != 0;
+      }
+      public boolean isReadable() {
+         return (this.mask & READ_MASK) != 0;
+      }
    };
-   
-   private String                 name;
-   private String                 description;
+
+   /*
+    * ====================================================================
+    */
+   private AccessType             accessType;
    private long                   bitOffset;
    private long                   bitwidth;
-   private AccessType             accessType;
+   private Field                  derivedFrom;
+   private String                 description;
    private ArrayList<Enumeration> enumerations;
+   private String                 name;
+   private boolean                ignoreOverlap;
+   private boolean                hidden;
    private final Register         owner;
 
+   /*
+    * Constructor
+    */
    public Field(Register owner) {
-      name         = "";
-      description  = "";
-      bitOffset    = 0;
-      bitwidth     = 0;
-      accessType   = null;
-      enumerations = new ArrayList<Enumeration>();
-      this.owner   = owner;
+      accessType    = null;
+      bitOffset     = 0;
+      bitwidth      = 0;
+      description   = "";
+      derivedFrom   = null;
+      enumerations  = new ArrayList<Enumeration>();
+      name          = "";
+      ignoreOverlap = false;
+      this.owner    = owner;
       if (owner != null) {
          bitwidth       = owner.getWidth();
          accessType     = owner.getAccessType();
@@ -88,6 +110,24 @@ public class Field extends ModeControl implements Cloneable {
          bitwidth       =  32;
          accessType     =  AccessType.ReadWrite;
       }
+   }
+
+   /*
+    * SHALLOW Copy constructor
+    */
+   public Field(Field other) {
+      accessType   = other.accessType;    
+      bitOffset    = other.bitOffset;     
+      bitwidth     = other.bitwidth;      
+      description  = other.description;
+      derivedFrom  = other;
+      enumerations = other.enumerations;  
+      name         = other.name;          
+      owner        = other.owner;
+   }
+
+   public Field getDerivedFrom() {
+      return derivedFrom;
    }
 
    /* (non-Javadoc)
@@ -142,7 +182,10 @@ public class Field extends ModeControl implements Cloneable {
       return bitwidth;
    }
 
-   public void setBitWidth(long bitwidth) {
+   public void setBitwidth(long bitwidth) throws Exception {
+      if (bitwidth == 0) {
+         throw new Exception("Illegal width");
+      }
       this.bitwidth = bitwidth;
    }
 
@@ -154,11 +197,30 @@ public class Field extends ModeControl implements Cloneable {
       this.accessType = accessType;
    }
    
+   public boolean isIgnoreOverlap() {
+      return ignoreOverlap;
+   }
+
+   public void setIgnoreOverlap(boolean ignoreOverlap) {
+      this.ignoreOverlap = ignoreOverlap;
+   }
+
+   public boolean isHidden() {
+      return hidden;
+   }
+
+   public void setHidden(boolean hide) {
+      this.hidden = hide;
+   }
+
    public ArrayList<Enumeration> getEnumerations() {
       return enumerations;
    }
 
-   public void addEnumeration(Enumeration enumeration) {
+   public void addEnumeration(Enumeration enumeration) throws Exception {
+      if (derivedFrom != null) {
+         throw new Exception("Cannot change enumerations of a derived Field");
+      }
       this.enumerations.add(enumeration);
    }
 
@@ -258,26 +320,54 @@ public class Field extends ModeControl implements Cloneable {
    public void writeSVD(PrintWriter writer, boolean standardFormat, Register owner, int indent) {
       final String indenter = RegisterUnion.getIndent(indent);
 
-      writer.println(                 indenter+"<field>");
-      writer.println(String.format(   indenter+"   <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
-      if ((getDescription() != null) && (getDescription().length() > 0)) {
-         writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
-      }
-      writer.println(String.format(   indenter+"   <bitOffset>%d</bitOffset>",     getBitOffset()));
-      if ((owner == null) || standardFormat || (owner.getWidth() != getBitwidth())) {
-         writer.println(String.format(indenter+"   <bitWidth>%d</bitWidth>",       getBitwidth()));
-      }
-      if ((owner == null) || standardFormat || (owner.getAccessType() != getAccessType())) {
-         writer.println(String.format(indenter+"   <access>%s</access>",           getAccessType().getPrettyName()));
-      }
-      if ((getEnumerations() != null) && (!getEnumerations().isEmpty())) {
-         writer.println(              indenter+"   <enumeratedValues>");
-         for (Enumeration enumeration : getEnumerations()) {
-            enumeration.writeSVD(writer, standardFormat, indent+6);
+
+      if (derivedFrom!=null) {
+         writer.print(String.format(indenter+"<field derivedFrom=\"%s\" >", derivedFrom.getName()));
+         if (!derivedFrom.getName().equals(getName()) && (getName().length()>0)) {
+            writer.print(String.format(" <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
          }
-         writer.println(              indenter+"   </enumeratedValues>");
+         if (!derivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
+            writer.print(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
+         }
+         if (derivedFrom.getBitOffset() != getBitOffset()) {
+            writer.print(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
+         }
+         if (derivedFrom.getBitwidth() != getBitwidth()) {
+            writer.print(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
+         }
+         if (derivedFrom.getAccessType() != getAccessType()) {
+            writer.print(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
+         }
+         writer.println(" </field>");
       }
-      writer.println(                 indenter+"</field>");
+      else {
+         writer.println(                 indenter+"<field>");
+         writer.println(String.format(   indenter+"   <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
+         if (isIgnoreOverlap()) {
+            writer.println(              indenter+"   <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>");
+         }
+         if (isHidden()) {
+            writer.println(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+         }
+         if (getDescription().length() > 0) {
+            writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
+         }
+         writer.println(String.format(   indenter+"   <bitOffset>%d</bitOffset>",     getBitOffset()));
+         if ((owner == null) || standardFormat || (owner.getWidth() != getBitwidth())) {
+            writer.println(String.format(indenter+"   <bitWidth>%d</bitWidth>",       getBitwidth()));
+         }
+         if ((owner == null) || standardFormat || (owner.getAccessType() != getAccessType())) {
+            writer.println(String.format(indenter+"   <access>%s</access>",           getAccessType().getPrettyName()));
+         }
+         if ((getEnumerations() != null) && (!getEnumerations().isEmpty())) {
+            writer.println(              indenter+"   <enumeratedValues>");
+            for (Enumeration enumeration : getEnumerations()) {
+               enumeration.writeSVD(writer, standardFormat, indent+6);
+            }
+            writer.println(              indenter+"   </enumeratedValues>");
+         }
+         writer.println(                 indenter+"</field>");
+      }
    }
 
    public static class Pair {
@@ -298,7 +388,7 @@ public class Field extends ModeControl implements Cloneable {
     * @return  Mapped name (unchanged if not mapped, null if to be deleted)
     */
    static String getMappedBitfieldMacroName(String name) {
-      // TODO: Common names in macros are done here
+      // TODO - Common names in macros are done here
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
@@ -312,6 +402,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(CMP)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(GPIO_.*)(?:AN|AS|DD|GP|LD|NQ|QS|TA|TC|TD|TE|TF|TG|TH|TI|TJ|UA|UB|UC)(_.*)$"),  "$1$2")); // GPIO_PORTNQ_PORT_MASK => GPIO_PORT_PORT_MASK
          mappedMacros.add(new Pair(Pattern.compile("^F(GPIO)[A-Z](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[A-Z](_.*)$"),                     "$1$2"));
@@ -321,12 +412,16 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(LPTMR)[0-9](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PDB)[A-Z](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(LPUART)[0-9](_.*)$"),                   "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(INTC)[0-9](_.*)$"),                     "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                    "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
@@ -393,6 +488,7 @@ public class Field extends ModeControl implements Cloneable {
          writer.print(String.format("%-100s%s",
             String.format(BitfieldMacroFieldFormat, fieldname+"(x)", posName, mskName), 
             String.format(BitfieldFormatComment,    baseName, getBaseName()+" Field"))); 
+//         String.format(BitfieldFormatComment,    baseName+": "+getBaseName()+" Field"))); 
       }
    }
 

@@ -1447,7 +1447,7 @@
                   defaultValue="false"
                   valueType="boolean">
                <enablement
-                  type="ALL">
+                  type="UI_ENABLEMENT|CMD_USAGE">
                   <and>
                      <checkOption
                            holderId="net.sourceforge.usbdm.cdt.arm.toolchain"
@@ -1471,7 +1471,7 @@
                   defaultValue="false"
                   valueType="boolean">
                <enablement
-                  type="ALL">
+                  type="UI_ENABLEMENT|CMD_USAGE">
                   <and>
                      <checkOption
                            holderId="net.sourceforge.usbdm.cdt.arm.toolchain"

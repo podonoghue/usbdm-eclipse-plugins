@@ -4,30 +4,30 @@ import java.io.PrintWriter;
 
 public class AddressBlock extends ModeControl implements Cloneable {
 
-   private long   offset; // Offset from start of peripheral
-   private long   size;   // Size of address block in bytes
-   private String usage;  // ??
-   private long   width;  // Width of address block elements in bits (memory access size)
+   private long   offset;        // Offset from start of peripheral
+   private long   sizeInBytes;   // Size of address block in bytes
+   private String usage;         // ??
+   private long   widthInBits;   // Width of address block elements in bits (memory access size)
 
    public AddressBlock() {
       offset = 0L;
-      size   = 0L;
-      width  = 32L;
+      sizeInBytes   = 0L;
+      widthInBits  = 32L;
       usage  = "registers";
    }
 
-   public AddressBlock(long offset, long size, long width, String usage) {
-      this.offset = offset;
-      this.size   = size;
-      this.width  = width;
-      this.usage  = usage;
+   public AddressBlock(long offset, long sizeInBytes, long widthInBits, String usage) {
+      this.offset       = offset;
+      this.sizeInBytes  = sizeInBytes;
+      this.widthInBits  = widthInBits;
+      this.usage        = usage;
    }
 
    public AddressBlock(AddressBlock addressBlock) {
-      this.offset = addressBlock.offset;
-      this.size   = addressBlock.size;
-      this.width  = addressBlock.width;
-      this.usage  = new String(addressBlock.getUsage());
+      this.offset       = addressBlock.offset;
+      this.sizeInBytes  = addressBlock.sizeInBytes;
+      this.widthInBits  = addressBlock.widthInBits;
+      this.usage        = new String(addressBlock.getUsage());
    }
 
    /**
@@ -53,26 +53,26 @@ public class AddressBlock extends ModeControl implements Cloneable {
     * 
     * @return Size in bytes
     */
-   public long getSize() {
-      return size;
+   public long getSizeInBytes() {
+      return sizeInBytes;
    }
 
    /**
     * Sets size of address block
     * 
-    * @param size -  Size in bytes
+    * @param sizeInBytes -  Size in bytes
     */
-   public void setSize(long size) {
-      this.size = size;
+   public void setSize(long sizeInBytes) {
+      this.sizeInBytes = sizeInBytes;
    }
 
    /**
-    * Return width of address block
+    * Return memory access width of address block
     * 
     * @return Width in bits
     */
-   public long getWidth() {
-      return width;
+   public long getWidthInBits() {
+      return widthInBits;
    }
 
    /**
@@ -80,8 +80,8 @@ public class AddressBlock extends ModeControl implements Cloneable {
     * 
     * @param width -  Width in bits
     */
-   public void setWidth(long width) {
-      this.width = width;
+   public void setWidthInBits(long width) {
+      this.widthInBits = width;
    }
 
    public String getUsage() {
@@ -101,7 +101,7 @@ public class AddressBlock extends ModeControl implements Cloneable {
    }
 
    void report() {
-      System.out.println(String.format("       AddressBlock[0x%08X, 0x%08X].%d", offset, offset+size-1, width));
+      System.out.println(String.format("       AddressBlock[0x%08X, 0x%08X].%d", offset, offset+sizeInBytes-1, widthInBits));
    }
 
    /**
@@ -111,11 +111,11 @@ public class AddressBlock extends ModeControl implements Cloneable {
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat) {
       writer.println(              "         <addressBlock>");
-      if (getWidth() != 32) {
-         writer.println(String.format("            <?width \"%d\" ?>",        getWidth()));
+      if (getWidthInBits() != 32) {
+         writer.println(String.format("            <?width \"%d\" ?>",        getWidthInBits()));
       }
       writer.println(String.format("            <offset>0x%X</offset>",    getOffset()));
-      writer.println(String.format("            <size>0x%X</size>",        getSize()));
+      writer.println(String.format("            <size>0x%X</size>",        getSizeInBytes()));
       writer.println(String.format("            <usage>%s</usage>",        SVD_XML_BaseParser.escapeString(getUsage())));
       writer.println(              "         </addressBlock>");
    }

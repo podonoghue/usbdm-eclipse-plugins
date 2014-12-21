@@ -38,7 +38,7 @@ public class UsbdmSharedConstants {
    public  static final String  LAUNCH_DEFAULT_SYMBOLS_OFFSET              = LAUNCH_DEFAULT_IMAGE_OFFSET;
 
    // Default - Resume execution after load or connect
-   public  static final boolean LAUNCH_DEFAULT_DO_RESET                    = false;
+   public  static final boolean LAUNCH_DEFAULT_DO_RESET                    = true;
    public  static final boolean LAUNCH_DEFAULT_DO_HALT                     = false;
    public  static final boolean LAUNCH_DEFAULT_SET_RESUME                  = true;
    

@@ -4,21 +4,31 @@ import java.io.PrintWriter;
 
    class InterruptEntry {
 
-      private int       number;
+      private int       index;
       private String    name;
-      private String    handlerName;
+      private String    handlerName; // This is a transient property and not written to SVD
       private String    description;
       
       public InterruptEntry() {
-         this.number      = -100;     
+         this.index      = -100;     
          this.name        = "";       
          this.description = "";
          this.handlerName = null;
       }
 
+      /**
+       * Create Interrupt table entry
+       * 
+       * @param name          Simple name of the entry
+       * @param number        0-based index in vector table
+       * @param handlerName   Name to use for hander function (may be null)
+       * @param description   Description of entry
+       * 
+       * Note: handlerName is a transient property and not written to SVD
+       */
       public InterruptEntry(String name, int number, String handlerName, String description) {
-         this.number      = number;     
-         this.name        = name;       
+         this.index      = number;     
+         this.name        = name;    
          this.handlerName = handlerName;
          this.description = description;
       }
@@ -29,23 +39,23 @@ import java.io.PrintWriter;
             return false;
          }
          InterruptEntry o = (InterruptEntry)other;
-         return (this.number == o.number) &&
+         return (this.index == o.index) &&
                  this.name.equalsIgnoreCase(o.name) &&
                 (this.description.equalsIgnoreCase(o.description));
       }
       
       /**
-       * @return the number
+       * @return the index number
        */
-      public int getNumber() {
-         return number;
+      public int getIndexNumber() {
+         return index;
       }
 
       /**
-       * @param number the number to set
+       * @param index number the number to set
        */
-      public void setNumber(int number) {
-         this.number = number;
+      public void setIndexNumber(int number) {
+         this.index = number;
       }
 
       /**
@@ -63,12 +73,9 @@ import java.io.PrintWriter;
       }
 
       /**
-       * @return the name
+       * @return the name of the handler
        */
       public String getHandlerName() {
-         if (handlerName == null) {
-            return name;
-         }
          return handlerName;
       }
 
@@ -91,7 +98,7 @@ import java.io.PrintWriter;
          writer.println(              indenter+"<interrupt>");
          writer.println(String.format(indenter+"   <name>%s</name>", name));
          writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(description)));
-         writer.println(String.format(indenter+"   <value>%d</value>", number));
+         writer.println(String.format(indenter+"   <value>%d</value>", index));
          writer.println(              indenter+"</interrupt>");
       }
 

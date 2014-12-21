@@ -14,7 +14,7 @@ public class Cpu extends ModeControl {
    int      nvicPrioBits;
    boolean  vendorSystickConfig;
    
-   Cpu() {
+   public Cpu() {
       name                = "CM3";       // "CM0", "CM0PLUS", "CM3", "CM4"
       revision            = "r1p0";      // maybe
       endian              = "little";
@@ -163,6 +163,12 @@ public class Cpu extends ModeControl {
    }
 
    String getHeaderFileName() {
+      if (getName().startsWith("CFV1")) {
+         return "core_cfv1.h";
+      }
+      if (getName().startsWith("CFV2")) {
+         return "core_cfv2.h";
+      }
       if (getName().startsWith("CM4")) {
          return "core_cm4.h";
       }

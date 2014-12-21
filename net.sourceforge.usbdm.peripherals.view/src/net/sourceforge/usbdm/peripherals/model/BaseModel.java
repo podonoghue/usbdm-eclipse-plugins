@@ -63,13 +63,14 @@ public abstract class BaseModel extends ObservableModel {
    /**
     * Returns a string representing the value in HEX
     * 
-    * @param value Value to process
-    * @param size  Number of bits in number (<= 32)
+    * @param value        Value to process
+    * @param sizeInBits  Number of bits in number (<= 32)
+    * 
     * @return      String representation in form "0xhhhhh.."
     */
-   public static String  getValueAsHexString(long value, int size) {
+   public static String  getValueAsHexString(long value, int sizeInBits) {
       String format;
-      switch ((int)((size+3)/4)) {
+      switch ((int)((sizeInBits+3)/4)) {
       case 1  : format = "0x%01X"; break;
       case 2  : format = "0x%02X"; break;
       case 3  : format = "0x%03X"; break;
@@ -86,13 +87,14 @@ public abstract class BaseModel extends ObservableModel {
    /**
     * Returns a string representing the value in BINARY
     * 
-    * @param value Value to process
-    * @param size  Number of bits in number
-    * @return      String representation in form "0bbbbbb..."
+    * @param value       Value to process
+    * @param sizeInBits  Number of bits in number
+    * 
+    * @return     String representation in form "0bbbbbb..."
     */
-   public static String  getValueAsBinaryString(long value, int size) {
+   public static String  getValueAsBinaryString(long value, int sizeInBits) {
       String result = "0b";
-      for (int index=size-1; index>=0; index--) {
+      for (int index=sizeInBits-1; index>=0; index--) {
          result += ((value&(1<<index)) !=0 )?"1":"0";
       }
       return result;
@@ -105,7 +107,7 @@ public abstract class BaseModel extends ObservableModel {
     * @throws MemoryException 
     */
    public String getValueAsString() throws MemoryException {
-      return "";
+      return "-- invalid --";
    }
 
    /**
@@ -118,6 +120,7 @@ public abstract class BaseModel extends ObservableModel {
       try {
          return getValueAsString();
       } catch (MemoryException e) {
+         e.printStackTrace();
          return "-- invalid --";
       }
    }
@@ -207,6 +210,7 @@ public abstract class BaseModel extends ObservableModel {
     * @param littleEndian
     */
    public static void setLittleEndian(boolean littleEndian) {
+      System.err.println("setLittleEndian(" + littleEndian + ")");
       BaseModel.littleEndian = littleEndian;
    }
 
@@ -354,6 +358,20 @@ public abstract class BaseModel extends ObservableModel {
       data[2] = (byte)(value>>16);
       data[3] = (byte)(value>>24);
       return data;
+   }
+
+   /*
+    * Returns the register value as a binary string of form 0b001100...
+    */
+   public String getValueAsBinaryString() {
+      return "-- invalid --";
+   }
+
+   /*
+    * Returns the register value as a hex string of form 0x12AB03......
+    */
+   public String getValueAsHexString() {
+      return "-- invalid --";
    }
 
 }

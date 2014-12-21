@@ -169,10 +169,10 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
                   "stepSetEnvironmentVariables",            //$NON-NLS-1$
                   "stepRunTarget",                          //$NON-NLS-1$
                   "stepUserRunCommands",                    //$NON-NLS-1$
-                  "stepUsbdmCleanup",                       //$NON-NLS-1$
-                  "stepUsbdmConnection",                    //$NON-NLS-1$
-                  "stepUsbdmAttachToProcess",               //$NON-NLS-1$
+//                  "stepUsbdmConnection",                    //$NON-NLS-1$
+//                  "stepUsbdmAttachToProcess",               //$NON-NLS-1$
                   "stepDetachTarget",                       //$NON-NLS-1$
+                  "stepUsbdmCleanup",                       //$NON-NLS-1$
             };
          }
          else { // Assume DEBUG_MODE
@@ -194,10 +194,10 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
                   "stepSetInitialBreakpoint",               //$NON-NLS-1$
                   "stepResumeTarget",                       //$NON-NLS-1$
                   "stepUserRunCommands",                    //$NON-NLS-1$
-                  "stepUsbdmCleanup",                       //$NON-NLS-1$
-                  "stepUsbdmConnection",                    //$NON-NLS-1$
-                  "stepUsbdmAttachToProcess",               //$NON-NLS-1$
+//                  "stepUsbdmConnection",                    //$NON-NLS-1$
+//                  "stepUsbdmAttachToProcess",               //$NON-NLS-1$
                   "stepSyncTarget",                         //$NON-NLS-1$
+                  "stepUsbdmCleanup",                       //$NON-NLS-1$
             };
          }
          return steps;

@@ -7,7 +7,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
-import net.sourceforge.usbdm.peripheralDatabase.Peripheral.AddressBlocksMerger;
 
 public class Cluster extends ModeControl implements Cloneable {
    
@@ -120,8 +119,9 @@ public class Cluster extends ModeControl implements Cloneable {
    
    /**
     * @return the simple name without formatting
+    * @throws Exception 
     */
-   public String getBaseName() {
+   public String getBaseName() throws Exception {
       return baseName;
    }
 
@@ -138,7 +138,6 @@ public class Cluster extends ModeControl implements Cloneable {
     * @throws Exception
     */
    public String format(String format, int index) throws Exception {
-      //XXX
       if (format.matches("^Channel")) {
          System.err.println("format()" + format);
       }
@@ -266,23 +265,20 @@ public class Cluster extends ModeControl implements Cloneable {
     * 
     * @return
     */
-   public boolean checkSequential() {
-      boolean isSequentialIndexes = true;
+   public boolean checkIndexesSequentialFromZero() {
       int currentIndex = 0;
       for (String dimIndex : getDimensionIndexes()) {
          int index;
          try {
             index = Integer.parseInt(dimIndex);
          } catch (NumberFormatException e) {
-            isSequentialIndexes = false;
-            break;
+            return false;
          }
          if (currentIndex++ != index) {
-            isSequentialIndexes = false;
-            break;
+            return false;
          }
       }
-      return isSequentialIndexes;
+      return true;
    }
    
    public static String appendStrings(ArrayList<String> dimensionIndexes) {
@@ -501,12 +497,17 @@ public class Cluster extends ModeControl implements Cloneable {
       if (getDimension()>0) {
          for(int index=0; index<getDimension(); index++) {
             for (Register register : registers) {
+
                //e.g. #define DMA_SAR0                       (DMA->DMA[0].SAR)
                String name;
                name = nameFormat.replaceAll("@f", register.getName());
-               name = name.replaceAll("@i", String.format("%d", index));
                name = name.replaceAll("@a", getBaseName());
                name = name.replaceAll("@p", peripheral.getName()+"_");
+               if (name.contains("@i")) {
+                  String sIndex = "XXXX";
+                  sIndex = getDimensionIndexes().get(index);
+                  name = name.replaceAll("@i", sIndex);
+               }
                if (name.length() == 0) {
                   continue;
                }
@@ -562,9 +563,10 @@ public class Cluster extends ModeControl implements Cloneable {
     * e.g. typedef struct {...} peripheralName_Type;
     * 
     * @param writer
+    * @param registerUnion 
     * @param devicePeripherals
     */
-   public void writeHeaderFileDeclaration(PrintWriter writer, int indent, Peripheral peripheral, long baseAddress) throws Exception {
+   public void writeHeaderFileDeclaration(PrintWriter writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long baseAddress) throws Exception {
 
       final String indenter = RegisterUnion.getIndent(indent);
       
@@ -592,6 +594,11 @@ public class Cluster extends ModeControl implements Cloneable {
       }
    }
 
+   /**
+    * Gets total size of cluster/register in bytes
+    * 
+    * @return
+    */
    public long getTotalSizeInBytes() {
       if ((dimensionIndexes != null)) {
          // Array - use stride as size
@@ -609,26 +616,44 @@ public class Cluster extends ModeControl implements Cloneable {
       }
    }
 
-   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger) throws Exception {
+   /**
+    * Adds the register's memory address range to the AddressBlockManager
+    *     
+    * @param addressBlocksMerger Manager to use
+    * @param addressOffset       Offset for base of register (needed for arrays etc)
+    * 
+    * @throws Exception
+    */
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, long addressOffset) throws Exception {
       sortRegisters();
-
-      // Offset of this cluster as may be an array
-      long addressOffset = getAddressOffset();
-
+//      System.err.println(String.format("Cluster.addAddressBlocks(%s) addressOffset = 0x%04X", getName(), addressOffset));
+      addressOffset += getAddressOffset();
+      
       if (getDimension()>0) {
          // Do each dimension of array
          for (int dimension=0; dimension < getDimension(); dimension++) {
             for (Cluster cluster : registers) {
-               addressBlocksMerger.addBlock(cluster.getAddressOffset()+addressOffset, cluster.getTotalSizeInBytes(), cluster.getWidth());
+               cluster.addAddressBlocks(addressBlocksMerger, addressOffset);
             }
             addressOffset += getDimensionIncrement();
          }
       }
       else {
          for (Cluster cluster : registers) {
-            addressBlocksMerger.addBlock(cluster.getAddressOffset()+addressOffset, cluster.getTotalSizeInBytes(), cluster.getWidth());
+            cluster.addAddressBlocks(addressBlocksMerger, addressOffset);
          }
       }
    }
 
+   /**
+    * Adds the register's memory address range to the AddressBlockManager
+    *     
+    * @param addressBlocksMerger Manager to use
+    * 
+    * @throws Exception
+    */
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger) throws Exception {
+      addAddressBlocks(addressBlocksMerger, 0);
+   }
+   
 }

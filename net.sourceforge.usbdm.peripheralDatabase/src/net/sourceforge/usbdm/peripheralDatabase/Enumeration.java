@@ -77,6 +77,9 @@ public class Enumeration extends ModeControl {
       this.name = name;
    }
 
+   /*
+    * Get enumeration description (what this enumeration means)
+    */
    public String getDescription() {
       return description;
    }
@@ -97,6 +100,12 @@ public class Enumeration extends ModeControl {
       return mask;
    }
 
+   
+   /**
+    * @param  string - Value in format "0b1X0" or "#1X0"
+    * 
+    * @throws Exception
+    */
    public void setValue(String string) throws Exception {
       sValue = string;
       mask   = 0;
@@ -110,7 +119,7 @@ public class Enumeration extends ModeControl {
             case '1': value |= (1<<bitIndex); mask |= (1<<bitIndex); break; 
             case 'x': break; 
             case 'X': break; 
-            default: throw new Exception("Unexpected enumeration value \""+string.charAt(index)+"\"");
+            default: throw new Exception("Unexpected enumeration value \""+string.charAt(index)+"\" within \'" + string + "\'");
             }
          }
       }
@@ -189,6 +198,9 @@ public class Enumeration extends ModeControl {
       this.value = 0;
    }
    
+   /*
+    * Checks if the value matches this enumeration
+    */
    public boolean isSelected(long value) {
       return (this.value == (value&this.mask));
    }
@@ -212,7 +224,7 @@ public class Enumeration extends ModeControl {
          writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
       }
       if (mask == 0) {
-         writer.println(              indenter+"   <default>true</default>" );
+         writer.println(              indenter+"   <isDefault>true</isDefault>" );
       }
       else {
          writer.println(String.format(indenter+"   <value>%s</value>",             SVD_XML_BaseParser.escapeString(sValue)));

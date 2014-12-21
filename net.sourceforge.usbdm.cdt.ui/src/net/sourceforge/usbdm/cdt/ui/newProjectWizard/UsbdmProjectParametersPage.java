@@ -9,7 +9,6 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 +============================================================================================
 */
 import java.io.File;
-import java.net.URI;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,15 +17,15 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+//import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion;
-import net.sourceforge.usbdm.deviceDatabase.Device.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
+import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -49,7 +48,7 @@ import org.eclipse.swt.widgets.Label;
  *  USBDM New Project Wizard page "USBDM Project"
  *
  */
-public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProjectTypeSelection {
+public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProjectTypeSelection {
 
    private final static String PAGE_ID    = UsbdmConstants.PROJECT_PAGE_ID;
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_PAGE_NAME;
@@ -360,11 +359,12 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
     * @param   deviceName          Name of device used to determine file name
     * @param   preferredExtension  Preferred file extension e.g. "h" or "c"
     * 
-    * @return  URL (empty one if not found)
+    * @return  String path (or null if not found)
     */
-   URI findExternalFile(String resourceDirectory, String deviceName, String preferredExtension) {
-
-      
+   String findExternalFile(String resourceDirectory, String deviceName, String preferredExtension) {
+      if ((deviceName == null) || deviceName.isEmpty()) {
+         return null;
+      }
       IPath applicationPath = Usbdm.getResourcePath();
       if (applicationPath == null) {
          return null;
@@ -427,7 +427,7 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
       
       if (success) {
 //         System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
-         return filePath.toFile().toURI();
+         return filePath.toPortableString();
       }
       return null;
    }
@@ -435,26 +435,26 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
    /**
     * Get external header file
     * 
-    * @param   deviceName          Name of device used to determine file name
+    * @param   deviceName  Name of device used to determine file name
     * 
     * @return  URL
     */
    private String getExternalProjectHeaderFile(Device device) {
       
-      URI externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
-      
+      // Try under device name
+      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+      if (externalHeaderFile == null) {
+         // Try under alias name
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getAlias(), "h");
+      }      
       if (externalHeaderFile == null) { 
-         String deviceSubFamily = device.getSubFamily();
-         if (deviceSubFamily != null) {
-            // Try to get subFamily header file
-//            System.err.println("Looking for subFamily header file: " + deviceSubFamily + ".h"); //$NON-NLS-1$
-            externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, deviceSubFamily, "h");
-         }
+         // Try to get subFamily header file
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
       }
       if (externalHeaderFile == null) {
-         return "";
+         externalHeaderFile = "";
       }
-      return externalHeaderFile.toString();
+      return externalHeaderFile;
    }
    
    /**
@@ -462,11 +462,11 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
     * 
     * @param   deviceName          Name of device used to determine file name
     * 
-    * @return  URL
+    * @return  device path
     */
    private String getExternalVectorTable(Device device) {
 
-      URI externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, device.getName(), "c");
+      String externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, device.getName(), "c");
       
       if (externalVectorTableFile == null) { 
          String deviceSubFamily = device.getSubFamily();
@@ -479,7 +479,7 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
       if (externalVectorTableFile == null) {
          return "";
       }
-      return externalVectorTableFile.toString();
+      return externalVectorTableFile;
    }
    
    /**
@@ -635,46 +635,11 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
       paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
    }
 
-   private final String defaultArmVectorTable = 
-         "/* \n" +
-         " * Default Map\n"+
-         " * ++++++++++++++++++++\n"+
-         " * Each vector is assigned an unique name.  This is then 'weakly' assigned to the \n"+
-         " * default handler. \n"+
-         " * To install a handler, create a function with the name shown and it will override \n"+
-         " * the weak default. \n"+
-         " */ \n"+
-         "void NMI_Handler(void)            WEAK_DEFAULT_HANDLER; \n"+
-         "void SVC_Handler(void)            WEAK_DEFAULT_HANDLER; \n"+
-         "void PendSV_Handler(void)         WEAK_DEFAULT_HANDLER; \n"+
-         "void SysTick_Handler(void)        WEAK_DEFAULT_HANDLER; \n"+
-         " \n"+
-         "typedef struct { \n"+
-         "   uint32_t *initialSP; \n"+
-         "   intfunc  handlers[]; \n"+
-         "} VectorTable; \n"+
-         " \n"+
-         "__attribute__ ((section(\".interrupt_vectors\"))) \n"+
-         "VectorTable const __vector_table = { \n"+
-         "    &__StackTop,                    /* Vec #0   Initial stack pointer                        */ \n"+
-         "    { \n"+
-         "          __HardReset,              /* Vec #1   Reset Handler                                */ \n"+
-         "          NMI_Handler,              /* Vec #2   NMI Handler                                  */ \n"+
-         "(intfunc) HardFault_Handler,        /* Vec #3   Hard Fault Handler                           */ \n"+
-         "          Default_Handler,          /* Vec #4   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #5   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #6   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #7   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #8   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #9   Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #10  Reserved                                     */ \n"+
-         "          SVC_Handler,              /* Vec #11  SVCall Handler                               */ \n"+
-         "          Default_Handler,          /* Vec #12  Reserved                                     */ \n"+
-         "          Default_Handler,          /* Vec #13  Reserved                                     */ \n"+
-         "          PendSV_Handler,           /* Vec #14  PendSV Handler                               */ \n"+
-         "          SysTick_Handler,          /* Vec #15  SysTick Handler                              */ \n"+
-         "    } \n"+
-         " }; \n\n";
+   static final String VECTOR_TABLE_INTRO = 
+   "/* \n" +
+   " * Default Map\n"+
+   " * ============================\n"+
+   " */\n";
    
    /**
     * Adds device specific attributes to map
@@ -694,22 +659,8 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
       String externalVectorTableFile = getExternalVectorTable(device);
 //      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
-      String deviceFamily;
-      // Set defaults
-      switch(deviceType) {
-      case T_ARM: 
-         deviceFamily = UsbdmConstants.SUB_FAMILY_CORTEX_M4;
-         break;
-      case T_CFV1:
-         deviceFamily = UsbdmConstants.SUB_FAMILY_CFV1;
-         break;
-      case T_CFVX:
-      default:
-         deviceFamily = UsbdmConstants.SUB_FAMILY_CFV2;
-         break;      
-      }
       addLinkerMemoryMap(device, paramMap);
-      deviceFamily = device.getFamily();
+      String deviceFamily = device.getFamily();
       addDatabaseValues(paramMap, device);
 
       paramMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
@@ -719,18 +670,34 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
 //      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
 
       if (externalVectorTableFile.isEmpty()) {
-         // Generate vector table from SVD files
-         DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(device.getSubFamily());
+         String cVectorTable = null;
+         // Generate vector table from SVD files if possible
+         DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device.getName());
+         if (devicePeripherals == null) {
+            devicePeripherals = DevicePeripherals.createDatabase(device.getSubFamily());
+         }
          if (devicePeripherals != null) {
-            paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, devicePeripherals.getCVectorTableEntries());
+            cVectorTable = devicePeripherals.getCVectorTableEntries();
          }
-         else {
-            paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, defaultArmVectorTable);
+         if (cVectorTable == null) {
+            // Generate default vector tables
+            System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
+            switch(deviceType) {
+            case T_ARM: 
+            default:
+               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CM4").getCVectorTableEntries();
+               break;
+            case T_CFV1:
+               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV1").getCVectorTableEntries();
+               break;
+            case T_CFVX:
+               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV2").getCVectorTableEntries();
+               break;      
+            }
          }
+         paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, cVectorTable);
       }
-      if (deviceType == InterfaceType.T_ARM) {
-         paramMap.put(UsbdmConstants.ARM_LTD_STARTUP_S_FILE_KEY, "startup_ARMLtdGCC_"+deviceFamily+".S");
-      }
+      
       paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, "DEVICE_SUBFAMILY_"+deviceFamily);
       paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalHeaderFile);
       paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,   externalVectorTableFile);
@@ -766,22 +733,6 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
 
       String buildToolId = getSelectedBuildToolId();
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(buildToolId);
-
-      if (buildToolId.equals(UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID)) {
-         paramMap.put(UsbdmConstants.LINKER_FILE_KEY,             "ARMLtd_GCC-rom.ld");
-      }
-      else {
-         // Path is relative to root of project
-         paramMap.put(UsbdmConstants.EXCLUDED_FILES_PATTERN_KEY,  "Startup_Code/.*ARMLtdGCC.*");
-      }
-      if (buildToolId.equals(UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID) ||
-          buildToolId.equals(UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID)) {
-         paramMap.put(UsbdmConstants.LINKER_FILE_KEY,             "Codesourcery-rom.ld");
-      }
-      else {
-         // Path is relative to root of project
-         paramMap.put(UsbdmConstants.EXCLUDED_FILES_PATTERN_KEY,  "Startup_Code/.*Codesourcery.*");
-      }
       if (toolInfo == null) {
          paramMap.put(UsbdmConstants.BUILD_TOOL_BIN_PATH_KEY, "");    
          paramMap.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
@@ -799,14 +750,16 @@ public class UsbdmProjectParametersPage extends WizardPage implements UsbdmProje
       if (autoGenerateLinkerScript.getSelection()) {
 //         System.err.println("getPageData() => "+"externalLinkerScript = \"\""); //$NON-NLS-1$ //$NON-NLS-2$
          paramMap.put(EXTERNAL_LINKER_SCRIPT_KEY,     ""); //$NON-NLS-1$
+         paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Linker-rom.ld");
       }
       else {
-         // Copy specified script
+         // Save path to script to copy
 //         System.err.println("getPageData() => "+"externalLinkerScript = \""+externalLinkerScript.getText()+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
          File filepath = new File(externalLinkerScript.getText());
          paramMap.put(EXTERNAL_LINKER_SCRIPT_KEY,     filepath.toString());
          paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Custom.ld");
       }
+//      System.err.println("getPageData() => " + UsbdmConstants.LINKER_FILE_KEY+" = \'" + paramMap.get(UsbdmConstants.LINKER_FILE_KEY)+ "\'"); //$NON-NLS-1$ //$NON-NLS-2$
       addDeviceAttributes(device, paramMap);
 //      System.err.println("UsbdmProjectPage.getPageData()");
    }

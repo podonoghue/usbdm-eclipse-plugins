@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -7,7 +8,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.IPath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -107,11 +107,11 @@ public class DeviceFileList  extends SVD_XML_BaseParser {
     *  @return device peripheral description or null on error
     * @throws Exception 
     */
-   public static DeviceFileList createDeviceFileList(IPath fileListPath) throws Exception {
+   public static DeviceFileList createDeviceFileList(Path path) throws Exception {
       DeviceFileList deviceFileList = new DeviceFileList();
       
       // Parse the XML file into the XML internal DOM representation
-      Document dom = parseXmlFile(fileListPath);
+      Document dom = parseXmlFile(path.toAbsolutePath().toString());
       
       // Get the root element
       Element documentElement = dom.getDocumentElement();
@@ -189,6 +189,9 @@ public class DeviceFileList  extends SVD_XML_BaseParser {
       // Parse the XML file into the XML internal DOM representation
       Document dom = parseXmlFile(devicenameOrFilename);
       
+      if (dom == null) {
+         return null;
+      }
       // Get the root element
       Element documentElement = dom.getDocumentElement();
       

@@ -44,7 +44,7 @@ public class CDTProjectManager {
    // Based on org.eclipse.cdt.managedbuilder.testplugin
    public IProject createProject(String projectName, String directoryPath, IProgressMonitor progressMonitor) throws CoreException {
 
-      System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
+//      System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
 
       progressMonitor.beginTask("Creating project", IProgressMonitor.UNKNOWN);
 

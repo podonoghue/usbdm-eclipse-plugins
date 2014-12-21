@@ -130,7 +130,7 @@ public class GdbDsfInterface implements GdbCommonInterface {
     * Wrapper that handles DSF or MI memory reads
     * 
     * @param address       Address to read from
-    * @param byteCount    Number of bytes to read
+    * @param byteCount     Number of bytes to read
     * @param accessWidth   Access size (8, 16, 32 bits) to use
     * 
     * @return              Data read
@@ -140,7 +140,7 @@ public class GdbDsfInterface implements GdbCommonInterface {
    @Override
    public byte[] readMemory(long address, int byteCount, int accessWidth) throws Exception {
 
-      // TODO - This is a horrible hack - damn you GDB!
+      // TODO This is a horrible hack - damn you GDB!
       switch (accessWidth) {
       case 8:  
          // Check if either address or size is odd

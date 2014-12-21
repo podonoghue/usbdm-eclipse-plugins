@@ -2,19 +2,52 @@ package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class VectorTable {
-   private InterruptEntry[]   interrupts        = new InterruptEntry[256];
-   private ArrayList<String>  usedBy            = new ArrayList<String>();
-   private String             name              = null;
-   private boolean            addDefaultVectors = true;
-   private String             description       = "";
-   private int                lastUsedEntry     = 0;
-   private final int          VECTOR_OFFSET     = 16;
+public abstract class VectorTable {
    
+   protected InterruptEntry[]   interrupts        = new InterruptEntry[256];
+   protected ArrayList<String>  usedBy            = new ArrayList<String>();
+   protected boolean            addDefaultVectors = true;
+   protected int                lastUsedEntry     = 0;
+   private   final int          vectorOffset;
+   protected final int          firstIrqIndex;
+   protected String             name              = null;
+   protected String             description       = "";
+   
+   protected static final String DEFAULT_HANDLER_NAME       = "Default_Handler";
+   protected static final String EXCEPTION_HANDLER_SUFFIX   = "_Handler";
+   protected static final String EXCEPTION_IRQ_SUFFIX       = "_IRQHandler";
+   protected static final String EXCEPTION_NUMBER_SUFFIX    = "_IRQn";
+   
+   public static VectorTable factory(String string) {
+      
+      if (string == null) {
+         return new ArmVectorTable();
+      }
+      if (string.equals("CFV1")) {
+         return new ColdfireV1VectorTable();
+      }
+      if (string.equals("CFV2")) {
+         return new ColdfireV2VectorTable();
+      }
+      return new ArmVectorTable();
+   }
+   
+   /**
+    * Create vector table
+    * 
+    * @param vectorOffset Offset applied to map vector number to vector table entries (ARM)
+    * @param firstIrqIndex Index number of first entry to have "_IRQHandler suffix"
+    */
+   public VectorTable(int vectorOffset, int firstIrqIndex) {
+      this.vectorOffset    = vectorOffset;
+      this.firstIrqIndex   = firstIrqIndex;
+   }
+
    /**
     * @return the lastUsedEntry
     */
@@ -22,33 +55,65 @@ public class VectorTable {
       return lastUsedEntry;
    }
 
+   /**
+    * Returns the array of interrupt entries
+    * 
+    * @return
+    */
    public InterruptEntry[] getEntries() {
       return interrupts;
    }
 
+   /**
+    * Add interrupt entry
+    * 
+    * @param entry
+    */
    public void addEntry(InterruptEntry entry) {
-      interrupts[entry.getNumber()+VECTOR_OFFSET] = entry;
-      if ((entry.getNumber()+VECTOR_OFFSET)>lastUsedEntry) {
-         lastUsedEntry = entry.getNumber()+VECTOR_OFFSET;
+      interrupts[entry.getIndexNumber()+vectorOffset] = entry;
+      if ((entry.getIndexNumber()+vectorOffset)>lastUsedEntry) {
+         lastUsedEntry = entry.getIndexNumber()+vectorOffset;
       }
    }
 
+   /**
+    * Add device using this vector table
+    * 
+    * @param deviceName
+    */
    public void addUsedBy(String deviceName) {
       usedBy.add(deviceName);
    }
 
+   /**
+    * Clear list of devices using thie vector table
+    */
    public void clearUsedBy() {
       usedBy = new ArrayList<String>();
    }
 
+   /**
+    * Get list of devices using this vector table
+    * @return
+    */
    public ArrayList<String> getUsedBy() {
       return usedBy;
    }
 
+   /**
+    * Get name
+    * 
+    * @return
+    */
    public String getName() {
       return name;
    }
 
+   /**
+    * Set name of vector table
+    * 
+    * @param name
+    */
    public void setName(String name) {
       this.name = name;
    }
@@ -60,14 +125,24 @@ public class VectorTable {
       return description;
    }
 
+   /**
+    * Get name as safe C name
+    * 
+    * @return
+    */
    public String getCDescription() {
       return SVD_XML_BaseParser.unEscapeString(description);
    }
 
+   /**
+    * Get description
+    * 
+    * @param description
+    */
    public void setDescription(String description) {
       this.description = description;
    }
-
+   
    @Override
    public boolean equals(Object other) {
       if (other == this) {
@@ -80,27 +155,80 @@ public class VectorTable {
       return Arrays.equals(interrupts, o.interrupts);
    }
 
-   private final int HARD_FAULT_NUMBER = -13;
-   
-   InterruptEntry defaultEntries[] = {
-         new InterruptEntry("Reset",             -15,   null,         "Reset Vector, invoked on Power up and warm reset"),
-         new InterruptEntry("NonMaskableInt",    -14,   "NMI",        "Non maskable Interrupt, cannot be stopped or preempted"),
-         new InterruptEntry("HardFault",         -13,   null,         "Hard Fault, all classes of Fault"),
-         new InterruptEntry("MemoryManagement",  -12,   "MemManage",  "Memory Management, MPU mismatch, including Access Violation and No Match"),
-         new InterruptEntry("BusFault",          -11,   null,         "Bus Fault, Pre-Fetch-, Memory Access Fault, other address/memory related Fault"),
-         new InterruptEntry("UsageFault",        -10,   null,         "Usage Fault, i.e. Undef Instruction, Illegal State Transition"),
-         new InterruptEntry("SVCall",             -5,   "SVC",        "System Service Call via SVC instruction"),
-         new InterruptEntry("DebugMonitor",       -4,   "DebugMon",   "Debug Monitor"),
-         new InterruptEntry("PendSV",             -2,   null,         "Pendable request for system service"),
-         new InterruptEntry("SysTick",            -1,   null,         "System Tick Timer"),
-   };
+   /**
+    * Gets interrupt entry for given number
+    * 
+    * @param number
+    * @return
+    */
+   public InterruptEntry getEntry(int number) {
+      return interrupts[number+vectorOffset];
+   }
 
-   private void addDefaultInterruptEntries() {
-      for (InterruptEntry i : defaultEntries) {
-         addEntry(i);
+   /**
+    * Get name of handler for vector table index<br>
+    * e.g. FormatError_Handler, QSPI_IRQHandler
+    * 
+    * @param index
+    * 
+    * @return
+    */
+   public String getHandlerName(int index) {
+      if (interrupts[index] != null) {
+         String handlerName = interrupts[index].getHandlerName();
+         if (handlerName == null) {
+            handlerName = interrupts[index].getName();
+         }
+         if (handlerName == null) {
+            return null;
+         }
+         if (index<firstIrqIndex) {
+            return handlerName = handlerName+EXCEPTION_HANDLER_SUFFIX;
+         }
+         else {
+            return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
+         }
       }
+      return null;
    }
    
+
+   /**
+    * Get name of the handler number<br>
+    * e.g. AccessError_IRQn
+    * 
+    * @param index
+    * 
+    * @return
+    */
+   public String getHandlerIrqNumber(int index) {
+      if (interrupts[index] != null) {
+         return interrupts[index].getName()+EXCEPTION_NUMBER_SUFFIX;
+      }
+      return null;
+   }
+   /**
+    * Get description of interrupt handler for vector table index
+    * 
+    * @param index
+    * @return
+    */
+   public String getHandlerDescription(int index) {
+      if (interrupts[index] != null) {
+         return interrupts[index].getCDescription();
+      }
+      return "";
+   }
+   
+   /**
+    * Add default vector table entries
+    * 
+    */
+   protected abstract void addDefaultInterruptEntries();
+   
+   /*
+    * ====================================================================================================
+    */
    private static final String deviceListPreamble = 
          "<!--\n"
        + "Devices using this vector table: \n";
@@ -119,6 +247,7 @@ public class VectorTable {
          writer.print("&"+PeripheralDatabaseMerger.VECTOR_TABLE_ENTITY+";\n");
          return;
       }
+      // List devices using this table
       if (getUsedBy().size()>0) {
          writer.print(deviceListPreamble);
          for (String deviceName : getUsedBy()) {
@@ -126,6 +255,7 @@ public class VectorTable {
          }
          writer.print(deviceListPostamble);
       }
+      
       final String indenter = RegisterUnion.getIndent(6);
       writer.print(                       indenter+"<"+SVD_XML_Parser.INTERRUPTS_TAG+">\n");
       if ((getName() != null) && (name.length() > 0)) {
@@ -136,7 +266,7 @@ public class VectorTable {
       }
       for (InterruptEntry entry : getEntries()) {
          if (entry != null) {
-            int vectorNumber = entry.getNumber();
+            int vectorNumber = entry.getIndexNumber();
             if (vectorNumber<0) {
                continue;
             }
@@ -152,86 +282,26 @@ public class VectorTable {
       writer.print(                       indenter+"</"+SVD_XML_Parser.INTERRUPTS_TAG+">\n\n");
    }
 
-   static final String interruptBanner          = "/* -------------------------  Interrupt Number Definition  ------------------------ */\n\n";
-   static final String interruptPreamble        = "typedef enum {\n";
-   static final String interruptCortexSeparator = "/* --------------------  Cortex-M Processor Exceptions Numbers  ------------------- */\n";
-   static final String interruptEntryFormat     = "  %-29s = %3d,   /*!< %3d %-80s */\n";
-   static final String interruptCPUSeparator    = "/* ----------------------   %-40s ---------------------- */\n";
-   static final String interruptPostamble       = "} IRQn_Type;\n\n";
+   static final String INTERRUPT_BANNER            = "/* -------------------------  Interrupt Number Definition  ------------------------ */\n\n";
+   static final String INTERRUPT_PREAMBLE          = "typedef enum {\n";
+   static final String INTERRUPT_SEPARATOR         = "/* ------------------------  Processor Exceptions Numbers  ------------------------- */\n";
+   static final String INTERRUPT_ENTRY_FORMAT      = "  %-29s = %3d,   /*!< %3d %-80s */\n";
+   static final String INTERRUPT_SPU_SEPARATOR     = "/* ----------------------   %-40s ---------------------- */\n";
+   static final String INTERRUPT_POSTAMBLE         = "} IRQn_Type;\n\n";
 
-   static final String externHandlerBanner      = "/* -------------------------  Exception Handlers  ------------------------ */\n";
-   static final String externHandlerTemplate    = "extern void %s;\n";
+   static final String EXTERNAL_HANDLER_BANNER     = "/* -------------------------  Exception Handlers  ------------------------ */\n";
+   static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %s;\n";
 
-   /** Writes a C-code fragment that is suitable for inclusion in a C header file
-    * It defines the vectors numbers an enum and provides prototypes
+   /** 
+    * Writes a C-code fragment that is suitable for inclusion in a C header file<br>
+    * It defines the vectors numbers as an enum and provides prototypes<br>
     * for the interrupt handlers matching the vector table created by writeCVectorTable().
     * 
     * @param writer  Where to write the fragment
     * 
     * @throws IOException
     */
-   public void writeCInterruptHeader(Writer writer) throws IOException {
-
-      if (addDefaultVectors) {
-         addDefaultInterruptEntries();
-         addDefaultVectors = false;
-      }
-
-      writer.write(interruptBanner);
-      writer.write(interruptPreamble);
-      writer.write(interruptCortexSeparator);
-      boolean separatorWritten = false;
-      for (int index=1; index<=getLastUsedEntry(); index++) {
-         InterruptEntry entry = interrupts[index];
-         if (!separatorWritten && (index >= VECTOR_OFFSET)) {
-            writer.write(String.format(interruptCPUSeparator, getCDescription()));
-            separatorWritten = true;
-         }
-         if (entry != null) {
-            writer.write(String.format(interruptEntryFormat, entry.getName()+"_IRQn", index-VECTOR_OFFSET, index, entry.getCDescription()));
-         }
-      }
-      writer.write(interruptPostamble);
-   
-      writer.write(externHandlerBanner);
-      String suffix = exceptionHandlerNameSuffix;
-      for (int index=2; index<=getLastUsedEntry()+10; index++) {
-         InterruptEntry entry = interrupts[index];
-         if (index==VECTOR_OFFSET) {
-            suffix=interruptHandlerNameSuffix;
-         }
-         if (entry != null) {
-            writer.write(String.format(externHandlerTemplate, entry.getHandlerName()+suffix+"(void)"));
-         }
-      }
-      writer.write('\n');
-      
-   }
-
-   static final String handlerTemplate          = "void %-40s WEAK_DEFAULT_HANDLER;\n";
-   static final String vectorTableTypedef       =
-         "typedef struct {\n"        +
-         "   uint32_t *initialSP;\n" +
-         "   intfunc  handlers[];\n" +
-         "} VectorTable;\n\n";
-
-   static final String vectorTableOpen     = 
-         "__attribute__ ((section(\".interrupt_vectors\")))\n"+
-         "VectorTable const __vector_table = {\n"+
-         "                                     /*  Exc# Irq# */\n"+
-         "   &__StackTop,                      /*    0   -16  Initial stack pointer                                                            */\n"+
-         "   {\n"+
-         "      __HardReset,                   /*    1   -15  Reset Handler                                                                    */\n";
-   static final String vectorTableEntry    = 
-         "      %-30s /* %4d, %4d  %-80s */\n";
-   static final String vectorTableDeviceSeparator =
-         "\n                                     /* External Interrupts */\n";
-   static final String vectorTableClose    = 
-         "   }\n" +
-         "};\n\n";
-   
-   static final String exceptionHandlerNameSuffix = "_Handler";
-   static final String interruptHandlerNameSuffix = "_IRQHandler";
+   public abstract void writeCInterruptHeader(Writer writer) throws IOException;
    
    /**
     * Writes a C-code fragment the is suitable for creating a vector table for the device.
@@ -240,53 +310,20 @@ public class VectorTable {
     * 
     * @throws IOException
     */
-   public void writeCVectorTable(Writer writer) throws IOException {
+   public abstract void writeCVectorTable(Writer writer) throws IOException;
 
-      // Add default entries
-      if (addDefaultVectors) {
-         addDefaultInterruptEntries();
-         addDefaultVectors = false;
+   /**
+    * Create a vector table suitable for use in C code
+    * 
+    * @return String containing the Vector Table
+    */
+   public String getCVectorTableEntries() {
+      StringWriter writer = new StringWriter();
+      try {
+         writeCVectorTable(writer);
+      } catch (IOException e) {
+         writer.write("Error Creating Vector table, reason:"+e.getMessage());
       }
-      // Write out handler prototypes
-      String suffix = exceptionHandlerNameSuffix;
-      for (int index=2; index<=getLastUsedEntry()+10; index++) {
-         InterruptEntry entry = interrupts[index];
-         if (index==VECTOR_OFFSET) {
-            suffix = interruptHandlerNameSuffix;
-         }
-         if ((entry != null) && (entry.getNumber() != HARD_FAULT_NUMBER)) {
-            writer.write(String.format(handlerTemplate, entry.getHandlerName()+suffix+"(void)"));
-         }
-      }
-      writer.write('\n');
-      
-      // Write out vector table
-      writer.write(vectorTableTypedef);
-      writer.write(vectorTableOpen);
-      suffix = exceptionHandlerNameSuffix;
-      for (int index=2; index<=255; index++) {
-         if (index==VECTOR_OFFSET) {
-            suffix = interruptHandlerNameSuffix;
-            writer.write(vectorTableDeviceSeparator);
-         }
-         InterruptEntry entry = interrupts[index];
-         if (entry == null) {
-            if (index<=15) {
-               writer.write(String.format(vectorTableEntry, "0,              ", index, index-VECTOR_OFFSET, "Reserved"));
-            }
-            else {
-               writer.write(String.format(vectorTableEntry, "Default_Handler,", index, index-VECTOR_OFFSET, "Reserved"));
-            }
-         }
-         else {
-            writer.write(String.format(vectorTableEntry, entry.getHandlerName()+suffix+",", index, index-VECTOR_OFFSET, entry.getCDescription()));
-         }
-      }
-      writer.write(vectorTableClose);
+      return writer.toString();
    }
-
-   public InterruptEntry getEntry(int number) {
-      return interrupts[number+VECTOR_OFFSET];
-   }
-
 }

@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -21,8 +22,8 @@ public class PeripheralDatabaseMerger {
       this.xmlExtension = xmlExtension;
    }
    
-   public void setXmlRootPath(IPath path ) {
-      xmlRootPath = path;
+   public void setXmlRootPath(File file ) {
+      xmlRootPath = new Path(file.getAbsolutePath());
    }
    
    public IPath getXmlRootPath() {
@@ -144,7 +145,7 @@ public class PeripheralDatabaseMerger {
    ArrayList<VectorTable>                 vectorTableList = new ArrayList<VectorTable>();
 
    private IPath addVectortableToList(DevicePeripherals device) throws Exception {
-      VectorTable newVectorTable = device.getInterruptEntries();
+      VectorTable newVectorTable = device.getVectorTable();
       int index;
       for(index=0; index<vectorTableList.size(); index++) {
          VectorTable vectorTable = vectorTableList.get(index);
@@ -173,6 +174,9 @@ public class PeripheralDatabaseMerger {
     * @throws Exception 
     */
    private IPath addPeripheralToMap(DevicePeripherals device, Peripheral newPeripheral) throws Exception {
+      if (newPeripheral.getDerivedFrom() != null) {
+         return null;
+      }
       // TODO - Where common peripherals are factored out
       ArrayList<Peripheral> peripheralList = peripheralMap.get(newPeripheral.getName());
       if (peripheralList == null) {
@@ -209,7 +213,7 @@ public class PeripheralDatabaseMerger {
          "]>\n"
          ;
    
-   private final String entityFormatString = "<!ENTITY %-12s SYSTEM \"%s\">\n";
+   private final String systemEntityFormatString = "<!ENTITY %-12s SYSTEM \"%s\">\n";
    private String currentDeviceName;
 
    public final static String VECTOR_TABLE_ENTITY = "VECTOR_TABLE";
@@ -234,12 +238,21 @@ public class PeripheralDatabaseMerger {
       device.sortPeripheralsByName();
       
       IPath filename = addVectortableToList(device).makeRelativeTo(getXmlRootPath());
-      writer.print(String.format(entityFormatString, VECTOR_TABLE_ENTITY, filename));
+      writer.print(String.format(systemEntityFormatString, VECTOR_TABLE_ENTITY, filename));
       
       for (Peripheral peripheral : device.getPeripherals()) {
-         // Look up shared peripheral reference - adds new one as needed
-         filename = addPeripheralToMap(device, peripheral).makeRelativeTo(getXmlRootPath());
-         writer.print(String.format(entityFormatString, peripheral.getName(), filename));
+         if (peripheral.getDerivedFrom() == null) {
+            // Look up shared peripheral reference - adds new one as needed
+            IPath peripheralPath = addPeripheralToMap(device, peripheral).makeRelativeTo(getXmlRootPath());
+            writer.print(String.format(systemEntityFormatString, peripheral.getName(), peripheralPath));
+         }
+//         else {
+//            StringWriter sWriter = new StringWriter();
+//            PrintWriter pWriter = new PrintWriter(sWriter);
+//            peripheral.writeSVD(pWriter, false, device);
+//            String entity = SVD_XML_BaseParser.escapeString(sWriter.toString());
+//            writer.print(String.format(entityFormatString, peripheral.getName(), entity));
+//         }
       }
       writer.print(preambleEnd);
       device.writeSVD(writer, false);

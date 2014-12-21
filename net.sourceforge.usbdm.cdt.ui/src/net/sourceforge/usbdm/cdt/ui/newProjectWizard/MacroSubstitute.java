@@ -8,6 +8,14 @@ import java.util.regex.Pattern;
 
 public class MacroSubstitute {
 
+   /**
+    * Replaces macros e.g. $(key) with values from a map
+    * 
+    * @param input String to replace macros in
+    * @param map   Map of key->value pairs for substitution
+    * 
+    * @return      String with substitutions (or original if none)
+    */
    public static String substitute(String input, Map<String,String> map) {
       
       if (input == null) {

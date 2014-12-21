@@ -9,23 +9,23 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
-public class ModeControl implements Cloneable {
+public class ModeControl {
 
-   /**
-    * Returns a relatively shallow copy of the peripheral
-    * Only the following should be changed:
-    *    - name
-    *    - baseAddress
-    *    - addressBlock
-    *    - prependToName
-    *    - appendToName
-    */
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // Make shallow copy
-      ModeControl clone = (ModeControl) super.clone();
-      return clone;
-   }
+//   /**
+//    * Returns a relatively shallow copy of the peripheral
+//    * Only the following should be changed:
+//    *    - name
+//    *    - baseAddress
+//    *    - addressBlock
+//    *    - prependToName
+//    *    - appendToName
+//    */
+//   @Override
+//   protected Object copy() throws CloneNotSupportedException {
+//      // Make shallow copy
+//      ModeControl clone = (ModeControl) super.clone();
+//      return clone;
+//   }
 
    private static String reasonForDifference   = null;
    
@@ -86,6 +86,11 @@ public class ModeControl implements Cloneable {
    private static boolean extractCommonPrefix = false;
    
    /**
+    * Whether to extract common prefixes from register names
+    */
+   private static boolean foldRegisters = false;
+   
+   /**
     * Whether to do some intelligent hacks on the files produced.  This
     * is used to clean up some initial incomplete files.
     * 
@@ -99,6 +104,26 @@ public class ModeControl implements Cloneable {
     */
    private static boolean stripWhiteSpace = false;
    
+   // Bit dodgy - assumes you only write the Macros once!
+   protected static HashMap<String, Integer> fieldMacros = new HashMap<String,Integer>();
+
+   public ModeControl() {
+   }
+
+   /**
+    * @return the foldRegisters
+    */
+   public static boolean isFoldRegisters() {
+      return foldRegisters;
+   }
+
+   /**
+    * @param foldRegisters the foldRegisters to set
+    */
+   public static void setFoldRegisters(boolean foldRegisters) {
+      ModeControl.foldRegisters = foldRegisters;
+   }
+
    /**
     * Sets some standard differences between ARM header files and Freescale typical
     * 
@@ -344,7 +369,7 @@ public class ModeControl implements Cloneable {
    }
 
    /**
-    * Sorts a list of registers/clusters by address and then name
+    * Sorts a list of registers/clusters by address and then size (largest size first)
     * @param <E>
     * 
     * @param registers List of registers to sort
@@ -353,22 +378,19 @@ public class ModeControl implements Cloneable {
       Collections.sort(registers, new Comparator<E>() {
          @Override
          public int compare(E reg1, E reg2) {
-             if (((Cluster)reg1).getAddressOffset() > ((Cluster)reg2).getAddressOffset()) {
-               return 1;
+            long num1 = ((Cluster)reg1).getAddressOffset();
+            long num2 = ((Cluster)reg2).getAddressOffset();
+            if (num1 == num2) {
+               num2 = ((Cluster)reg1).getTotalSizeInBytes();
+               num1 = ((Cluster)reg2).getTotalSizeInBytes();
             }
-            else if (((Cluster)reg1).getAddressOffset() < ((Cluster)reg2).getAddressOffset()) {
+            if (num1<num2) {
                return -1;
             }
-            if ((reg1 instanceof Register) && (reg2 instanceof Register)) {
-               if (((Register)reg1).getWidth() < ((Register)reg2).getWidth()) {
-                  return 1;
-               }
-               else if (((Register)reg1).getWidth() > ((Register)reg2).getWidth()) {
-                  return -1;
-               }
-               return (((Register)reg1).getName().compareTo(((Register)reg2).getName()));
+            if (num1>num2) {
+               return 1;
             }
-            return 0;
+            return 1;
          }
       });
    }
@@ -405,18 +427,19 @@ public class ModeControl implements Cloneable {
     * @param line
     * @return
     */
-   String truncateAtNewline(String line) {
+   String truncateAtNewlineOrTab(String line) {
       
       int newlineIndex = line.indexOf('\n');
       if (newlineIndex > 0) {
          line = line.substring(0,  newlineIndex);
       }
+      int tabIndex = line.indexOf('\t');
+      if (tabIndex > 0) {
+         line = line.substring(0,  tabIndex);
+      }
       return line;
    }
    
-   // Bit dodgy - assumes you only write the Macros once!
-   protected static HashMap<String, Integer> fieldMacros = new HashMap<String,Integer>();
-
    static void resetMacroCache() {
       fieldMacros = new HashMap<String, Integer>();
    }

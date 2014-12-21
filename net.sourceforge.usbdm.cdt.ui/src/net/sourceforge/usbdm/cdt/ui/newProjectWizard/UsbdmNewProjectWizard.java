@@ -7,6 +7,7 @@ import java.util.Map;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.deviceDatabase.Device;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -21,6 +22,11 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
 public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnableWithProgress {
+   
+   UsbdmNewProjectPage              usbdmProjectSelectionPage  = null;
+   UsbdmProjectParametersPage       usbdmProjectPage           = null;
+   UsbdmProjectOptionsPage          usbdmProjectOptionsPage    = null;
+   UsbdmToolSettingsPage            usbdmToolSettingsPage      = null;
    
    @Override
    public void init(IWorkbench workbench, IStructuredSelection selection) {
@@ -41,12 +47,6 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       setDialogSettings(settings);
    }
 
-   UsbdmNewProjectPage              usbdmProjectSelectionPage  = null;
-   UsbdmProjectParametersPage       usbdmProjectPage           = null;
-   UsbdmProjectOptionsPage          usbdmProjectOptionsPage    = null;
-   UsbdmToolSettingsPage            usbdmToolSettingsPage      = null;
-//   CMSISOptionsPage                 cmsisOptionsPage           = null;
-   
    @Override
    public boolean performFinish() {
       if (usbdmProjectSelectionPage != null) {
@@ -61,9 +61,6 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       if (usbdmToolSettingsPage != null) {
          usbdmToolSettingsPage.saveSettings();
       }
-//      if (cmsisOptionsPage != null) {
-//         cmsisOptionsPage.saveSettings();
-//      }
       try {
          getContainer().run(false, true, this);
       } catch (InvocationTargetException e) {
@@ -111,6 +108,8 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return true;
    }
 
+   private Device lastSelectedDevice = null;
+   
    /* (non-Javadoc)
     * @see org.eclipse.jface.wizard.Wizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
     */
@@ -118,6 +117,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    public IWizardPage getNextPage(IWizardPage page) {
       if (page == usbdmProjectSelectionPage) {
          InterfaceType interfaceType = usbdmProjectSelectionPage.getInterfaceType();
+         // Create new project page if none or interface has changed
          if ((usbdmProjectPage == null) || (usbdmProjectPage.getInterfaceType() != interfaceType)) {
             usbdmProjectPage = new UsbdmProjectParametersPage(usbdmProjectSelectionPage);
             usbdmProjectPage.setWizard(this);
@@ -127,21 +127,16 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          return usbdmProjectPage;
       }
       if (page == usbdmProjectPage) {
-         if (usbdmProjectOptionsPage == null) {
-            usbdmProjectOptionsPage =  new UsbdmProjectOptionsPage(usbdmProjectPage);
+         Device device = usbdmProjectPage.getDevice();
+         // Create new option page if none or device has changed
+         if ((usbdmProjectOptionsPage == null) || (device != lastSelectedDevice)) {
+            usbdmProjectOptionsPage = new UsbdmProjectOptionsPage(usbdmProjectPage);
             usbdmProjectOptionsPage.setWizard(this);
             usbdmToolSettingsPage   = null;
          }
-         usbdmProjectOptionsPage.refresh();
+         lastSelectedDevice = device;
          return usbdmProjectOptionsPage;
       }
-//      if (page == usbdmProjectOptionsPage) {
-//         if (cmsisOptionsPage == null) {
-//            cmsisOptionsPage =  new CMSISOptionsPage(usbdmProjectPage);
-//            cmsisOptionsPage.setWizard(this);
-//         }
-//         return cmsisOptionsPage;
-//      }
       if (page == usbdmProjectOptionsPage) {
          if (usbdmToolSettingsPage == null) {
             usbdmToolSettingsPage =  new UsbdmToolSettingsPage(usbdmProjectPage);
@@ -179,7 +174,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          usbdmToolSettingsPage.getPageData(map);
          map.put("projectName", usbdmProjectSelectionPage.getProjectName());
 
-         System.err.println("UsbdmNewProjectWizard.run()");
+//         System.err.println("UsbdmNewProjectWizard.run()");
          new CDTProjectManager().createCDTProj(
                usbdmProjectSelectionPage.getProjectName(), 
                usbdmProjectSelectionPage.getProjectLocation(), 

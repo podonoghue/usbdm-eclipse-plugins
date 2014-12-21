@@ -55,11 +55,19 @@ public class RegisterUnion {
 
          @Override
          public int compare(Cluster o1, Cluster o2) {
-            long diff = o1.getAddressOffset()-o2.getAddressOffset();
-            if (diff != 0) {
-               return (int) diff;
+            long num1 = o1.getAddressOffset();
+            long num2 = o2.getAddressOffset();
+            if (num1 == num2) {
+               num2 = o1.getTotalSizeInBytes();
+               num1 = o2.getTotalSizeInBytes();
             }
-            return (int)(o2.getWidth()-o1.getWidth());
+            if (num1<num2) {
+               return -1;
+            }
+            if (num1>num2) {
+               return 1;
+            }
+            return 0;
          }
       });
    }
@@ -72,7 +80,9 @@ public class RegisterUnion {
     * @throws Exception
     */
    public void add(Cluster cluster) throws Exception {
-      
+      if (cluster.getName().matches("CNTH")) {
+         System.err.println("");
+      }
       if (cluster.getAddressOffset()<lastWrittenOffset) {
          throw new Exception(String.format("Register addresses not monotonic, p=%s, c=%s",
                peripheral.getName(), cluster.getName()));
@@ -131,7 +141,7 @@ public class RegisterUnion {
          long regSize = register.getTotalSizeInBytes();
          if (regSize == size) {
             // Initial regs that occupy the entire union are simply written
-            register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), peripheral, baseAddress+offset);
+            register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
             regsDone++;
          }
          else {
@@ -199,29 +209,42 @@ public class RegisterUnion {
     * @param address
     */
    public void fillTo(long address) {
-      writeFill(writer, indent, suffix++, address-lastWrittenOffset);
+      writeFill(writer, indent, suffix++, address, address-lastWrittenOffset);
       lastWrittenOffset = address;
+   }
+   
+   /** 
+    * Fills the structure from given address for size
+    * 
+    * @param address
+    * @param size
+    */
+   public void fill(long address, long size) {
+      writeFill(writer, indent, suffix++, address, size);
+      lastWrittenOffset = address+size;
    }
    
    /**
     * Write fill within a structure e.g. "uint32_t  RESERVED[x]"
     * 
-    * @param writer  Location for write
-    * @param suffix  Suffix to generate unique symbol
-    * @param numElements    Size of offset - may be zero
+    * @param writer        Location for write
+    * @param indent        Indentation for line
+    * @param suffix        Suffix to generate unique symbol
+    * @param address       Current address (for alignment)
+    * @param size          Number of bytes to pad - may be zero
     */
-   public void writeFill(PrintWriter writer, int indent, int suffix, long size) {
+   public void writeFill(PrintWriter writer, int indent, int suffix, long address, long size) {
       
       if (size == 0) {
          return;
       }
       long numElements = size;
       StringBuffer line = new StringBuffer(getIndent(indent));
-      if ((numElements%4) == 0) {
+      if (((numElements&0x3) == 0) && ((address&0x3) == 0)) {
          line.append(String.format("__I  uint32_t  RESERVED%d", suffix));
          numElements /= 4;
       }
-      else if ((numElements%2) == 0) {
+      else if (((numElements&0x1) == 0) && ((address&0x1) == 0)) {
          line.append(String.format("__I  uint16_t  RESERVED%d", suffix));
          numElements /= 2;
       }
@@ -237,9 +260,18 @@ public class RegisterUnion {
       writer.print(String.format(Register.lineFormat, line.toString(), baseAddress+lastWrittenOffset, ""));
    }
 
+   /**
+    * Return a string of spaces of given size for indenting
+    * 
+    * @param indent
+    * 
+    * @return
+    */
    public static String getIndent(int indent) {
       final String indentString = "                                                              ";
-      
+      if (indent>indentString.length()) {
+         throw new StringIndexOutOfBoundsException("");
+      }
       return indentString.substring(0, indent);
    }
 

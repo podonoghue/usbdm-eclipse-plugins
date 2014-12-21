@@ -1,13 +1,9 @@
 package net.sourceforge.usbdm.peripherals.view;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-import net.sourceforge.usbdm.peripheralDatabase.Enumeration;
-import net.sourceforge.usbdm.peripherals.model.BaseModel;
 import net.sourceforge.usbdm.peripherals.model.FieldModel;
-import net.sourceforge.usbdm.peripherals.model.IModelChangeListener;
-import net.sourceforge.usbdm.peripherals.model.MemoryException;
-import net.sourceforge.usbdm.peripherals.model.ObservableModel;
 import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
 import net.sourceforge.usbdm.peripherals.model.RegisterModel;
 import net.sourceforge.usbdm.peripherals.model.UpdateInterface;
@@ -19,49 +15,33 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
-import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableColorProvider;
-import org.eclipse.jface.viewers.ITableFontProvider;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.ITreeViewerListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -72,7 +52,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.part.ViewPart;
@@ -83,18 +62,134 @@ import org.eclipse.ui.part.ViewPart;
  */
 public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionListener {
 
+   public final static int NAME_COL           = 0;
+   public final static int VALUE_COL          = 1;
+   public final static int FIELD_INFO_COL     = 2;
+   public final static int MODE_COL           = 3;
+   public final static int LOCATION_COL       = 4;
+   public final static int DESCRIPTION_COL    = 5;
+
+   private final int defaultNameColumnWidth              = 200;
+   private final int defaultValueColumnWidth             = 100;
+   private final int defaultFieldColumnWidth             = 140;
+   private       int defaultModeWidth                    = 0; // Should be final but throws a warning
+   private       int defaultLocationColumnWidth          = 0; // Should be final but throws a warning
+   private final int defaultDescriptionColumnWidth       = 300;
+
    private CheckboxTreeViewer peripheralsTreeViewer;
    private final String[] treeProperties = new String[] { "col1", "col2", "col3", "col4" };
-   private StyledText peripheralsInformationPanel;
+   private PeripheralsInformationPanel peripheralsInformationPanel;
 
-   private Action refreshCurrentSelectionAction;
-   private Action refreshAllAction;
-//   private Action resetPeripheralAction;
    private Action filterPeripheralAction;
-   private Action hideShowLocationColumnAction;
-   private Action hideShowDescriptionColumnAction;
    private Action setDeviceAction;
+   private RefreshAction refreshAllAction;
 
+   class MyAction extends Action {
+      
+      MyAction(String text, String toolTip, int style, String imageId) {
+         super(text, style);
+
+         setText(text);
+         setToolTipText(toolTip);
+         if ((imageId!= null) && (Activator.getDefault() != null)) {
+            ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(imageId);
+            setImageDescriptor(imageDescriptor);
+         }
+      }
+
+      MyAction(String text,int style, String imageId) {
+         this(text, text, style, imageId);
+      }
+
+      MyAction(String text,int style) {
+         this(text, text, style, null);
+      }
+   }
+   
+   /*
+    * Actions to add to all menus
+    */
+   ArrayList<MyAction> myActions = new ArrayList<MyAction>();
+   
+   class HideShowColumnAction extends MyAction {
+      final int columnNum;
+      int lastWidth = 0;   // last displayed width
+      
+      /**
+       * @param text          Test describing the action
+       * @param columnNum     Number of column being manipulated
+       * @param defaultWidth  Default column width
+       */
+      HideShowColumnAction(String text, int columnNum, int defaultWidth) {
+         super(text, IAction.AS_CHECK_BOX, Activator.ID_SHOW_COLUMN_IMAGE);
+         
+         this.columnNum  = columnNum;
+         this.lastWidth  = defaultWidth;
+      }
+      
+      /**   
+       *  Hide/Show Location column
+       */
+      public void run() {
+         TreeColumn column = peripheralsTreeViewer.getTree().getColumn(columnNum);
+         if (this.isChecked()) {
+            if (lastWidth == 0) {
+               column.pack();
+            }
+            else {
+               column.setWidth(lastWidth);
+            }
+         }
+         else {
+            lastWidth = column.getWidth();
+            column.setWidth(0);
+         }
+         column.setResizable(this.isChecked());
+      }
+
+      /**
+       * @return the column
+       */
+      public int getColumn() {
+         return columnNum;
+      }
+   }
+
+   class RefreshAction extends MyAction {
+      
+      RefreshAction(String text, String toolTip) {
+         super(text, toolTip, IAction.AS_PUSH_BUTTON, Activator.ID_REFRESH_IMAGE);
+      }
+
+      public void run() {
+         Object[] visibleObjects = peripheralsTreeViewer.getVisibleExpandedElements();
+         for (Object object : visibleObjects) {
+            if (object instanceof PeripheralModel) {
+               ((PeripheralModel) object).forceUpdate();
+            }
+         }
+      }
+   }
+   
+   class RefreshSelectionAction extends MyAction {
+      
+      RefreshSelectionAction(String text, String toolTip) {
+         super(text, toolTip, IAction.AS_PUSH_BUTTON, Activator.ID_REFRESH_SELECTION_IMAGE);
+      }
+
+      public void run() {
+         ISelection selection = peripheralsTreeViewer.getSelection();
+         Object obj = ((IStructuredSelection) selection).getFirstElement();
+         // System.err.println("Action1.run(), obj = " +
+         // obj.toString()+", class=" + obj.getClass().toString());
+         if (obj != null) {
+            if (obj instanceof UpdateInterface) {
+               ((UpdateInterface) obj).forceUpdate();
+            }
+         }
+      }
+   }
+   
    private Action openFaultDialogue;
 
    private GdbDsfSessionListener gdbDsfSessionListener = null;
@@ -110,12 +205,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    private LocalResourceManager resManager = null;
    private HashMap<String, Image> imageCache = new HashMap<String,Image>();
 
-   private final int defaultNameColumnWidth        = 200;
-   private final int defaultValueColumnWidth       = 100;
-   private final int defaultModeWidth              = 50;
-   private final int defaultLocationColumnWidth    = 100;
-   private final int defaultDescriptionColumnWidth = 400;
-
    /**
     * Testing constructor.
     */
@@ -127,19 +216,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       // Listen for MI Sessions
       gdbMiSessionListener = GdbMiSessionListener.getListener();
       gdbMiSessionListener.addListener(this);
-      
-//      IViewReference[] viewReferences = getSite().getPage().getViewReferences();
-//      for (IViewReference viewReference : viewReferences) {
-//         System.err.println("");
-//      }
-//      getSite().getPage().addSelectionListener("", new ISelectionListener() {
-//
-//         @Override
-//         public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-//            MessageDialog.openInformation(part.getSite().getShell(), "Info", "Info for you");
-//         }
-//         
-//      });
    }
 
    /*
@@ -169,339 +245,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    }
    
    /**
-    * Provides labels for the tree view cells
-    */
-   private class PeripheralsViewCellLabelProvider extends CellLabelProvider implements ITableLabelProvider, ITableFontProvider, ITableColorProvider {
-
-      final FontRegistry registry = new FontRegistry();
-      final Color changedColour = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
-      final Font boldFont = registry.getBold(Display.getCurrent().getSystemFont().getFontData()[0].getName());
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang
-       * .Object, int)
-       */
-      @Override
-      public Image getColumnImage(Object element, int columnIndex) {
-         if (columnIndex == 0) {
-            // Only provide images for column 1
-            if (element instanceof PeripheralModel) {
-               return getMyImage(Activator.ID_PERIPHERAL_IMAGE);
-            }
-            else if (element instanceof RegisterModel) {
-               if (((RegisterModel) element).getAccessMode() == "RO") {
-                  return getMyImage(Activator.ID_REGISTER_READ_ONLY_IMAGE);
-               } 
-               else {
-                  return getMyImage(Activator.ID_REGISTER_READ_WRITE_IMAGE);
-               }
-            } 
-            else if (element instanceof FieldModel) {
-               if (((FieldModel) element).getAccessMode() == "RO") {
-                  return getMyImage(Activator.ID_FIELD_READ_ONLY_IMAGE);
-               } 
-               else {
-                  return getMyImage(Activator.ID_FIELD_READ_WRITE_IMAGE);
-               }
-            }
-         }
-         return null;
-      }
-
-      @Override
-      public void dispose() {
-         super.dispose();
-         if (changedColour != null) {
-            changedColour.dispose();
-         }
-         if (boldFont != null) {
-            boldFont.dispose();
-         }
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang
-       * .Object, int)
-       */
-      public String getColumnText(Object element, int columnIndex) {
-         BaseModel item = (BaseModel) element;
-         switch (columnIndex) {
-         case 0:
-            return item.getName();
-         case 1:
-            return item.safeGetValueAsString();
-         case 2:
-            return item.getAccessMode();
-         case 3:
-            return item.getAddressAsString();
-         case 4: {
-            String description = item.getDescription();
-            // Truncate at newline if present
-            int newlineIndex = description.indexOf("\n");
-            if (newlineIndex > 0) {
-               description = description.substring(0, newlineIndex);
-            }
-            return description;
-         }
-         default:
-            return "";
-         }
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ITableFontProvider#getFont(java.lang.Object,
-       * int)
-       */
-      public Font getFont(Object element, int columnIndex) {
-         return (element instanceof PeripheralModel) ? boldFont : null;
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ITableColorProvider#getBackground(java.lang
-       * .Object, int)
-       */
-      public Color getBackground(Object element, int columnIndex) {
-         if ((columnIndex == 1) && (element instanceof BaseModel)) {
-            try {
-               return ((BaseModel) element).isChanged() ? changedColour : null;
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
-         return null;
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ITableColorProvider#getForeground(java.lang
-       * .Object, int)
-       */
-      public Color getForeground(Object element, int columnIndex) {
-         return null;
-      }
-
-      @Override
-      public void update(ViewerCell cell) {
-         // System.err.println("PeripheralCellLabelProvider.update()");
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ViewerLabelProvider#getTooltipText(java.lang
-       * .Object)
-       */
-      public String getToolTipText(Object element) {
-         return "Tooltip (" + element + ")";
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ViewerLabelProvider#getTooltipDisplayDelayTime
-       * (java.lang.Object)
-       */
-      public int getToolTipDisplayDelayTime(Object object) {
-         return 2000;
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ViewerLabelProvider#getTooltipShift(java.
-       * lang.Object)
-       */
-      public Point getToolTipShift(Object object) {
-         return new Point(5, 5);
-      }
-
-      /*
-       * (non-Javadoc)
-       * 
-       * @see
-       * org.eclipse.jface.viewers.ViewerLabelProvider#getTooltipTimeDisplayed
-       * (java.lang.Object)
-       */
-      public int getToolTipTimeDisplayed(Object object) {
-         return 5000;
-      }
-   }
-
-   /**
-    * Provides the contents from the tree view (from model)
-    */
-   private class PeripheralsViewContentProvider implements ITreeContentProvider, IModelChangeListener {
-
-      private TreeViewer treeViewer = null;
-
-      public void dispose() {
-      }
-
-      public Object[] getElements(Object inputElement) {
-         return ((BaseModel) inputElement).getChildren().toArray();
-      }
-
-      public Object[] getChildren(Object parentElement) {
-         return getElements(parentElement);
-      }
-
-      public Object getParent(Object element) {
-         return ((BaseModel) element).getParent();
-      }
-
-      public boolean hasChildren(Object element) {
-         return ((BaseModel) element).getChildren().size() > 0;
-      }
-
-      public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-         // Save view
-         this.treeViewer = (TreeViewer) viewer;
-         if (oldInput != null) {
-            // Remove old input as listener
-            removeListenerFrom((BaseModel) oldInput);
-         }
-         if (newInput != null) {
-            // Add new input as listener
-            addListenerTo((BaseModel) newInput);
-         }
-      }
-
-      protected void addListenerTo(BaseModel model) {
-         // System.err.println("PeripheralsViewContentProvider.addListenerTo(), parent listener = "
-         // + model.toString());
-         model.addListener(this);
-         for (Object childModel : model.getChildren()) {
-            addListenerTo(((BaseModel) childModel));
-            // System.err.println("PeripheralsViewContentProvider.addListenerTo(), listener = "
-            // + childModel.toString());
-         }
-      }
-
-      protected void removeListenerFrom(BaseModel model) {
-         model.removeListener(this);
-         for (Object childModel : model.getChildren()) {
-            removeListenerFrom(((BaseModel) childModel));
-         }
-      }
-
-      @Override
-      public void modelElementChanged(ObservableModel model) {
-         // System.err.println("modelElementChanged() model = " +
-         // ((BaseModel)model).getName() );
-
-         if (treeViewer != null) {
-            // System.err.println("modelElementChanged() model is expanded");
-            // treeViewer.update(model, new String[]{treeProperties[1]});
-            treeViewer.refresh(model, true);
-            ITreeSelection selection = (ITreeSelection) peripheralsTreeViewer.getSelection();
-            if (selection.getFirstElement() == model) {
-               updatePeripheralsInformationPanel();
-               // System.err.println("modelElementChanged(), updatePeripheralsInformationPanel() called");
-            }
-         }
-      }
-
-   }
-
-   /**
-    * Handles changes in selection of peripheral or register in tree view
-    * 
-    * Updates description in infoPanel
-    */
-   private class PeriperalsViewerSelectionChangeListener implements ISelectionChangedListener {
-      @Override
-      public void selectionChanged(SelectionChangedEvent event) {
-         Object source = event.getSource();
-         if (source == peripheralsTreeViewer) {
-            updatePeripheralsInformationPanel();
-         }
-      }
-   };
-
-   /**
-    * Handles modifying tree elements
-    * 
-    * This only applies to register or register field values
-    * 
-    */
-   private class PeripheralsViewCellModifier implements ICellModifier {
-
-      @Override
-      public void modify(Object element, String property, Object value) {
-         // System.err.println("PeripheralsViewCellModifier.modify("+element.getClass()+", "+value.toString()+")");
-         if (element instanceof TreeItem) {
-            // update element and tree model
-            TreeItem treeItem = (TreeItem) element;
-            Object treeItemData = treeItem.getData();
-            if (treeItemData instanceof RegisterModel) {
-               // System.err.println("PeripheralsViewCellModifier.modify(RegisterModel, "+value.toString()+")");
-               RegisterModel registerModel = (RegisterModel) treeItemData;
-               try {
-                  String s = value.toString().trim();
-                  if (s.startsWith("0b")) {
-                     registerModel.setValue(Long.parseLong(s.substring(2, s.length()), 2));
-                  } else {
-                     registerModel.setValue(Long.decode(s));
-                  }
-                  treeItem.setText(1, registerModel.safeGetValueAsString());
-               } catch (NumberFormatException e) {
-//                  System.err.println("PeripheralsViewCellModifier.modify(RegisterModel, ...) - format error");
-               }
-            } else if (treeItemData instanceof FieldModel) {
-               FieldModel fieldModel = (FieldModel) treeItemData;
-               try {
-                  String s = value.toString().trim();
-                  if (s.startsWith("0b")) {
-                     fieldModel.setValue(Long.parseLong(s.substring(2, s.length()), 2));
-                  } else {
-                     fieldModel.setValue(Long.decode(s));
-                  }
-                  treeItem.setText(1, fieldModel.safeGetValueAsString());
-               } catch (NumberFormatException e) {
-//                  System.err.println("PeripheralsViewCellModifier.modify(FieldModel, ...) - format error");
-               }
-            }
-         }
-         updatePeripheralsInformationPanel();
-      }
-
-      @Override
-      public Object getValue(Object element, String property) {
-         if (element instanceof RegisterModel) {
-            // System.err.println("PeripheralsViewCellModifier.getValue(RegisterModel, "+((RegisterModel)element).getValueAsString()+")");
-            return ((RegisterModel) element).safeGetValueAsString();
-         } else if (element instanceof FieldModel) {
-            // System.err.println("PeripheralsViewCellModifier.getValue(FieldModel, "+((FieldModel)element).getValueAsString()+")");
-            return ((FieldModel) element).safeGetValueAsString();
-         }
-         // System.err.println("PeripheralsViewCellModifier.getValue("+element.getClass()+", "+element.toString()+")");
-         return element.toString();
-      }
-
-      @Override
-      public boolean canModify(Object element, String property) {
-         return (element instanceof FieldModel) || (element instanceof RegisterModel);
-      }
-   }
-
-   /**
     * Provides the editor for the tree elements
     * 
     * Does minor modifications to the default editor.
@@ -530,98 +273,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    }
 
    /**
-    * Updates the peripheralsInformationPanel according to the current tree selection
-    */
-   void updatePeripheralsInformationPanel() {
-
-      peripheralsInformationPanel.setText("");
-
-      ITreeSelection selection = (ITreeSelection) peripheralsTreeViewer.getSelection();
-      Object uModel = selection.getFirstElement();
-      if ((uModel == null) || !(uModel instanceof BaseModel)) {
-         return;
-      }
-      String basicDescription = ((BaseModel) uModel).getDescription();
-      String valueString = "";
-      try {
-         long value = 0;
-         if (uModel instanceof RegisterModel) {
-            value = ((RegisterModel)uModel).getValue();
-            valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
-         }
-         else if (uModel instanceof FieldModel) {
-            value = ((FieldModel)uModel).getValue();
-            valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
-         }
-      } catch (MemoryException e) {
-//         System.err.println("Opps");      
-//         long value = 1234;
-//         valueString = String.format(" (%d,0x%X,0b%s)", value, value, Long.toBinaryString(value));
-      }
-      StringBuffer description = new StringBuffer();
-      StyleRange valueStyleRange = null;
-      int splitAt = basicDescription.indexOf("\n");
-      if (!valueString.isEmpty()) {
-         if (splitAt != -1) {
-            description.append(basicDescription.substring(0, splitAt));
-            valueStyleRange = new StyleRange(description.length(), valueString.length(), Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE), null, SWT.NORMAL);
-            description.append(valueString);
-            description.append(basicDescription.substring(splitAt)); 
-         } else {
-            description.append(basicDescription);
-            valueStyleRange = new StyleRange(description.length(), valueString.length(), Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE), null, SWT.NORMAL);
-            description.append(valueString);
-         }
-      }
-      else {
-         description.append(basicDescription);
-      }
-      StyleRange styleRange = new StyleRange(0, description.length(), null, null, SWT.BOLD);
-      if (uModel instanceof FieldModel) {
-         FieldModel uField = (FieldModel) uModel;
-         int enumerationIndex = description.length(); // Start of enumeration
-         // text
-         int enumerationlength = 0; // Length of enumeration text
-         int selectionIndex = 0;    // Start of highlighted enumeration
-         int selectionLength = 0;   // Length of highlighted enumeration
-         long enumerationValue = 0;
-         boolean enumerationValid = false;
-         try {
-            enumerationValue = uField.getValue();
-            enumerationValid = true;
-         } catch (MemoryException e) {
-         }
-         for (Enumeration enumeration : uField.getEnumeratedDescription()) {
-            description.append("\n");
-            String enumerationValueDescription = enumeration.getName() + ": " + enumeration.getDescription();
-            if (enumerationValid && enumeration.isSelected(enumerationValue)) {
-               selectionIndex  = description.length();
-               selectionLength = enumerationValueDescription.length();
-            }
-            enumerationlength += enumerationValueDescription.length();
-            description.append(enumerationValueDescription);
-         }
-         peripheralsInformationPanel.setText(description.toString());
-         peripheralsInformationPanel.setStyleRange(styleRange);
-         if (valueStyleRange != null) {
-            peripheralsInformationPanel.setStyleRange(valueStyleRange);
-         }
-         styleRange = new StyleRange(enumerationIndex, enumerationlength, null, null, SWT.NORMAL);
-         peripheralsInformationPanel.setStyleRange(styleRange);
-         styleRange = new StyleRange(selectionIndex, selectionLength, Display.getCurrent().getSystemColor(SWT.COLOR_RED), null, SWT.NORMAL);
-         peripheralsInformationPanel.setStyleRange(styleRange);
-
-      } else {
-         peripheralsInformationPanel.setText(description.toString());
-         peripheralsInformationPanel.setStyleRange(styleRange);
-         if (valueStyleRange != null) {
-            peripheralsInformationPanel.setStyleRange(valueStyleRange);
-         }
-      }
-   }
-
-   /**
-    * Callback that creates the viewer and initializes it.
+    * Callback that creates the viewer and initialises it.
     * 
     * The View consists of a tree and a information panel
     */
@@ -645,11 +297,10 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       Tree tree = peripheralsTreeViewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
-      ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
 
       peripheralsTreeViewer.setColumnProperties(treeProperties);
       peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new PeripheralsViewTextCellEditor(peripheralsTreeViewer.getTree()), null });
-      peripheralsTreeViewer.setCellModifier(new PeripheralsViewCellModifier());
+      peripheralsTreeViewer.setCellModifier(new PeripheralsViewCellModifier(this));
 
       peripheralsTreeViewer.getControl().addListener(SWT.MeasureItem, new Listener() {
          @Override
@@ -679,7 +330,15 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       column = new TreeColumn(peripheralsTreeViewer.getTree(), SWT.NONE);
       column.setWidth(defaultValueColumnWidth);
       column.setText("Value");
-      column.setResizable(true);
+      column.setResizable(defaultValueColumnWidth!=0);
+
+      /*
+       * Field column
+       */
+      column = new TreeColumn(peripheralsTreeViewer.getTree(), SWT.NONE);
+      column.setWidth(defaultFieldColumnWidth );
+      column.setText("Field");
+      column.setResizable(defaultFieldColumnWidth!=0);
 
       /*
        * Mode column
@@ -687,15 +346,15 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       column = new TreeColumn(peripheralsTreeViewer.getTree(), SWT.NONE);
       column.setWidth(defaultModeWidth);
       column.setText("Mode");
-      column.setResizable(true);
+      column.setResizable(defaultModeWidth!=0);
 
       /*
-       * Location column (starts out hidden)
+       * Location column
        */
       column = new TreeColumn(peripheralsTreeViewer.getTree(), SWT.NONE);
-      column.setWidth(0);
+      column.setWidth(defaultLocationColumnWidth);
       column.setText("Location");
-      column.setResizable(false);
+      column.setResizable(defaultLocationColumnWidth!=0);
 
       // Add listener to column so peripheral are sorted by address when clicked
       column.addSelectionListener(new SelectionAdapter() {
@@ -708,19 +367,24 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
        * Description column
        */
       column = new TreeColumn(peripheralsTreeViewer.getTree(), SWT.NONE);
-      column.setWidth(400);
+      column.setWidth(defaultDescriptionColumnWidth);
       column.setText("Description");
-      column.setResizable(true);
+      column.setResizable(defaultDescriptionColumnWidth!=0);
 
       // Default to sorted by Peripheral name
       peripheralsTreeViewer.setComparator(new PeripheralsViewSorter(PeripheralsViewSorter.SortCriteria.PeripheralNameOrder));
 
+      // Noting filtered
       peripheralsTreeViewer.addFilter(new PeripheralsViewFilter(PeripheralsViewFilter.SelectionCriteria.SelectAll));
 
-      peripheralsTreeViewer.setLabelProvider(new PeripheralsViewCellLabelProvider());
-      peripheralsTreeViewer.setContentProvider(new PeripheralsViewContentProvider());
-
-      // peripheralsTreeViewer.setInput(UsbdmDevicePeripheralsModel.createModel(deviceName));
+      // Label provider
+      peripheralsTreeViewer.setLabelProvider(new PeripheralsViewCellLabelProvider(this));
+      
+      // Content provider
+      peripheralsTreeViewer.setContentProvider(new PeripheralsViewContentProvider(this));
+      
+      // Tooltips doesn't work???? 
+//      ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
 
       TreeViewerEditor.create(peripheralsTreeViewer, new ColumnViewerEditorActivationStrategy(peripheralsTreeViewer) {
          protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
@@ -734,11 +398,13 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
       // =============================
 
-      peripheralsInformationPanel = new StyledText(form, SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
+      peripheralsInformationPanel = new PeripheralsInformationPanel(form, SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY, this.peripheralsTreeViewer);
       form.setWeights(new int[] { 80, 20 });
 
-      peripheralsTreeViewer.addSelectionChangedListener(new PeriperalsViewerSelectionChangeListener());
+      // So information panel is updated when selection changes
+      peripheralsTreeViewer.addSelectionChangedListener(peripheralsInformationPanel);
       
+      // Tree expansion/collapse
       peripheralsTreeViewer.addTreeListener(new ITreeViewerListener() {
 
          @Override
@@ -767,12 +433,19 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          }
       });
 
+      // Create the actions
       makeActions();
+      
+      // Add selected actions to context menu
       hookContextMenu();
+      
+      // Add selected actions to menu bar
       contributeToActionBars();
-
    }
 
+   /**
+    * Add menu manager for right click pop-up menu
+    */
    private void hookContextMenu() {
       MenuManager menuMgr = new MenuManager("#PopupMenu");
       menuMgr.setRemoveAllWhenShown(true);
@@ -783,14 +456,11 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       });
       Menu menu = menuMgr.createContextMenu(peripheralsTreeViewer.getControl());
       peripheralsTreeViewer.getControl().setMenu(menu);
-      // IWorkbenchPartSite site = getSite();
-      // if (site == null) {
-      // return;
-      // }
-      // site.registerContextMenu(menuMgr, peripheralsTreeViewer); // Don't want
-      // other items
    }
 
+   /**
+    *  Add selected actions to menu bar
+    */
    private void contributeToActionBars() {
       IViewSite site = getViewSite();
       if (site == null) {
@@ -801,30 +471,40 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       fillLocalToolBar(bars.getToolBarManager());
    }
 
+   /**
+    * Fill menu bar drop-down menu
+    */
    private void fillLocalPullDown(IMenuManager manager) {
-      manager.add(refreshCurrentSelectionAction);
-      manager.add(refreshAllAction);
-      manager.add(filterPeripheralAction);
-      manager.add(hideShowLocationColumnAction);
-      manager.add(hideShowDescriptionColumnAction);
-      manager.add(new Separator());
+      for (Action action:myActions) {
+         manager.add(action);
+      }
+      // Other plug-ins can contribute there actions here
+      // manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
    }
-
+   
+   /**
+    * Fill Context menu
+    * @param manager
+    */
    private void fillContextMenu(IMenuManager manager) {
-      manager.add(refreshCurrentSelectionAction);
-//      manager.add(resetPeripheralAction);
-      manager.add(hideShowLocationColumnAction);
-      manager.add(hideShowDescriptionColumnAction);
-      manager.add(openFaultDialogue);
-      // manager.add(filterPeripheralAction);
-      // manager.add(hideShowColumnAction);
+      for (MyAction action:myActions) {
+         if (action instanceof HideShowColumnAction) {
+            int column = ((HideShowColumnAction)action).getColumn();
+            int currentWidth = peripheralsTreeViewer.getTree().getColumn(column).getWidth();
+            action.setChecked(currentWidth != 0);
+         }
+         manager.add(action);
+      }
       // Other plug-ins can contribute there actions here
       // manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
    }
 
+   /**
+    * Fill menu bar
+    * @param manager
+    */
    private void fillLocalToolBar(IToolBarManager manager) {
       manager.add(setDeviceAction);
-      manager.add(refreshCurrentSelectionAction);
       manager.add(refreshAllAction);
       manager.add(filterPeripheralAction);
       manager.add(openFaultDialogue);
@@ -832,51 +512,15 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    /**
     * Create the various actions for the menus etc.
-    * 
     */
    private void makeActions() {
-      /*
-       * Refresh all action
-       */
-      refreshAllAction = new Action() {
-         public void run() {
-            Object[] visibleObjects = peripheralsTreeViewer.getVisibleExpandedElements();
-            for (Object object : visibleObjects) {
-               if (object instanceof PeripheralModel) {
-                  ((PeripheralModel) object).forceUpdate();
-               }
-            }
-         }
-      };
-      refreshAllAction.setText("Refresh all");
-      refreshAllAction.setToolTipText("Refreshes visible registers from target");
-      if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_REFRESH_IMAGE);
-         refreshAllAction.setImageDescriptor(imageDescriptor);
-      }
-
-      /*
-       * Refresh current selection action
-       */
-      refreshCurrentSelectionAction = new Action() {
-         public void run() {
-            ISelection selection = peripheralsTreeViewer.getSelection();
-            Object obj = ((IStructuredSelection) selection).getFirstElement();
-            // System.err.println("Action1.run(), obj = " +
-            // obj.toString()+", class=" + obj.getClass().toString());
-            if (obj != null) {
-               if (obj instanceof UpdateInterface) {
-                  ((UpdateInterface) obj).forceUpdate();
-               }
-            }
-         }
-      };
-      refreshCurrentSelectionAction.setText("Refresh selection");
-      refreshCurrentSelectionAction.setToolTipText("Refreshes currently selected registers/peripheral from target");
-      if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_REFRESH_SELECTION_IMAGE);
-         refreshCurrentSelectionAction.setImageDescriptor(imageDescriptor);
-      }
+      // These actions end up on the drop-down and pop-up menus
+      myActions.add(new HideShowColumnAction("Toggle field information column", FIELD_INFO_COL,   defaultFieldColumnWidth));
+      myActions.add(new HideShowColumnAction("Toggle mode column",              MODE_COL,         defaultModeWidth));
+      myActions.add(new HideShowColumnAction("Toggle location column",          LOCATION_COL,     defaultLocationColumnWidth));
+      myActions.add(new HideShowColumnAction("Toggle description column",       DESCRIPTION_COL,  defaultDescriptionColumnWidth));
+      myActions.add(new RefreshSelectionAction("Refresh selection", "Refreshes currently selected registers/peripheral from target"));
+      refreshAllAction = new RefreshAction("Refresh all",    "Refreshes visible registers from target");
 
       /*
        * Refresh current selection action
@@ -899,32 +543,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          openFaultDialogue.setImageDescriptor(imageDescriptor);
       }
 
-//      /*
-//       * Reset Register action
-//       */
-//      resetPeripheralAction = new Action() {
-//         public void run() {
-//            ISelection selection = peripheralsTreeViewer.getSelection();
-//            Object obj = ((IStructuredSelection) selection).getFirstElement();
-//            // System.err.println("Action1.run(), obj = " +
-//            // obj.toString()+", class=" + obj.getClass().toString());
-//            if (obj != null) {
-//               if (obj instanceof RegisterModel) {
-//                  ((RegisterModel) obj).loadResetValues();
-//               }
-//               if (obj instanceof PeripheralModel) {
-//                  ((PeripheralModel) obj).loadResetValues();
-//               }
-//            }
-//         }
-//      };
-//      resetPeripheralAction.setText("Reset registers");
-//      resetPeripheralAction.setToolTipText("Reset registers to expected reset value");
-//      if (Activator.getDefault() != null) {
-//         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_RESET_IMAGE);
-//         resetPeripheralAction.setImageDescriptor(imageDescriptor);
-//      }
-
       /*
        * Filter Registers action
        */
@@ -938,41 +556,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       if (Activator.getDefault() != null) {
          ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_FILTER_IMAGE);
          filterPeripheralAction.setImageDescriptor(imageDescriptor);
-      }
-
-      /*
-       * Hide/Show Address column
-       */
-      hideShowLocationColumnAction = new Action(null, IAction.AS_CHECK_BOX) {
-         public void run() {
-            TreeColumn locationColumn = peripheralsTreeViewer.getTree().getColumn(3);
-            locationColumn.setWidth(this.isChecked() ? defaultLocationColumnWidth : 0);
-            locationColumn.setResizable(this.isChecked());
-         }
-      };
-      hideShowLocationColumnAction.setText("Toggle location column");
-      hideShowLocationColumnAction.setToolTipText("Toggle location column");
-      if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_SHOW_COLUMN_IMAGE);
-         hideShowLocationColumnAction.setImageDescriptor(imageDescriptor);
-      }
-
-      /*
-       * Hide/Show Description column
-       */
-      hideShowDescriptionColumnAction = new Action(null, IAction.AS_CHECK_BOX) {
-         public void run() {
-            TreeColumn descriptionColumn = peripheralsTreeViewer.getTree().getColumn(4);
-            descriptionColumn.setWidth(this.isChecked() ? defaultDescriptionColumnWidth : 0);
-            descriptionColumn.setResizable(this.isChecked());
-         }
-      };
-      hideShowDescriptionColumnAction.setText("Toggle description column");
-      hideShowDescriptionColumnAction.setToolTipText("Toggle description column");
-      hideShowDescriptionColumnAction.setChecked(true);
-      if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_SHOW_COLUMN_IMAGE);
-         hideShowDescriptionColumnAction.setImageDescriptor(imageDescriptor);
       }
 
       /*
@@ -1000,6 +583,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 //            System.err.println("UsbdmDevicePeripheralsView.Action() - Setting peripheral model");
             peripheralsModel.setDevice(deviceOrSvdFilename);
             peripheralsTreeViewer.setInput(peripheralsModel.getModel());
+            ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
+            
             setDeviceAction.setText(peripheralsModel.getDeviceName());
             
             if (peripheralsModel != null) {
@@ -1020,8 +605,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    }
    
    /**
-    * 
-    * 
     * @author podonoghue
     */
    public class MyViewerFilter extends ViewerFilter {
@@ -1135,7 +718,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                   peripheralsTreeViewer.refresh(node);
                }
             }
-            updatePeripheralsInformationPanel();
+            peripheralsInformationPanel.updateContent();
          }
       });
    }
@@ -1163,10 +746,13 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       // Try with device name
 //      peripheralsModel = new UsbdmDevicePeripheralsModel("MK20DX128M5", null);
       // Try with full path
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/ARM_Devices/STMicro/STM32F030.svd.xml", null);
-      // Try with full path
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/ARM_Devices/Generated/svdReducedMergedOptimisedManual/MK20D5.svd.xml", null);
-      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/ARM_Devices/Generated/svdReducedMergedOptimisedManual/MK22F12.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK20D5.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK10D10.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK11D5.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK64F12.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK22F51212.svd.xml", null);
+      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MCF5225x.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MCF51JF.svd.xml", null);
       // Try illegal path/name
 //      peripheralsModel = new UsbdmDevicePeripheralsModel("xxxx", null);
       
@@ -1178,6 +764,10 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             display.sleep();
       }
       display.dispose();
+   }
+
+   public PeripheralsInformationPanel getInformationPanel() {
+      return peripheralsInformationPanel;
    }
 
 }

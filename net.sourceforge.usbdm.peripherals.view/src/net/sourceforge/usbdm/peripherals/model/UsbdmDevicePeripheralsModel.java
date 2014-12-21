@@ -8,7 +8,6 @@ import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.Field;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
-import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
 
 /**
@@ -28,8 +27,10 @@ public class UsbdmDevicePeripheralsModel {
       ArrayList<Field> fieldList = register.getFields();
       if (fieldList != null) {
          for (Field field : fieldList) {
-            FieldModel fieldModel = new FieldModel(registerModel, field);
-            fieldModel.setEnumeratedDescription(field.getEnumerations());
+            if (!field.isHidden()) {
+               FieldModel fieldModel = new FieldModel(registerModel, field);
+               fieldModel.setEnumeratedDescription(field.getEnumerations());
+            }
          }
       }
    }
@@ -46,7 +47,10 @@ public class UsbdmDevicePeripheralsModel {
       ArrayList<Field> fieldList = register.getFields();
       if (fieldList != null) {
          for (Field field : fieldList) {
-            new FieldModel(registerModel, field, index);
+            if (!field.isHidden()) {
+               FieldModel fieldModel = new FieldModel(registerModel, field, index);
+               fieldModel.setEnumeratedDescription(field.getEnumerations());
+            }
          }
       }
    }
@@ -60,7 +64,9 @@ public class UsbdmDevicePeripheralsModel {
     * @throws Exception 
     */
    private void createRegisterModels(PeripheralModel peripheralModel, Register register) throws Exception {
-      
+      if (register.isHidden()) {
+         return;
+      }
       if (register.getDimension() == 0) {
          // Simple register
          RegisterModel registerModel = new RegisterModel(peripheralModel, register);
@@ -88,6 +94,9 @@ public class UsbdmDevicePeripheralsModel {
       if (cluster.getDimension()>0) {
          for(int clusterIndex=0; clusterIndex<cluster.getDimension(); clusterIndex++) {
             for (Register register : cluster.getRegisters()) {
+               if (register.isHidden()) {
+                  continue;
+               }
                String name;
                name = nameFormat.replaceAll("@f", register.getName());
                name = name.replaceAll("@i", String.format("%d", clusterIndex));
@@ -184,6 +193,8 @@ public class UsbdmDevicePeripheralsModel {
       DeviceModel deviceModel = new DeviceModel(devicePeripherals.getName()) ;
       
       try {
+         BaseModel.setLittleEndian(devicePeripherals.getCpu().getEndian().equalsIgnoreCase("little"));
+
          // Add the peripherals
          for (Peripheral peripheral : devicePeripherals.getPeripherals()) {
             if (isExcludedPeripheral(peripheral.getName())) {
@@ -207,7 +218,7 @@ public class UsbdmDevicePeripheralsModel {
     */
    private static DevicePeripherals createDevicePeripheralsDatabase(String devicenameOrFilename) {
       
-      return SVD_XML_Parser.createDatabase(devicenameOrFilename);
+      return DevicePeripherals.createDatabase(devicenameOrFilename);
    }
 
    private DeviceModel        model        = null;

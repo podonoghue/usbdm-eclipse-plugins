@@ -1,8 +1,14 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,107 +24,94 @@ import net.sourceforge.usbdm.peripheralDatabase.PeripheralDatabaseMerger;
 import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 public class PeripheralDatabaseCreate {
+   private static final  Path packageFolder    = Paths.get("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
+   private static final  Path mainFolder                                   = packageFolder.resolve("DeviceData/Device.SVD");
+   private static final  Path headerReducedMergedOptimisedManualFolder     = packageFolder.resolve("Stationery/Project_Headers");
+   private static final  Path svdReducedMergedOptimisedManualFolder        = mainFolder.resolve("Internal");
+   private static final  Path svdReducedMergedOptimisedManualCheckFolder   = mainFolder.resolve("Internal.Check");
+  
+   private static final  String deviceListFilename       = "DeviceList.xml";
+   private static final  String cmsisSchemaFilename      = "CMSIS-SVD_Schema_1_1.xsd";
+   private static final  String deviceListSchemaFilename = "DeviceListSchema.dtd";
 
-   static IPath mainFolder                                        = new Path("C:/Users/podonoghue/Development/USBDM/Arm_Devices/Generated");
-   static IPath svdRaw                                            = mainFolder.append("svdRaw");
-                                                                  
-   static IPath headerFolder                                      = mainFolder.append("Header");
-   static IPath headerReducedMergedOptimisedFolder                = mainFolder.append("HeaderReducedMergedOptimised");
-   static IPath headerReducedMergedOptimisedManualFolder          = mainFolder.append("HeaderReducedMergedOptimisedManual");
-   static IPath headerReducedMergedOptimisedManualIterationFolder = mainFolder.append("HeaderReducedMergedOptimisedManualIteration");
-   static IPath headerReducedMergedOptimisedManualExpandedFolder  = mainFolder.append("HeaderReducedMergedOptimisedManualExpanded");
-   
-   static IPath svdReducedFolder                                  = mainFolder.append("svdReduced");
-   static IPath svdReducedMergedFolder                            = mainFolder.append("svdReducedMerged");
-   static IPath svdReducedMergedOptimisedFolder                   = mainFolder.append("svdReducedMergedOptimised");
-   static IPath svdReducedMergedOptimisedManualFolder             = mainFolder.append("svdReducedMergedOptimisedManual");
-   static IPath svdReducedMergedOptimisedManualCheckFolder        = mainFolder.append("svdReducedMergedOptimisedManual.Check");
-   static IPath svdReducedMergedOptimisedManualExpandedFolder     = mainFolder.append("svdReducedMergedOptimisedManualExpanded");
-                                                                  
-   static IPath freescaleSvdFolder                                = mainFolder.append("Freescale");
-   static IPath freescaleSvdTestFolder                            = mainFolder.append("FreescaleTest");
-   static IPath freescaleHeaderFilesFolder                        = mainFolder.append("FreescaleHeaderFiles");
-                                                                  
-   static IPath stmicroSvdFolder                                  = mainFolder.append("STMicro");
-   static IPath stmicroSvdExpandedFolder                          = mainFolder.append("STMicroExpanded");
-   static IPath stmicroSvdMergedFolder                            = mainFolder.append("STMicroMerged");
-   static IPath stmicroSvdMerged2Folder                           = mainFolder.append("STMicroMerged2");
-   static IPath stMicroHeaderFilesFolder                          = mainFolder.append("STMicroHeaderFiles");
-                                                                  
-   static IPath freescaleFolder                                   = mainFolder.append("Freescale");
-   static IPath freescaleSortedFolder                             = mainFolder.append("FreescaleSorted");
-   static IPath freescaleCommonFolder                             = mainFolder.append("FreescaleCommon");
-   static IPath freescaleReducedFolder                            = mainFolder.append("FreescaleReduced");
-
-   
-   static final String deviceListFilename       = "DeviceList.xml";
-   static final String cmsisSchemaFilename      = "CMSIS-SVD_Schema_1_1.xsd";
-   static final String deviceListSchemaFilename = "DeviceListSchema.dtd";
-
-   static final String onlyFileToProcess = null;
-// static final String onlyFileToProcess = "^(MKM).*";
-//   static final String onlyFileToProcess = "^(MKE|MKL).*(64).*";
-//   static final String onlyFileToProcess = "^(MKE).*";
-//   static final String onlyFileToProcess = "^(MK[26][42]).*";
-// static final String onlyFileToProcess = "^(MK20).*";
-//    static final String onlyFileToProcess = "^(MK.4).*";
-// static final String onlyFileToProcess = "^(STM).*";
-//   static final String onlyFileToProcess = "^(MK22).*";
-   
-//   static final String onlyFileToProcess = "MK20D5.svd.xml";
+   private static String onlyFileToProcess = null;
 
    static void copyFile(IPath source, IPath destination) throws IOException {
-      System.out.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
+      System.err.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
       Files.copy(new java.io.File(source.toPortableString()).toPath(), 
                  new java.io.File(destination.toPortableString()).toPath(), 
                  StandardCopyOption.REPLACE_EXISTING); 
    }
-   
-   /*
+    /*
     * *************************************************************************************************************************************
     * *************************************************************************************************************************************
     */
    
+   static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger, boolean optimise) throws Exception {
+      int deviceCount = 500;
+      DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath, directoryFilter);
+      for (Path filePath : svdSourceFolderStream) {
+         if (deviceCount-- == 0) {
+            break;
+         }
+         if (Files.isRegularFile(filePath)) {
+            String fileName = filePath.getFileName().toString();
+            if ((onlyFileToProcess != null) && (!fileName.matches(onlyFileToProcess))) {
+               return;
+            }
+            if (fileName.endsWith(".svd.xml")) {
+               System.err.println("Merging SVD file : \""+filePath.toString()+"\"");
+
+               // Read device peripheral database
+               DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(filePath);
+               if (optimise) {
+                  devicePeripherals.optimise();
+               }
+               // Create merged SVD file
+               merger.writeDeviceToSVD(devicePeripherals);
+            }
+         }
+      }
+   }
    /**
     *    Merges multiple SVD files and produces merged SVD files with common peripherals extracted
     *    The original files may already be merged.
     *    
     *    sourceFolderPath  +-> destinationFolderPath : (extracts common peripherals across devices)
     *    
-    *    @param sourceFolderPath      - Folder of SVD files to merge
-    *    @param destinationFolderPath - Destination folder (which is created) with sub-folder of peripherals
+    *    @param svdSourceFolderPath      - Folder of SVD files to merge
+    *    @param svdOutputFolderPath - Destination folder (which is created) with sub-folder of peripherals
     *    @param optimise              - Whether to apply optimisations when creating SVD files
     * 
     *    @throws IOException 
     *    
     */
-   public static void mergeFiles(IPath sourceFolderPath, IPath destinationFolderPath, boolean optimise) throws IOException {
+   public static void mergeFiles(Path svdSourceFolderPath, Path svdOutputFolderPath, boolean optimise, boolean removeFolder) throws IOException {
 
-      if (destinationFolderPath.toFile().exists()) {
-         System.out.flush();
-         System.err.println("Destination already exists " + destinationFolderPath.toOSString());
-         return;
+      if (Files.exists(svdOutputFolderPath)) {
+         if (!removeFolder) {
+            System.err.println("Destination already exists " + svdOutputFolderPath.toString());
+         }
+         else {
+            System.err.println("Destination already exists -  deleting " + svdOutputFolderPath.toString());
+            removeDirectoryTree(svdOutputFolderPath);
+         }
       }
-
-      File[] listOfFiles = sourceFolderPath.toFile().listFiles();
-
-      if (listOfFiles == null) {
-         System.out.flush();
-         System.err.println("Source doesn't exist " + sourceFolderPath.toOSString());
+      if (!Files.isDirectory(svdSourceFolderPath)) {
+         System.err.println("Source doesn't exist " + svdSourceFolderPath.toString());
          return;
       }
       // Using complete file name so no automatic extension
       SVD_XML_Parser.setXmlExtension("");
 
-      destinationFolderPath.toFile().mkdir();
+      svdOutputFolderPath.toFile().mkdir();
       
       PeripheralDatabaseMerger merger = new PeripheralDatabaseMerger();
 
       merger.setXmlExtension(".svd.xml");
-      merger.setXmlRootPath(destinationFolderPath);
+      merger.setXmlRootPath(svdOutputFolderPath.toFile());
       
       // Set optimisations
       ModeControl.setExtractComplexStructures(optimise);
@@ -128,45 +121,35 @@ public class PeripheralDatabaseCreate {
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(optimise);
+      ModeControl.setFoldRegisters(optimise);
+      
+      System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
 
-      System.out.println("Writing files to : \""+destinationFolderPath.toString()+"\"");
+      DirectoryStream.Filter<Path> coldfireDirectoryFilter = new DirectoryStream.Filter<Path>() {
+         @Override
+         public boolean accept(Path path) throws IOException {
+            return path.getFileName().toString().matches("MCF.*");
+         }
+      };
+
+      DirectoryStream.Filter<Path> nonColdfireDirectoryFilter = new DirectoryStream.Filter<Path>() {
+         @Override
+         public boolean accept(Path path) throws IOException {
+            return !path.getFileName().toString().matches("MCF.*");
+         }
+      };
 
       try {
-         int deviceCount = 500;
-         for (File file : listOfFiles) {
-            if (deviceCount-- == 0) {
-               break;
-            }
-            if (file.isFile()) {
-               String fileName = file.getName();
-               if ((onlyFileToProcess != null) && (!fileName.matches(onlyFileToProcess))) {
-                  continue;
-               }
-               if (fileName.endsWith(".svd.xml")) {
-                  System.out.println("Merging SVD file : \""+file.toString()+"\"");
-
-                  // Read device peripheral database
-                  DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(new Path(file.getPath()));
-                  if (optimise) {
-                     devicePeripherals.optimise();
-                  }
-                  // Create merged SVD file
-                  merger.writeDeviceToSVD(devicePeripherals);
-               }
-            }
-         }
+         mergeFiles(svdSourceFolderPath, nonColdfireDirectoryFilter, merger, optimise);
+         mergeFiles(svdSourceFolderPath, coldfireDirectoryFilter,    merger, optimise);
          merger.writePeripheralsToSVD();
          merger.writeVectorTablesToSVD();
       } catch (Exception e) {
          e.printStackTrace();
       }
-      IPath sourceDeviceList      = sourceFolderPath.append(deviceListFilename);
-      IPath destinationDeviceList = destinationFolderPath.append(deviceListFilename);
-      if (sourceDeviceList.toFile().exists()) {
-         copyFile(sourceDeviceList, destinationDeviceList);
-         copyFile(mainFolder.append(deviceListSchemaFilename), destinationFolderPath.append(deviceListSchemaFilename));
-      }
-      copyFile(mainFolder.append(cmsisSchemaFilename), destinationFolderPath.append(cmsisSchemaFilename));
+      Files.copy(svdSourceFolderPath.resolve(deviceListFilename),       svdOutputFolderPath.resolve(deviceListFilename),       StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(svdSourceFolderPath.resolve(deviceListSchemaFilename), svdOutputFolderPath.resolve(deviceListSchemaFilename), StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(svdSourceFolderPath.resolve(cmsisSchemaFilename),      svdOutputFolderPath.resolve(cmsisSchemaFilename),      StandardCopyOption.REPLACE_EXISTING);
    }
 
    /*
@@ -183,12 +166,13 @@ public class PeripheralDatabaseCreate {
     *    
     *  @param sourceFolderPath       - Folder containing SVD files (must have .svd.xml extension, otherwise ignored)
     *  @param destinationFolderPath  - Folder to write created header file to
+    * @throws IOException 
     */
-   public static void createHeaderFiles(IPath sourceFolderPath, IPath destinationFolderPath, boolean optimise) {
+   public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean optimise) throws IOException {
 
-      if (destinationFolderPath.toFile().exists()) {
-         System.out.flush();
-         System.err.println("Destination already exists " + destinationFolderPath.toOSString());
+      if (Files.exists(destinationFolderPath)) {
+         System.err.flush();
+         System.err.println("Destination already exists " + destinationFolderPath);
          return;
       }
       // Using complete file name so no automatic extension
@@ -203,26 +187,27 @@ public class PeripheralDatabaseCreate {
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(false);
 
-      destinationFolderPath.toFile().mkdir();
+      Files.createDirectory(destinationFolderPath);
 
+      DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
+      
       int deviceCount = 5000;
 
-      File[] listOfFiles = sourceFolderPath.toFile().listFiles();
-
-      for (File svdSourceFile : listOfFiles) {
+      for (Path svdSourceFile : sourceFolderStream) {
          if (deviceCount-- == 0) {
             break;
          }
-         if (svdSourceFile.isFile()) {
-            String fileName = svdSourceFile.getName();
+         if (Files.isRegularFile(svdSourceFile)) {
+            String fileName = svdSourceFile.getFileName().toString();
             if ((onlyFileToProcess != null) && !fileName.matches(onlyFileToProcess)) {
+               System.err.println(String.format("\'%s\' <> \'%s\'", fileName, onlyFileToProcess));
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
-               System.out.println("Processing File : \""+svdSourceFile.getName()+"\"");
+               System.err.println("Processing File : \""+fileName+"\"");
                try {
                   // Read device description
-                  DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(new Path(svdSourceFile.getPath()));
+                  DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(svdSourceFile);
 
                   if (optimise) {
                      // Optimise peripheral database
@@ -231,9 +216,9 @@ public class PeripheralDatabaseCreate {
                   devicePeripherals.sortPeripherals();
                   
                   // Create header file
-                  IPath headerFilePath = destinationFolderPath.append(devicePeripherals.getName()).addFileExtension("h");
-                  System.out.println("Creating : \""+headerFilePath.toOSString()+"\"");
-                  devicePeripherals.writeHeaderFile((Path)headerFilePath);
+                  Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
+                  System.err.println("Creating : \""+headerFilePath+"\"");
+                  devicePeripherals.writeHeaderFile(headerFilePath);
 
                } catch (Exception e) {
                   e.printStackTrace();
@@ -313,11 +298,11 @@ public class PeripheralDatabaseCreate {
     * 
     * @throws Exception 
     */
-   public static void createReducedDeviceList(IPath sourceFolderPath, IPath destinationFolderPath) throws Exception {
+   public static void createReducedDeviceList(Path sourceFolderPath, Path destinationFolderPath) throws Exception {
 
-      if (destinationFolderPath.toFile().exists()) {
-         System.out.flush();
-         System.err.println("Destination already exists " + destinationFolderPath.toOSString());
+      if (Files.exists(destinationFolderPath)) {
+         System.err.flush();
+         System.err.println("Destination already exists " + destinationFolderPath);
          return;
       }
 
@@ -338,24 +323,24 @@ public class PeripheralDatabaseCreate {
       ModeControl.setExpandDerivedRegisters(false);
       int maxDevices = 500;
       
-      destinationFolderPath.toFile().mkdir();
+      Files.createDirectory(destinationFolderPath);
       
-      File[] listOfFiles = sourceFolderPath.toFile().listFiles();
+      DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
 
-      // Create deviceList from unique devices
       //
-      for (File svdSourceFile : listOfFiles) {
+      for (Path svdSourceFile : sourceFolderStream) {
          // Create database of all devices
-         if (svdSourceFile.isFile()) {
-            String fileName = svdSourceFile.getName();
+         if (Files.isRegularFile(svdSourceFile)) {
+            String fileName = svdSourceFile.getFileName().toString();
             if ((onlyFileToProcess != null) && !fileName.matches(onlyFileToProcess)) {
+               System.err.println(String.format("\'%s\' <> \'%s\'", fileName, onlyFileToProcess));
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
-//               System.out.println("Processing File : \""+svdSourceFile.getName()+"\"");
+//               System.err.println("Processing File : \""+svdSourceFile.getName()+"\"");
                try {
                   // Read device description
-                  DevicePeripherals device = SVD_XML_Parser.createDatabase(new Path(svdSourceFile.getPath()));
+                  DevicePeripherals device = DevicePeripherals.createDatabase(svdSourceFile);
                   // Don't optimise as we want flat files for editing/checking
 //                  device.optimise();
                   boolean foundEquivalent = false;
@@ -403,12 +388,12 @@ public class PeripheralDatabaseCreate {
             // Add references from other devices
             devicePairList.add(new Pair(equivalentDevice, mappedDestinationFileName));
          }
-         device.writeSVD(destinationFolderPath.append(mappedDestinationFileName).addFileExtension("svd.xml"));
+         device.writeSVD(destinationFolderPath.resolve(mappedDestinationFileName+".svd.xml"));
       }
       sortDeviceNames(devicePairList);
       
       // Create deviceList.xml
-      File deviceListFile = destinationFolderPath.append(deviceListFilename).toFile();
+      File deviceListFile = destinationFolderPath.resolve(deviceListFilename).toFile();
       PrintWriter writer = null;
       try {
          writer = new PrintWriter(deviceListFile);
@@ -428,8 +413,8 @@ public class PeripheralDatabaseCreate {
             writer.close();
          }
       }
-      copyFile(mainFolder.removeLastSegments(1).append(cmsisSchemaFilename),      destinationFolderPath.append(cmsisSchemaFilename));
-      copyFile(mainFolder.removeLastSegments(1).append(deviceListSchemaFilename), destinationFolderPath.append(deviceListSchemaFilename));
+      Files.copy(mainFolder.getParent().resolve(cmsisSchemaFilename),       destinationFolderPath.resolve(cmsisSchemaFilename),       StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(mainFolder.getParent().resolve(deviceListSchemaFilename),  destinationFolderPath.resolve(deviceListSchemaFilename),  StandardCopyOption.REPLACE_EXISTING);
    }
 
    /**
@@ -438,7 +423,7 @@ public class PeripheralDatabaseCreate {
     * @param deviceListPath
     * @throws Exception
     */
-   static void checkDeviceList(IPath deviceListPath) throws Exception {
+   static void checkDeviceList(Path deviceListPath) throws Exception {
       
       DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(deviceListPath);
       if (!deviceFileList.isValid()) {
@@ -449,23 +434,44 @@ public class PeripheralDatabaseCreate {
       System.err.println(String.format("Test : %-20s => \"%s\"", "MK10DN64",    deviceFileList.getSvdFilename("MK10DN64")));
    }
    
+   static void removeDirectoryTree(Path directoryPath) {
+      try {
+         Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+//               System.err.println("Deleting file: " + file);
+               Files.delete(file);
+               return FileVisitResult.CONTINUE;
+            }
+            
+         });
+       } catch (IOException e) {
+         e.printStackTrace();
+       }
+   }
+   
    /**
     * Produces a set of header files from SVD files (based on deviceList.xml)
     * Each header file represent a device family with similar peripherals
     * 
     * @param sourceFolderPath       Should contain "DeviceList.xml" file
     * @param destinationFolderPath  Where to write header files to
+    * @param removeFolder 
     * 
     * @throws Exception
     */
-   static void createHeaderFilesFromList(IPath sourceFolderPath, IPath destinationFolderPath, boolean optimise) throws Exception {
+   static void createHeaderFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean optimise, boolean removeFolder) throws Exception {
       
-      if (destinationFolderPath.toFile().exists()) {
-         System.out.flush();
-         System.err.println("Destination already exists " + destinationFolderPath.toOSString());
-         return;
+      if (Files.exists(destinationFolderPath)) {
+         if (!removeFolder) {
+            System.err.println("Destination already exists " + destinationFolderPath);
+         }
+         else {
+            System.err.println("Destination already exists -  deleting " + destinationFolderPath);
+            removeDirectoryTree(destinationFolderPath);
+         }
       }
-
+      
       // Using complete file name so no automatic extension
       SVD_XML_Parser.setXmlExtension("");
 
@@ -480,7 +486,7 @@ public class PeripheralDatabaseCreate {
 
       destinationFolderPath.toFile().mkdir();
 
-      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.append(deviceListFilename));
+      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(deviceListFilename));
       if (!deviceFileList.isValid()) {
          return;
       }
@@ -495,7 +501,7 @@ public class PeripheralDatabaseCreate {
          if ((onlyFileToProcess != null) && !pair.deviceName.matches(onlyFileToProcess)) {
             continue;
          }
-         System.out.println("Processing File : \""+pair.mappedDeviceName+"\"");
+         System.err.println("Processing File : \""+pair.deviceName+"\"");
          try {
             // Don't produce the same file!
             if (copiedFiles.contains(pair.mappedDeviceName)) {
@@ -504,7 +510,7 @@ public class PeripheralDatabaseCreate {
             copiedFiles.add(pair.mappedDeviceName);
             
             // Read device description
-            DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(sourceFolderPath.append(pair.mappedDeviceName).addFileExtension("svd.xml"));
+            DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(sourceFolderPath.resolve(pair.mappedDeviceName+".svd.xml"));
 
             if (optimise) {
                // Optimise peripheral database
@@ -521,8 +527,8 @@ public class PeripheralDatabaseCreate {
                }
             }
             // Create header file
-            IPath headerFilePath = destinationFolderPath.append(devicePeripherals.getName()).addFileExtension("h");
-            System.out.println("Creating : \""+headerFilePath.toOSString()+"\"");
+            Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName()+".h");
+            System.err.println("Creating : \""+headerFilePath+"\"");
             devicePeripherals.writeHeaderFile(headerFilePath);
 
          } catch (Exception e) {
@@ -539,11 +545,11 @@ public class PeripheralDatabaseCreate {
     * 
     * @throws Exception
     */
-   static void createExpandedSvdFilesFromList(IPath sourceFolderPath, IPath destinationFolderPath, boolean optimise) throws Exception {
+   static void createExpandedSvdFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean optimise) throws Exception {
       
-      if (destinationFolderPath.toFile().exists()) {
-         System.out.flush();
-         System.err.println("Destination already exists " + destinationFolderPath.toOSString());
+      if (Files.exists(destinationFolderPath)) {
+         System.err.flush();
+         System.err.println("Destination already exists " + destinationFolderPath);
          return;
       }
 
@@ -562,7 +568,7 @@ public class PeripheralDatabaseCreate {
 
       destinationFolderPath.toFile().mkdir();
 
-      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.append(deviceListFilename));
+      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(deviceListFilename));
       if (!deviceFileList.isValid()) {
          return;
       }
@@ -572,10 +578,10 @@ public class PeripheralDatabaseCreate {
          if ((onlyFileToProcess != null) && !pair.deviceName.matches(onlyFileToProcess)) {
             continue;
          }
-         System.out.println("Processing File : \""+pair.mappedDeviceName+"\"");
+         System.err.println("Processing File : \""+pair.mappedDeviceName+"\"");
          try {
             // Read device description
-            DevicePeripherals devicePeripherals = SVD_XML_Parser.createDatabase(sourceFolderPath.append(pair.mappedDeviceName).addFileExtension("svd.xml"));
+            DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(sourceFolderPath.resolve(pair.mappedDeviceName+".svd.xml"));
 
             // Optimise peripheral database
             devicePeripherals.optimise();
@@ -583,8 +589,8 @@ public class PeripheralDatabaseCreate {
             devicePeripherals.setName(pair.deviceName);
             
             // Create SVD file
-            IPath svdFilePath = destinationFolderPath.append(devicePeripherals.getName()).addFileExtension("svd.xml");
-            System.out.println("Creating : \""+svdFilePath.toOSString()+"\"");
+            Path svdFilePath = destinationFolderPath.resolve(devicePeripherals.getName()+".svd.xml");
+            System.err.println("Creating : \""+svdFilePath+"\"");
             devicePeripherals.writeSVD(svdFilePath);
 
          } catch (Exception e) {
@@ -598,113 +604,35 @@ public class PeripheralDatabaseCreate {
     * *************************************************************************************************************************************
     */
    
-   /*
-    ARM_Devices +-> svdRaw +-> ARMHeaders (via SVDConv.exe)
-                           |
-                           +-> Header
-                           |
-                           +-> HeaderOptimised
-                           |
-                           +-> svdOptimised  +-> HeaderOptimisedx2 (should = HeaderOptimised)
-                                             |
-                                             +-> svdOptimisedx2 (should == svdOptimised) 
-                                             |
-                                             +-> svdOptimisedx3 + (extracts common peripherals across devices)
-                                                                |
-                                                                +-> HeaderOptimisedx3 (should = HeaderOptimised)
-                                                                |
-                                                                +-> svdOptimisedx4Manual + (manual clean up)
-                                                                                         |
-                                                                                         +-> headerOptimisedx4Folder
-    ARM_Devices +-> svdRaw +-> ARMHeaders (via SVDConv.exe)
-                           |
-                           +-> Header
-                           |
-                           +-> svdReduced  + (extracts common devices)
-                                           |
-                                           +-> svdReducedMerged (extracts common peripherals across devices)
-                                           |
-                                           +-> svdReducedMergedOptimised + (extracts common peripherals across devices + optimises)
-                                                                         |
-                                                                         +-> headerReducedMergedOptimisedFolder + (Reference header files)
-                                                                         |
-                                                                         +-> svdReducedMergedOptimisedManualFolder + (manual optimisation)
-                                                                                                                   |
-                                                                                                                   +-> svdReducedMergedOptimisedManualTest (Iteration)
-                                                                                                                   |
-                                                                                                                   +-> headerReducedMergedOptimisedManual
-    */
-   
-   /**
+    /**
     * @param args
     */
-   @SuppressWarnings("unused")
    public static void main(String[] args) {
       System.err.println("Starting");
+//    onlyFileToProcess = "^MK2.*";
+//    onlyFileToProcess = "^MCF.*";
+//    onlyFileToProcess = "^MK10DX128M5$";
+//    onlyFileToProcess = "^(MKM).*";
+//    onlyFileToProcess = "^MKE.*";
 
       try {
-         if (false) {
-            // Create final header files & SVD Test
-            createHeaderFilesFromList(freescaleSvdFolder, freescaleHeaderFilesFolder, true);
-            mergeFiles(freescaleSvdFolder, freescaleSvdTestFolder, true);
-         }
-         else if (false) {
-            // Manual optimisation
+            // Generate merged version of SVD files for testing (should be unchanging eventually)
             ModeControl.setExpandDerivedRegisters(false);
-//            mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
-            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-            //createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-            //createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-         }
-         else if (true) {
-            // Expand SVD
-            ModeControl.setExpandDerivedRegisters(false);
-            mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
-            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+            mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true, false);
+            // Create Header files from SVD
+            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true, false);
+            
 //            createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
 //            createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true); // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-         }
-         else {
-            // Playing with Freescale files
-            ModeControl.setExpandDerivedRegisters(false);
-            createReducedDeviceList(freescaleFolder,        freescaleSortedFolder);
-            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true);
-            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder,  true);
-            
-//
-//            
-//            mergeFiles(freescaleFolder,        freescaleSortedFolder,  false);
-//            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true);
-//            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder, true);
-//            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-            //createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-            //createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-         }
-
-         
-         //         createReducedDeviceList(stmicroSvdFolder, stmicroSvdExpandedFolder);
-         //         ModeControl.setStripWhiteSpace(true);
-         //         mergeFiles(stmicroSvdExpandedFolder, stmicroSvdMergedFolder, true);
-         //         mergeFiles(stmicroSvdMergedFolder, stmicroSvdMerged2Folder, true);
-         //         createHeaderFilesFromList(stmicroSvdMergedFolder, stMicroHeaderFilesFolder, true);
-
-
-         //         createHeaderFiles(svdRaw, headerFolder, false);                        // svdRaw     +-> header  (for reference)
-         //         createReducedDeviceList(svdRaw, svdReducedFolder);                     // svdRaw     +-> svdReduced (extracts common devices)
-         //         mergeFiles(svdReducedFolder, svdReducedMergedFolder, false);           // svdReduced +-> svdReducedMerged (extracts common peripherals across devices)
-         //         mergeFiles(svdReducedFolder, svdReducedMergedOptimisedFolder, true);   // svdReduced +-> svdReducedMerged (extracts common peripherals across devices + optimisation)
-         //         createHeaderFilesFromList(svdReducedMergedOptimisedFolder, headerReducedMergedOptimisedFolder, true);  // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-         //
-         //         // Manual optimisation
-         //         ModeControl.setExpandDerivedRegisters(false);
-         //         mergeFiles(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualIterationFolder, true);                      // svdReducedMerged +-> svdReducedMergedIteration (should be unchanged)
-         //         createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-         //         createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-         //         createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true);             // svdReducedMerged +-> headerReducedMerged (== headerReduced)
+//            // Playing with Freescale files
+//            ModeControl.setExpandDerivedRegisters(false);
+//            createReducedDeviceList(freescaleFolder,        freescaleSortedFolder);
+//            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true, false);
+//            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder,  true, false);
       } catch (Exception e) {
          e.printStackTrace();
       }
-      System.out.flush();
-      System.out.println("Done");
+      System.err.flush();
+      System.err.println("Done");
    }
 }

@@ -32,14 +32,14 @@ import org.eclipse.swt.widgets.Text;
  *  
  *  This page replicates the USBDM Configuration page
  */
-//TODO - remove duplication
+//TODO Remove duplication
 public class UsbdmToolSettingsPage extends WizardPage {
 
    private String                      gccCommand = "";
    private IWizardPage                 nextPage  = null;
-   private UsbdmProjectTypeSelection   usbdmPage = null;
+   private IUsbdmProjectTypeSelection   usbdmPage = null;
    
-   public UsbdmToolSettingsPage(UsbdmProjectTypeSelection usbdmPage) {
+   public UsbdmToolSettingsPage(IUsbdmProjectTypeSelection usbdmPage) {
       super("USBDM Tool Settings");
       setTitle("USBDM Tool Settings");
       setDescription("Select USBDM tool settings");
@@ -435,9 +435,9 @@ public class UsbdmToolSettingsPage extends WizardPage {
    }
 
    protected boolean saveSettings() {
-    System.err.println("UsbdmToolSettingsPage.saveSetting() saving settings");
+//    System.err.println("UsbdmToolSettingsPage.saveSetting() saving settings");
       if (!validate()) {
-         System.err.println("UsbdmToolSettingsPage.saveSetting() not valid");
+//         System.err.println("UsbdmToolSettingsPage.saveSetting() not valid");
          return false;
       }
       if (!isControlCreated()) {
@@ -445,12 +445,12 @@ public class UsbdmToolSettingsPage extends WizardPage {
       }
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
       
-      System.err.println("UsbdmToolSettingsPage.saveSetting() still saving settings");
+//      System.err.println("UsbdmToolSettingsPage.saveSetting() still saving settings");
 
       savePaths(settings);
       saveVariables(settings);
 
-      System.err.println("UsbdmToolSettingsPage.saveSetting() flushing settings");
+//      System.err.println("UsbdmToolSettingsPage.saveSetting() flushing settings");
       
       settings.flush();
       return true;

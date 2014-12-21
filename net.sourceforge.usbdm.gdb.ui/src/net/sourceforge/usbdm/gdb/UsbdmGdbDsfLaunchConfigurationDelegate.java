@@ -1,6 +1,9 @@
 package net.sourceforge.usbdm.gdb;
 
+import org.eclipse.cdt.dsf.concurrent.ImmediateExecutor;
+import org.eclipse.cdt.dsf.concurrent.RequestMonitor;
 import org.eclipse.cdt.dsf.debug.service.IDsfDebugServicesFactory;
+import org.eclipse.cdt.dsf.gdb.launching.GdbLaunch;
 import org.eclipse.cdt.dsf.gdb.launching.GdbLaunchDelegate;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -32,9 +35,9 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate
       else if ( mode.equals( ILaunchManager.RUN_MODE ) ) {
          launchDebugger( config, launch, monitor );
          
-//         final GdbLaunch gdbLaunch = (GdbLaunch)launch;
-//         Executor executor = ImmediateExecutor.getInstance();
-//         gdbLaunch.shutdownSession(new RequestMonitor(executor, null));
+         final GdbLaunch gdbLaunch = (GdbLaunch)launch;
+         gdbLaunch.disconnect();
+         gdbLaunch.shutdownSession(new RequestMonitor(ImmediateExecutor.getInstance(), null));
       }
    }
 

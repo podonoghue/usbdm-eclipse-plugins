@@ -5,17 +5,13 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripherals.model.BaseModel;
 
-import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.datamodel.DMContexts;
 import org.eclipse.cdt.dsf.datamodel.IDMContext;
 import org.eclipse.cdt.dsf.debug.service.IBreakpoints.IBreakpointsTargetDMContext;
 import org.eclipse.cdt.dsf.debug.service.IStack.IFrameDMContext;
 import org.eclipse.cdt.dsf.debug.service.command.ICommandControlService.ICommandControlDMContext;
 import org.eclipse.cdt.dsf.mi.service.IMIExecutionDMContext;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIThread;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIThreadInfoInfo;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -38,7 +34,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkbenchPage;
 
 /**
  * @author podonoghue
@@ -164,9 +159,9 @@ public class FaultDialogue extends TitleAreaDialog {
       }
       
       
-      IDMContext dmContext = getIDMContext();
+//      IDMContext dmContext = getIDMContext();
 
-//      // TODO
+//      // TODO In progress
 //      ICommandControlDMContext commandControlDMContext = getControlContext(dmContext);
 //      DataRequestMonitor<MIThreadInfoInfo> drm = new DataRequestMonitor<MIThreadInfoInfo>(fGdb.getExecutor(), null);
 //

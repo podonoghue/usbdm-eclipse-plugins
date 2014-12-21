@@ -32,7 +32,7 @@ public class DeviceDatabaseTest {
                };
          for (TargetType targetType:targetTypes) {
             DeviceDatabase database = new DeviceDatabase(targetType);
-            database.listDevices(System.err);
+            database.listDevices(System.err, true);
 //            database.toOptionXML(System.err);
 //            database.toXML(System.err);
          }
