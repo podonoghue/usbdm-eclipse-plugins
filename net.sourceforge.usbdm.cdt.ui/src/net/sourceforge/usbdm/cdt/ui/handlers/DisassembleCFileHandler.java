@@ -61,6 +61,8 @@ public class DisassembleCFileHandler implements IHandler {
 
    @Override
    public Object execute(ExecutionEvent event) throws ExecutionException {
+      String os    = System.getProperty("os.name");            
+      boolean isLinux = (os != null) && os.toUpperCase().contains("LINUX");
       
       Object source = HandlerUtil.getCurrentSelection(event);
 //      System.err.println("Event source = "+source.toString()+"\n class = "+source.getClass().toString());
@@ -87,10 +89,9 @@ public class DisassembleCFileHandler implements IHandler {
       HashMap<String,String> environmentMap = new HashMap<String, String>();
       for (IEnvironmentVariable ev : environmentVariablesArray) {
          String name = ev.getName();
-      // TODO Check required for windows	 
-//         if (name.equals("PATH")) {
-//            name = "Path";
-//         }
+         if ((!isLinux) && name.equals("PATH")) {
+            name = "Path";
+         }
          System.err.println("Adding Environment variable: "+name+" => "+ev.getValue());
          environmentMap.put(name, ev.getValue());
       }
@@ -137,19 +138,19 @@ public class DisassembleCFileHandler implements IHandler {
 //         System.err.println("cl.getCommandLine() = "+commandLineInfo.getCommandLine());
 
          String[] commandArray = null;
-         if (System.getProperty("os.name").startsWith("Windows")) {
+         if (isLinux) {
             // Construct command (Use cmd for PATH changes!)
             ArrayList<String> command = new ArrayList<String>(20);
-            command.add("cmd.exe");
-            command.add("/C");
+            command.add("/bin/sh");
+            command.add("-c");
             command.add(commandLineInfo.getCommandLine());
             commandArray = (String[])command.toArray(new String[command.size()]);
          }
          else {
             // Construct command (Use cmd for PATH changes!)
             ArrayList<String> command = new ArrayList<String>(20);
-            command.add("/bin/sh");
-            command.add("-c");
+            command.add("cmd.exe");
+            command.add("/C");
             command.add(commandLineInfo.getCommandLine());
             commandArray = (String[])command.toArray(new String[command.size()]);
          }
@@ -158,7 +159,6 @@ public class DisassembleCFileHandler implements IHandler {
          ProcessBuilder pb = new ProcessBuilder(commandArray);
          pb.environment().putAll(environmentMap);
 
-      // TODO Check required for windows (path vs PATH)	 
          File commandFile = findExecutableOnPath(pb.environment().get("PATH"), commandLineInfo.getCommandName());
          if (commandFile != null) {
             System.err.println("commandFile.toPath() = "+ commandFile.toPath());

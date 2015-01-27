@@ -266,7 +266,6 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
             break;
          case DebugEvent.CREATE : 
             {
-
             for (GdbSessionListener sessionListener : gdbSessionListeners) {
                sessionListener.sessionStarted(peripheralsModel);
             }

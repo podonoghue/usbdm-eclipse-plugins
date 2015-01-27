@@ -26,9 +26,10 @@ public class DeviceDatabaseTest {
          System.err.println("Data Path        : " + Usbdm.getDataPath().toPortableString());
          
          TargetType[] targetTypes = {
-               TargetType.T_ARM,  
-               TargetType.T_CFV1, 
-               TargetType.T_CFVx, 
+//               TargetType.T_ARM,  
+//               TargetType.T_CFV1, 
+//               TargetType.T_CFVx, 
+               TargetType.T_MC56F80xx,
                };
          for (TargetType targetType:targetTypes) {
             DeviceDatabase database = new DeviceDatabase(targetType);

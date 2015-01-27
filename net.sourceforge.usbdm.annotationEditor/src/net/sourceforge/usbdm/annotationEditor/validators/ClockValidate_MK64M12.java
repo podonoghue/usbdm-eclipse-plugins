@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.annotationEditor.validators;
 
+@Deprecated
 public class ClockValidate_MK64M12 extends ClockValidate_MKxx {
 
    public ClockValidate_MK64M12() {

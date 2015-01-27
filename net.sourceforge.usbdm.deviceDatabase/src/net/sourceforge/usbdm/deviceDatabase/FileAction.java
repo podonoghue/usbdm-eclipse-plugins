@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceDatabase;
 
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase.FileType;
-
 public class FileAction extends ProjectAction {
    private final String    source;
    private final String    target;
@@ -10,8 +8,13 @@ public class FileAction extends ProjectAction {
    private final boolean   doMacroReplacement;
    private final boolean   doReplace;
 
-   public FileAction(String id, String source, String target, FileType fileType, boolean doMacroReplacement, boolean doReplace) {
-      super(id);
+   public enum FileType {
+      NORMAL,
+      LINK,
+   }
+
+   public FileAction(String source, String target, FileType fileType, boolean doMacroReplacement, boolean doReplace) throws Exception {
+      super("---file---");
       this.source             = source;
       this.target             = target;
       this.fileType           = fileType;

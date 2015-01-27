@@ -65,7 +65,7 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
       }
       StringBuffer description     = new StringBuffer();
       StyleRange   valueStyleRange = null;
-      int splitAt = basicDescription.indexOf("\n");
+      int          splitAt         = basicDescription.indexOf("\n");
       if (!valueString.isEmpty()) {
          if (splitAt != -1) {
             description.append(basicDescription.substring(0, splitAt));
@@ -86,11 +86,11 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
          FieldModel uField = (FieldModel) uModel;
          int enumerationIndex = description.length(); // Start of enumeration
          // text
-         int enumerationlength = 0; // Length of enumeration text
-         int selectionIndex = 0;    // Start of highlighted enumeration
-         int selectionLength = 0;   // Length of highlighted enumeration
-         long enumerationValue = 0;
-         boolean enumerationValid = false;
+         int      enumerationlength  = 0;  // Length of enumeration text
+         int      selectionIndex     = 0;  // Start of highlighted enumeration
+         int      selectionLength    = 0;  // Length of highlighted enumeration
+         long     enumerationValue   = 0;
+         boolean  enumerationValid   = false;
          try {
             enumerationValue = uField.getValue();
             enumerationValid = true;

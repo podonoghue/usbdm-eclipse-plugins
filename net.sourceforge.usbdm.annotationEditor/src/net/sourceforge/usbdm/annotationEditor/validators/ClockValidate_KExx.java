@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 
 // For backwards compatibility
 
+   @Deprecated
    public class ClockValidate_KExx extends ClockValidate_MKE02 {
    
    public ClockValidate_KExx() {

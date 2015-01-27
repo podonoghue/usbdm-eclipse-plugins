@@ -20,21 +20,16 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    void init(RegisterModel parent, Field field) {
       assert(parent != null) : "parent can't be null";
       setEnumeratedDescription(field.getEnumerations());
-      enumerations          = null;
-      accessMode            = field.getAccessType().getAbbreviatedName();
-      size                  = (int)field.getBitwidth();
-      bitOffset             = (int)field.getBitOffset();
-      readable  = field.getAccessType().isReadable();
-      writeable = field.getAccessType().isWriteable();      
+      enumerations = null;
+      accessMode   = field.getAccessType().getAbbreviatedName();
+      size         = (int)field.getBitwidth();
+      bitOffset    = (int)field.getBitOffset();
+      readable     = field.getAccessType().isReadable();
+      writeable    = field.getAccessType().isWriteable();      
    }
    
-   public FieldModel(RegisterModel parent, Field field) {
-      super(parent, field.getName(), field.getCDescription());
-      init(parent, field);
-   }
-   
-   public FieldModel(RegisterModel parent, Field field, int index) throws Exception {
-      super(parent, field.getName(index), field.getCDescription(index));
+   public FieldModel(RegisterModel parent, Field field, ModelInformation information) throws Exception {
+      super(parent, information.getFieldName(), information.getDescription());
       init(parent, field);
    }
    

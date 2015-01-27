@@ -40,7 +40,7 @@ public class PllClockValidate_CFV1 extends MyValidator {
 
       long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
 
-      System.err.println(String.format("\nPllClockValidate.validate(): oscclk_clock = %d, pllTargetFrequency = %d", oscclk_clock, pllTargetFrequency));
+//      System.err.println(String.format("\nPllClockValidate.validate(): oscclk_clock = %d, pllTargetFrequency = %d", oscclk_clock, pllTargetFrequency));
 
       int  mcg_c1_rdiv = 0;
       int  mcg_c3_vdiv  = 0;
@@ -87,7 +87,7 @@ public class PllClockValidate_CFV1 extends MyValidator {
             update(viewer, mcg_c1_rdivNode, new Long(mcg_c1_rdiv));
          }
          update(viewer, mcg_c3_vdivNode, new Long(mcg_c3_vdiv));
-         System.err.println(String.format("PllClockValidate.validate() Valid: rdiv=%d, vdiv=%d", mcg_c1_rdiv, mcg_c3_vdiv));
+//         System.err.println(String.format("PllClockValidate.validate() Valid: rdiv=%d, vdiv=%d", mcg_c1_rdiv, mcg_c3_vdiv));
       }
       String pllTargetFrequencyMessage = null;
       if (!valid) {

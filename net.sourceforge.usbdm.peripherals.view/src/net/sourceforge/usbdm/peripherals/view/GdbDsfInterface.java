@@ -1,3 +1,10 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Moved byte sex dependent code to gdbInterface                                     | V4.10.6.250
+===============================================================================================================
+*/
 package net.sourceforge.usbdm.peripherals.view;
 
 import java.util.concurrent.TimeUnit;
@@ -36,7 +43,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.debug.core.model.MemoryByte;
 import org.eclipse.debug.ui.DebugUITools;
 
-public class GdbDsfInterface implements GdbCommonInterface {
+public class GdbDsfInterface extends GdbCommonInterface {
 
    //   private static final int maxResetWaitTimeInMilliseconds      = 10000;  
    private static final int defaultMemoryWaitTimeInMilliseconds = 1000; // Usual time to wait for memory accesses

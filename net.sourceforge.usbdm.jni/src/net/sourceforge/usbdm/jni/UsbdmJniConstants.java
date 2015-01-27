@@ -29,4 +29,5 @@ public class UsbdmJniConstants {
    public static final String CFVX_DEVICE_FILE  = "cfvx_devices.xml";
    public static final String RS08_DEVICE_FILE  = "rs08_devices.xml";
    public static final String HCS08_DEVICE_FILE = "hcs08_devices.xml";
+   public static final String MC56F_DEVICE_FILE = "dsc_devices.xml";
 }

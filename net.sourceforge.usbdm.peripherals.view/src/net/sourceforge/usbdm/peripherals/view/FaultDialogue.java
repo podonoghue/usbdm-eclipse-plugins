@@ -1,9 +1,14 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Moved byte sex code to gdbInterface                                               | V4.10.6.250
+===============================================================================================================
+*/
 package net.sourceforge.usbdm.peripherals.view;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
-
-import net.sourceforge.usbdm.peripherals.model.BaseModel;
 
 import org.eclipse.cdt.dsf.datamodel.DMContexts;
 import org.eclipse.cdt.dsf.datamodel.IDMContext;
@@ -182,12 +187,12 @@ public class FaultDialogue extends TitleAreaDialog {
       
       try {
          // Get hardware registers
-         cfsr  = BaseModel.getValue32bit(gdbInterface.readMemory(CFSR_ADDRESS,  4, 32));
-         hfsr  = BaseModel.getValue32bit(gdbInterface.readMemory(HFSR_ADDRESS,  4, 32)); 
-         dfsr  = BaseModel.getValue32bit(gdbInterface.readMemory(DFSR_ADDRESS,  4, 32));
-         mmfar = BaseModel.getValue32bit(gdbInterface.readMemory(MMFAR_ADDRESS, 4, 32)); 
-         bfar  = BaseModel.getValue32bit(gdbInterface.readMemory(BFAR_ADDRESS,  4, 32));
-         icsr  = BaseModel.getValue32bit(gdbInterface.readMemory(ICSR_ADDRESS,  4, 32));
+         cfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(CFSR_ADDRESS,  4, 32));
+         hfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(HFSR_ADDRESS,  4, 32)); 
+         dfsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(DFSR_ADDRESS,  4, 32));
+         mmfar = gdbInterface.getValue32bit(gdbInterface.readMemory(MMFAR_ADDRESS, 4, 32)); 
+         bfar  = gdbInterface.getValue32bit(gdbInterface.readMemory(BFAR_ADDRESS,  4, 32));
+         icsr  = gdbInterface.getValue32bit(gdbInterface.readMemory(ICSR_ADDRESS,  4, 32));
 
          exceptionFrameValid = false;
          floatingFrameValid  = false;
@@ -237,13 +242,13 @@ public class FaultDialogue extends TitleAreaDialog {
                System.err.println(String.format("exceptionFramePtr = 0x%08X", exceptionFramePtr));
 
                // Recover register from stack frame
-               stackedR0  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+0,  4, 32));
-               stackedR1  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+4,  4, 32));
-               stackedR2  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+8,  4, 32));
-               stackedR3  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+12, 4, 32));
-               stackedR12 = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+16, 4, 32));
-               stackedLR  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+20, 4, 32));
-               stackedPC  = BaseModel.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+24, 4, 32));
+               stackedR0  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+0,  4, 32));
+               stackedR1  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+4,  4, 32));
+               stackedR2  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+8,  4, 32));
+               stackedR3  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+12, 4, 32));
+               stackedR12 = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+16, 4, 32));
+               stackedLR  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+20, 4, 32));
+               stackedPC  = gdbInterface.getValue32bit(gdbInterface.readMemory(exceptionFramePtr+24, 4, 32));
 
                // Get unchanged registers
                R4         = gdbInterface.evaluateExpression(null, exceptionStackFrameContext, "$r4");

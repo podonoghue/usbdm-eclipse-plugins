@@ -7,8 +7,8 @@ public class CreateFolderAction extends ProjectAction {
    private String    type;
    private String    root;
 
-   public CreateFolderAction(String target, String type) {
-      super(null);
+   public CreateFolderAction(String target, String type) throws Exception {
+      super("---folder---");
       this.target = target;
       this.type   = type;
    }

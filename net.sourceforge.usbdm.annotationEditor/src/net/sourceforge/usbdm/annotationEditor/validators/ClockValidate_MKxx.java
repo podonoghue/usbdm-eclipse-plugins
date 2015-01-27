@@ -15,14 +15,14 @@ public class ClockValidate_MKxx extends MyValidator {
    
    public enum ClockModes {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
    
-   protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency, long maxFlexbusFrequency) {
+   public ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency, long maxFlexbusFrequency) {
       MAX_CORE_CLOCK_FREQ     = maxCoreClockfrequency;
       MAX_BUS_CLOCK_FREQ      = maxBusClockFrequency;
       MAX_FLASH_CLOCK_FREQ    = maxFlashClockFrequency;
       MAX_FLEXBUS_CLOCK_FREQ  = maxFlexbusFrequency;
    }
    
-   protected ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency) {
+   public ClockValidate_MKxx(long maxCoreClockfrequency, long maxBusClockFrequency, long maxFlashClockFrequency) {
       this(maxCoreClockfrequency, maxBusClockFrequency, maxFlashClockFrequency, 50000000);
    }
    
@@ -75,7 +75,7 @@ public class ClockValidate_MKxx extends MyValidator {
       else {
          system_mcgir_clock = slowIRCNode.getValueAsLong();
       }
-      System.err.println("ClockValidate_MKxx.validate() system_mcgir_clock = " + system_mcgir_clock);
+//      System.err.println("ClockValidate_MKxx.validate() system_mcgir_clock = " + system_mcgir_clock);
 
       // Default if no MCG_C7_OSCSEL register field
       long system_erc_clock = oscclk_clockNode.getValueAsLong();
@@ -94,7 +94,7 @@ public class ClockValidate_MKxx extends MyValidator {
             throw new Exception("Illegal Clock source (mcg_c7_oscsel)");
          }
       }
-      System.err.println("ClockValidate_MKxx.validate() system_erc_clock = " + system_erc_clock);
+//      System.err.println("ClockValidate_MKxx.validate() system_erc_clock = " + system_erc_clock);
 
       long clk = primaryClockModeNode.getValueAsLong();
       if (clk > ClockModes.values().length) {
@@ -184,11 +184,11 @@ public class ClockValidate_MKxx extends MyValidator {
       long system_core_clock   = system_mcgout_clock / sim_clkdiv1_outdiv1;
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
-         System.err.println("ClockValidate_MKxx.validate() Core clock frequency is too high = " + system_core_clock);
+         system_core_clockMessage = String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0);
+//         System.err.println("ClockValidate_MKxx.validate() Core clock frequency is too high = " + system_core_clock);
       }
-      System.err.println("ClockValidate_MKxx.validate() Core clock frequency = " + system_core_clock + 
-            ", MAX_BUS_CLOCK_FREQ = " + MAX_CORE_CLOCK_FREQ );
+//      System.err.println("ClockValidate_MKxx.validate() Core clock frequency = " + system_core_clock + 
+//            ", MAX_BUS_CLOCK_FREQ = " + MAX_CORE_CLOCK_FREQ );
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
       // Bus Clock
@@ -197,7 +197,7 @@ public class ClockValidate_MKxx extends MyValidator {
       long system_bus_clock = system_mcgout_clock / sim_clkdiv1_outdiv2;
       String system_bus_clockMessage = null;
       if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_BUS_CLOCK_FREQ/1000000);
+         system_bus_clockMessage = String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_BUS_CLOCK_FREQ/1000000.0);
       }
       else if (system_bus_clock>system_core_clock) {
          system_bus_clockMessage = "Clock is too high. (Req. <= Core clock)";
@@ -215,7 +215,7 @@ public class ClockValidate_MKxx extends MyValidator {
          system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
          String system_flexbus_clockMessage = null;
          if (system_flexbus_clock > MAX_FLEXBUS_CLOCK_FREQ) {
-            system_flexbus_clockMessage = String.format("Frequency is too high. (Req. <= %d MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000);
+            system_flexbus_clockMessage = String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000.0);
          }
          else if ((sim_clkdiv1_outdiv3 % sim_clkdiv1_outdiv1) != 0) {
             system_flexbus_clockMessage = "Frequency must be an integer divisor of Core clock frequency";
@@ -232,7 +232,7 @@ public class ClockValidate_MKxx extends MyValidator {
       long system_flash_clock = system_mcgout_clock / sim_clkdiv1_outdiv4;
       String system_flash_clockMessage = null;
       if (system_flash_clock > MAX_FLASH_CLOCK_FREQ) {
-         system_flash_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_FLASH_CLOCK_FREQ/1000000);
+         system_flash_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_CLOCK_FREQ/1000000.0);
       }
       else if (system_flash_clock>system_bus_clock) {
          system_flash_clockMessage = "Clock is too high. (Req. <= Bus clock)";

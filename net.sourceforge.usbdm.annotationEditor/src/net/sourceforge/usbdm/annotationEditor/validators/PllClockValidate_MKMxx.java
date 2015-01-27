@@ -47,16 +47,16 @@ public class PllClockValidate_MKMxx extends MyValidator {
       String pllTargetFrequencyMessage = null;
       if (valid) {
          // Valid - update
-         System.err.println(String.format("PllClockValidate.validate() Valid"));
+//         System.err.println(String.format("PllClockValidate.validate() Valid"));
          pll_output_clock = pll_input_clock * PLL_FACTOR;
-         System.err.println(String.format("\nPllClockValidate.validate(): Valid, pll_input_clock = %d, pllTargetFrequency = %d", 
-               pll_input_clock, pll_output_clock));
+//         System.err.println(String.format("\nPllClockValidate.validate(): Valid, pll_input_clock = %d, pllTargetFrequency = %d", 
+//               pll_input_clock, pll_output_clock));
       }
       else {
          // Not valid input frequency
          pllTargetFrequencyMessage = String.format("Invalid input frequency for PLL (%d)", pll_input_clock);
-         System.err.println(String.format("PllClockValidate.validate(): Invalid, pll_input_clock = %d, pllTargetFrequency = %d", 
-               pll_input_clock, pll_output_clock));
+//         System.err.println(String.format("PllClockValidate.validate(): Invalid, pll_input_clock = %d, pllTargetFrequency = %d", 
+//               pll_input_clock, pll_output_clock));
       }
       setValid(viewer, pllTargetFrequencyNode, pllTargetFrequencyMessage);
       update(viewer, pllTargetFrequencyNode, pll_output_clock);

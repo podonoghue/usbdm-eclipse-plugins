@@ -9,7 +9,7 @@ public class TestVectorTable {
    public TestVectorTable() {
    }
 
-   static void testVectorTable(String device) {
+   static void testVectorTable(String device) throws Exception {
       
 //      VectorTable vt = VectorTable.factory(device);
       
@@ -44,10 +44,11 @@ public class TestVectorTable {
     System.err.print(stringWriter.toString());
    }
    
-   public static void main(String[] args) {
+   public static void main(String[] args) throws Exception {
 //      String device="MCF51JF128";
 //      String device="MCF52259";
-      String device="MK20D5";
+//      String device="MK20D5";
+      String device="MKL25Z4";
       
       testVectorTable(device);
       testHeaderFile(device);

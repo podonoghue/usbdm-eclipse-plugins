@@ -30,7 +30,7 @@ public class RegisterUnion {
    private final String unionClosing        = "};\n";
   
    /**
-    * Creates a structure to hold a collection of registers being written to a header file.
+    * Creates a structure to hold a collection of registers being written to a header file.<br>
     * It handles assembling them and writing the appropriate structs using the writer.
     *  
     * @param writer      Writer to use when outputting the struct
@@ -75,7 +75,7 @@ public class RegisterUnion {
    /** 
     * Add a register to union
     * 
-    * @param  cluster   Add register to struct being constructed
+    * @param  cluster   Add register to struct/union being assembled
     * 
     * @throws Exception
     */
@@ -104,9 +104,9 @@ public class RegisterUnion {
    }
    
    /**
-    * Writes C code for Cluster list e.g. a list of clusters/registers at the same address
-    * If elements don't overlap then simple declarations are written.
-    * If elements overlap then they are wrapped in an anonymous UNION declaration e.g. "union { ... };"
+    * Writes C code for the contents of the RegisterUnion e.g. a list of clusters/registers at the same address<br>
+    * If elements don't overlap then simple declarations are written.<br>
+    * If elements overlap then they are wrapped in an anonymous UNION declaration e.g. <b>union { ... };</b>
     * 
     * @param writer
     * @param devicePeripherals

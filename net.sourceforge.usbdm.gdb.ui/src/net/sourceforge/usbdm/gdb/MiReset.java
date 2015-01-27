@@ -11,7 +11,6 @@ public class MiReset extends MICommand<MIInfo> {
 
    public MiReset(IDMContext ctx, String operation) {
       super(ctx, "monitor remote");
-      // TODO Auto-generated constructor stub
    }
 
 }

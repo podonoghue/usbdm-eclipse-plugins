@@ -6,26 +6,29 @@ import net.sourceforge.usbdm.peripheralDatabase.AddressBlock;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
 
-/**
+   /**
     * Model for a peripheral tree item
     *
     */
-   public class PeripheralModel extends BaseModel implements UpdateInterface, MemoryBlockChangeListener {
+   public class PeripheralModel extends RegisterHolder implements UpdateInterface, MemoryBlockChangeListener {
     
       private ArrayList<MemoryBlockCache> memoryBlockCaches = new ArrayList<MemoryBlockCache>();
-      private boolean                   refreshAll;  
+      private boolean                     refreshAll;  
       
       /**
        * Constructor
        * 
        * @param parent      Parent of this element in tree
        * @param peripheral  Underlying peripheral
+       * @throws Exception 
        */
-      public PeripheralModel(BaseModel parent, Peripheral peripheral, GdbCommonInterface gdbInterface) {
-         super(parent, peripheral.getName(), peripheral.getCDescription());
+      public PeripheralModel(BaseModel parent, Peripheral peripheral, GdbCommonInterface gdbInterface) throws Exception {
+         super(parent, peripheral.getName(), peripheral.getDescription());
+
          assert(parent != null) : "parent can't be null";
-         address = peripheral.getBaseAddress();
-         refreshAll = peripheral.isRefreshAll();
+         
+         refreshAll  = peripheral.isRefreshAll();
+         address     = peripheral.getBaseAddress();
          
          // Use address blocks to create target memory cache
          // The Model is registered as a change listener
@@ -107,6 +110,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        * 
        * @return null if not found, block otherwise
        */
+      @Override
       public MemoryBlockCache findAddressBlock(long address, long sizeInBytes) {
          for (MemoryBlockCache memoryBlockCache : memoryBlockCaches) {
             if (memoryBlockCache.containsAddress(address, sizeInBytes)) {
@@ -148,6 +152,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        * 
        * @param child
        */
+      @Override
       public void registerChanged(RegisterModel child) {
          if (refreshAll) {
             forceUpdate();

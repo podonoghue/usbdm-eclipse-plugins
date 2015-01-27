@@ -11,22 +11,6 @@ import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
 public class ModeControl {
 
-//   /**
-//    * Returns a relatively shallow copy of the peripheral
-//    * Only the following should be changed:
-//    *    - name
-//    *    - baseAddress
-//    *    - addressBlock
-//    *    - prependToName
-//    *    - appendToName
-//    */
-//   @Override
-//   protected Object copy() throws CloneNotSupportedException {
-//      // Make shallow copy
-//      ModeControl clone = (ModeControl) super.clone();
-//      return clone;
-//   }
-
    private static String reasonForDifference   = null;
    
    /**
@@ -89,7 +73,12 @@ public class ModeControl {
     * Whether to extract common prefixes from register names
     */
    private static boolean foldRegisters = false;
-   
+
+   /**
+    * Whether to generate bit fields a simple numbers or used (1<<N) shifts
+    */
+   private static boolean useShiftsInFieldMacros = true;
+
    /**
     * Whether to do some intelligent hacks on the files produced.  This
     * is used to clean up some initial incomplete files.
@@ -105,7 +94,7 @@ public class ModeControl {
    private static boolean stripWhiteSpace = false;
    
    // Bit dodgy - assumes you only write the Macros once!
-   protected static HashMap<String, Integer> fieldMacros = new HashMap<String,Integer>();
+   private static HashMap<String, Integer> fieldMacros = null;
 
    public ModeControl() {
    }
@@ -118,6 +107,8 @@ public class ModeControl {
    }
 
    /**
+    * Cause some register names that appears twice to be folded (i.e. 2nd occurrence deleted)
+    * 
     * @param foldRegisters the foldRegisters to set
     */
    public static void setFoldRegisters(boolean foldRegisters) {
@@ -125,12 +116,12 @@ public class ModeControl {
    }
 
    /**
-    * Sets some standard differences between ARM header files and Freescale typical
-    * 
+    * Sets some standard differences between ARM header files and Freescale typical<br>
+    * <pre>
     *                             Freescale         ARM
-    * * Field bit masks use        _MASK            _Msk
-    * * Field bit offsets use      _SHIFT           _Pos
-    * 
+    * Field bit masks use        _MASK            _Msk
+    * Field bit offsets use      _SHIFT           _Pos
+    * </pre>
     */
    public static boolean isFreescaleMode() {
       return freescaleMode;
@@ -138,17 +129,19 @@ public class ModeControl {
 
    /**
     * Report is using some standard differences between ARM header files and Freescale typical
-    * 
+    * <pre>
     *                             Freescale         ARM
-    * * Field bit masks use        _MASK            _Msk
-    * * Field bit offsets use      _SHIFT           _Pos
-    * 
+    * Field bit masks use        _MASK            _Msk
+    * Field bit offsets use      _SHIFT           _Pos
+    * </pre>
     */
-   public static void setFreescaleMode(boolean freescaleMode) {
+   public static void setFreescaleFieldNames(boolean freescaleMode) {
       ModeControl.freescaleMode = freescaleMode;
    }
 
    /**
+    *  Returns the suffix to use for field offset macros (_SHIFT or _Pos)
+    *  
     * @return the fieldOffsetSuffixName
     */
    public static String getFieldOffsetSuffixName() {
@@ -156,6 +149,8 @@ public class ModeControl {
    }
 
    /**
+    *  Returns the suffix to use for field mask macros (_MASK or _Msk)
+    *  
     * @return the fieldMaskSuffixName
     */
    public static String getFieldMaskSuffixName() {
@@ -163,14 +158,18 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to generate Freescale style MACROs to access registers
+    * Indicates whether to generate Freescale style MACROs to access registers e.g.<br>
+    * 
+    * <pre>#define CMP1_CR0    (CMP1->CR0)</pre>
     */
    public static boolean isGenerateFreescaleRegisterMacros() {
       return generateFreescaleRegisterMacros;
    }
 
    /**
-    * Sets whether to generate Freescale style MACROs to access registers
+    * Set whether to generate Freescale style MACROs to access registers e.g.<br>
+    * 
+    * <pre>#define CMP1_CR0    (CMP1->CR0)</pre>
     */
    public static void setGenerateFreescaleRegisterMacros(
          boolean generateFreescaleRegisterMacros) {
@@ -178,14 +177,18 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to map peripheral names to common Freescale names 
+    * Indicates whether to map peripheral names to common Freescale names e.g.<br>
+    * 
+    * <pre>"PTA" => "GPIOA"</pre>
     */
    public static boolean isMapFreescaleCommonNames() {
       return mapFreescaleCommonNames;
    }
 
    /**
-    * Sets whether to map peripheral names to common Freescale names 
+    * Sets whether to map peripheral names to common Freescale names e.g.<br>
+    * 
+    * <pre>"PTA" => "GPIOA"</pre>
     */
    public static void setMapFreescaleCommonNames(boolean mapFreescaleCommonNames) {
       ModeControl.mapFreescaleCommonNames = mapFreescaleCommonNames;
@@ -206,7 +209,7 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to try to combine peripheral registers into complex arrays where possible 
+    * Indicates whether to try to combine peripheral registers into complex arrays where possible <br>
     * This is only applicable to Freescale style as requires some hints
     */
    public static boolean isExtractComplexStructures() {
@@ -214,7 +217,7 @@ public class ModeControl {
    }
 
    /**
-    * Sets whether to try to combine peripheral registers into complex arrays where possible 
+    * Sets whether to try to combine peripheral registers into complex arrays where possible <br>
     * This is only applicable to Freescale style as requires some hints
     */
    public static void setExtractComplexStructures(boolean extractComplexArrays) {
@@ -290,8 +293,8 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to do some intelligent hacks on the files produced.  This
-    * is used to clean up some initial incomplete files.
+    * Indicates whether to do some intelligent hacks on the files produced.  <br>
+    * This is used to clean up some initial incomplete files.<br>
     * 
     * E.g. if the name starts with MKL then set cpu.name="CM3", cpu.nvicPrioBits=2, cpu.fpuPresent=false etc
     */
@@ -300,8 +303,8 @@ public class ModeControl {
    }
 
    /**
-    * Sets whether to do some intelligent hacks on the files produced.  This
-    * is used to clean up some initial incomplete files.
+    * Sets whether to do some intelligent hacks on the files produced. <br>
+    * This is used to clean up some initial incomplete files.<br>
     * 
     * E.g. if the name starts with MKL then set cpu.name="CM3", cpu.nvicPrioBits=2, cpu.fpuPresent=false etc
     */
@@ -405,9 +408,25 @@ public class ModeControl {
    static String getMappedRegisterMacroName(String name) {
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
       if (mappedMacros.size() == 0) {
-         mappedMacros.add(new Pair(Pattern.compile("^(FTM\\d_C\\d)Cn(.*)$"),      "$1$2"));   // e.g. FTM0_C1CnV  -> FTM0_C1V
-         mappedMacros.add(new Pair(Pattern.compile("^(TPM\\d_C\\d)Cn(.*)$"),      "$1$2"));   // e.g. TPM0_C0CnSC -> TPM0_C0SC
-         mappedMacros.add(new Pair(Pattern.compile("^(DAC\\d_DAT)([L|H])(\\d)$"), "$1$3$2")); // e.g. DAC0_DATL0 -> DAC0_DAT0L
+         //TODO - Where register name MACROs are mapped
+         mappedMacros.add(new Pair(Pattern.compile("^(FTM[0-9]?)_CONTROLS([0-9]+)_Cn(.*)$"),       "$1_C$2$3"));  // e.g. FTM1_CONTROLS0_CnSC -> FTM1_C0SC
+         mappedMacros.add(new Pair(Pattern.compile("^(TPM[0-9]?)_CONTROLS([0-9]+)_Cn(.*)$"),       "$1_C$2$3"));  // e.g. TPM1_CONTROLS0_CnSC -> TPM_C0SC
+         mappedMacros.add(new Pair(Pattern.compile("^(FMC[0-9]?_.*)_(S[0-9]+.*)$"),                "$1$2"));      // e.g. FMC_TAGVDW0_S0 -> FMC_TAGVDW0S0
+//         mappedMacros.add(new Pair(Pattern.compile("^(FMC[0-9]?_)S(_.*)$"),                        "$1TAGVD$2")); // e.g. FMC_S_valid_MASK -> FMC_TAGVD_valid_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(PDB[0-9]?_.*[0-9]*)_(.*)$"),                 "$1$2"));      // e.g. PDB0_CH0_C1 -> PDB0_CH0C1
+         mappedMacros.add(new Pair(Pattern.compile("^(PIT[0-9]?)_CHANNEL([0-9]+)(.*)$"),           "$1$3$2"));    // e.g. PIT_CHANNEL0_LDVAL -> PIT_LDVAL0
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC[0-9]?)_DAT([0-9]+)(.*)([HL])$"),         "$1$3$2$4"));  // e.g. DAC0_DAT0_DATH -> DAC0_DAT0H
+         mappedMacros.add(new Pair(Pattern.compile("^(DAC[0-9]?)_DAT([0-9]+)(.*)$"),               "$1$3$2"));    // e.g. DAC0_DAT0_DATA -> DAC0_DATA0
+         mappedMacros.add(new Pair(Pattern.compile("^(FB[0-9]?)_CS([0-9]+)(.*)$"),                 "$1$3$2"));    // e.g. FB_CS0_CSAR -> FB_CSAR0
+         mappedMacros.add(new Pair(Pattern.compile("^(MPU[0-9]?)_SP([0-9]+)(.*)$"),                "$1$3$2"));    // e.g. MPU_SP0_EAR -> MPU_EAR0
+         mappedMacros.add(new Pair(Pattern.compile("^(MTBDWT[0-9]?)_COMPARATOR([0-9]+)(.*)$"),     "$1$3$2"));    // e.g. MPU_SP0_EAR -> MPU_EAR0
+         mappedMacros.add(new Pair(Pattern.compile("^(DMA[0-9]?)_DMA([0-9]+)(.*)$"),               "$1$3$2"));    // e.g. DMA_DMA0_SAR -> MPU_EAR0
+
+
+         mappedMacros.add(new Pair(Pattern.compile("^(DMA)_CH([0-9]+)(_.*)$"),                     "$1$3$2"));    // e.g. DMA_CH0_SAR -> DMA_SAR0
+         mappedMacros.add(new Pair(Pattern.compile("^(DTIM)_CH([0-9]+)(_.*)$"),                    "$1$3$2"));    // e.g. DTIM_CH0_DTMR -> DTIM_DTMR0
+         mappedMacros.add(new Pair(Pattern.compile("^(FBCS)_CH([0-9]*)(_.*)$"),                    "$1$3$2"));    // e.g. FBCS_CH0_CSAR -> FBCS_CSAR0
+         mappedMacros.add(new Pair(Pattern.compile("^(USB[0-9]?)_ENDP(?:OIN)T([0-9]*)(_.*)$"),     "$1$3$2"));    // e.g. FBCS_CH0_CSAR -> FBCS_CSAR0
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
@@ -422,12 +441,12 @@ public class ModeControl {
    }
 
    /**
-    * Returns a string truncated at the first newline character
+    * Returns a string truncated at the first newline or tab character
     * 
     * @param line
     * @return
     */
-   String truncateAtNewlineOrTab(String line) {
+   static public String truncateAtNewlineOrTab(String line) {
       
       int newlineIndex = line.indexOf('\n');
       if (newlineIndex > 0) {
@@ -440,8 +459,60 @@ public class ModeControl {
       return line;
    }
    
-   static void resetMacroCache() {
-      fieldMacros = new HashMap<String, Integer>();
+   /**
+    * Reset the cache used to detect macro collisions.
+    */
+   static protected void clearMacroCache() {
+      fieldMacros = null;
    }
+
+   /**
+    * Checks for collisions on field macro names
+    * 
+    * @param field
+    * @param fieldname
+    * 
+    * @return  true - generate macro, false discard macro
+    * 
+    * @throws Exception if name used previously with different offset/width
+    */
+   protected static boolean fieldMacroAlreadyDone(Field field, String fieldname) throws Exception {
+      if (fieldMacros == null) {
+         fieldMacros = new HashMap<String, Integer>();
+      }
+      int newHashcode = (int) (field.getBitwidth() + (field.getBitOffset()<<8));
+      Integer hashCode = fieldMacros.get(fieldname);
+      if (hashCode != null) {
+         // Check if re-definition is the same
+         if (hashCode != newHashcode) {
+            throw new Exception("Redefined MACRO has different hashcode \""+fieldname+"\"");
+         }
+         // Don't regenerate the MACRO (duplication due to name folding)
+         return true;
+      }
+      // Add to table
+      fieldMacros.put(fieldname, newHashcode);
+      // Indicate new MACRO
+      return false;
+   }
+   
+   /**
+    * Indicates whether to use shifts in filed macros
+    *  
+    * @return the useShiftsInFiledMacros
+    */
+   public static boolean isUseShiftsInFieldMacros() {
+      return useShiftsInFieldMacros;
+   }
+
+   /**
+    * Sets whether to use shifts in filed macros
+    *  
+    * @param useShiftsInFiledMacros the useShiftsInFiledMacros to set
+    */
+   public static void setUseShiftsInFieldMacros(boolean useShiftsInFiledMacros) {
+      ModeControl.useShiftsInFieldMacros = useShiftsInFiledMacros;
+   }
+   
    
 }

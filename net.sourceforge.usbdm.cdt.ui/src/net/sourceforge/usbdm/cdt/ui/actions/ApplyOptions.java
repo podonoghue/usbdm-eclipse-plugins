@@ -30,8 +30,13 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 public class ApplyOptions {
 
    private boolean modified = false;
+   IProject projectHandle = null;
+   
+   public ApplyOptions(IProject projectHandle) {
+      this.projectHandle = projectHandle;
+   }
 
-   public void process(IProject projectHandle, Device device, Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor progressMonitor) throws Exception {
+   public void process(Device device, Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor progressMonitor) throws Exception {
 
 //      System.err.println("ApplyOptions.process() - "+projectOption.toString());
       String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);
@@ -43,23 +48,24 @@ public class ApplyOptions {
 //         System.err.println("ApplyOptions.process() value[n] = "+value[index]);
       }
       try {
-         modified |= setOptionValue(projectHandle, id, value, path, replace, progressMonitor);
+         modified |= setOptionValue(id, value, path, replace, progressMonitor);
       } catch (BuildException e) {
          e.printStackTrace();
       }
    }
    
-   public void updateConfigurations(IProject projectHandle) {
+   public void updateConfigurations() {
       if (modified) {
-         IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
          ManagedBuildManager.saveBuildInfo(projectHandle, true);
+         IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
          for (IConfiguration config : projectConfigs) {
              ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, new NullProgressMonitor());    
          }
       }
+      modified = false;
    }
 
-   private static boolean setOptionValue(IProject projectHandle, String id, String[] value, String path, boolean replace, IProgressMonitor progressMonitor) 
+   private boolean setOptionValue(String id, String[] value, String path, boolean replace, IProgressMonitor progressMonitor) 
          throws Exception {
       IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
 
@@ -95,7 +101,7 @@ public class ApplyOptions {
       }
       return modified;
    }
-//
+
 //   private static void printArray(String name, String ar[]) {
 //      System.err.print(name + " = ");
 //      boolean needComma = false;
@@ -127,7 +133,13 @@ public class ApplyOptions {
       return newValues;
    }
    
-   private static boolean addToOptionForResourceConfig(
+//   static void listArray(String values[]) {
+//      for (String s:values) {
+//         System.err.println("\'"+s+"\'");
+//      }
+//   }
+   
+   private boolean addToOptionForResourceConfig(
          String id, 
          String value[], 
          boolean replace,
@@ -175,7 +187,7 @@ public class ApplyOptions {
       return modified;
    }
 
-   private static boolean addToOptionForConfig(String id, String value[], boolean replace, IConfiguration config, IOption[] options, IHoldsOptions optionHolder) 
+   private boolean addToOptionForConfig(String id, String value[], boolean replace, IConfiguration config, IOption[] options, IHoldsOptions optionHolder) 
          throws Exception {
       boolean modified = false;
       String lowerId = id.toLowerCase();

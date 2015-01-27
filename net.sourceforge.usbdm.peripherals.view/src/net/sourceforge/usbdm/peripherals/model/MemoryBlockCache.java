@@ -1,3 +1,10 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Moved byte sex related code to gdbInterface                                       | V4.10.6.250
+===============================================================================================================
+*/
 package net.sourceforge.usbdm.peripherals.model;
 
 import java.util.ArrayList;
@@ -30,13 +37,13 @@ public class MemoryBlockCache {
       private ArrayList<MemoryBlockChangeListener> changeListeners = new ArrayList<MemoryBlockChangeListener>();
           
       public MemoryBlockCache(Peripheral peripheral, AddressBlock addressBlock, GdbCommonInterface gdbInterface) {
-         this.address       = peripheral.getBaseAddress()+addressBlock.getOffset();
-         this.sizeInBytes   = addressBlock.getSizeInBytes();
-         this.widthInBits   = addressBlock.getWidthInBits();
-         this.needsUpdate   = true;
-         this.updatePending = false;
-         this.gdbInterface  = gdbInterface; 
-         this.writeable     = false;
+         this.address         = peripheral.getBaseAddress()+addressBlock.getOffset();
+         this.sizeInBytes     = addressBlock.getSizeInBytes();
+         this.widthInBits     = addressBlock.getWidthInBits();
+         this.needsUpdate     = true;
+         this.updatePending   = false;
+         this.gdbInterface    = gdbInterface; 
+         this.writeable       = false;
       }
       
       /**
@@ -63,7 +70,7 @@ public class MemoryBlockCache {
          if ((offset<0) || (offset>=data.length)) {
             throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset, data.length-1));
          }
-         return BaseModel.getValue8bit(data, (int)offset);
+         return gdbInterface.getValue8bit(data, (int)offset);
       }
       
       private long get16bitValue(long address) throws MemoryException {
@@ -71,7 +78,7 @@ public class MemoryBlockCache {
          if ((offset<0) || ((offset+1)>=data.length)) {
             throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset+1, data.length-1));
          }
-         return BaseModel.getValue16bit(data, (int)offset);
+         return gdbInterface.getValue16bit(data, (int)offset);
       }
 
       private long get32bitValue(long address) throws MemoryException {
@@ -79,7 +86,7 @@ public class MemoryBlockCache {
          if ((offset<0) || ((offset+3)>=data.length)) {
             throw new MemoryException(String.format("Invalid address range [%d..%d], range=[0..%d]", offset, offset+3, data.length-1));
          }
-         return BaseModel.getValue32bit(data, (int)offset);
+         return gdbInterface.getValue32bit(data, (int)offset);
       }
 
       /**
@@ -164,7 +171,7 @@ public class MemoryBlockCache {
          if ((offset<0) || (offset>=lastData.length)) {
             return 0;
          }
-         return BaseModel.getValue8bit(lastData, (int)offset);
+         return gdbInterface.getValue8bit(lastData, (int)offset);
       }
       
       private long get16bitLastValue(long address) throws MemoryException {
@@ -175,7 +182,7 @@ public class MemoryBlockCache {
          if ((offset<0) || (offset>=lastData.length)) {
             return 0;
          }
-         return BaseModel.getValue16bit(lastData, (int)offset);
+         return gdbInterface.getValue16bit(lastData, (int)offset);
       }
 
       private long get32bitLastValue(long address) throws MemoryException {
@@ -186,7 +193,7 @@ public class MemoryBlockCache {
          if ((offset<0) || (offset>=lastData.length)) {
             return 0;
          }
-         return BaseModel.getValue32bit(lastData, (int)offset);
+         return gdbInterface.getValue32bit(lastData, (int)offset);
       }
 
       /**

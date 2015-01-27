@@ -28,6 +28,7 @@ public class UsbdmNewProjectPage extends WizardPage {
 
    static final String PAGE_NAME  = "USBDMProjectPage";
    static final String PAGE_TITLE = "New USBDM Project";
+   
    private Button    projectLocationBrowseButton;
    private Text      projectNameText;
    private Label     locationText;
@@ -72,6 +73,7 @@ public class UsbdmNewProjectPage extends WizardPage {
           locationText.setText(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
        }
        catch (IllegalStateException s) {
+          locationText.setText(".");
        }
     }
     else {

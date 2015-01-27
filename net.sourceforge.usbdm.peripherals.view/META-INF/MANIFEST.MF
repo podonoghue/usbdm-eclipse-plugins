@@ -13,6 +13,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.deviceDatabase.ui,
  net.sourceforge.usbdm.gdb,
  net.sourceforge.usbdm.jni,
  net.sourceforge.usbdm.peripheralDatabase,

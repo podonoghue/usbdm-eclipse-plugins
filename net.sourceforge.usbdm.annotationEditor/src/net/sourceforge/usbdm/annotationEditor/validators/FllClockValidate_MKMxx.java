@@ -97,7 +97,7 @@ public class FllClockValidate_MKMxx extends MyValidator {
       else {
          externalfllInputFrequencyAfterDivider = system_erc_clock / (1<<5);
       }
-      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider (after predivider) = " + externalfllInputFrequencyAfterDivider);
+//      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider (after predivider) = " + externalfllInputFrequencyAfterDivider);
 
       String mcg_c1_frdivMessage  = null;
       int    mcg_c1_frdiv         = 0;
@@ -140,7 +140,7 @@ public class FllClockValidate_MKMxx extends MyValidator {
          mcg_c1_frdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d Hz", system_erc_clock);
          mcg_c1_frdiv =  7;
       }
-      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
+//      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
 
       //=================
       // Determine FLL input frequency.  From:
@@ -186,7 +186,7 @@ public class FllClockValidate_MKMxx extends MyValidator {
          }
       }
       else {
-         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
+//         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
          fllTargetFrequencyNode.setEnabled(true);
 
          //=================
@@ -223,7 +223,7 @@ public class FllClockValidate_MKMxx extends MyValidator {
             }
             fllTargetFrequencyMessage = buff.toString();
          }
-         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
+//         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
       }
       update(viewer, mcg_c1_frdivNode, mcg_c1_frdiv);
       update(viewer, mcg_c2_rangeNode, mcg_c2_range);

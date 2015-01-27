@@ -115,7 +115,7 @@ public abstract class MyValidator {
          @Override
          public void run () {
             try {
-               System.err.println(String.format("Update(%s,%d)", node.getName(), value));
+//               System.err.println(String.format("MyValidator.Update(%s,%d)", node.getName(), value));
                node.setErrorMessage(null);
                node.setValue(value);
                refresh(viewer);

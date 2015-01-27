@@ -35,8 +35,8 @@ import org.eclipse.swt.widgets.Text;
 //TODO Remove duplication
 public class UsbdmToolSettingsPage extends WizardPage {
 
-   private String                      gccCommand = "";
-   private IWizardPage                 nextPage  = null;
+   private String                       gccCommand = "";
+   private IWizardPage                  nextPage  = null;
    private IUsbdmProjectTypeSelection   usbdmPage = null;
    
    public UsbdmToolSettingsPage(IUsbdmProjectTypeSelection usbdmPage) {

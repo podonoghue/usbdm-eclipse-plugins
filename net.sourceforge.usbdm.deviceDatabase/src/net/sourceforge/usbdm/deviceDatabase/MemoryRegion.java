@@ -12,30 +12,41 @@ import java.util.Vector;
 public class MemoryRegion {
 
    public static class MemoryRange {
-      public long  start;
-      public long  end;
+      public long   start;
+      public long   end;
+      public String name;
 
       public MemoryRange(long memoryStartAddress, long memoryEndAddress) {
          this.start = memoryStartAddress;
          this.end   = memoryEndAddress;
+         this.name  = null;
       }
       @Override
       public String toString() {
-         return "[0x" + Long.toString(start,16) + ",0x" + Long.toString(end,16) + "]";
+         return String.format("%s[0x%06X-0x%06X]", (name==null)?"":("("+name+")"), start, end);
+      }
+      
+      public String getName() {
+         return name;
+      }
+      public void setName(String name) {
+         this.name = name;
       }
    };
    public final int DefaultPageNo = 0xFFFF;
    public final int NoPageNo      = 0xFFFE;
 
-   Vector<MemoryRegion.MemoryRange>      memoryRanges;           //!< Memory ranges making up this region
-   MemoryType               type;                   //!< Type of memory regions
+   private Vector<MemoryRegion.MemoryRange>  memoryRanges;  //!< Memory ranges making up this region
+   private MemoryType                        type;          //!< Type of memory regions
+   private String                            name;          //!< Optional name of region
 
    /**
     * Constructor
     */
    public MemoryRegion(MemoryType memType) {
-      this.type = memType;
+      this.type    = memType;
       memoryRanges = new Vector<MemoryRegion.MemoryRange>();
+      name         = null;
    }
 
    //! Add a memory range to this memory region
@@ -99,5 +110,16 @@ public class MemoryRegion {
       }
       rv += ")";
       return rv; 
+   }
+
+   public void setName(String name) {
+      this.name = name;
+   }
+
+   /**
+    * @return the name
+    */
+   public String getName() {
+      return name;
    }
 }

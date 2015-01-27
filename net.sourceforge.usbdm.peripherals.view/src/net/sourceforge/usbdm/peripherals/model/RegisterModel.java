@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.peripherals.model;
 
-import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
 
@@ -16,7 +15,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
       private   boolean            haveReportedChanged = false;
       private   AccessType         accessType;
       
-      private void initCommon(PeripheralModel peripheral, Register register) throws Exception {
+      private void initCommon(RegisterHolder peripheral, Register register) throws Exception {
          if (register.isHidden()) {
             throw new Exception("Creating hidden register!!!");
          }
@@ -27,6 +26,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
          this.accessMode   = this.accessType.getAbbreviatedName();
          this.memoryBlockCache = peripheral.findAddressBlock(address, (sizeInBits+7)/8);
          if (memoryBlockCache == null) {
+//            System.err.println(String.format("initCommon() reg=%s adr=0x%X", register.getName(), address));
             throw new MemoryException(String.format("RegisterModel() %s - No memoryBlockCache found", getName()));
          }
          if (this.accessType.isWriteable()) {
@@ -45,95 +45,17 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
          return (memoryBlockCache != null) && (memoryBlockCache.isWriteable()); 
       }
       /**
-       * Constructor - applicable to simple register
+       * Constructor - applicable to simple register (which may be part of register array)
        * 
        * @param peripheral       Peripheral that contains register
        * @param register         Register being created
        * @throws Exception 
        */
-      public RegisterModel(PeripheralModel peripheral, Register register) throws Exception {
-         super(peripheral, register.getName(), register.getCDescription());
+      public RegisterModel(RegisterHolder peripheral, ModelInformation information) throws Exception {
+         super(peripheral, information.getRegisterName(), information.getDescription());
          assert(parent != null) : "parent can't be null";
-         assert(register.getDimension() == 0) : "Only applicable to simple register";
-         this.address      = peripheral.getAddress() + register.getAddressOffset();
-         initCommon(peripheral, register);
-      }
-
-      /**
-       * Constructor - applicable to register simple array
-       * 
-       * @param peripheral       Peripheral that contains register
-       * @param register         Register being created
-       * @param registerIndex    Index of register within register array
-       * 
-       * @throws Exception 
-       */
-      public RegisterModel(PeripheralModel peripheral, Register register, int registerIndex) throws Exception {
-         super(peripheral, register.getName(registerIndex), register.getCDescription(registerIndex));
-//         System.err.println(String.format("RegisterModel#1(%s)", peripheral.getName()));
-         assert(parent != null) : "parent can't be null";
-         assert(register.getDimension() != 0) : "Only applicable to register array";
-         this.address    = peripheral.getAddress() + register.getAddressOffset(registerIndex);
-         initCommon(peripheral, register);
-      }
-
-      /**
-       * Constructor - applicable to simple register within simple cluster
-       * 
-       * @param peripheral       Peripheral that contains register
-       * @param cluster          Cluster that contains register
-       * @param register         Register being created
-       * @throws Exception 
-       */
-      public RegisterModel(PeripheralModel peripheral, Cluster cluster, Register register) throws Exception {
-         super(peripheral, register.getName(), register.getCDescription());
-//         System.err.println(String.format("RegisterModel#2(%s)", peripheral.getName()));
-         assert(parent != null) : "parent can't be null";
-         assert(cluster.getDimension() == 0) : "Only applicable to simple cluster";
-         assert(register.getDimension() == 0) : "Only applicable to simple register";
-         this.address      = peripheral.getAddress() + cluster.getAddressOffset()+register.getAddressOffset();
-         initCommon(peripheral, register);
-      }
-
-      /**
-       * Constructor - applicable to simple register within a cluster array
-       * 
-       * @param peripheral       Peripheral that contains cluster
-       * @param cluster          Cluster that contains register
-       * @param clusterIndex     Index of cluster within cluster array
-       * @param register         Register being created
-       * 
-       * @throws Exception 
-       */
-      public RegisterModel(PeripheralModel peripheral, Cluster cluster, int clusterIndex, Register register) throws Exception {
-         super(peripheral, cluster.getName(clusterIndex), register.getCDescription(clusterIndex));
-//         System.err.println(String.format("RegisterModel#3(%s)", peripheral.getName()));
-         assert(parent != null) : "parent can't be null";
-         assert(cluster.getDimension() != 0) : "Only applicable to array cluster";
-         assert(register.getDimension() == 0) : "Only applicable to simple register";
-         this.address    = peripheral.getAddress() + cluster.getAddressOffset(clusterIndex)+register.getAddressOffset();
-         initCommon(peripheral, register);
-      }
-
-      /**
-       * Constructor - applicable to register array within a cluster array
-       * 
-       * @param peripheral       Peripheral that contains register
-       * @param cluster          Cluster that contains register
-       * @param clusterIndex     Index of cluster within cluster array
-       * @param register         Register being created
-       * @param registerIndex    Index of register within register array
-       * 
-       * @throws Exception 
-       */
-      public RegisterModel(PeripheralModel peripheral, Cluster cluster, int clusterIndex, Register register, int registerIndex) throws Exception {
-         super(peripheral, cluster.getName(clusterIndex), register.getCDescription(registerIndex));
-//         System.err.println(String.format("RegisterModel#4(%s)", peripheral.getName()));
-         assert(parent != null) : "parent can't be null";
-         assert(cluster.getDimension() != 0) : "Only applicable to array cluster";
-         assert(register.getDimension() != 0) : "Only applicable to simple register";
-         this.address    = peripheral.getAddress() + cluster.getAddressOffset(clusterIndex)+register.getAddressOffset(registerIndex);
-         initCommon(peripheral, register);
+         this.address = information.getRegisterAddress();
+         initCommon(peripheral, information.getRegister());
       }
 
       /**
@@ -248,7 +170,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
             System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, s=%d bytes", this.getName(), address, (sizeInBits+7)/8));
             e.printStackTrace();
          }
-         ((PeripheralModel)(this.parent)).registerChanged(this);
+         ((RegisterHolder)(this.parent)).registerChanged(this);
       }
 
       /* (non-Javadoc)
@@ -338,9 +260,9 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
          return memoryBlockCache.isNeedsUpdate();
       }
 
-      public void setName(String name) {
-         this.name = name;
-      }
+//      public void setName(String name) {
+//         this.name = name;
+//      }
 
       /**
        * Used by the address block to notify of changes.

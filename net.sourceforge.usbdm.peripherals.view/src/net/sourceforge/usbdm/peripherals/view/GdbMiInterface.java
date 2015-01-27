@@ -1,3 +1,10 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Moved byte sex dependent code to gdbInterface                                     | V4.10.6.250
+===============================================================================================================
+*/
 package net.sourceforge.usbdm.peripherals.view;
 
 import java.util.concurrent.TimeoutException;
@@ -12,7 +19,7 @@ import org.eclipse.cdt.debug.mi.core.output.MIResultRecord;
 import org.eclipse.cdt.dsf.debug.service.IExpressions;
 import org.eclipse.cdt.dsf.debug.service.IStack.IFrameDMContext;
 
-public class GdbMiInterface implements GdbCommonInterface {
+public class GdbMiInterface extends GdbCommonInterface {
 
    private MISession miSession = null;
 

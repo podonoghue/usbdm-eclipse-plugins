@@ -3,6 +3,7 @@
 +===================================================================================
 | Revision History
 +===================================================================================
+| 19 Jan 15 | Added some ignored tags                                     4.10.6.250
 | 16 Nov 13 | Added subfamily field                                       4.10.6.100
 +===================================================================================
  */
@@ -60,6 +61,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    public static String FIELD_TAG                = "field";
    public static String FPUPRESENT_TAG           = "fpuPresent";
    public static String GROUPNAME_TAG            = "groupName";
+   public static String HEADERSTRUCTNAME_TAG     = "headerStructName";
    public static String ISDEFAULT_TAG            = "isDefault";
    public static String INTERRUPT_TAG            = "interrupt";
    public static String INTERRUPTS_TAG           = "interrupts";
@@ -80,12 +82,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    public static String RESETVALUE_TAG           = "resetValue";
    public static String RESETMASK_TAG            = "resetMask";
    public static String REVISION_TAG             = "revision";
+   public static String SERIES_TAG               = "series";
    public static String SIZE_TAG                 = "size";
    public static String TRUE_TAG                 = "true";
    public static String USAGE_TAG                = "usage";
    public static String VALUE_TAG                = "value";
    public static String VENDORSYSTICKCONFIG_TAG  = "vendorSystickConfig";
    public static String VENDOREXTENSIONS_TAG     = "vendorExtensions";
+   public static String VENDOR_TAG               = "vendor";
    public static String VERSION_TAG              = "version";
    public static String WRITECONSTRAINTS_TAG     = "writeConstraint";
    public static String WIDTH_TAG                = "width";
@@ -332,7 +336,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     */
    private Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
 
-      Register register = new Register(peripheral);
+      Register register = new Register(peripheral, cluster);
       boolean derived = false;
 
       if (registerElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
@@ -358,7 +362,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          derived  = true;
       }
       else {
-         register = new Register(peripheral);
+         register = new Register(peripheral, cluster);
 
          // Inherit default from device
          register.setWidth(peripheral.getWidth());
@@ -435,7 +439,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             parseFields(register, element);
          }
          else if (element.getTagName() == ALTERNATEREGISTER_TAG) {
-            //TODO: Implement
+            //TODO: Implement ALTERNATEREGISTER_TAG
          }
          else {
             throw new Exception(String.format("Unexpected field in <register>, p=%s, r=%s, v=%s", 
@@ -714,9 +718,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
             peripheral.setName(element.getTextContent());
-//            if (peripheral.getName().equalsIgnoreCase("USB0")) {
-//               System.out.println("parsePeripheral() name = "+element.getTextContent());
-//            }
          }
          else if (element.getTagName() == VERSION_TAG) {
             //TODO: Implement version
@@ -732,6 +733,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == APPENDTONAME_TAG) {
             peripheral.setAppendToName(element.getTextContent());
+         }
+         else if (element.getTagName() == HEADERSTRUCTNAME_TAG) {
+            peripheral.setHeaderStructName(element.getTextContent());
          }
          else if (element.getTagName() == DISABLECONDITION_TAG) {
             //TODO: Implement disableCondition
@@ -776,12 +780,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             throw new Exception("parsePeripheral() - Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
       }
-//      if (peripheral.getPreferredAccessWidth() != 0) {
-//         System.err.println(String.format("%s uses %s", peripheral.getName(), PREFERREDACCESSWIDTH_ATTRIB));
-//      }
-//      if (peripheral.getForcedBlockMultiple() != 0) {
-//         System.err.println(String.format("%s uses %s", peripheral.getName(), FORCED_ACCESS_WIDTH));
-//      }
       return peripheral;
    }
 
@@ -1005,6 +1003,12 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == CPU_TAG) {
             parseCpu(devicePeripherals, element);
+         }
+         else if (element.getTagName() == VENDOR_TAG) {
+            // Ignores
+         }
+         else if (element.getTagName() == SERIES_TAG) {
+            // Ignores
          }
          else if (element.getTagName() == VENDOREXTENSIONS_TAG) {
             parseVendorExtensions(devicePeripherals, element);

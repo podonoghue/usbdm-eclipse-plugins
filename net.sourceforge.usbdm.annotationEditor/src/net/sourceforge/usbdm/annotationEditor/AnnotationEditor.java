@@ -442,20 +442,16 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
 
    @Override
    public boolean isDirty() {
-      // TODO Auto-generated method stub
       return false;
    }
 
    @Override
    public boolean isSaveAsAllowed() {
-      // TODO Auto-generated method stub
       return false;
    }
 
    @Override
    public void setFocus() {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override

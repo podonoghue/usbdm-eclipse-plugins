@@ -195,7 +195,6 @@ public class AddTargetFiles {
       try {
          sourceURI = new URI(sourcePath.toString().replaceAll("\\\\", "/"));
       } catch (URISyntaxException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
 //      System.err.println("relative sourceURI' = \'" + sourceURI.toString() + "\'");
@@ -234,7 +233,6 @@ public class AddTargetFiles {
       try {
          sourceURI = new URI(sourcePath.toString().replaceAll("\\\\", "/"));
       } catch (URISyntaxException e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
       System.err.println("relative sourceURI' = \'" + sourceURI.toString() + "\'");

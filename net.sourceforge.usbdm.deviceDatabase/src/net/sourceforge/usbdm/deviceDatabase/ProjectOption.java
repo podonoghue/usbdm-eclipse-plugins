@@ -6,7 +6,7 @@ public class ProjectOption extends ProjectAction {
       private final String[] value;
       private final boolean  replace;
 
-      public ProjectOption(String id, String path,  String[] value, boolean replace) {
+      public ProjectOption(String id, String path,  String[] value, boolean replace) throws Exception {
          super(id);
          this.path     = path;
          this.value    = value;

@@ -11,6 +11,7 @@ package net.sourceforge.usbdm.deviceDatabase;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
@@ -22,7 +23,7 @@ public class Device implements Cloneable {
    private String                   alias;
    private Vector<MemoryRegion>     memoryRegions;
    private FileList                 fileList;
-   private ProjectActionList        projectActionList;
+//   private ProjectActionList        projectActionList;
    private String                   family;
    private String                   subFamily;
    private long                     soptAddress;
@@ -50,7 +51,7 @@ public class Device implements Cloneable {
       memoryRegions      = new Vector<MemoryRegion>();
       family             = null;
       subFamily          = null;
-      projectActionList  = null;
+//      projectActionList  = null;
    }
 
    /** Returns the default non-volatile flash location for the clock trim value
@@ -182,14 +183,14 @@ public class Device implements Cloneable {
     */
    @Override
    public String toString() {
-      String rv = name;
+      String rv = String.format("%-12s", name+",");
       if (soptAddress != 0) {
          rv += String.format(",SOPT=0x%X", soptAddress);
       }
       rv += memoryRegions.toString();
-      if (defaultDevice) {
-         rv += ("(default)");
-      }
+//      if (defaultDevice) {
+//         rv += ("(default)");
+//      }
       return rv;
    }
 
@@ -414,44 +415,16 @@ public class Device implements Cloneable {
   }
 
    /**
-    * @param actionList
+    * Locates all package lists that apply to this device
+    * 
+    * @param variableMap Variables to use when evaluation conditions
+    * 
+    * @return ArrayList of ProjectActionLists (an empty list if none)
+    * 
+    * @throws Exception 
     */
-   public void addToActionList(ProjectActionList actionList) {
-      if (getProjectActionList() == null) {
-         // New map
-         this.projectActionList = new ProjectActionList();
-         this.projectActionList.setId("Project: "+getName());
-      }
-      this.projectActionList.add(actionList);
-   }
-
-   /**
-    * @param action
-    */
-   public void addToActionList(ProjectAction action) {
-      if (getProjectActionList() == null) {
-         // New map
-         this.projectActionList = new ProjectActionList();
-      }
-      this.projectActionList.add(action);
-   }
-   
-   /**
-    * @return
-    */
-   public ProjectActionList getProjectActionList() {
-      return projectActionList;
-   }
-
-   /**
-    * @return
-    */
-   public ArrayList<ProjectActionList> getProjectActionLists() {
-      ArrayList<ProjectActionList> pal = new ArrayList<ProjectActionList>(); 
-      if ((projectActionList != null) && (projectActionList.size() > 0)) {
-         pal.add(projectActionList);
-      }
-      return PackageParser.addPackageList(this, pal);
+   public ArrayList<ProjectActionList> getProjectActionLists(Map<String, String> variableMap) throws Exception {
+      return PackageParser.findPackageList(this, variableMap);
    }
 
    /* (non-Javadoc)

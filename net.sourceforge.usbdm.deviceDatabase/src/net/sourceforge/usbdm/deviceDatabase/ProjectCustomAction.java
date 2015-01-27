@@ -5,8 +5,8 @@ public class ProjectCustomAction extends ProjectAction {
       private final String   className;
       private final String[] value;
 
-      public ProjectCustomAction(String className, String[] value) {
-         super("");
+      public ProjectCustomAction(String className, String[] value) throws Exception {
+         super("---custom---");
          this.className     = className;
          this.value    = value;
 //         System.err.println("ProjectCustomAction() value = "+value[0]);

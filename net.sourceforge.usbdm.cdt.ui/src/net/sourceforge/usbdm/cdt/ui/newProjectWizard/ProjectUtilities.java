@@ -51,24 +51,24 @@ public class ProjectUtilities {
    private static void changeExcludedItem(IProject project, String targetPath, boolean isFolder, boolean excluded, IProgressMonitor progressMonitor) 
          throws CoreException, BuildException {
       
-      System.err.println(String.format("changeExcludedItem(p=%s, f=%s, e=%s)", targetPath, Boolean.toString(isFolder), Boolean.toString(excluded)));
+//      System.err.println(String.format("changeExcludedItem(p=%s, f=%s, e=%s)", targetPath, Boolean.toString(isFolder), Boolean.toString(excluded)));
 
       IManagedBuildInfo info = ManagedBuildManager.getBuildInfo(project);
       // Add to Include search paths
       IConfiguration[] configurations = info.getManagedProject().getConfigurations();
       for (IConfiguration configuration : configurations) {
          // Exclude in each configuration
-         IPath path = project.getFolder(targetPath).getProjectRelativePath();
-         System.err.println("changeExcludedItem() - Path = " + path.toPortableString());
-         System.err.println("Before");
-         ICSourceEntry[] sourceEntries = configuration.getSourceEntries();
-         listSourceEntries(sourceEntries);
-         ICSourceEntry[] x = CDataUtil.setExcludedIfPossible(path, isFolder, excluded, sourceEntries);
-         System.err.println("After #1");
-         listSourceEntries(x);
-         System.err.println("After #2");
-         listSourceEntries(sourceEntries);
-         configuration.setSourceEntries(x);
+         IPath           path                  = project.getFolder(targetPath).getProjectRelativePath();
+         ICSourceEntry[] sourceEntries         = configuration.getSourceEntries();
+         ICSourceEntry[] modifiedSourceEntries = CDataUtil.setExcludedIfPossible(path, isFolder, excluded, sourceEntries);
+         configuration.setSourceEntries(modifiedSourceEntries);
+//         System.err.println("changeExcludedItem() - Path = " + path.toPortableString());
+//         System.err.println("Before");
+//         listSourceEntries(sourceEntries);
+//         System.err.println("After #1");
+//         listSourceEntries(x);
+//         System.err.println("After #2");
+//         listSourceEntries(sourceEntries);
       }
    }
 
@@ -114,6 +114,7 @@ public class ProjectUtilities {
          }
       }
    }
+   
    /**
     * Creates source folder in the project recursively.
     *

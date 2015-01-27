@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceDatabase;
 
 public class ProjectAction {
    private final String id;
-   private Condition condition;
+   private Block condition;
    private ProjectActionList owner = null;
    
    /**
@@ -28,20 +28,23 @@ public class ProjectAction {
       this.owner = owner;
    }
 
-   public ProjectAction(String id) {
+   public ProjectAction(String id) throws Exception {
       this.id        = id;
       this.condition = null;
+      if ((id == null) || (id.length() == 0)) {
+         throw new Exception("Project action must have id");
+      }
    }
    
    public String getId() {
       return id;
    }
    
-   public Condition getCondition() {
+   public Block getCondition() {
       return condition;
    }
    
-   public void setCondition(Condition condition) {
+   public void setCondition(Block condition) {
       this.condition = condition;
    }
    @Override

@@ -26,29 +26,31 @@ import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 import org.eclipse.core.runtime.IPath;
 
 public class PeripheralDatabaseCreate {
-   private static final  Path packageFolder    = Paths.get("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
-   private static final  Path mainFolder                                   = packageFolder.resolve("DeviceData/Device.SVD");
-   private static final  Path headerReducedMergedOptimisedManualFolder     = packageFolder.resolve("Stationery/Project_Headers");
-   private static final  Path svdReducedMergedOptimisedManualFolder        = mainFolder.resolve("Internal");
-   private static final  Path svdReducedMergedOptimisedManualCheckFolder   = mainFolder.resolve("Internal.Check");
-  
-   private static final  String deviceListFilename       = "DeviceList.xml";
-   private static final  String cmsisSchemaFilename      = "CMSIS-SVD_Schema_1_1.xsd";
-   private static final  String deviceListSchemaFilename = "DeviceListSchema.dtd";
+   private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
+   private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
+   @SuppressWarnings("unused")
+   private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
+   private static final  Path svdReducedMergedOptimisedManualFolder        = MAIN_FOLDER.resolve("Internal");
+   @SuppressWarnings("unused")
+   private static final  Path svdReducedMergedOptimisedManualCheckFolder   = MAIN_FOLDER.resolve("Internal.Check");
+
+   private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";
+   private static final  String CMSIS_SCHEMA_FILENAME       = "CMSIS-SVD_Schema_1_1.xsd";
+   private static final  String DEVICE_LIST_SCHEMA_FILENAME = "DeviceListSchema.dtd";
 
    private static String onlyFileToProcess = null;
 
    static void copyFile(IPath source, IPath destination) throws IOException {
       System.err.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
       Files.copy(new java.io.File(source.toPortableString()).toPath(), 
-                 new java.io.File(destination.toPortableString()).toPath(), 
-                 StandardCopyOption.REPLACE_EXISTING); 
+            new java.io.File(destination.toPortableString()).toPath(), 
+            StandardCopyOption.REPLACE_EXISTING); 
    }
-    /*
+   /*
     * *************************************************************************************************************************************
     * *************************************************************************************************************************************
     */
-   
+
    static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger, boolean optimise) throws Exception {
       int deviceCount = 500;
       DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath, directoryFilter);
@@ -107,22 +109,22 @@ public class PeripheralDatabaseCreate {
       SVD_XML_Parser.setXmlExtension("");
 
       svdOutputFolderPath.toFile().mkdir();
-      
+
       PeripheralDatabaseMerger merger = new PeripheralDatabaseMerger();
 
       merger.setXmlExtension(".svd.xml");
       merger.setXmlRootPath(svdOutputFolderPath.toFile());
-      
+
       // Set optimisations
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleMode(optimise);
+      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(optimise);
       ModeControl.setFoldRegisters(optimise);
-      
+
       System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
 
       DirectoryStream.Filter<Path> coldfireDirectoryFilter = new DirectoryStream.Filter<Path>() {
@@ -147,16 +149,16 @@ public class PeripheralDatabaseCreate {
       } catch (Exception e) {
          e.printStackTrace();
       }
-      Files.copy(svdSourceFolderPath.resolve(deviceListFilename),       svdOutputFolderPath.resolve(deviceListFilename),       StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(svdSourceFolderPath.resolve(deviceListSchemaFilename), svdOutputFolderPath.resolve(deviceListSchemaFilename), StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(svdSourceFolderPath.resolve(cmsisSchemaFilename),      svdOutputFolderPath.resolve(cmsisSchemaFilename),      StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_FILENAME),       svdOutputFolderPath.resolve(DEVICE_LIST_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), svdOutputFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(svdSourceFolderPath.resolve(CMSIS_SCHEMA_FILENAME),      svdOutputFolderPath.resolve(CMSIS_SCHEMA_FILENAME),      StandardCopyOption.REPLACE_EXISTING);
    }
 
    /*
     * *************************************************************************************************************************************
     * *************************************************************************************************************************************
     */
-  
+
    /**
     *    Produces multiple header files from multiple device SVD files
     *    Optimisations may be applied to the SVD file before creating the header file.
@@ -182,7 +184,7 @@ public class PeripheralDatabaseCreate {
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleMode(optimise);
+      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(false);
@@ -190,7 +192,7 @@ public class PeripheralDatabaseCreate {
       Files.createDirectory(destinationFolderPath);
 
       DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
-      
+
       int deviceCount = 5000;
 
       for (Path svdSourceFile : sourceFolderStream) {
@@ -214,7 +216,7 @@ public class PeripheralDatabaseCreate {
                      devicePeripherals.optimise();
                   }
                   devicePeripherals.sortPeripherals();
-                  
+
                   // Create header file
                   Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
                   System.err.println("Creating : \""+headerFilePath+"\"");
@@ -232,19 +234,19 @@ public class PeripheralDatabaseCreate {
     * *************************************************************************************************************************************
     * *************************************************************************************************************************************
     */
-   
+
    private final static String xmlPreamble = 
-      "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"+
-      "<!DOCTYPE DeviceList SYSTEM \"DeviceListSchema.dtd\" >\n" +
-      "\n"+
-      "<root version=\"4.10.6\">\n"+
-      "   <description>Lookup table for mapping complete device name to the SVD file that describes the device</description>\n";
+         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"+
+               "<!DOCTYPE DeviceList SYSTEM \"DeviceListSchema.dtd\" >\n" +
+               "\n"+
+               "<root version=\"4.10.6\">\n"+
+               "   <description>Lookup table for mapping complete device name to the SVD file that describes the device</description>\n";
 
    private final static String openDeviceList   = "   <deviceList>\n";
    private static final String deviceEntry      = "      %-30s<svdFileName>%s</svdFileName> </device>\n";
    private final static String closeDeviceList  = "   </deviceList>\n";
    private final static String xmlPostamble     = "</root>\n";
-   
+
    /**
     * Sorts list of device names
     */
@@ -286,7 +288,7 @@ public class PeripheralDatabaseCreate {
          }
       });
    }
-   
+
    /**
     * Creates a minimal set of device SVD files by looking for equivalent devices.
     * A separate XML file is created that maps a device to a SVD file (deviceList.xml).
@@ -315,16 +317,16 @@ public class PeripheralDatabaseCreate {
       ModeControl.setExtractComplexStructures(false);
       ModeControl.setExtractDerivedPeripherals(false);
       ModeControl.setExtractSimpleRegisterArrays(false);
-      ModeControl.setFreescaleMode(false);
+      ModeControl.setFreescaleFieldNames(false);
       ModeControl.setMapFreescaleCommonNames(false);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
       ModeControl.setRegenerateAddressBlocks(false);
       ModeControl.setExpandDerivedPeripherals(true);
       ModeControl.setExpandDerivedRegisters(false);
       int maxDevices = 500;
-      
+
       Files.createDirectory(destinationFolderPath);
-      
+
       DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
 
       //
@@ -337,12 +339,12 @@ public class PeripheralDatabaseCreate {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
-//               System.err.println("Processing File : \""+svdSourceFile.getName()+"\"");
+               //               System.err.println("Processing File : \""+svdSourceFile.getName()+"\"");
                try {
                   // Read device description
                   DevicePeripherals device = DevicePeripherals.createDatabase(svdSourceFile);
                   // Don't optimise as we want flat files for editing/checking
-//                  device.optimise();
+                  //                  device.optimise();
                   boolean foundEquivalent = false;
                   for (DevicePeripherals searchPeripheral : deviceList) {
                      if (searchPeripheral.equivalentStructure(device)) {
@@ -374,7 +376,7 @@ public class PeripheralDatabaseCreate {
       // List of copied devices to check for mapping clashes
       HashSet<String> copiedMappedFiles = new HashSet<String>();
       ArrayList<Pair> devicePairList    = new ArrayList<Pair>();
-      
+
       for (DevicePeripherals device : deviceList) {
          String deviceName                = device.getName();
          String mappedDestinationFileName = deviceName;//DeviceFileList.getMappedSvdName(device.getName());
@@ -391,15 +393,15 @@ public class PeripheralDatabaseCreate {
          device.writeSVD(destinationFolderPath.resolve(mappedDestinationFileName+".svd.xml"));
       }
       sortDeviceNames(devicePairList);
-      
+
       // Create deviceList.xml
-      File deviceListFile = destinationFolderPath.resolve(deviceListFilename).toFile();
+      File deviceListFile = destinationFolderPath.resolve(DEVICE_LIST_FILENAME).toFile();
       PrintWriter writer = null;
       try {
          writer = new PrintWriter(deviceListFile);
          writer.print(xmlPreamble);
          writer.print(openDeviceList);
-         
+
          for (Pair pair : devicePairList) {
             writer.print(String.format(deviceEntry, "<device name=\""+pair.deviceName+"\">", pair.mappedDeviceName));
          }
@@ -413,8 +415,8 @@ public class PeripheralDatabaseCreate {
             writer.close();
          }
       }
-      Files.copy(mainFolder.getParent().resolve(cmsisSchemaFilename),       destinationFolderPath.resolve(cmsisSchemaFilename),       StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(mainFolder.getParent().resolve(deviceListSchemaFilename),  destinationFolderPath.resolve(deviceListSchemaFilename),  StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(MAIN_FOLDER.getParent().resolve(CMSIS_SCHEMA_FILENAME),       destinationFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(MAIN_FOLDER.getParent().resolve(DEVICE_LIST_SCHEMA_FILENAME),  destinationFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME),  StandardCopyOption.REPLACE_EXISTING);
    }
 
    /**
@@ -424,7 +426,7 @@ public class PeripheralDatabaseCreate {
     * @throws Exception
     */
    static void checkDeviceList(Path deviceListPath) throws Exception {
-      
+
       DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(deviceListPath);
       if (!deviceFileList.isValid()) {
          return;
@@ -433,35 +435,35 @@ public class PeripheralDatabaseCreate {
       System.err.println(String.format("Test : %-20s => \"%s\"", "MK20DX128M5", svdFilename));
       System.err.println(String.format("Test : %-20s => \"%s\"", "MK10DN64",    deviceFileList.getSvdFilename("MK10DN64")));
    }
-   
+
    static void removeDirectoryTree(Path directoryPath) {
       try {
          Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-//               System.err.println("Deleting file: " + file);
+               //               System.err.println("Deleting file: " + file);
                Files.delete(file);
                return FileVisitResult.CONTINUE;
             }
-            
+
          });
-       } catch (IOException e) {
+      } catch (IOException e) {
          e.printStackTrace();
-       }
+      }
    }
-   
+
    /**
     * Produces a set of header files from SVD files (based on deviceList.xml)
     * Each header file represent a device family with similar peripherals
     * 
     * @param sourceFolderPath       Should contain "DeviceList.xml" file
     * @param destinationFolderPath  Where to write header files to
-    * @param removeFolder 
+    * @param removeFolder           Destination folder will be deleted (otherwise files just overwrite/accumulate)
     * 
     * @throws Exception
     */
-   static void createHeaderFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean optimise, boolean removeFolder) throws Exception {
-      
+   static void createHeaderFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean removeFolder) throws Exception {
+
       if (Files.exists(destinationFolderPath)) {
          if (!removeFolder) {
             System.err.println("Destination already exists " + destinationFolderPath);
@@ -471,22 +473,25 @@ public class PeripheralDatabaseCreate {
             removeDirectoryTree(destinationFolderPath);
          }
       }
-      
+
       // Using complete file name so no automatic extension
       SVD_XML_Parser.setXmlExtension("");
 
-      // Set optimisations
-      ModeControl.setExtractComplexStructures(optimise);
-      ModeControl.setExtractDerivedPeripherals(optimise);
-      ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleMode(optimise);
-      ModeControl.setMapFreescaleCommonNames(optimise);
-      ModeControl.setGenerateFreescaleRegisterMacros(optimise);
-      ModeControl.setRegenerateAddressBlocks(optimise);
+      // Set options
+      ModeControl.setFreescaleFieldNames(true);
+      ModeControl.setMapFreescaleCommonNames(true);
+      ModeControl.setGenerateFreescaleRegisterMacros(false);
+      ModeControl.setUseShiftsInFieldMacros(true);
+      
+      // Don't optimise
+      ModeControl.setExtractComplexStructures(false);
+      ModeControl.setExtractDerivedPeripherals(false);
+      ModeControl.setExtractSimpleRegisterArrays(false);
+      ModeControl.setRegenerateAddressBlocks(false);
 
       destinationFolderPath.toFile().mkdir();
 
-      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(deviceListFilename));
+      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(DEVICE_LIST_FILENAME));
       if (!deviceFileList.isValid()) {
          return;
       }
@@ -508,18 +513,14 @@ public class PeripheralDatabaseCreate {
                continue;
             }
             copiedFiles.add(pair.mappedDeviceName);
-            
+
             // Read device description
             DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(sourceFolderPath.resolve(pair.mappedDeviceName+".svd.xml"));
 
-            if (optimise) {
-               // Optimise peripheral database
-               devicePeripherals.optimise();
-            }
             devicePeripherals.sortPeripherals();
-            
+
             devicePeripherals.setName(pair.mappedDeviceName);
-            
+
             devicePeripherals.addEquivalentDevice(pair.deviceName);
             for (int index2 = index+1; index2 < list.size(); index2++) {
                if (pair.mappedDeviceName.equalsIgnoreCase(list.get(index2).mappedDeviceName)) {
@@ -546,7 +547,7 @@ public class PeripheralDatabaseCreate {
     * @throws Exception
     */
    static void createExpandedSvdFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean optimise) throws Exception {
-      
+
       if (Files.exists(destinationFolderPath)) {
          System.err.flush();
          System.err.println("Destination already exists " + destinationFolderPath);
@@ -560,7 +561,7 @@ public class PeripheralDatabaseCreate {
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleMode(optimise);
+      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(optimise);
@@ -568,12 +569,12 @@ public class PeripheralDatabaseCreate {
 
       destinationFolderPath.toFile().mkdir();
 
-      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(deviceListFilename));
+      DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(sourceFolderPath.resolve(DEVICE_LIST_FILENAME));
       if (!deviceFileList.isValid()) {
          return;
       }
       ArrayList<Pair> list = deviceFileList.getArrayList();
-      
+
       for (Pair pair : list) {
          if ((onlyFileToProcess != null) && !pair.deviceName.matches(onlyFileToProcess)) {
             continue;
@@ -587,7 +588,7 @@ public class PeripheralDatabaseCreate {
             devicePeripherals.optimise();
 
             devicePeripherals.setName(pair.deviceName);
-            
+
             // Create SVD file
             Path svdFilePath = destinationFolderPath.resolve(devicePeripherals.getName()+".svd.xml");
             System.err.println("Creating : \""+svdFilePath+"\"");
@@ -598,37 +599,33 @@ public class PeripheralDatabaseCreate {
          }
       }
    }
-   
+
    /*
     * *************************************************************************************************************************************
     * *************************************************************************************************************************************
     */
-   
-    /**
+
+   /**
     * @param args
     */
    public static void main(String[] args) {
       System.err.println("Starting");
-//    onlyFileToProcess = "^MK2.*";
-//    onlyFileToProcess = "^MCF.*";
-//    onlyFileToProcess = "^MK10DX128M5$";
-//    onlyFileToProcess = "^(MKM).*";
-//    onlyFileToProcess = "^MKE.*";
+//    onlyFileToProcess = "^MCF52.*";
+//       onlyFileToProcess = "^MK2.*";
+//       onlyFileToProcess = "^MKL.*";
+//       onlyFileToProcess = "^MK10DX128M7*";
+//       onlyFileToProcess = "^MK20DX128M5*";
+//       onlyFileToProcess = "^MCF51J.*";
+//       onlyFileToProcess = "^MK10DX128M5$";
+//       onlyFileToProcess = "^(MKM).*";
+//       onlyFileToProcess = "^MKE.*";
 
       try {
-            // Generate merged version of SVD files for testing (should be unchanging eventually)
-            ModeControl.setExpandDerivedRegisters(false);
-            mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true, false);
-            // Create Header files from SVD
-            createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, true, false);
-            
-//            createExpandedSvdFilesFromList(svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualExpandedFolder, false);  // svdReducedMerged     +-> header  (for reference)
-//            createHeaderFilesFromList(svdReducedMergedOptimisedManualIterationFolder, headerReducedMergedOptimisedManualIterationFolder, true); // svdReducedMerged +-> headerReducedMerged (== headerReduced)
-//            // Playing with Freescale files
-//            ModeControl.setExpandDerivedRegisters(false);
-//            createReducedDeviceList(freescaleFolder,        freescaleSortedFolder);
-//            mergeFiles(freescaleSortedFolder,  freescaleCommonFolder,  true, false);
-//            mergeFiles(freescaleCommonFolder,  freescaleReducedFolder,  true, false);
+         // Generate merged version of SVD files for testing (should be unchanging eventually)
+         ModeControl.setExpandDerivedRegisters(false);
+//         mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true, false);
+         // Create Header files from SVD
+         createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, false);
       } catch (Exception e) {
          e.printStackTrace();
       }

@@ -18,9 +18,11 @@ public class Register extends Cluster implements Cloneable {
    private boolean            sorted;
    private long               width;
    private boolean            hidden;
-
-   public Register(Peripheral owner) {
+   private Cluster            cluster;
+   
+   public Register(Peripheral owner, Cluster cluster) {
       super(owner);
+      this.cluster       = cluster;
       description        = "";
       alternateGroup     = "";
       fields             = new ArrayList<Field>();
@@ -213,18 +215,61 @@ public class Register extends Cluster implements Cloneable {
    }
    
    @Override
-   public String getBaseName() throws Exception {
-      if (isSimpleArray()) {
-         return getSimpleArrayName("");
-      }
-      return String.format(getName(), "");
+   public String format(String format, int index) throws Exception {
+      return super.format(format, index);
    }
 
-   public String getDescription() {
-//      if (description.matches("Channel")) {
-//         System.err.println("getDescription()" + description);
-//      }
-      return description;
+   /**
+    * Formats a string using register number and modifier substitution<br>
+    * The format may contain:
+    * <ul>
+    * <li>%c = cluster index as a number
+    * <li>%s = register index as a number
+    * <li>%m = dimensionIndex modifier (a text string)
+    * </ul>
+    * @param format Format string to use
+    * @param index  Index used to select dimensionIndex & modifier
+    * 
+    * @return
+    * @throws Exception
+    */
+   public String format(String format, int clusterIndex, int registerIndex) throws Exception {
+      final Pattern pattern = Pattern.compile("(^.*):(.*$)");
+      String sRegisterIndex   = "";
+      if (registerIndex>=0) {
+         ArrayList<String> dimensionIndexes = getDimensionIndexes();
+         if (dimensionIndexes != null) {
+            String dimensionIndex = dimensionIndexes.get(registerIndex);
+            Matcher matcher       = pattern.matcher(dimensionIndex);
+            if (matcher.matches()) {
+               sRegisterIndex   = matcher.replaceAll("$1");
+            }
+            else {
+               sRegisterIndex = dimensionIndex;
+            }
+         }
+         else {
+            sRegisterIndex = Integer.toString(registerIndex);
+         }
+      }
+      format = format.replaceAll("%s", sRegisterIndex);
+      format = format.replaceAll("%c", "%s");
+      format = cluster.format(format, clusterIndex);
+      return SVD_XML_BaseParser.unEscapeString(format);
+   }
+
+   /**
+    * Returns the description of the register with %c and %s substitution
+    * 
+    * @param clusterIndex    Used for %c index
+    * @param registerIndex   Used for %s index
+    * 
+    * @return        String description
+    * 
+    * @throws Exception
+    */
+   public String getCDescription(int clusterIndex, int registerIndex) throws Exception {
+      return SVD_XML_BaseParser.unEscapeString(format(getDescription(), clusterIndex, registerIndex));
    }
 
    /**
@@ -233,11 +278,11 @@ public class Register extends Cluster implements Cloneable {
     * @param index   Used for %s index
     * 
     * @return        String description
+    * 
     * @throws Exception
     */
-   public String getDescription(int index) throws Exception {
-      String description = getDescription();
-      return this.format(description, index);
+   public String getCDescription(int registerIndex) throws Exception {
+      return SVD_XML_BaseParser.unEscapeString(format(getDescription(), registerIndex));
    }
 
    /**
@@ -253,16 +298,22 @@ public class Register extends Cluster implements Cloneable {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
    }
 
-   public String getCDescription(int index) throws Exception {
-      return SVD_XML_BaseParser.unEscapeString(getDescription(index));
-   }
-   
    /**
     * Set register description
+    * 
     * @param description
     */
    public void setDescription(String description) {
       this.description = getSanitizedDescription(description.trim());
+   }
+
+   /**
+    * Returns the description of the register
+    * 
+    * @return String description
+    */
+   public String getDescription() {
+      return description;
    }
 
    /**
@@ -284,7 +335,7 @@ public class Register extends Cluster implements Cloneable {
    @Override
    public long getTotalSizeInBytes() {
       if (getDimension() == 0) {
-         return (getWidth()+7)/8;
+         return getElementSizeInBytes();
       }
       return getDimensionIncrement() * getDimension();
    }
@@ -546,90 +597,28 @@ public class Register extends Cluster implements Cloneable {
       return accessPrefix;
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripheralDatabase.Cluster#getElementSizeInBytes()
+    */
+   @Override
+   public long getElementSizeInBytes() {
+      if ((getDimensionIndexes() != null)) {
+         // Array - use stride as element size
+         return getDimensionIncrement();
+      }
+      else {
+         return (getWidth()+7)/8;
+      }
+   }
+
    public final static String lineFormat = "%-47s /*!< %04X: %-60s */\n";
 
    /**
-    * Check if the register can be expressed as a simple array using subscripts starting at 0<p>
-    * It checks the name, dimensionIndexes, dimIncrement and width<p>
+    *    Writes C code for Register as part of a STRUCT element e.g.<br>
+    *    <pre><b>__I  uint8_t  registerName;"</pre></b>
     * 
-    * Register should be able to be declared as e.g. uint8_t ADC_RESULT[10]; 
-    */
-   boolean isSimpleArray() throws Exception {
-      if (getDimension() == 0) {
-         return false;
-      }
-      if (getDimensionIncrement() != (getWidth()+7)/8) {
-         return false;
-      }
-      boolean indexesSequentialFromZero = checkIndexesSequentialFromZero();
-      if (getName().matches("^.+\\[%s\\]$")) {
-         // MUST be a simple register array
-         if (!indexesSequentialFromZero) {
-            throw new Exception(String.format("Register name implies simple array but dimensions not consecutive, name=\'%s\', dimIndexes=\'%s\'", getName(), getDimensionIndexes().toString()));
-         }
-         return true;
-      }
-      return indexesSequentialFromZero;
-   }
-   
-   final Pattern arraySubscriptPattern  = Pattern.compile("^(.+)\\[%s\\]$");
-   final Pattern substitutePattern      = Pattern.compile("^(.+)%s(.*)$");
-
-   /**
-    * Gets the register at given subscript of a simple register array as a simple name e.g. ADC_RESULT10
-    * 
-    * @param sIndex Index of register
-    * 
-    * @return
-    * @throws Exception
-    */
-   String getSimpleArrayName(String  sIndex) throws Exception {
-      if (!isSimpleArray()) {
-         // Trying to treat as simple array!
-         throw new Exception(String.format("Register is not simple array, name=\'%s\'", getName()));
-      }
-      Matcher m;
-      m = arraySubscriptPattern.matcher(getName());
-      if (m.matches()) {
-         return String.format("%s%s", m.group(1), sIndex);
-      }
-      m = substitutePattern.matcher(getName());
-      if (m.matches()) {
-         return String.format("%s%s%s", m.group(1), sIndex, m.group(2));
-      }
-      return getName()+sIndex;
-   }
-   
-   /**
-    * Gets the register at given subscript of a simple register array as a subscripted name e.g. ADC_RESULT[10]
-    * 
-    * @param sIndex Index of register
-    * 
-    * @return
-    * @throws Exception
-    */
-   String getSimpleArraySubscriptedName(String sIndex) throws Exception {
-      if (!isSimpleArray()) {
-         // Trying to treat as simple array!
-         throw new Exception(String.format("Register is not simple array, name=\'%s\'", getName()));
-      }
-      Matcher m;
-      m = arraySubscriptPattern.matcher(getName());
-      if (m.matches()) {
-         return String.format("%s[%s]", m.group(1), sIndex);
-      }
-      m = substitutePattern.matcher(getName());
-      if (m.matches()) {
-         return String.format("%s%s[%s]", m.group(1), m.group(2), sIndex);
-      }
-      return getName()+"["+sIndex+"]";
-   }
-   
-   /**
-    * Writes C code for Register as part of a STRUCT element e.g. "__I  uint8_t  registerName;"
-    * 
-    * @param writer
-    * @param devicePeripherals
+    *    @param writer
+    *    @param devicePeripherals
     */
    @Override
    public void writeHeaderFileDeclaration(PrintWriter writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long offset) throws Exception {
@@ -646,15 +635,15 @@ public class Register extends Cluster implements Cloneable {
                accessPrefix,
                getCSizeName(getWidth()), 
                getBaseName()));
-         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(String.format(getCDescription(), ""))));
+         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
          return;
       }
       if (isSimpleArray()) {
          line.append(String.format("%-4s %-9s %s;", 
                accessPrefix,
                getCSizeName(getWidth()), 
-               getSimpleArraySubscriptedName(Integer.toString(getDimension()))));
-         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(String.format(getCDescription(), ""))));
+               getSimpleArraySubscriptedName(getDimension())));
+         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
          return;
       }
       if (getName().matches("^.+%s.*$")) {
@@ -680,12 +669,12 @@ public class Register extends Cluster implements Cloneable {
          }
          return;
       }
-      throw new Exception(String.format("Register Not handled\'%s\'", getName()));
+      throw new Exception(String.format("Register Too complex to handle\'%s\'", getName()));
    }
 
    /**
-    * Writes a macro to allow 'Freescale' style access to this register
-    * e.g. "#define I2S0_CR3 (I2S0->CR[3])"
+    *    Writes a macro to allow 'Freescale' style access to the registers of the peripheral<br>
+    *    e.g. <pre><b>#define I2S0_CR3 (I2S0->CR[3])</b></pre>
     * 
     * @param  writer
     * @param  devicePeripherals
@@ -706,8 +695,8 @@ public class Register extends Cluster implements Cloneable {
       // Array
       for(int index=0; index<getDimension(); index++) {
          if (isSimpleArray()) {
-            String name      = peripheral.getName()+"_"+getSimpleArrayName(Integer.toString(index));
-            String arrayName = peripheral.getName()+"->"+getSimpleArraySubscriptedName(Integer.toString(index));
+            String name      = peripheral.getName()+"_"+getSimpleArrayName(index);
+            String arrayName = peripheral.getName()+"->"+getSimpleArraySubscriptedName(index);
             writer.print(String.format("#define %-30s (%s)\n", name, arrayName));
             continue;
          }
@@ -722,11 +711,18 @@ public class Register extends Cluster implements Cloneable {
    }
 
    static final String registerMacroPrefix = 
-         "\n/* ------- %-40s ------ */\n";
+         "/* ------- %-40s ------ */\n";
+
+   private void writeFieldMacro(PrintWriter writer, String prefix) throws Exception {
+      for (Field field : fields) {
+         field.writeHeaderFileFieldMacros(writer, prefix);
+      }
+   }
 
    /**
-    * Writes a set of macros to allow convenient access to the register fields
-    * e.g. "#define PERIPHERAL_FIELD(x)  (((x)<<FIELD_OFFSET)&FIELD_MASK)"
+    *    Writes a set of MACROs to allow convenient operations on the fields of the registers of this register e.g.
+    *    <pre><b>#define PERIPHERAL_FIELD(x)    (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)</b></pre>
+    *    <pre><b>#define FP_CTRL_NUM_LIT_MASK   (0x0FUL << FP_CTRL_NUM_LIT_SHIFT)     </b></pre>
     * 
     * @param  writer
     * @param  devicePeripherals
@@ -734,15 +730,63 @@ public class Register extends Cluster implements Cloneable {
     */
    @Override
    public void writeHeaderFileFieldMacros(PrintWriter writer, Peripheral peripheral) throws Exception {
+      writeHeaderFileFieldMacros(writer, peripheral, "");
+   }
+
+   /**
+    *    Writes a set of MACROs to allow convenient operations on the fields of the registers of this register e.g.
+    *    <pre><b>#define PERIPHERAL_FIELD(x)    (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)</b></pre>
+    *    <pre><b>#define FP_CTRL_NUM_LIT_MASK   (0x0FUL << FP_CTRL_NUM_LIT_SHIFT)     </b></pre>
+    * 
+    * @param  writer
+    * @param  devicePeripherals
+    * @throws Exception
+    */
+   public void writeHeaderFileFieldMacros(PrintWriter writer, Peripheral peripheral, String registerPrefix) throws Exception {
       if (getDerivedFrom() != null) {
+         // Don't do macros for derived registers
          return;
       }
-      writer.print(String.format(registerMacroPrefix, peripheral.getName()+"_"+getBaseName()));
-      String registerPrefix = (isMapFreescaleCommonNames())?peripheral.getPrependToName()+"_":peripheral.getName()+"_";
+      //      writer.print(String.format(registerMacroPrefix, getFormattedName(-1, peripheral, this, registerPrefix)));
+      writer.print(String.format(registerMacroPrefix, getSimplifedName() + " Bit Fields"));
+      //      String registerPrefix = (isMapFreescaleCommonNames())?peripheral.getPrependToName()+"_":peripheral.getName()+"_";
+      //      sortFields();
+      //      for (Field field : fields) {
+      //         field.writeHeaderFileFieldMacros(writer, registerPrefix+getBaseName());
+      //      }
+      //      return;
       sortFields();
-      for (Field field : fields) {
-         field.writeHeaderFileFieldMacros(writer, registerPrefix+getBaseName());
+
+      String formattedName = getFormattedName(-1, peripheral.getName(), this, registerPrefix);
+      formattedName = String.format(formattedName, "");
+      formattedName.replaceAll("\\[\\]", "");
+
+      if (getDimension() == 0) {
+         // Simple register
+         String name = getMappedRegisterMacroName(peripheral.getName())+"_"+formattedName;
+         if (name.length() == 0) {
+            return;
+         }
+         writeFieldMacro(writer, name);
+         return;
       }
+      // Array
+      if (isSimpleArray()) {
+         String name      = peripheral.getName()+"_"+formattedName;
+         writeFieldMacro(writer, name);
+      }
+      else {
+         String name = getMappedRegisterMacroName(peripheral.getName())+"_"+formattedName;
+         if (name.length() == 0) {
+            // Quietly delete name
+            return;
+         }
+         writeFieldMacro(writer, name);
+      }
+   }
+
+   private String getSimplifedName() {
+      return getBaseName().replaceAll("\\[?%s\\]?", "");
    }
 
    /**
@@ -768,5 +812,6 @@ public class Register extends Cluster implements Cloneable {
    public void setHidden(boolean hidden) {
       this.hidden = hidden;
    }
+
 
 }

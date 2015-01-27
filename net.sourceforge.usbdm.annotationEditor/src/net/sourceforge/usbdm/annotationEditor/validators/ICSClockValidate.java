@@ -21,7 +21,7 @@ public class ICSClockValidate extends MyValidator {
    
    private static long FLL_FACTOR;
    
-   // Backwards compatible
+   @Deprecated
    public ICSClockValidate() {
       this(1024);
    }
@@ -122,7 +122,7 @@ public class ICSClockValidate extends MyValidator {
          ics_c1_rdivMessage = String.format("Unable to find suitable divider for external reference clock frequency = %d Hz", oscclk_clock);
          ics_c1_rdiv        =  7;
       }
-      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
+//      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
 
       //=================
       // Determine FLL input frequency.  From:
@@ -154,7 +154,7 @@ public class ICSClockValidate extends MyValidator {
          }
       }
       else {
-         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
+//         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
          fllTargetFrequencyNode.setEnabled(true);
 
          //=================
@@ -176,7 +176,7 @@ public class ICSClockValidate extends MyValidator {
             }
             fllTargetFrequencyMessage = buff.toString();
          }
-         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
+//         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
       }
       
       update(viewer, ics_c1_rdivNode, ics_c1_rdiv);

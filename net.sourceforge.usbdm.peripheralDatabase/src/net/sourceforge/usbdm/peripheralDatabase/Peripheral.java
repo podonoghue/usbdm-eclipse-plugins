@@ -20,11 +20,10 @@ public class Peripheral extends ModeControl implements Cloneable {
    private String                    sourceFilename    = null;
    private String                    prependToName     = "";
    private String                    appendToName      = "";
+   private String                    headerStructName  = "";
    private ArrayList<InterruptEntry> interrupts        = new ArrayList<InterruptEntry>();
-
    private ArrayList<String>         usedBy            = new ArrayList<String>();
    private boolean                   sorted            = false;
-   
    private Peripheral                derivedFrom       = null;
 
    // The following cannot be changed if derived
@@ -33,11 +32,13 @@ public class Peripheral extends ModeControl implements Cloneable {
    private long                      resetValue;
    private long                      resetMask;
    private int                       preferredAccessWidth   = 0;
-   private int                       forcedBlockMutiple      = 0;
+   private int                       forcedBlockMutiple     = 0;
    private ArrayList<AddressBlock>   addressBlocks          = new ArrayList<AddressBlock>();
    private ArrayList<Cluster>        registers              = new ArrayList<Cluster>();
-   
    private boolean                   refreshAll;  
+   private static HashSet<String>    conflictedNames        = new HashSet<String>();
+   private static HashSet<String>    typedefsTable          = new HashSet<String>();
+   
 
    static class RegisterPair {
       public Register cReg;
@@ -50,7 +51,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    /**
-    * A bit of a hack to fold together registers than wrongly appear twice
+    * A bit of a hack to fold together registers than wrongly appear twice<br>
     * Uses the name only to decide
     */
    public void foldRegisters() {
@@ -59,7 +60,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          for (Cluster c2:registers) {
             if ((c1 != c2) && 
                 (c1 instanceof Register) && (c2 instanceof Register) &&
-                c1.getName().matches("^"+c2.getName()+"%s$")) {
+                c1.getName().matches("^"+Pattern.quote(c2.getName())+"%s$")) {
 //               System.err.println("foldRegisters() - " + c1.getName() + ", " + c2.getName() );
                // Assume actually the same register
                deletedRegisters.add(new RegisterPair(c1, c2));
@@ -174,6 +175,23 @@ public class Peripheral extends ModeControl implements Cloneable {
       this.name = name;
    }
 
+   /**
+    * Set the name to use for the header file struct for this device
+    * 
+    * @param name
+    */
+   public void setHeaderStructName(String name) {
+      headerStructName = name;
+   }
+
+   /**
+    * Set the name to use for the header file struct for this device
+    * 
+    * @return name
+    */
+   public String getHeaderStructName() {
+      return headerStructName;
+   }
    /**
     * Get the name of the file containing this description
     * 
@@ -750,8 +768,6 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
 
-   private static HashSet<String> conflictedNames = new HashSet<String>();
-   
    static boolean isNewConflict(String name) {
       if (conflictedNames.contains(name)) {
          return false;
@@ -1360,13 +1376,14 @@ public class Peripheral extends ModeControl implements Cloneable {
            "-->\n";
    
    /**
-    *   Writes the Peripheral description to file in a SVF format
+    *    Writes the Peripheral description to file in a SVF format
     *   
-    *  @param writer         The destination for the XML
-    *  @param standardFormat Suppresses some non-standard size optimisations 
+    *    @param writer         The destination for the XML
+    *    @param standardFormat Suppresses some non-standard size optimisations 
     *  
-    *  @param owner   The owner - This is used to reduce the size by inheriting default values
-    * @throws Exception 
+    *    @param owner   The owner - This is used to reduce the size by inheriting default values
+    *  
+    *    @throws Exception 
     */
    public void writeSVD(PrintWriter writer, boolean standardFormat, DevicePeripherals owner) throws Exception {
       final int indent = 6;
@@ -1404,14 +1421,17 @@ public class Peripheral extends ModeControl implements Cloneable {
       String name = getName();
       writer.println(String.format(       indenter+"   <name>%s</name>",                   SVD_XML_BaseParser.escapeString(name)));
       writer.println(String.format(       indenter+"   <description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));
-      if ((getGroupName()!= null) && (getGroupName().length()>0)) {
+      if (getGroupName().length()>0) {
          writer.println(String.format(    indenter+"   <groupName>%s</groupName>",         SVD_XML_BaseParser.escapeString(getGroupName())));
       }
-      if ((getPrependToName() != null) && (getPrependToName().length()>0)) {
+      if (getPrependToName().length()>0) {
          writer.println(String.format(    indenter+"   <prependToName>%s</prependToName>", SVD_XML_BaseParser.escapeString(getPrependToName())));
       }
-      if ((getAppendToName() != null) && (getAppendToName().length()>0)) {
+      if (getAppendToName().length()>0) {
          writer.println(String.format(    indenter+"   <appendToName>%s</appendToName>",   SVD_XML_BaseParser.escapeString(getAppendToName())));
+      }
+      if (getHeaderStructName().length()>0) {
+         writer.println(String.format(    indenter+"   <%s>%s</%s>", SVD_XML_Parser.HEADERSTRUCTNAME_TAG, SVD_XML_BaseParser.escapeString(getHeaderStructName()), SVD_XML_Parser.HEADERSTRUCTNAME_TAG));
       }
       writer.println(String.format(       indenter+"   <baseAddress>0x%08X</baseAddress>", getBaseAddress()));
       if ((owner == null) || (owner.getWidth() != getWidth())) {
@@ -1446,46 +1466,49 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
-    *   Writes the Peripheral description to file in a SVF format
+    *    Writes the Peripheral description to file in a SVF format
     *   
-    *  @param writer         The destination for the XML
-    *  @param standardFormat Suppresses some non-standard size optimisations 
+    *    @param writer         The destination for the XML
+    *    @param standardFormat Suppresses some non-standard size optimisations 
     *  
-    *  @param owner   The owner - This is used to reduce the size by inheriting default values
+    *    @param owner   The owner - This is used to reduce the size by inheriting default values
     */
    private void writeDerivedFromSVD(PrintWriter writer, int indent) {
       Peripheral derived = getDerivedFrom();
 
       final String indenter = "";//RegisterUnion.getIndent(indent);
       
-      writer.print(String.format(   indenter+"<peripheral "+SVD_XML_Parser.DERIVEDFROM_ATTRIB+"=\"%s\">", SVD_XML_BaseParser.escapeString(derived.getName())));
-
-      writer.print(String.format("<name>%s</name>",                   SVD_XML_BaseParser.escapeString(getName())));
+      writer.print(String.format(   indenter+"<%s %s=\"%s\">", SVD_XML_Parser.PERIPHERAL_TAG, SVD_XML_Parser.DERIVEDFROM_ATTRIB, SVD_XML_BaseParser.escapeString(derived.getName())));
+      
+      writer.print(String.format("<%s>%s</%s>", SVD_XML_Parser.NAME_TAG,SVD_XML_BaseParser.escapeString(getName()), SVD_XML_Parser.NAME_TAG));
       if (!getDescription() .equals(getDescription())) {
-         writer.print(String.format(indenter+"<description>%s</description>",     SVD_XML_BaseParser.escapeString(getDescription())));
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.DESCRIPTION_TAG,  SVD_XML_BaseParser.escapeString(getDescription()), SVD_XML_Parser.DESCRIPTION_TAG));
       }
       if (!getGroupName().equals(derived.getGroupName())) {
-         writer.print(String.format(indenter+"<groupName>%s</groupName>",         SVD_XML_BaseParser.escapeString(getGroupName())));
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.GROUPNAME_TAG,  SVD_XML_BaseParser.escapeString(getGroupName()), SVD_XML_Parser.GROUPNAME_TAG));
       }
       if (!getPrependToName().equals(derived.getPrependToName())) {
-         writer.print(String.format(indenter+"<prependToName>%s</prependToName>", SVD_XML_BaseParser.escapeString(getPrependToName())));
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.PREPENDTONAME_TAG,SVD_XML_BaseParser.escapeString(getPrependToName()), SVD_XML_Parser.PREPENDTONAME_TAG));
       }
       if (!getAppendToName().equals(derived.getAppendToName())) {
-         writer.print(String.format(indenter+"<appendToName>%s</appendToName>",   SVD_XML_BaseParser.escapeString(getAppendToName())));
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.APPENDTONAME_TAG,SVD_XML_BaseParser.escapeString(getAppendToName()), SVD_XML_Parser.APPENDTONAME_TAG));
       }
-      writer.print(String.format("<baseAddress>0x%08X</baseAddress>", getBaseAddress()));
+      if (!getHeaderStructName().equals(derived.getHeaderStructName())) {
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.HEADERSTRUCTNAME_TAG, SVD_XML_BaseParser.escapeString(getHeaderStructName()), SVD_XML_Parser.HEADERSTRUCTNAME_TAG));
+      }
+      writer.print(String.format("<%s>0x%08X</%s>", SVD_XML_Parser.BASEADDRESS_TAG, getBaseAddress(), SVD_XML_Parser.BASEADDRESS_TAG));
       if (getAccessType() != derived.getAccessType()) {
-         writer.print(String.format(indenter+"<access>%s</access>",               getAccessType().getPrettyName()));
+         writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.ACCESS_TAG,SVD_XML_BaseParser.escapeString(getAccessType().getPrettyName()), SVD_XML_Parser.ACCESS_TAG));
       }
       if (getInterruptEntries() != derived.getInterruptEntries()) {
          for (InterruptEntry interrupt : getInterruptEntries()) {
             interrupt.writeSVD(writer, indent+3);
          }
       }
-      writer.println(              "</peripheral>");
+      writer.println(String.format("</%s>", SVD_XML_Parser.PERIPHERAL_TAG));
    }
 
-   static final String DeviceHeaderFileStructPreamble =   
+   static final String DEVICE_HEADER_FILE_STRUCT_PREAMBLE =   
        "\n"
       +"/* ================================================================================ */\n"
       +"/* ================           %-30s       ================ */\n"
@@ -1496,17 +1519,44 @@ public class Peripheral extends ModeControl implements Cloneable {
       +" */\n"
       ;
 
-   private final String deviceOpenStruct  = "typedef struct {                                /*!<       %-60s */\n";
-   private final String deviceCloseStruct = "} %s_Type;\n\n";
+   static final String DEVICE_OPEN_STRUCT  = "typedef struct {                                /*!<       %-60s */\n";
+   static final String DEVICE_CLOSE_STRUCT = "} %s;\n\n";
 
+   public String getSafeHeaderStructName() {
+      String structName = getHeaderStructName();
+      if (structName.length() == 0) {
+         if (derivedFrom != null) {
+            structName = derivedFrom.getHeaderStructName();
+            if (structName.length() == 0) {
+               structName = derivedFrom.getName();
+            }
+         }
+      }
+      if (structName.length() == 0) {
+         structName = getName();
+      }
+      return structName+"_Type";
+   }
+   
+   public static void clearTypedefsTable() {
+      typedefsTable = new HashSet<String>();
+   }
+   
+   public void addTypedefsTable(String name) throws Exception {
+      if (typedefsTable.contains(name)) {
+         throw new Exception("Peripheral Typedef clash - " + this.getName() + ", " + name);
+      }
+      typedefsTable.add(name);
+   }
+   
    /**
-    * Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers
-    * e.g. typedef struct {...} peripheralName_Type;
+    *    Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers<br>
+    *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
     * 
-    * @param writer
-    * @param devicePeripherals
+    *    @param writer
+    *    @param devicePeripherals
     */
-   public void writeHeaderFileDeclaration(PrintWriter writer, int indent, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileStruct(PrintWriter writer, int indent, Peripheral peripheral) throws Exception {
 
       final String indenter = RegisterUnion.getIndent(indent);
       
@@ -1514,7 +1564,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       
       RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, peripheral, 0L);
       
-      writer.print(indenter+String.format(deviceOpenStruct, getName()+" Structure"));
+      writer.print(indenter+String.format(DEVICE_OPEN_STRUCT, getName()+" Structure"));
       
       for(Cluster cluster : registers) {
          unionRegisters.add(cluster);
@@ -1522,20 +1572,21 @@ public class Peripheral extends ModeControl implements Cloneable {
       // Flush current union if exists
       unionRegisters.writeHeaderFileUnion();
       
-      writer.print(indenter+String.format(deviceCloseStruct, getName()));
+      addTypedefsTable(getSafeHeaderStructName());
+      
+      writer.print(indenter+String.format(DEVICE_CLOSE_STRUCT, getSafeHeaderStructName()));
    }
       
-   static final String deviceSimpleStruct    = "typedef %s_Type %s_Type;  /*!< %-60s*/\n\n";
+//   static final String DEVICE_SIMPLE_STRUCT    = "typedef %s %s;  /*!< %-60s*/\n\n";
    
    /**
-    * Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers
-    * e.g. typedef struct {...} peripheralName_Type;
+    *    Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers<br>
+    *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
     * 
-    * @param writer
-    * @param devicePeripherals
+    *    @param writer
+    *    @param devicePeripherals
     */
    public void writeHeaderFileTypedef(PrintWriter writer, DevicePeripherals devicePeripherals) throws Exception {
-      
       final int indent = 0;
       String uniqueId;
       if (getDerivedFrom() != null) {
@@ -1544,17 +1595,16 @@ public class Peripheral extends ModeControl implements Cloneable {
       else {
          uniqueId = (getSourceFilename()==null)?"":" (file:"+getSourceFilename()+")";
       }
-      writer.print(String.format(DeviceHeaderFileStructPreamble, getName()+uniqueId, getCDescription()));
+      writer.print(String.format(DEVICE_HEADER_FILE_STRUCT_PREAMBLE, getName()+uniqueId, getCDescription()));
 
       if (getDerivedFrom() != null) {
-         writer.print(String.format(deviceSimpleStruct, derivedFrom.getName(), getName(), getName()+" Structure"));
+//         writer.print(String.format(DEVICE_SIMPLE_STRUCT, derivedFrom.getSafeHeaderStructName(), getSafeHeaderStructName(), getName()+" Structure"));
          return;
       }
-
-      writeHeaderFileDeclaration(writer, indent, this);
+      writeHeaderFileStruct(writer, indent, this);
    }
 
-   static final String DeviceHeaderFileRegisterMacroPreamble =   
+   static final String DEVICE_HEADER_FILE_REGISTER_MACRO_PREAMBLE =   
          "\n"
         +"/* -------------------------------------------------------------------------------- */\n"
         +"/* -----------     %-50s   ----------- */\n"
@@ -1563,21 +1613,21 @@ public class Peripheral extends ModeControl implements Cloneable {
         ;
 
    /**
-    * Writes a set of macros to allow 'Freescale' style access to the registers of the peripheral
-    * e.g. "#define I2S0_CR3 (I2S0->CR[3])"
+    *    Writes a set of macros to allow 'Freescale' style access to the registers of the peripheral<br>
+    *    e.g. <pre><b>#define I2S0_CR3 (I2S0->CR[3])</b></pre>
     * 
-    * @param  writer
-    * @param  devicePeripherals
-    * @throws Exception
+    *    @param  writer
+    *    @param  devicePeripherals
+    *    @throws Exception
     */
    public void writeHeaderFileRegisterMacro(PrintWriter writer) throws Exception {
-      writer.print(String.format(DeviceHeaderFileRegisterMacroPreamble, "\'"+getName()+"\' Register Access macros"));
+      writer.print(String.format(DEVICE_HEADER_FILE_REGISTER_MACRO_PREAMBLE, "\'"+getName()+"\' Register Access macros"));
       for (Cluster cluster : getRegisters()) {
          cluster.writeHeaderFileRegisterMacro(writer, this);
       }
    }
    
-   static final String DeviceHeaderFileMacroPreamble =   
+   static final String DEVICE_HEADER_FILE_MACRO_PREAMBLE =   
          "\n"
         +"/* -------------------------------------------------------------------------------- */\n"
         +"/* -----------     %-50s   ----------- */\n"
@@ -1586,19 +1636,19 @@ public class Peripheral extends ModeControl implements Cloneable {
         ;
 
    /**
-    * Writes a set of MACROs to allow convenient access to the fields of the registers of this peripheral
-    * e.g. "#define PERIPHERAL_FIELD(x)  (((x)<<FIELD_OFFSET)&FIELD_MASK)"
+    *    Writes a set of MACROs to allow convenient operations on the fields of the registers of this peripheral<br>
+    *    e.g. <pre><b>#define PERIPHERAL_FIELD(x)  (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)</pre></b>
     * 
-    * @param  writer
-    * @param  devicePeripherals
-    * @throws Exception
+    *    @param  writer
+    *    @param  devicePeripherals
+    *    @throws Exception
     */
    public void writeHeaderFileFieldMacros(PrintWriter writer, DevicePeripherals devicePeripherals) throws Exception {
       if (derivedFrom != null) {
          // Derived peripherals re-uses existing MACROs
          return;
       }
-      writer.print(String.format(DeviceHeaderFileMacroPreamble, "\'"+getName()+"\' Position & Mask macros"));
+      writer.print(String.format(DEVICE_HEADER_FILE_MACRO_PREAMBLE, "\'"+getName()+"\' Position & Mask macros"));
       sortRegisters();
       for (Cluster cluster : getRegisters()) {
          if (cluster instanceof Register) {
@@ -1610,6 +1660,12 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
 
+   /**
+    *    Find register within this peripheral
+    * 
+    *    @param name
+    *    @return
+    */
    public Cluster findRegister(String name) {
       for (Cluster register : registers) {
          if (register instanceof Register) {
@@ -1629,6 +1685,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    /** 
     * Determines a new base address for the peripheral by examining all the (absolute) register addresses
+    * 
     * @throws Exception 
     */
    public void rebase() throws Exception {
@@ -1658,5 +1715,4 @@ public class Peripheral extends ModeControl implements Cloneable {
    public boolean isRefreshAll() {
       return refreshAll;
    }
-
 }

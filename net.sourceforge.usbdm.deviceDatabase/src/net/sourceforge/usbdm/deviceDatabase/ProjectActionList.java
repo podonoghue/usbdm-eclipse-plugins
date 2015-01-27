@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceDatabase;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 public class ProjectActionList extends ArrayList<ProjectAction> {
 
@@ -52,11 +53,11 @@ public class ProjectActionList extends ArrayList<ProjectAction> {
          this.add(i);
       }
    }
-   public boolean appliesTo(Device device) {
+   public boolean appliesTo(Device device, Map<String, String> variableMap) throws Exception {
       if (applyWhenCondition == null) {
          return true;
       }
-      return applyWhenCondition.appliesTo(device);
+      return applyWhenCondition.appliesTo(device, variableMap);
    }
    @Override
    public void add(int arg0, ProjectAction projectAction) {

@@ -12,7 +12,7 @@ public class ClockValidate_MKE02 extends MyValidator {
    
    public enum ClockModes {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
    
-   protected ClockValidate_MKE02(long maxCoreClockFreq, long maxBusClockFreq) {
+   public ClockValidate_MKE02(long maxCoreClockFreq, long maxBusClockFreq) {
       MAX_CORE_CLOCK_FREQ      = maxCoreClockFreq;
       MAX_FLASH_BUS_CLOCK_FREQ = maxBusClockFreq;
    }
@@ -110,7 +110,7 @@ public class ClockValidate_MKE02 extends MyValidator {
       long system_core_clock = system_icsout_clock;
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
+         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0);
       }
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
@@ -120,7 +120,7 @@ public class ClockValidate_MKE02 extends MyValidator {
       long system_bus_clock = system_core_clock / sim_busdiv_busdiv;
       String system_bus_clockMessage = null;
       if (system_bus_clock > MAX_FLASH_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_FLASH_BUS_CLOCK_FREQ/1000000);
+         system_bus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_BUS_CLOCK_FREQ/1000000.0);
       }
       setValid(viewer, system_bus_clockNode, system_bus_clockMessage);
       

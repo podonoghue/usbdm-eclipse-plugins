@@ -1,8 +1,17 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Changes related to new device selection interface                                 | V4.10.6.250
+===============================================================================================================
+*/
 package net.sourceforge.usbdm.peripherals.view;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripherals.model.FieldModel;
 import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
 import net.sourceforge.usbdm.peripherals.model.RegisterModel;
@@ -563,15 +572,26 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
        */
       setDeviceAction = new Action(null, IAction.AS_PUSH_BUTTON) {
          public void run() {
-            DeviceSelectDialogue dialogue = new DeviceSelectDialogue(getSite().getShell(), defaultDeviceOrSvdFilename);
+            InterfaceType interfaceType = null;
+            if (peripheralsModel != null) {
+               interfaceType = peripheralsModel.getModel().getTargetType();
+            }
+            DeviceSelectDialogue dialogue = new DeviceSelectDialogue(getSite().getShell(), defaultDeviceOrSvdFilename, interfaceType);
                      
             int result = dialogue.open();
-            String deviceOrSvdFilename = dialogue.getDeviceOrFilename(); 
-            if ((result != Window.OK) || (deviceOrSvdFilename == null)) {
+            if (result != Window.OK) {
                // Cancelled etc
                return;
             }
-            defaultDeviceOrSvdFilename = deviceOrSvdFilename;
+            defaultDeviceOrSvdFilename = dialogue.getDeviceOrFilename();
+
+            DevicePeripherals devicePeripherals = dialogue.getDevicePeripherals(); 
+            if (devicePeripherals != null) {
+               setDeviceAction.setText(devicePeripherals.getName());
+            }
+            else {
+               setDeviceAction.setText("Device...");
+            }
             if ((peripheralsTreeViewer == null) || peripheralsTreeViewer.getControl().isDisposed()) {
 //                System.err.println("UsbdmDevicePeripheralsView.Action() - no peripheral view or already disposed()");
                return;
@@ -581,25 +601,17 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                return;
             }
 //            System.err.println("UsbdmDevicePeripheralsView.Action() - Setting peripheral model");
-            peripheralsModel.setDevice(deviceOrSvdFilename);
+            peripheralsModel.setDevice(devicePeripherals);
             peripheralsTreeViewer.setInput(peripheralsModel.getModel());
             ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
             
-            setDeviceAction.setText(peripheralsModel.getDeviceName());
-            
-            if (peripheralsModel != null) {
-               setDeviceAction.setText(peripheralsModel.getDeviceName());
-            }
-            else {
-               setDeviceAction.setText("Select Device");
-            }
          }
       };
       if (peripheralsModel != null) {
          setDeviceAction.setText(peripheralsModel.getDeviceName());
       }
       else {
-         setDeviceAction.setText("Select Device");
+         setDeviceAction.setText("Device...");
       }
       setDeviceAction.setToolTipText(DEVICE_TOOLTIP_STRING);
    }
@@ -746,13 +758,16 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       // Try with device name
 //      peripheralsModel = new UsbdmDevicePeripheralsModel("MK20DX128M5", null);
       // Try with full path
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK20D5.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK10D10.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK11D5.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK64F12.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MK22F51212.svd.xml", null);
-      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MCF5225x.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/MCF51JF.svd.xml", null);
+      final String path = "C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/";
+      
+//    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
+//    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK10D10.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK11D5.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK64F12.svd.xml", null);
+      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK22F51212.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF5225x.svd.xml", null);
+//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF51JF.svd.xml", null);
       // Try illegal path/name
 //      peripheralsModel = new UsbdmDevicePeripheralsModel("xxxx", null);
       

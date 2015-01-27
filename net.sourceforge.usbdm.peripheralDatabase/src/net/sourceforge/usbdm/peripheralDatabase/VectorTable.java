@@ -23,18 +23,24 @@ public abstract class VectorTable {
    protected static final String EXCEPTION_IRQ_SUFFIX       = "_IRQHandler";
    protected static final String EXCEPTION_NUMBER_SUFFIX    = "_IRQn";
    
-   public static VectorTable factory(String string) {
+   public static VectorTable factory(String string) throws Exception {
       
-      if (string == null) {
-         return new ArmVectorTable();
-      }
       if (string.equals("CFV1")) {
          return new ColdfireV1VectorTable();
       }
       if (string.equals("CFV2")) {
          return new ColdfireV2VectorTable();
       }
-      return new ArmVectorTable();
+      if (string.startsWith("CM4")) {
+         return new ArmCM4VectorTable();
+      }
+      if (string.startsWith("CM3")) {
+         return new ArmCM4VectorTable();
+      }
+      if (string.startsWith("CM0")) {
+         return new ArmCM0VectorTable();
+      }
+      throw new Exception("Unrecognized CPU type");
    }
    
    /**

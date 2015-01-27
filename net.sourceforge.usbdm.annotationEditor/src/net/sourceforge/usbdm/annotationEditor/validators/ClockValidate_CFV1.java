@@ -13,11 +13,12 @@ public class ClockValidate_CFV1 extends MyValidator {
    public enum ClockModes      {NONEClock, FEIClock, FEEClock, FBIClock, BLPIClock, FBEClock, BLPEClock, PBEClock,  PEEClock};
    public enum UsbClockSources {DividedPLL, DividedFLL, External};
    
+   @Deprecated
    public ClockValidate_CFV1() {
       this(50000000);
    }
    
-   protected ClockValidate_CFV1(long maxCoreClockfrequency) {
+   public ClockValidate_CFV1(long maxCoreClockfrequency) {
       MAX_CORE_CLOCK_FREQ  = maxCoreClockfrequency;
    }
    
@@ -51,12 +52,12 @@ public class ClockValidate_CFV1 extends MyValidator {
       NumericOptionModelNode sim_clkdiv1_usbfracNode    =  getNumericModelNode("sim_clkdiv1_usbfrac");
 
       long system_mcgir_clock = slowIRCNode.getValueAsLong();
-      System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
+//      System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock);
 
       long system_erc_clock;
       // ERC = OSCCLK
       system_erc_clock = oscclk_clockNode.getValueAsLong();
-      System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
+//      System.err.println("ClockValidate.validate() system_erc_clock = " + system_erc_clock);
 
       long clk = primaryClockModeNode.getValueAsLong();
       if (clk > ClockModes.values().length) {
@@ -146,7 +147,7 @@ public class ClockValidate_CFV1 extends MyValidator {
       long system_core_clock   = system_mcgout_clock / (1<<mcg_c2_bdiv);
       String system_core_clockMessage = null;
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %d MHz)", MAX_CORE_CLOCK_FREQ/1000000);
+         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0);
       }
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 

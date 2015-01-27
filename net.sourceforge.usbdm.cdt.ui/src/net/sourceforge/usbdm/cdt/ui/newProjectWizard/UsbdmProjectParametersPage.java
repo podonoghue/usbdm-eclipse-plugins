@@ -20,29 +20,29 @@ import net.sourceforge.usbdm.constants.ToolInformationData;
 //import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
+import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 
 /**
  *  USBDM New Project Wizard page "USBDM Project"
@@ -58,22 +58,19 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
    private final static String TARGET_DEVICE_KEY                = "targetDevice";               //$NON-NLS-1$
    private final static String BUILDTOOLS_KEY                   = "buildTools";                 //$NON-NLS-1$
    private final static String EXTERNAL_LINKER_SCRIPT_KEY       = "externalLinkerScript";       //$NON-NLS-1$
-   private final static String DONT_GENERATE_LINKER_SCRIPT_KEY  = "dontGenerateLinkerScript";   //$NON-NLS-1$ 
 
-   private InterfaceType      deviceType;
-
-   private Combo              buildToolCombo;
-   private Combo              targetDeviceNameCombo;
-
-   private Button             autoGenerateLinkerScript;
-   private Label              externalLinkerScript;
-   private Button             externalLinkerBrowseButton;
-   
-   private DeviceDatabase     deviceDatabase = null;
+   private InterfaceType         deviceType;
+   private Combo                 buildToolCombo;
+   private DeviceSelectorPanel   deviceSelector;
 
    public UsbdmProjectParametersPage(UsbdmNewProjectPage projectSelectionPage) {
       super(PAGE_NAME);
-      this.deviceType = projectSelectionPage.getInterfaceType();
+      if (projectSelectionPage == null) {
+         this.deviceType = InterfaceType.T_ARM;
+      }
+      else {
+         this.deviceType = projectSelectionPage.getInterfaceType();
+      }
       setTitle(PAGE_TITLE);
       setDescription("Select project parameters");
       setPageComplete(false);
@@ -91,16 +88,10 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
     */
    private void validate() {
       String message = null;
-      if (!autoGenerateLinkerScript.getSelection()) {
-         IPath linkerPath = new Path(externalLinkerScript.getText());
-         File linkerFile = linkerPath.toFile();
-         if (!linkerFile.isFile() || !linkerFile.canRead()) {
-            message = "Linker script file path is invalid"; 
-         }
+      if (deviceSelector != null) {
+         message = deviceSelector.validate();
       }
-      if (!targetDeviceNameCombo.isEnabled()) {
-         message = "Device database is invalid";
-      }
+//      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
       setErrorMessage(message);
       setPageComplete(message == null);
    }
@@ -127,67 +118,28 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
       }
    }
    
-   private void updateDevice() {
-      String currentDevice = targetDeviceNameCombo.getText();
-      targetDeviceNameCombo.removeAll();
-      if ((deviceDatabase == null) || (deviceDatabase.getTargetType() != deviceType.targetType)) {
-         deviceDatabase = new DeviceDatabase(deviceType.targetType);
-      }
-      if (!deviceDatabase.isValid()) {
-         targetDeviceNameCombo.add("Device database not found");
-         targetDeviceNameCombo.setEnabled(false);
-      }
-      else {
-         for (Device device : deviceDatabase.getDeviceList()) {
-            if (!device.isHidden()) {
-               targetDeviceNameCombo.add(device.getName());
-            }
-         }
-      }
-      // Try to restore original device
-      targetDeviceNameCombo.setText(currentDevice);
-      int targetDeviceIndex = targetDeviceNameCombo.getSelectionIndex();
-      if (targetDeviceIndex<0) {
-         targetDeviceNameCombo.select(0);
-      }
-   }
-
-   private void updateLinker() {
-//      System.err.println("updateLinker()"); //$NON-NLS-1$
-      if (autoGenerateLinkerScript.getSelection()) {
-         externalLinkerScript.setEnabled(false);
-         externalLinkerBrowseButton.setEnabled(false);
-      }
-      else {
-         externalLinkerScript.setEnabled(true);
-         externalLinkerBrowseButton.setEnabled(true);
-      }
-      validate();
-   }
-
-   private Control createUsbdmParametersControl(Composite parent) {
-
-      Group group = new Group(parent, SWT.NONE);
-      group.setLayout(new GridLayout(2, false));
-      group.setText("USBDM Parameters");
+   private void createUsbdmParametersControl(Composite parent) {
 
       IDialogSettings dialogSettings = getDialogSettings();
-      
       if (dialogSettings == null) {
-         System.err.println("createUsbdmParametersControl() dialogSettings == null!");
+         System.err.println("UsbdmProjectParametersPage.createUsbdmParametersControl() dialogSettings == null!");
       }
-      Label label;
-      GridData gd;
-      
+      /*
+       * Toolchain group
+       * ============================================================
+       */
+      Group group = new Group(parent, SWT.NONE);
+      group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+      group.setLayout(new GridLayout(2, false));
+      group.setText("Toolchain");
+
       //
       // Create & Populate Combo for Build tool selection
       //
-      label = new Label(group, SWT.NONE);
+      Label label = new Label(group, SWT.NONE);
       label.setText("Build tools:"); //$NON-NLS-1$
       buildToolCombo = new Combo(group, SWT.BORDER|SWT.READ_ONLY);
-      gd = new GridData();
-      gd.widthHint = 250;
-      buildToolCombo.setLayoutData(gd);
+      buildToolCombo.setLayoutData(GridDataFactory.fillDefaults().hint(250, SWT.DEFAULT).create());
       buildToolCombo.select(0);
       loadBuildtoolNames();
 
@@ -198,137 +150,47 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
          }
       }
       
-      //
-      // Create & Populate Combo for USBDM devices
-      //
-      label = new Label(group, SWT.NONE);
-      label.setText("Target Device:"); //$NON-NLS-1$
-      targetDeviceNameCombo = new Combo(group, SWT.BORDER|SWT.READ_ONLY);
-      gd = new GridData();
-      gd.widthHint = 200;
-      targetDeviceNameCombo.setLayoutData(gd);
-      targetDeviceNameCombo.select(0);
-      updateDevice();
+      /*
+       * Device selection group
+       * ============================================================
+       */
+      group = new Group(parent, SWT.NONE);
+      group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+      group.setLayout(new GridLayout(1, false));
+      group.setText("Device Selection");
 
-      if (dialogSettings != null) {
-         String attrValue = dialogSettings.get(deviceType.name()+TARGET_DEVICE_KEY);
-         if (attrValue != null) {
-            targetDeviceNameCombo.setText(attrValue);
-         }
-      }
-      return group;
-   }
-   
-   private Control createLinkerParametersControl(final Composite parent) {
-      GridLayout layout;
+      deviceSelector = new DeviceSelectorPanel(group, SWT.NONE);
+      deviceSelector.setTargetType(deviceType.toTargetType());
+      deviceSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-      Group group = new Group(parent, SWT.NONE);
-      group.setText("Linker Parameters");
-      //
-      layout = new GridLayout();
-      group.setLayout(layout);
-
-      //
-      // Custom linker file checkbox
-      //
-      autoGenerateLinkerScript = new Button(group, SWT.CHECK);
-      autoGenerateLinkerScript.setText("Auto-generate linker script");
-      autoGenerateLinkerScript.setToolTipText("The Wizard will generate a basic linker script based on target device choice");
-      autoGenerateLinkerScript.addSelectionListener(new SelectionListener() {
-         public void widgetSelected(SelectionEvent e) {
-            updateLinker();
-         }
-         public void widgetDefaultSelected(SelectionEvent e) {
+      deviceSelector.addListener(SWT.CHANGED, new Listener() {
+         @Override
+         public void handleEvent(Event event) {
+            validate();
          }
       });
-      //
-      // Linker file browse
-      //
-      Composite composite = new Composite(group, SWT.NO_TRIM | SWT.NO_FOCUS);
-      GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-      composite.setLayoutData(gd);
-      layout = new GridLayout(3, false);
-      composite.setLayout(layout);
-      composite.setBackground(group.getParent().getBackground());
 
-      Label label = new Label(composite, SWT.NONE);
-      gd = new GridData(SWT.NONE, SWT.CENTER, false, false);
-      label.setLayoutData(gd);
-      label.setText("Linker script:"); 
-
-      externalLinkerScript = new Label(composite, SWT.BORDER);
-      gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-      externalLinkerScript.setLayoutData(gd);
-      externalLinkerScript.setToolTipText("This linker script will be copied to the Project_Settings directory");
-      //      linkerScript.setEditable(false);
-      externalLinkerBrowseButton = new Button(composite, SWT.PUSH);
-      gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-      externalLinkerBrowseButton.setLayoutData(gd);
-      externalLinkerBrowseButton.setText("Browse");      
-      externalLinkerBrowseButton.setToolTipText("Browse for linker script");
-      externalLinkerBrowseButton.addSelectionListener(new SelectionListener() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            String[] filterExts = {"*.ld"}; //$NON-NLS-1$
-            FileDialog fd = new org.eclipse.swt.widgets.FileDialog(parent.getShell(), SWT.OPEN);
-            fd.setFileName(externalLinkerScript.getText());
-
-            fd.setText("USBDM - Select Linker File");
-            fd.setFilterExtensions(filterExts);
-            String fileName = fd.open();
-            if (fileName != null) {
-               externalLinkerScript.setText(fileName);
-            }
-            updateLinker();
-         }
-
-         @Override
-         public void widgetDefaultSelected(SelectionEvent e) {
-         }}
-            );
-
-      autoGenerateLinkerScript.setSelection(true);
-      externalLinkerScript.setText(""); //$NON-NLS-1$
-      IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings != null) {
-         String stringAttrValue = dialogSettings.get(deviceType.name()+EXTERNAL_LINKER_SCRIPT_KEY);
-         if (stringAttrValue != null) {
-            externalLinkerScript.setText(stringAttrValue);
+         String deviceName = dialogSettings.get(deviceType.name()+TARGET_DEVICE_KEY);
+         if (deviceName != null) {
+            deviceSelector.setDevice(deviceName);
          }
-         autoGenerateLinkerScript.setSelection(!dialogSettings.getBoolean(deviceType.name()+DONT_GENERATE_LINKER_SCRIPT_KEY));
       }
-      return group;
+      else {
+         deviceSelector.setDevice("MK20DX128M5");
+      }
    }
-   
-   private void createUsbdmControl(Composite parent) {
-      GridData gd;
-      Control  control;
-      parent.setLayout(new GridLayout());
-
-      control = createUsbdmParametersControl(parent);
-      gd = new GridData(SWT.FILL, SWT.NONE, true, false);
-      control.setLayoutData(gd);
-
-      control = createLinkerParametersControl(parent);
-      gd = new GridData(SWT.FILL, SWT.NONE, true, false);
-      control.setLayoutData(gd);
-
-   }
-
+     
    /* (non-Javadoc)
     * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
     */
    @Override
    public void createControl(Composite parent) {
-      
-      Composite control = new Composite(parent, SWT.NONE);
-      control.setLayout(new GridLayout());
-
-      createUsbdmControl(control);
-      
-      setControl(control);
-      updateLinker();
-      updateDevice();
+      Composite composite = new Composite(parent, SWT.NONE);
+      composite.setLayout(new GridLayout());
+      createUsbdmParametersControl(composite);
+      setControl(composite);
+      validate();
    }
 
    public String getSelectedBuildToolId() {
@@ -485,8 +347,8 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
    /**
     * Adds C Device attributes
     * 
-    * @param paramMap  Map to add attributes to
-    * @param device    Device being used
+    * @param paramMap         Map to add attributes to
+    * @param device           Device being used
     * @param deviceSubFamily 
     */
    private void addDatabaseValues(Map<String, String> paramMap, Device device) {
@@ -541,7 +403,7 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
          "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
          "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
    
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_KINETIS = 
+   public final static String LINKER_MEMORY_MAP_KINETIS = 
          "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
          "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
          "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
@@ -554,12 +416,20 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
    public final static String LINKER_HEAP_SIZE =
          "__heap_size  = 0x100;   /* required amount of heap  */"; //$NON-NLS-1$
    
+   public final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
+   
+   /**
+    * Adds the device memory map information to the paramMap
+    * 
+    * @param device    Device to get memory map for
+    * @param paramMap  Map to add memory map to
+    */
    private void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
       String linkerInformation;
       // Set defaults
       switch(deviceType) {
       case T_ARM: 
-         linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_COLDFIRE_KINETIS+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
+         linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_KINETIS+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
          break;
       case T_CFV1:
          linkerInformation = MAP_PREFIX+LINKER_MEMORY_MAP_COLDFIRE_V1+MAP_SUFFIX+LINKER_STACK_SIZE+LINKER_HEAP_SIZE;
@@ -575,7 +445,9 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
       int ioRangeCount    = 0;
       int flexNVMCount    = 0;
       int flexRamCount    = 0;
+      int unknownCount    = 0;
       long ramSize        = 0x100;
+      long flashSize      = 0x1000;
       
       if (device == null) {
          // Use default map
@@ -591,45 +463,64 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
             " */\n", device.getName())); //$NON-NLS-1$
       
       memoryMap.append(MAP_PREFIX);
+      long gdbGuardAddress = -1;
       for (Iterator<MemoryRegion> it = device.getMemoryRegionIterator();
             it.hasNext();) {
          MemoryRegion memoryRegion = it.next();
-         String template = ""; //$NON-NLS-1$
          for ( Iterator<MemoryRange> it1 = memoryRegion.iterator();
                it1.hasNext();) {
             MemoryRange memoryRange = it1.next();
+            String name   = "";
+            String access = "";
             switch (memoryRegion.getMemoryType()) {
-            case MemFLASH : 
-               template = "  rom%s     (rx)  : ORIGIN = 0x%08X, LENGTH = 0x%08X\n"; //$NON-NLS-1$
-               memoryMap.append(String.format(template, getRangeSuffix(flashRangeCount++), memoryRange.start, memoryRange.end-memoryRange.start+1));
-               break;
             case MemRAM   :
                if (ramRangeCount == 0) {
                   // 1st RAM region - contains stack
                   ramSize = (memoryRange.end-memoryRange.start+1);
+                  gdbGuardAddress = memoryRange.end+1;
                }
-               template = "  ram%s     (rwx) : ORIGIN = 0x%08X, LENGTH = 0x%08X\n"; //$NON-NLS-1$
-               memoryMap.append(String.format(template, getRangeSuffix(ramRangeCount++), memoryRange.start, memoryRange.end-memoryRange.start+1));
+               name   = String.format("ram%s", getRangeSuffix(ramRangeCount++));
+               access = "(rwx)";
+               break;
+            case MemFLASH : 
+               if (flashRangeCount == 0) {
+                  // 1st RAM region - contains stack
+                  flashSize = (memoryRange.end-memoryRange.start+1);
+               }
+               name   = String.format("rom%s", getRangeSuffix(flashRangeCount++));
+               access = "(rx)";
                break;
             case MemIO    : 
-               template = "  io%s      (rwx) : ORIGIN = 0x%08X, LENGTH = 0x%08X\n"; //$NON-NLS-1$
-               memoryMap.append(String.format(template, getRangeSuffix(ioRangeCount++), memoryRange.start, memoryRange.end-memoryRange.start+1));
+               name   = String.format("io%s", getRangeSuffix(ioRangeCount++));
+               access = "(rw)";
                break;
             case MemFlexNVM : 
-               template = "  flexNVM%s (rx)  : ORIGIN = 0x%08X, LENGTH = 0x%08X\n"; //$NON-NLS-1$
-               memoryMap.append(String.format(template, getRangeSuffix(flexNVMCount++), memoryRange.start, memoryRange.end-memoryRange.start+1));
+               name   = String.format("flexNVM%s", getRangeSuffix(flexNVMCount++));
+               access = "(rx)";
                break;
             case MemFlexRAM : 
-               template = "  flexRAM%s (rx)  : ORIGIN = 0x%08X, LENGTH = 0x%08X\n"; //$NON-NLS-1$
-               memoryMap.append(String.format(template, getRangeSuffix(flexRamCount++), memoryRange.start, memoryRange.end-memoryRange.start+1));
+               name   = String.format("flexRAM%s", getRangeSuffix(flexRamCount++));
+               access = "(rx)";
                break;
-            default: break;            
+            default: 
+               name   = String.format("unknown%s", getRangeSuffix(unknownCount++));
+               access = "(r)";
+               break;
             }
+            if (memoryRange.getName() != null) {
+               name = memoryRange.getName();
+            }
+            memoryMap.append(String.format(MEM_FORMAT, name, access, memoryRange.start, memoryRange.end-memoryRange.start+1));
          }
+      }
+      if (gdbGuardAddress > 0) {
+         memoryMap.append("  /* Guard region above stack for GDB */\n");
+         memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
       }
       memoryMap.append(MAP_SUFFIX);
       
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
+      paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
       paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
@@ -669,33 +560,37 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
 //      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
 //      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
 
-      if (externalVectorTableFile.isEmpty()) {
-         String cVectorTable = null;
-         // Generate vector table from SVD files if possible
-         DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device.getName());
-         if (devicePeripherals == null) {
-            devicePeripherals = DevicePeripherals.createDatabase(device.getSubFamily());
-         }
-         if (devicePeripherals != null) {
-            cVectorTable = devicePeripherals.getCVectorTableEntries();
-         }
-         if (cVectorTable == null) {
-            // Generate default vector tables
-            System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
-            switch(deviceType) {
-            case T_ARM: 
-            default:
-               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CM4").getCVectorTableEntries();
-               break;
-            case T_CFV1:
-               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV1").getCVectorTableEntries();
-               break;
-            case T_CFVX:
-               cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV2").getCVectorTableEntries();
-               break;      
+      try {
+         if (externalVectorTableFile.isEmpty()) {
+            String cVectorTable = null;
+            // Generate vector table from SVD files if possible
+            DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device.getName());
+            if (devicePeripherals == null) {
+               devicePeripherals = DevicePeripherals.createDatabase(device.getSubFamily());
             }
+            if (devicePeripherals != null) {
+               cVectorTable = devicePeripherals.getCVectorTableEntries();
+            }
+            if (cVectorTable == null) {
+               // Generate default vector tables
+               System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
+               switch(deviceType) {
+               case T_ARM: 
+               default:
+                  cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CM4").getCVectorTableEntries();
+                  break;
+               case T_CFV1:
+                  cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV1").getCVectorTableEntries();
+                  break;
+               case T_CFVX:
+                  cVectorTable = VECTOR_TABLE_INTRO+VectorTable.factory("CFV2").getCVectorTableEntries();
+                  break;      
+               }
+            }
+            paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, cVectorTable);
          }
-         paramMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, cVectorTable);
+      } catch (Exception e) {
+         e.printStackTrace();
       }
       
       paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, "DEVICE_SUBFAMILY_"+deviceFamily);
@@ -746,37 +641,17 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,     device.getName().toLowerCase());
       paramMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,   deviceType.name());
       paramMap.put(UsbdmConstants.USBDM_GDB_SPRITE_KEY,       deviceType.gdbSprite);
-         
-      if (autoGenerateLinkerScript.getSelection()) {
-//         System.err.println("getPageData() => "+"externalLinkerScript = \"\""); //$NON-NLS-1$ //$NON-NLS-2$
-         paramMap.put(EXTERNAL_LINKER_SCRIPT_KEY,     ""); //$NON-NLS-1$
-         paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Linker-rom.ld");
-      }
-      else {
-         // Save path to script to copy
-//         System.err.println("getPageData() => "+"externalLinkerScript = \""+externalLinkerScript.getText()+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-         File filepath = new File(externalLinkerScript.getText());
-         paramMap.put(EXTERNAL_LINKER_SCRIPT_KEY,     filepath.toString());
-         paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Custom.ld");
-      }
+
+      // No longer support sexternal linker
+      paramMap.put(EXTERNAL_LINKER_SCRIPT_KEY,     ""); //$NON-NLS-1$
+      paramMap.put(UsbdmConstants.LINKER_FILE_KEY, "Linker-rom.ld");
 //      System.err.println("getPageData() => " + UsbdmConstants.LINKER_FILE_KEY+" = \'" + paramMap.get(UsbdmConstants.LINKER_FILE_KEY)+ "\'"); //$NON-NLS-1$ //$NON-NLS-2$
       addDeviceAttributes(device, paramMap);
 //      System.err.println("UsbdmProjectPage.getPageData()");
    }
 
    public Device getDevice() {
-      if ((deviceDatabase == null) || (deviceDatabase.getTargetType() != deviceType.targetType)) {
-         deviceDatabase = new DeviceDatabase(deviceType.targetType);
-      }
-      Device device = null;
-      if (deviceDatabase.isValid()) {
-         String deviceName = targetDeviceNameCombo.getText();
-         device = deviceDatabase.getDevice(deviceName);
-         if (device == null) {
-            device = deviceDatabase.getDefaultDevice();
-         }
-      }
-      return device;
+      return deviceSelector.getDevice();
    }
 
    public InterfaceType getInterfaceType() {
@@ -787,9 +662,37 @@ public class UsbdmProjectParametersPage extends WizardPage implements IUsbdmProj
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings != null) {
          dialogSettings.put(deviceType.name()+BUILDTOOLS_KEY,                    buildToolCombo.getText());
-         dialogSettings.put(deviceType.name()+TARGET_DEVICE_KEY,                 targetDeviceNameCombo.getText());
-         dialogSettings.put(deviceType.name()+DONT_GENERATE_LINKER_SCRIPT_KEY,   !autoGenerateLinkerScript.getSelection());
-         dialogSettings.put(deviceType.name()+EXTERNAL_LINKER_SCRIPT_KEY,        externalLinkerScript.getText());
+         dialogSettings.put(deviceType.name()+TARGET_DEVICE_KEY,                 deviceSelector.getText());
       }
    }
+   
+   /**
+    * Test main
+    * 
+    * @param args
+    */
+   public static void main(String[] args) {
+      Display display = new Display();
+
+      Shell shell = new Shell(display);
+      shell.setText("Project Parameters");
+      shell.setLayout(new FillLayout());
+      shell.setSize(500, 350);
+      
+      Composite composite = new Composite(shell, SWT.NONE);
+      composite.setLayout(new FillLayout());
+
+      UsbdmProjectParametersPage page = new UsbdmProjectParametersPage(null);
+      page.createControl(composite);
+
+      shell.open();
+      while (!shell.isDisposed()) {
+         if (!display.readAndDispatch())
+            display.sleep();
+      }
+//      Map<String, String> map = new HashMap<String, String>();
+//      page.getPageData(map);
+      display.dispose();
+   }
+
 }

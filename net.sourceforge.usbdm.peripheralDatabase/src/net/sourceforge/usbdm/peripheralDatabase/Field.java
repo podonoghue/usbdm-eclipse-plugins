@@ -1,4 +1,12 @@
 package net.sourceforge.usbdm.peripheralDatabase;
+/*
+ Change History
++===================================================================================
+| Revision History
++===================================================================================
+| 19 Jan 15 | Some name changes to avoid MACRO clashes                    4.10.6.250
++===================================================================================
+ */
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -150,22 +158,22 @@ public class Field extends ModeControl implements Cloneable {
       this.name = name;
    }
 
-   public String getDescription() {
-      return description;
-   }
-
-   public String getDescription(int index) throws Exception {
-      return owner.format(description, index);
-   }
-
    public String getCDescription() {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
    }
    
    public String getCDescription(int index) throws Exception {
-      return SVD_XML_BaseParser.unEscapeString(getDescription(index));
+      return SVD_XML_BaseParser.unEscapeString(owner.format(description, index));
    }
    
+   public String getCDescription(int clusterIndex, int registerIndex) throws Exception {
+      return SVD_XML_BaseParser.unEscapeString(owner.format(description, clusterIndex, registerIndex));
+   }
+
+   public String getDescription() {
+      return description;
+   }
+
    public void setDescription(String description) {
       this.description = getSanitizedDescription(description.trim());
    }
@@ -381,7 +389,7 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    /**
-    * Maps a bit-field macro name to a Freescale style new name
+    * Maps a bit-field macro name for shared definitions (made generic)
     * e.g. PORTA_PCR_MUX() -> PORT_PCR_MUX()
     * 
     * @param   Name to map
@@ -392,10 +400,9 @@ public class Field extends ModeControl implements Cloneable {
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
-
-
          // Prevent multiple definitions of bit fields that are common to multiple instances of a device e.g. ADC0, ADC1 etc
          // Fields are masked to a root name e.g. GPIOA_PDOR_PDO_MASK => GPIO_PDOR_PDO_MASK
+         // Fields can also be deleted by mapping to null
          mappedMacros.add(new Pair(Pattern.compile("^(ADC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(CAN)[0-9](_.*)$"),                      "$1$2"));
@@ -403,14 +410,17 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(GPIO_.*)(?:AN|AS|DD|GP|LD|NQ|QS|TA|TC|TD|TE|TF|TG|TH|TI|TJ|UA|UB|UC)(_.*)$"),  "$1$2")); // GPIO_PORTNQ_PORT_MASK => GPIO_PORT_PORT_MASK
-         mappedMacros.add(new Pair(Pattern.compile("^F(GPIO)[A-Z](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^F?(GPIO)[A-Z](_.*)$"),                    null));    // Delete useless pin macros 
          mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(GPIO)[A-Z](_.*)$"),                     "$1$2"));
+//         mappedMacros.add(new Pair(Pattern.compile("^(FMC)[0-9]?_S_(.*)$"),                   "$1_TAGVD_$2"));  // FMC_S_valid_SHIFT -> FMC_TAGVD_valid_SHIFT
+//         mappedMacros.add(new Pair(Pattern.compile("^(FMC_S)[0-9]*(.*)$"),                    "$1$2"));  // Fold cache ways
          mappedMacros.add(new Pair(Pattern.compile("^(I2C)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(I2S)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(OSC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(LPTMR)[0-9](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PDB)[A-Z](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(PDB)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^PORT[A-Z]_(ISFR|DFER)_[A-Z]*[0-9]*.$"),   null));
          mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
@@ -421,7 +431,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(LPUART)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(INTC)[0-9](_.*)$"),                     "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
-         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                    "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
@@ -435,13 +445,26 @@ public class Field extends ModeControl implements Cloneable {
       return name;
    }
 
-   static final String BitfieldMacroPosFormat   = "#define %-40s %d";
-   static final String BitfieldMacroMskFormat   = "#define %-40s (0x%02XUL << %s)";
-   static final String BitfieldMacroFieldFormat = "#define %-40s (((x)<<%s)&%s)";
-   static final String BitfieldFormatComment    = " /*!< %-40s*/\n";
+   static final String BITFIELD_MACRO_POS_FORMAT     = "#define %-40s %d";
+   static final String BITFIELD_MACRO_MSK_NUM_FORMAT = "#define %-40s 0x%Xu";
+   static final String BITFIELD_MACRO_MSK_FORMAT     = "#define %-40s (0x%02XUL << %s)";
+//   static final String BITFIELD_MACRO_MSK_FORMAT   = "#define %-40s 0x%Xu";
+//   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((uint32_t)(((uint32_t)(x))<<%s))&%s)";
+   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((%s)(((%s)(x))<<%s))&%s)";
+   static final String BITFIELD_FORMAT_COMMENT       = " /*!< %-40s*/\n";
 
    String getBaseName() {
       return getName().replaceAll("%s", "n");
+   }
+   
+   private String getCWidth(long width) {
+      if (width<=8) {
+         return "uint8_t";
+      }
+      if (width<=16) {
+         return "uint16_t";
+      }
+      return "uint32_t";
    }
    
    /**
@@ -454,40 +477,41 @@ public class Field extends ModeControl implements Cloneable {
     */
    public void writeHeaderFileFieldMacros(PrintWriter writer, String baseName) throws Exception {
       String fieldname = baseName+"_"+getBaseName();
-      if (isMapFreescaleCommonNames()) {
-         // Filter names
-         fieldname = getMappedBitfieldMacroName(fieldname);
-         if (fieldname == null) {
-            return;
-         }
-      }
-      int newHashcode = (int) (getBitwidth() + (getBitOffset()<<8));
-      
-      Integer hashCode = fieldMacros.get(fieldname);
-      if (hashCode != null) {
-         // Check if re-definition is the same
-         if (hashCode != newHashcode) {
-            throw new Exception("Redefined MACRO has different hashcode \""+fieldname+"\"");
-         }
-//         System.err.println("writeHeaderFileFieldMacros() " + fieldname + " - Deleted");
-         // Filter repeated macros
+      // Filter names
+      fieldname = getMappedBitfieldMacroName(fieldname);
+      if (fieldname == null) {
          return;
-      };
-      fieldMacros.put(fieldname, newHashcode);
-
+      }
+      if (fieldMacroAlreadyDone(this, fieldname)) {
+         return;
+      }
       String posName   = fieldname+getFieldOffsetSuffixName();
       String mskName   = fieldname+getFieldMaskSuffixName();
       
-      writer.print(String.format("%-100s%s",
-            String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1), posName), 
-            String.format(BitfieldFormatComment,  baseName+": "+getBaseName()+" Mask")));
-      writer.print(String.format("%-100s%s",
-            String.format(BitfieldMacroPosFormat, posName, getBitOffset()),      
-            String.format(BitfieldFormatComment,  baseName+": "+getBaseName()+" Position")));      
-      if (getBitwidth()>1) {
+      if (isUseShiftsInFieldMacros()) {
          writer.print(String.format("%-100s%s",
-            String.format(BitfieldMacroFieldFormat, fieldname+"(x)", posName, mskName), 
-            String.format(BitfieldFormatComment,    baseName, getBaseName()+" Field"))); 
+               String.format(BITFIELD_MACRO_MSK_FORMAT, mskName, ((1L<<getBitwidth())-1), posName), 
+//               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
+               String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
+      }
+      else {
+         writer.print(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
+//               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
+               String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
+      }
+      writer.print(String.format("%-100s%s",
+            String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),      
+            String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Position")));      
+
+      if (getBitwidth()>1) {
+         String width = getCWidth(this.owner.getWidth());
+         writer.print(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
+               String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
+//         writer.print(String.format("%-100s%s",
+//            String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", posName, mskName), 
+//            String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
 //         String.format(BitfieldFormatComment,    baseName+": "+getBaseName()+" Field"))); 
       }
    }

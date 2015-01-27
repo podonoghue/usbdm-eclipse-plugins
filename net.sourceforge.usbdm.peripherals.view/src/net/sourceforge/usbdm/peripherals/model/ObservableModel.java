@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.peripherals.model;
 
-
-
 /**
  * Implements a change listener interface
  *

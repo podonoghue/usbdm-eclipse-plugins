@@ -6,8 +6,8 @@ public class ExcludeAction extends ProjectAction {
    private final boolean   excluded;
    private final boolean   folder;
    
-   public ExcludeAction(String id, String target, boolean isExcluded, boolean isFolder) {
-      super(id);
+   public ExcludeAction(String target, boolean isExcluded, boolean isFolder) throws Exception {
+      super("---exclude---");
       this.target      = target;
       this.excluded  = isExcluded;
       this.folder    = isFolder;

@@ -112,7 +112,7 @@ public class FllClockValidate_CFV1 extends MyValidator {
          mcg_c3_div32 = false;
       }
          
-      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
+//      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
 
       //=================
       // Determine FLL input frequency.  From:
@@ -158,7 +158,7 @@ public class FllClockValidate_CFV1 extends MyValidator {
          }
       }
       else {
-         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
+//         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
          fllTargetFrequencyNode.setEnabled(true);
 
          //=================
@@ -195,7 +195,7 @@ public class FllClockValidate_CFV1 extends MyValidator {
             }
             fllTargetFrequencyMessage = buff.toString();
          }
-         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
+//         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
       }
       if (mcg_c3_plls == 0) {
          // FLL Selected

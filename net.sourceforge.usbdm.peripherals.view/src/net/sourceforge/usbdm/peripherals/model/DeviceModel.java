@@ -1,4 +1,14 @@
+/*
+===============================================================================================================
+| History                                                                                                      
+---------------------------------------------------------------------------------------------------------------
+| 19 Jan 2015 | Added interfaceType field                                                         | V4.10.6.250
+===============================================================================================================
+*/
+
 package net.sourceforge.usbdm.peripherals.model;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 
 /**
  * Model for a device tree item (ROOT element)
@@ -6,6 +16,8 @@ package net.sourceforge.usbdm.peripherals.model;
  */
 public class DeviceModel extends BaseModel {
    
+   InterfaceType interfaceType = null;
+
    public DeviceModel(String deviceName) {
       super(null, deviceName, deviceName);
    }
@@ -39,4 +51,13 @@ public class DeviceModel extends BaseModel {
          ((PeripheralModel)peripheralModel).setChangeReference();
       }
    }
+
+   public void setTargetType(InterfaceType interfaceType) {
+      this.interfaceType = interfaceType;
+   }
+
+   public InterfaceType getTargetType() {
+      return interfaceType;
+   }
+
 }

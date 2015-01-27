@@ -5,6 +5,7 @@ import net.sourceforge.usbdm.peripherals.model.BaseModel;
 import net.sourceforge.usbdm.peripherals.model.FieldModel;
 import net.sourceforge.usbdm.peripherals.model.MemoryException;
 import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
+import net.sourceforge.usbdm.peripherals.model.RegisterHolder;
 import net.sourceforge.usbdm.peripherals.model.RegisterModel;
 
 import org.eclipse.jface.resource.FontRegistry;
@@ -46,7 +47,7 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
    public Image getColumnImage(Object element, int columnIndex) {
       if (columnIndex == 0) {
          // Only provide images for column 1
-         if (element instanceof PeripheralModel) {
+         if (element instanceof RegisterHolder) {
             return view.getMyImage(Activator.ID_PERIPHERAL_IMAGE);
          }
          else if (element instanceof RegisterModel) {
@@ -84,8 +85,7 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang
-    * .Object, int)
+    * org.eclipse.jface.viewers.ITableLabelProvider#getColumnText(java.lang.Object, int)
     */
    public String getColumnText(Object element, int columnIndex) {
       BaseModel item = (BaseModel) element;
@@ -104,21 +104,13 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
                long fieldValue = field.getValue();
                for (Enumeration enumeration : field.getEnumeratedDescription()) {
                   if (enumeration.isSelected(fieldValue)) {
-                     description = enumeration.getCDescription();
-                     int newlineIndex = description.indexOf("\n");
-                     if (newlineIndex > 0) {
-                        description = description.substring(0, newlineIndex);
-                     }
-                     int tabIndex = description.indexOf("\t");
-                     if (tabIndex > 0) {
-                        description = description.substring(0, tabIndex);
-                     }
+                     description = BaseModel.makeShortDescription(enumeration.getCDescription());
                      break;
                   }
                }
             } catch (MemoryException e) {
             }
-            }
+         }
          return description;
       }
       case UsbdmDevicePeripheralsView.MODE_COL:
@@ -128,13 +120,7 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
          return item.getAddressAsString();
 
       case UsbdmDevicePeripheralsView.DESCRIPTION_COL: {
-         String description = item.getDescription();
-         // Truncate at newline if present
-         int newlineIndex = description.indexOf("\n");
-         if (newlineIndex > 0) {
-            description = description.substring(0, newlineIndex);
-         }
-         return description;
+         return item.getShortDescription();
       }
       default:
          return "";

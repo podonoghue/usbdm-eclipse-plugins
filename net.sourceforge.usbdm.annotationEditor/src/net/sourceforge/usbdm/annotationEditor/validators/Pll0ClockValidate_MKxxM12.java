@@ -44,7 +44,7 @@ public class Pll0ClockValidate_MKxxM12 extends MyValidator {
       }
       long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
 
-      System.err.println(String.format("\nPllClockValidate.validate(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
+//      System.err.println(String.format("\nPllClockValidate.validate(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
 
       int  mcg_prdiv = 0;
       int  mcg_vdiv  = 0;
@@ -88,7 +88,7 @@ public class Pll0ClockValidate_MKxxM12 extends MyValidator {
          // Valid - update
          update(viewer, mcg_prdivNode, new Long(mcg_prdiv));
          update(viewer, mcg_vdivNode, new Long(mcg_vdiv));
-         System.err.println(String.format("PllClockValidate.validate() Valid: prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
+//         System.err.println(String.format("PllClockValidate.validate() Valid: prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
       }
       String pllTargetFrequencyMessage = null;
       if (!valid) {

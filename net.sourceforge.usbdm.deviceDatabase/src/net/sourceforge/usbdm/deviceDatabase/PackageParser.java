@@ -5,12 +5,14 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase.FileType;
+import net.sourceforge.usbdm.deviceDatabase.FileAction.FileType;
 import net.sourceforge.usbdm.jni.Usbdm;
 
 import org.eclipse.core.runtime.IPath;
@@ -21,24 +23,24 @@ import org.w3c.dom.Node;
 
 public class PackageParser {
 
-   private IPath fPath = null;
-   
-   protected PackageParser(IPath path) {
-      fPath = path;
-   }
-   
-   static public ArrayList<ProjectActionList> addPackageList(Device device, ArrayList<ProjectActionList> pal) {
-      if (pal == null) {
-         pal = new ArrayList<ProjectActionList>(); 
-      }
+   /**
+    * Locates all package lists that apply to this device
+    * 
+    * @param device      Device to investigate
+    * @param variableMap Variables to use when evaluation conditions
+    * 
+    * @return ArrayList of ProjectActionLists (an empty list if none)
+    */
+   static public ArrayList<ProjectActionList> findPackageList(Device device, Map<String, String> variableMap) {
+      ArrayList<ProjectActionList> pal = new ArrayList<ProjectActionList>(); 
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
       Arrays.sort(packageDirectories);
       if (packageDirectories == null) {
-         System.out.flush();
          System.err.println("No packages found at " + packagesDirectoryPath.toOSString());
          return pal;
       }
+      HashMap<String, ProjectVariable> projectVariables = new HashMap<String, ProjectVariable>();
       for (File packageDirectory : packageDirectories) {
          if (packageDirectory.isDirectory()) {
             // Get all XML files
@@ -52,19 +54,26 @@ public class PackageParser {
             for(File f:files) {
                if (f.isFile()) {
                   try {
-                     PackageParser                packParser         = new PackageParser(path);
+                     PackageParser                packParser         = new PackageParser(path, projectVariables);
                      Document                     document           = packParser.parseXmlFile(f.toString());
                      ArrayList<ProjectActionList> projectActionLists = packParser.parseDocument(document);
                      for (ProjectActionList projectActionList:projectActionLists) {
-                        if (projectActionList.appliesTo(device)) {
+                        if (projectActionList.appliesTo(device, variableMap)) {
 //                         System.err.println("projectAction ID = " + projectActions.getId());
 //                         System.err.println("projectAction applyWhen = " + projectActions.getApplyWhenCondition());
 //                         for (ProjectAction projectAction : projectActions) {
 //                            System.err.println("projectAction = " + projectAction.toString());
 //                         }
-//                       System.err.println("===============================================");
-                         pal.add(projectActionList);
-                      }
+//                         System.err.println("===============================================");
+                           // Add applicable actions
+                           pal.add(projectActionList);
+                           // Add applicable project variables
+                           Iterator<Entry<String, ProjectVariable>> it = packParser.getNewProjectVariables().entrySet().iterator();
+                           while (it.hasNext()) {
+                              Entry<String, ProjectVariable> item = it.next();
+                              projectVariables.put(item.getKey(), item.getValue());
+                           }
+                        }
                      }
                   } catch (Exception e) {
                      e.printStackTrace();
@@ -74,6 +83,38 @@ public class PackageParser {
          }
       }
       return pal;
+   }
+   
+   private IPath                            fPath             = null;
+   private HashMap<String, ProjectVariable> fPreviousProjectVariables = null;
+   private HashMap<String, ProjectVariable> fNewProjectVariables      = null;
+
+   protected PackageParser(IPath path, HashMap<String, ProjectVariable> projectVariables) {
+      fPath                     = path;
+      fPreviousProjectVariables = projectVariables;
+      fNewProjectVariables      = new HashMap<String, ProjectVariable>();
+   }
+   
+   /**
+    * @return the newProjectVariables
+    */
+   public HashMap<String, ProjectVariable> getNewProjectVariables() {
+      return fNewProjectVariables;
+   }
+
+   /**
+    * Returns the variable from previous or new variable list
+    * 
+    * @param variableName
+    * 
+    * @return variable found or null is non-existent
+    */
+   private ProjectVariable findVariable(String variableName) {
+      ProjectVariable variable = fPreviousProjectVariables.get(variableName);
+      if (variable == null) {
+         variable = fNewProjectVariables.get(variableName);
+      }
+      return variable;
    }
    
    /**
@@ -121,12 +162,17 @@ public class PackageParser {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         Element element = (Element) node;
-         if (element.getTagName() == "projectActionList") {
-            fileElements.add(parseProjectActionListElement(element));
-         }
-         else {
-            throw new Exception("Unexpected field in <root>' - \'" + element.getTagName() + "\' found");
+         try {
+            Element element = (Element) node;
+            if (element.getTagName() == "projectActionList") {
+               fileElements.add(parseProjectActionListElement(element));
+            }
+            else {
+               throw new Exception("Unexpected field in <root>' - \'" + element.getTagName() + "\' found");
+            }
+         } catch (Exception e) {
+            System.err.println("Exception while parsing URI = " + documentElement.getDocumentURI());
+            e.printStackTrace();
          }
       }
       return fileElements;
@@ -142,7 +188,11 @@ public class PackageParser {
     * @throws Exception 
     */
    private ProjectActionList parseProjectActionListElement(Element projectActionListElement) throws Exception {
-      return parseProjectActionListElement(projectActionListElement, new ProjectActionList(), new HashMap<String, ProjectVariable>());
+      ProjectActionList projectActionList = new ProjectActionList();
+      if (projectActionListElement.hasAttribute("id")) {
+         projectActionList.setId(projectActionListElement.getAttribute("id"));
+      }
+      return parseProjectActionListElement(projectActionListElement, projectActionList);
    }
 
    /**
@@ -154,14 +204,10 @@ public class PackageParser {
     * @return  Action list described 
     * @throws  Exception
     */
-   private ProjectActionList parseProjectActionListElement(Element listElement, ProjectActionList projectActionList, Map<String,ProjectVariable> variableList) throws Exception {
-
+   private ProjectActionList parseProjectActionListElement(Element listElement, ProjectActionList projectActionList) throws Exception {
       IPath root = fPath;
       if (listElement.hasAttribute("root")) {
          root = root.append(listElement.getAttribute("root"));
-      }
-      if (listElement.hasAttribute("id")) {
-         projectActionList.setId(listElement.getAttribute("id"));
       }
       // <projectActionList>
       for (Node node = listElement.getFirstChild();
@@ -170,55 +216,67 @@ public class PackageParser {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         // child node for <projectActionList>
-         Element element = (Element) node;
-         if (element.getTagName() == "projectActionListRef") {
-            throw new Exception("<projectActionListRef> not supported in " + listElement.getNodeName());
-         }
-         else if (element.getTagName() == "applyWhen") {
-            if (projectActionList.getApplyWhenCondition() != null) {
-               throw new Exception("Multiple <applyWhen> in " + listElement.getNodeName());
+         try {
+            // child node for <projectActionList>
+            Element element = (Element) node;
+            if (element.getTagName() == "projectActionListRef") {
+               throw new Exception("<projectActionListRef> not supported in");
             }
-            projectActionList.setApplyWhenCondition(parseApplyWhenElement(element));
-         }
-         else if (element.getTagName() == "projectActionList") {
-            parseProjectActionListElement(element, projectActionList, variableList);
-         }
-         else if (element.getTagName() == "variable") {
-            ProjectVariable variable = parseVariableElement(element);
-            variableList.put(variable.getId(), variable);
-         }
-         else if (element.getTagName() == "condition") {
-            parseConditionElement(element, variableList, projectActionList, root);
-         }
-         else if (element.getTagName() == "excludeSourceFile") {
-            ExcludeAction excludeAction = parseExcludeSourceFileElement(element);
-            projectActionList.add(excludeAction);
-         }
-         else if (element.getTagName() == "excludeSourceFolder") {
-            ExcludeAction excludeAction = parseExcludeSourceFolderElement(element);
-            projectActionList.add(excludeAction);
-         }
-         else if (element.getTagName() == "createFolder") {
-            CreateFolderAction createFolderAction = parseCreateFolderElement(element);
-            createFolderAction.setRoot(root.toPortableString());
-            projectActionList.add(createFolderAction);
-         }
-         else if (element.getTagName() == "copy") {
-            FileAction fileAction = parseCopyElement(element);
-            fileAction.setRoot(root.toPortableString());
-            projectActionList.add(fileAction);
-         }
-         else if (element.getTagName() == "customAction") {
-            ProjectCustomAction projectCustomAction = parseCustomActionElement(element);
-            projectActionList.add(projectCustomAction);
-         }
-         else if (element.getTagName() == "projectOption") {
-            ProjectOption projectOption = parseProjectOptionElement(element);
-            projectActionList.add(projectOption);
-         }
-         else {
-            throw new Exception("Unexpected element \""+element.getTagName()+"\" in <projectActionList>");
+            else if (element.getTagName() == "applyWhen") {
+               if (projectActionList.getApplyWhenCondition() != null) {
+                  throw new Exception("Multiple <applyWhen>");
+               }
+               projectActionList.setApplyWhenCondition(parseApplyWhenElement(element));
+            }
+            else if (element.getTagName() == "projectActionList") {
+               parseProjectActionListElement(element, projectActionList);
+            }
+            else if (element.getTagName() == "variable") {
+               ProjectVariable newVariable = parseVariableElement(element);
+               ProjectVariable variable = findVariable(newVariable.getId());
+               if (variable == null) {
+                  fNewProjectVariables.put(newVariable.getId(), newVariable);
+                  if (fNewProjectVariables.get(newVariable.getId()) == null) {
+                     System.err.println("Opps");
+                  }
+               }
+            }
+            else if (element.getTagName() == "block") {
+               parseBlockElement(element, projectActionList, root);
+            }
+            else if (element.getTagName() == "excludeSourceFile") {
+               projectActionList.add(parseExcludeSourceFileElement(element));
+            }
+            else if (element.getTagName() == "excludeSourceFolder") {
+               projectActionList.add(parseExcludeSourceFolderElement(element));
+            }
+            else if (element.getTagName() == "createFolder") {
+               CreateFolderAction createFolderAction = parseCreateFolderElement(element);
+               createFolderAction.setRoot(root.toPortableString());
+               projectActionList.add(createFolderAction);
+            }
+            else if (element.getTagName() == "copy") {
+               FileAction fileAction = parseCopyElement(element);
+               fileAction.setRoot(root.toPortableString());
+               projectActionList.add(fileAction);
+            }
+            else if (element.getTagName() == "deleteResource") {
+               DeleteResourceAction fileInfo = parseDeleteElement(element);
+               fileInfo.setRoot(root.toPortableString());
+               projectActionList.add(fileInfo);
+            }
+            else if (element.getTagName() == "customAction") {
+               projectActionList.add(parseCustomActionElement(element));
+            }
+            else if (element.getTagName() == "projectOption") {
+               projectActionList.add(parseProjectOptionElement(element));
+            }
+            else {
+               throw new Exception("Unexpected element \""+element.getTagName()+"\"");
+            }
+         } catch (Exception e) {
+            System.err.println("Exception while parsing <" + listElement.getNodeName() + ">");
+            throw (e);
          }
       }
       return projectActionList;
@@ -226,7 +284,6 @@ public class PackageParser {
 
    /**
     * Parse a <applyWhen> element
-    * 
     * @param    <applyWhen> element
     * 
     * @return   condition described 
@@ -257,8 +314,7 @@ public class PackageParser {
     * Parses:
     *  <deviceNameIs>, <deviceFamilyIs>, <deviceSubfamilyIs>, 
     *  <deviceNameMatches>, <deviceFamilyMatches>, <deviceSubfamilyMatches>, 
-    *  <and>, <or> or <not> element
-    * 
+    *  <requirement>, <and>, <or> or <not> element
     * @param    applyWhenElement <applyWhen> element
     * 
     * @return   condition described 
@@ -284,6 +340,27 @@ public class PackageParser {
       else if (element.getTagName() == "deviceSubfamilyMatches") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceSubfamilyMatches, element.getTextContent().trim());
       }
+      else if (element.getTagName() == "variableRef") {
+         String                        variableName  = element.getAttribute("idRef").trim();
+         ProjectVariable               variable      = findVariable(variableName);
+         boolean                       defaultValue  = false;
+         String                        value         = null;
+         ApplyWhenCondition.Condition  condition     = ApplyWhenCondition.Condition.isTrue;
+         if (element.hasAttribute("default")) {
+            defaultValue = Boolean.valueOf(element.getAttribute("default"));
+         }
+         else if ((variable == null)) {
+            throw new Exception("<variableRef> Can't locate variable \""+variableName+"\"and no default given");
+         }
+         if (element.hasAttribute("condition")) {
+            String sCondition = element.getAttribute("condition");
+            condition = ApplyWhenCondition.Condition.valueOf(sCondition);
+         }
+         if (element.hasAttribute("value")) {
+            value = element.getAttribute("value");
+         }
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.requirement, variable, defaultValue, condition, value);
+      }
       else if (element.getTagName() == "and") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.and, parseApplyWhenLogicalElement(element));
       }
@@ -292,17 +369,13 @@ public class PackageParser {
       }
       else if (element.getTagName() == "not") {
          ArrayList<ApplyWhenCondition> list = parseApplyWhenLogicalElement(element);
-         if (list.size() > 1) {
-            throw new Exception("Multiple elements in <not>");
-         }
          return new ApplyWhenCondition(ApplyWhenCondition.Type.not, list);
-      }
-      throw new Exception("Unexpected element in <applyWhen> " + element.getTagName());
+      } 
+      throw new Exception("Unexpected element in <applyWhen> \'" + element.getTagName() + "\'");
   }
    
    /**
     * Parse a <and> or <or> or <not> element
-    * 
     * @param    applyWhenElement <and> or <or> or <not> element
     * 
     * @return   condition described 
@@ -328,7 +401,7 @@ public class PackageParser {
       }
       return list;
    }
-   
+
    /**
     * Parse a <variable> element
     * 
@@ -337,52 +410,61 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private ProjectVariable parseVariableElement(Element projectVariableElement) {
+   private ProjectVariable parseVariableElement(Element projectVariableElement) throws Exception {
       // <projectVariable>
       String id            = projectVariableElement.getAttribute("id");
       String name          = projectVariableElement.getAttribute("name");
       String description   = projectVariableElement.getAttribute("description");
       String defaultValue  = projectVariableElement.getAttribute("defaultValue");
-      return new ProjectVariable(id, name, description, defaultValue);
+      ProjectVariable projectVariable = new ProjectVariable(id, name, description, defaultValue);
+      for (Node node = projectVariableElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         // element node for <variable ...>
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "requirement") {
+            String variableName = element.getAttribute("idRef").trim();
+            ProjectVariable variable = findVariable(variableName);
+            if (variable == null) {
+               throw new Exception("Unknown variable \'" + variableName + "\'");
+            }
+            projectVariable.addRequirement(variable);
+         }
+         else if (element.getTagName() == "preclusion") {
+            String variableName = element.getAttribute("idRef").trim();
+            ProjectVariable variable = findVariable(variableName);
+            if (variable == null) {
+               throw new Exception("Unknown variable \'" + variableName + "\'");
+            }
+            projectVariable.addPreclusion(variable);
+         }
+         else {
+            throw new Exception("Unexpected element \""+element.getTagName()+"\" in <condition>");
+         }
+      }
+      return projectVariable;
    }
 
    /**
-    * Parse a <condition> element
-    * The child nodes are added top the actionlist
+    * Parse a <block> element
+    * The child nodes are added to the projectActionList
     * 
-    * @param    conditionElement <condition> element
-    * @param    variableList 
-    * @param    projectActionList The device to add action to
+    * @param    blockElement        <block> element
+    * @param    projectActionList   The projectActionList to add action to
+    * @param    root                Root path to add to file related elements
     * 
     * @return   File list described 
-    * @throws Exception 
+    * @throws   Exception 
     */
-   private Condition parseConditionElement(
-         Element conditionElement, 
-         Map<String, ProjectVariable> variableList, 
-         ProjectActionList projectActionList, 
-         IPath root) throws Exception {
+   private Block parseBlockElement( Element blockElement, ProjectActionList projectActionList, IPath root) throws Exception {
 
-      String variableName = conditionElement.getAttribute("variable");
-      ProjectVariable variable      = variableList.get(variableName);
-      String          defaultValue  = "false";
-      boolean         negated       = false;
+      Block block = new Block();
 
-      if (variable == null) {
-         throw new Exception("Variable \'"+variableName+"\' not found in <condition>");
-      }
-
-      if (conditionElement.hasAttribute("defaultValue")) {
-         defaultValue = conditionElement.getAttribute("defaultValue");
-      }
-      if (conditionElement.hasAttribute("negated")) {
-         negated = Boolean.valueOf(conditionElement.getAttribute("negated"));
-      }
-
-      Condition condition = new Condition(variable, defaultValue, negated);
-
-      // <condition>
-      for (Node node = conditionElement.getFirstChild();
+      // <block>
+      for (Node node = blockElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          // element node for <fileList>
@@ -391,43 +473,52 @@ public class PackageParser {
          }
          //         System.err.println("parseFileListElements() " + node.getNodeName());
          Element element = (Element) node;
-         if (element.getTagName() == "excludeSourceFile") {
+         if (element.getTagName() == "applyWhen") {
+            block.setApplyWhen(parseApplyWhenElement(element));
+         }
+         else if (element.getTagName() == "excludeSourceFile") {
             ExcludeAction excludeAction = parseExcludeSourceFileElement(element);
-            excludeAction.setCondition(condition);
+            excludeAction.setCondition(block);
             projectActionList.add(excludeAction);
          }
          else if (element.getTagName() == "excludeSourceFolder") {
             ExcludeAction excludeAction = parseExcludeSourceFolderElement(element);
-            excludeAction.setCondition(condition);
+            excludeAction.setCondition(block);
             projectActionList.add(excludeAction);
          }
          else if (element.getTagName() == "createFolder") {
             CreateFolderAction action = parseCreateFolderElement(element);
-            action.setCondition(condition);
+            action.setCondition(block);
             action.setRoot(root.toPortableString());
             projectActionList.add(action);
          }
          else if (element.getTagName() == "copy") {
             FileAction fileInfo = parseCopyElement(element);
             fileInfo.setRoot(root.toPortableString());
-            fileInfo.setCondition(condition);
+            fileInfo.setCondition(block);
+            projectActionList.add(fileInfo);
+         }
+         else if (element.getTagName() == "deleteResource") {
+            DeleteResourceAction fileInfo = parseDeleteElement(element);
+            fileInfo.setRoot(root.toPortableString());
+            fileInfo.setCondition(block);
             projectActionList.add(fileInfo);
          }
          else if (element.getTagName() == "projectOption") {
             ProjectOption projectOption = parseProjectOptionElement(element);
-            projectOption.setCondition(condition);
+            projectOption.setCondition(block);
             projectActionList.add(projectOption);
          }
          else if (element.getTagName() == "customAction") {
             ProjectCustomAction action = parseCustomActionElement(element);
-            action.setCondition(condition);
+            action.setCondition(block);
             projectActionList.add(action);
          }
          else {
             throw new Exception("Unexpected element \""+element.getTagName()+"\" in <condition>");
          }
       }
-      return condition;
+      return block;
    }
 
    /**
@@ -445,7 +536,7 @@ public class PackageParser {
       if (element.hasAttribute("excluded")) {
          isExcluded = !element.getAttribute("excluded").equalsIgnoreCase("false");
       }
-      ExcludeAction fileInfo = new ExcludeAction(null, target, isExcluded, false);
+      ExcludeAction fileInfo = new ExcludeAction(target, isExcluded, false);
       return fileInfo;
    }
 
@@ -464,7 +555,7 @@ public class PackageParser {
       if (element.hasAttribute("excluded")) {
          isExcluded = !element.getAttribute("excluded").equalsIgnoreCase("false");
       }
-      ExcludeAction fileInfo = new ExcludeAction(null, target, isExcluded, true);
+      ExcludeAction fileInfo = new ExcludeAction(target, isExcluded, true);
       return fileInfo;
    }
 
@@ -476,7 +567,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private CreateFolderAction parseCreateFolderElement(Element createFolderElement) {
+   private CreateFolderAction parseCreateFolderElement(Element createFolderElement) throws Exception {
       // <createFolder target="..." type="..." >
       String target  = createFolderElement.getAttribute("target");
       String type    = createFolderElement.getAttribute("type");
@@ -507,8 +598,25 @@ public class PackageParser {
       boolean doMacroReplacement = !element.getAttribute("macroReplacement").equalsIgnoreCase("false");
       // Default to false
       boolean doReplacement      =  element.getAttribute("replace").equalsIgnoreCase("true");
-      FileAction fileInfo        = new FileAction(null, source, target, fileType, doMacroReplacement, doReplacement);
+      FileAction fileInfo        = new FileAction(source, target, fileType, doMacroReplacement, doReplacement);
       return fileInfo;
+   }
+
+   /**
+    * Parse a <deleteResource> element
+    * 
+    * @param    fileElement <deleteResource> element
+    * 
+    * @return   File list described 
+    * @throws Exception 
+    */
+   private DeleteResourceAction parseDeleteElement(Element element) throws Exception {
+      // <deleteResource>
+      String target     = element.getAttribute("target");
+      if (target.isEmpty()) {
+         throw new Exception("Missing attribute in <deleteResource ...>");
+      }
+      return new DeleteResourceAction(target);
    }
 
    /**
@@ -587,5 +695,4 @@ public class PackageParser {
 
       return new ProjectCustomAction(className, values.toArray(new String[values.size()]));
    }
-
 }

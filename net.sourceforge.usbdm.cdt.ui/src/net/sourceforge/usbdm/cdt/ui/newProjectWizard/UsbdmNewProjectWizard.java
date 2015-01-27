@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardContainer;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -62,7 +63,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          usbdmToolSettingsPage.saveSettings();
       }
       try {
-         getContainer().run(false, true, this);
+         IWizardContainer container = getContainer();
+         if (container != null) {
+            container.run(false, true, this);
+         }
       } catch (InvocationTargetException e) {
          e.printStackTrace();
       } catch (InterruptedException e) {
@@ -127,10 +131,16 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          return usbdmProjectPage;
       }
       if (page == usbdmProjectPage) {
+         Map<String, String> paramMap = new HashMap<String, String>();
          Device device = usbdmProjectPage.getDevice();
          // Create new option page if none or device has changed
          if ((usbdmProjectOptionsPage == null) || (device != lastSelectedDevice)) {
-            usbdmProjectOptionsPage = new UsbdmProjectOptionsPage(usbdmProjectPage);
+
+            try {
+               usbdmProjectPage.getPageData(paramMap);
+            } catch (Exception e) {
+            }
+            usbdmProjectOptionsPage = new UsbdmProjectOptionsPage(usbdmProjectPage, paramMap);
             usbdmProjectOptionsPage.setWizard(this);
             usbdmToolSettingsPage   = null;
          }

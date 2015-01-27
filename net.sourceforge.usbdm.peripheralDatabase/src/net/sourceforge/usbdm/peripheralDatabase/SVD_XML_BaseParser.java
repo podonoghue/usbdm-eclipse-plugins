@@ -82,6 +82,7 @@ public class SVD_XML_BaseParser {
      
    /**
     * Converts a string (usually a description) into plain text for use
+    * 
     * @param str
     * @return
     */
@@ -91,45 +92,40 @@ public class SVD_XML_BaseParser {
       }
       StringBuffer sb = new StringBuffer();
       int len = str.length();
-      boolean escapeMode      = false; // Escapes next character
-      boolean whitespaceMode  = false; // USed to swallow consecutive whitespace
+      boolean escapeMode             = false; // Escapes next character
+      boolean leadingWhitespaceMode  = false; // Used to swallow consecutive whitespace
       for (int i = 0; i < len; i++) {
          char ch = str.charAt(i);
          if (escapeMode) {
             escapeMode = false;
             switch (ch) {
             case 'n':
-               sb.append("\n");
-               whitespaceMode = true;
+               sb.append('\n');
+               leadingWhitespaceMode = true;
                break;
             case 't':
-               sb.append("\t");
-               whitespaceMode = true;
+               sb.append('\t');
                break;
             case '\\':
-               sb.append("\\");
+               sb.append('\\');
                break;
             default:
                // just treat as regular characters
-               sb.append("\\");
+               sb.append('\\');
                sb.append(ch);
                break;
             }
             continue;
          }
-         if (Character.isWhitespace(ch)) {
-            if (whitespaceMode) {
-               // Swallow runs of white space
-               continue;
-            }
-            sb.append(" ");
-            whitespaceMode = true;
+         if (Character.isWhitespace(ch) && leadingWhitespaceMode) {
+            // Swallow runs of white space
             continue;
          }
-         whitespaceMode = false;
+         leadingWhitespaceMode = false;
          switch (ch) {
          case '\n':
-            sb.append(" ");
+            sb.append('\n');
+            leadingWhitespaceMode = true;
             break;
          case '\\':
             escapeMode = true;
