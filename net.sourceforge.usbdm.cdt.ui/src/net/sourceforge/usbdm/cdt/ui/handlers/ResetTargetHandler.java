@@ -141,6 +141,10 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
       fGdb.queueCommand(new CLICommand<MIInfo>(fGdb.getContext(), "monitor reset"), 
             new DataRequestMonitor<MIInfo>(fGdb.getExecutor(), crm));
 
+      // Step 1a
+      fGdb.queueCommand(new CLICommand<MIInfo>(fGdb.getContext(), "flushregs"), 
+            new DataRequestMonitor<MIInfo>(fGdb.getExecutor(), crm));
+
       // Step 2
       if (doSetPc) {
          fGdb.queueCommand(

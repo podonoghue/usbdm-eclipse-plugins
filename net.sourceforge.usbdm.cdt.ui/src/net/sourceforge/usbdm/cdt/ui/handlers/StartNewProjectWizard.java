@@ -34,6 +34,7 @@ public class StartNewProjectWizard extends AbstractHandler {
         e.printStackTrace();
       }
      }
+
    @Override
    public Object execute(ExecutionEvent event) throws ExecutionException {
       IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);

@@ -100,6 +100,10 @@ public class GdbServerInterface {
    public void startServer(Shell shell) {
 
       if (isServerRunning()) {
+         if (shell == null) {
+            // Quietly return
+            return;
+         }
          MessageBox mbox = new MessageBox(shell,  SWT.ICON_QUESTION|SWT.YES |SWT.NO);
          mbox.setMessage("A controlled server is already running.\n" +
                          "Force restart?");
@@ -114,6 +118,10 @@ public class GdbServerInterface {
          }
       }
       else if (independentServerRunning(serverParameters.getGdbPortNumber())) {
+         if (shell == null) {
+            // Quietly return
+            return;
+         }
          MessageBox mbox = new MessageBox(shell,  SWT.ICON_WARNING|SWT.OK);
          mbox.setMessage("An independent server is already running on selected socket.\n" +
          		          "Another server cannot be started");
@@ -125,10 +133,10 @@ public class GdbServerInterface {
          ArrayList<String> commandList= serverParameters.getServerCommandLine();
          String[] commandArray = new String[commandList.size()];
          commandArray = commandList.toArray(commandArray);
-//         for (String s : commandArray) { 
-//            System.err.print(s + " ");
-//         }
-//         System.err.print("\n");
+         for (String s : commandArray) { 
+            System.err.print(s + " ");
+         }
+         System.err.print("\n");
 
          Runtime rt = Runtime.getRuntime();
          proc = rt.exec(commandArray);
@@ -146,35 +154,9 @@ public class GdbServerInterface {
     * @note It is not considered an error if the server is already running 
     */
    public void startServer() throws UsbdmException {
-
-//      System.err.println("GdbServerInterface.startServer()");
-      if (isServerRunning()) {
-//         System.err.println("GdbServerInterface.startServer() - Server already running");
-//         throw new UsbdmException("Server already running");
-         return;
-      }
-      else if (independentServerRunning(serverParameters.getGdbPortNumber())) {
-//         System.err.println("GdbServerInterface.startServer() - Independent server already running");
-//         throw new UsbdmException("Independent server already running");
-         return;
-      }
-      try {
-         ArrayList<String> commandList= serverParameters.getServerCommandLine();
-         String[] commandArray = new String[commandList.size()];
-         commandArray = commandList.toArray(commandArray);
-//         for (String s : commandArray) { 
-//            System.err.print(s + " ");
-//         }
-//         System.err.print("\n");
-
-         Runtime rt = Runtime.getRuntime();
-         proc = rt.exec(commandArray);
-      } catch (Throwable t) {
-         t.printStackTrace();
-      }
-      return;
+      startServer(null);
    }
-
+   
    /**
     *  Stop USBDM GDB Server
     */
@@ -214,8 +196,9 @@ public class GdbServerInterface {
 
    /**
     * @param args
+    * @throws Exception 
     */
-   public static void main(String[] args) {
+   public static void main(String[] args) throws Exception {
       Display display = new Display();
 
       final Shell shell = new Shell(display);

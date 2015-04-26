@@ -6,7 +6,7 @@ import net.sourceforge.usbdm.gdb.GdbServerParameters;
 
 public class ArmGdbServerHandler extends GdbServerHandler {
 
-   public ArmGdbServerHandler() {
+   public ArmGdbServerHandler() throws Exception {
       super(GdbServerParameters.getDefaultServerParameters(InterfaceType.T_ARM));
    }
 }

@@ -159,7 +159,7 @@ public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPag
 //   }
 //   
    @Override
-   public String getSelectedBuildToolId() {
+   public String getSelectedBuildToolsId() {
 
       if (projectInformation == null) {
          return "";
@@ -173,7 +173,7 @@ public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPag
 //      return buildToolIds[index];
    }
 
-   IDialogSettings getDialogSettiings() {
+   protected IDialogSettings getDialogSettings() {
       return super.getDialogSettings();
    }
  

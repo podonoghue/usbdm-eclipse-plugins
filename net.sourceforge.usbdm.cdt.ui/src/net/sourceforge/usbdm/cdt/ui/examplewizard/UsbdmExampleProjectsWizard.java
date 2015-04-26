@@ -256,11 +256,11 @@ public class UsbdmExampleProjectsWizard extends Wizard implements INewWizard {
          newProject.open(null); 
 
          String additionalProjectNature = null;
-         if ((usbdmSelectProjectWizardPage.getSelectedBuildToolId().equals(UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID)) ||
-               (usbdmSelectProjectWizardPage.getSelectedBuildToolId().equals(UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID))) {
+         if ((usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID)) ||
+               (usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID))) {
             additionalProjectNature = "net.sourceforge.usbdm.cdt.tools.ArmProjectNature";
          }
-         else if (usbdmSelectProjectWizardPage.getSelectedBuildToolId().equals(UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID)) {
+         else if (usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID)) {
             additionalProjectNature = "net.sourceforge.usbdm.cdt.tools.ColdfireProjectNature";            
          }
          if (additionalProjectNature != null) {
@@ -301,7 +301,6 @@ public class UsbdmExampleProjectsWizard extends Wizard implements INewWizard {
       usbdmSelectProjectWizardPage = new UsbdmExampleSelectionPage();
       IWizardPage[] pages = {
          usbdmSelectProjectWizardPage,
-         new net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmToolSettingsPage(usbdmSelectProjectWizardPage),
       };
       for (IWizardPage page:pages) {
          addPage(page);

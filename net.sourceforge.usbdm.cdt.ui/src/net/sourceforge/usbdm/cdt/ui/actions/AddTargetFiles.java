@@ -18,15 +18,22 @@ import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.ProjectUtilities;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.FileAction;
-import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.packageParser.FileAction;
+import net.sourceforge.usbdm.packageParser.FileAction.PathType;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.core.variables.VariablesPlugin;
 
 /**
@@ -41,7 +48,7 @@ public class AddTargetFiles {
    }
 
    /**
-    * @param path                path of source file
+    * @param sourcePath          path of source file
     * @param targetPath          path of target file
     * @param doMacroReplacement  whether to macro substitution
     * @param variableMap         macro values
@@ -49,32 +56,32 @@ public class AddTargetFiles {
     * 
     * @throws Exception 
     */
-   private void processFile(Path path, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
-//      System.err.println("AddTargetFiles.processFile(): ");
-//      System.err.println("\tsource: \'"+ path.toString() + "\'");
-//      System.err.println("\ttarget: \'" + targetPath.toString() + "\'");
-
+   private void copyFile(Path sourcePath, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       InputStream contents = null;
       String fileContents;
       try {
-         fileContents = readFile(path);
+         fileContents = readFile(sourcePath);
       } catch (IOException e) {
-         throw new Exception("\"" + path + "\" failed read"); //$NON-NLS-1$ //$NON-NLS-2$
+         throw new Exception("\"" + sourcePath + "\" failed read"); //$NON-NLS-1$ //$NON-NLS-2$
       }
       if (doMacroReplacement) {
          fileContents = MacroSubstitute.substitute(fileContents, variableMap);
       }
       contents = new ByteArrayInputStream(fileContents.getBytes());
       try {
+         monitor.beginTask("Copy File", 100);
          IFile iFile = projectHandle.getFile(targetPath.toString());
+         int remainder = 100;
          if (!iFile.getParent().exists()) {
-            ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor);
+            ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+            remainder -= 50;
          }
          // Replace existing, more specific, file
          if (iFile.exists()) {
             if (doReplacement) {
 //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
-               iFile.delete(true, monitor);               
+               iFile.delete(true, new SubProgressMonitor(monitor, remainder));               
             }
             else {
                throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -85,12 +92,41 @@ public class AddTargetFiles {
          projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
       } catch (CoreException e) {
          throw new Exception("Failed" + e.getMessage(), e); //$NON-NLS-1$
+      } finally {
+         monitor.done();
       }
    }
 
    /**
+    * Resolves a path containing Path variables
     * 
-    * @param path                path of source file or directory
+    * @param sourcePath
+    * 
+    * @return Modified path
+    * 
+    * @throws URISyntaxException
+    */
+   Path resolvePath(Path sourcePath) throws URISyntaxException {
+      
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      IPathVariableManager pathMan = workspace.getPathVariableManager();
+      URI sourceURI = URIUtil.fromString("file:"+sourcePath.toString());
+//      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.a = \'%s\'",   sourceURI.toASCIIString()));
+//      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.p = \'%s\'",   sourceURI.getPath()));
+//      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?   = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
+      sourceURI = pathMan.resolveURI(sourceURI);
+//      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.a = \'%s\'", sourceURI.toASCIIString()));
+//      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.p = \'%s\'", sourceURI.getPath()));
+//      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?      = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
+      String source = sourceURI.getPath().replaceFirst("/([a-zA-Z]:.*)", "$1");
+      sourcePath = Paths.get(source);
+//      System.err.println(String.format("AddTargetFiles.resolvePath() sourcePath     = \'%s\'", sourcePath));
+      
+      return sourcePath;
+   }
+   /**
+    * 
+    * @param sourcePath          path of source file or directory
     * @param targetPath          path of target file (if source is a directory then parent is used)
     * @param doMacroReplacement  whether to macro substitution
     * @param variableMap         template for macro values
@@ -99,30 +135,40 @@ public class AddTargetFiles {
     * 
     * @throws Exception
     */
-   private void processItem(Path path, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
-//      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
-//      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
-//      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
-//      System.err.println("AddTargetFiles.processItem() targetPath = " + targetPath.toString());
-//      System.err.println("AddTargetFiles.processItem() targetPath.getFileName = " + targetPath.getFileName().toString());
+   private void copyFiles(Path sourcePath, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+      //      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
+      //      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
+      //      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
+      //      System.err.println("AddTargetFiles.processItem() targetPath = " + targetPath.toString());
+      //      System.err.println("AddTargetFiles.processItem() targetPath.getFileName = " + targetPath.getFileName().toString());
+
+      sourcePath = resolvePath(sourcePath);
+      //      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
+
       // Check if directory
-      if (Files.isDirectory(path)) {
+      if (Files.isDirectory(sourcePath)) {
          // Directory copy
          // Hack for when we expected a header file but were given entire folder of header files
          String filename = targetPath.getFileName().toString();
          if (filename.endsWith(".h") || filename.endsWith(".H")) {
             targetPath = targetPath.getParent();
-//            System.err.println("AddTargetFiles.processItem() changed target to = " + targetPath.toAbsolutePath());
+            //          System.err.println("AddTargetFiles.processItem() changed target to = " + targetPath.toAbsolutePath());
          }
-//         System.err.println("AddTargetFiles.processItem() folder  = " + path.toString());
-         DirectoryStream<Path> stream = Files.newDirectoryStream(path);
-         for (java.nio.file.Path entry: stream) {
-            processItem(entry, targetPath.resolve(entry.getFileName()), doMacroReplacement, doReplacement, variableMap, projectHandle, monitor);
+         //       System.err.println("AddTargetFiles.processItem() folder  = " + path.toString());
+         DirectoryStream<Path> stream = Files.newDirectoryStream(sourcePath);
+         
+         try {
+            monitor.beginTask("Copy Files", 100);
+            for (java.nio.file.Path entry: stream) {
+               copyFiles(entry, targetPath.resolve(entry.getFileName()), doMacroReplacement, doReplacement, variableMap, projectHandle, new SubProgressMonitor(monitor, 1));
+            }
+         } finally {
+            monitor.done();
          }
       }
       else {
          // Simple file copy
-         processFile(path, targetPath, doMacroReplacement, doReplacement, variableMap, projectHandle, monitor);
+         copyFile(sourcePath, targetPath, doMacroReplacement, doReplacement, variableMap, projectHandle, monitor);
       }
    }
 //   
@@ -133,109 +179,130 @@ public class AddTargetFiles {
 //      return pathMan.resolveURI(uri);
 //   }
    
-   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
-      String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
-      String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
-      String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
-//      System.err.println("root   = \'" + root.toString() + "\'");
-//      System.err.println("source = \'" + source.toString() + "\'");
-//      System.err.println("target = \'" + target.toString() + "\'");
-      if (source.isEmpty()) {
-//         System.err.println("AddTargetFiles.process() - source is empty, fileInfo.getSource() = " + fileInfo.getSource());
-         return;
-      }
-      root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root);
-      source = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(source);
-      target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target);
-      
-      Path sourcePath = Paths.get(source);
-      if (!sourcePath.isAbsolute()) {
-         sourcePath = Paths.get(root, source);
-      }
-      Path targetPath = Paths.get(target);
-//      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourcePath, targetPath));
-
-      
-      switch (fileInfo.getFileType()) {
-      case LINK :
-         createLink(sourcePath, target, projectHandle, monitor);
-         break;
-      case NORMAL :
-         processItem(sourcePath, targetPath, fileInfo.isDoMacroReplacement(), fileInfo.isDoReplace(), variableMap, projectHandle, monitor);
-         break;
-      }
-   }
-
    /**
-    * Create link to file.  Attempts to make it relative to 'usbdm_resource_path'
+    * Create link to file.  
+    * Attempts to make it relative to usbdm_resource_path or usbdm_kds_path path variables
     * 
-    * @param sourcePath
+    * @param sourcePath    Path of source. May start with path variable
     * @param target
     * @param projectHandle
     * @param monitor
     * @throws Exception
     */
    private void createLink(Path sourcePath, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
-      Path usbdmResourcePath = Paths.get(Usbdm.getResourcePath().toString());
-
-//      System.err.println("sourcePath = \'" + sourcePath.toString() + "\'");
-//      System.err.println("usbdmResourcePath = \'" + usbdmResourcePath.toString() + "\'");
-
-      // Convert to relative path using ${usbdm_resource_path} if possible
-      if (sourcePath.startsWith(usbdmResourcePath)) {
-         try {
-            sourcePath = usbdmResourcePath.relativize(sourcePath);
-//            System.err.println("relative sourcePath = \'" + sourcePath.toString() + "\'");
-            sourcePath = Paths.get("usbdm_resource_path").resolve(sourcePath);
-         } catch (IllegalArgumentException e) {
-         }
-      }
-//      System.err.println("macroed sourcePath' = \'" + sourcePath.toString() + "\'");
-      URI sourceURI = null;
-      try {
-         sourceURI = new URI(sourcePath.toString().replaceAll("\\\\", "/"));
-      } catch (URISyntaxException e) {
-         e.printStackTrace();
-      }
-//      System.err.println("relative sourceURI' = \'" + sourceURI.toString() + "\'");
+      URI                  sourceURI = URIUtil.fromString("file:"+sourcePath.toString());
+      IWorkspace           workspace = ResourcesPlugin.getWorkspace();
+      IPathVariableManager pathMan   = workspace.getPathVariableManager();
+      sourceURI = pathMan.convertToRelative(sourceURI, false, UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR);
+      sourceURI = pathMan.convertToRelative(sourceURI, false, UsbdmSharedConstants.USBDM_KSDK_PATH);
+      sourcePath = resolvePath(sourcePath);
+      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", sourceURI.toString(), target));
       
-      //      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", sourceURI.toString(), target));
-      IFile iFile = projectHandle.getFile(target);
-      if (!iFile.getParent().exists()) {
-         ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor);
+      try {
+         monitor.beginTask("Create Link", 100);
+         
+         if (sourcePath.toFile().isDirectory()) {
+            IFolder iFolder = projectHandle.getFolder(target);
+            if (!iFolder.getParent().exists()) {
+               // Create parent directories if necessary
+               ProjectUtilities.createFolder(projectHandle, iFolder.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+            }
+            iFolder.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, new SubProgressMonitor(monitor, 50));
+         }
+         else {
+            IFile iFile = projectHandle.getFile(target);
+            if (!iFile.getParent().exists()) {
+               // Create parent directories if necessary
+               ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+            }
+            iFile.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, new SubProgressMonitor(monitor, 50));
+         }
+      } finally {
+         monitor.done();
       }
-      iFile.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, monitor);
    }
 
+   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
+      /*
+       * Do macro substitution on path using project wizard variables
+       */
+      String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
+      String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
+      String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
+      //      System.err.println("root   = \'" + root.toString() + "\'");
+      //      System.err.println("source = \'" + source.toString() + "\'");
+      //      System.err.println("target = \'" + target.toString() + "\'");
+      if (source.isEmpty()) {
+         //         System.err.println("AddTargetFiles.process() - source is empty, fileInfo.getSource() = " + fileInfo.getSource());
+         return;
+      }
+      /*
+       * Do macro substitution on path using Eclipse Variables
+       */
+      root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root, false);
+      source = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(source, false);
+      target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target, false);
+      /*
+       * Make source path absolute if necessary 
+       */
+      Path sourcePath = Paths.get(source);
+      if (fileInfo.getSourcePathType() == PathType.RELATIVE) {
+         sourcePath = Paths.get(root, source);
+      }
+      else if (fileInfo.getSourcePathType() == PathType.UNKNOWN) {
+         if (!sourcePath.isAbsolute()) {
+            sourcePath = Paths.get(root, source);
+         }
+      }
+
+      Path targetPath = Paths.get(target);
+      //      System.err.println(String.format("AddTargetFiles.process() ============================================="));
+      //      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourcePath, targetPath));
+
+      //      System.err.println(String.format("AddTargetFiles.process() source     = \'%s\'", source));
+      //      System.err.println(String.format("AddTargetFiles.process() sourcePath = \'%s\'", sourcePath));
+
+      switch (fileInfo.getFileType()) {
+         case LINK : {
+            createLink(sourcePath, target, projectHandle, monitor);
+            break;
+         }
+         case NORMAL : {
+            copyFiles(sourcePath, targetPath, fileInfo.isDoMacroReplacement(), fileInfo.isDoReplace(), variableMap, projectHandle, monitor);
+            break;
+         }
+      }
+   }
+
+static void tryIt(String s) throws URISyntaxException {
+   System.err.println(String.format("AddTargetFiles.process() ========================================"));
+   System.err.println(String.format("AddTargetFiles.process() s              = \'%s\'", s));
+      URI sourceURI = URIUtil.fromString("file:"+s);
+      System.err.println(String.format("AddTargetFiles.process() sourceURI      = \'%s\'", sourceURI));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.a = \'%s\'", sourceURI.toASCIIString()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.h = \'%s\'", sourceURI.getHost()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.s = \'%s\'", sourceURI.getScheme()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.a = \'%s\'", sourceURI.getAuthority()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.p = \'%s\'", sourceURI.getPath()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.q = \'%s\'", sourceURI.getQuery()));
+      System.err.println(String.format("AddTargetFiles.process() sourceURI.f = \'%s\'", sourceURI.getFragment()));
+      System.err.println(String.format("AddTargetFiles.process() Absolute?   = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
+      String ss = sourceURI.getPath();
+      ss = ss.replaceFirst("/([a-zA-Z]:.*)", "$1");
+      System.err.println(String.format("AddTargetFiles.process() ss   = \'%s\'\n", ss));
+   }
    /**
     * Test main
     * 
     * @param args
     */
    public static void main(String[] args) {
-      Path sourcePath        = Paths.get("c:/Program File(x86)/pgo/USBDM 4.10.230/a/b/c/d/e/f/g");
-      Path usbdmResourcePath = Paths.get("c:/Program File(x86)/pgo/USBDM 4.10.230");
       
-      System.err.println("sourcePath = \'" + sourcePath.toString() + "\'");
-      System.err.println("usbdmResourcePath = \'" + usbdmResourcePath.toString() + "\'");
-
-      // Convert to relative path using ${usbdm_resource_path} if possible
-      if (sourcePath.startsWith(usbdmResourcePath)) {
-         try {
-            sourcePath = usbdmResourcePath.relativize(sourcePath);
-            System.err.println("relative sourcePath = \'" + sourcePath.toString() + "\'");
-            sourcePath = Paths.get("usbdm_resource_path").resolve(sourcePath);
-         } catch (IllegalArgumentException e) {
-         }
-      }
-      System.err.println("macroed sourcePath' = \'" + sourcePath.toString() + "\'");
-      URI sourceURI = null;
       try {
-         sourceURI = new URI(sourcePath.toString().replaceAll("\\\\", "/"));
-      } catch (URISyntaxException e) {
-         e.printStackTrace();
+         tryIt("C:\\Program Files (x86)\\pgo\\USBDM 4.10.6.260\\Stationery\\Packages\\100.ARM_DeviceOptions\\Startup_Code\\system-mkxxx.c");
+         tryIt("jskajska/a/b/c/d.c");
+      } catch (URISyntaxException e1) {
+         e1.printStackTrace();
       }
-      System.err.println("relative sourceURI' = \'" + sourceURI.toString() + "\'");
    }
-   
 }

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sourceforge.usbdm.deviceDatabase.CreateFolderAction;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.ExcludeAction;
+import net.sourceforge.usbdm.packageParser.CreateFolderAction;
+import net.sourceforge.usbdm.packageParser.ExcludeAction;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.CModelException;

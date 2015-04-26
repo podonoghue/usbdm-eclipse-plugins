@@ -42,12 +42,19 @@ public class Activator extends AbstractUIPlugin {
    protected void loadUsbdmPaths() {
       String appPathName = UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR;
       String resPathName = UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR;
+      String kdsPathName = UsbdmSharedConstants.USBDM_KSDK_PATH;
 
       System.err.println("loadUsbdmPaths()");
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+      UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+      IPath kdsPath                = new Path(settings.get(kdsPathName, "Not Set"));
+
       IPath usbdmApplicationPath = Usbdm.getApplicationPath();
       IPath usbdmResourcePath    = Usbdm.getResourcePath();
+      
       IPathVariableManager pathMan = workspace.getPathVariableManager();
+      
       if (!pathMan.validateValue(usbdmApplicationPath).isOK()) {
          usbdmApplicationPath = new Path("USBDM APPLICATION PATH NOT FOUND");
          System.err.println("loadUsbdmPath() - setting USBDM Application path variable");
@@ -56,18 +63,43 @@ public class Activator extends AbstractUIPlugin {
          usbdmResourcePath = new Path("USBDM RESOURCE PATH NOT FOUND");
          System.err.println("loadUsbdmPath() - setting USBDM Resource path variable");
       }
-      if (pathMan.validateValue(usbdmApplicationPath).isOK() && 
-          pathMan.validateValue(usbdmResourcePath).isOK()) {
+      if (!pathMan.validateValue(kdsPath).isOK()) {
+         kdsPath = new Path("");
+         System.err.println("loadUsbdmPath() - KDS path is invalid or not set = " + kdsPath);
+      }
+      if (pathMan.validateValue(usbdmApplicationPath).isOK()) {
          try {
             pathMan.setURIValue(appPathName, usbdmApplicationPath.toFile().toURI());
-            pathMan.setURIValue(resPathName, usbdmResourcePath.toFile().toURI());
-//            System.err.println("loadUsbdmPath() - paths loaded");
          } catch (Exception e) {
             System.err.println("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
          }
       } else {
          System.err.println("loadUsbdmPath() - Failed to set USBDM path variables");
       }   
+      if (pathMan.validateValue(usbdmResourcePath).isOK()) {
+           try {
+              pathMan.setURIValue(resPathName, usbdmResourcePath.toFile().toURI());
+           } catch (Exception e) {
+              System.err.println("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
+           }
+        } else {
+           System.err.println("loadUsbdmPath() - Failed to set USBDM path variables");
+        }   
+      if (pathMan.validateValue(kdsPath).isOK()) {
+         try {
+            pathMan.setURIValue(kdsPathName, kdsPath.toFile().toURI());
+         } catch (Exception e) {
+            System.err.println("loadUsbdmPath() - Failed to set kdsPath path variables, Exception = "+e.getMessage());
+         }
+      } else {
+         System.err.println("loadUsbdmPath() - Failed to set kdsPath path variables");
+      }   
+//      System.err.println("loadUsbdmPath() - Path names =================================");
+//      String[] names = pathMan.getPathVariableNames();
+//      for (String s:names) {
+//         System.err.println(String.format("loadUsbdmPath() \'%s\' => \'%s\'", s, pathMan.getURIValue(s)));
+//      }
+//      System.err.println("loadUsbdmPath() - ============================================");
    }
    
 	/*

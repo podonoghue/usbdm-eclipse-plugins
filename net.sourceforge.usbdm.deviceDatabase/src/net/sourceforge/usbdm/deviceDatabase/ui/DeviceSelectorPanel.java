@@ -100,8 +100,8 @@ public class DeviceSelectorPanel extends Composite {
 
    private String getSubFamilyNamePrefix(String name) {
       Pair[] armPatterns = {
-            new Pair("(FRDM-[a-zA-Z]*).*$",                             "$1"),
-            new Pair("(TWR-.*)$",                                       "$1"),
+            new Pair("(FRDM[-_][a-zA-Z]*).*$",                          "$1"),
+            new Pair("(TWR[-_].*)$",                                    "$1"),
             new Pair("^(STM32F[0-9]*).*$",                              "$1"),
             new Pair("^(PK[0-9]*).*$",                                  "$1"),
             new Pair("^(SKEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",                "$1xxx$2"),

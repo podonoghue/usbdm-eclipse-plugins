@@ -9,6 +9,9 @@ public class ProjectVariable extends ProjectAction {
    protected       String value;
    protected       ArrayList<ProjectVariable> requirements;
    protected       ArrayList<ProjectVariable> preclusions;
+   protected       String groupName;
+   public    enum  GroupType {DEFAULT, RADIO_GROUP, CHECK_GROUP};
+   protected       GroupType groupType;
    
    public ProjectVariable(String id, String name, String description, String defaultValue) throws Exception {
       super(id);
@@ -18,6 +21,8 @@ public class ProjectVariable extends ProjectAction {
       this.value        = defaultValue;
       this.requirements = new ArrayList<ProjectVariable>();
       this.preclusions  = new ArrayList<ProjectVariable>();
+      this.groupName        = null;
+      this.groupType    = GroupType.DEFAULT;
    }
    public String getName() {
       return name;
@@ -58,6 +63,27 @@ public class ProjectVariable extends ProjectAction {
    public void addPreclusion(ProjectVariable preclusion) {
       this.preclusions.add(preclusion);
    }
+   /**
+    * @return the group
+    */
+   public String getGroupName() {
+      return groupName;
+   }
+   /**
+    * @return the groupType
+    */
+   public GroupType getGroupType() {
+      return groupType;
+   }
+   /**
+    * @param groupName Name of group
+    * @param groupType Type of group
+    */
+   public void setGroup(String groupName, GroupType groupType) {
+      this.groupName = groupName;
+      this.groupType = groupType;
+   }
+   
    @Override
    public String toString() {
       return String.format("ProjectVariable[name=%s, description=%s, value=%s]", name, description, value);

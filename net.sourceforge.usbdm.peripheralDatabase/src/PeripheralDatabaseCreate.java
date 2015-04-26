@@ -26,7 +26,7 @@ import net.sourceforge.usbdm.peripheralDatabase.SVD_XML_Parser;
 import org.eclipse.core.runtime.IPath;
 
 public class PeripheralDatabaseCreate {
-   private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
+   private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
    private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
    @SuppressWarnings("unused")
    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
@@ -610,7 +610,7 @@ public class PeripheralDatabaseCreate {
     */
    public static void main(String[] args) {
       System.err.println("Starting");
-//    onlyFileToProcess = "^MCF52.*";
+//    onlyFileToProcess = "^MCF51.*";
 //       onlyFileToProcess = "^MK2.*";
 //       onlyFileToProcess = "^MKL.*";
 //       onlyFileToProcess = "^MK10DX128M7*";
@@ -623,7 +623,7 @@ public class PeripheralDatabaseCreate {
       try {
          // Generate merged version of SVD files for testing (should be unchanging eventually)
          ModeControl.setExpandDerivedRegisters(false);
-//         mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true, false);
+         mergeFiles(               svdReducedMergedOptimisedManualFolder, svdReducedMergedOptimisedManualCheckFolder, true, false);
          // Create Header files from SVD
          createHeaderFilesFromList(svdReducedMergedOptimisedManualFolder, headerReducedMergedOptimisedManualFolder, false);
       } catch (Exception e) {

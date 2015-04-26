@@ -27,7 +27,121 @@
       </managedBuildRevision>
       <projectType
             buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
-            id="net.sourceforge.usbdm.cdt.projectType.exe">
+            id="net.sourceforge.usbdm.cdt.newProjectType.exe">
+         <configuration
+               artifactExtension="elf"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.arm.exe.debug.configuration"
+               name="Debug"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.arm.exe.debug.toolchain"
+                  secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+                  superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="elf"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.arm.exe.release.configuration"
+               name="Release"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.arm.exe.release.toolchain"
+                  secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+                  superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="elf"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.coldfire.exe.debug.configuration"
+               name="Debug"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.coldfire.exe.debug.toolchain"
+                  secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+                  superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="elf"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.coldfire.exe.release.configuration"
+               name="Release"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.coldfire.exe.release.toolchain"
+                  secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+                  superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
+            </toolChain>
+         </configuration>
+      </projectType>
+      <projectType
+            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib"
+            id="net.sourceforge.usbdm.cdt.newProjectType.staticLib">
+         <configuration
+               artifactExtension="a"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.arm.staticLib.debug.configuration"
+               name="Debug"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.arm.staticLib.debug.toolchain"
+                  superClass="net.sourceforge.usbdm.cdt.arm.toolchain"
+                  targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="a"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.arm.staticLib.release.configuration"
+               name="Release"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.arm.staticLib.release.toolchain"
+                  superClass="net.sourceforge.usbdm.cdt.arm.toolchain"
+                  targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="a"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.coldfire.staticLib.debug.configuration"
+               name="Debug"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.coldfire.staticLib.debug.toolchain"
+                  superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain"
+                  targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
+            </toolChain>
+         </configuration>
+         <configuration
+               artifactExtension="a"
+               buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
+               cleanCommand="${usbdm_rm_command} -rf"
+               id="net.sourceforge.usbdm.cdt.coldfire.staticLib.release.configuration"
+               name="Release"
+               parent="cdt.managedbuild.config.gnu.base">
+            <toolChain
+                  id="net.sourceforge.usbdm.cdt.coldfire.staticLib.release.toolchain"
+                  superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain"
+                  targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
+            </toolChain>
+         </configuration>
+      </projectType>
+      <projectType
+            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
+            id="net.sourceforge.usbdm.cdt.projectType.exe"
+            isAbstract="true"
+            name="Executable-old">
          <configuration
             id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration"
             name="Debug"
@@ -196,8 +310,7 @@
             <enumeratedOptionValue
                name="dwarf-2"
                id="net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat.dwarf2"
-               command="-gdwarf-2"
-               isDefault="true" />
+               command="-gdwarf-2" />
             <enumeratedOptionValue
                name="dwarf-3"
                id="net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat.dwarf3"
@@ -215,8 +328,9 @@
                id="net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat.gdb"
                command="-ggdb" />
             <enumeratedOptionValue
-               name="Toolchain default"
-               id="net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat.none" />
+                  id="net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat.none"
+                  isDefault="true"
+                  name="Toolchain default"/>
          </option>
          <option
             name="Other flags"
@@ -248,8 +362,9 @@
                category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
                valueType="enumerated">
                <enumeratedOptionValue
-                  name="None (-O0)"
-                  id="net.sourceforge.usbdm.gnu.c.optimization.level.none">
+                     command="-O0"
+                     id="net.sourceforge.usbdm.gnu.c.optimization.level.none"
+                     name="None (-O0)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="Optimise (-O1)"
@@ -821,7 +936,7 @@
             <option
                name="Extra warnings (-Wextra)"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.warnings.extrawarn"
-               defaultValue="true"
+               defaultValue="false"
                category="net.sourceforge.usbdm.gnu.c.compiler.warnings"
                command="-Wextra"
                valueType="boolean">
@@ -1255,7 +1370,7 @@
             <option
                name="Extra warnings (-Wextra)"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.warnings.extrawarn"
-               defaultValue="true"
+               defaultValue="false"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.warnings"
                command="-Wextra"
                valueType="boolean">
@@ -1414,6 +1529,10 @@
                isAbstract="true"
                name="Archiver"
                superClass="cdt.managedbuild.tool.gnu.archiver">
+            <outputType
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.archiver.outputType"
+                  superClass="cdt.managedbuild.tool.gnu.archiver.output">
+            </outputType>
          </tool>
          <tool
                command="gcc"
@@ -1509,7 +1628,6 @@
             </option>
             <outputType
                   id="net.sourceforge.usbdm.cdt.toolchain.c.linker.outputType"
-                  name="C Linker output"
                   superClass="cdt.managedbuild.tool.gnu.c.linker.output">
             </outputType>
          </tool>
@@ -1988,10 +2106,9 @@
             configurationEnvironmentSupplier="net.sourceforge.usbdm.cdt.tools.ArmConfigurationEnvironmentVariableSupplier"
             id="net.sourceforge.usbdm.cdt.arm.toolchain"
             isAbstract="true"
-            name="ARM ToolChain"
-            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+            name="ARM-USBDM ToolChain"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
-            targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker;net.sourceforge.usbdm.cdt.arm.toolchain.archiver">
+            targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
          <option
                category="net.sourceforge.usbdm.cdt.toolchain.processor.category"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.buildtools"
@@ -2203,7 +2320,7 @@
             </inputType>
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmArchiverCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.archiver"
                name="ARM Archiver"
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
@@ -2241,13 +2358,11 @@
       </toolChain>
       <toolChain
             configurationEnvironmentSupplier="net.sourceforge.usbdm.cdt.tools.ColdfireConfigurationEnvironmentVariableSupplier"
-            configurationMacroSupplier="net.sourceforge.usbdm.not.used.TempConfigurationMacroSupplier"
             id="net.sourceforge.usbdm.cdt.coldfire.toolchain"
             isAbstract="true"
-            name="Coldfire Toolchain"
-            secondaryOutputs="net.sourceforge.usbdm.cdt.toolchain.sizer.outputType;net.sourceforge.usbdm.cdt.toolchain.lister.outputType;net.sourceforge.usbdm.cdt.toolchain.sym.outputType"
+            name="Coldfire-USBDM Toolchain"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
-            targetTool="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.archiver">
+            targetTool="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker">
          <option
                category="net.sourceforge.usbdm.cdt.toolchain.processor.category"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools"
@@ -2326,7 +2441,7 @@
             </inputType>
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireArchiverCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.archiver"
                name="Coldfire Archiver"
                superClass="net.sourceforge.usbdm.cdt.toolchain.archiver">
@@ -2364,29 +2479,29 @@
       </toolChain>
       <toolChain
             id="net.sourceforge.usbdm.cdt.arm.windows.toolchain"
-            isAbstract="false"
-            name="ARM-USBDM (Windows)"
+            isAbstract="true"
+            name="ARM-USBDM (Windows) Obsolete"
             osList="win32"
             superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
       </toolChain>
       <toolChain
             id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain"
-            isAbstract="false"
-            name="Coldfire-USBDM (Windows)"
+            isAbstract="true"
+            name="Coldfire-USBDM (Windows) Obsolete"
             osList="win32"
             superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
       </toolChain>
       <toolChain
             id="net.sourceforge.usbdm.cdt.arm.linux.toolchain"
-            isAbstract="false"
-            name="ARM-USBDM (Linux)"
+            isAbstract="true"
+            name="ARM-USBDM (Linux) Obsolete"
             osList="linux"
             superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
       </toolChain>
       <toolChain
             id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain"
-            isAbstract="false"
-            name="Coldfire-USBDM (Linux)"
+            isAbstract="true"
+            name="Coldfire-USBDM (Linux) Obsolete"
             osList="linux"
             superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
       </toolChain>
@@ -2394,7 +2509,7 @@
    <extension
          point="org.eclipse.core.variables.dynamicVariables">
       <variable
-            description="USBDM Make command"
+            description="USBDM make command"
             name="usbdm_make_command"
             resolver="net.sourceforge.usbdm.cdt.tools.UsbdmDynamicVariableResolver"
             supportsArgument="false">
@@ -2414,6 +2529,12 @@
       <variable
             description="Path to USBDM application directory"
             name="usbdm_application_path"
+            resolver="net.sourceforge.usbdm.cdt.tools.UsbdmDynamicVariableResolver"
+            supportsArgument="false">
+      </variable>
+      <variable
+            description="Path to Kinetis SDK application directory"
+            name="usbdm_kds_path"
             resolver="net.sourceforge.usbdm.cdt.tools.UsbdmDynamicVariableResolver"
             supportsArgument="false">
       </variable>

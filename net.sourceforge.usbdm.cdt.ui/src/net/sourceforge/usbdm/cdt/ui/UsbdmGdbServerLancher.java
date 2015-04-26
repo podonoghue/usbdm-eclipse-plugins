@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.cdt.ui;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.jni.Usbdm;
 
@@ -23,7 +24,7 @@ public class UsbdmGdbServerLancher {
    
    private static IPath getServerPath(InterfaceType serverType) {
       IPath serverPath = Usbdm.getApplicationPath();
-      return serverPath.append(serverType.gdbDebugServer);
+      return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER);
    }
          
    /**

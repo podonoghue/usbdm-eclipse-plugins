@@ -21,6 +21,9 @@ public class MacroSubstitute {
       if (input == null) {
          return null;
       }
+      if (map == null) {
+         return input;
+      }
       ArrayList<String> patterns = findAllPatterns(input);
       for (String p : patterns) {
          String replaceWith = map.get(p);

@@ -97,6 +97,11 @@ IConfigurationEnvironmentVariableSupplier {
       ToolInformationData toolData = ToolInformationData.getToolInformationTable().get(buildToolOption.getValue().toString());
       if (toolData == null) {
          System.err.println("ConfigEnvVarSupplier.getToolPath() toolData = null");
+
+         System.err.println("ConfigEnvVarSupplier.getToolPath() configuration              = " + configuration.toString());
+         System.err.println("ConfigEnvVarSupplier.getToolPath() toolChain                  = " + toolChain.toString());
+         System.err.println("ConfigEnvVarSupplier.getToolPath() buildToolOption            = " + buildToolOption.toString());
+         System.err.println("ConfigEnvVarSupplier.getToolPath() buildToolOption.getValue() = " + buildToolOption.getValue().toString());
          return null;
       }
       String pathVariableId = toolData.getPathVariableName();
@@ -170,7 +175,7 @@ IConfigurationEnvironmentVariableSupplier {
       public static PathEnvironmentVariable create(IConfiguration configuration, String buildToolPath) {
 
          if (buildToolPath == null) {
-            System.err.println("C.PathEnvironmentVariable.create() - buildToolPath = null");
+            System.err.println("ConfigurationEnvironmentVariableSupplier.PathEnvironmentVariable.create() - buildToolPath = null");
             return new PathEnvironmentVariable(new File("BUILD TOOLS PATH NOT FOUND"));
          }
          // Initially assume path is to bin dir

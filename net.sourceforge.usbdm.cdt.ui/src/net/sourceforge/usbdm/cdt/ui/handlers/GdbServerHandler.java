@@ -26,7 +26,11 @@ public class GdbServerHandler extends AbstractHandler {
 
       System.err.println("GdbServerHandler.execute()\n");
       
-      serverParameters.loadDefaultSettings();
+      try {
+         serverParameters.loadDefaultSettings();
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
       gdbServerInterface.startServer(window.getShell());
 
       return null;

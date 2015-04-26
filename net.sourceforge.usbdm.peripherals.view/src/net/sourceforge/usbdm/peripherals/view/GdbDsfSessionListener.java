@@ -20,12 +20,9 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 public class GdbDsfSessionListener implements SessionStartedListener, SessionEndedListener {
 
-   /*
-    *
-    */
-   private static GdbDsfSessionListener                   singleton             = null;
-   private HashMap<String, UsbdmDevicePeripheralsModel>   dsfSessions           = null;
-   private ArrayList<GdbSessionListener>                  gdbSessionListeners   = null;
+   private static GdbDsfSessionListener                 singleton           = null;
+   private HashMap<String, UsbdmDevicePeripheralsModel> dsfSessions         = null;
+   private ArrayList<GdbSessionListener>                gdbSessionListeners = null;
    
    private GdbDsfSessionListener() {
 //      System.err.println("GdbDsfSessionListener()");      
@@ -61,6 +58,10 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
       } catch (CoreException e) {
          e.printStackTrace();
       }
+      if (deviceName == null) {
+         System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName is null");
+      }
+      System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName = " + deviceName);
       return deviceName;
    }
 

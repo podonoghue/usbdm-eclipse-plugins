@@ -6,7 +6,7 @@ import net.sourceforge.usbdm.gdb.GdbServerParameters;
 
 public class CfvxGdbServerHandler extends GdbServerHandler {
 
-   public CfvxGdbServerHandler() {
+   public CfvxGdbServerHandler() throws Exception {
       super(GdbServerParameters.getDefaultServerParameters(InterfaceType.T_CFVX));
    }
 }

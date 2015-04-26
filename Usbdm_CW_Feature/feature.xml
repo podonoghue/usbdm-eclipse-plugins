@@ -2,7 +2,7 @@
 <feature
       id="net.sourceforge.usbdm.cw.feature"
       label="USBDM Codewarrior Feature"
-      version="4.10.6.qualifier"
+      version="4.11.1.qualifier"
       provider-name="pgo"
       os="linux,win32">
 

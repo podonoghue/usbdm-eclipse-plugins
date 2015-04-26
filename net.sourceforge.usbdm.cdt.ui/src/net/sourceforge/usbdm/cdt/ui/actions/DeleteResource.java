@@ -8,10 +8,11 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
-import net.sourceforge.usbdm.deviceDatabase.DeleteResourceAction;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
@@ -46,6 +47,12 @@ public class DeleteResource {
       IFile iFile = projectHandle.getFile(targetPath.toString());
       if (iFile.exists()) {
          iFile.delete(true, monitor);               
+      }
+      else {
+         IFolder iFolder = projectHandle.getFolder(targetPath.toString());
+         if (iFolder.exists()) {
+            iFolder.delete(true, monitor);               
+         }
       }
    }
    

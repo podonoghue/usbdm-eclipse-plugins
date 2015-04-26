@@ -6,6 +6,7 @@ import java.util.Map;
 public class ApplyWhenCondition {
    public enum Type {deviceNameIs, deviceFamilyIs, deviceSubfamilyIs, 
                      deviceNameMatches, deviceFamilyMatches, deviceSubfamilyMatches,
+                     hardwareIs, hardwareMatches, 
                      requirement,
                      or, and, not};
    public enum Condition {
@@ -44,7 +45,10 @@ public class ApplyWhenCondition {
           (operator != Type.deviceSubfamilyIs) &&
           (operator != Type.deviceNameMatches) && 
           (operator != Type.deviceFamilyMatches) && 
-          (operator != Type.deviceSubfamilyMatches)) {
+          (operator != Type.deviceSubfamilyMatches) &&
+          (operator != Type.hardwareIs) && 
+          (operator != Type.hardwareMatches)
+          ) {
          throw new Exception("ApplyWhenCondition(operator, value) - Must be unary type operator");
       }
    }
@@ -97,16 +101,20 @@ public class ApplyWhenCondition {
          return !fOperands.get(0).appliesTo(device, variableMap);
       case deviceFamilyIs:
          return (device.getFamily() != null) && device.getFamily().equals(fValue);
-      case deviceNameIs:
-         return (device.getName() != null) && device.getName().equals(fValue);
-      case deviceSubfamilyIs:
-         return (device.getSubFamily() != null) && device.getSubFamily().equals(fValue);
       case deviceFamilyMatches:
          return (device.getFamily() != null) && device.getFamily().matches(fValue);
+      case deviceNameIs:
+         return (device.getName() != null) && device.getName().equals(fValue);
       case deviceNameMatches:
          return (device.getName() != null) && device.getName().matches(fValue);
+      case deviceSubfamilyIs:
+         return (device.getSubFamily() != null) && device.getSubFamily().equals(fValue);
       case deviceSubfamilyMatches:
          return (device.getSubFamily() != null) && device.getSubFamily().matches(fValue);
+      case hardwareIs:
+         return (device.getHardware() != null) && device.getHardware().equals(fValue);
+      case hardwareMatches:
+         return (device.getHardware() != null) && device.getHardware().matches(fValue);
       case requirement: {
          if (variableMap == null) {
             throw new Exception("Evaluation of requirement without variable map");
@@ -196,17 +204,21 @@ public class ApplyWhenCondition {
       case not:
          return "!"+fOperands.get(0);
       case deviceFamilyIs:
-         return ("dfi=="+fValue);
-      case deviceNameIs:
-         return ("dni=="+fValue);
-      case deviceSubfamilyIs:
-         return ("dsfi=="+fValue);
+         return ("df=="+fValue);
       case deviceFamilyMatches:
-         return ("dfi~="+fValue);
+         return ("df~="+fValue);
+      case deviceNameIs:
+         return ("dn=="+fValue);
       case deviceNameMatches:
-         return ("dni~="+fValue);
+         return ("dn~="+fValue);
+      case deviceSubfamilyIs:
+         return ("dsf=="+fValue);
       case deviceSubfamilyMatches:
-         return ("dsfi~="+fValue);
+         return ("dsf~="+fValue);
+      case hardwareIs:
+         return ("hw=="+fValue);
+      case hardwareMatches:
+         return ("hw~="+fValue);
       case requirement:
          return ("req("+fValue+")");
       default:
@@ -230,12 +242,16 @@ public class ApplyWhenCondition {
       case deviceFamilyMatches:
       case deviceNameMatches:
       case deviceSubfamilyMatches:
+      case hardwareIs:
+      case hardwareMatches:
          return variables;
       case requirement:
          if (fVariable != null) {
             variables.add(fVariable);
          }
          return variables;
+      default:
+         break;
       }
       return variables;
    }

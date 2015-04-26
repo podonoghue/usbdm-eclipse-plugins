@@ -3,17 +3,23 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.sourceforge.usbdm.cdt.ui.Activator;
+import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
+import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
+import org.eclipse.cdt.managedbuilder.core.IConfiguration;
+import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.wizard.IWizardContainer;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -22,25 +28,28 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+/**
+ * @author pgo
+ *
+ */
 public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnableWithProgress {
    
-   UsbdmNewProjectPage              usbdmProjectSelectionPage  = null;
-   UsbdmProjectParametersPage       usbdmProjectPage           = null;
-   UsbdmProjectOptionsPage          usbdmProjectOptionsPage    = null;
-   UsbdmToolSettingsPage            usbdmToolSettingsPage      = null;
-   
+   private UsbdmNewProjectPage_1              fUsbdmNewProjectPage_1        = null;
+   private UsbdmProjectParametersPage_2       fUsbdmProjectParametersPage_2 = null;
+   private UsbdmProjectOptionsPage_3          fUsbdmProjectOptionsPage_3    = null;
+
    @Override
    public void init(IWorkbench workbench, IStructuredSelection selection) {
       setNeedsProgressMonitor(true);
       setDefaultPageImageDescriptor(UsbdmSharedConstants.getUsbdmIcon());
       
       IDialogSettings settings = null;
-      Activator plugin = Activator.getDefault();
-      if (plugin == null) {
+      Activator activator = Activator.getDefault();
+      if (activator == null) {
          System.err.println("*************************** plugin is null *********************");
       }
-      if (plugin != null) {
-         settings = plugin.getDialogSettings();
+      if (activator != null) {
+         settings = activator.getDialogSettings();
          if (settings == null) {
             System.err.println("*************************** settings is null *********************");
          }
@@ -50,26 +59,12 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    @Override
    public boolean performFinish() {
-      if (usbdmProjectSelectionPage != null) {
-         usbdmProjectSelectionPage.saveSettings();
-      }
-      if (usbdmProjectPage != null) {
-         usbdmProjectPage.saveSettings();
-      }
-      if (usbdmProjectOptionsPage != null) {
-         usbdmProjectOptionsPage.saveSettings();
-      }
-      if (usbdmToolSettingsPage != null) {
-         usbdmToolSettingsPage.saveSettings();
-      }
       try {
-         IWizardContainer container = getContainer();
-         if (container != null) {
-            container.run(false, true, this);
-         }
-      } catch (InvocationTargetException e) {
-         e.printStackTrace();
-      } catch (InterruptedException e) {
+         fUsbdmNewProjectPage_1.saveSettings();
+         fUsbdmProjectParametersPage_2.saveSettings();
+         fUsbdmProjectOptionsPage_3.saveSettings();
+         getContainer().run(false, true, this);
+      } catch (Exception e) {
          e.printStackTrace();
       }
       return true;
@@ -77,144 +72,151 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    @Override
    public void addPages() {
-      usbdmProjectSelectionPage  = new UsbdmNewProjectPage();
-      addPage(usbdmProjectSelectionPage);
+      fUsbdmNewProjectPage_1  = new UsbdmNewProjectPage_1();
+      addPage(fUsbdmNewProjectPage_1);
    }
 
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#getStartingPage()
-    */
    @Override
    public IWizardPage getStartingPage() {
-      return usbdmProjectSelectionPage;
+      return fUsbdmNewProjectPage_1;
    }
 
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#canFinish()
-    */
    @Override
    public boolean canFinish() {
 //      super.canFinish();
-      return ((usbdmProjectSelectionPage != null) && usbdmProjectSelectionPage.isPageComplete()) &&
-             ((usbdmProjectPage != null)          && usbdmProjectPage.isPageComplete()) &&
-             ((usbdmProjectOptionsPage != null)   && usbdmProjectOptionsPage.isPageComplete()) &&
-             ((usbdmToolSettingsPage != null)     && usbdmToolSettingsPage.isPageComplete()) &&
+      return ((fUsbdmNewProjectPage_1 != null)        && fUsbdmNewProjectPage_1.isPageComplete()) &&
+             ((fUsbdmProjectParametersPage_2 != null) && fUsbdmProjectParametersPage_2.isPageComplete()) &&
+             ((fUsbdmProjectOptionsPage_3 != null)    && fUsbdmProjectOptionsPage_3.isPageComplete()) &&
              (getContainer() != null) && 
-             ((getContainer().getCurrentPage() == usbdmProjectOptionsPage) || 
-              (getContainer().getCurrentPage() == usbdmToolSettingsPage));
- }
+             ((getContainer().getCurrentPage() == fUsbdmProjectOptionsPage_3));
+   }
 
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#needsPreviousAndNextButtons()
-    */
    @Override
    public boolean needsPreviousAndNextButtons() {
       return true;
    }
 
-   private Device lastSelectedDevice = null;
-   
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
-    */
    @Override
    public IWizardPage getNextPage(IWizardPage page) {
-      if (page == usbdmProjectSelectionPage) {
-         InterfaceType interfaceType = usbdmProjectSelectionPage.getInterfaceType();
+      if (page == fUsbdmNewProjectPage_1) {
          // Create new project page if none or interface has changed
-         if ((usbdmProjectPage == null) || (usbdmProjectPage.getInterfaceType() != interfaceType)) {
-            usbdmProjectPage = new UsbdmProjectParametersPage(usbdmProjectSelectionPage);
-            usbdmProjectPage.setWizard(this);
-            usbdmProjectOptionsPage = null;
-            usbdmToolSettingsPage   = null;
+         if (fUsbdmNewProjectPage_1.hasChanged() || (fUsbdmProjectParametersPage_2 == null)) {
+            Map<String, String> paramMap = new HashMap<String, String>();
+            fUsbdmNewProjectPage_1.getPageData(paramMap);
+//            listParamMap("fUsbdmNewProjectPage_1 map\n===========================================", paramMap);
+            fUsbdmProjectParametersPage_2 = new UsbdmProjectParametersPage_2(paramMap);
+            fUsbdmProjectParametersPage_2.setWizard(this);
+            fUsbdmProjectOptionsPage_3 = null;
          }
-         return usbdmProjectPage;
+         return fUsbdmProjectParametersPage_2;
       }
-      if (page == usbdmProjectPage) {
-         Map<String, String> paramMap = new HashMap<String, String>();
-         Device device = usbdmProjectPage.getDevice();
+      if (page == fUsbdmProjectParametersPage_2) {
          // Create new option page if none or device has changed
-         if ((usbdmProjectOptionsPage == null) || (device != lastSelectedDevice)) {
-
-            try {
-               usbdmProjectPage.getPageData(paramMap);
-            } catch (Exception e) {
-            }
-            usbdmProjectOptionsPage = new UsbdmProjectOptionsPage(usbdmProjectPage, paramMap);
-            usbdmProjectOptionsPage.setWizard(this);
-            usbdmToolSettingsPage   = null;
+         if (fUsbdmNewProjectPage_1.hasChanged() || fUsbdmProjectParametersPage_2.hasChanged() ||
+             (fUsbdmProjectOptionsPage_3 == null)) {
+            Map<String, String> paramMap = new HashMap<String, String>();
+            fUsbdmNewProjectPage_1.getPageData(paramMap);
+            fUsbdmProjectParametersPage_2.getPageData(paramMap);
+            
+            
+            
+//            listParamMap("fUsbdmNewProjectPage_1&2 map\n===========================================", paramMap);
+            fUsbdmProjectOptionsPage_3 = new UsbdmProjectOptionsPage_3(fUsbdmProjectParametersPage_2, paramMap);
+            fUsbdmProjectOptionsPage_3.setWizard(this);
          }
-         lastSelectedDevice = device;
-         return usbdmProjectOptionsPage;
-      }
-      if (page == usbdmProjectOptionsPage) {
-         if (usbdmToolSettingsPage == null) {
-            usbdmToolSettingsPage =  new UsbdmToolSettingsPage(usbdmProjectPage);
-            usbdmToolSettingsPage.setWizard(this);
-         }
-         return usbdmToolSettingsPage;
+         return fUsbdmProjectOptionsPage_3;
       }
       return null;
    }
 
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#getPreviousPage(org.eclipse.jface.wizard.IWizardPage)
-    */
    @Override
    public IWizardPage getPreviousPage(IWizardPage page) {
-      if (page == usbdmToolSettingsPage) {
-         return usbdmProjectOptionsPage;
+      if (page == fUsbdmProjectOptionsPage_3) {
+         return fUsbdmProjectParametersPage_2;
       }
-      if (page == usbdmProjectOptionsPage) {
-         return usbdmProjectPage;
-      }
-      if (page == usbdmProjectPage) {
-         return usbdmProjectSelectionPage;
+      if (page == fUsbdmProjectParametersPage_2) {
+         return fUsbdmNewProjectPage_1;
       }
       return null;
+   }
+
+   private void listParamMap(String title, final Map<String, String> paramMap) {
+      System.err.println(title);
+      for (Entry<String, String> x:paramMap.entrySet()) {
+         if (x.getKey().equals("linkerInformation")) {
+            continue;
+         }
+         if (x.getKey().equals("cVectorTable")) {
+            continue;
+         }
+         System.err.println(String.format("%-50s => %-20s", x.getKey(), x.getValue()));
+      }
+      System.err.println("================================================");
+   }
+   
+   public void updateConfigurations(IProject project, IProgressMonitor monitor) {
+      final int WORK_SCALE = 1000;
+      ManagedBuildManager.saveBuildInfo(project, true);
+      IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(project).getManagedProject().getConfigurations();
+     
+      try {
+         monitor.beginTask("Update Configurations", WORK_SCALE*projectConfigs.length);
+         for (IConfiguration config : projectConfigs) {
+            ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);
+            monitor.worked(WORK_SCALE);    
+         }
+      } finally {
+         monitor.done();
+      }
    }
 
    @Override
    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-      Map<String, String> map = new HashMap<String, String>(); 
+      final int WORK_SCALE = 1000;
+      System.err.println("UsbdmNewProjectWizard.run()");
+
+      Map<String, String> paramMap = new HashMap<String, String>(); 
             
       try {
-         usbdmProjectPage.getPageData(map);
-         usbdmProjectOptionsPage.getPageData(map);
-         usbdmToolSettingsPage.getPageData(map);
-         map.put("projectName", usbdmProjectSelectionPage.getProjectName());
+         monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
+	  
+	  
+         Device device = fUsbdmProjectParametersPage_2.getDevice();
 
-//         System.err.println("UsbdmNewProjectWizard.run()");
-         new CDTProjectManager().createCDTProj(
-               usbdmProjectSelectionPage.getProjectName(), 
-               usbdmProjectSelectionPage.getProjectLocation(), 
-               usbdmProjectSelectionPage.getInterfaceType(),
-               usbdmProjectSelectionPage.isCCNature(),
-               usbdmProjectPage.getDevice(),
-               map,
-               monitor);
+         // Get project parameters from dialogue pages
+         fUsbdmNewProjectPage_1.getPageData(paramMap);
+         fUsbdmProjectParametersPage_2.getPageData(paramMap);
+         fUsbdmProjectOptionsPage_3.getPageData(paramMap);
+         
+         listParamMap("UsbdmNewProjectWizard.run() - paramMap =================================", paramMap);
+         
+         // Create project
+         IProject project = new CDTProjectManager().createCDTProj(paramMap, device, new SubProgressMonitor(monitor, WORK_SCALE*45));
+      
+         // Apply device project options
+         ProjectActionList actionLists = fUsbdmProjectOptionsPage_3.getProjectActionLists();
+         ProcessProjectActions.process(project, device, actionLists, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*45));
+
+         updateConfigurations(project, new SubProgressMonitor(monitor, WORK_SCALE*10));
+         
       } catch (Exception e) {
          e.printStackTrace();
          throw new InvocationTargetException(e);
-      }      
+      } finally {
+         monitor.done();
+      }
    }
    
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.wizard.Wizard#getPage(java.lang.String)
-    */
    @Override
    public IWizardPage getPage(String name) {
-      if ((usbdmProjectSelectionPage != null) && usbdmProjectSelectionPage.isPageComplete()) {
-         return usbdmProjectSelectionPage;
+      if ((fUsbdmNewProjectPage_1 != null) && fUsbdmNewProjectPage_1.isPageComplete()) {
+         return fUsbdmNewProjectPage_1;
       }
-      if ((usbdmProjectPage != null)          && usbdmProjectPage.isPageComplete()) {
-         return usbdmProjectPage;
+      if ((fUsbdmProjectParametersPage_2 != null) && fUsbdmProjectParametersPage_2.isPageComplete()) {
+         return fUsbdmProjectParametersPage_2;
       }
-      if ((usbdmProjectOptionsPage != null)   && usbdmProjectOptionsPage.isPageComplete()) {
-         return usbdmProjectOptionsPage;
-      }
-      if ((usbdmToolSettingsPage != null)     && usbdmToolSettingsPage.isPageComplete()) {
-         return usbdmToolSettingsPage;
+      if ((fUsbdmProjectOptionsPage_3 != null) && fUsbdmProjectOptionsPage_3.isPageComplete()) {
+         return fUsbdmProjectOptionsPage_3;
       }
       return null;
    }
@@ -235,6 +237,5 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       dialog.create();
       dialog.open();
    }
-
    
 }

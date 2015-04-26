@@ -20,6 +20,8 @@ import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.jni.UsbdmJniConstants;
+import net.sourceforge.usbdm.packageParser.FileList;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -73,22 +75,47 @@ public class DeviceDatabase {
       }
       long value      = 0;
       long multiplier = 1;
+      long bias       = 0;
+      
+      int wIndex = s.indexOf("w:");
+      if (wIndex>=0) {
+//       System.err.println("getIntAttribute("+s+"), K found");
+       s = s.substring(wIndex+2);
+       multiplier = 2;
+       bias       = 1;
+//       System.err.println("getIntAttribute("+s+"), K found");
+    }
+      wIndex = s.indexOf("W:");
+      if (wIndex>=0) {
+//       System.err.println("getIntAttribute("+s+"), K found");
+       s = s.substring(wIndex+2);
+       multiplier = 2;
+       bias       = 1;
+//       System.err.println("getIntAttribute("+s+"), K found");
+    }
+
       int kIndex = s.lastIndexOf('K');
       int mIndex = s.lastIndexOf('M');
       if (kIndex>0) {
-//         System.err.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, kIndex);
-         multiplier = 1024;
-//         System.err.println("getIntAttribute("+s+"), K found");
-      }
+//       System.err.println("getIntAttribute("+s+"), K found");
+       s = s.substring(0, kIndex);
+       multiplier *= 1024;
+       bias       *= 1024;
+//       System.err.println("getIntAttribute("+s+"), K found");
+    }
       if (mIndex>0) {
 //         System.err.println("getIntAttribute("+s+"), M found");
          s = s.substring(0, mIndex);
-         multiplier = 1024*1024;
+         multiplier *= 1024*1024;
+         bias       *= 1024*1024;
 //         System.err.println("getIntAttribute("+s+"), M found");
       }
       try {
-         value = multiplier*Long.decode(s);
+         value = Long.decode(s);
+         if ((value&1) == 0) {
+            bias = 0;
+         }
+         value = multiplier*Long.decode(s) + bias;
       } catch (NumberFormatException e) {
          throw new Exception("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
       }
@@ -232,6 +259,9 @@ public class DeviceDatabase {
       }
       if (deviceElement.hasAttribute("subfamily")) {
          device.setSubFamily(deviceElement.getAttribute("subfamily"));
+      }
+      if (deviceElement.hasAttribute("hardware")) {
+         device.setHardware(deviceElement.getAttribute("hardware"));
       }
       for (Node node = deviceElement.getFirstChild();
             node != null;

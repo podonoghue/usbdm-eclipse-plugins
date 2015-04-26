@@ -820,25 +820,25 @@ public class DevicePeripherals extends ModeControl {
       Document dom;
       try {
          // Try name as given (may be full path)
-         //         System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+"\"");
+         System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+"\"");
          dom = SVD_XML_BaseParser.parseXmlFile(device);
          if (dom == null) {
             // Try name with default extension
-            //            System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+".svd"+"\"");
+            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".svd"+"\"");
             dom = SVD_XML_BaseParser.parseXmlFile(device+".svd");
          }
          if (dom == null) {
             // Try name with default extension
-            //            System.err.println("DevicePeripherals.createDatabase() - Trying \""+filePath+".xml"+"\"");
+            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".xml"+"\"");
             dom = SVD_XML_BaseParser.parseXmlFile(device+".xml");
          }
          if (dom == null) {
             // Retry with mapped name
-            //            System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \n");
+            System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \n");
             DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME);
             if (deviceFileList != null) {
                String mappedFilename = deviceFileList.getSvdFilename(device);
-               //               System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \""+mappedFilename+"\"");
+               System.err.println("DevicePeripherals.createDatabase() - Trying Mapped name: \""+mappedFilename+"\"");
                if (mappedFilename != null) {
                   dom = SVD_XML_BaseParser.parseXmlFile(mappedFilename);
                }

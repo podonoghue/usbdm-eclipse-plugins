@@ -6,9 +6,10 @@ package net.sourceforge.usbdm.gdb;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerTab;
+import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
+import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
@@ -42,12 +43,13 @@ public class GdbServerParameters {
    private int                   gdbPortNumber;
    private boolean               useDebugVersion;
    private boolean               exitOnClose;
-   private GdbServerType         serverType;
+//   private GdbServerType         serverType;
    
    private EraseMethod           eraseMethod;
    private boolean               trimClock;
    private int                   clockTrimFrequency;
    private long                  nvmClockTrimLocation;
+   private boolean               catchVLLSxEvents;
                                  
    private ExtendedOptions       extendedOptions;
                                  
@@ -56,7 +58,8 @@ public class GdbServerParameters {
    private int                   allowedEraseMethods;
    private int                   requiredDialogueComponents;
    
-   private SecurityOptions		 securityOption;
+   private SecurityOptions		   securityOption;
+   private int                   connectionTimeout;
    
    private static final String   deviceNameKey                   = "deviceName";
    private static final String   bdmSerialNumberKey              = "bdmSerialNumber";
@@ -75,6 +78,8 @@ public class GdbServerParameters {
    private static final String   trimClockKey                    = "trimClock";
    private static final String   clockTrimFrequencyKey           = "clockTrimFrequency";
    private static final String   nvmClockTrimLocationKey         = "nvmClockTrimLocation";
+   private static final String   connectionTimeoutKey            = "connectionTimeout";
+   private static final String   catchVLLSxEventsKey             = "catchVLLSxEvents";
    
    private static final int      E_SELECTIVE_MASK  = (1<<EraseMethod.ERASE_SELECTIVE.ordinal());
    private static final int      E_ALL_MASK        = (1<<EraseMethod.ERASE_ALL.ordinal());
@@ -84,23 +89,15 @@ public class GdbServerParameters {
    private static final int      cfv1Methods       = E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK|E_MASS_MASK;
    private static final int      cfvxMethods       = E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK;
                                  
-   /**  Mask indicating Interface requires Speed selection                                 
-    */
-   public  static final int      NEEDS_SPEED = 1<<0;
+   public  static final int      NEEDS_SPEED       = 1<<0;  // Mask indicating Interface requires Speed selection
+   public  static final int      NEEDS_RESET       = 1<<1;  // Mask indicating Interface requires Reset selection
+   public  static final int      NEEDS_PST         = 1<<2;  // Mask indicating Interface requires PST selection 
+   public  static final int      NEEDS_CLOCK       = 1<<3;  // Mask indicating Interface requires Clock selection   
+   public  static final int      NEEDS_VLLSCATCH   = 1<<4;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_CLKTRIM     = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
    
-   /**  Mask indicating Interface requires Reset selection                                 
-    */
-   public  static final int      NEEDS_RESET = 1<<1;
-   
-   /**  Mask indicating Interface requires PST selection                                 
-    */
-   public  static final int      NEEDS_PST   = 1<<2;
-   
-   /**  Mask indicating Interface requires Clock selection                                 
-    */
-   public  static final int      NEEDS_CLOCK = 1<<3;
-   private static final int      armDialogueNeeds  = NEEDS_SPEED;
-   private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK;
+   private static final int      armDialogueNeeds  = NEEDS_SPEED|NEEDS_VLLSCATCH;
+   private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK|NEEDS_CLKTRIM;
    private static final int      cfvxDialogueNeeds = NEEDS_SPEED|NEEDS_PST;
            
    private static final  USBDMDeviceInfo nullDevice = new USBDMDeviceInfo("Generic BDM", "Any connected USBDM", new BdmInformation());
@@ -123,8 +120,10 @@ public class GdbServerParameters {
     *   
     * @param interfaceType  Interface to select defaults
     * @return Appropriate GdbServerParameters
+    * 
+    * @throws Exception 
     */
-   public static GdbServerParameters getDefaultServerParameters(InterfaceType interfaceType) {
+   public static GdbServerParameters getDefaultServerParameters(InterfaceType interfaceType) throws Exception {
       switch (interfaceType) {
       case T_ARM:
          return new ArmGdbServerParameters();
@@ -143,7 +142,7 @@ public class GdbServerParameters {
       }
       String interfaceName = null;
       try {
-         interfaceName = config.getAttribute(UsbdmDebuggerTab.USBDM_GDB_INTERFACE_TYPE_KEY, (String)null);
+         interfaceName = config.getAttribute(UsbdmDebuggerPanel.USBDM_GDB_INTERFACE_TYPE_KEY, (String)null);
       } catch (CoreException e) {
          return null;
       }
@@ -159,8 +158,10 @@ public class GdbServerParameters {
       if (interfaceType == null) {
          return null;
       }
-      GdbServerParameters gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
-      if (gdbServerParameters == null) {
+      GdbServerParameters gdbServerParameters;
+      try {
+         gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
+      } catch (Exception e1) {
          return null;
       }
       try {
@@ -172,7 +173,7 @@ public class GdbServerParameters {
    }
 
    protected static class ArmGdbServerParameters extends GdbServerParameters {
-      public ArmGdbServerParameters() {
+      public ArmGdbServerParameters() throws Exception {
          super(InterfaceType.T_ARM);
          setPreferredEraseMethod(EraseMethod.ERASE_MASS);
          setAllowedEraseMethods(armMethods);
@@ -182,7 +183,7 @@ public class GdbServerParameters {
    }
    
    protected static class Cfv1GdbServerParameters extends GdbServerParameters {
-      public Cfv1GdbServerParameters() {
+      public Cfv1GdbServerParameters() throws Exception {
          super(InterfaceType.T_CFV1);
          setPreferredEraseMethod(EraseMethod.ERASE_MASS);
          setAllowedEraseMethods(cfv1Methods);
@@ -192,7 +193,7 @@ public class GdbServerParameters {
    }
    
    protected static class CfvxGdbServerParameters extends GdbServerParameters {
-      public CfvxGdbServerParameters() {
+      public CfvxGdbServerParameters() throws Exception {
          super(InterfaceType.T_CFVX);
          setPreferredEraseMethod(EraseMethod.ERASE_ALL);
          setAllowedEraseMethods(cfvxMethods);
@@ -218,6 +219,7 @@ public class GdbServerParameters {
       setNvmClockTrimLocation(-1);
       setClockTrimFrequency(0);
       setEraseMethod(EraseMethod.ERASE_MASS);
+      enableCatchVLLSxEvents(false);
       try {
          extendedOptions = Usbdm.getDefaultExtendedOptions(interfaceType.toTargetType());
       } catch (UsbdmException e) {
@@ -265,12 +267,16 @@ public class GdbServerParameters {
       }
    }
 
+   public void setGdbPortNumber(int port) {
+      this.gdbPortNumber = port;
+   }
+
    public int getGdbPortNumber() {
       return gdbPortNumber;
    }
 
-   public void setGdbPortNumber(int port) {
-      this.gdbPortNumber = port;
+   public String getGdbPortNumberAsOption() {
+      return "-port="+getGdbPortNumber();
    }
 
    public String getDeviceName() {
@@ -316,30 +322,26 @@ public class GdbServerParameters {
       return String.format("-power=%d,%d", extendedOptions.powerOffDuration, extendedOptions.powerOnRecoveryInterval);
    }
    
-   public EraseMethod getEraseMethod() {
-      return eraseMethod;
-   }
-
    public void setEraseMethod(EraseMethod eraseMethod) {
       this.eraseMethod = eraseMethod;
    }
    
+   public EraseMethod getEraseMethod() {
+      return eraseMethod;
+   }
+
    private String getEraseMethodAsOption() {
 	      return "-erase="+eraseMethod.getOptionName();
 	   }
 	   
-   private String getSecurityOptionAsOption() {
-	      return "-security="+securityOption.getOptionName();
-	   }
-	   
-   public TargetVddSelect getTargetVdd() {
-      return extendedOptions.targetVdd;
-   }
-
    public void setTargetVdd(TargetVddSelect targetVdd) {
       extendedOptions.targetVdd = targetVdd;
    }
    
+   public TargetVddSelect getTargetVdd() {
+      return extendedOptions.targetVdd;
+   }
+
    private String getTargetVddAsOption() {
       switch(extendedOptions.targetVdd) {
       case BDM_TARGET_VDD_3V3:
@@ -351,14 +353,18 @@ public class GdbServerParameters {
       }
    }
    
+   public void setInterfaceFrequency(int interfaceFrequency) {
+      extendedOptions.interfaceFrequency = interfaceFrequency;
+   }
+
    public int getInterfaceFrequency() {
       return extendedOptions.interfaceFrequency;
    }
 
-   public void setInterfaceFrequency(int interfaceFrequency) {
-      extendedOptions.interfaceFrequency = interfaceFrequency;
+   public String getInterfaceFrequencyAsOption() {
+      return "-speed="+getInterfaceFrequency()/1000;
    }
-   
+
    public int getClockTrimFrequency() {
       return clockTrimFrequency;
    }
@@ -387,6 +393,10 @@ public class GdbServerParameters {
       extendedOptions.autoReconnect = autoConnect;
    }
 
+   public String getAutoReconnectAsOption() {
+      return "-auto="+extendedOptions.autoReconnect.getOptionName();
+   }
+   
    public boolean isUsePstSignals() {
       return extendedOptions.usePstSignals;
    }
@@ -397,6 +407,14 @@ public class GdbServerParameters {
 
    public boolean isUseReset() {
       return extendedOptions.useResetSignal;
+   }
+
+   public boolean isCatchVLLSxEvents() {
+      return catchVLLSxEvents;
+   }
+
+   public void enableCatchVLLSxEvents(boolean catchVLLSxEvents) {
+      this.catchVLLSxEvents = catchVLLSxEvents;
    }
 
    public void enableUseReset(boolean useReset) {
@@ -411,14 +429,30 @@ public class GdbServerParameters {
       this.preferredEraseMethod = preferredEraseMethod;
    }
 
+   public void setConnectionTimeout(int connectionTimeout) {
+      this.connectionTimeout = connectionTimeout;
+   }
+
+   public int getConnectionTimeout() {
+      return connectionTimeout;
+   }
+
+   private String getConnectionTimeoutParametersAsOption() {
+      return String.format("-timeout=%d", getConnectionTimeout());
+   }
+   
+   public void setSecurityOption(SecurityOptions securityOption) {
+      this.securityOption = securityOption;
+   }
+
    public SecurityOptions getSecurityOption() {
 		return securityOption;
 	}
 
-	public void setSecurityOption(SecurityOptions securityOption) {
-		this.securityOption = securityOption;
-	}
-
+   private String getSecurityOptionAsOption() {
+      return "-security="+securityOption.getOptionName();
+   }
+   
    protected IPath getServerPath() {
       IPath serverPath = Usbdm.getApplicationPath();
       String exeSuffix = "";
@@ -430,21 +464,15 @@ public class GdbServerParameters {
          exeSuffix = ".exe";
       }
       if (isUseDebugVersion()) {
-         return serverPath.append(getInterfaceType().gdbDebugServer+exeSuffix);
+         return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER_DEBUG+exeSuffix);         
       }
       else {
-         return serverPath.append(getInterfaceType().gdbServer+exeSuffix);         
+         return serverPath.append(UsbdmSharedConstants.USBDM_GDB_GUI_SERVER+exeSuffix);
       }
    }
 
-   protected IPath getSpritePath() {
-      IPath spritePath = Usbdm.getApplicationPath();
-      if (isUseDebugVersion()) {
-         return spritePath.append(getInterfaceType().gdbDebugSprite+".exe");
-      }
-      else {
-         return spritePath.append(getInterfaceType().gdbSprite+".exe");         
-      }
+   protected String getServerOption() {
+      return getInterfaceType().gdbServerOption;
    }
 
    public ResetType getPreferredResetType() {
@@ -493,11 +521,12 @@ public class GdbServerParameters {
    }
 
    public GdbServerType getServerType() {
-      return serverType;
+//      return serverType;
+      return GdbServerType.SERVER_SOCKET;
    }
 
    public void setServerType(GdbServerType serverType) {
-      this.serverType = serverType;
+//      this.serverType = serverType;
    }
 
    public static USBDMDeviceInfo getNulldevice() {
@@ -533,14 +562,7 @@ public class GdbServerParameters {
     */
    public ArrayList<String> getCommandLine() {
       ArrayList<String> commandList =  new ArrayList<String>(20);
-      if (getServerType() == GdbServerType.SERVER_PIPE) {
-         commandList.add("| " + escapePath(getSpritePath().toOSString()));
-         if (getDeviceName() != null) {
-            commandList.add(escapeArg(getDeviceName()));
-         }
-         return commandList;
-      }
-      else if (getServerType() == GdbServerType.SERVER_SOCKET) {
+      if (getServerType() == GdbServerType.SERVER_SOCKET) {
          commandList.add("localhost:" + Integer.toString(getGdbPortNumber()));
          return commandList;
       }
@@ -556,11 +578,13 @@ public class GdbServerParameters {
       ArrayList<String> commandList = new ArrayList<String>(20);
       
       commandList.add(getServerPath().toPortableString());
-      
+
+      commandList.add(getServerOption());
+
       if (getDeviceName() != null) {
          commandList.add("-device="+getDeviceName());
       }
-      commandList.add("-port="+getGdbPortNumber());
+      commandList.add(getGdbPortNumberAsOption());
       if ((getBdmSerialNumber() != null) && !getBdmSerialNumber().equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber)) {
          if (isBdmSerialNumberMatchRequired()) {
             commandList.add("-requiredBdm="+getBdmSerialNumber());
@@ -584,14 +608,30 @@ public class GdbServerParameters {
       if (vdd != null) {
          commandList.add(vdd);
       }
-      commandList.add("-speed="+getInterfaceFrequency()/1000);
+      commandList.add(getInterfaceFrequencyAsOption());
       commandList.add(getEraseMethodAsOption());
       commandList.add(getSecurityOptionAsOption());
+      commandList.add(getConnectionTimeoutParametersAsOption());
+      commandList.add(getAutoReconnectAsOption());
+      
+      if (isCatchVLLSxEvents()) {
+         commandList.add("-catchvlls");
+      }
       return commandList;
    }
    
-   public void loadDefaultSettings() {
+   /**
+    * Load the GDB settings from the system default
+    * 
+    * Assumes the interface type has been set 
+    * 
+    * @throws Exception if interface type has not already been set
+    */
+   public void loadDefaultSettings() throws Exception {
 //      System.err.println("GdbServerParameters.loadDefaultSettings()\n");
+      if (interfaceType == null) {
+         throw new Exception("Interface type must be set before loading defaults");
+      }
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
       
       setDeviceName(                                  settings.get(getKey(deviceNameKey),                   null));
@@ -611,10 +651,20 @@ public class GdbServerParameters {
       enableTrimClock(                                settings.get(getKey(trimClockKey),                    false));
       setClockTrimFrequency(                          settings.get(getKey(clockTrimFrequencyKey),           0));
       setNvmClockTrimLocation(                        settings.get(getKey(nvmClockTrimLocationKey),         0L));
-//      System.err.println("GdbServerParameters.loadDefaultSettings(), getGdbPortNumber() = "+getGdbPortNumber());
+      setConnectionTimeout(                           settings.get(getKey(connectionTimeoutKey),            10));
+      enableCatchVLLSxEvents(                         settings.get(getKey(catchVLLSxEventsKey),             false));
       }
    
-   public boolean saveSettings() {
+   /**
+    * Save the GDB settings as the system default for the target type
+    * 
+    * @return
+    * @throws Exception 
+    */
+   public boolean saveSettingsAsDefault() throws Exception {
+      if (interfaceType == null) {
+         throw new Exception("Interface type must be set before saving defaults");
+      }
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
 
       settings.put(getKey(deviceNameKey),                   getDeviceName());
@@ -634,6 +684,8 @@ public class GdbServerParameters {
       settings.put(getKey(trimClockKey),                    isTrimClock());
       settings.put(getKey(clockTrimFrequencyKey),           getClockTrimFrequency());
       settings.put(getKey(nvmClockTrimLocationKey),         getNvmClockTrimLocation());
+      settings.put(getKey(connectionTimeoutKey),            getConnectionTimeout());
+      settings.put(getKey(catchVLLSxEventsKey),             isCatchVLLSxEvents());
       
       settings.flush();
       return true;
@@ -661,6 +713,8 @@ public class GdbServerParameters {
       buff.append("isTrimclock =                    " + isTrimClock()+"\n");
       buff.append("getClockTrimFrequency =          " + getClockTrimFrequency()+"\n");
       buff.append("getNvmClockTrimLocation =        " + getNvmClockTrimLocation()+"\n");
+      buff.append("getConnectionTimeout =           " + getConnectionTimeout()+"\n");
+      buff.append("isCatchVLLSxEvents =             " + isCatchVLLSxEvents()+"\n");
       buff.append("}\n");
 
       return buff.toString();
@@ -685,9 +739,11 @@ public class GdbServerParameters {
       configuration.setAttribute((key+trimClockKey),                     isTrimClock());
       configuration.setAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency());
       configuration.setAttribute((key+nvmClockTrimLocationKey),          (int)getNvmClockTrimLocation());
+      configuration.setAttribute((key+connectionTimeoutKey),             getConnectionTimeout());
+      configuration.setAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents());
    }
    
-   private static final String key = UsbdmDebuggerTab.USBDM_LAUNCH_ATTRIBUTE_KEY;      
+   private static final String key = UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY;      
 
    public void initializeFrom(ILaunchConfiguration configuration) throws CoreException {
       
@@ -715,5 +771,7 @@ public class GdbServerParameters {
       enableTrimClock(          configuration.getAttribute((key+trimClockKey),                     isTrimClock()));
       setClockTrimFrequency(    configuration.getAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency()));
       setNvmClockTrimLocation(  configuration.getAttribute((key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
+      setConnectionTimeout(     configuration.getAttribute((key+connectionTimeoutKey),             getConnectionTimeout()));
+      enableCatchVLLSxEvents(   configuration.getAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
    }
 }

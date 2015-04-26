@@ -231,6 +231,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @param gdbInterface
+    * @throws Exception 
     */
    public UsbdmDevicePeripheralsModel(String devicenameOrFilename, GdbCommonInterface gdbInterface) {
       this.gdbInterface = gdbInterface;
@@ -244,6 +245,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @param gdbInterface
+    * @throws Exception 
     */
    public UsbdmDevicePeripheralsModel(DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) {
       this.gdbInterface = gdbInterface;
@@ -254,6 +256,7 @@ public class UsbdmDevicePeripheralsModel {
     * Loads device model using path to SVD file or device name
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
+    * @throws Exception 
     */
    public void setDevice(String devicenameOrFilename) {
       setDevice(DevicePeripherals.createDatabase(devicenameOrFilename));
@@ -263,18 +266,20 @@ public class UsbdmDevicePeripheralsModel {
     * Loads device model using path to SVD file or device name
     * 
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
+    * @throws Exception 
     */
    public void setDevice(DevicePeripherals devicePeripherals) {
+      System.err.println("UsbdmDevicePeripheralsModel.setDevice()");
       DeviceModel model = null;
       try {
          model = createDeviceModel(devicePeripherals, gdbInterface);
+         if (model == null) {
+            throw new Exception("UsbdmDevicePeripheralsModel.setDevice() : model == null!");
+         }
       } catch (Exception e) {
          e.printStackTrace();
       }
       this.model = model;
-      if (model == null) {
-         System.err.println("UsbdmDevicePeripheralsModel.setDevice() : model == null!");
-      }
    }
    
    public String getDeviceName() {

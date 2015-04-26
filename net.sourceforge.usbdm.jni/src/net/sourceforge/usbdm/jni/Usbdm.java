@@ -23,12 +23,9 @@ public class Usbdm {
       Usbdm.open(deviceNum);
    }
    
-   private static Boolean debug = false;
+   // Manually set to use debug version of DLLs
+   private static Boolean debug = true;
    
-   public static void setDebug(Boolean debug) {
-      Usbdm.debug = debug;
-   }
-
    /**
     *  Class describing the USBDM interface version & capabilities
     */
@@ -274,16 +271,25 @@ public class Usbdm {
     * Determines when automatic re-connection will be done 
     */
    public static enum AutoConnect {
-      AUTOCONNECT_NEVER    (0),  // Only connect explicitly
-      AUTOCONNECT_STATUS   (1),  // Reconnect on ReadStatusReg()
-      AUTOCONNECT_ALWAYS   (2),  // Reconnect before every command
+      AUTOCONNECT_NEVER    ("Never", 0),  // Only connect explicitly
+      AUTOCONNECT_STATUS   ("Status", 1),  // Reconnect on ReadStatusReg()
+      AUTOCONNECT_ALWAYS   ("Always", 2),  // Reconnect before every command
       ;
       private int mask;
-      AutoConnect(int mask) {
+      private String name;
+      
+      AutoConnect(String name, int mask) {
+         this.name = name;
          this.mask = mask;
       }
       public int getMask() {
          return mask;
+      }
+      /**
+       * @since 4.11
+       */
+      public String getOptionName() {
+         return name;
       }
       public static AutoConnect valueOf(int mask) {
          if (mask > AUTOCONNECT_ALWAYS.ordinal()) {
@@ -905,7 +911,7 @@ public class Usbdm {
 
    private static boolean        libraryLoaded     = false;
    private static boolean        libraryLoadFailed = false;
-   
+
    private static native int     usbdmGetUsbdmResourcePath(byte[] description);
    private static native int     usbdmGetUsbdmApplicationPath(byte[] description);
    private static native int     usbdmGetUsbdmDataPath(byte[] description);
@@ -1434,6 +1440,45 @@ public class Usbdm {
       }
    };
 
+   final static String win_x86_libraries_debug[] = {
+      "x86/libgcc_s_dw2-1",
+      "x86/libstdc++-6",
+      "x86/usbdm-debug.4",
+      "x86/usbdm-jni-debug.4",
+   };
+   final static String win_x86_libraries[] = {
+      "x86/libgcc_s_dw2-1",
+      "x86/libstdc++-6",
+      "x86/usbdm.4",
+      "x86/usbdm-jni.4",
+   };
+   final static String win_x86_64_libraries_debug[] = {
+      "x86_64/libwinpthread-1",
+      "x86_64/libgcc_s_seh-1",
+      "x86_64/libstdc++-6",
+      "x86_64/usbdm-debug.4",
+      "x86_64/usbdm-jni-debug.4",
+   };
+   final static String win_x86_64_libraries[] = {
+      "x86_64/libwinpthread-1",
+      "x86_64/libgcc_s_seh-1",
+      "x86_64/libstdc++-6",
+      "x86_64/usbdm.4",
+      "x86_64/usbdm-jni.4",
+   };
+   final static String linux_x86_libraries_debug[] = {
+      "libUsbdmJniWrapper-debug;",
+   };
+   final static String linux_x86_libraries[] = {
+      "libUsbdmJniWrapper;",
+   };
+   final static String linux_x86_64_libraries_debug[] = {
+      "libUsbdmJniWrapper-debug",
+   };
+   final static String linux_x86_64_libraries[] = {
+      "libUsbdmJniWrapper",
+   };
+   
    final static class LibraryLoader {
       public LibraryLoader() {
          if (libraryLoaded) {
@@ -1446,53 +1491,49 @@ public class Usbdm {
             System.err.println("os.name      => "+os );
             System.err.println("java.vm.name => "+jvm );
             System.err.println("os.arch      => "+arch );
+            String libraryList[];
             if ((os != null) && os.toUpperCase().contains("LINUX")) {
-               if (arch.toUpperCase().contains("I386")) {
+               if (arch.toLowerCase().contains("amd64")) {
+                  if (debug) {
+                     libraryList = linux_x86_64_libraries_debug;
+                  }
+                  else {
+                     libraryList = linux_x86_64_libraries;
+                  }
+               }
+               else {
                   // Running 32-bit VM
                   if (debug) {
-                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName32);
-                     System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName32);
+                     libraryList = linux_x86_libraries_debug;
                   }
                   else {
-                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName32);
-                     System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName32);
+                     libraryList = linux_x86_libraries;
                   }
                }
-               else {
-                  if (debug) {
-                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName);
-                     System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
-                  }
-                  else {
-                     System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-                     System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
-                  }
-               }
-//             	 String libusbLibrary = UsbdmJniConstants.LibUsbLibraryName_so;
-//               System.err.println("Loading library: "+libusbLibrary );
-//               System.loadLibrary(libusbLibrary);
-
-//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_so);
-//               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_so);
-//               System.loadLibrary("usbdm");
             }
             else {
-//               System.err.println("Loading library: "+UsbdmJniConstants.LibUsbLibraryName_dll );
-//               System.loadLibrary(UsbdmJniConstants.LibUsbLibraryName_dll);
-//               System.err.println("Loading library: "+UsbdmJniConstants.UsbdmLibraryName_dll);
-               System.loadLibrary(UsbdmJniConstants.UsbdmLibGccName_dll);
-               System.loadLibrary(UsbdmJniConstants.UsbdmLibStdcName_dll);
-               System.loadLibrary(UsbdmJniConstants.UsbdmLibraryName_dll);
-               if (debug) {
-                  System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniDebugLibraryName);
-                  System.loadLibrary(UsbdmJniConstants.UsbdmJniDebugLibraryName);
+               if (arch.toLowerCase().contains("amd64")) {
+                  if (debug) {
+                     libraryList = win_x86_64_libraries_debug;
+                  }
+                  else {
+                     libraryList = win_x86_64_libraries;
+                  }
                }
-               else {
-                  System.err.println("Loading library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-                  System.loadLibrary(UsbdmJniConstants.UsbdmJniLibraryName);
+               else { // amd64
+                  // Running 32-bit VM
+                  if (debug) {
+                     libraryList = win_x86_libraries_debug;
+                  }
+                  else {
+                     libraryList = win_x86_libraries;
+                  }
                }
             }
-//            System.err.println("Calling init()");
+            for (String libraryName : libraryList) {
+               System.err.println("Loading library name = " + libraryName);
+               System.loadLibrary(libraryName);
+            }
             usbdmInit();
             libraryLoaded = true;
 //            System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
@@ -1514,6 +1555,7 @@ public class Usbdm {
 
          } catch (Error e) {
              e.printStackTrace();
+             String reason = e.getMessage();
             // Report fist failure only
             if (!libraryLoadFailed) {
                Shell shell;
@@ -1528,7 +1570,7 @@ public class Usbdm {
                libraryLoadFailed = true;
                MessageBox msgbox = new MessageBox(shell, SWT.OK);
                msgbox.setText("USBDM Error");
-               msgbox.setMessage("Loading of USBDM native library failed.");
+               msgbox.setMessage("Loading of USBDM native library failed.\n" + reason);
                msgbox.open();
                e.printStackTrace();
                try {
@@ -1543,8 +1585,8 @@ public class Usbdm {
       }
    }
    
-   static LibraryLoader library = new LibraryLoader();
-   
+   private static LibraryLoader  library = new LibraryLoader();
+
    /**
     * Get list of devices
     * 
@@ -1554,44 +1596,47 @@ public class Usbdm {
     * @throws CharacterCodingException 
     */
    public static ArrayList<USBDMDeviceInfo> getDeviceList() {
-//      System.err.println("Usbdm.getDeviceList()");
+      //      System.err.println("Usbdm.getDeviceList()");
 
       ArrayList<USBDMDeviceInfo> deviceList = new ArrayList<USBDMDeviceInfo>();
 
-      try {
-         int deviceCount;
-         BdmInformation   bdmInfo = new Usbdm.BdmInformation();
-         USBDMDeviceInfo  deviceInfo;
+      int deviceCount = 0;
+      BdmInformation   bdmInfo = new Usbdm.BdmInformation();
+      USBDMDeviceInfo  deviceInfo;
 
-         // Get count of devices (and create USBDM internal device list)
+      // Get count of devices (and create USBDM internal device list)
+      try {
          deviceCount = findDevices();
          if (deviceCount == 0) {
             return deviceList;
          }
-//         System.err.println("Usbdm.findDevices(): Found  " + deviceCount + " devices");
+         //         System.err.println("Usbdm.findDevices(): Found  " + deviceCount + " devices");
          for (int deviceNum=0; deviceNum < deviceCount; deviceNum++) {
             String description = new String("Unresponsive device");
             String serialNum   = new String("Unknown");
-            // Open device without releasing device list
-            open(deviceNum, false);
-//            System.err.println("Usbdm.findDevices(): Opened device");
-            description = getBDMDescription();
-//            System.err.println("Usbdm.findDevices(): Retrieved description \'"+description+"\'");
-            serialNum   = getBDMSerialNumber();
-//            System.err.println("Usbdm.findDevices(): Retrieved serial number \'"+serialNum+"\'");
-            bdmInfo     = getBDMInformation();
-//            System.err.println("Usbdm.findDevices(): Retrieved BDM information\n"+bdmInfo.toString());
-            deviceInfo  = new USBDMDeviceInfo(description, serialNum, bdmInfo);
-            deviceList.add(deviceInfo);
+            try {
+               // Open device without releasing device list
+               open(deviceNum, false);
+               //            System.err.println("Usbdm.findDevices(): Opened device");
+               description = getBDMDescription();
+               //            System.err.println("Usbdm.findDevices(): Retrieved description \'"+description+"\'");
+               serialNum   = getBDMSerialNumber();
+               //            System.err.println("Usbdm.findDevices(): Retrieved serial number \'"+serialNum+"\'");
+               bdmInfo     = getBDMInformation();
+               //            System.err.println("Usbdm.findDevices(): Retrieved BDM information\n"+bdmInfo.toString());
+               deviceInfo  = new USBDMDeviceInfo(description, serialNum, bdmInfo);
+               deviceList.add(deviceInfo);
+            } catch (UsbdmException e1) {
+               //             try {
+               //                releaseDevices();
+               //             } catch (UsbdmException e) {
+               //             } 
+            }
             close();
          }
          // Release device list
          releaseDevices(); 
-      } catch (UsbdmException e1) {
-//         try {
-//            releaseDevices();
-//         } catch (UsbdmException e) {
-//         } 
+      } catch (UsbdmException e) {
       }
       return deviceList;
    } 

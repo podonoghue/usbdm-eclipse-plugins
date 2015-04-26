@@ -18,7 +18,6 @@ public abstract class BaseModel extends ObservableModel {
    private         String            name;
    protected final String            description;
    protected       long              address;
-   private         boolean           littleEndian = true;
 
    /**
     * Constructor

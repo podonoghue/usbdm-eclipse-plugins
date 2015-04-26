@@ -3,24 +3,31 @@ package net.sourceforge.usbdm.deviceDatabase;
 public class FileAction extends ProjectAction {
    private final String    source;
    private final String    target;
-   private       String    root;
    private final FileType  fileType;
-   private final boolean   doMacroReplacement;
-   private final boolean   doReplace;
+   private       String    root;
+   private       boolean   doMacroReplacement;
+   private       boolean   doReplace;
+   private       PathType  sourcePathType;
 
    public enum FileType {
       NORMAL,
       LINK,
    }
 
-   public FileAction(String source, String target, FileType fileType, boolean doMacroReplacement, boolean doReplace) throws Exception {
+   public enum PathType {
+      UNKNOWN,
+      RELATIVE,
+      ABSOLUTE
+   }
+   public FileAction(String source, String target, FileType fileType) throws Exception {
       super("---file---");
       this.source             = source;
       this.target             = target;
       this.fileType           = fileType;
-      this.doMacroReplacement = doMacroReplacement;
+      this.doMacroReplacement = false;
       this.root               = null;
-      this.doReplace          = doReplace;
+      this.doReplace          = false;
+      this.sourcePathType     = PathType.UNKNOWN;
    }
    public String getSource() {
       return source;
@@ -28,8 +35,20 @@ public class FileAction extends ProjectAction {
    public String getTarget() {
       return target;
    }
+   /**
+    * @param doMacroReplacement the doMacroReplacement to set
+    */
+   public void setDoMacroReplacement(boolean doMacroReplacement) {
+      this.doMacroReplacement = doMacroReplacement;
+   }
    public boolean isDoMacroReplacement() {
       return doMacroReplacement;
+   }
+   /**
+    * @param doReplace the doReplace to set
+    */
+   public void setDoReplace(boolean doReplace) {
+      this.doReplace = doReplace;
    }
    public boolean isDoReplace() {
       return doReplace;
@@ -56,5 +75,17 @@ public class FileAction extends ProjectAction {
    
    public FileType getFileType() {
       return fileType;
+   }
+   /**
+    * @return the sourcePathType
+    */
+   public PathType getSourcePathType() {
+      return sourcePathType;
+   }
+   /**
+    * @param sourcePathType the sourcePathType to set
+    */
+   public void setSourcePathType(PathType sourcePathType) {
+      this.sourcePathType = sourcePathType;
    }
 }

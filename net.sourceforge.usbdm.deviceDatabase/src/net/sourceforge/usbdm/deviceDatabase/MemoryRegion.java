@@ -11,10 +11,10 @@ import java.util.Vector;
 //
 public class MemoryRegion {
 
-   public static class MemoryRange {
-      public long   start;
-      public long   end;
-      public String name;
+   public static class MemoryRange implements Comparable<MemoryRange> {
+      public  long   start;
+      public  long   end;
+      private String name;
 
       public MemoryRange(long memoryStartAddress, long memoryEndAddress) {
          this.start = memoryStartAddress;
@@ -32,7 +32,18 @@ public class MemoryRegion {
       public void setName(String name) {
          this.name = name;
       }
+      @Override
+      public int compareTo(MemoryRange other) {
+         if ((this.start - other.start) < 0) {
+            return -1;
+         }
+         if ((this.start - other.start) > 0) {
+            return 1;
+         }
+         return 0;
+      }
    };
+   
    public final int DefaultPageNo = 0xFFFF;
    public final int NoPageNo      = 0xFFFE;
 

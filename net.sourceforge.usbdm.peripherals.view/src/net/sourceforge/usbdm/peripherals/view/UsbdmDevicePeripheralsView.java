@@ -758,7 +758,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       // Try with device name
 //      peripheralsModel = new UsbdmDevicePeripheralsModel("MK20DX128M5", null);
       // Try with full path
-      final String path = "C:/Users/podonoghue/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/";
+      final String path = "C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/";
       
 //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
 //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);

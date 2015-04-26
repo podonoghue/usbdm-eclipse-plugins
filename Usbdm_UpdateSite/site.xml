@@ -3,11 +3,11 @@
    <description name="USBDM Eclipse Update Site" url="http://usbdm.sourceforge.net/EclipseUpdates/">
       Update site for USBDM plugins for Eclipse and Codewarrior
    </description>
-   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.10.6.qualifier.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.10.6.qualifier" os="linux,win32">
-      <category name="net.sourceforge.usbdm.cdtPlugin"/>
-   </feature>
    <feature url="features/net.sourceforge.usbdm.cw.feature_4.10.6.qualifier.jar" id="net.sourceforge.usbdm.cw.feature" version="4.10.6.qualifier" os="linux,win32">
       <category name="net.sourceforge.usbdm.cwPlugin"/>
+   </feature>
+   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.11.1.201504051023.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.11.1.201504051023" os="linux,win32">
+      <category name="net.sourceforge.usbdm.cdtPlugin"/>
    </feature>
    <category-def name="net.sourceforge.usbdm.cdtPlugin" label="USBDM Plugin for Eclipse CDT"/>
    <category-def name="net.sourceforge.usbdm.cwPlugin" label="USBDM Plugin for Codewarrior"/>

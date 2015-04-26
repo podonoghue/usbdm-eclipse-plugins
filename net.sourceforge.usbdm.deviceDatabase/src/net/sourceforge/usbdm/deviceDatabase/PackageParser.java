@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import net.sourceforge.usbdm.deviceDatabase.FileAction.FileType;
+import net.sourceforge.usbdm.deviceDatabase.ProjectVariable.GroupType;
 import net.sourceforge.usbdm.jni.Usbdm;
 
 import org.eclipse.core.runtime.IPath;
@@ -85,10 +86,16 @@ public class PackageParser {
       return pal;
    }
    
-   private IPath                            fPath             = null;
+   private IPath                            fPath                     = null;
    private HashMap<String, ProjectVariable> fPreviousProjectVariables = null;
    private HashMap<String, ProjectVariable> fNewProjectVariables      = null;
 
+   /**
+    * Create package parser
+    * 
+    * @param path              Path to where package is - Used for default directory to look for files
+    * @param projectVariables  Project variables used for conditions etc. 
+    */
    protected PackageParser(IPath path, HashMap<String, ProjectVariable> projectVariables) {
       fPath                     = path;
       fPreviousProjectVariables = projectVariables;
@@ -325,20 +332,26 @@ public class PackageParser {
       if (element.getTagName() == "deviceNameIs") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceNameIs, element.getTextContent().trim());
       }
-      else if (element.getTagName() == "deviceFamilyIs") {
-         return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceFamilyIs, element.getTextContent().trim());
-      }
-      else if (element.getTagName() == "deviceSubfamilyIs") {
-         return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceSubfamilyIs, element.getTextContent().trim());
-      }
       else if (element.getTagName() == "deviceNameMatches") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceNameMatches, element.getTextContent().trim());
+      }
+      else if (element.getTagName() == "deviceFamilyIs") {
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceFamilyIs, element.getTextContent().trim());
       }
       else if (element.getTagName() == "deviceFamilyMatches") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceFamilyMatches, element.getTextContent().trim());
       }
+      else if (element.getTagName() == "deviceSubfamilyIs") {
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceSubfamilyIs, element.getTextContent().trim());
+      }
       else if (element.getTagName() == "deviceSubfamilyMatches") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.deviceSubfamilyMatches, element.getTextContent().trim());
+      }
+      else if (element.getTagName() == "hardwareIs") {
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.hardwareIs, element.getTextContent().trim());
+      }
+      else if (element.getTagName() == "hardwareMatches") {
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.hardwareMatches, element.getTextContent().trim());
       }
       else if (element.getTagName() == "variableRef") {
          String                        variableName  = element.getAttribute("idRef").trim();
@@ -417,7 +430,13 @@ public class PackageParser {
       String description   = projectVariableElement.getAttribute("description");
       String defaultValue  = projectVariableElement.getAttribute("defaultValue");
       ProjectVariable projectVariable = new ProjectVariable(id, name, description, defaultValue);
-      for (Node node = projectVariableElement.getFirstChild();
+      if (projectVariableElement.hasAttribute("radioGroup")) {
+         projectVariable.setGroup(projectVariableElement.getAttribute("radioGroup"), GroupType.RADIO_GROUP);
+      }
+      if (projectVariableElement.hasAttribute("checkGroup")) {
+         projectVariable.setGroup(projectVariableElement.getAttribute("checkGroup"), GroupType.CHECK_GROUP);
+      }
+     for (Node node = projectVariableElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          // element node for <variable ...>
@@ -436,10 +455,10 @@ public class PackageParser {
          else if (element.getTagName() == "preclusion") {
             String variableName = element.getAttribute("idRef").trim();
             ProjectVariable variable = findVariable(variableName);
-            if (variable == null) {
-               throw new Exception("Unknown variable \'" + variableName + "\'");
+            // Ignore variable that don't exist
+            if (variable != null) {
+               projectVariable.addPreclusion(variable);
             }
-            projectVariable.addPreclusion(variable);
          }
          else {
             throw new Exception("Unexpected element \""+element.getTagName()+"\" in <condition>");
@@ -584,8 +603,9 @@ public class PackageParser {
     */
    private FileAction parseCopyElement(Element element) throws Exception {
       // <copy>
-      String source     = element.getAttribute("source");
-      String target     = element.getAttribute("target");
+      String source          = element.getAttribute("source");
+      String target          = element.getAttribute("target");
+      
       if (source.isEmpty() || target.isEmpty()) {
          throw new Exception("Missing attribute in <file ...>");
       }
@@ -594,11 +614,22 @@ public class PackageParser {
       if (type.equalsIgnoreCase("link")) {
          fileType = FileType.LINK;
       }
+      FileAction.PathType sourcePathType = FileAction.PathType.UNKNOWN;
+      String sSourcePathType = element.getAttribute("sourcePathType");
+      if (sSourcePathType.equalsIgnoreCase("absolute")) {
+         sourcePathType = FileAction.PathType.ABSOLUTE;
+      }
+      else if (sSourcePathType.equalsIgnoreCase("relative")) {
+         sourcePathType = FileAction.PathType.RELATIVE;
+      }
       // Default to true
       boolean doMacroReplacement = !element.getAttribute("macroReplacement").equalsIgnoreCase("false");
       // Default to false
       boolean doReplacement      =  element.getAttribute("replace").equalsIgnoreCase("true");
-      FileAction fileInfo        = new FileAction(source, target, fileType, doMacroReplacement, doReplacement);
+      FileAction fileInfo        = new FileAction(source, target, fileType);
+      fileInfo.setDoMacroReplacement(doMacroReplacement);
+      fileInfo.setDoReplace(doReplacement);
+      fileInfo.setSourcePathType(sourcePathType);
       return fileInfo;
    }
 
@@ -654,9 +685,6 @@ public class PackageParser {
          if (element.getTagName() == "value") {
             values.add(element.getTextContent().trim());
          }
-      }
-      if (values.size() == 0) {
-         throw new Exception("Missing <value> element in <projectOption>");
       }
       //   System.err.println("parseOptionElement() value = "+values.get(0));
 

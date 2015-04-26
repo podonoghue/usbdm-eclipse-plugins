@@ -6,7 +6,7 @@ Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.connections.usbdm.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.cw.debugPlugin;singleton:=true
-Bundle-Version: 4.10.5.qualifier
+Bundle-Version: 4.11.1.qualifier
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

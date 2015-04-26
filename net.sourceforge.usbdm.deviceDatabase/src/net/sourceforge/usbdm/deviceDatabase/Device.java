@@ -9,12 +9,14 @@
 package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.packageParser.FileList;
+import net.sourceforge.usbdm.packageParser.PackageParser;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 public class Device implements Cloneable {
 
@@ -26,6 +28,7 @@ public class Device implements Cloneable {
 //   private ProjectActionList        projectActionList;
    private String                   family;
    private String                   subFamily;
+   private String                   hardware;
    private long                     soptAddress;
    private TargetType               targetType;
    private ClockTypes               clockType;
@@ -300,6 +303,20 @@ public class Device implements Cloneable {
    }
    
    /**
+    * @return the hardware
+    */
+   public String getHardware() {
+      return hardware;
+   }
+
+   /**
+    * @param hardware the hardware to set
+    */
+   public void setHardware(String hardware) {
+      this.hardware = hardware;
+   }
+
+   /**
     * @param soptAddress
     */
    public void setSoptAddress(long soptAddress) {
@@ -415,7 +432,7 @@ public class Device implements Cloneable {
   }
 
    /**
-    * Locates all package lists that apply to this device
+    * Creates the package list that applies to this device
     * 
     * @param variableMap Variables to use when evaluation conditions
     * 
@@ -423,8 +440,8 @@ public class Device implements Cloneable {
     * 
     * @throws Exception 
     */
-   public ArrayList<ProjectActionList> getProjectActionLists(Map<String, String> variableMap) throws Exception {
-      return PackageParser.findPackageList(this, variableMap);
+   public ProjectActionList getProjectActionList(Map<String, String> variableMap) throws Exception {
+      return PackageParser.getDevicePackageList(this, variableMap);
    }
 
    /* (non-Javadoc)

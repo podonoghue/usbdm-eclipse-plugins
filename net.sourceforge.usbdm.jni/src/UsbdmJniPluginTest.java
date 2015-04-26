@@ -246,31 +246,33 @@ public class UsbdmJniPluginTest {
     */
    public static void main(String[] args) throws InterruptedException, UsbdmException {
       String errorMessage = null;
-//      Usbdm.setDebug(true);
 //      testDatabase();
       try {
-    	  listEnvironment();
+         listEnvironment();
+
+
          // Print USBDM paths
          System.err.println("Application Path : " + Usbdm.getApplicationPath().toOSString());
          System.err.println("Resource Path    : " + Usbdm.getResourcePath().toOSString());
          System.err.println("Data Path        : " + Usbdm.getDataPath().toOSString());
 
-//         listDevices();
+         //         listDevices();
 
          // Get count of devices (creates internal list)
          int deviceCount = Usbdm.findDevices();
          if (deviceCount == 0) {
-            System.err.println("No USBDM Devices found");
+            System.err.println("No USBDM devices found");
             return;
          }
-         // Open first device
-         Usbdm.open(0);
-         
+         System.err.println("No of USBDM devices found " + deviceCount);
+         // Open last device
+         Usbdm.open(deviceCount-1);
+
          System.err.println("Opened device: " + Usbdm.getBDMDescription());
-         
-//         testCFV1();
+
+         //         testCFV1();
          testKinetis();
-         
+
       } catch (Exception e) {
          e.printStackTrace();
          errorMessage = e.getMessage();

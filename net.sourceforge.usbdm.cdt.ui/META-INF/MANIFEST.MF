@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM User Interface
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.ui;singleton:=true
-Bundle-Version: 4.10.6.qualifier
+Bundle-Version: 4.11.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.ui.Activator
 Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="4.10.6",
  net.sourceforge.usbdm.constants;bundle-version="4.10.6",
@@ -57,5 +57,6 @@ Import-Package: org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.dsf.service,
  org.eclipse.core.resources,
  org.eclipse.core.variables,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.eclipse.ui.wizards.datatransfer
 Bundle-Vendor: pgo

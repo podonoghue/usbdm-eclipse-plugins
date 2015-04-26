@@ -32,20 +32,20 @@ public class UsbdmCommon {
    public static final String CFV1_DEVICE_FILE  = "cfv1_devices.xml";
    
    // Names of the GDI DLLs for each target architecture
-   public static final String RS08_GdiWrapperLib        = "usbdm-rs08-gdi";  //$NON-NLS-1$
-   public static final String HCS08_GdiWrapperLib       = "usbdm-hcs08-gdi"; //$NON-NLS-1$
-   public static final String CFV1_GdiWrapperLib        = "usbdm-cfv1-gdi";  //$NON-NLS-1$
-   public static final String CFVx_GdiWrapperLib        = "usbdm-cfvx-gdi";  //$NON-NLS-1$
-   public static final String ARM_GdiWrapperLib         = "usbdm-arm-gdi";  //$NON-NLS-1$
-   public static final String DSC_GdiWrapperLib         = "usbdm-dsc-gdi";  //$NON-NLS-1$
-   public static final String S12Z_GdiWrapperLib        = "usbdm-s12z-gdi";  //$NON-NLS-1$
-   public static final String RS08_DebugGdiWrapperLib   = "usbdm-rs08-gdi-debug";  //$NON-NLS-1$
-   public static final String HCS08_DebugGdiWrapperLib  = "usbdm-hcs08-gdi-debug"; //$NON-NLS-1$
-   public static final String CFV1_DebugGdiWrapperLib   = "usbdm-cfv1-gdi-debug";  //$NON-NLS-1$
-   public static final String CFVx_DebugGdiWrapperLib   = "usbdm-cfvx-gdi-debug";  //$NON-NLS-1$
-   public static final String ARM_DebugGdiWrapperLib    = "usbdm-arm-gdi-debug";  //$NON-NLS-1$
-   public static final String DSC_DebugGdiWrapperLib    = "usbdm-dsc-gdi-debug";  //$NON-NLS-1$
-   public static final String S12Z_DebugGdiWrapperLib   = "usbdm-s12z-gdi-debug";  //$NON-NLS-1$
+   public static final String RS08_GdiWrapperLib        = "usbdm-gdi-rs08.4";  //$NON-NLS-1$
+   public static final String HCS08_GdiWrapperLib       = "usbdm-gdi-hcs08.4"; //$NON-NLS-1$
+   public static final String CFV1_GdiWrapperLib        = "usbdm-gdi-cfv1.4";  //$NON-NLS-1$
+   public static final String CFVx_GdiWrapperLib        = "usbdm-gdi-cfvx.4";  //$NON-NLS-1$
+   public static final String ARM_GdiWrapperLib         = "usbdm-gdi-arm.4";  //$NON-NLS-1$
+   public static final String DSC_GdiWrapperLib         = "usbdm-gdi-dsc.4";  //$NON-NLS-1$
+   public static final String S12Z_GdiWrapperLib        = "usbdm-gdi-s12z.4";  //$NON-NLS-1$
+   public static final String RS08_DebugGdiWrapperLib   = "usbdm-gdi-rs08-debug.4";  //$NON-NLS-1$
+   public static final String HCS08_DebugGdiWrapperLib  = "usbdm-gdi-hcs08-debug.4"; //$NON-NLS-1$
+   public static final String CFV1_DebugGdiWrapperLib   = "usbdm-gdi-cfv1-debug.4";  //$NON-NLS-1$
+   public static final String CFVx_DebugGdiWrapperLib   = "usbdm-gdi-cfvx-debug.4";  //$NON-NLS-1$
+   public static final String ARM_DebugGdiWrapperLib    = "usbdm-gdi-arm-debug.4";  //$NON-NLS-1$
+   public static final String DSC_DebugGdiWrapperLib    = "usbdm-gdi-dsc-debug.4";  //$NON-NLS-1$
+   public static final String S12Z_DebugGdiWrapperLib   = "usbdm-gdi-s12z-debug.4";  //$NON-NLS-1$
 
    public static final int BDM_TARGET_VDD_OFF = 0;   //!< - Target Vdd internal 3.3V
    public static final int BDM_TARGET_VDD_3V3 = 1;   //!< - Target Vdd internal 3.3V

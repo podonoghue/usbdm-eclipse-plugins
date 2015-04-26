@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Device Database
 Bundle-SymbolicName: net.sourceforge.usbdm.deviceDatabase;singleton:=true
-Bundle-Version: 4.10.6.qualifier
+Bundle-Version: 4.11.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.deviceDatabase.Activator
 Bundle-Vendor: pgo
 Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="4.10.6",
@@ -11,12 +11,11 @@ Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="4.10.6",
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.deviceDatabase;uses:="org.osgi.framework",
- net.sourceforge.usbdm.deviceDatabase.ui
-Import-Package: net.sourceforge.usbdm.cdt.tools,
- net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.deviceDatabase.ui,
+ net.sourceforge.usbdm.packageParser
+Import-Package: net.sourceforge.usbdm.deviceDatabase,
  org.eclipse.swt,
  org.eclipse.swt.events,
  org.eclipse.swt.graphics,
  org.eclipse.swt.layout,
- org.eclipse.swt.widgets,
- org.eclipse.ui.actions
+ org.eclipse.swt.widgets

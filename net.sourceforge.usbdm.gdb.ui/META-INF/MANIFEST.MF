@@ -6,7 +6,7 @@ Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
-Bundle-Version: 4.10.6.qualifier
+Bundle-Version: 4.11.1.qualifier
 Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="4.10.6",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="4.10.6",
  net.sourceforge.usbdm.jni;bundle-version="4.10.6",
@@ -22,7 +22,8 @@ Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="4.10.6",
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: net.sourceforge.usbdm.gdb
+Export-Package: net.sourceforge.usbdm.gdb,
+ net.sourceforge.usbdm.gdb.ui
 Import-Package: org.eclipse.cdt.core.model,
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.debug.core.cdi,

@@ -5,8 +5,10 @@ import java.util.Hashtable;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 import net.sourceforge.usbdm.constants.VariableInformationData;
+import net.sourceforge.usbdm.constants.VariableInformationData.VariableType;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -21,6 +23,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
@@ -66,9 +69,8 @@ IWorkbenchPreferencePage {
       composite.setLayout(new GridLayout(1, false));
 
       createPathComposite(composite);
+      createKDSComposite(composite);
       createVariableComposite(composite);
-      createCheckboxComposite(composite);
-
       // Load settings here so controls are valid
       loadSettings();
 
@@ -112,30 +114,49 @@ IWorkbenchPreferencePage {
       group.setLayoutData( new GridData(SWT.FILL, SWT.FILL, true, false));
       group.setText("Variables");
       //
-      group.setLayout(new GridLayout(2, false));
+      group.setLayout(new GridLayout(3, false));
 
+//      final Collection<ExtendedVariableInformationData> variables = ExtendedVariableInformationData.getExtendedVariableInformationTable().values();
+      
       for (final ExtendedVariableInformationData toolInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
+         if (toolInformation.getVariableName() ==  UsbdmSharedConstants.USBDM_KSDK_PATH) {
+            // Special case - done separately
+            continue;
+         }
          toolInformation.setDescriptionLabel(new Label(group, SWT.NONE));
          toolInformation.getDescriptionLabel().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+         toolInformation.getDescriptionLabel().setToolTipText(toolInformation.getVariableName());
+         toolInformation.getDescriptionLabel().setText(toolInformation.getDescription() + ": ");
+
          toolInformation.setValueText(new Text(group, SWT.BORDER));
-         GridData gd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
-         gd.widthHint = 150;
-         toolInformation.getValueText().setLayoutData(gd);
          if (toolInformation.getHint() != null) {
             toolInformation.getValueText().setToolTipText(toolInformation.getHint());
          }
-      }
-      updateVariableCompositeLabels(false);
-   }
-
-   private void updateVariableCompositeLabels(boolean showVariableNames) {
-      for (final ExtendedVariableInformationData toolInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
-         if (showVariableNames) {
-            toolInformation.getDescriptionLabel().setText(toolInformation.getDescription()+" ${" + toolInformation.getVariableName() + "}:");
+         GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+         if (toolInformation.getType() == VariableType.SIMPLE) {
+            new Label(group, SWT.NONE);
+            gd.widthHint = 150;
+            gd.horizontalAlignment = SWT.LEFT;
          }
-         else {
-            toolInformation.getDescriptionLabel().setText(toolInformation.getDescription()+":");
+         else if (toolInformation.getType() == VariableType.FILE_PATH) {
+            Button pathBrowseButton = new Button(group, SWT.NONE);
+            pathBrowseButton.setText("Browse...");
+            pathBrowseButton.setToolTipText("Browse to " + toolInformation.getDescription());
+            pathBrowseButton.addSelectionListener(new SelectionAdapter() {
+               @Override
+               public void widgetSelected(SelectionEvent e) {
+                  DirectoryDialog fd = new DirectoryDialog(getShell(), SWT.OPEN);
+                  fd.setText(toolInformation.getDescription());
+                  fd.setFilterPath(toolInformation.getValueText().getText());
+                  String directoryPath = fd.open();
+                  if (directoryPath != null) {
+                     toolInformation.getValueText().setText(directoryPath);
+                     validate();
+                  }
+               }
+            });
          }
+         toolInformation.getValueText().setLayoutData(gd);
       }
    }
 
@@ -157,7 +178,6 @@ IWorkbenchPreferencePage {
    }
 
    private void saveVariables(UsbdmSharedSettings settings) {
-
       for (final ExtendedVariableInformationData toolInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
          settings.put(toolInformation.getVariableName(), toolInformation.getValueText().getText());
       }
@@ -210,6 +230,7 @@ IWorkbenchPreferencePage {
          //
          toolInformation.setPrefixLabel(new Label(group, SWT.NONE));
          toolInformation.getPrefixLabel().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+         toolInformation.getPrefixLabel().setToolTipText("${" + toolInformation.getPrefixVariableName() + "}");
 
          toolInformation.setPrefixText(new Label(group, SWT.BORDER));
          GridData gd = new GridData(SWT.LEFT, SWT.CENTER, true, false);
@@ -237,6 +258,7 @@ IWorkbenchPreferencePage {
          toolInformation.setPathLabel(new Label(group, SWT.NONE));
          toolInformation.getPathLabel().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
          toolInformation.getPathLabel().setText("Path: ");
+         toolInformation.getPathLabel().setToolTipText("${" + toolInformation.getPrefixVariableName() + "}");
 
          toolInformation.setPathText(new Label(group, SWT.SINGLE | SWT.BORDER));
          GridData gd1 = new GridData(SWT.FILL, SWT.CENTER, false, false);
@@ -245,7 +267,7 @@ IWorkbenchPreferencePage {
          toolInformation.getPathText().setToolTipText("Path to Cross Compiler bin directory");
 
          Button pathBrowseButton = new Button(group, SWT.NONE);
-         pathBrowseButton.setText("Browse");
+         pathBrowseButton.setText("Browse...");
          pathBrowseButton.setToolTipText("Browse to gcc executable");
          pathBrowseButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -341,28 +363,6 @@ IWorkbenchPreferencePage {
       }
    }
 
-   private void createCheckboxComposite(Composite parent) {
-      Composite comp = new Composite(parent, SWT.NONE);
-      comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-      comp.setLayout(new GridLayout(1,false));
-      final Button displayVariableNamesButton = new Button(comp, SWT.CHECK);
-      displayVariableNamesButton.setText("Display variable names");
-      displayVariableNamesButton.setToolTipText("Display the names of the variables that may be used in substitutions");
-      displayVariableNamesButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-      displayVariableNamesButton.addSelectionListener(new SelectionAdapter() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            updateLabels(displayVariableNamesButton.getSelection());
-         }
-      });
-   }
-
-   private void updateLabels(boolean showVariableNames) {
-      updatePathCompositeLabels(showVariableNames);
-      updateVariableCompositeLabels(showVariableNames);
-      getShell().pack();
-   }
-
    /**
     *  Validates control & sets error message
     *  
@@ -426,15 +426,82 @@ IWorkbenchPreferencePage {
    public boolean performOk() {
       return super.performOk() && saveSettings();
    }
+
+   private void createKDSComposite(final Composite parent) {
+
+      Group mainGroup = new Group(parent, SWT.NONE);
+      mainGroup.setLayoutData( new GridData(SWT.FILL, SWT.FILL, true, false));
+      mainGroup.setText("Kinetis Software Development Kit");
+      mainGroup.setLayout(new GridLayout(1, false));
+
+      Composite pathGroup = new Composite(mainGroup, SWT.NONE);
+      pathGroup.setLayoutData( new GridData(SWT.FILL, SWT.FILL, true, false));
+      pathGroup.setLayout(new GridLayout(3, false));
+
+      final ExtendedVariableInformationData toolInformation = ExtendedVariableInformationData.getExtendedVariableInformationTable().get(UsbdmSharedConstants.USBDM_KSDK_PATH);
+      toolInformation.setDescriptionLabel(new Label(pathGroup, SWT.NONE));
+      toolInformation.getDescriptionLabel().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+      toolInformation.getDescriptionLabel().setToolTipText(toolInformation.getVariableName());
+      toolInformation.getDescriptionLabel().setText("Path: ");
+
+      toolInformation.setValueText(new Text(pathGroup, SWT.BORDER|SWT.READ_ONLY|SWT.NO_FOCUS));
+      if (toolInformation.getHint() != null) {
+         toolInformation.getValueText().setToolTipText(toolInformation.getHint());
+      }
+      GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+      Button pathBrowseButton = new Button(pathGroup, SWT.NONE);
+      pathBrowseButton.setText("Browse...");
+      pathBrowseButton.setToolTipText("Browse to " + toolInformation.getDescription());
+      pathBrowseButton.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            DirectoryDialog fd = new DirectoryDialog(getShell(), SWT.OPEN);
+            fd.setText(toolInformation.getDescription());
+            fd.setFilterPath(toolInformation.getValueText().getText());
+            String directoryPath = fd.open();
+            if (directoryPath != null) {
+               toolInformation.getValueText().setText(directoryPath);
+               validate();
+            }
+         }
+      });
+      toolInformation.getValueText().setLayoutData(gd);
+
+//      Composite importGroup = new Composite(mainGroup, SWT.NONE);
+//      importGroup.setLayoutData( new GridData(SWT.FILL, SWT.FILL, true, false));
+//      importGroup.setLayout(new GridLayout(2, false));
+//
+//      Label  lblKDS       = new Label(importGroup, SWT.NONE);
+//      lblKDS.setText("KSDK Libraries");
+//      Button btnImportKDS = new Button(importGroup, SWT.PUSH);
+//      btnImportKDS.setText("Import Library...");
+//      btnImportKDS.setToolTipText("Import KSDK libraries into the workspace.");
+//      btnImportKDS.addSelectionListener(new SelectionAdapter() {
+//         @Override
+//         public void widgetSelected(SelectionEvent e) {
+//            openWizard(getShell());
+//         }
+//      });
+   }
+   
+//   public  void openWizard(Shell shell) {
+//      IWizard wizard    = new KSDKLibraryImportWizard();
+//       WizardDialog wd  = new  WizardDialog(shell, wizard);
+//       wd.setTitle(wizard.getWindowTitle());
+//       wd.open();
+//     }
+
    /**
     * @param args
     */
    public static void main(String[] args) {
       Display display = new Display();
       Shell shell = new Shell(display);
+      shell.setSize(600,450);
       WorkbenchMainPreferencePage topPage = new WorkbenchMainPreferencePage("Hello there");
       shell.setLayout(new FillLayout());
-      topPage.createContents(shell);
+      Control control = topPage.createContents(shell);
+      topPage.setControl(control);
       topPage.init(null);
       shell.open();
       while (!shell.isDisposed()) {

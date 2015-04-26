@@ -2,6 +2,9 @@ package net.sourceforge.usbdm.cdt.tools;
 
 
 public class UsbdmConstants {
+   public final static String EXE_PROJECT_TYPE_ID              = "net.sourceforge.usbdm.cdt.newProjectType.exe";                 //$NON-NLS-1$
+   public final static String STATIC_LIB_PROJECT_TYPE_ID       = "net.sourceforge.usbdm.cdt.newProjectType.staticLib";           //$NON-NLS-1$
+
    public final static String PAGE_ID                          = "net.sourceforge.usbdm.cdt.wizardPage";                         //$NON-NLS-1$
    public final static String PROJECT_PAGE_ID                  = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectPage";        //$NON-NLS-1$
    public final static String PROJECT_PAGE_NAME                = "UsbdmProjectPage";                                             //$NON-NLS-1$
@@ -12,17 +15,24 @@ public class UsbdmConstants {
 
    public static final String GCC_COMMAND_LINUX                = "gcc";                    //$NON-NLS-1$
    public static final String GCC_COMMAND_WINDOWS              = "gcc.exe";                //$NON-NLS-1$
-
-   // These constants are used for project templates keys
+   
+   // These constants are used for project template and paramMap keys
+   public final static Object PROJECT_ARTIFACT_KEY             = "projectArtifactName";    //$NON-NLS-1$
+   public final static String PROJECT_HOME_PATH_KEY            = "projectHomePath";        //$NON-NLS-1$
+   public final static String PROJECT_OUTPUT_TYPE_KEY          = "outputType";             //$NON-NLS-1$
+   public final static String PROJECT_NAME_KEY                 = "projectName";            //$NON-NLS-1$
+   public final static String INTERFACE_TYPE_KEY               = "interfaceType";          //$NON-NLS-1$
    public final static String TARGET_DEVICE_KEY                = "targetDevice";           //$NON-NLS-1$
-   public final static String BUILD_TOOL_ID_KEY                = "buildToolId";            //$NON-NLS-1$
-   public final static String BUILD_TOOL_BIN_PATH_KEY          = "buildToolBinPath";       //$NON-NLS-1$
+   public final static String TARGET_DEVICE_NAME_KEY           = "targetDeviceName";       //$NON-NLS-1$
+   public final static String HAS_CC_NATURE_KEY                = "hasCCNature";            //$NON-NLS-1$
+   public final static String LIBRARY_PROJECT_KEY              = "libraryProject";         //$NON-NLS-1$
+   public final static String BUILD_TOOLS_ID_KEY               = "buildToolsId";           //$NON-NLS-1$
+   public final static String BUILD_TOOLS_BIN_PATH_KEY         = "buildToolsBinPath";      //$NON-NLS-1$
    public final static String GDB_COMMAND_KEY                  = "gdbCommand";             //$NON-NLS-1$
    public final static String USBDM_DEBUG_MODE_KEY             = "usbdmDebugMode";         //$NON-NLS-1$
    public final static String USBDM_GDB_SPRITE_KEY             = "usbdmGdbSprite";         //$NON-NLS-1$
-   public final static String TARGET_DEVICE_FAMILY_KEY         = "targetDeviceFamily";     //$NON-NLS-1$
    public final static String TARGET_DEVICE_SUBFAMILY_KEY      = "targetDeviceSubFamily";  //$NON-NLS-1$
-   public final static String TARGET_DEVICE_NAME_KEY           = "targetDeviceName";       //$NON-NLS-1$
+   public final static String TARGET_DEVICE_FAMILY_KEY         = "targetDeviceFamily";     //$NON-NLS-1$
    public final static String LINKER_INFORMATION_KEY           = "linkerInformation";      //$NON-NLS-1$
    public final static String LINKER_FLASH_SIZE_KEY            = "linkerFlashSize";        //$NON-NLS-1$
    public final static String LINKER_RAM_SIZE_KEY              = "linkerRamSize";          //$NON-NLS-1$
