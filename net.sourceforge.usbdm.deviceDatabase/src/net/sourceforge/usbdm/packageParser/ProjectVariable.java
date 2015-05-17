@@ -6,7 +6,7 @@ public class ProjectVariable extends ProjectAction {
    protected final String              fName;
    protected final String              fDescription;
    protected final String              fDefaultValue;
-   protected       EnableWhenCondition fRequirement;
+   protected       ApplyWhenCondition  fRequirement;
    protected       String              fButtonGroupId;
    protected       int                 fButtonStyle;
    
@@ -15,7 +15,7 @@ public class ProjectVariable extends ProjectAction {
       this.fName           = name;
       this.fDescription    = description;
       this.fDefaultValue   = defaultValue;
-      this.fRequirement    = EnableWhenCondition.trueCondition;
+      this.fRequirement    = ApplyWhenCondition.trueCondition;
       this.fButtonGroupId  = null;
       this.fButtonStyle    = SWT.CHECK;
    }
@@ -31,13 +31,13 @@ public class ProjectVariable extends ProjectAction {
    /**
     * @return the requirements
     */
-   public EnableWhenCondition getRequirement() {
+   public ApplyWhenCondition getRequirement() {
       return fRequirement;
    }
    /**
     * @param requirement The name of requirement to add
     */
-   public void setRequirement(EnableWhenCondition requirement) {
+   public void setRequirement(ApplyWhenCondition requirement) {
       this.fRequirement = requirement;
    }
    /**

@@ -12,10 +12,10 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.debug.core,
  org.eclipse.ui.forms,
- com.freescale.core.debugger.ui.cdt,
+ net.sourceforge.usbdm.jni,
  com.freescale.mcu.debugger.cdt,
  com.freescale.mcu.debug.connections,
- net.sourceforge.usbdm.jni
+ com.freescale.core.debugger.ui.cdt
 Bundle-RequiredExecutionEnvironment: 
  JavaSE-1.6
 Export-Package: 

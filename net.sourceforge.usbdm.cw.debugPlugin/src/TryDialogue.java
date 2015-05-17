@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+
 public class TryDialogue extends ApplicationWindow {
 
    /**

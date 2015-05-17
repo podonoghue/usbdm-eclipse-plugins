@@ -16,7 +16,7 @@ import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
  * 
  */
 public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
-
+   
    /**
     * Dummy constructor for WindowBuilder Pro.
     * 
@@ -49,14 +49,19 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId       = UsbdmCommon.S12Z_DeviceNameAttributeKey;
-      gdiDllName         = UsbdmCommon.S12Z_GdiWrapperLib;
-      gdiDebugDllName    = UsbdmCommon.S12Z_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.ERASE_ALL; 
-      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
+      deviceNameId            = UsbdmCommon.S12Z_DeviceNameAttributeKey;
+      gdiDllName              = UsbdmCommon.S12Z_GdiWrapperLib;
+      gdiDebugDllName         = UsbdmCommon.S12Z_DebugGdiWrapperLib;
+      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_NONE);
+      permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
+      permittedEraseMethods.add(EraseMethod.ERASE_ALL);
+      permittedEraseMethods.add(EraseMethod.ERASE_MASS);
+      
    }
 
    public void create() {
+//      System.err.println("UsbdmHCS12ConnectionPanel::create()");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -76,7 +81,6 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
       btnBDMClockBus.setSelection(    bdmClockSelect == UsbdmCommon.BDM_CLK_NORMAL);
       btnBDMClockAlt.setSelection(    bdmClockSelect == UsbdmCommon.BDM_CLK_ALT);
 
-      comboEraseMethod.select(eraseMethod.ordinal());
    }
 
    /**
@@ -93,7 +97,6 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
       } else if (btnBDMClockAlt.getSelection()) {
          bdmOptions.useAltBDMClock = UsbdmCommon.BDM_CLK_ALT;
       }
-      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -112,7 +115,6 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreHCS12DefaultSettings() {
 //      System.err.println("UsbdmHCS12ConnectionPanel.restoreHCS12DefaultSettings(bool)");
-      eraseMethod = defaultEraseMethod;
       bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
       bdmOptions.useAltBDMClock     = defaultBdmOptions.useAltBDMClock;    
       bdmOptions.clockTrimFrequency = defaultBdmOptions.clockTrimFrequency;
@@ -142,12 +144,6 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmHCS12ConnectionPanel.loadHCS12Settings()");
       restoreHCS12DefaultSettings();
       try {
-         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
-         if (eraseMethod > lastEraseMethod.ordinal()) {
-            eraseMethod = defaultEraseMethod.ordinal();
-         }
-         this.eraseMethod = EraseMethod.values()[eraseMethod];
-
          bdmOptions.autoReconnect      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
          bdmOptions.useAltBDMClock     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
       } catch (Exception e) {
@@ -163,9 +159,10 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
     */
    @Override
    public void saveSettings( ILaunchConfigurationWorkingCopy paramILaunchConfigurationWorkingCopy)throws PrefException {
+//      System.err.println("UsbdmS12zConnectionPanel.saveSettings()");
+
       super.saveSettings(paramILaunchConfigurationWorkingCopy);
 
-      setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),         eraseMethod.ordinal());
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
    }
@@ -186,14 +183,15 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
    /**
     * @param comp
     */
+   @Override
    protected void createContents(Composite comp) {
+//      System.err.println("createContents::create()");
       super.createContents(comp);
 
       createConnectionGroup(comp, 0);
       new Label(this, SWT.NONE);
       createBdmClockGroup(comp);
       new Label(this, SWT.NONE);
-//      new Label(this, SWT.NONE);
       createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();

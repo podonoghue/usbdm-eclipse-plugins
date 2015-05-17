@@ -93,7 +93,6 @@ public class MemoryBlockCache {
        * Gets an 8, 16 or 32-bit value - does not trigger an update
        * 
        * @param address
-       * @param value
        * @param sizeInBytes size in bytes!
        * 
        * @return value
@@ -200,7 +199,6 @@ public class MemoryBlockCache {
        * Get last value i.e. value recorded when setChangeReference() was last called
        * 
        * @param address
-       * @param value
        * @param sizeInBytes
        * 
        * @return Value

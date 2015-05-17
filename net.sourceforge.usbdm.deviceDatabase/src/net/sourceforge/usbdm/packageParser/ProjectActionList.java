@@ -81,6 +81,14 @@ public class ProjectActionList extends ProjectAction {
             }
             return fException;
          }
+         public String toString() {
+            switch (fStatus) {
+            case CONTINUE:  return "CONTINUE";
+            case EXCEPTION: return "EXCEPTION";
+            case PRUNE:     return "PRUNE";
+            }
+            return "ILLEGAL";
+         }
       };
       /**
        * Method used to Visit the action nodes

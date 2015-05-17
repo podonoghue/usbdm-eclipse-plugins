@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="USBDM Eclipse Update Site" url="http://usbdm.sourceforge.net/EclipseUpdates/">
-      Update site for USBDM plugins for Eclipse and Codewarrior
+   <description name="USBDM Update Site">
+      USBDM Update Site
    </description>
-   <feature url="features/net.sourceforge.usbdm.cw.feature_4.10.6.qualifier.jar" id="net.sourceforge.usbdm.cw.feature" version="4.10.6.qualifier" os="linux,win32">
-      <category name="net.sourceforge.usbdm.cwPlugin"/>
+   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.11.1.201505141819.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.11.1.201505141819" os="linux,win32" arch="x86,x86_64">
+      <category name="usbdm-cdt-plugin"/>
    </feature>
-   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.11.1.201504051023.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.11.1.201504051023" os="linux,win32">
-      <category name="net.sourceforge.usbdm.cdtPlugin"/>
+   <feature url="features/net.sourceforge.usbdm.cw.feature_4.11.1.201505141821.jar" id="net.sourceforge.usbdm.cw.feature" version="4.11.1.201505141821" os="linux,win32">
+      <category name="usbdm-codewarrior-plugin"/>
    </feature>
-   <category-def name="net.sourceforge.usbdm.cdtPlugin" label="USBDM Plugin for Eclipse CDT"/>
-   <category-def name="net.sourceforge.usbdm.cwPlugin" label="USBDM Plugin for Codewarrior"/>
+   <category-def name="usbdm-cdt-plugin" label="USBDM CDT Plugin"/>
+   <category-def name="usbdm-codewarrior-plugin" label="USBDM Codewarrior Plugin"/>
 </site>

@@ -38,15 +38,29 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
    private final static String PAGE_ID    = UsbdmConstants.PROJECT_OPTIONS_PAGE_ID;
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_OPTIONS_PAGE_NAME;
 
-   private UsbdmProjectParametersPage_2   fUsbdmProjectPage;
-   private UsbdmNewProjectOptionsPanel    fUsbdmNewProjectOptionsPanel;
-   private Map<String, String>            fParamMap;
+   private UsbdmProjectParametersPage_2   fUsbdmProjectPage = null;
+   private UsbdmNewProjectOptionsPanel    fUsbdmNewProjectOptionsPanel = null;
+   private Map<String, String>            fParamMap = null;
+   private String                         fDeviceName = null;              
    
    public UsbdmProjectOptionsPage_3(UsbdmProjectParametersPage_2 usbdmProjectPage, Map<String, String> paramMap) {
       super(PAGE_NAME);
       fUsbdmProjectPage             = usbdmProjectPage;
       fUsbdmNewProjectOptionsPanel  = null;
       fParamMap                     = paramMap;
+      fDeviceName                   = null;
+      
+      setTitle("USBDM Project Options");
+      setDescription("Select project options");
+      setPageComplete(false);
+   }
+
+   private UsbdmProjectOptionsPage_3(String deviceName, Map<String, String> paramMap) {
+      super(PAGE_NAME);
+      fUsbdmProjectPage             = null;
+      fUsbdmNewProjectOptionsPanel  = null;
+      fParamMap                     = paramMap;
+      fDeviceName                   = deviceName;
       
       setTitle("USBDM Project Options");
       setDescription("Select project options");
@@ -116,7 +130,7 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
 
    private Device getDevice() {
       if (fUsbdmProjectPage == null) {
-         return getDevice("FRDM-K20D50M");
+         return getDevice(fDeviceName);
       }
       return fUsbdmProjectPage.getDevice();
    }
@@ -166,10 +180,17 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
       Composite composite = new Composite(shell, SWT.NONE);
       composite.setLayout(new FillLayout());
 
+      String deviceName = "FRDM_K22F";
+//      String deviceName = "FRDM_KL27Z";
+//      String deviceName = "MKL27Z64M4";
+
       Map<String, String> paramMap = new HashMap<String, String>();
+
       paramMap.put("linkerFlashSize", "0x100");
       paramMap.put("linkerRamSize",   "0x100");
-      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(null, paramMap);
+      paramMap.put("outputType",      "xxxxxProjectType.exe");
+      paramMap.put("targetDevice",    deviceName);
+      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap);
       page.createControl(composite);
 
       shell.open();
@@ -177,9 +198,8 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
          if (!display.readAndDispatch())
             display.sleep();
       }
-      Map<String, String> map = new HashMap<String, String>();
       try {
-         page.getPageData(map);
+         page.getPageData(paramMap);
       } catch (Exception e) {
          // TODO Auto-generated catch block
          e.printStackTrace();

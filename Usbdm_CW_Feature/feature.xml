@@ -12,7 +12,7 @@
 
    <copyright url="http://www.example.com/copyright">
       USBDM
-Copyright (C) 2007-13  Peter O&apos;Donoghue
+Copyright (C) 2007-15  Peter O&apos;Donoghue
    </copyright>
 
    <license url="http://www.eclipse.org/org/documents/epl-v10.php">
@@ -21,12 +21,17 @@ Non-derivative components are licensed under GPL.
    </license>
 
    <requires>
+      <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.debug.core"/>
+      <import plugin="org.eclipse.ui.forms"/>
+      <import plugin="com.freescale.mcu.debugger.cdt"/>
+      <import plugin="com.freescale.mcu.debug.connections"/>
       <import plugin="org.eclipse.swt"/>
       <import plugin="net.sourceforge.usbdm.jni" version="4.10.6" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.constants" version="4.10.6" match="greaterOrEqual"/>
       <import plugin="org.eclipse.jface"/>
       <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.core.resources"/>
    </requires>
 
    <plugin

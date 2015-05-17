@@ -28,10 +28,10 @@ import org.eclipse.core.runtime.IPath;
 public class PeripheralDatabaseCreate {
    private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
    private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
-   @SuppressWarnings("unused")
+//   @SuppressWarnings("unused")
    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
    private static final  Path svdReducedMergedOptimisedManualFolder        = MAIN_FOLDER.resolve("Internal");
-   @SuppressWarnings("unused")
+//   @SuppressWarnings("unused")
    private static final  Path svdReducedMergedOptimisedManualCheckFolder   = MAIN_FOLDER.resolve("Internal.Check");
 
    private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";

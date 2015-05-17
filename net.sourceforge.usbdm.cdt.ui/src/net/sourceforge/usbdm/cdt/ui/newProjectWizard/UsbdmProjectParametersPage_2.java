@@ -172,7 +172,8 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       }
       else {
          // For debug
-         fDeviceSelector.setDevice("FRDM_K64F");
+         // TODO - Change default device for testing
+         fDeviceSelector.setDevice("FRDM_KL27Z");
       }
    }
      

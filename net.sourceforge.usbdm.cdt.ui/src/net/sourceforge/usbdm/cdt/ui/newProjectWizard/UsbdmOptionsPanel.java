@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ApplyWhenCondition;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
@@ -122,9 +123,12 @@ public class UsbdmOptionsPanel  extends Composite {
             Button                button          = entry.getValue();
             ProjectVariable       projectVariable = fVariableMap.get(entry.getKey());
             boolean               enabled         = true;
-            
             try {
-               enabled = projectVariable.getRequirement().enabled(fButtonMap);
+               ApplyWhenCondition applyWhenCondition = projectVariable.getRequirement();
+               if (projectVariable.getId().equals("projectOptionValue.KSDK-usb-audio-generator")) {
+                  applyWhenCondition.setVerbose(true);
+               }
+               enabled = applyWhenCondition.enabled(fDevice, fOptionMap, fButtonMap);
             } catch (Exception e) {
                e.printStackTrace();
                return e.getMessage();
@@ -345,11 +349,14 @@ public class UsbdmOptionsPanel  extends Composite {
                }
                else if (action instanceof ProjectConstant) {
                   ProjectConstant projectConstant = (ProjectConstant) action;
-                  System.err.println("UsbdmOptionsPanel.getPageData() projectConstant = " + projectConstant.toString());
-                  if (!projectConstant.doReplace() && paramMap.containsKey(projectConstant.getId())) {
-                     return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
+                  System.err.println(String.format("UsbdmOptionsPanel.getPageData(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                  if (!projectConstant.doReplace()) {
+                     String value = paramMap.get(projectConstant.getId());
+                     if ((value != null) && !value.equals(projectConstant.getValue())) {
+                        return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
+                     }
                   }
-                  paramMap.put(projectConstant.getId(),  projectConstant.getValue());
+                  paramMap.put(projectConstant.getId(), projectConstant.getValue());
                }
                return CONTINUE;
             } catch (Exception e) {

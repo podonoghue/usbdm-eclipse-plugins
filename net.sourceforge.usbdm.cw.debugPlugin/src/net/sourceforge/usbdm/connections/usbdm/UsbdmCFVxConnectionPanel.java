@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.JTAGInterfaceData;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -14,7 +15,7 @@ import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
 
 /**
  * @author podonoghue
- *
+ * 
  */
 public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
    
@@ -50,15 +51,21 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId    = UsbdmCommon.CFVx_DeviceNameAttributeKey;
-      gdiDllName      = UsbdmCommon.CFVx_GdiWrapperLib;
-      gdiDebugDllName = UsbdmCommon.CFVx_DebugGdiWrapperLib;
+      deviceNameId            = UsbdmCommon.CFVx_DeviceNameAttributeKey;
+      gdiDllName              = UsbdmCommon.CFVx_GdiWrapperLib;
+      gdiDebugDllName         = UsbdmCommon.CFVx_DebugGdiWrapperLib;
+	  
+      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_NONE);
+      permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
+      permittedEraseMethods.add(EraseMethod.ERASE_ALL);
+      
       // Override so as not to conflict with CFV1 panel which may be active at the same time
-      attributeKey    = UsbdmCommon.BaseAttributeName+".cfvx.";
+      attributeKey            = UsbdmCommon.BaseAttributeName+".cfvx.";
    }
 
    public void create() {
-      System.err.println("UsbdmCFVxConnectionPanel::create");
+//      System.err.println("UsbdmCFVxConnectionPanel::create");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -75,7 +82,6 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
       btnUsePstSignals.setSelection(bdmOptions.usePSTSignals != 0);
       
       ClockSpeed clockSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed);
-//      System.err.println("UsbdmCFVxConnectionPanel.loadSettings() - ConnectionSpeed = "+clockSpeed.toFrequency());
       comboConnectionSpeed.select(clockSpeed.ordinal());
    }
 
@@ -110,10 +116,10 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreCFVxDefaultSettings() {
 //      System.err.println("UsbdmCFV1ConnectionPanel.restoreCFV1DefaultSettings(bool)");
-      bdmOptions.autoReconnect   = defaultBdmOptions.autoReconnect;
-      bdmOptions.usePSTSignals   = defaultBdmOptions.usePSTSignals;
-      bdmOptions.connectionSpeed = defaultBdmOptions.connectionSpeed;
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
+      bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
+      bdmOptions.usePSTSignals      = defaultBdmOptions.usePSTSignals;
+      bdmOptions.connectionSpeed    = defaultBdmOptions.connectionSpeed;
+      bdmOptions.connectionSpeed    = JTAGInterfaceData.ClockSpeed.findSuitable(defaultBdmOptions.connectionSpeed).getFrequency();
    }
 
    /**
@@ -139,10 +145,10 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmCFVxConnectionPanel.loadCFVxSettings()");
       restoreCFVxDefaultSettings();
       try {
-         bdmOptions.autoReconnect = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect), bdmOptions.autoReconnect);
-         bdmOptions.usePSTSignals   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUsePSTSignals),      bdmOptions.usePSTSignals);
-         bdmOptions.connectionSpeed = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
-         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
+         bdmOptions.autoReconnect       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
+         bdmOptions.usePSTSignals       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUsePSTSignals),       bdmOptions.usePSTSignals);
+         bdmOptions.connectionSpeed     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),     bdmOptions.connectionSpeed);
+         bdmOptions.connectionSpeed     = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -169,9 +175,11 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
    protected void addSettingsChangedListeners() {
       super.addSettingsChangedListeners();
       if (fListener != null) {
+         comboEraseMethod.addModifyListener(fListener.getModifyListener());
+         comboSecurityOption.addModifyListener(fListener.getModifyListener());
          btnAutomaticallyReconnect.addSelectionListener(fListener.getSelectionListener());
          btnUsePstSignals.addSelectionListener(fListener.getSelectionListener());
-//         comboConnectionSpeed.addSelectionListener(fListener.getSelectionListener());
+         comboConnectionSpeed.addModifyListener(fListener.getModifyListener());
       }
    }
 
@@ -180,13 +188,14 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
     */
    @Override
    protected void createContents(Composite comp) {
+//      System.err.println("createContents::create()");
       super.createContents(comp);
 
       createConnectionGroup(comp, NEEDS_SPEED|NEEDS_PST);
       new Label(this, SWT.NONE);
       new Label(this, SWT.NONE);
-      new Label(this, SWT.NONE);
-      new Label(this, SWT.NONE);
+      createSecurityGroup(comp);
+      createEraseGroup(comp);
       createDebugGroup();
 
       super.appendContents(this);

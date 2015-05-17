@@ -292,8 +292,7 @@ public class FaultDialogue extends TitleAreaDialog {
     * Creates a Composite containing a pseudo-check-box and label which is added to parent
     * 
     * @param parent
-    * @param text    - Text to display
-    * @param value   - Whether pseudo-check-box is selected
+    * @param exceptionNumber - Exception Number to display
     * 
     * @return value - so tooltip may be added
     */

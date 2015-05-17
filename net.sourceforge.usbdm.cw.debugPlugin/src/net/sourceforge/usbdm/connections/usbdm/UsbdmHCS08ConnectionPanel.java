@@ -14,7 +14,7 @@ import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
  * 
  */
 public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
-
+   
    /**
     * Dummy constructor for WindowBuilder Pro.
     * 
@@ -47,14 +47,19 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId       = UsbdmCommon.HCS08_DeviceNameAttributeKey;
-      gdiDllName         = UsbdmCommon.HCS08_GdiWrapperLib;
-      gdiDebugDllName    = UsbdmCommon.HCS08_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.ERASE_MASS; 
-      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
+      deviceNameId            = UsbdmCommon.HCS08_DeviceNameAttributeKey;
+      gdiDllName              = UsbdmCommon.HCS08_GdiWrapperLib;
+      gdiDebugDllName         = UsbdmCommon.HCS08_DebugGdiWrapperLib;
+	  
+      defaultEraseMethod      = EraseMethod.ERASE_MASS; 
+      permittedEraseMethods.add(EraseMethod.ERASE_NONE);
+      permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
+      permittedEraseMethods.add(EraseMethod.ERASE_ALL);
+      permittedEraseMethods.add(EraseMethod.ERASE_MASS);
    }
 
    public void create() {
+//      System.err.println("UsbdmHCS08ConnectionPanel::create()");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -78,8 +83,6 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
       txtTrimFrequencyAdapter.setDoubleValue(bdmOptions.clockTrimFrequency / 1000.0);
       txtNVTRIMAddressAdapter.setHexValue(bdmOptions.clockTrimNVAddress);
       enableTrim(bdmOptions.doClockTrim);
-
-      comboEraseMethod.select(eraseMethod.ordinal());
    }
 
    /**
@@ -107,7 +110,6 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
          bdmOptions.clockTrimFrequency = 0;
          bdmOptions.clockTrimNVAddress = 0;
       }
-      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -126,7 +128,6 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreHCS08DefaultSettings() {
 //      System.err.println("UsbdmHCS08ConnectionPanel.restoreHCS08DefaultSettings(bool)");
-      eraseMethod = defaultEraseMethod;
       bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
       bdmOptions.useResetSignal     = defaultBdmOptions.useResetSignal;    
       bdmOptions.useAltBDMClock     = defaultBdmOptions.useAltBDMClock;    
@@ -157,18 +158,12 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmHCS08ConnectionPanel.loadHCS08Settings()");
       restoreHCS08DefaultSettings();
       try {
-         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
-         if (eraseMethod > lastEraseMethod.ordinal()) {
-            eraseMethod = defaultEraseMethod.ordinal();
-         }
-         this.eraseMethod = EraseMethod.values()[eraseMethod];
-
-         bdmOptions.autoReconnect      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
-         bdmOptions.useResetSignal     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
-         bdmOptions.useAltBDMClock     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
-         bdmOptions.doClockTrim        = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyTrimTargetClock),     bdmOptions.doClockTrim);
-         bdmOptions.clockTrimFrequency = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimFrequency),  bdmOptions.clockTrimFrequency);
-         bdmOptions.clockTrimNVAddress = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimNVAddress),  bdmOptions.clockTrimNVAddress);
+         bdmOptions.autoReconnect       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
+         bdmOptions.useResetSignal      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
+         bdmOptions.useAltBDMClock      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
+         bdmOptions.doClockTrim         = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyTrimTargetClock),     bdmOptions.doClockTrim);
+         bdmOptions.clockTrimFrequency  = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimFrequency),  bdmOptions.clockTrimFrequency);
+         bdmOptions.clockTrimNVAddress  = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimNVAddress),  bdmOptions.clockTrimNVAddress);
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -185,8 +180,6 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmHCS08ConnectionPanel.saveSettings()");
 
       super.saveSettings(paramILaunchConfigurationWorkingCopy);
-
-      setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),         eraseMethod.ordinal());
 
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
@@ -216,13 +209,14 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
    /**
     * @param comp
     */
+   @Override
    protected void createContents(Composite comp) {
+//      System.err.println("createContents::create()");
       super.createContents(comp);
 
       createConnectionGroup(comp, NEEDS_RESET);
       createTrimGroup(comp);
       createBdmClockGroup(comp);
-//      new Label(this, SWT.NONE);
       createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();

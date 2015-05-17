@@ -1,5 +1,9 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.SWT;
@@ -9,16 +13,12 @@ import org.eclipse.swt.widgets.Label;
 import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
 import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
 
-import net.sourceforge.usbdm.jni.JTAGInterfaceData;
-import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
-import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
-
 /**
  * @author podonoghue
- *
+ * 
  */
 public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
-
+   
    /**
     * Dummy constructor for WindowBuilder Pro.
     * 
@@ -51,14 +51,20 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId       = UsbdmCommon.DSC_DeviceNameAttributeKey;
-      gdiDllName         = UsbdmCommon.DSC_GdiWrapperLib;
-      gdiDebugDllName    = UsbdmCommon.DSC_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.ERASE_ALL; 
-      lastEraseMethod    = EraseMethod.ERASE_SELECTIVE; 
+      deviceNameId            = UsbdmCommon.DSC_DeviceNameAttributeKey;
+      gdiDllName              = UsbdmCommon.DSC_GdiWrapperLib;
+      gdiDebugDllName         = UsbdmCommon.DSC_DebugGdiWrapperLib;
+	  
+      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_NONE);
+      permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
+      permittedEraseMethods.add(EraseMethod.ERASE_ALL);
+      permittedEraseMethods.add(EraseMethod.ERASE_MASS);
+      
    }
 
    public void create() {
+//      System.err.println("UsbdmCFVxConnectionPanel::create");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -75,7 +81,7 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       
       ClockSpeed clockSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed);
       comboConnectionSpeed.select(clockSpeed.ordinal());
-      comboEraseMethod.select(eraseMethod.ordinal());
+
    }
 
    /**
@@ -90,7 +96,6 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
          index = 0;
       }
       bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.values()[index].getFrequency();
-      eraseMethod = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -109,10 +114,10 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreDSCDefaultSettings() {
 //      System.err.println("UsbdmDSCConnectionPanel.restoreDSCDefaultSettings(bool)");
-      eraseMethod = defaultEraseMethod;
-      bdmOptions.autoReconnect   = defaultBdmOptions.autoReconnect;
-      bdmOptions.connectionSpeed = defaultBdmOptions.connectionSpeed;
-      bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
+      eraseMethod                   = defaultEraseMethod;
+      bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
+      bdmOptions.connectionSpeed    = defaultBdmOptions.connectionSpeed;
+      bdmOptions.connectionSpeed    = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
    }
 
    /**
@@ -138,15 +143,9 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmDSCConnectionPanel.loadDSCSettings()");
       restoreDSCDefaultSettings();
       try {
-         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
-         if (eraseMethod > lastEraseMethod.ordinal()) {
-            eraseMethod = defaultEraseMethod.ordinal();
-         }
-         this.eraseMethod = EraseMethod.values()[eraseMethod];
-
-         bdmOptions.autoReconnect   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect), bdmOptions.autoReconnect);
-         bdmOptions.connectionSpeed = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
-         bdmOptions.connectionSpeed = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
+         bdmOptions.autoReconnect       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
+         bdmOptions.connectionSpeed     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
+         bdmOptions.connectionSpeed     = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -164,8 +163,6 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
 
       super.saveSettings(paramILaunchConfigurationWorkingCopy);
 
-      setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),         eraseMethod.ordinal());
-
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyConnectionSpeed),     bdmOptions.connectionSpeed);
    }
@@ -175,9 +172,9 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       super.addSettingsChangedListeners();
       if (fListener != null) {
          comboEraseMethod.addModifyListener(fListener.getModifyListener());
-
+         comboSecurityOption.addModifyListener(fListener.getModifyListener());
          btnAutomaticallyReconnect.addSelectionListener(fListener.getSelectionListener());
-         comboConnectionSpeed.addSelectionListener(fListener.getSelectionListener());
+         comboConnectionSpeed.addModifyListener(fListener.getModifyListener());
       }
    }
 
@@ -186,12 +183,13 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
     */
    @Override
    protected void createContents(Composite comp) {
+//      System.err.println("createContents::create()");
       super.createContents(comp);
 
       createConnectionGroup(comp, NEEDS_SPEED);
       new Label(this, SWT.NONE);
       new Label(this, SWT.NONE);
-      new Label(this, SWT.NONE);
+      createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();
 

@@ -115,7 +115,6 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
       this(launch.getSession(), getAttributes(launch), rm, gdbServerParameters);
    }
 
-   @SuppressWarnings("unchecked")
    private static Map<String, Object> getAttributes(GdbLaunch launch) {
       try {
          return launch.getLaunchConfiguration().getAttributes();

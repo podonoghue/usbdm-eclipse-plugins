@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.swt.widgets.Composite;
@@ -13,7 +14,7 @@ import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
  * 
  */
 public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
-
+   
    /**
     * Dummy constructor for WindowBuilder Pro.
     * 
@@ -35,10 +36,10 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
     * @param connectionTypeId  A long string indicating the architecture??
     */
    public UsbdmRS08ConnectionPanel(ISettingsListener listener, 
-                                   Composite         parent,
-                                   int               swtstyle, 
-                                   String            protocolPlugin,  // "CF - GDI", "HC08 GDI" etc
-                                   String            connectionTypeId) {
+         Composite         parent,
+         int               swtstyle, 
+         String            protocolPlugin,  // "CF - GDI", "HC08 GDI" etc
+         String            connectionTypeId) {
 
       super(listener, parent, swtstyle, protocolPlugin, connectionTypeId);
 //      System.err.println("UsbdmRS08ConnectionPanel::UsbdmRS08ConnectionPanel(protocolPlugin="+protocolPlugin+", connectionTypeId = "+connectionTypeId+")");
@@ -46,14 +47,15 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
    }
 
    private void init() {
-      deviceNameId       = UsbdmCommon.RS08_DeviceNameAttributeKey;
-      gdiDllName         = UsbdmCommon.RS08_GdiWrapperLib;
-      gdiDebugDllName    = UsbdmCommon.RS08_DebugGdiWrapperLib;
-      defaultEraseMethod = EraseMethod.ERASE_MASS; 
-      lastEraseMethod    = EraseMethod.ERASE_MASS; 
+      deviceNameId            = UsbdmCommon.RS08_DeviceNameAttributeKey;
+      gdiDllName              = UsbdmCommon.RS08_GdiWrapperLib;
+      gdiDebugDllName         = UsbdmCommon.RS08_DebugGdiWrapperLib;
+      defaultEraseMethod      = EraseMethod.ERASE_MASS; 
+      permittedEraseMethods.add(EraseMethod.ERASE_MASS);
    }
 
    public void create() {
+//      System.err.println("UsbdmRS08ConnectionPanel::create()");
       createContents(this);
       addSettingsChangedListeners();
    }
@@ -77,8 +79,6 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
       txtTrimFrequencyAdapter.setDoubleValue(bdmOptions.clockTrimFrequency / 1000.0);
       txtNVTRIMAddressAdapter.setHexValue(bdmOptions.clockTrimNVAddress);
       enableTrim(bdmOptions.doClockTrim);
-
-      comboEraseMethod.select(eraseMethod.ordinal());
    }
 
    /**
@@ -106,7 +106,6 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
          bdmOptions.clockTrimFrequency = 0;
          bdmOptions.clockTrimNVAddress = 0;
       }
-      eraseMethod    = EraseMethod.values()[comboEraseMethod.getSelectionIndex()];
    }
 
    /**
@@ -125,7 +124,6 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreRS08DefaultSettings() {
 //      System.err.println("UsbdmHCS08ConnectionPanel.restoreHCS08DefaultSettings(bool)");
-      eraseMethod = defaultEraseMethod;
       bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
       bdmOptions.useResetSignal     = defaultBdmOptions.useResetSignal;    
       bdmOptions.useAltBDMClock     = defaultBdmOptions.useAltBDMClock;    
@@ -156,18 +154,12 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmRS08ConnectionPanel.loadRS08Settings()");
       restoreRS08DefaultSettings();
       try {
-         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
-         if (eraseMethod > lastEraseMethod.ordinal()) {
-            eraseMethod = defaultEraseMethod.ordinal();
-         }
-         this.eraseMethod = EraseMethod.values()[eraseMethod];
-
-         bdmOptions.autoReconnect      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
-         bdmOptions.useResetSignal     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
-         bdmOptions.useAltBDMClock     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
-         bdmOptions.doClockTrim        = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyTrimTargetClock),     bdmOptions.doClockTrim);
-         bdmOptions.clockTrimFrequency = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimFrequency),  bdmOptions.clockTrimFrequency);
-         bdmOptions.clockTrimNVAddress = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimNVAddress),  bdmOptions.clockTrimNVAddress);
+         bdmOptions.autoReconnect       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
+         bdmOptions.useResetSignal      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
+         bdmOptions.useAltBDMClock      = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyUseAltBDMClock),      bdmOptions.useAltBDMClock);
+         bdmOptions.doClockTrim         = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyTrimTargetClock),     bdmOptions.doClockTrim);
+         bdmOptions.clockTrimFrequency  = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimFrequency),  bdmOptions.clockTrimFrequency);
+         bdmOptions.clockTrimNVAddress  = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyClockTrimNVAddress),  bdmOptions.clockTrimNVAddress);
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -184,8 +176,6 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmRS08ConnectionPanel.saveSettings()");
 
       super.saveSettings(paramILaunchConfigurationWorkingCopy);
-
-      setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),         eraseMethod.ordinal());
 
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
       setAttribute(paramILaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyUseResetSignal),      bdmOptions.useResetSignal);
@@ -215,13 +205,14 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
    /**
     * @param comp
     */
+   @Override
    protected void createContents(Composite comp) {
+//      System.err.println("createContents::create()");
       super.createContents(comp);
 
       createConnectionGroup(comp, NEEDS_RESET);
       createTrimGroup(comp);
       createBdmClockGroup(comp);
-//      new Label(this, SWT.NONE);
       createSecurityGroup(comp);
       createEraseGroup(comp);
       createDebugGroup();

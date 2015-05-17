@@ -13,8 +13,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.packageParser.FileAction.FileType;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
 import org.w3c.dom.Document;
@@ -35,7 +37,8 @@ public class PackageParser {
     * @return ListOfProjectActionLists (an empty list if none)
     * @throws Exception 
     */
-   static public ProjectActionList getDevicePackageList(Device device, Map<String, String> variableMap) throws Exception {
+   static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) throws Exception {
+      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
@@ -68,6 +71,38 @@ public class PackageParser {
 //                            System.err.println("projectAction = " + projectAction.toString());
 //                         }
 //                         System.err.println("===============================================");
+                        /*
+                         * Collect constants for action-list
+                         */
+                        final Visitor visitor = new ProjectActionList.Visitor() {
+                           @Override
+                           public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
+                              try {
+//                                 System.err.println(String.format("PackageParser.getDevicePackageList(): applyTo(), %s",  action.toString()));
+                                 if (action instanceof ProjectActionList) {
+                                    ProjectActionList projectActionList = (ProjectActionList) action;
+                                    Result rc = projectActionList.appliesTo(device, variableMap)?CONTINUE:PRUNE;
+//                                  System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
+                                    return rc;
+                                 }
+                                 else if (action instanceof ProjectConstant) {
+                                    ProjectConstant projectConstant = (ProjectConstant) action;
+                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                                    if (!projectConstant.doReplace()) {
+                                       String value = variableMap.get(projectConstant.getId());
+                                       if ((value != null) && !value.equals(projectConstant.getValue())) {
+                                          return new Result(new Exception("Repeated constant"));
+                                       }
+                                    }
+                                    variableMap.put(projectConstant.getId(), projectConstant.getValue());
+                                 }
+                                 return PRUNE;
+                              } catch (Exception e) {
+                                 return new Result(e);
+                              }
+                           }
+                        };
+                        newProjectActionList.visit(visitor, null);
                         // Add applicable actions
                         projectActionList.addProjectAction(newProjectActionList);
                      }
@@ -90,7 +125,7 @@ public class PackageParser {
     * @return ArrayList of ProjectActionLists (an empty list if none)
     * @throws Exception 
     */
-   static public ProjectActionList getKDSPackageList(Map<String, String> variableMap) throws Exception {
+   static public ProjectActionList getKDSPackageList(final Map<String, String> variableMap) throws Exception {
       ProjectActionList projectActionList = new ProjectActionList("---KDSPackageList---"); 
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/KSDK_Libraries");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
@@ -120,6 +155,42 @@ public class PackageParser {
                         System.err.println("===============================================");
                         System.err.println("projectAction = " + newProjectActionList.toString());
                         System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition().toString());
+
+                        
+                        /*
+                         * Collect constants for action-list
+                         */
+                        final Visitor visitor = new ProjectActionList.Visitor() {
+                           @Override
+                           public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
+                              try {
+//                                 System.err.println(String.format("PackageParser.getKDSPackageList(): applyTo(), %s",  action.toString()));
+                                 if (action instanceof ProjectActionList) {
+                                    ProjectActionList projectActionList = (ProjectActionList) action;
+                                    Result rc = projectActionList.applies(variableMap)?CONTINUE:PRUNE;
+//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
+                                    return rc;
+                                 }
+                                 else if (action instanceof ProjectConstant) {
+                                    ProjectConstant projectConstant = (ProjectConstant) action;
+                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                                    if (!projectConstant.doReplace()) {
+                                       String value = variableMap.get(projectConstant.getId());
+                                       if ((value != null) && !value.equals(projectConstant.getValue())) {
+                                          return new Result(new Exception("Repeated constant"));
+                                       }
+                                    }
+                                    variableMap.put(projectConstant.getId(), projectConstant.getValue());
+                                 }
+                                 return PRUNE;
+                              } catch (Exception e) {
+                                 return new Result(e);
+                              }
+                           }
+                        };
+                        newProjectActionList.visit(visitor, null);
+
+                        
                         // Add applicable actions
                         projectActionList.addProjectAction(newProjectActionList);
                      }
@@ -415,6 +486,14 @@ public class PackageParser {
          }
          return new ApplyWhenCondition(ApplyWhenCondition.Type.variableRef, variableName, defaultValue, condition, value);
       }
+      else if (element.getTagName() == "requirement") {
+         String variableName  = element.getAttribute("idRef").trim();
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.requirement, variableName);
+      }
+      else if (element.getTagName() == "preclusion") {
+         String variableName  = element.getAttribute("idRef").trim();
+         return new ApplyWhenCondition(ApplyWhenCondition.Type.preclusion, variableName);
+      }
       else if (element.getTagName() == "and") {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.and, parseApplyWhenLogicalElement(element));
       }
@@ -524,75 +603,13 @@ public class PackageParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "enableWhen") {
-            projectVariable.setRequirement(parseEnableWhenElement(element));
+            projectVariable.setRequirement(parseApplyWhenElement(element));
          }
          else {
             throw new Exception("Unexpected element \""+element.getTagName()+"\" in <projectVariable>");
          }
       }
       return projectVariable;
-   }
-
-   private EnableWhenCondition parseEnableWhenElement(Element enableWhenElement) throws Exception {
-      EnableWhenCondition enableWhenCondition = null;
-      for (Node node = enableWhenElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         if (enableWhenCondition != null) {
-            throw new Exception("Too many elements in <enableWhen>");
-         }
-         Element element = (Element)node;
-         enableWhenCondition = parseEnableWhenSubElement(element);
-      }
-      if (enableWhenCondition == null) {
-         throw new Exception("Empty <enableWhen>");
-      }
-      return enableWhenCondition;
-   }
-
-   private EnableWhenCondition parseEnableWhenSubElement(Element element) throws Exception {
-      if (element.getTagName() == "requirement") {
-         String variableName  = element.getAttribute("idRef").trim();
-         return new EnableWhenCondition(EnableWhenCondition.Type.requirement, variableName);
-      }
-      else if (element.getTagName() == "preclusion") {
-         String variableName  = element.getAttribute("idRef").trim();
-         return new EnableWhenCondition(EnableWhenCondition.Type.preclusion, variableName);
-      }
-      else if (element.getTagName() == "and") {
-         return new EnableWhenCondition(EnableWhenCondition.Type.and, parseEnableWhenLogicalElement(element));
-      }
-      else if (element.getTagName() == "or") {
-         return new EnableWhenCondition(EnableWhenCondition.Type.or, parseEnableWhenLogicalElement(element));
-      }
-      else if (element.getTagName() == "not") {
-         ArrayList<EnableWhenCondition> list = parseEnableWhenLogicalElement(element);
-         return new EnableWhenCondition(EnableWhenCondition.Type.not, list);
-      } 
-      throw new Exception("Unexpected element in <applyWhen> \'" + element.getTagName() + "\'");
-  }
-
-   private ArrayList<EnableWhenCondition> parseEnableWhenLogicalElement(Element logicalOperands) throws Exception {
-      ArrayList<EnableWhenCondition> list = null;
-      for (Node node = logicalOperands.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         if (list == null) {
-            list = new ArrayList<EnableWhenCondition>();
-         }
-         // child node for <and> or <or> or <not>
-         list.add(parseEnableWhenSubElement((Element) node));
-      }
-      if (list == null) {
-         throw new Exception("Empty list in \""+logicalOperands.getTagName());
-      }
-      return list;
    }
 
    /**

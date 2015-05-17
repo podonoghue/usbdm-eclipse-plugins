@@ -76,15 +76,16 @@ implements ICWGdiInitializationData {
    
    // State
    protected final BdmOptions defaultBdmOptions = new BdmOptions();
-   protected UsbdmCommon.BdmOptions bdmOptions = new BdmOptions();
+   protected UsbdmCommon.BdmOptions bdmOptions  = new BdmOptions();
    protected String preferredBdm;
    protected boolean useDebugBuild;
    
    protected ArrayList<USBDMDeviceInfo> deviceList;
 
-   protected EraseMethod       defaultEraseMethod; 
-   protected EraseMethod       lastEraseMethod; 
-   protected EraseMethod       eraseMethod;
+   protected EraseMethod            defaultEraseMethod; 
+   protected EraseMethod            eraseMethod;
+   protected ArrayList<EraseMethod> permittedEraseMethods =  new ArrayList<EraseMethod>();
+   
    protected SecurityOptions   securityOption;
    
    protected String            gdiDllName;
@@ -530,15 +531,10 @@ implements ICWGdiInitializationData {
       comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
       comboEraseMethod.setToolTipText("Erase method used before programming");
       toolkit.adapt(comboEraseMethod, true, true);
-      comboEraseMethod.add(EraseMethod.ERASE_NONE.toString());
-      comboEraseMethod.add(EraseMethod.ERASE_MASS.toString());
-      if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_ALL.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.ERASE_ALL.toString());
+      for (EraseMethod em : permittedEraseMethods) {
+         comboEraseMethod.add(em.toString());
       }
-      if (lastEraseMethod.ordinal() >= EraseMethod.ERASE_SELECTIVE.ordinal()) { 
-         comboEraseMethod.add(EraseMethod.ERASE_SELECTIVE.toString());
-      }
-      comboEraseMethod.select(defaultEraseMethod.ordinal());
+      comboEraseMethod.setText(defaultEraseMethod.toString());
    }
    
    protected void createSecurityGroup(Composite comp) {
@@ -606,7 +602,7 @@ implements ICWGdiInitializationData {
     * 
     */
    protected void transferToWindow() {
-//      System.err.println("UsbdmConnectionPanel.transferToWindow()");
+      System.err.println("UsbdmConnectionPanel.transferToWindow()");
       
       populateBdmChoices(preferredBdm, false);
       btnUseDebugBuild.setSelection(useDebugBuild);
@@ -621,6 +617,9 @@ implements ICWGdiInitializationData {
       setTargetVdd(bdmOptions.targetVdd);
 
       comboSecurityOption.select(securityOption.ordinal());
+      if (comboEraseMethod != null) {
+         comboEraseMethod.setText(eraseMethod.toString());
+      }
    }
 
    /**
@@ -654,6 +653,12 @@ implements ICWGdiInitializationData {
       else {
          securityOption = SecurityOptions.values()[comboSecurityOption.getSelectionIndex()];
       }
+      if (comboEraseMethod == null) {
+         eraseMethod = defaultEraseMethod;
+      }
+      else {
+         eraseMethod = permittedEraseMethods.get(comboEraseMethod.getSelectionIndex());
+      }
    }
    
    /**
@@ -666,6 +671,7 @@ implements ICWGdiInitializationData {
       useDebugBuild   = false;
       preferredBdm    = "Any connected BDM";   
       securityOption  = SecurityOptions.SECURITY_SMART;
+      eraseMethod     = defaultEraseMethod;
    }
 
    /**
@@ -694,8 +700,14 @@ implements ICWGdiInitializationData {
          bdmOptions.resetRecoveryInterval   = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
          
          int securityOptionMask = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeySecurityOption), SecurityOptions.SECURITY_UNSECURED.getMask());
-         this.securityOption = SecurityOptions.valueOf(securityOptionMask);
+         securityOption = SecurityOptions.valueOf(securityOptionMask);
 
+         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
+         EraseMethod em = EraseMethod.values()[eraseMethod];
+         if (!permittedEraseMethods.contains(em)) {
+            em = defaultEraseMethod;
+         }
+         this.eraseMethod = em;
       } catch (CoreException e) {
          e.printStackTrace();
       }
@@ -727,6 +739,7 @@ implements ICWGdiInitializationData {
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
       
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeySecurityOption),          securityOption.getMask());
+      setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),             eraseMethod.ordinal());
 //      try {
 //         Map<String, String> allAttributes = iLaunchConfigurationWorkingCopy.getAttributes();
 //         for (Map.Entry<String, String> entry : allAttributes.entrySet()) {

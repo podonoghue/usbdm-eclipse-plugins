@@ -1,7 +1,10 @@
 package net.sourceforge.usbdm.packageParser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.swt.widgets.Button;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
 
@@ -10,8 +13,10 @@ public class ApplyWhenCondition {
                      deviceNameMatches, deviceFamilyMatches, deviceSubfamilyMatches,
                      hardwareIs, hardwareMatches, 
                      variableRef,
+                     preclusion, requirement,
                      or, and, not, emptyTrue};
    public enum Condition {
+      isDefined,
       isTrue,
       lessThan,
       lessThanOrEqual,
@@ -20,16 +25,17 @@ public class ApplyWhenCondition {
       greaterThanOrEqual,
       matches,
    };
-   private ApplyWhenCondition.Type       fType;
-   private ArrayList<ApplyWhenCondition> fOperands;
-   private String                        fValue;
-   private String                        fVariableName;
-   private boolean                       fDefaultValue;
-   private Condition                     fCondition;
+   protected ApplyWhenCondition.Type       fType;
+   protected ArrayList<ApplyWhenCondition> fOperands;
+   protected String                        fValue;
+   protected String                        fVariableName;
+   protected boolean                       fDefaultValue;
+   protected Condition                     fCondition;
+   private   boolean                       fVerbose;
            
    public static ApplyWhenCondition trueCondition  = new ApplyWhenCondition();
    
-   private ApplyWhenCondition() {
+   protected ApplyWhenCondition() {
       fType         = Type.emptyTrue;
       fDefaultValue = true;
       fValue        = "true";
@@ -58,7 +64,10 @@ public class ApplyWhenCondition {
           (operator != Type.deviceFamilyMatches) && 
           (operator != Type.deviceSubfamilyMatches) &&
           (operator != Type.hardwareIs) && 
-          (operator != Type.hardwareMatches)
+          (operator != Type.hardwareMatches) && 
+          (operator != Type.requirement) && 
+          (operator != Type.preclusion) && 
+          (operator != Type.hardwareIs)
           ) {
          throw new Exception("ApplyWhenCondition(operator, value) - Must be unary type operator");
       }
@@ -88,21 +97,61 @@ public class ApplyWhenCondition {
       if (operator != Type.variableRef) {
          throw new Exception("ApplyWhenCondition(operator, value) - Must be 'variableRef' type");
       }
-      if ((fCondition != Condition.isTrue) && (fValue == null)) {
+      if ((fCondition != Condition.isTrue) && (fCondition != Condition.isDefined) && (fValue == null)) {
          throw new Exception("ApplyWhenCondition must have value unless \'isTrue\'");
       }
    }
 
+   /**
+    * Evaluates a condition only involving variables
+    * 
+    * @param variableMap : a map of variables that may be used in conditions
+    * 
+    * @return true/false result of evaluation
+    */
    public boolean applies(Map<String, String> variableMap) throws Exception {
-      return appliesTo(null, variableMap);
+      return evaluateCondition(null, variableMap, null);
    }
    
+   /**
+    * Evaluates a condition involving devices and variables
+    * 
+    * @param device      : the device to use in evaluating device related conditions
+    * @param variableMap : a map of variables that may be used in conditions
+    * 
+    * @return true/false result of evaluation
+    */
    public boolean appliesTo(Device device, Map<String, String> variableMap) throws Exception {
+      return evaluateCondition(device, variableMap, null);
+   }
+
+   /**
+    * Evaluates a condition controlling whether a button is enabled
+    * 
+    * @param device      : the device to use in evaluating device related conditions
+    * @param variableMap : a map of variables that may be used in conditions
+    * @param buttonMap   : a map of buttons that may be used in conditions
+    * 
+    * @return true/false result of evaluation
+    */
+   public boolean enabled(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) throws Exception {
+      boolean result = evaluateCondition(device, variableMap, buttonMap);
+      if (fVerbose) {
+         System.err.println(String.format("ApplyWhenCondition.enabled => %s", result ));
+      }
+      return result;
+   }
+   
+   public boolean evaluateCondition(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) throws Exception {
+      Button button = null;
+      if (fVerbose) {
+         System.err.println(String.format("ApplyWhenCondition.evaluateCondition(%s)", toString() ));
+      }
       switch (fType) {
       case and:
          // Short-circuit evaluation
          for (ApplyWhenCondition operand:fOperands) {
-            if (!operand.appliesTo(device, variableMap)) {
+            if (!operand.evaluateCondition(device, variableMap, buttonMap)) {
                return false;
             };
          }
@@ -110,13 +159,13 @@ public class ApplyWhenCondition {
       case or:
          // Short-circuit evaluation
          for (ApplyWhenCondition operand:fOperands) {
-            if (operand.appliesTo(device, variableMap)) {
+            if (operand.evaluateCondition(device, variableMap, buttonMap)) {
                return true;
             }
          }
          return false;
       case not:
-         return !fOperands.get(0).appliesTo(device, variableMap);
+         return !fOperands.get(0).evaluateCondition(device, variableMap, buttonMap);
       case deviceFamilyIs:
          return (device!= null) && (device.getFamily() != null) && device.getFamily().equals(fValue);
       case deviceFamilyMatches:
@@ -138,17 +187,22 @@ public class ApplyWhenCondition {
             throw new Exception("Evaluation of 'variableIs' without variable map - " + fVariableName);
          }
          String variableValue = variableMap.get(fVariableName);
+         if (fCondition == Condition.isDefined) {
+            return variableValue != null;
+         }
          if (variableValue == null) {
-            if (fCondition != Condition.isTrue) {
-               throw new Exception("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " + fCondition);
+            if (fCondition == Condition.isTrue) {
+               System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " +
+                     fCondition + ", assumed " + fDefaultValue);
+               return fDefaultValue; // Assume defaultValue for simple test on missing variable
             }
             System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " +
-                                fCondition + ", assumed " + fDefaultValue);
-            return fDefaultValue; // Assume defaultValue for simple test on missing variable
+                  fCondition + ", assumed " + fDefaultValue);
+            throw new Exception("Error evaluating " + fCondition);
          }
          Long variableNumericValue  = null;
          Long conditionNumericValue = null;
-         if ((fCondition != Condition.isTrue) && (fCondition != Condition.matches)) {
+         if ((fCondition != Condition.isTrue) && (fCondition != Condition.matches)&& (fCondition != Condition.isDefined)) {
             try {
                variableNumericValue = Long.decode(variableValue);
             }
@@ -163,6 +217,8 @@ public class ApplyWhenCondition {
             }
          }
          switch (fCondition) {
+         case isDefined:
+            return (variableValue != null) && !variableMap.isEmpty();
          case isTrue:
             return Boolean.valueOf(variableValue);
          case matches:
@@ -179,6 +235,12 @@ public class ApplyWhenCondition {
             return variableNumericValue.compareTo(conditionNumericValue) <= 0;
          }
          }
+      case preclusion:
+         button = buttonMap.get(fValue);
+         return (button == null) || !button.isEnabled() || !button.getSelection();
+      case requirement:
+         button = buttonMap.get(fValue);
+         return (button != null) && button.isEnabled() && button.getSelection();
       case emptyTrue:
          return true;
       default:
@@ -238,14 +300,20 @@ public class ApplyWhenCondition {
       case hardwareMatches:
          return ("hw~="+fValue);
       case variableRef:
-         return ("req("+fValue+")");
+         return ("ref("+fCondition+","+fVariableName+","+fValue+")");
       case emptyTrue:
          return "TRUE";
+      case preclusion:
+         return ("pre("+fValue+")");
+      case requirement:
+         return ("req(button."+fValue+")");
+      default:
+         break;
       }
       return super.toString() + "opps!!";
    }
    
-   private ArrayList<String> getVariables(ArrayList<String> variables) {
+   protected ArrayList<String> getVariables(ArrayList<String> variables) {
       switch (fType) {
       case and:
       case or:
@@ -286,6 +354,10 @@ public class ApplyWhenCondition {
    
    public boolean getfDefaultValue() {
       return fDefaultValue;
+   }
+
+   public void setVerbose(boolean b) {
+                            fVerbose = b;
    }
 
 }

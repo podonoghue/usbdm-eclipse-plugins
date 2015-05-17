@@ -15,7 +15,7 @@ public class UsbdmSharedSettings {
 
    private static final String USBDM_COMMON_SETTINGS     = "UsbdmCommonSettings";
    private static final String SHARED_SETTINGS_FILENAME  = "UsbdmEclipseSharedSettings.xml";
-   private static final IPath  usbdmDataPath             = Usbdm.getDataPath().append(SHARED_SETTINGS_FILENAME);
+   private static final IPath  usbdmDataPath = Usbdm.getDataPath().append(SHARED_SETTINGS_FILENAME);
    
    private static DialogSettings sharedSettings = null;
       
