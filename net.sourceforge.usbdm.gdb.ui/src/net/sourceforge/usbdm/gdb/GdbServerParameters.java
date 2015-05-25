@@ -50,6 +50,7 @@ public class GdbServerParameters {
    private int                   clockTrimFrequency;
    private long                  nvmClockTrimLocation;
    private boolean               catchVLLSxEvents;
+   private boolean               maskInterrupts;
                                  
    private ExtendedOptions       extendedOptions;
                                  
@@ -80,6 +81,7 @@ public class GdbServerParameters {
    private static final String   nvmClockTrimLocationKey         = "nvmClockTrimLocation";
    private static final String   connectionTimeoutKey            = "connectionTimeout";
    private static final String   catchVLLSxEventsKey             = "catchVLLSxEvents";
+   private static final String   maskInterruptsKey               = "maskInterrupts";
    
    private static final int      E_SELECTIVE_MASK  = (1<<EraseMethod.ERASE_SELECTIVE.ordinal());
    private static final int      E_ALL_MASK        = (1<<EraseMethod.ERASE_ALL.ordinal());
@@ -95,8 +97,9 @@ public class GdbServerParameters {
    public  static final int      NEEDS_CLOCK       = 1<<3;  // Mask indicating Interface requires Clock selection   
    public  static final int      NEEDS_VLLSCATCH   = 1<<4;  // Mask indicating Interface requires VLLSCatch selection
    public  static final int      NEEDS_CLKTRIM     = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_MASKINTS    = 1<<6;  // Mask indicating Interface requires VLLSCatch selection
    
-   private static final int      armDialogueNeeds  = NEEDS_SPEED|NEEDS_VLLSCATCH;
+   private static final int      armDialogueNeeds  = NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
    private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK|NEEDS_CLKTRIM;
    private static final int      cfvxDialogueNeeds = NEEDS_SPEED|NEEDS_PST;
            
@@ -417,6 +420,14 @@ public class GdbServerParameters {
       this.catchVLLSxEvents = catchVLLSxEvents;
    }
 
+   public boolean isMaskInterrupts() {
+      return maskInterrupts;
+   }
+
+   public void enableMaskInterrupts(boolean maskInterrupts) {
+      this.maskInterrupts = maskInterrupts;
+   }
+
    public void enableUseReset(boolean useReset) {
       extendedOptions.useResetSignal = useReset;
    }
@@ -617,7 +628,20 @@ public class GdbServerParameters {
       if (isCatchVLLSxEvents()) {
          commandList.add("-catchvlls");
       }
+      if (isMaskInterrupts()) {
+         commandList.add("-maskInterrupts");
+      }
       return commandList;
+   }
+   
+   public String getServerCommandLineAsString() {
+      ArrayList<String> cl = getServerCommandLine();
+      StringBuffer clb = new StringBuffer();
+      for (String s:cl) {
+         clb.append(s);
+         clb.append(' ');
+      }
+      return clb.toString();
    }
    
    /**
@@ -686,6 +710,7 @@ public class GdbServerParameters {
       settings.put(getKey(nvmClockTrimLocationKey),         getNvmClockTrimLocation());
       settings.put(getKey(connectionTimeoutKey),            getConnectionTimeout());
       settings.put(getKey(catchVLLSxEventsKey),             isCatchVLLSxEvents());
+      settings.put(getKey(maskInterruptsKey),               isMaskInterrupts());
       
       settings.flush();
       return true;
@@ -715,6 +740,7 @@ public class GdbServerParameters {
       buff.append("getNvmClockTrimLocation =        " + getNvmClockTrimLocation()+"\n");
       buff.append("getConnectionTimeout =           " + getConnectionTimeout()+"\n");
       buff.append("isCatchVLLSxEvents =             " + isCatchVLLSxEvents()+"\n");
+      buff.append("isMaskInterrupts =               " + isMaskInterrupts()+"\n");
       buff.append("}\n");
 
       return buff.toString();
@@ -741,6 +767,7 @@ public class GdbServerParameters {
       configuration.setAttribute((key+nvmClockTrimLocationKey),          (int)getNvmClockTrimLocation());
       configuration.setAttribute((key+connectionTimeoutKey),             getConnectionTimeout());
       configuration.setAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents());
+      configuration.setAttribute((key+maskInterruptsKey),                isMaskInterrupts());
    }
    
    private static final String key = UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY;      
@@ -773,5 +800,6 @@ public class GdbServerParameters {
       setNvmClockTrimLocation(  configuration.getAttribute((key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
       setConnectionTimeout(     configuration.getAttribute((key+connectionTimeoutKey),             getConnectionTimeout()));
       enableCatchVLLSxEvents(   configuration.getAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
+      enableCatchVLLSxEvents(   configuration.getAttribute((key+maskInterruptsKey),                isMaskInterrupts()));
    }
 }

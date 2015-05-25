@@ -192,12 +192,12 @@ public class ApplyWhenCondition {
          }
          if (variableValue == null) {
             if (fCondition == Condition.isTrue) {
-               System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " +
-                     fCondition + ", assumed " + fDefaultValue);
+               if (fVerbose) {
+                  System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " + fCondition + ", assumed " + fDefaultValue);
+               }
                return fDefaultValue; // Assume defaultValue for simple test on missing variable
             }
-            System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " +
-                  fCondition + ", assumed " + fDefaultValue);
+            System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " + fCondition + ", assumed " + fDefaultValue);
             throw new Exception("Error evaluating " + fCondition);
          }
          Long variableNumericValue  = null;

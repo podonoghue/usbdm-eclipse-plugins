@@ -57,7 +57,7 @@ public class AddTargetFiles {
     * @throws Exception 
     */
    private void copyFile(Path sourcePath, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
-      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
+//      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       InputStream contents = null;
       String fileContents;
       try {
@@ -152,9 +152,9 @@ public class AddTargetFiles {
          String filename = targetPath.getFileName().toString();
          if (filename.endsWith(".h") || filename.endsWith(".H")) {
             targetPath = targetPath.getParent();
-            //          System.err.println("AddTargetFiles.processItem() changed target to = " + targetPath.toAbsolutePath());
+//          System.err.println("AddTargetFiles.processItem() changed target to = " + targetPath.toAbsolutePath());
          }
-         //       System.err.println("AddTargetFiles.processItem() folder  = " + path.toString());
+//       System.err.println("AddTargetFiles.processItem() folder  = " + path.toString());
          DirectoryStream<Path> stream = Files.newDirectoryStream(sourcePath);
          
          try {
@@ -196,7 +196,7 @@ public class AddTargetFiles {
       sourceURI = pathMan.convertToRelative(sourceURI, false, UsbdmSharedConstants.USBDM_APPLICATION_PATH_VAR);
       sourceURI = pathMan.convertToRelative(sourceURI, false, UsbdmSharedConstants.USBDM_KSDK_PATH);
       sourcePath = resolvePath(sourcePath);
-      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", sourceURI.toString(), target));
+//      System.err.println(String.format("AddTargetFiles.createLink() \'%s\' => \'%s\'", sourceURI.toString(), target));
       
       try {
          monitor.beginTask("Create Link", 100);
@@ -229,11 +229,11 @@ public class AddTargetFiles {
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
-      //      System.err.println("root   = \'" + root.toString() + "\'");
-      //      System.err.println("source = \'" + source.toString() + "\'");
-      //      System.err.println("target = \'" + target.toString() + "\'");
+//      System.err.println("root   = \'" + root.toString() + "\'");
+//      System.err.println("source = \'" + source.toString() + "\'");
+//      System.err.println("target = \'" + target.toString() + "\'");
       if (source.isEmpty()) {
-         //         System.err.println("AddTargetFiles.process() - source is empty, fileInfo.getSource() = " + fileInfo.getSource());
+//         System.err.println("AddTargetFiles.process() - source is empty, fileInfo.getSource() = " + fileInfo.getSource());
          return;
       }
       /*
@@ -256,11 +256,11 @@ public class AddTargetFiles {
       }
 
       Path targetPath = Paths.get(target);
-      //      System.err.println(String.format("AddTargetFiles.process() ============================================="));
-      //      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourcePath, targetPath));
+//      System.err.println(String.format("AddTargetFiles.process() ============================================="));
+//      System.err.println(String.format("AddTargetFiles.process() \'%s\' => \'%s\'", sourcePath, targetPath));
 
-      //      System.err.println(String.format("AddTargetFiles.process() source     = \'%s\'", source));
-      //      System.err.println(String.format("AddTargetFiles.process() sourcePath = \'%s\'", sourcePath));
+//      System.err.println(String.format("AddTargetFiles.process() source     = \'%s\'", source));
+//      System.err.println(String.format("AddTargetFiles.process() sourcePath = \'%s\'", sourcePath));
 
       switch (fileInfo.getFileType()) {
          case LINK : {

@@ -38,7 +38,7 @@ public class PackageParser {
     * @throws Exception 
     */
    static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) throws Exception {
-      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
+//      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
@@ -87,7 +87,7 @@ public class PackageParser {
                                  }
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
-                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doReplace()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
@@ -152,9 +152,9 @@ public class PackageParser {
                      Document       document   = packParser.parseXmlFile(f.toString());
                      ProjectActionList newProjectActionList = packParser.parseDocument(document);
                      if (newProjectActionList.applies(variableMap)) {
-                        System.err.println("===============================================");
-                        System.err.println("projectAction = " + newProjectActionList.toString());
-                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition().toString());
+//                        System.err.println("===============================================");
+//                        System.err.println("projectAction = " + newProjectActionList.toString());
+//                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition().toString());
 
                         
                         /*
@@ -173,7 +173,7 @@ public class PackageParser {
                                  }
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
-                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doReplace()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {

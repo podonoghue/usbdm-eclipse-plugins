@@ -4,7 +4,7 @@ Bundle-Name: USBDM Constants
 Bundle-SymbolicName: net.sourceforge.usbdm.constants;singleton:=true
 Bundle-Version: 4.11.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.constants.Activator
-Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="4.10.6",
+Require-Bundle: net.sourceforge.usbdm.jni,
  org.eclipse.core.runtime,
  org.eclipse.jface,
  org.eclipse.ui.workbench

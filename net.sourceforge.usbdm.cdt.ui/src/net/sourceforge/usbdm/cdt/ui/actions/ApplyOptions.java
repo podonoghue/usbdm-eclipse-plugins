@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.cdt.ui.actions;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
@@ -72,13 +71,13 @@ public class ApplyOptions {
       boolean resource = !(path == null || path.equals("") || path.equals("/")); //$NON-NLS-1$ //$NON-NLS-2$
       boolean modified = false;
 
-      System.err.println(
-            String.format("ApplyOptions.setOptionValue(replace=%s,\n\t id=\'%s\',\n\t value=\'%s\',\n\t path=\'%s\'",
-            replace?"True":"false", id, Arrays.toString(value), path));
+//      System.err.println(
+//            String.format("ApplyOptions.setOptionValue(replace=%s,\n\t id=\'%s\',\n\t value=\'%s\',\n\t path=\'%s\'",
+//            replace?"True":"false", id, Arrays.toString(value), path));
 
       for (IConfiguration config : projectConfigs) {
          if ((targetConfig != null) && !config.getId().contains(targetConfig)) {
-            System.err.println("ApplyOptions() - Skipping config " + config.getId()); //$NON-NLS-1$
+//            System.err.println("ApplyOptions() - Skipping config " + config.getId()); //$NON-NLS-1$
             continue;
          }
          IResourceConfiguration resourceConfig = null;

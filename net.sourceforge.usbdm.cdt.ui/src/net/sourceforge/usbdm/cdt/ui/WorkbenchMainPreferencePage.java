@@ -74,8 +74,9 @@ IWorkbenchPreferencePage {
       // Load settings here so controls are valid
       loadSettings();
 
-      boolean t = validate();
-      System.err.println("WorkbenchPreferenceTopPage.createContents() => validate = " + t);
+//      boolean t = 
+      validate();
+//      System.err.println("WorkbenchPreferenceTopPage.createContents() => validate = " + t);
 
       return composite;         
    }
@@ -173,7 +174,7 @@ IWorkbenchPreferencePage {
       for (final ExtendedVariableInformationData variableInformation : ExtendedVariableInformationData.getExtendedVariableInformationTable().values()) {
          String variable = settings.get(variableInformation.getVariableName(), variableInformation.getDefaultValue());
          variableInformation.getValueText().setText(variable);
-         System.err.println("UsbdmConfigurationPage.loadVariables() Found variable = " + variable);
+//         System.err.println("WorkbenchMainPreferencePage.loadVariables() Found variable = " + variable);
       }
    }
 
@@ -347,8 +348,8 @@ IWorkbenchPreferencePage {
       }
       for (final ExtendedToolInformationData toolInformation : ExtendedToolInformationData.getExtendedToolInformationTable().values()) {
          String toolPath = settings.get(toolInformation.getPathVariableName(), UsbdmConstants.PATH_NOT_SET);
-         System.err.println("UsbdmConfigurationPage.loadPaths() Found path variable   = " + toolInformation.getPathVariableName());
-         System.err.println("UsbdmConfigurationPage.loadPaths() Found prefix variable = " + toolInformation.getPrefixVariableName());
+//         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found path variable   = " + toolInformation.getPathVariableName());
+//         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found prefix variable = " + toolInformation.getPrefixVariableName());
          toolInformation.getPathText().setText(toolPath);
          String toolPrefix = settings.get(toolInformation.getPrefixVariableName(), "");
          toolInformation.getPrefixText().setText(toolPrefix);
@@ -381,7 +382,7 @@ IWorkbenchPreferencePage {
          message = validateVariables();
       }
       setErrorMessage(message);
-      System.err.println("WorkbenchPreferenceTopPage.validate() => " + (message == null));
+//      System.err.println("WorkbenchPreferenceTopPage.validate() => " + (message == null));
       return message == null;
    }
 
@@ -397,7 +398,7 @@ IWorkbenchPreferencePage {
    }
 
    protected void loadSettings() {
-      System.err.println("loadSettings() loading settings");
+//      System.err.println("loadSettings() loading settings");
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
       loadPaths(settings);
       loadVariables(settings);

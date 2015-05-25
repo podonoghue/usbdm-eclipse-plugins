@@ -1435,8 +1435,8 @@ public class Usbdm {
       }
       public String toString() {
          return "  Description   = "+deviceDescription+";\n" +
-         		 "  Serial Number = "+deviceSerialNumber+";\n" +
-         		 "  Information   = \n"+bdmInfo.toString();
+         	    "  Serial Number = "+deviceSerialNumber+";\n" +
+         		"  Information   = \n"+bdmInfo.toString();
       }
    };
 
@@ -1466,17 +1466,18 @@ public class Usbdm {
       "x86_64/usbdm.4",
       "x86_64/usbdm-jni.4",
    };
+   // Note: linux name should not have 'lib' prefix or '.so' suffix
    final static String linux_x86_libraries_debug[] = {
-      "libUsbdmJniWrapper-debug;",
+      "usbdm-jni-debug",
    };
    final static String linux_x86_libraries[] = {
-      "libUsbdmJniWrapper;",
+      "usbdm-jni",
    };
    final static String linux_x86_64_libraries_debug[] = {
-      "libUsbdmJniWrapper-debug",
+      "usbdm-jni-debug",
    };
    final static String linux_x86_64_libraries[] = {
-      "libUsbdmJniWrapper",
+      "usbdm-jni",
    };
    
    final static class LibraryLoader {
@@ -1485,6 +1486,13 @@ public class Usbdm {
             return;
             }
          try {
+        	 
+        	 //String property = System.getProperty("java.library.path");
+        	 //StringTokenizer parser = new StringTokenizer(property, ":");
+        	 //while (parser.hasMoreTokens()) {
+        	 //    System.err.println(parser.nextToken());
+        	 //    }
+        	 
             String os    = System.getProperty("os.name");            
             String arch  = System.getProperty("os.arch");            
             String jvm   = System.getProperty("java.vm.name");
@@ -1627,10 +1635,10 @@ public class Usbdm {
                deviceInfo  = new USBDMDeviceInfo(description, serialNum, bdmInfo);
                deviceList.add(deviceInfo);
             } catch (UsbdmException e1) {
-               //             try {
-               //                releaseDevices();
-               //             } catch (UsbdmException e) {
-               //             } 
+   //             try {
+   //                releaseDevices();
+   //             } catch (UsbdmException e) {
+   //             } 
             }
             close();
          }

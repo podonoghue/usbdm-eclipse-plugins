@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="USBDM Update Site">
-      USBDM Update Site
-   </description>
-   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.11.1.201505141819.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.11.1.201505141819" os="linux,win32" arch="x86,x86_64">
-      <category name="usbdm-cdt-plugin"/>
+   <feature url="features/net.sourceforge.usbdm.cdt.feature_4.11.1.201505242249.jar" id="net.sourceforge.usbdm.cdt.feature" version="4.11.1.201505242249" os="linux,win32" arch="x86,x86_64">
+      <category name="USBDM CDT Plugin"/>
    </feature>
-   <feature url="features/net.sourceforge.usbdm.cw.feature_4.11.1.201505141821.jar" id="net.sourceforge.usbdm.cw.feature" version="4.11.1.201505141821" os="linux,win32">
-      <category name="usbdm-codewarrior-plugin"/>
+   <feature url="features/net.sourceforge.usbdm.cw.feature_4.11.1.201505242249.jar" id="net.sourceforge.usbdm.cw.feature" version="4.11.1.201505242249" os="linux,win32">
+      <category name="USBDM Codewarrior Plugin"/>
    </feature>
-   <category-def name="usbdm-cdt-plugin" label="USBDM CDT Plugin"/>
-   <category-def name="usbdm-codewarrior-plugin" label="USBDM Codewarrior Plugin"/>
+   <category-def name="USBDM CDT Plugin" label="USBDM CDT Plugin"/>
+   <category-def name="USBDM Codewarrior Plugin" label="USBDM Codewarrior Plugin"/>
 </site>

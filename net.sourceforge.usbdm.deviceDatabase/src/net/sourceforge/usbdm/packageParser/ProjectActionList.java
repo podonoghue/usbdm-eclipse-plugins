@@ -195,7 +195,7 @@ public class ProjectActionList extends ProjectAction {
    public Result visit(Visitor visitor, Value value, IProgressMonitor monitor) {
       final int SCALE = 1000;
       
-      System.err.println("ProjectActionList.visit() - " + getId());
+//      System.err.println("ProjectActionList.visit() - " + getId());
       
       try {
          monitor.beginTask("Visiting", SCALE*(1+fProjectActionList.size()));

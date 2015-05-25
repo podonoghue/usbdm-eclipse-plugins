@@ -87,8 +87,8 @@ public class UsbdmSharedConstants {
 
    // Names of external programs
    public final static String GDB_NAME                                     = "gdb";                                 //$NON-NLS-1$
-   public final static String USBDM_GDB_GUI_SERVER                         = "GdbServer";                           //$NON-NLS-1$
-   public final static String USBDM_GDB_GUI_SERVER_DEBUG                   = "GdbServer-debug";                     //$NON-NLS-1$
+   public final static String USBDM_GDB_GUI_SERVER                         = "UsbdmGdbServer";                      //$NON-NLS-1$
+   public final static String USBDM_GDB_GUI_SERVER_DEBUG                   = "UsbdmGdbServer-debug";                //$NON-NLS-1$
                                                                                                                     
    public final static String USBDM_ARM_SERVER_OPTION                      = "-target=arm";                         //$NON-NLS-1$
    public final static String USBDM_CFV1_SERVER_OPTION                     = "-target=cfv1";                        //$NON-NLS-1$

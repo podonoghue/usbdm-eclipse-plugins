@@ -143,7 +143,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    }
 
    protected void loadSettings() {
-      System.err.println("loadSettings() loading settings");
+//      System.err.println("loadSettings() loading settings");
       try {
          usbdmDebuggerPanel.getGdbServerParameters().loadDefaultSettings();
       } catch (Exception e) {
@@ -153,7 +153,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    }
 
    public boolean saveSettings() {
-      System.err.println("WorkbenchGdbServerPreferencePage.saveSetting() saving settings");
+//      System.err.println("WorkbenchGdbServerPreferencePage.saveSetting() saving settings");
       if (!validate()) {
          return false;
       }

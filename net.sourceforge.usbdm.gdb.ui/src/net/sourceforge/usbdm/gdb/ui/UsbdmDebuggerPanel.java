@@ -136,6 +136,7 @@ public class UsbdmDebuggerPanel {
    private Button                      btnDriveReset;
    private Button                      btnUsePstSignals;
    private Button                      btnCatchVLLSsEvents;
+   private Button                      btnMaskInterrupts;
    private NumberTextAdapter           connectionTimeoutTextAdapter;
    private Combo                       comboSecurityOption;
 
@@ -622,6 +623,17 @@ public class UsbdmDebuggerPanel {
          }
       });
       
+      btnMaskInterrupts = new Button(grpConnectionControl, SWT.CHECK);
+      btnMaskInterrupts.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      btnMaskInterrupts.setToolTipText("Mask interrupts when stepping"); //$NON-NLS-1$
+      btnMaskInterrupts.setText("Mask Interrupts"); //$NON-NLS-1$
+      btnMaskInterrupts.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            doUpdate();
+         }
+      });
+      
       btnDriveReset = new Button(grpConnectionControl, SWT.CHECK);
       btnDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
       btnDriveReset.setToolTipText("Drive target reset pin when resetting the target."); //$NON-NLS-1$
@@ -957,7 +969,7 @@ public class UsbdmDebuggerPanel {
     * @param scanForBdms    If true a scan is made for currently connected BDMs
     */
    private void populateBdmChoices(String previousDevice, boolean scanForBdms) {
-      System.err.println("populateBdmChoices(\'"+previousDevice+"\', "+scanForBdms+")\n");
+//      System.err.println("populateBdmChoices(\'"+previousDevice+"\', "+scanForBdms+")\n");
 
       if (scanForBdms) {
          // scan for connected BDMs
@@ -1186,6 +1198,9 @@ public class UsbdmDebuggerPanel {
       enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_VLLSCATCH);
       btnCatchVLLSsEvents.setEnabled(enableThese);         
       btnCatchVLLSsEvents.setVisible(enableThese);
+      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_MASKINTS);
+      btnMaskInterrupts.setEnabled(enableThese);         
+      btnMaskInterrupts.setVisible(enableThese);
       enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_CLKTRIM);
       grpClockTrim.setVisible(enableThese);
       btnTrimTargetClock.setEnabled(enableThese);         
@@ -1335,6 +1350,7 @@ public class UsbdmDebuggerPanel {
       btnDriveReset.setSelection(                gdbServerParameters.isUseReset());
       btnUsePstSignals.setSelection(             gdbServerParameters.isUsePstSignals());
       btnCatchVLLSsEvents.setSelection(          gdbServerParameters.isCatchVLLSxEvents());
+      btnMaskInterrupts.setSelection(            gdbServerParameters.isMaskInterrupts());
       // Update list to match gdbServerParameters
       populateEraseMethods();
       setEraseMethod(                            gdbServerParameters.getEraseMethod());
@@ -1364,6 +1380,7 @@ public class UsbdmDebuggerPanel {
       gdbServerParameters.enableUseReset(                      btnDriveReset.getSelection());
       gdbServerParameters.enableUsePstSignals(                 btnUsePstSignals.getSelection());
       gdbServerParameters.enableCatchVLLSxEvents(              btnCatchVLLSsEvents.getSelection());
+      gdbServerParameters.enableMaskInterrupts(                btnMaskInterrupts.getSelection());
       gdbServerParameters.setEraseMethod(                      getEraseMethod());
       gdbServerParameters.setSecurityOption(                   getSecurityOption());
       gdbServerParameters.setTargetVdd(                        getTargetVdd());
@@ -1545,7 +1562,7 @@ public class UsbdmDebuggerPanel {
       if (listener != null) {
          listener.handleEvent(new Event());
       }
-      lblcommandLine.setText(gdbServerParameters.getServerCommandLine().toString());
+      lblcommandLine.setText(gdbServerParameters.getServerCommandLineAsString());
    }
 
    public void addListener(int eventType, Listener listener) {

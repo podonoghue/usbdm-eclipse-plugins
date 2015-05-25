@@ -153,27 +153,27 @@ public class CDTProjectManager {
             //======================================================================
             //======================================================================
             // Not working
-            if (false) {
-               System.err.println("createCDTProj() ==================================================");
-               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
-               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
-               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
-                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
-               }
-               languageSettingsProviderIdsList.remove(idToRemove);
-               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
-               for (String languageSettingsProviderId : languageSettingsProviderIds) {
-                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
-               }
-               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
-                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
-                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
-               }
-               else {
-                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
-               }
-            }
+//            if (false) {
+//               System.err.println("createCDTProj() ==================================================");
+//               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
+//               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
+//               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
+//                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+//               }
+//               languageSettingsProviderIdsList.remove(idToRemove);
+//               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
+//               for (String languageSettingsProviderId : languageSettingsProviderIds) {
+//                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
+//               }
+//               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+//               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
+//                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
+//                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
+//               }
+//               else {
+//                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
+//               }
+//            }
             //======================================================================
             //======================================================================
          }

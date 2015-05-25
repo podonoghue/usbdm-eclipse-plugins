@@ -61,7 +61,7 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
       if (deviceName == null) {
          System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName is null");
       }
-      System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName = " + deviceName);
+//      System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName = " + deviceName);
       return deviceName;
    }
 
@@ -94,8 +94,16 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
     */
    @Override
    public void sessionEnded(DsfSession dsfSession) {
-      System.err.println("sessionEnded(DsfSession) : ID = " + dsfSession.getId());
+//      System.err.println("sessionEnded(DsfSession) : ID = " + dsfSession.getId());
       dsfSession.removeServiceEventListener(this);
+
+      // Should have been done by handleDsfEvent(ISuspendedDMEvent event)
+      UsbdmDevicePeripheralsModel deviceModel = dsfSessions.get(dsfSession.getId());
+      if (deviceModel != null) {
+         for (GdbSessionListener sessionListener : gdbSessionListeners) {
+            sessionListener.sessionTerminated(deviceModel);
+         }
+      }
       dsfSessions.remove(dsfSession.getId());
    }
 
@@ -177,7 +185,6 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
    public void handleDsfEvent(IStartedDMEvent event) {
       String sessionId = event.getDMContext().getSessionId();
       
-//      System.err.println("===========================================================================");
 //      System.err.println(String.format("handleDsfEvent(IStartedDMEvent, s=%s, r=%s)", sessionId, event.toString()));
 
       if (addSession(sessionId)) {

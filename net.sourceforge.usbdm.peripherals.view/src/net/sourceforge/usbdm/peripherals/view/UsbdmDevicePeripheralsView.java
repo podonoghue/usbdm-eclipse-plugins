@@ -682,7 +682,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    @Override
    public void sessionTerminated(final UsbdmDevicePeripheralsModel aPeripheralsModel) {
       
-      // System.err.println("UsbdmDevicePeripheralsView.SessionTerminate()");
+//       System.err.println("UsbdmDevicePeripheralsView.SessionTerminate()");
       Display.getDefault().asyncExec(new Runnable() {
          public void run() {
             if ((peripheralsTreeViewer == null) || peripheralsTreeViewer.getControl().isDisposed()) {

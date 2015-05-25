@@ -7,9 +7,9 @@ Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
 Bundle-Version: 4.11.1.qualifier
-Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="4.10.6",
- net.sourceforge.usbdm.deviceDatabase;bundle-version="4.10.6",
- net.sourceforge.usbdm.jni;bundle-version="4.10.6",
+Require-Bundle: net.sourceforge.usbdm.constants,
+ net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.jni,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.debug.ui,

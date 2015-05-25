@@ -125,9 +125,9 @@ public class UsbdmOptionsPanel  extends Composite {
             boolean               enabled         = true;
             try {
                ApplyWhenCondition applyWhenCondition = projectVariable.getRequirement();
-               if (projectVariable.getId().equals("projectOptionValue.KSDK-usb-audio-generator")) {
-                  applyWhenCondition.setVerbose(true);
-               }
+//               if (projectVariable.getId().equals("projectOptionValue.KSDK-usb-audio-generator")) {
+//                  applyWhenCondition.setVerbose(true);
+//               }
                enabled = applyWhenCondition.enabled(fDevice, fOptionMap, fButtonMap);
             } catch (Exception e) {
                e.printStackTrace();
@@ -344,12 +344,12 @@ public class UsbdmOptionsPanel  extends Composite {
                      return new Result(new Exception("Can't find button for var : " + projectVariable + " from " + action.getId()));
                   }
                   Boolean value = button.getSelection();
-                  System.err.println("UsbdmOptionsPanel.getPageData() projectVariable = " + projectVariable.toString() + ", value = " + value);
+//                  System.err.println("UsbdmOptionsPanel.getPageData() projectVariable = " + projectVariable.toString() + ", value = " + value);
                   paramMap.put(projectVariable.getId(), value.toString());
                }
                else if (action instanceof ProjectConstant) {
                   ProjectConstant projectConstant = (ProjectConstant) action;
-                  System.err.println(String.format("UsbdmOptionsPanel.getPageData(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+//                  System.err.println(String.format("UsbdmOptionsPanel.getPageData(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                   if (!projectConstant.doReplace()) {
                      String value = paramMap.get(projectConstant.getId());
                      if ((value != null) && !value.equals(projectConstant.getValue())) {

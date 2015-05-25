@@ -5,6 +5,7 @@ import net.sourceforge.usbdm.jni.Usbdm.CustomReg;
 import net.sourceforge.usbdm.jni.Usbdm.ExtendedOptions;
 import net.sourceforge.usbdm.jni.Usbdm.MemorySpace;
 import net.sourceforge.usbdm.jni.Usbdm.Reg;
+import net.sourceforge.usbdm.jni.Usbdm.ResetType;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
@@ -76,6 +77,7 @@ public class UsbdmJniPluginTest {
       options = Usbdm.getExtendedOptions();
       System.err.println("Current options: " + options);
 
+      Usbdm.targetReset(ResetType.RESET_SPECIAL);
       Usbdm.targetConnect();
       Usbdm.targetHalt();
             

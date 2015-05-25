@@ -7,7 +7,7 @@ Bundle-Activator: net.sourceforge.usbdm.peripherals.view.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.dsf.gdb,
- net.sourceforge.usbdm.constants;bundle-version="4.10.6",
+ net.sourceforge.usbdm.constants,
  org.eclipse.cdt.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy

@@ -4,12 +4,12 @@ Bundle-Name: USBDM User Interface
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.ui;singleton:=true
 Bundle-Version: 4.11.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.ui.Activator
-Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="4.10.6",
- net.sourceforge.usbdm.constants;bundle-version="4.10.6",
- net.sourceforge.usbdm.deviceDatabase;bundle-version="4.10.6",
- net.sourceforge.usbdm.gdb.ui;bundle-version="4.10.6",
- net.sourceforge.usbdm.jni;bundle-version="4.10.6",
- net.sourceforge.usbdm.peripheralDatabase;bundle-version="4.10.6",
+Require-Bundle: net.sourceforge.usbdm.cdt.tools,
+ net.sourceforge.usbdm.constants,
+ net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.gdb.ui,
+ net.sourceforge.usbdm.jni,
+ net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
