@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.peripherals.model;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
+import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
 
 /**
     * Model for a register within a peripheral
@@ -15,9 +16,9 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
       private   boolean            haveReportedChanged = false;
       private   AccessType         accessType;
       
-      private void initCommon(RegisterHolder peripheral, Register register) throws Exception {
+      private void initCommon(RegisterHolder peripheral, Register register) throws RegisterException {
          if (register.isHidden()) {
-            throw new Exception("Creating hidden register!!!");
+            throw new RegisterException("Creating hidden register!!!");
          }
          this.sizeInBits   = (int)register.getWidth();
          this.resetValue   = register.getResetValue();
@@ -27,7 +28,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
          this.memoryBlockCache = peripheral.findAddressBlock(address, (sizeInBits+7)/8);
          if (memoryBlockCache == null) {
 //            System.err.println(String.format("initCommon() reg=%s adr=0x%X", register.getName(), address));
-            throw new MemoryException(String.format("RegisterModel() %s - No memoryBlockCache found", getName()));
+            throw new RegisterException(String.format("RegisterModel() %s - No memoryBlockCache found", getName()));
          }
          if (this.accessType.isWriteable()) {
             memoryBlockCache.setWriteable(true);
@@ -49,9 +50,10 @@ import net.sourceforge.usbdm.peripheralDatabase.Register;
        * 
        * @param peripheral       Peripheral that contains register
        * @param register         Register being created
+       * @throws RegisterException 
        * @throws Exception 
        */
-      public RegisterModel(RegisterHolder peripheral, ModelInformation information) throws Exception {
+      public RegisterModel(RegisterHolder peripheral, ModelInformation information) throws RegisterException {
          super(peripheral, information.getRegisterName(), information.getDescription());
          assert(parent != null) : "parent can't be null";
          this.address = information.getRegisterAddress();

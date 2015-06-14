@@ -1,26 +1,17 @@
 package net.sourceforge.usbdm.gdb;
 
-import org.eclipse.cdt.dsf.debug.service.IBreakpoints.IBreakpointsTargetDMContext;
+/*
+ * Revised to directly extend CommandFactory_6_8
+ */
+import org.eclipse.cdt.dsf.debug.service.IRunControl.IExecutionDMContext;
 import org.eclipse.cdt.dsf.debug.service.command.ICommand;
-import org.eclipse.cdt.dsf.mi.service.command.commands.MIBreakInsert;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIBreakInsertInfo;
+import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
+import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
-public class UsbdmCommandFactory_6_8 extends UsbdmCommandFactory {
-
-   @Override 
-   public ICommand<MIBreakInsertInfo> createMIBreakInsert(IBreakpointsTargetDMContext ctx, String func) {
-      return new MIBreakInsert(ctx, func, true);
+public class UsbdmCommandFactory_6_8 extends CommandFactory_6_8 {
+   
+   public ICommand<MIInfo> createMIExecReset(IExecutionDMContext dmc) {
+      return new MIExecReset(dmc);
    }
 
-   @Override
-   public ICommand<MIBreakInsertInfo> createMIBreakInsert(IBreakpointsTargetDMContext ctx, boolean isTemporary, 
-         boolean isHardware, String condition, int ignoreCount, String line, int tid) {
-      return new MIBreakInsert(ctx, isTemporary, isHardware, condition, ignoreCount, line, tid, true);
-   }
-
-   @Override
-   public ICommand<MIBreakInsertInfo> createMIBreakInsert(IBreakpointsTargetDMContext ctx, boolean isTemporary,
-         boolean isHardware, String condition, int ignoreCount, String location, int tid, boolean disabled, boolean isTracepoint) {
-      return new MIBreakInsert(ctx, isTemporary, isHardware, condition, ignoreCount, location, tid, disabled, isTracepoint, true);
-   }
 }

@@ -24,6 +24,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -574,12 +575,12 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          public void run() {
             InterfaceType interfaceType = null;
             if (peripheralsModel != null) {
+               // Choose the same device class as existing
                interfaceType = peripheralsModel.getModel().getTargetType();
             }
             DeviceSelectDialogue dialogue = new DeviceSelectDialogue(getSite().getShell(), defaultDeviceOrSvdFilename, interfaceType);
-                     
-            int result = dialogue.open();
-            if (result != Window.OK) {
+
+            if (dialogue.open() != Window.OK) {
                // Cancelled etc
                return;
             }
@@ -593,18 +594,27 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                setDeviceAction.setText("Device...");
             }
             if ((peripheralsTreeViewer == null) || peripheralsTreeViewer.getControl().isDisposed()) {
-//                System.err.println("UsbdmDevicePeripheralsView.Action() - no peripheral view or already disposed()");
+               System.err.println("UsbdmDevicePeripheralsView.Action() - no peripheral view or already disposed()");
                return;
             }
             if (peripheralsModel == null) {
-//               System.err.println("UsbdmDevicePeripheralsView.Action() - peripheralsModel == null");
+               // If there is no existing model we are finished (model will be created later)
+               System.err.println("UsbdmDevicePeripheralsView.Action() - peripheralsModel == null");
                return;
             }
 //            System.err.println("UsbdmDevicePeripheralsView.Action() - Setting peripheral model");
-            peripheralsModel.setDevice(devicePeripherals);
+            // Update model
+            try {
+               peripheralsModel.setDevice(devicePeripherals);
+            } catch (Exception e) {
+               // Unable to generate model
+               e.printStackTrace();
+               MessageDialog.openError(getSite().getShell(), "Illegal device", "Device not found " + defaultDeviceOrSvdFilename);
+               return;
+            }
             peripheralsTreeViewer.setInput(peripheralsModel.getModel());
             ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
-            
+
          }
       };
       if (peripheralsModel != null) {
@@ -647,24 +657,28 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       Display.getDefault().asyncExec(new Runnable() {
          public void run() {
             if ((peripheralsTreeViewer == null) || peripheralsTreeViewer.getControl().isDisposed()) {
-               // System.err.println("UsbdmDevicePeripheralsView.SessionCreate() - no peripheral view or already disposed()");
+               System.err.println("UsbdmDevicePeripheralsView.SessionCreate() - no peripheral view or already disposed()");
                return;
             }
             if (peripheralsModel != null) {
                // Model already set - ignore
-//               System.err.println("UsbdmDevicePeripheralsView.sessionStarted() - peripheralsModel != null");
+               System.err.println("UsbdmDevicePeripheralsView.sessionStarted() - peripheralsModel already set");
                return;
             }
             peripheralsModel = aPeripheralsModel;
             if (peripheralsModel == null) {
                peripheralsTreeViewer.setInput(null);
-               setDeviceAction.setText("No device");
+               setDeviceAction.setText("No model");
             }
             else {
                // No device description (model) - use default 
-               if (peripheralsModel.getModel() == null) {
+               if (peripheralsModel.getModel() == UsbdmDevicePeripheralsModel.NullDeviceModel) {
 //                  System.err.println("UsbdmDevicePeripheralsView.sessionStarted() - Using default peripheral model");
-                  peripheralsModel.setDevice(defaultDeviceOrSvdFilename);
+                  try {
+                     peripheralsModel.setDevice(defaultDeviceOrSvdFilename);
+                  } catch (Exception e) {
+                     e.printStackTrace();
+                  }
                }
                else {
                   setDeviceAction.setEnabled(false);
@@ -741,44 +755,49 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
     * @param args
     */
    public static void main(String[] args) {
-      Display display = new Display();
+      try {
+         Display display = new Display();
 
-      Shell shell = new Shell(display);
-      shell.setText("Task List - TableViewer Example");
-      shell.setLayout(new FillLayout());
+         Shell shell = new Shell(display);
+         shell.setText("Task List - TableViewer Example");
+         shell.setLayout(new FillLayout());
 
-      Composite composite = new Composite(shell, SWT.NONE);
-      composite.setBackground(new Color(display, 255, 0, 0));
-      composite.setLayout(new FillLayout());
+         Composite composite = new Composite(shell, SWT.NONE);
+         composite.setBackground(new Color(display, 255, 0, 0));
+         composite.setLayout(new FillLayout());
 
-      UsbdmDevicePeripheralsView view = new UsbdmDevicePeripheralsView();
+         UsbdmDevicePeripheralsView view = new UsbdmDevicePeripheralsView();
 
-      view.createPartControl(composite);
-      UsbdmDevicePeripheralsModel peripheralsModel = null;
-      // Try with device name
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("MK20DX128M5", null);
-      // Try with full path
-      final String path = "C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/";
-      
-//    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
-//    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK10D10.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK11D5.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK64F12.svd.xml", null);
-      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK22F51212.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF5225x.svd.xml", null);
-//      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF51JF.svd.xml", null);
-      // Try illegal path/name
-//      peripheralsModel = new UsbdmDevicePeripheralsModel("xxxx", null);
-      
-      view.sessionStarted(peripheralsModel);
+         view.createPartControl(composite);
+         UsbdmDevicePeripheralsModel peripheralsModel = null;
+         // Try with device name
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel("MK20DX128M5", null);
+         // Try with full path
+         final String path = "C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/";
 
-      shell.open();
-      while (!shell.isDisposed()) {
-         if (!display.readAndDispatch())
-            display.sleep();
+         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
+         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK10D10.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK11D5.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK64F12.svd.xml", null);
+         peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, path+"MK22F51212.svd.xml");
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF5225x.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF51JF.svd.xml", null);
+         // Try illegal path/name
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel("xxxx", null);
+
+         view.sessionStarted(peripheralsModel);
+
+         shell.open();
+         while (!shell.isDisposed()) {
+            if (!display.readAndDispatch())
+               display.sleep();
+         }
+         display.dispose();
+      } catch (Exception e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
       }
-      display.dispose();
    }
 
    public PeripheralsInformationPanel getInformationPanel() {

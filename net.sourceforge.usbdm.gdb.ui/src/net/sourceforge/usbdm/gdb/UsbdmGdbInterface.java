@@ -7,6 +7,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  *******************************************************************************/
+
 /**
  * @author Peter O'Donoghue
  *         based upon work by Doug Schaefer, Adrian Petrescu
@@ -80,7 +81,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
       addCmd(commands, "-file-symbol-file " + escapeSpaces(symbolFileName)); //$NON-NLS-1$
    }
 
-   protected String connection = null;
+   protected String connection = "localhost:1234";
 
    /* (non-Javadoc)
     * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#doDelay(int, java.util.Collection)
@@ -108,7 +109,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doRemote(String ip, int port, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doRemote(ip=%s, port=%d)", ip, port));
+      System.err.println(String.format("UsbdmGdbInterface.doRemote(ip=%s, port=%d)", ip, port));
       addCmd(commands, "-gdb-set remotetimeout 3000"); //$NON-NLS-1$
       addCmd(commands, "-target-select remote " + ip + ":" + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
    }
@@ -119,12 +120,11 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doRemote(String commandLine, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doRemote(cl=%s)", commandLine));
       addCmd(commands, "-gdb-set remotetimeout 3000"); //$NON-NLS-1$
-//      System.err.println("UsbdmGdbInterface.doRemote(\'"+commandLine+"\')");
+      System.err.println("UsbdmGdbInterface.doRemote(\'"+"-gdb-set remotetimeout 3000"+"\')");
       if (commandLine != null) {
          addCmd(commands, "-target-select remote " + commandLine);//$NON-NLS-1$
-//         System.err.println("UsbdmGdbInterface.doRemote(" + completeCommandLine +")");
+         System.err.println("UsbdmGdbInterface.doRemote(\'"+"-target-select remote " +commandLine+"\')");
       }
    }
 
@@ -148,7 +148,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doStopAt(String stopAt, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doStopAt(%s)", stopAt));
+      System.err.println(String.format("UsbdmGdbInterface.doStopAt(%s)", stopAt));
       addCmd(commands, "-break-insert -t " + stopAt); //$NON-NLS-1$
    }
 
@@ -159,7 +159,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doReset(Collection<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doReset()");
+      System.err.println("UsbdmGdbInterface.doReset()");
       addCmd(commands, "monitor reset halt"); //$NON-NLS-1$
    }
 
@@ -169,7 +169,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     * @param commands    Collection to add commands to
     */
    public void doStep(Collection<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doStep()");
+      System.err.println("UsbdmGdbInterface.doStep()");
       addCmd(commands, "-exec-step");  //$NON-NLS-1$
    }
 
@@ -181,7 +181,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doSetPC(String pcValue, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doSetPC(%s)", pcValue));
+      System.err.println(String.format("UsbdmGdbInterface.doSetPC(%s)", pcValue));
       addCmd(commands, "-gdb-set $pc=" + pcValue); //$NON-NLS-1$
    }
 
@@ -192,7 +192,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doHalt(Collection<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doHalt()");
+      System.err.println("UsbdmGdbInterface.doHalt()");
       addCmd(commands, "-exec-interrupt"); //$NON-NLS-1$
    }
 
@@ -203,10 +203,10 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     */
    @Override
    public void doContinue(Collection<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doContinue()");
+      System.err.println("UsbdmGdbInterface.doContinue()");
       // Use 'continue' so we don't wait for acknowledgement
-      addCmd(commands, "continue"); //$NON-NLS-1$
-//      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
+//      addCmd(commands, "continue"); //$NON-NLS-1$
+      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
    }
 
    /**
@@ -216,9 +216,10 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
     * @param commands   Collection to add commands to
     */
    public void doRun(Collection<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doRun()");
+      System.err.println("UsbdmGdbInterface.doRun()");
       // Use 'continue' so we don't wait for acknowledgement
       addCmd(commands, "monitor run"); //$NON-NLS-1$
+//      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
    }
 
    /**
@@ -232,7 +233,7 @@ public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJ
    }
 
    public void doDetach(List<String> commands) {
-//      System.err.println("UsbdmGdbInterface.doDetach()");
+      System.err.println("UsbdmGdbInterface.doDetach()");
       addCmd(commands, "-target-detach"); //$NON-NLS-1$
    }
 

@@ -135,7 +135,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * @return
     * @throws Exception
     */
-   public String format(String format, int index) throws Exception {
+   public String format(String format, int index) {
       final Pattern pattern = Pattern.compile("(^.*):(.*$)");
       String sIndex   = "";
       String modifier = "";
@@ -778,7 +778,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * 
     * Register should be able to be declared as e.g. uint8_t ADC_RESULT[10]; 
     */
-   public boolean isSimpleArray() throws Exception {
+   public boolean isSimpleArray() throws RegisterException {
       if (getDimension() == 0) {
          return false;
       }
@@ -789,7 +789,7 @@ public class Cluster extends ModeControl implements Cloneable {
       if (getName().matches("^.+\\[%s\\]$")) {
          // MUST be a simple register array
          if (!indexesSequentialFromZero) {
-            throw new Exception(String.format("Register name implies simple array but dimensions not consecutive, name=\'%s\', dimIndexes=\'%s\'", getName(), getDimensionIndexes().toString()));
+            throw new RegisterException(String.format("Register name implies simple array but dimensions not consecutive, name=\'%s\', dimIndexes=\'%s\'", getName(), getDimensionIndexes().toString()));
          }
          return true;
       }
@@ -808,7 +808,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * @return
     * @throws Exception
     */
-   String getSimpleArrayName(String name, int index) throws Exception {
+   String getSimpleArrayName(String name, int index) {
       name = name.replaceAll("\\[%s\\]", "");
       if (name.contains("%s")) {
          return format(name, index);
@@ -837,13 +837,14 @@ public class Cluster extends ModeControl implements Cloneable {
     * @param sIndex Index of register
     * 
     * @return
+    * @throws RegisterException 
     * 
     * @throws Exception if it is not possible to express as simple array using a subscript
     */
-   public String getSimpleArraySubscriptedName(String name, int index) throws Exception {
+   public String getSimpleArraySubscriptedName(String name, int index) throws RegisterException {
       if (!isSimpleArray()) {
          // Trying to treat as simple array!
-         throw new Exception(String.format("Register is not simple array, name=\'%s\'", getName()));
+         throw new RegisterException(String.format("Register is not simple array, name=\'%s\'", getName()));
       }
       String sIndex = Integer.toString(index);
       Matcher m;
@@ -881,7 +882,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * 
     * @throws Exception if it is not possible to express as simple array using a subscript
     */
-   public String getArraySubscriptedName(String name, int index) throws Exception {
+   public String getArraySubscriptedName(String name, int index) throws RegisterException {
       if (!isSimpleArray()) {
          return getSimpleArrayName(name, index);
       }
@@ -898,7 +899,7 @@ public class Cluster extends ModeControl implements Cloneable {
     * 
     * @throws Exception if it is not possible to express as simple array using a subscript
     */
-   public String getArraySubscriptedName(int index) throws Exception {
+   public String getArraySubscriptedName(int index) throws RegisterException {
       return getArraySubscriptedName(getBaseName(), index);
    }
 

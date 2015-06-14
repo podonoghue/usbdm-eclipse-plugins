@@ -215,7 +215,7 @@ public class Register extends Cluster implements Cloneable {
    }
    
    @Override
-   public String format(String format, int index) throws Exception {
+   public String format(String format, int index) {
       return super.format(format, index);
    }
 
@@ -233,7 +233,7 @@ public class Register extends Cluster implements Cloneable {
     * @return
     * @throws Exception
     */
-   public String format(String format, int clusterIndex, int registerIndex) throws Exception {
+   public String format(String format, int clusterIndex, int registerIndex) {
       final Pattern pattern = Pattern.compile("(^.*):(.*$)");
       String sRegisterIndex   = "";
       if (registerIndex>=0) {
@@ -268,7 +268,7 @@ public class Register extends Cluster implements Cloneable {
     * 
     * @throws Exception
     */
-   public String getCDescription(int clusterIndex, int registerIndex) throws Exception {
+   public String getCDescription(int clusterIndex, int registerIndex) {
       return SVD_XML_BaseParser.unEscapeString(format(getDescription(), clusterIndex, registerIndex));
    }
 
@@ -281,7 +281,7 @@ public class Register extends Cluster implements Cloneable {
     * 
     * @throws Exception
     */
-   public String getCDescription(int registerIndex) throws Exception {
+   public String getCDescription(int registerIndex) {
       return SVD_XML_BaseParser.unEscapeString(format(getDescription(), registerIndex));
    }
 

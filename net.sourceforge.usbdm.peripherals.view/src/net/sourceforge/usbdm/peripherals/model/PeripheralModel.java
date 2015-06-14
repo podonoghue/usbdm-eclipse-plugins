@@ -22,7 +22,7 @@ import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
        * @param peripheral  Underlying peripheral
        * @throws Exception 
        */
-      public PeripheralModel(BaseModel parent, Peripheral peripheral, GdbCommonInterface gdbInterface) throws Exception {
+      public PeripheralModel(BaseModel parent, Peripheral peripheral, GdbCommonInterface gdbInterface) {
          super(parent, peripheral.getName(), peripheral.getDescription());
 
          assert(parent != null) : "parent can't be null";

@@ -756,6 +756,9 @@ public class AnnotationModel {
 
       @Override
       public void setValue(Object value) throws Exception {
+         if (value instanceof Boolean) {
+            setValue(new Long(((Boolean)value)?1:0));
+         }
          setValue((long)(Long)value);
       }
 
@@ -887,6 +890,9 @@ public class AnnotationModel {
       @Override
       public String getValueAsString() throws Exception {
          long value = (Long)getValue();
+         if ((bitField != null) && (bitField.getStart() == bitField.getEnd())) {
+            return String.format("%d", value);
+         }
          try {
             if (getReference().isUseHex()) {
                return String.format("0x%X", value);
@@ -1137,14 +1143,6 @@ public class AnnotationModel {
          else {
             trueValueText = enumValue.getName();
          }
-      }
-
-      @Override
-      public void setValue(Object value) throws Exception {
-         if (!(value instanceof Boolean)) {
-            throw new RuntimeException("Illegal type in setValue(): " + value.getClass());
-         }
-         super.setValue(new Long(((Boolean)value)?1:0));
       }
 
       @Override

@@ -4,8 +4,10 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BitField;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.ErrorNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.HeadingModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -32,6 +34,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
@@ -78,6 +82,13 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
             }
             if (element instanceof BinaryOptionModelNode) {
                return ((Boolean)((BinaryOptionModelNode)element).safeGetValue())?checkedImage:uncheckedImage;
+            }
+            if (element instanceof NumericOptionModelNode) {
+               BitField field = ((NumericOptionModelNode)element).getBitField();
+               if ((field != null) && (field.getStart() == field.getEnd())) {
+                  long value = ((NumericOptionModelNode)element).getValueAsLong();
+                  return (value!=0)?checkedImage:uncheckedImage;
+               }
             }
          }
          return null;
@@ -196,7 +207,13 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       viewer.getTree().setLinesVisible(true);
       viewer.getTree().setHeaderVisible(true);
       ColumnViewerToolTipSupport.enableFor(viewer);
-
+      // Suppress tree expansion on double-click
+      // see http://www.eclipse.org/forums/index.php/t/257325/
+      viewer.getControl().addListener(SWT.MeasureItem, new Listener(){
+         @Override
+         public void handleEvent(Event event) {
+         }});
+      
       viewer.setContentProvider(new ViewContentProvider());
 
       FocusCellOwnerDrawHighlighter highlighter = new FocusCellOwnerDrawHighlighter(viewer) {
@@ -209,7 +226,7 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       };
 
       TreeViewerFocusCellManager focusCellManager     = new TreeViewerFocusCellManager(viewer, highlighter);
-//      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer);
+      
       ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
          @Override
          protected boolean isEditorActivationEvent(

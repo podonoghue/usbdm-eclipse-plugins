@@ -20,7 +20,8 @@ Require-Bundle: net.sourceforge.usbdm.constants,
  org.eclipse.cdt.debug.gdbjtag.core,
  org.eclipse.cdt.debug.gdbjtag.core,
  org.eclipse.cdt.debug.core,
- org.eclipse.cdt.core
+ org.eclipse.cdt.core,
+ org.eclipse.cdt.dsf.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.gdb,
  net.sourceforge.usbdm.gdb.ui

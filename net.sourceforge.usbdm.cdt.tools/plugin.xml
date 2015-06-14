@@ -641,12 +641,12 @@
                valueType="stringList">
             </option>
             <option
-               name="Create Listing"
-               id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.miscellaneous.listing"
-               category="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.miscellaneous.Category"
-               command="-Wa,${value}"
-               defaultValue="-adhls=&quot;$@.lst&quot;"
-               valueType="string">
+                  name="Create Listing (-Wa,-adhls=&quot;$@.lst&quot;)"
+                  id="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.miscellaneous.defaultlisting"
+                  category="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.miscellaneous.Category"
+                  command="-Wa,-adhls=&quot;$@.lst&quot;"
+                  defaultValue="false"
+                  valueType="boolean">
             </option>
             <option
                name="Other flags"

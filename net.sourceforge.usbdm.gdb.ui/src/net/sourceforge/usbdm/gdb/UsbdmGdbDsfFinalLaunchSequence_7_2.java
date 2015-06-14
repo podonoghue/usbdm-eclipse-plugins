@@ -31,11 +31,8 @@ import org.eclipse.core.runtime.Status;
  */
 public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
 
-   private DsfSession fSession;
-
-   public UsbdmGdbDsfFinalLaunchSequence_7_2(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm, GdbServerParameters fGdbServerParameters) {
-      super(session, attributes, rm, fGdbServerParameters);
-      fSession = session;
+   public UsbdmGdbDsfFinalLaunchSequence_7_2(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm, GdbServerParameters gdbServerParameters) {
+      super(session, attributes, rm, gdbServerParameters);
    }
 
    @Override
@@ -60,7 +57,7 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
     */
    @Execute
    public void stepInitializeJTAGSequence_7_2(RequestMonitor rm) {
-      DsfServicesTracker tracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
+      DsfServicesTracker tracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), getSession().getId());
       IGDBControl gdbControl = tracker.getService(IGDBControl.class);
       IGDBProcesses procService = tracker.getService(IGDBProcesses.class);
       tracker.dispose();

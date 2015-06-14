@@ -11,6 +11,7 @@ public class Cpu extends ModeControl {
    String   endian;
    boolean  mpuPresent;
    boolean  fpuPresent;
+   boolean  vtorPresent;
    int      nvicPrioBits;
    boolean  vendorSystickConfig;
    
@@ -20,6 +21,7 @@ public class Cpu extends ModeControl {
       endian              = "little";
       mpuPresent          = false;
       fpuPresent          = false;
+      vtorPresent         = true;
       nvicPrioBits        = 0;
       vendorSystickConfig = false;
    }
@@ -100,6 +102,20 @@ public class Cpu extends ModeControl {
    }
 
    /**
+    * @param vtorPresent the vtorPresent to set
+    */
+   public void setVtorPresent(boolean vtorPresent) {
+      this.vtorPresent = vtorPresent;
+   }
+
+   /**
+    * @return true if VTOR present
+    */
+   public boolean isVtorPresent() {
+      return vtorPresent;
+   }
+
+   /**
     * @param fpuPresent the fpuPresent to set
     */
    public void setFpuPresent(boolean fpuPresent) {
@@ -140,6 +156,7 @@ public class Cpu extends ModeControl {
              (this.getEndian().equalsIgnoreCase(other.getEndian())) && 
              (this.isMpuPresent()          == other.isMpuPresent()) &&
              (this.isFpuPresent()          == other.isFpuPresent()) &&
+             (this.isVtorPresent()         == other.isVtorPresent()) &&
              (this.getNvicPrioBits()       == other.getNvicPrioBits()) &&
              (this.isVendorSystickConfig() == other.isVendorSystickConfig());
    }
@@ -156,10 +173,11 @@ public class Cpu extends ModeControl {
    public void writeCHeaderFile(PrintWriter writer) {
       writer.print(banner);
       writer.print(String.format(   "#define %s                %s\n",             getVersionIdString(), getRevisionNumber()));
-      writer.print(String.format(   "#define __MPU_PRESENT            %s\n",             isMpuPresent()?"1":"0"));
-      writer.print(String.format(   "#define __NVIC_PRIO_BITS         %d\n",             getNvicPrioBits()));
-      writer.print(String.format(   "#define __Vendor_SysTickConfig   %s\n",             isVendorSystickConfig()?"1":"0"));
-      writer.print(String.format(   "#define __FPU_PRESENT            %s\n\n",           isFpuPresent()?"1":"0"));
+      writer.print(String.format(   "#define __MPU_PRESENT            %s\n",      isMpuPresent()?"1":"0"));
+      writer.print(String.format(   "#define __NVIC_PRIO_BITS         %d\n",      getNvicPrioBits()));
+      writer.print(String.format(   "#define __Vendor_SysTickConfig   %s\n",      isVendorSystickConfig()?"1":"0"));
+      writer.print(String.format(   "#define __FPU_PRESENT            %s\n",      isFpuPresent()?"1":"0"));
+      writer.print(String.format(   "#define __VTOR_PRESENT           %s\n\n",    isVtorPresent()?"1":"0"));
    }
 
    String getHeaderFileName() {
@@ -208,6 +226,7 @@ public class Cpu extends ModeControl {
       writer.println(String.format(   "      <endian>%s</endian>",                           getEndian()));
       writer.println(String.format(   "      <mpuPresent>%b</mpuPresent>",                   isMpuPresent()));
       writer.println(String.format(   "      <fpuPresent>%b</fpuPresent>",                   isFpuPresent()));
+      writer.println(String.format(   "      <vtorPresent>%b</vtorPresent>",                 isVtorPresent()));
       writer.println(String.format(   "      <nvicPrioBits>%d</nvicPrioBits>",               getNvicPrioBits()));
       writer.println(String.format(   "      <vendorSystickConfig>%b</vendorSystickConfig>", isVendorSystickConfig()));
       writer.println(                 "   </cpu>");

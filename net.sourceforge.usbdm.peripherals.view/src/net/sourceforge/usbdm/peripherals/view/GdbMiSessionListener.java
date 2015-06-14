@@ -248,9 +248,8 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
             String deviceName = getDeviceName(event); 
             if (deviceName != null) {
 //               System.err.println("handleDebugEvents() Device Name = " + deviceName);
-               peripheralsModel = new UsbdmDevicePeripheralsModel(deviceName, new GdbMiInterface(session));
+               peripheralsModel = UsbdmDevicePeripheralsModel.createModel(new GdbMiInterface(session), deviceName);
             }
-//            System.err.println(String.format("handleDebugEvents() new session on the fly, device = \'%s\', session = \'%s\'", deviceName, session.toString()));
          }
          switch (event.getKind()) {
          case DebugEvent.SUSPEND : 

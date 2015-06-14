@@ -9,7 +9,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.cdt.dsf.gdb,
  net.sourceforge.usbdm.constants,
  org.eclipse.cdt.core
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.deviceDatabase,
@@ -43,3 +42,5 @@ Import-Package: net.sourceforge.usbdm.constants,
  org.eclipse.debug.core.model,
  org.eclipse.debug.ui
 Bundle-Vendor: pgo
+Export-Package: net.sourceforge.usbdm.peripherals.model
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

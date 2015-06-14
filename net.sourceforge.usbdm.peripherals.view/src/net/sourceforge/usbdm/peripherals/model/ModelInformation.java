@@ -4,6 +4,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.Field;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
+import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
 
 public class ModelInformation {
    private String       formatString;
@@ -71,7 +72,7 @@ public class ModelInformation {
       return registerIndex;
    }
    
-   public String getClusterName() throws Exception {
+   public String getClusterName() throws RegisterException {
       if (clusterIndex <0) {
          return cluster.getName();
       }
@@ -87,7 +88,7 @@ public class ModelInformation {
     * @return
     * @throws Exception
     */
-   public String getUnwrappedRegisterName() throws Exception {
+   public String getUnwrappedRegisterName() throws RegisterException {
       if (clusterIndex <0) {
          return register.getName();
       }
@@ -96,7 +97,7 @@ public class ModelInformation {
       }
    }
 
-   public String getRegisterName() throws Exception {
+   public String getRegisterName() throws RegisterException {
       if (registerIndex <0) {
          return register.getName();
       }
@@ -105,7 +106,7 @@ public class ModelInformation {
       }
    }
 
-   public String getFieldName() throws Exception {
+   public String getFieldName() {
       if (registerIndex <0) {
          return field.getName();
       }
@@ -134,7 +135,7 @@ public class ModelInformation {
       return address;
    }
    
-   public String getDescription() throws Exception {
+   public String getDescription() {
       String description = "";
       if (field != null) {
          if (clusterIndex >= 0) {

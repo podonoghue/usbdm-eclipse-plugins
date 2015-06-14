@@ -29,9 +29,12 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
 	protected ICommandControl createCommandControl(DsfSession session, ILaunchConfiguration config) {
 	   GdbServerParameters gdbServerParameters = GdbServerParameters.getInitializedServerParameters(config);
 	   
-	   if (GDB_7_4_VERSION.compareTo(getVersion()) <= 0) {
-	      return new UsbdmGdbControl_7_4(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
-	   }
+//      if (GDB_7_7_VERSION.compareTo(getVersion()) <= 0) {
+//         return new UsbdmGdbControl_7_7(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
+//      }
+      if (GDB_7_4_VERSION.compareTo(getVersion()) <= 0) {
+         return new UsbdmGdbControl_7_4(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
+      }
 	   if (GDB_7_2_VERSION.compareTo(getVersion()) <= 0) {
 	      return new UsbdmGdbControl_7_2(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
 	   }
@@ -41,6 +44,6 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
 	   if (GDB_6_8_VERSION.compareTo(getVersion()) <= 0) {
 	      return new UsbdmGdbControl(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
 	   }
-	   return new UsbdmGdbControl(session, config, new UsbdmCommandFactory(), gdbServerParameters);
+	   return new UsbdmGdbControl(session, config, new UsbdmCommandFactory_6_8(), gdbServerParameters);
 	}
 }

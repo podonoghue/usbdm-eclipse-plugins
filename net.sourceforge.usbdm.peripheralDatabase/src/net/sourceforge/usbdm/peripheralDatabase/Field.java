@@ -150,7 +150,7 @@ public class Field extends ModeControl implements Cloneable {
       return name;
    }
 
-   public String getName(int index) throws Exception {
+   public String getName(int index) {
       return owner.format(name, index);
    }
 
@@ -162,11 +162,11 @@ public class Field extends ModeControl implements Cloneable {
       return SVD_XML_BaseParser.unEscapeString(getDescription());
    }
    
-   public String getCDescription(int index) throws Exception {
+   public String getCDescription(int index) {
       return SVD_XML_BaseParser.unEscapeString(owner.format(description, index));
    }
    
-   public String getCDescription(int clusterIndex, int registerIndex) throws Exception {
+   public String getCDescription(int clusterIndex, int registerIndex) {
       return SVD_XML_BaseParser.unEscapeString(owner.format(description, clusterIndex, registerIndex));
    }
 

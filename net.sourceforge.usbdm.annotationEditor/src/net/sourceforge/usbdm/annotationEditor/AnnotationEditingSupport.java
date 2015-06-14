@@ -103,7 +103,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
       if (element instanceof BinaryOptionModelNode) {
          return new BooleanCellEditor(viewer.getTree());
       }
-      else if (element instanceof EnumeratedOptionModelNode) {
+      if (element instanceof EnumeratedOptionModelNode) {
          ArrayList<EnumValue> t = ((EnumeratedOptionModelNode) element).getEnumerationValues();
          String choices[] = new String[t.size()];
          for (int index=0; index<t.size(); index++) {
@@ -111,10 +111,14 @@ public class AnnotationEditingSupport  extends EditingSupport {
          }
          return new ChoiceCellEditor(viewer.getTree(), choices);
       }
-      else if ((element instanceof NumericOptionModelNode)) {
+      if (element instanceof NumericOptionModelNode) {
+         BitField field = ((NumericOptionModelNode)element).getBitField();
+         if ((field != null) && (field.getStart() == field.getEnd())) {
+            return new BooleanCellEditor(viewer.getTree());
+         }
          return new StringCellEditor(viewer.getTree());
       }
-      else if (element instanceof StringOptionModelNode) {
+      if (element instanceof StringOptionModelNode) {
          return new StringCellEditor(viewer.getTree());
       }
       return null;
@@ -127,9 +131,13 @@ public class AnnotationEditingSupport  extends EditingSupport {
             if (element instanceof BinaryOptionModelNode) {
                return ((BinaryOptionModelNode)element).getValue();
             }
-            else {
-               return ((AnnotationModelNode) element).getValueAsString();
+            if (element instanceof NumericOptionModelNode) {
+               BitField field = ((NumericOptionModelNode)element).getBitField();
+               if ((field != null) && (field.getStart() == field.getEnd())) {
+                  return new Boolean(((NumericOptionModelNode)element).getValueAsLong()!=0);
+               }
             }
+            return ((AnnotationModelNode) element).getValueAsString();
          } catch (Exception e) {
             e.printStackTrace();
             return e.getMessage();

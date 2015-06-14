@@ -288,7 +288,7 @@ public class DeviceSelectDialogue extends TitleAreaDialog  {
       System.err.println("deviceOrFilename = " + deviceOrFilename);
       DevicePeripherals devicePeripherals = dialogue.getDevicePeripherals(); 
       System.err.println("devicePeripherals = " + devicePeripherals);
-      UsbdmDevicePeripheralsModel peripheralModel = new UsbdmDevicePeripheralsModel(devicePeripherals, null);
+      UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(null, devicePeripherals);
       System.err.println("peripheralModel = " + peripheralModel);
       
       display.dispose();

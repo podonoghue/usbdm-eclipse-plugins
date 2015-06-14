@@ -16,6 +16,7 @@ import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.Field;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
+import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
 import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
 
 /**
@@ -31,7 +32,7 @@ public class UsbdmDevicePeripheralsModel {
     * @param register      The register to obtain bit-field information from
     * @throws Exception 
     */
-   private static void createFieldModels(RegisterModel registerModel, Register register, ModelInformation pInformation) throws Exception {
+   private static void createFieldModels(RegisterModel registerModel, Register register, ModelInformation pInformation) {
       ModelInformation information = new ModelInformation(pInformation);
       ArrayList<Field> fieldList = register.getFields();
       if (fieldList != null) {
@@ -53,10 +54,11 @@ public class UsbdmDevicePeripheralsModel {
     * @param  peripheralModel The model that represents the peripheral and owns the registers
     * @param  register        The register to obtain register information from
     * @param  pInformation    Format for register to this level
+    * @throws RegisterException 
     * 
     * @throws Exception
     */
-   private static void createRegisterModels(PeripheralModel peripheralModel, Register register, ModelInformation pInformation) throws Exception {
+   private static void createRegisterModels(PeripheralModel peripheralModel, Register register, ModelInformation pInformation) throws RegisterException {
       if (register.isHidden()) {
          return;
       }
@@ -88,7 +90,7 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @throws Exception 
     */
-   private static void createClusterModels(PeripheralModel peripheralModel, Cluster cluster, ModelInformation pInformation) throws Exception {
+   private static void createClusterModels(PeripheralModel peripheralModel, Cluster cluster, ModelInformation pInformation) throws RegisterException {
       ModelInformation clusterInfo = new ModelInformation(pInformation);
       clusterInfo.setCluster(cluster);
       
@@ -143,10 +145,10 @@ public class UsbdmDevicePeripheralsModel {
     * 
     * @param device      The model that represents the device (entire tree) that owns the peripherals
     * @param peripheral  The peripheral to obtain register information from
-    * 
+    * @throws RegisterException 
     * @throws Exception 
     */
-   private static void createPeripheralModel(DeviceModel device, Peripheral peripheral, GdbCommonInterface gdbInterface) throws Exception {
+   private static void createPeripheralModel(DeviceModel device, Peripheral peripheral, GdbCommonInterface gdbInterface) throws RegisterException {
       // Create peripheral mode
       PeripheralModel   peripheralModel = new PeripheralModel(device, peripheral, gdbInterface);
       ModelInformation  information     = new ModelInformation(peripheral);
@@ -184,14 +186,16 @@ public class UsbdmDevicePeripheralsModel {
    /**
     * Creates the tree entries for a peripheral
     * 
-    * @param devicenameOrFilename    Device SVD file path or device name to use to locate peripheral description
-    * @throws Exception 
+    * @param devicePeripherals 
+    * @param gdbInterface
+    * 
+    * @throws IllegalArgumentException 
+    * @throws RegisterException 
     */
-   public static DeviceModel createDeviceModel(DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) throws Exception {
+   public static DeviceModel createDeviceModel(DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) throws IllegalArgumentException, RegisterException {
 
       if (devicePeripherals == null) {
-         // Return empty model
-         return null;
+         throw new IllegalArgumentException("devicePeripherals may not be null");
       }
       DeviceModel deviceModel = new DeviceModel(devicePeripherals.getName()) ;
       if (gdbInterface != null) {
@@ -208,7 +212,7 @@ public class UsbdmDevicePeripheralsModel {
          deviceModel.setTargetType(InterfaceType.T_CFVX);
       }
       else {
-         deviceModel.setTargetType(null);
+         throw new IllegalArgumentException("unexpected value from devicePeripherals.getCpu().getName()");
       }
 
       // Add the peripherals
@@ -225,6 +229,59 @@ public class UsbdmDevicePeripheralsModel {
    private GdbCommonInterface gdbInterface = null;
    
    /**
+    * Factory
+    * 
+    * Loads device model using path to SVD file or device name and associates GDB session
+    * 
+    * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
+    * @param gdbInterface
+    * @throws Exception 
+    */
+   public static final UsbdmDevicePeripheralsModel createModel(GdbCommonInterface gdbInterface, String devicenameOrFilename) {
+      UsbdmDevicePeripheralsModel model = null;
+       try {
+         model = new UsbdmDevicePeripheralsModel(gdbInterface, devicenameOrFilename);
+      } catch (Exception e) {
+         model = new UsbdmDevicePeripheralsModel(gdbInterface);
+      }
+      return model;
+   }
+
+   public static DeviceModel NullDeviceModel = new DeviceModel("No model");
+   
+   /**
+    * Factory
+    * 
+    * Loads device model using path to SVD file or device name and associates GDB session
+    * 
+    * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
+    * @param gdbInterface
+    * @throws Exception 
+    */
+   public static final UsbdmDevicePeripheralsModel createModel(GdbCommonInterface gdbInterface, DevicePeripherals devicePeripherals) {
+      UsbdmDevicePeripheralsModel model = null;
+       try {
+         model = new UsbdmDevicePeripheralsModel(gdbInterface, devicePeripherals);
+      } catch (Exception e) {
+         model = new UsbdmDevicePeripheralsModel(gdbInterface);
+      }
+      return model;
+   }
+
+   /**
+    * Constructor
+    * 
+    * For use without device
+    * 
+    * @param gdbInterface
+    * @throws Exception 
+    */
+   private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface) {
+      this.gdbInterface = gdbInterface;
+      model = NullDeviceModel;
+   }
+   
+   /**
     * Constructor
     * 
     * Loads device model using path to SVD file or device name and associates GDB session
@@ -233,7 +290,7 @@ public class UsbdmDevicePeripheralsModel {
     * @param gdbInterface
     * @throws Exception 
     */
-   public UsbdmDevicePeripheralsModel(String devicenameOrFilename, GdbCommonInterface gdbInterface) {
+   private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface, String devicenameOrFilename) throws Exception {
       this.gdbInterface = gdbInterface;
       setDevice(devicenameOrFilename);
    }
@@ -247,7 +304,7 @@ public class UsbdmDevicePeripheralsModel {
     * @param gdbInterface
     * @throws Exception 
     */
-   public UsbdmDevicePeripheralsModel(DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) {
+   private UsbdmDevicePeripheralsModel(GdbCommonInterface gdbInterface, DevicePeripherals devicePeripherals) throws Exception {
       this.gdbInterface = gdbInterface;
       setDevice(devicePeripherals);
    }
@@ -258,7 +315,7 @@ public class UsbdmDevicePeripheralsModel {
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @throws Exception 
     */
-   public void setDevice(String devicenameOrFilename) {
+   public void setDevice(String devicenameOrFilename) throws Exception {
       setDevice(DevicePeripherals.createDatabase(devicenameOrFilename));
    }
    
@@ -268,18 +325,9 @@ public class UsbdmDevicePeripheralsModel {
     * @param devicenameOrFilename Path to SVD file or device name (standard locations are searched)
     * @throws Exception 
     */
-   public void setDevice(DevicePeripherals devicePeripherals) {
+   public void setDevice(DevicePeripherals devicePeripherals) throws Exception {
       System.err.println("UsbdmDevicePeripheralsModel.setDevice()");
-      DeviceModel model = null;
-      try {
-         model = createDeviceModel(devicePeripherals, gdbInterface);
-         if (model == null) {
-            throw new Exception("UsbdmDevicePeripheralsModel.setDevice() : model == null!");
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      this.model = model;
+      model = createDeviceModel(devicePeripherals, gdbInterface);
    }
    
    public String getDeviceName() {

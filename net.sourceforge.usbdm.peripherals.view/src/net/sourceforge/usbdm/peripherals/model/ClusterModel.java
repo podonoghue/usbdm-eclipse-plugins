@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.peripherals.model;
 
+import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
+
 public class ClusterModel extends RegisterHolder {
 
    /**
@@ -7,10 +9,11 @@ public class ClusterModel extends RegisterHolder {
     * 
     * @param parent
     * @param information
+    * @throws RegisterException 
     * 
     * @throws Exception
     */
-   public ClusterModel(BaseModel parent, ModelInformation information) throws Exception {
+   public ClusterModel(BaseModel parent, ModelInformation information) throws RegisterException {
       super(parent, information.getClusterName(), information.getDescription());
       address = information.getClusterAddress();
    }

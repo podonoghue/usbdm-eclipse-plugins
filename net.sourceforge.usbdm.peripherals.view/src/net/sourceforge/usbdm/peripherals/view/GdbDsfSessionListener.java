@@ -168,11 +168,8 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
          // New session
          DsfSession dsfSession = DsfSession.getSession(sessionId);
          String     deviceName = getDeviceName(dsfSession);
-         
-         UsbdmDevicePeripheralsModel peripheralModel = new UsbdmDevicePeripheralsModel(deviceName, new GdbDsfInterface(dsfSession));
+         UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(new GdbDsfInterface(dsfSession), deviceName);
          dsfSessions.put(sessionId, peripheralModel);
-
-//         System.err.println(String.format("addSession(sessionId= %s, deviceName= %s, model=%s)", sessionId, deviceName, peripheralModel.getDeviceName()));
          return true;
       }
       return false;

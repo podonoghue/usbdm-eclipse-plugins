@@ -28,7 +28,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       writeable    = field.getAccessType().isWriteable();      
    }
    
-   public FieldModel(RegisterModel parent, Field field, ModelInformation information) throws Exception {
+   public FieldModel(RegisterModel parent, Field field, ModelInformation information) {
       super(parent, information.getFieldName(), information.getDescription());
       init(parent, field);
    }

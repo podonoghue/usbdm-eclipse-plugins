@@ -60,6 +60,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    public static String FIELDS_TAG               = "fields";
    public static String FIELD_TAG                = "field";
    public static String FPUPRESENT_TAG           = "fpuPresent";
+   public static String VTORPRESENT_TAG          = "vtorPresent";
    public static String GROUPNAME_TAG            = "groupName";
    public static String HEADERSTRUCTNAME_TAG     = "headerStructName";
    public static String ISDEFAULT_TAG            = "isDefault";
@@ -859,6 +860,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == FPUPRESENT_TAG) {
             cpu.setFpuPresent(element.getTextContent().equalsIgnoreCase(TRUE_TAG));
+         }
+         else if (element.getTagName() == VTORPRESENT_TAG) {
+            cpu.setVtorPresent(element.getTextContent().equalsIgnoreCase(TRUE_TAG));
          }
          else if (element.getTagName() == NVICPRIOBITS_TAG) {
             cpu.setNvicPrioBits((int)getIntElement(element));

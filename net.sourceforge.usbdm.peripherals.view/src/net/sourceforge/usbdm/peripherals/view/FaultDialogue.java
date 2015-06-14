@@ -381,7 +381,6 @@ public class FaultDialogue extends TitleAreaDialog {
       GridLayout gridLayout = new GridLayout(1, false);
       container.setLayout(gridLayout);
       
-      
       Group registersGroup = new Group(container, SWT.SHADOW_ETCHED_IN);
 //      GridData gd = new GridData();
 //      gd.verticalAlignment   = GridData.FILL;
@@ -453,6 +452,8 @@ public class FaultDialogue extends TitleAreaDialog {
 
       control = makeText(registersGroup, "PSP", PSP);
       control.setToolTipText("PSP value");
+
+      container.pack();
 
       return registersGroup;
    }
@@ -809,7 +810,8 @@ public class FaultDialogue extends TitleAreaDialog {
       createBusFaults(container);
       createDebugFaults(container);
       createExceptions(container);
-
+      
+      container.pack();
       return container;
    }
    
@@ -819,20 +821,24 @@ public class FaultDialogue extends TitleAreaDialog {
       // Create the manager and bind to main composite
       resManager = new LocalResourceManager(JFaceResources.getResources(), parent);
 
-//      Composite area = (Composite) super.createDialogArea(parent);
+      Composite area = (Composite) super.createDialogArea(parent);
       
       // Create the top level composite for the dialog area
-      Composite area = new Composite(parent, SWT.NONE);
-      FillLayout layout = new FillLayout();
-      area.setLayout(layout);
+//      Composite area = new Composite(parent, SWT.NONE);
+//      FillLayout layout = new FillLayout();
+//      area.setLayout(layout);
       
-      Composite  container = new Composite(area, SWT.FILL);
+      Composite container = new Composite(area, SWT.FILL);
       RowLayout rl = new RowLayout();
       container.setLayout(rl);
       
       createFaultGroups(container);
       createRegistersGroup(container);
 
+      container.pack();
+      
+      area.pack();
+      
       return area;
    }
    
@@ -858,7 +864,7 @@ public class FaultDialogue extends TitleAreaDialog {
 
    @Override
    protected Point getInitialSize() {
-      return new Point(650, 580);
+      return new Point(790, 720);
    }
 
    @Override
@@ -877,8 +883,9 @@ public class FaultDialogue extends TitleAreaDialog {
       Shell shell = new Shell(display);
       FaultDialogue dialogue = new FaultDialogue(shell);
       dialogue.create(0x12345678L, 0x87654321L, 0xAAAA5555L, 0x11111111L, 0x22222222L);
+      shell.pack();
       dialogue.open();
-
+      
       while (!shell.isDisposed()) {
          if (!display.readAndDispatch())
             display.sleep();
