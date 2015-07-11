@@ -13,11 +13,11 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.WizardPage;
@@ -34,41 +34,32 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class UsbdmProjectOptionsPage_3 extends WizardPage {
 
-   // These constants are used both for the dialogue persistent storage AND the page data map keys
-   private final static String PAGE_ID    = UsbdmConstants.PROJECT_OPTIONS_PAGE_ID;
-   private final static String PAGE_NAME  = UsbdmConstants.PROJECT_OPTIONS_PAGE_NAME;
-
-   private UsbdmProjectParametersPage_2   fUsbdmProjectPage = null;
    private UsbdmNewProjectOptionsPanel    fUsbdmNewProjectOptionsPanel = null;
+   private Device                         fDevice = null;
+   private ProjectActionList              fProjectActionList = null;
    private Map<String, String>            fParamMap = null;
-   private String                         fDeviceName = null;              
-   
-   public UsbdmProjectOptionsPage_3(UsbdmProjectParametersPage_2 usbdmProjectPage, Map<String, String> paramMap) {
-      super(PAGE_NAME);
-      fUsbdmProjectPage             = usbdmProjectPage;
-      fUsbdmNewProjectOptionsPanel  = null;
-      fParamMap                     = paramMap;
-      fDeviceName                   = null;
-      
-      setTitle("USBDM Project Options");
-      setDescription("Select project options");
-      setPageComplete(false);
-   }
+   private WizardPageInformation          fWizardPageInfo = null;
 
-   private UsbdmProjectOptionsPage_3(String deviceName, Map<String, String> paramMap) {
-      super(PAGE_NAME);
-      fUsbdmProjectPage             = null;
-      fUsbdmNewProjectOptionsPanel  = null;
-      fParamMap                     = paramMap;
-      fDeviceName                   = deviceName;
+   public UsbdmProjectOptionsPage_3 (
+         Device                  device, 
+         ProjectActionList       projectActionList,
+         Map<String, String>     paramMap, 
+         WizardPageInformation   wizardPageInfo) {
       
-      setTitle("USBDM Project Options");
-      setDescription("Select project options");
+      super(wizardPageInfo.getName());
+      fDevice              = device;
+      fProjectActionList   = projectActionList;
+      fParamMap            = paramMap;
+      fWizardPageInfo      = wizardPageInfo;
+      
+      setTitle(wizardPageInfo.getName());
+      setDescription(wizardPageInfo.getDescription());
       setPageComplete(false);
+//      System.err.println("UsbdmProjectOptionsPage_3() name = " + fWizardPageInfo.getName());
    }
 
    public String getPageID() {
-      return PAGE_ID;
+      return fWizardPageInfo.getId();
    }
 
    /* (non-Javadoc)
@@ -79,10 +70,10 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
 
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings == null) {
-         System.err.println("UsbdmProjectOptionsPage.createControl() dialogSettings == null!");
+         System.err.println("UsbdmProjectOptionsPage_3.createControl() dialogSettings == null!");
       }
       try {
-         fUsbdmNewProjectOptionsPanel = new UsbdmNewProjectOptionsPanel(parent, SWT.NONE, getDevice(), dialogSettings, fParamMap);
+         fUsbdmNewProjectOptionsPanel = new UsbdmNewProjectOptionsPanel(parent, SWT.NONE, dialogSettings, fDevice, fProjectActionList, fParamMap, fWizardPageInfo);
          fUsbdmNewProjectOptionsPanel.addListener(SWT.CHANGED, new Listener() {
             @Override
             public void handleEvent(Event event) {
@@ -115,37 +106,26 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
    }
    
    /**
-    *    For debug only
-    * 
-    *    @param deviceName
-    *    @return
-    */
-   private static Device getDevice(String deviceName) {
-      DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
-      if (!deviceDatabase.isValid()) {
-         return null;
-      }
-      return deviceDatabase.getDevice(deviceName);
-   }
-
-   private Device getDevice() {
-      if (fUsbdmProjectPage == null) {
-         return getDevice(fDeviceName);
-      }
-      return fUsbdmProjectPage.getDevice();
-   }
-   
-   /**
     *   Gets parameters from options page
     *   
     *   @param paramMap
-    * @throws Exception 
     */
-   public void getPageData(Map<String, String> paramMap) throws Exception {
+   public void getButtonData(Map<String, String> paramMap) {
       if (fUsbdmNewProjectOptionsPanel != null) {
-         fUsbdmNewProjectOptionsPanel.getPageData(paramMap);
+         fUsbdmNewProjectOptionsPanel.getButtonData(paramMap);
       }
-   }
+   }   
+   
+//   /**
+//    *   Gets parameters from options page
+//    *   
+//    *   @param paramMap
+//    */
+//   public void getPageData(Map<String, String> paramMap) {
+//      if (fUsbdmNewProjectOptionsPanel != null) {
+//         fUsbdmNewProjectOptionsPanel.getPageData(paramMap);
+//      }
+//   }
 
    /**
     *    Save dialog settings
@@ -165,12 +145,18 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
       return fUsbdmNewProjectOptionsPanel.getProjectActionList();
    }
    
+//   @Override
+//   public boolean canFlipToNextPage() {
+//      return isPageComplete();
+//   }
+
    /**
     * Test main
     * 
     * @param args
+    * @throws Exception 
     */
-   public static void main(String[] args) {
+   public static void main(String[] args) throws Exception {
       Display display = new Display();
 
       Shell shell = new Shell(display);
@@ -190,7 +176,13 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
       paramMap.put("linkerRamSize",   "0x100");
       paramMap.put("outputType",      "xxxxxProjectType.exe");
       paramMap.put("targetDevice",    deviceName);
-      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap);
+//      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap, "usbdm-project-options-page");
+//      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap, "kinetis-CPP-abstraction-options-page");
+      WizardPageInformation wizardPageInfo = new WizardPageInformation("kinetis-sdk-options-page", "Kinetis", "Kinetis description");
+      DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
+      Device device = deviceDatabase.getDevice(deviceName);
+      ProjectActionList projectActionList = device.getProjectActionList(paramMap);
+      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(device, projectActionList, paramMap, wizardPageInfo);
       page.createControl(composite);
 
       shell.open();
@@ -198,13 +190,12 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
          if (!display.readAndDispatch())
             display.sleep();
       }
-      try {
-         page.getPageData(paramMap);
-      } catch (Exception e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      }
+      page.getButtonData(paramMap);
       display.dispose();
+   }
+   
+   public boolean hasChanged() {
+      return fUsbdmNewProjectOptionsPanel.hasChanged();
    }
 
 }

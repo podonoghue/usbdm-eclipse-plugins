@@ -1,0 +1,213 @@
+<!--
+Devices using this peripheral: 
+      MK02F12810
+      MK10D10
+      MK11D5
+      MK11DA5
+      MK12D5
+      MK20D10
+      MK21D5
+      MK21DA5
+      MK21F12
+      MK21FA12
+      MK22D5
+      MK22F12
+      MK22F12810
+      MK22F25612
+      MK22F51212
+      MK24F12
+      MK24F25612
+      MK26F18
+      MK30D10
+      MK40D10
+      MK50D10
+      MK51D10
+      MK52D10
+      MK53D10
+      MK60D10
+      MK63F12
+      MK64F12
+      MK65F18
+      MK66F18
+      MKL03Z4
+      MKL17Z4
+      MKL17Z644
+      MKL27Z4
+      MKL27Z644
+      MKL33Z4
+      MKL43Z4
+      MKV30F12810
+      MKV31F12810
+      MKV31F25612
+      MKV31F51212
+-->
+      <peripheral>
+         <?sourceFile "VREF_0" ?>
+         <name>VREF</name>
+         <description>Voltage Reference</description>
+         <groupName>VREF</groupName>
+         <prependToName>VREF_</prependToName>
+         <headerStructName>VREF</headerStructName>
+         <baseAddress>0x40074000</baseAddress>
+         <size>32</size>
+         <access>read-write</access>
+         <resetValue>0x0</resetValue>
+         <resetMask>0xFFFFFFFF</resetMask>
+         <addressBlock>
+            <offset>0x0</offset>
+            <size>0x2</size>
+            <usage>registers</usage>
+         </addressBlock>
+         <registers>
+            <register>
+               <name>TRM</name>
+               <description>VREF Trim Register</description>
+               <addressOffset>0x0</addressOffset>
+               <size>8</size>
+               <resetMask>0x40</resetMask>
+               <fields>
+                  <field>
+                     <name>TRIM</name>
+                     <description>Trim bits</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>6</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>000000</name>
+                           <description>Min</description>
+                           <value>0b000000</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>111111</name>
+                           <description>Max</description>
+                           <value>0b111111</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>CHOPEN</name>
+                     <description>Chop oscillator enable. When set, internal chopping operation is enabled and the internal analog offset will be minimized</description>
+                     <bitOffset>6</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Chop oscillator is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Chop oscillator is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>SC</name>
+               <description>VREF Status and Control Register</description>
+               <addressOffset>0x1</addressOffset>
+               <size>8</size>
+               <resetMask>0xFF</resetMask>
+               <fields>
+                  <field>
+                     <name>MODE_LV</name>
+                     <description>Buffer Mode selection</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>2</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>00</name>
+                           <description>Bandgap on only, for stabilization and startup</description>
+                           <value>0b00</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>01</name>
+                           <description>High power buffer mode enabled</description>
+                           <value>0b01</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>10</name>
+                           <description>Low-power buffer mode enabled</description>
+                           <value>0b10</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VREFST</name>
+                     <description>Internal Voltage Reference stable</description>
+                     <bitOffset>2</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <access>read-only</access>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>The module is disabled or not stable</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>The module is stable</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>ICOMPEN</name>
+                     <description>Second order curvature compensation enable</description>
+                     <bitOffset>5</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>REGEN</name>
+                     <description>Regulator enable</description>
+                     <bitOffset>6</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Internal 1.75 V regulator is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Internal 1.75 V regulator is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VREFEN</name>
+                     <description>Internal Voltage Reference enable</description>
+                     <bitOffset>7</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>The module is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>The module is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+         </registers>
+      </peripheral>

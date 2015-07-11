@@ -8,7 +8,7 @@ public class WizardGroup extends ProjectAction {
    private int    fWidth;
    private int    fSpan;
    
-   public WizardGroup(String id, String name) throws Exception {
+   public WizardGroup(String id, String name) {
       super(id);
       fName    = name;
       fRow     = 0;
@@ -79,4 +79,7 @@ public class WizardGroup extends ProjectAction {
       return fSpan;
    }
 
+   public String toString() {
+      return String.format("[WizardGroup %s:%s]", getId(), fName);
+   }
 }

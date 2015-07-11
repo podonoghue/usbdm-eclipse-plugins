@@ -25,9 +25,6 @@ import java.util.List;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 public class DevicePeripherals extends ModeControl {
 
    private String                       name;
@@ -44,8 +41,22 @@ public class DevicePeripherals extends ModeControl {
    private boolean                      sorted;
    private ArrayList<String>            equivalentDevices;
    private VectorTable                  vectorTable;
+   private String                       vendor;
+   private String                       license;
 
-   public DevicePeripherals() {
+   
+   @Override
+   public String toString() {
+      return "[DevicePeripherals: " + getDescription() + "]";
+   }
+
+   /**
+    * Create DevicePeripherals using given folder
+    * 
+    * @param folder
+    * @throws Exception 
+    */
+   public DevicePeripherals(Path folder) throws Exception {
       name              = "";
       version           = "0.0";
       description       = "";
@@ -59,9 +70,10 @@ public class DevicePeripherals extends ModeControl {
       sorted            = false;
       equivalentDevices = new ArrayList<String>();
       vectorTable       = null;
+      
+      SVD_XML_Parser.parseDocument(folder, this);
    }
-
-
+   
    public void addPeripheral(Peripheral peripheral) {
       peripherals.add(peripheral);
       sorted = false;
@@ -180,6 +192,28 @@ public class DevicePeripherals extends ModeControl {
       this.resetMask = resetMask;
    }
 
+
+   /**
+    * Set vendor ID string
+    * 
+    * @param vendor
+    */
+   public void setVendor(String vendor) {
+      this.vendor = vendor;
+   }
+
+   public void setLicense(String license) {
+      this.license = license;
+   }
+
+   public String getVendor() {
+      return vendor;
+   }
+
+   public String getLicense() {
+      return license;
+   }
+   
    /**
     * Get vector table
     * An empty vector is created if needed.
@@ -306,6 +340,7 @@ public class DevicePeripherals extends ModeControl {
     * @throws Exception 
     */
    public void optimise() throws Exception {
+      sortPeripheralsByName();
       for (Peripheral peripheral : peripherals) {
          peripheral.optimise();
       }
@@ -484,7 +519,7 @@ public class DevicePeripherals extends ModeControl {
 
    static final String HEADER_FILE_INTRO =
          "/****************************************************************************************************//**\n"
-               + " * @file     %s.h\n"
+               + " * @file     $(targetDevice).h\n"
                + " *\n"
                + " * @brief    CMSIS Cortex-M Peripheral Access Layer Header File for %s.\n"
                + " *           Equivalent: %s\n"
@@ -606,7 +641,7 @@ public class DevicePeripherals extends ModeControl {
    }
 
    static final String NVIC_PRIO_FORMAT = 
-         "#define __NVIC_PRIO_BITS  (%d)  /*!< Number of Bits used for Priority Levels    */\n";
+         "#define __NVIC_PRIO_BITS  (%d)  /**< Number of Bits used for Priority Levels    */\n";
 
    static final String PERIPHERAL_MEMORY_MAP_COMMENT = 
          "\n"
@@ -617,8 +652,8 @@ public class DevicePeripherals extends ModeControl {
                ;
 
    static final String PERIPHERAL_INSTANCE_INTRO     = "\n/* %s - Peripheral instance base addresses */\n";
-   static final String BASE_ADDRESS_FORMAT           = "#define %-30s 0x%08XUL\n";
-   static final String FREESCALE_BASE_ADDRESS_FORMAT = "#define %-30s %s\n";
+   static final String BASE_ADDRESS_FORMAT           = "#define %-30s 0x%08XUL //!< Peripheral base address\n";
+   static final String FREESCALE_BASE_ADDRESS_FORMAT = "#define %-30s %s //!< Freescale style base pointer\n";
 
    static final String PERIPHERAL_DECLARATION_INTRO = 
          "\n"
@@ -635,11 +670,11 @@ public class DevicePeripherals extends ModeControl {
 
 
    static final String PERIPHERAL_DECLARATION_FORMAT           = "#define %-30s ((%-20s *) %s)\n";
-   static final String FREESCALE_PERIPHERAL_DECLARATION_FORMAT = "#define %-30s ((%s *) %s)\n";
+   static final String FREESCALE_PERIPHERAL_DECLARATION_FORMAT = "#define %-30s ((%s *) %s) //!< Freescale base pointer\n";
 
    static final String CORE_HEADER_FILE_INCLUSION = 
-         "#include %-20s   /*!< Processor and core peripherals */\n"+
-               "#include %-20s   /*!< Device specific configuration file */\n\n";
+         "#include %-20s   /* Processor and core peripherals     */\n"+
+         "#include %-20s   /* Device specific configuration file */\n\n";
 
    private String getEquivalentDevicesList() {
       StringBuffer s = new StringBuffer();
@@ -691,11 +726,13 @@ public class DevicePeripherals extends ModeControl {
     *  
     */
    public void writeHeaderFile(PrintWriter writer) throws Exception {
+      final String periphGroupSuffix = "Peripheral_access_layer";
       DateFormat dateFormat = new SimpleDateFormat("yyyy/MM");
       Date date = new Date();
 
       writer.print(String.format(HEADER_FILE_INTRO, 
-            getName(), getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), getName().toUpperCase(), getName().toUpperCase()));
+            getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), 
+            getName().toUpperCase(), getName().toUpperCase()));
       writer.print(String.format(COMMON_INCLUDES));
       writer.print(String.format(CPP_OPENING));
       ModeControl.clearMacroCache();
@@ -706,15 +743,18 @@ public class DevicePeripherals extends ModeControl {
       writer.print(String.format(CORE_HEADER_FILE_INCLUSION, "\"" + cpu.getHeaderFileName() + "\"", "\"system.h\""));
       writer.print(String.format(COMMON_DEFINITIONS));
       writer.print(String.format(HEADER_FILE_DEVICE_SPECIFIC_PERIPHERAL_SEPARATOR));
+
       sortPeripheralsByName();
-      //      sortPeripherals();
+      writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
+      writeGroupPreamble(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
       if (isFreescaleMode()) {
          // Structs for each peripheral
-         writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
          for (Peripheral peripheral : peripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
+
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer, this);
 
@@ -731,16 +771,17 @@ public class DevicePeripherals extends ModeControl {
                // #define macros for each peripheral register 
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
+            writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
       }
       else {
          // Structs for each peripheral
-         writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
          for (Peripheral peripheral : peripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer, this);
 
@@ -751,6 +792,7 @@ public class DevicePeripherals extends ModeControl {
                // #define macros for each peripheral register 
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
+            writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
 
@@ -773,6 +815,8 @@ public class DevicePeripherals extends ModeControl {
             writer.print(String.format(PERIPHERAL_DECLARATION_FORMAT, peripheral.getName(), "volatile "+peripheral.getSafeHeaderStructName()+TYPE_DEF_SUFFIX, peripheral.getName()+PTR_BASE));
          }
       }
+      writeGroupPostamble(writer, periphGroupSuffix);
+
       writer.print(String.format(CPP_CLOSING));
       writer.print(String.format(HEADER_FILE_POSTAMBLE, getName().toUpperCase()));
    }
@@ -791,86 +835,72 @@ public class DevicePeripherals extends ModeControl {
     * @param deviceName
     * @param headerFilePath
     */
-   public static void createHeaderFile(String deviceName, Path headerFilePath) {
+   public void createHeaderFile(String deviceName, Path headerFilePath) {
       // Read device description
-      DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(deviceName);
       System.out.println("Creating : \""+headerFilePath+"\"");
       try {
-         devicePeripherals.writeHeaderFile(headerFilePath);
+         writeHeaderFile(headerFilePath);
       } catch (Exception e) {
          e.printStackTrace();
       }
    }
-
-   private static final String DEVICELIST_FILENAME      = "DeviceList";
-
-   /**
-    *  Creates peripheral database for device
-    * 
-    *  @param device Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
-    *  
-    *  @return device peripheral description or null on error
-    */
-   public static DevicePeripherals createDatabase(String device) {
-      SVD_XML_Parser database = new SVD_XML_Parser();
-
-      DevicePeripherals devicePeripherals = null;
-
-      // Parse the XML file into the XML internal DOM representation
-      Document dom;
-      try {
-         // Try name as given (may be full path)
-//         System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+"\"");
-         dom = SVD_XML_BaseParser.parseXmlFile(device);
-         if (dom == null) {
-            // Try name with default extension
-//            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".svd"+"\"");
-            dom = SVD_XML_BaseParser.parseXmlFile(device+".svd");
-         }
-         if (dom == null) {
-            // Try name with default extension
-//            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".xml"+"\"");
-            dom = SVD_XML_BaseParser.parseXmlFile(device+".xml");
-         }
-         if (dom == null) {
-            // Retry with mapped name
-//            System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \n");
-            DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME);
-            if (deviceFileList != null) {
-               String mappedFilename = deviceFileList.getSvdFilename(device);
-//               System.err.println("DevicePeripherals.createDatabase() - Trying Mapped name: \""+mappedFilename+"\"");
-               if (mappedFilename != null) {
-                  dom = SVD_XML_BaseParser.parseXmlFile(mappedFilename);
-               }
-            }
-         }
-         if (dom == null) {
-            System.err.println("DevicePeripherals.createDatabase() - Failed for \""+device+"\"");
-         }
-         else {
-            // Get the root element
-            Element documentElement = dom.getDocumentElement();
-
-            //  Process XML contents and generate Device description
-            devicePeripherals = database.parseDocument(documentElement);
-         }
-      } catch (Exception e) {
-         System.err.println("DevicePeripherals.createDatabase() - Exception while parsing: " + device);
-         System.err.println("DevicePeripherals.createDatabase() - Exception: reason: " + e.getMessage());
-//         e.printStackTrace();
-      }
-      return devicePeripherals;
-   }
-
-   /**
-    *  Creates peripheral database for device
-    * 
-    *  @param path Path to SVD file describing device peripherals
-    *  
-    *  @return device peripheral description or null on error
-    */
-   public static DevicePeripherals createDatabase(Path path) {
-      return createDatabase(path.toAbsolutePath().toString());
-   }
+   
+//   /**
+//    *  Creates peripheral database for device
+//    * 
+//    *  @param device Name of SVD file or device name e.g. "MKL25Z128M5" or family name e.g. "MK20D5"
+//    *  
+//    *  @return device peripheral description or null on error
+//    */
+//   public static DevicePeripherals createDatabase(Path path) {
+//      SVD_XML_Parser database = new SVD_XML_Parser();
+//
+//      DevicePeripherals devicePeripherals = null;
+//
+//      // Parse the XML file into the XML internal DOM representation
+//      Document dom;
+//      try {
+//         // Try name as given (may be full path)
+////         System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+"\"");
+//         dom = SVD_XML_BaseParser.parseXmlFile(path);
+//         if (dom == null) {
+//            // Try name with default extension
+////            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".svd"+"\"");
+//            dom = SVD_XML_BaseParser.parseXmlFile(device+".svd");
+//         }
+//         if (dom == null) {
+//            // Try name with default extension
+////            System.err.println("DevicePeripherals.createDatabase() - Trying \""+device+".xml"+"\"");
+//            dom = SVD_XML_BaseParser.parseXmlFile(device+".xml");
+//         }
+//         if (dom == null) {
+//            // Retry with mapped name
+////            System.err.println("DevicePeripherals.createDatabase() - Trying DeviceFileList: \n");
+//            DeviceFileList deviceFileList = DeviceFileList.createDeviceFileList(DEVICELIST_FILENAME);
+//            if (deviceFileList != null) {
+//               String mappedFilename = deviceFileList.getSvdFilename(device);
+////               System.err.println("DevicePeripherals.createDatabase() - Trying Mapped name: \""+mappedFilename+"\"");
+//               if (mappedFilename != null) {
+//                  dom = SVD_XML_BaseParser.parseXmlFile(mappedFilename);
+//               }
+//            }
+//         }
+//         if (dom == null) {
+//            System.err.println("DevicePeripherals.createDatabase() - Failed for \""+device+"\"");
+//         }
+//         else {
+//            // Get the root element
+//            Element documentElement = dom.getDocumentElement();
+//
+//            //  Process XML contents and generate Device description
+//            devicePeripherals = database.parseDocument(documentElement);
+//         }
+//      } catch (Exception e) {
+//         System.err.println("DevicePeripherals.createDatabase() - Exception while parsing: " + device);
+//         System.err.println("DevicePeripherals.createDatabase() - Exception: reason: " + e.getMessage());
+////         e.printStackTrace();
+//      }
+//      return devicePeripherals;
+//   }
 
 }

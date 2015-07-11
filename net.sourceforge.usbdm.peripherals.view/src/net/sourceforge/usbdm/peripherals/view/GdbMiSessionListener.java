@@ -3,7 +3,9 @@ package net.sourceforge.usbdm.peripherals.view;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
+import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 import org.eclipse.cdt.debug.core.cdi.ICDISession;
 import org.eclipse.cdt.debug.core.cdi.model.ICDITarget;
@@ -248,7 +250,8 @@ public class GdbMiSessionListener implements IDebugEventSetListener {
             String deviceName = getDeviceName(event); 
             if (deviceName != null) {
 //               System.err.println("handleDebugEvents() Device Name = " + deviceName);
-               peripheralsModel = UsbdmDevicePeripheralsModel.createModel(new GdbMiInterface(session), deviceName);
+               SVDIdentifier svdId = new SVDIdentifier(UsbdmPeripheralDescriptionProvider.ID, deviceName);
+               peripheralsModel = UsbdmDevicePeripheralsModel.createModel(new GdbMiInterface(session), svdId);
             }
          }
          switch (event.getKind()) {

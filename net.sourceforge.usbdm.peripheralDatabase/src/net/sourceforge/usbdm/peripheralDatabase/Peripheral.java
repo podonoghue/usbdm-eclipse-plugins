@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -190,8 +191,16 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return name
     */
    public String getHeaderStructName() {
+      if (derivedFrom != null) {
+         return derivedFrom.getHeaderStructName();
+      }
+      if ((headerStructName != null) && (!headerStructName.isEmpty())) {
+         return headerStructName;
+      }
+      headerStructName = getStructNamefromName(name);
       return headerStructName;
    }
+   
    /**
     * Get the name of the file containing this description
     * 
@@ -362,8 +371,22 @@ public class Peripheral extends ModeControl implements Cloneable {
     * 
     * @return
     */
+   static final Pattern groupNamePattern = Pattern.compile("(^.*?)[0-9]*$");
+
    public String getGroupName() {
-      return groupName;
+      if ((groupName != null) && (!groupName.isEmpty())) {
+         return groupName;
+      }
+      if (derivedFrom != null) {
+         return derivedFrom.getGroupName();
+      }
+      Matcher matcher = groupNamePattern.matcher(name);
+      if (matcher.matches()) {
+         groupName = matcher.replaceAll("$1");
+//         System.err.println(String.format("'%s' => '%s'",  name, groupName));
+         return groupName;
+      }
+      return name;
    }
 
    /**
@@ -640,7 +663,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             this.prependToName.equals(other.prependToName) &&
             (this.baseAddress == other.baseAddress) &&
             this.appendToName.equals(other.appendToName) &&
-            this.groupName.equals(other.groupName);
+            this.getGroupName().equals(other.getGroupName());
       if (!rv) {
          return false;
       }
@@ -1350,6 +1373,8 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    public void optimise() throws Exception {
+      sortRegisters(registers);
+
       // TODO - Modify optimisations done here
       if (isExtractComplexStructures()) {
          extractComplexStructures();
@@ -1485,6 +1510,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.DESCRIPTION_TAG,  SVD_XML_BaseParser.escapeString(getDescription()), SVD_XML_Parser.DESCRIPTION_TAG));
       }
       if (!getGroupName().equals(derived.getGroupName())) {
+         System.err.println(String.format("writeDerivedFromSVD() d=%s, i=%s", derived.getGroupName(), getGroupName()));
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.GROUPNAME_TAG,  SVD_XML_BaseParser.escapeString(getGroupName()), SVD_XML_Parser.GROUPNAME_TAG));
       }
       if (!getPrependToName().equals(derived.getPrependToName())) {
@@ -1519,23 +1545,11 @@ public class Peripheral extends ModeControl implements Cloneable {
       +" */\n"
       ;
 
-   static final String DEVICE_OPEN_STRUCT  = "typedef struct {                                /*!<       %-60s */\n";
+   static final String DEVICE_OPEN_STRUCT  = "typedef struct {                                /*       %-60s */\n";
    static final String DEVICE_CLOSE_STRUCT = "} %s;\n\n";
 
    public String getSafeHeaderStructName() {
-      String structName = getHeaderStructName();
-      if (structName.length() == 0) {
-         if (derivedFrom != null) {
-            structName = derivedFrom.getHeaderStructName();
-            if (structName.length() == 0) {
-               structName = derivedFrom.getName();
-            }
-         }
-      }
-      if (structName.length() == 0) {
-         structName = getName();
-      }
-      return structName+"_Type";
+      return getHeaderStructName()+"_Type";
    }
    
    public static void clearTypedefsTable() {
@@ -1548,7 +1562,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
       typedefsTable.add(name);
    }
-   
+
    /**
     *    Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers<br>
     *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
@@ -1587,6 +1601,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    @param devicePeripherals
     */
    public void writeHeaderFileTypedef(PrintWriter writer, DevicePeripherals devicePeripherals) throws Exception {
+      final String structGroupSuffix  = "structs";
       final int indent = 0;
       String uniqueId;
       if (getDerivedFrom() != null) {
@@ -1601,7 +1616,9 @@ public class Peripheral extends ModeControl implements Cloneable {
 //         writer.print(String.format(DEVICE_SIMPLE_STRUCT, derivedFrom.getSafeHeaderStructName(), getSafeHeaderStructName(), getName()+" Structure"));
          return;
       }
+      writeGroupPreamble(writer, getGroupName()+"_"+structGroupSuffix, getGroupName()+" struct", "Struct for "+getGroupName());
       writeHeaderFileStruct(writer, indent, this);
+      writeGroupPostamble(writer, getGroupName()+"_"+structGroupSuffix);
    }
 
    static final String DEVICE_HEADER_FILE_REGISTER_MACRO_PREAMBLE =   
@@ -1643,13 +1660,15 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    @param  devicePeripherals
     *    @throws Exception
     */
-   public void writeHeaderFileFieldMacros(PrintWriter writer, DevicePeripherals devicePeripherals) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer, DevicePeripherals devicePeripherals) throws Exception {
+      final String macroGroupSuffix  = "Register_Masks";
       if (derivedFrom != null) {
          // Derived peripherals re-uses existing MACROs
          return;
       }
-      writer.print(String.format(DEVICE_HEADER_FILE_MACRO_PREAMBLE, "\'"+getName()+"\' Position & Mask macros"));
+      writer.write(String.format(DEVICE_HEADER_FILE_MACRO_PREAMBLE, "\'"+getName()+"\' Position & Mask macros"));
       sortRegisters();
+      writeGroupPreamble(writer, getGroupName()+"_"+macroGroupSuffix, getGroupName()+" Register Masks", "Register Masks for "+getGroupName());
       for (Cluster cluster : getRegisters()) {
          if (cluster instanceof Register) {
             ((Register)cluster).writeHeaderFileFieldMacros(writer, this);
@@ -1658,6 +1677,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             cluster.writeHeaderFileFieldMacros(writer, this);
          }
       }
+      writeGroupPostamble(writer, getGroupName()+"_"+macroGroupSuffix);
    }
 
    /**

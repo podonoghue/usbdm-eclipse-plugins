@@ -29,10 +29,10 @@ public class ProjectAction {
       this.owner = owner;
    }
 
-   public ProjectAction(String id) throws Exception {
+   public ProjectAction(String id) {
       this.fId = id;
       if ((id == null) || (id.length() == 0)) {
-         throw new Exception("Project action must have id");
+         throw new RuntimeException ("Project action must have id");
       }
    }
    

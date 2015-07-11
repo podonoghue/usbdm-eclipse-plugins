@@ -1,0 +1,458 @@
+<!--
+Devices using this peripheral: 
+      MKE14D7
+      MKE15D7
+-->
+      <peripheral>
+         <?sourceFile "CMT_47" ?>
+         <name>CMT</name>
+         <description>Carrier Modulator Transmitter</description>
+         <groupName>CMT</groupName>
+         <prependToName>CMT_</prependToName>
+         <headerStructName>CMT</headerStructName>
+         <baseAddress>0x40042000</baseAddress>
+         <size>32</size>
+         <access>read-write</access>
+         <resetValue>0x0</resetValue>
+         <resetMask>0xFFFFFFFF</resetMask>
+         <addressBlock>
+            <offset>0x0</offset>
+            <size>0xC</size>
+            <usage>registers</usage>
+         </addressBlock>
+         <registers>
+            <register>
+               <name>CGH1</name>
+               <description>CMT Carrier Generator High Data Register 1</description>
+               <addressOffset>0x0</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>PH</name>
+                     <description>Primary Carrier High Time Data Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CGL1</name>
+               <description>CMT Carrier Generator Low Data Register 1</description>
+               <addressOffset>0x1</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>PL</name>
+                     <description>Primary Carrier Low Time Data Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CGH2</name>
+               <description>CMT Carrier Generator High Data Register 2</description>
+               <addressOffset>0x2</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>SH</name>
+                     <description>Secondary Carrier High Time Data Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CGL2</name>
+               <description>CMT Carrier Generator Low Data Register 2</description>
+               <addressOffset>0x3</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>SL</name>
+                     <description>Secondary Carrier Low Time Data Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>OC</name>
+               <description>CMT Output Control Register</description>
+               <addressOffset>0x4</addressOffset>
+               <size>8</size>
+               <resetMask>0xFF</resetMask>
+               <fields>
+                  <field>
+                     <name>IROPEN</name>
+                     <description>IRO Pin Enable</description>
+                     <bitOffset>5</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>The IRO signal is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>The IRO signal is enabled as output</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>CMTPOL</name>
+                     <description>CMT Output Polarity</description>
+                     <bitOffset>6</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>The IRO signal is active-low</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>The IRO signal is active-high</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>IROL</name>
+                     <description>IRO Latch Control</description>
+                     <bitOffset>7</bitOffset>
+                     <bitWidth>1</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>MSC</name>
+               <description>CMT Modulator Status and Control Register</description>
+               <addressOffset>0x5</addressOffset>
+               <size>8</size>
+               <resetMask>0xFF</resetMask>
+               <fields>
+                  <field>
+                     <name>MCGEN</name>
+                     <description>Modulator and Carrier Generator Enable</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Modulator and carrier generator disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Modulator and carrier generator enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>EOCIE</name>
+                     <description>End of Cycle Interrupt Enable</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>CPU interrupt is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>CPU interrupt is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>FSK</name>
+                     <description>FSK Mode Select</description>
+                     <bitOffset>2</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>The CMT operates in Time or Baseband mode</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>The CMT operates in FSK mode</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>BASE</name>
+                     <description>Baseband Enable</description>
+                     <bitOffset>3</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Baseband mode is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Baseband mode is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>EXSPC</name>
+                     <description>Extended Space Enable</description>
+                     <bitOffset>4</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Extended space is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Extended space is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>CMTDIV</name>
+                     <description>CMT Clock Divide Prescaler</description>
+                     <bitOffset>5</bitOffset>
+                     <bitWidth>2</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>00</name>
+                           <description>IF * 1</description>
+                           <value>0b00</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>01</name>
+                           <description>IF * 2</description>
+                           <value>0b01</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>10</name>
+                           <description>IF * 4</description>
+                           <value>0b10</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>11</name>
+                           <description>IF * 8</description>
+                           <value>0b11</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>EOCF</name>
+                     <description>End Of Cycle Status Flag</description>
+                     <bitOffset>7</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <access>read-only</access>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>End of modulation cycle has not occured since the flag last cleared</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>End of modulator cycle has occurred</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CMD1</name>
+               <description>CMT Modulator Data Register Mark High</description>
+               <addressOffset>0x6</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>MB</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CMD2</name>
+               <description>CMT Modulator Data Register Mark Low</description>
+               <addressOffset>0x7</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>MB</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CMD3</name>
+               <description>CMT Modulator Data Register Space High</description>
+               <addressOffset>0x8</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>SB</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CMD4</name>
+               <description>CMT Modulator Data Register Space Low</description>
+               <addressOffset>0x9</addressOffset>
+               <size>8</size>
+               <resetMask>0x0</resetMask>
+               <fields>
+                  <field>
+                     <name>SB</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>PPS</name>
+               <description>CMT Primary Prescaler Register</description>
+               <addressOffset>0xA</addressOffset>
+               <size>8</size>
+               <resetMask>0xFF</resetMask>
+               <fields>
+                  <field>
+                     <name>PPSDIV</name>
+                     <description>Primary Prescaler Divider</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0000</name>
+                           <description>Bus clock * 1</description>
+                           <value>0b0000</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Bus clock * 2</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Bus clock * 3</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0011</name>
+                           <description>Bus clock * 4</description>
+                           <value>0b0011</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0100</name>
+                           <description>Bus clock * 5</description>
+                           <value>0b0100</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0101</name>
+                           <description>Bus clock * 6</description>
+                           <value>0b0101</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0110</name>
+                           <description>Bus clock * 7</description>
+                           <value>0b0110</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0111</name>
+                           <description>Bus clock * 8</description>
+                           <value>0b0111</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1000</name>
+                           <description>Bus clock * 9</description>
+                           <value>0b1000</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1001</name>
+                           <description>Bus clock * 10</description>
+                           <value>0b1001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1010</name>
+                           <description>Bus clock * 11</description>
+                           <value>0b1010</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1011</name>
+                           <description>Bus clock * 12</description>
+                           <value>0b1011</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1100</name>
+                           <description>Bus clock * 13</description>
+                           <value>0b1100</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1101</name>
+                           <description>Bus clock * 14</description>
+                           <value>0b1101</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1110</name>
+                           <description>Bus clock * 15</description>
+                           <value>0b1110</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1111</name>
+                           <description>Bus clock * 16</description>
+                           <value>0b1111</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>DMA</name>
+               <description>CMT Direct Memory Access Register</description>
+               <addressOffset>0xB</addressOffset>
+               <size>8</size>
+               <resetMask>0xFF</resetMask>
+               <fields>
+                  <field>
+                     <name>DMA</name>
+                     <description>DMA Enable</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>DMA transfer request and done are disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DMA transfer request and done are enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+         </registers>
+      </peripheral>

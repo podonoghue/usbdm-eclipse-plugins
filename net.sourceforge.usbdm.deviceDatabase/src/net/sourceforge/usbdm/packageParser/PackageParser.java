@@ -29,15 +29,15 @@ public class PackageParser {
    private int    projectActionId     = 0;
 
    /**
-    * Locates all package lists that apply to this device
+    * Locates actions that apply to this device. <br>
+    * Only evaluates the top-level &lt;appliesWhen&gt; clause when deciding inclusion
     * 
     * @param device      Device to investigate
     * @param variableMap Variables to use when evaluation conditions
     * 
-    * @return ListOfProjectActionLists (an empty list if none)
-    * @throws Exception 
+    * @return Applicable actions
     */
-   static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) throws Exception {
+   static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) {
 //      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
@@ -345,8 +345,8 @@ public class PackageParser {
                }
                projectActionList.add(variable);
             }
-            else if (element.getTagName() == "group") {
-               projectActionList.add(parseGroupElement(element));
+            else if (element.getTagName() == "page") {
+               projectActionList.add(parsePageElement(element));
             }
             else if (element.getTagName() == "constant") {
                projectActionList.add(parseConstantElement(element));
@@ -534,6 +534,52 @@ public class PackageParser {
       }
       return list;
    }
+   
+   /**
+    * Parse a &lt;group&gt; element <br>
+    * 
+    *  &lt;page id="..." name="..." description="..."&gt; <br>
+    *     &lt;group id="..." name="..." &gt; <br>
+    *     ... <br>
+    *  &lt;/page&gt;
+    *  
+    * @param  pageElement &lt;group&gt; element
+    * 
+    * @return WizardGroup described 
+    * @throws Exception 
+    */
+   private WizardPageInformation parsePageElement(Element pageElement) throws Exception {
+      String id          = pageElement.getAttribute("id");
+      String name        = pageElement.getAttribute("name");
+      String description = pageElement.getAttribute("description");
+
+      if ((id == null) || (name == null) || (description == null)) {
+         throw new Exception("Top <group> must have an 'id', 'name' and 'description'");
+      } 
+      WizardPageInformation wizardPage = new WizardPageInformation(id, name, description);
+      
+      for (Node node = pageElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         try {
+            // Child node for <group>
+            Element element = (Element) node;
+            if (element.getTagName() == "group") {
+               wizardPage.addGroup(parseGroupElement(element));
+            }
+            else {
+               throw new Exception("Unexpected element \""+element.getTagName()+"\"");
+            }
+         } catch (Exception e) {
+            System.err.println("Exception while parsing <" + pageElement.getNodeName() + ">");
+            throw (e);
+         }
+      }
+      return wizardPage;
+   }
 
    /**
     * Parse a <group> element
@@ -625,8 +671,10 @@ public class PackageParser {
       String id         = projectConstantElement.getAttribute("id");
       String value      = projectConstantElement.getAttribute("value");
       String replace    = projectConstantElement.getAttribute("replace");
+      String weak       = projectConstantElement.getAttribute("weak");
       boolean doReplace = replace.equalsIgnoreCase("true");
-      ProjectConstant projectconstant = new ProjectConstant(id, value, doReplace);
+      boolean isWeak    = weak.equalsIgnoreCase("true");
+      ProjectConstant projectconstant = new ProjectConstant(id, value, doReplace, isWeak);
       for (Node node = projectConstantElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -686,7 +734,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private CreateFolderAction parseCreateFolderElement(Element createFolderElement) throws Exception {
+   private CreateFolderAction parseCreateFolderElement(Element createFolderElement) {
       // <createFolder target="..." type="..." >
       String target  = createFolderElement.getAttribute("target");
       String type    = createFolderElement.getAttribute("type");

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +18,6 @@ public class Register extends Cluster implements Cloneable {
    private boolean            deleted;
    private boolean            sorted;
    private long               width;
-   private boolean            hidden;
    private Cluster            cluster;
    
    public Register(Peripheral owner, Cluster cluster) {
@@ -27,7 +27,6 @@ public class Register extends Cluster implements Cloneable {
       alternateGroup     = "";
       fields             = new ArrayList<Field>();
       deleted            = false;
-      hidden             = false;
       if (owner != null) {
          width          = owner.getWidth();
       }
@@ -449,9 +448,9 @@ public class Register extends Cluster implements Cloneable {
     *  
     *  @throws Exception 
     */
-   public void writederivedfromSVD(PrintWriter writer, boolean standardFormat, Peripheral owner, int level) throws Exception {
+   public void writederivedfromSVD(Writer writer, boolean standardFormat, Peripheral owner, int level) throws Exception {
       String indent = fill.substring(0, level);
-      writer.print(String.format(   indent+"<register derivedFrom=\"%s\">",          getDerivedFrom().getName()));
+      writer.write(String.format(   indent+"<register derivedFrom=\"%s\">",          getDerivedFrom().getName()));
 
       Cluster derivedCluster = getDerivedFrom();
       if (!(derivedCluster instanceof Register)) {
@@ -462,22 +461,22 @@ public class Register extends Cluster implements Cloneable {
       if (getDimensionIndexes() != derived.getDimensionIndexes()) {
          writeDimensionList(writer, indent);
       }
-      writer.print(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
+      writer.write(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
       
       if (!getDescription().equals(derived.getDescription())) {
-         writer.print(String.format(" <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
+         writer.write(String.format(" <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      writer.print(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
       if (!getAccessType().equals(derived.getAccessType())) {
-         writer.print(String.format(" <access>%s</access>",                 getAccessType().getPrettyName()));
+         writer.write(String.format(" <access>%s</access>",                 getAccessType().getPrettyName()));
       }
       if (getResetValue() != derived.getResetValue()) {
-         writer.print(String.format(" <resetValue>0x%X</resetValue>",       getResetValue()));
+         writer.write(String.format(" <resetValue>0x%X</resetValue>",       getResetValue()));
       }
       if (getResetMask() != derived.getResetMask()) {
-         writer.print(String.format(" <resetMask>0x%X</resetMask>",         getResetMask()));
+         writer.write(String.format(" <resetMask>0x%X</resetMask>",         getResetMask()));
       }
-      writer.println(" </register>");
+      writer.write(" </register>\n");
    }
    
    /**
@@ -485,21 +484,22 @@ public class Register extends Cluster implements Cloneable {
     * 
     *  @param writer          The destination for the XML
     *  @param level           Level of indenting
+    *  @throws IOException 
     */
-   void writeDimensionList(PrintWriter writer, String indent) {
+   void writeDimensionList(Writer writer, String indent) throws IOException {
       if (getDimension()>0) {
-         writer.println(String.format(indent+"<dim>%d</dim>",                       getDimension()));
-         writer.println(String.format(indent+"<dimIncrement>%d</dimIncrement>",     getDimensionIncrement()));
-         writer.print(String.format(  indent+"<dimIndex>"));
+         writer.write(String.format(indent+"<dim>%d</dim>\n",                       getDimension()));
+         writer.write(String.format(indent+"<dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
+         writer.write(String.format(  indent+"<dimIndex>"));
          boolean doComma = false;
          for (String s : getDimensionIndexes()) {
             if (doComma) {
-               writer.print(",");
+               writer.write(",");
             }
             doComma = true;
-            writer.print(SVD_XML_BaseParser.escapeString(s));
+            writer.write(SVD_XML_BaseParser.escapeString(s));
          }
-         writer.println(String.format("</dimIndex>"));
+         writer.write(String.format("</dimIndex>\n"));
       }
    }
    
@@ -514,7 +514,7 @@ public class Register extends Cluster implements Cloneable {
     *  @throws Exception 
     */
    @Override
-   public void writeSVD(PrintWriter writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
+   public void writeSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       
       if ((getDerivedFrom() != null) && !isExpandDerivedRegisters()) {
          writederivedfromSVD(writer, standardFormat, owner, indent);
@@ -522,40 +522,40 @@ public class Register extends Cluster implements Cloneable {
       }
 //      final String indenter = RegisterUnion.getIndent(indent);
       final String indenter = RegisterUnion.getIndent(indent);
-      writer.println(                 indenter+"<register>");
+      writer.write(                 indenter+"<register>\n");
       
       writeDimensionList(writer, indenter+"   ");
 
-      writer.println(String.format(   indenter+"   <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
+      writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
       if (isHidden()) {
-         writer.println(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
       }
       if ((getDescription() != null) && (getDescription().length() > 0)) {
-         writer.println(String.format(indenter+"   <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
+         writer.write(String.format(indenter+"   <description>%s</description>\n",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      writer.println(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      writer.write(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", getAddressOffset()));
       if ((owner == null) || (owner.getWidth() != getWidth()) || (fields.size() == 0)) {
-         writer.println(String.format(indenter+"   <size>%d</size>",                     getWidth()));
+         writer.write(String.format(indenter+"   <size>%d</size>\n",                     getWidth()));
       }
       if ((owner == null) || (owner.getAccessType() != getAccessType()) || (fields.size() == 0)) {
-         writer.println(String.format(indenter+"   <access>%s</access>",                 getAccessType().getPrettyName()));
+         writer.write(String.format(indenter+"   <access>%s</access>\n",                 getAccessType().getPrettyName()));
       }
       if ((owner == null) || (owner.getResetValue() != getResetValue())) {
-         writer.println(String.format(indenter+"   <resetValue>0x%X</resetValue>",       getResetValue()));
+         writer.write(String.format(indenter+"   <resetValue>0x%X</resetValue>\n",       getResetValue()));
       }
       if ((owner == null) || (owner.getResetMask() != getResetMask())) {
-         writer.println(String.format(indenter+"   <resetMask>0x%X</resetMask>",         getResetMask()));
+         writer.write(String.format(indenter+"   <resetMask>0x%X</resetMask>\n",         getResetMask()));
       }
 
       if ((getFields() != null) && (getFields().size() > 0)) {
-         writer.println(              indenter+"   <fields>");
+         writer.write(              indenter+"   <fields>\n");
          sortFields();
          for (Field field : getFields()) {
             field.writeSVD(writer, standardFormat, this, indent+6);
          }
-         writer.println(              indenter+"   </fields>");
+         writer.write(              indenter+"   </fields>\n");
       }
-      writer.println(                 indenter+"</register>");
+      writer.write(                 indenter+"</register>\n");
    }
 
 //   static final String RegisterStructFormat = "%-4s %-9s %-30s";
@@ -611,7 +611,8 @@ public class Register extends Cluster implements Cloneable {
       }
    }
 
-   public final static String lineFormat = "%-47s /*!< %04X: %-60s */\n";
+   public final static String lineFormat                = "%-47s /**< %04X: %-60s */\n";
+   public final static String lineFormatNoDocumentation = "%-47s\n";
 
    /**
     *    Writes C code for Register as part of a STRUCT element e.g.<br>
@@ -621,7 +622,7 @@ public class Register extends Cluster implements Cloneable {
     *    @param devicePeripherals
     */
    @Override
-   public void writeHeaderFileDeclaration(PrintWriter writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long offset) throws Exception {
+   public void writeHeaderFileDeclaration(Writer writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long offset) throws Exception {
 
       String accessPrefix = getCAccessName(getAccessType());
       final String indenter = RegisterUnion.getIndent(indent);
@@ -635,7 +636,7 @@ public class Register extends Cluster implements Cloneable {
                accessPrefix,
                getCSizeName(getWidth()), 
                getBaseName()));
-         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
+         writer.write(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
          return;
       }
       if (isSimpleArray()) {
@@ -643,7 +644,7 @@ public class Register extends Cluster implements Cloneable {
                accessPrefix,
                getCSizeName(getWidth()), 
                getSimpleArraySubscriptedName(getDimension())));
-         writer.print(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
+         writer.write(String.format(lineFormat, line.toString(), offset, truncateAtNewlineOrTab(getCDescription(-1))));
          return;
       }
       if (getName().matches("^.+%s.*$")) {
@@ -660,7 +661,7 @@ public class Register extends Cluster implements Cloneable {
             if (delimeter > 0) {
                sIndex = sIndex.substring(0, delimeter);
             }
-            writer.print(String.format(lineFormat, String.format(baseLine,sIndex)+";", 
+            writer.write(String.format(lineFormat, String.format(baseLine,sIndex)+";", 
                   offset, truncateAtNewlineOrTab(format(getCDescription(index), index))));
             if (padding>0) {
                registerUnion.fill(offset, padding);
@@ -681,7 +682,7 @@ public class Register extends Cluster implements Cloneable {
     * @throws Exception
     */
    @Override
-   public void writeHeaderFileRegisterMacro(PrintWriter writer, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileRegisterMacro(Writer writer, Peripheral peripheral) throws Exception {
       if (getDimension() == 0) {
          // Simple register
          String name = peripheral.getName()+"_"+getName();
@@ -689,7 +690,7 @@ public class Register extends Cluster implements Cloneable {
          if (name.length() == 0) {
             return;
          }
-         writer.print(String.format("#define %-30s (%s->%s)\n", name, peripheral.getName(), getName()));
+         writer.write(String.format("#define %-30s (%s->%s)\n", name, peripheral.getName(), getName()));
          return;
       }
       // Array
@@ -697,7 +698,7 @@ public class Register extends Cluster implements Cloneable {
          if (isSimpleArray()) {
             String name      = peripheral.getName()+"_"+getSimpleArrayName(index);
             String arrayName = peripheral.getName()+"->"+getSimpleArraySubscriptedName(index);
-            writer.print(String.format("#define %-30s (%s)\n", name, arrayName));
+            writer.write(String.format("#define %-30s (%s)\n", name, arrayName));
             continue;
          }
          String name = peripheral.getName()+"_"+getName(index);
@@ -706,14 +707,14 @@ public class Register extends Cluster implements Cloneable {
             // Quietly delete name
             return;
          }
-         writer.print(String.format("#define %-30s (%s->%s)\n", name, peripheral.getName(), getName(index)));
+         writer.write(String.format("#define %-30s (%s->%s)\n", name, peripheral.getName(), getName(index)));
       }
    }
 
    static final String registerMacroPrefix = 
          "/* ------- %-40s ------ */\n";
 
-   private void writeFieldMacro(PrintWriter writer, String prefix) throws Exception {
+   private void writeFieldMacro(Writer writer, String prefix) throws Exception {
       for (Field field : fields) {
          field.writeHeaderFileFieldMacros(writer, prefix);
       }
@@ -729,7 +730,7 @@ public class Register extends Cluster implements Cloneable {
     * @throws Exception
     */
    @Override
-   public void writeHeaderFileFieldMacros(PrintWriter writer, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer, Peripheral peripheral) throws Exception {
       writeHeaderFileFieldMacros(writer, peripheral, "");
    }
 
@@ -742,13 +743,13 @@ public class Register extends Cluster implements Cloneable {
     * @param  devicePeripherals
     * @throws Exception
     */
-   public void writeHeaderFileFieldMacros(PrintWriter writer, Peripheral peripheral, String registerPrefix) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer, Peripheral peripheral, String registerPrefix) throws Exception {
       if (getDerivedFrom() != null) {
          // Don't do macros for derived registers
          return;
       }
-      //      writer.print(String.format(registerMacroPrefix, getFormattedName(-1, peripheral, this, registerPrefix)));
-      writer.print(String.format(registerMacroPrefix, getSimplifedName() + " Bit Fields"));
+      //      writer.write(String.format(registerMacroPrefix, getFormattedName(-1, peripheral, this, registerPrefix)));
+      writer.write(String.format(registerMacroPrefix, getSimplifedName() + " Bit Fields"));
       //      String registerPrefix = (isMapFreescaleCommonNames())?peripheral.getPrependToName()+"_":peripheral.getName()+"_";
       //      sortFields();
       //      for (Field field : fields) {
@@ -804,14 +805,4 @@ public class Register extends Cluster implements Cloneable {
       }
       return null;
    }
-
-   public boolean isHidden() {
-      return hidden;
-   }
-
-   public void setHidden(boolean hidden) {
-      this.hidden = hidden;
-   }
-
-
 }

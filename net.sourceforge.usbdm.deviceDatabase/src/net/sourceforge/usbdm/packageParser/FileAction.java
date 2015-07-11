@@ -20,7 +20,7 @@ public class FileAction extends ProjectAction {
       RELATIVE,
       ABSOLUTE
    }
-   public FileAction(String source, String target, FileType fileType) throws Exception {
+   public FileAction(String source, String target, FileType fileType) {
       super("---file---");
       this.source             = source;
       this.target             = target;

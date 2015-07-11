@@ -91,12 +91,14 @@ public abstract class ArmVectorTable extends VectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCInterruptHeader(java.io.Writer)
     */
    @Override
-   public void writeCInterruptHeader(Writer writer) throws IOException {
+   public void writeCInterruptHeader(Writer writer) throws Exception {
 
       if (addDefaultVectors) {
          addDefaultInterruptEntries();
          addDefaultVectors = false;
       }
+      
+      writeGroupPreamble(writer, "Interrupt_vector_numbers", "Interrupt vector numbers", "Vector numbers required for NVIC functions");
 
       writer.write(INTERRUPT_BANNER);
       writer.write(INTERRUPT_PREAMBLE);
@@ -119,15 +121,20 @@ public abstract class ArmVectorTable extends VectorTable {
          }
       }
       writer.write(INTERRUPT_POSTAMBLE);
-   
+      
+      writeGroupPostamble(writer, "Interrupt_vector_numbers");
+
+      writeGroupPreamble(writer, "Interrupt_handler_prototypes", "Interrupt handler prototypes", "Prototypes for interrupt handlers");
       writer.write(EXTERNAL_HANDLER_BANNER);
 
       for (int index=2; index<=lastEntry; index++) {
          String handlerName = getHandlerName(index);
          if (handlerName != null) {
-            writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void)"));
+            writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void);", getHandlerDescription(index)));
          }
       }
       writer.write('\n');
+
+      writeGroupPostamble(writer, "Interrupt_handler_prototypes");
    }
 }

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Freescale device descriptions
+Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.usbdm;singleton:=true
+Bundle-Version: 4.11.1.qualifier
+Bundle-Activator: net.sourceforge.usbdm.peripherals.usbdm.Activator
+Bundle-Vendor: pgo
+Require-Bundle: org.eclipse.core.runtime,
+ net.sourceforge.usbdm.peripheralDatabase,
+ org.eclipse.osgi
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Export-Package: net.sourceforge.usbdm.peripherals.usbdm;uses:="org.osgi.framework,net.sourceforge.usbdm.peripheralDatabase"

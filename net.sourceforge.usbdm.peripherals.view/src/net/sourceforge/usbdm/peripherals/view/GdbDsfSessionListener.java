@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 import net.sourceforge.usbdm.peripherals.model.DeviceModel;
 import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
+import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 import org.eclipse.cdt.dsf.debug.service.IRunControl.IExitedDMEvent;
 import org.eclipse.cdt.dsf.debug.service.IRunControl.IStartedDMEvent;
@@ -168,7 +170,8 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
          // New session
          DsfSession dsfSession = DsfSession.getSession(sessionId);
          String     deviceName = getDeviceName(dsfSession);
-         UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(new GdbDsfInterface(dsfSession), deviceName);
+         SVDIdentifier svdId = new SVDIdentifier(UsbdmPeripheralDescriptionProvider.ID, deviceName);
+         UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(new GdbDsfInterface(dsfSession), svdId);
          dsfSessions.put(sessionId, peripheralModel);
          return true;
       }

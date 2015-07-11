@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Text;
 
 public class UsbdmNewProjectPage_1 extends WizardPage {
 
-   static final String PAGE_NAME  = "USBDMProjectPage";
+   static final String PAGE_NAME  = "NewUsbdmProjectWizardPage";
    static final String PAGE_TITLE = "New USBDM Project";
    
    private Button          fProjectLocationBrowseButton;

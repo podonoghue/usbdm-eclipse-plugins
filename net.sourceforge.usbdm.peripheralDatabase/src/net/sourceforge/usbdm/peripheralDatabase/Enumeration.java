@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
 
 public class Enumeration extends ModeControl {
 
@@ -213,22 +214,23 @@ public class Enumeration extends ModeControl {
    /**
     * 
     *  @param writer          The destination for the XML
-    *  @param standardFormat Suppresses some non-standard size optimizations 
+    *  @param standardFormat Suppresses some non-standard size optimisations 
+    * @throws IOException 
     */
-   public void writeSVD(PrintWriter writer, boolean standardFormat, int indent) {
+   public void writeSVD(Writer writer, boolean standardFormat, int indent) throws IOException {
       final String indenter = RegisterUnion.getIndent(indent);
 
-      writer.println(                 indenter+"<enumeratedValue>");
-      writer.println(String.format(   indenter+"   <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
+      writer.write(                 indenter+"<enumeratedValue>\n");
+      writer.write(String.format(   indenter+"   <name>%s</name>\n",               SVD_XML_BaseParser.escapeString(getName())));
       if ((getDescription() != null) && (getDescription().length() > 0)) {
-         writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
+         writer.write(String.format(indenter+"   <description>%s</description>\n", SVD_XML_BaseParser.escapeString(getDescription())));
       }
       if (mask == 0) {
-         writer.println(              indenter+"   <isDefault>true</isDefault>" );
+         writer.write(              indenter+"   <isDefault>true</isDefault>\n" );
       }
       else {
-         writer.println(String.format(indenter+"   <value>%s</value>",             SVD_XML_BaseParser.escapeString(sValue)));
+         writer.write(String.format(indenter+"   <value>%s</value>\n",             SVD_XML_BaseParser.escapeString(sValue)));
       }
-      writer.println(                 indenter+"</enumeratedValue>");
+      writer.write(                 indenter+"</enumeratedValue>\n");
    }
 }

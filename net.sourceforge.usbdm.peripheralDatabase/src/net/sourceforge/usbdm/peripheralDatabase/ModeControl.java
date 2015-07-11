@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -441,6 +443,38 @@ public class ModeControl {
    }
 
    /**
+    * Generates a structure name from a peripheral name
+    * e.g. DAC0 -> DAC, GPIOA->GPIO
+    * There are used for the structire names e.g. GPIOA => GPIO_Type
+    * 
+    * @param   Name to map
+    * @return  Mapped name (unchanged if not mapped)
+    */
+   static String getStructNamefromName(String name) {
+      final ArrayList<Pair> mappedNames = new ArrayList<Pair>();
+      if (mappedNames.size() == 0) {
+         //TODO - Where structure names are mapped
+         mappedNames.add(new Pair(Pattern.compile("(^FTM[0-9]*$)"),   "$1"));  // e.g. FTM0 etc. unchanged
+         mappedNames.add(new Pair(Pattern.compile("(^TPM[0-9]*$)"),   "$1"));  // e.g. TPM0 etc. unchanged
+         mappedNames.add(new Pair(Pattern.compile("(^EPORT[0-9]*$)"), "$1"));  // e.g. EPORT0 etc. unchanged
+         mappedNames.add(new Pair(Pattern.compile("(^GPIO)[A-F]*$"),  "$1"));  // e.g. GPIOA -> GPIO
+         mappedNames.add(new Pair(Pattern.compile("(^FGPIO)[A-F]*$"), "$1"));  // e.g. FGPIOA -> FGPIO
+         mappedNames.add(new Pair(Pattern.compile("(^PT)[A-F]*$"),    "$1"));  // e.g. PTA -> PA
+         mappedNames.add(new Pair(Pattern.compile("(^.*?)[0-9]*$"),   "$1"));  // e.g. DMA1 -> DMA
+      }
+      for (Pair p : mappedNames) {
+         Matcher matcher = p.regex.matcher(name);
+         if (matcher.matches()) {
+//            String oldName = name;
+            name = matcher.replaceAll(p.replacement);
+//            System.err.println(String.format("getMappedRegisterMacroName() : %s -> %s", oldName, name));
+            break;
+         }
+      }
+      return name;
+   }
+
+   /**
     * Returns a string truncated at the first newline or tab character
     * 
     * @param line
@@ -513,6 +547,81 @@ public class ModeControl {
    public static void setUseShiftsInFieldMacros(boolean useShiftsInFiledMacros) {
       ModeControl.useShiftsInFieldMacros = useShiftsInFiledMacros;
    }
-   
-   
+
+   static final String groupPostamble =  
+    "/**\n"+
+    " * @}\n"+
+    " */ /* end of group %s */\n\n";
+
+   /**
+    * Write open group comment
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <i><b>groupName</i></b>_GROUP <i><b>groupTitle</i></b>                   
+    *  * @brief       <i><b>groupBrief</i></b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write 
+    * @param groupName     Name of group
+    * @param groupTitle    Title of group (may be null)
+    * @param groupBrief    Brief description of group (may be null)
+    * 
+    * @throws IOException
+    */
+   static void writeGroupPreamble(Writer writer, String groupName, String groupTitle, String groupBrief) throws IOException {
+      final String startGroup1 = 
+            "/**\n"+
+            "* @addtogroup %s %s\n";
+      final String startGroup2 = 
+            "* @brief %s\n";
+      final String startGroup3 = 
+            "* @{\n"+
+            "*/\n";
+      writer.write(String.format(startGroup1, groupName+"_GROUP", (groupTitle==null)?"":groupTitle));
+      if (groupBrief != null) {
+         writer.write(String.format(startGroup2, groupBrief));
+      }
+      writer.write(String.format(startGroup3));
+   }   
+   /**
+    * Write close group comment 
+    * <pre><code>
+    * /**                                                                    
+    *  * End Group <i><b>groupName</i></b>_GROUP
+    *  * @}                                                                   
+    *  **&#47;</code></pre>
+    * 
+    * @param writer        Where to write 
+    * @param groupName     Name of group
+    * 
+    * @throws IOException
+    */
+   static void writeGroupPostamble(Writer writer, String groupName) throws IOException {
+      final String endGroup = 
+            "/**\n"+
+            " * @} */ /* End group %s \n"+
+            " */\n";
+      writer.write(String.format(endGroup, groupName+"_GROUP"));
+   }
+   /**
+    * Write close group comment 
+    * <pre><code>
+    * /**
+    *  * End Group                                                                    
+    *  * @}                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write 
+    * 
+    * @throws IOException
+    */
+   static void writeGroupPostamble(Writer writer) throws IOException {
+      final String endGroup = 
+            "/**\n"+
+            " * End Group\n"+
+            " * @}\n"+
+            "*/\n";
+      writer.write(endGroup);
+   }
 }

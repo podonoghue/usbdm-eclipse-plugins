@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE device
+[
+<!ENTITY VECTOR_TABLE SYSTEM "vectorTables/MKE04Z4_VectorTable.svd.xml">
+<!ENTITY ACMP0        SYSTEM "peripherals/ACMP0_MKE.svd.xml">
+<!ENTITY ADC0         SYSTEM "peripherals/ADC0_MKE_HWT.svd.xml">
+<!ENTITY CRC          SYSTEM "peripherals/CRC_0.svd.xml">
+<!ENTITY FGPIOA       SYSTEM "peripherals/FGPIOA_2.svd.xml">
+<!ENTITY FTM0         SYSTEM "peripherals/FTM0_51.svd.xml">
+<!ENTITY FTM2         SYSTEM "peripherals/FTM2_0.svd.xml">
+<!ENTITY FTMRE        SYSTEM "peripherals/FTMRE_1.svd.xml">
+<!ENTITY FTMRE_FlashConfig SYSTEM "peripherals/FTMRE_FlashConfig_0.svd.xml">
+<!ENTITY GPIOA        SYSTEM "peripherals/GPIOA_18.svd.xml">
+<!ENTITY I2C0         SYSTEM "peripherals/I2C0_51.svd.xml">
+<!ENTITY ICS          SYSTEM "peripherals/ICS_0.svd.xml">
+<!ENTITY IRQ          SYSTEM "peripherals/IRQ_0.svd.xml">
+<!ENTITY KBI0         SYSTEM "peripherals/KBI0_0.svd.xml">
+<!ENTITY MCM          SYSTEM "peripherals/MCM_32.svd.xml">
+<!ENTITY NVIC         SYSTEM "peripherals/NVIC_2.svd.xml">
+<!ENTITY OSC          SYSTEM "peripherals/OSC_2.svd.xml">
+<!ENTITY PIT          SYSTEM "peripherals/PIT_51.svd.xml">
+<!ENTITY PMC          SYSTEM "peripherals/PMC_51.svd.xml">
+<!ENTITY PORT         SYSTEM "peripherals/PORT_2.svd.xml">
+<!ENTITY PWT          SYSTEM "peripherals/PWT_0.svd.xml">
+<!ENTITY ROM          SYSTEM "peripherals/ROM_0.svd.xml">
+<!ENTITY RTC          SYSTEM "peripherals/RTC_50.svd.xml">
+<!ENTITY SIM          SYSTEM "peripherals/SIM_51.svd.xml">
+<!ENTITY SPI0         SYSTEM "peripherals/SPI0_51.svd.xml">
+<!ENTITY SysTick      SYSTEM "peripherals/SysTick_1.svd.xml">
+<!ENTITY SystemControl SYSTEM "peripherals/SystemControl_4.svd.xml">
+<!ENTITY UART0        SYSTEM "peripherals/UART0_51.svd.xml">
+<!ENTITY WDOG         SYSTEM "peripherals/WDOG_51.svd.xml">
+]>
+<device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
+   <name>MKE04Z4</name>
+   <version>1.6</version>
+   <description>MKE04Z4 Freescale Microcontroller</description>
+   <cpu>
+      <name>CM0PLUS</name>
+      <revision>r0p0</revision>
+      <endian>little</endian>
+      <mpuPresent>false</mpuPresent>
+      <fpuPresent>false</fpuPresent>
+      <vtorPresent>true</vtorPresent>
+      <nvicPrioBits>2</nvicPrioBits>
+      <vendorSystickConfig>false</vendorSystickConfig>
+   </cpu>
+   <addressUnitBits>8</addressUnitBits>
+   <width>32</width>
+   <peripherals>
+&ACMP0;
+<peripheral derivedFrom="ACMP0"><name>ACMP1</name><prependToName>ACMP1_</prependToName><baseAddress>0x40074000</baseAddress>         <interrupt>
+            <name>ACMP1</name>
+            <description>Analog comparator</description>
+            <value>21</value>
+         </interrupt>
+</peripheral>
+&ADC0;
+&CRC;
+&FGPIOA;
+&FTM0;
+&FTM2;
+&FTMRE;
+&FTMRE_FlashConfig;
+&GPIOA;
+&I2C0;
+&ICS;
+&IRQ;
+&KBI0;
+<peripheral derivedFrom="KBI0"><name>KBI1</name><prependToName>KBI1_</prependToName><baseAddress>0x4007A000</baseAddress>         <interrupt>
+            <name>KBI1</name>
+            <description>Keyboard interrupts</description>
+            <value>25</value>
+         </interrupt>
+</peripheral>
+&MCM;
+&NVIC;
+&OSC;
+&PIT;
+&PMC;
+&PORT;
+&PWT;
+&ROM;
+&RTC;
+&SIM;
+&SPI0;
+&SysTick;
+&SystemControl;
+&UART0;
+&WDOG;
+   </peripherals>
+   <vendorExtensions>
+&VECTOR_TABLE;
+   </vendorExtensions>
+</device>

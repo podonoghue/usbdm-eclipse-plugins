@@ -9,12 +9,14 @@
  */
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
@@ -25,76 +27,78 @@ import org.w3c.dom.ProcessingInstruction;
  */
 public class SVD_XML_Parser extends SVD_XML_BaseParser {
 
-   public static String DERIVEDFROM_ATTRIB               = "derivedFrom";
-   public static String REFRESH_WHOLE_PERIPHERAL_ATTRIB  = "refreshWholePeripheral";
-   public static String PREFERREDACCESSWIDTH_ATTRIB      = "preferredAccessWidth";
-   public static String FORCED_ACCESS_WIDTH              = "forcedAccessWidth";
-   public static String FORCED_BLOCK_WIDTH               = "forcedBlockWidth";
-   public static String SOURCEFILE_ATTRIB                = "sourceFile";
-   public static String IGNOREOVERLAP_ATTRIB             = "ignoreOverlap";
-   public static String HIDE_ATTRIB                      = "hide";
+   static final String DERIVEDFROM_ATTRIB               = "derivedFrom";
+   static final String REFRESH_WHOLE_PERIPHERAL_ATTRIB  = "refreshWholePeripheral";
+   static final String PREFERREDACCESSWIDTH_ATTRIB      = "preferredAccessWidth";
+   static final String FORCED_ACCESS_WIDTH              = "forcedAccessWidth";
+   static final String FORCED_BLOCK_WIDTH               = "forcedBlockWidth";
+   static final String SOURCEFILE_ATTRIB                = "sourceFile";
+   static final String IGNOREOVERLAP_ATTRIB             = "ignoreOverlap";
+   static final String HIDE_ATTRIB                      = "hide";
 
-   public static String ALTERNATEREGISTER_TAG    = "alternateRegister";
-   public static String ACCESS_TAG               = "access";
-   public static String ADDRESSBLOCK_TAG         = "addressBlock";
-   public static String ADDRESSOFFSET_TAG        = "addressOffset";
-   public static String ADDRESSUNITSBITS_TAG     = "addressUnitBits";
-   public static String ALTERNATEGROUP_TAG       = "alternateGroup";
-   public static String APPENDTONAME_TAG         = "appendToName";
-   public static String BASEADDRESS_TAG          = "baseAddress";
-   public static String BITOFFSET_TAG            = "bitOffset";
-   public static String BITWIDTH_TAG             = "bitWidth";
-   public static String BITRANGE_TAG             = "bitRange";
-   public static String CLUSTER_TAG              = "cluster";
-   public static String CPU_TAG                  = "cpu";
-   public static String DESCRIPTION_TAG          = "description";
-   public static String DIM_TAG                  = "dim";
-   public static String DIMINCREMENT_TAG         = "dimIncrement";
-   public static String DIMINDEX_TAG             = "dimIndex";
-   public static String DISABLECONDITION_TAG     = "disableCondition";
-   public static String DISPLAYNAME_TAG          = "displayName";
-   public static String ENDIAN_TAG               = "endian";
-   public static String ENUMERATEDVALUES_TAG     = "enumeratedValues";
-   public static String ENUMERATEDVALUE_TAG      = "enumeratedValue";
-   public static String FALSE_TAG                = "false";
-   public static String FIELDS_TAG               = "fields";
-   public static String FIELD_TAG                = "field";
-   public static String FPUPRESENT_TAG           = "fpuPresent";
-   public static String VTORPRESENT_TAG          = "vtorPresent";
-   public static String GROUPNAME_TAG            = "groupName";
-   public static String HEADERSTRUCTNAME_TAG     = "headerStructName";
-   public static String ISDEFAULT_TAG            = "isDefault";
-   public static String INTERRUPT_TAG            = "interrupt";
-   public static String INTERRUPTS_TAG           = "interrupts";
-   public static String LSB_TAG                  = "lsb";
-   public static String MODIFIEDWRITEVALUES_TAG  = "modifiedWriteValues";
-   public static String MPUPRESENT_TAG           = "mpuPresent";
-   public static String MSB_TAG                  = "msb";
-   public static String NAME_TAG                 = "name";
-   public static String NVICPRIOBITS_TAG         = "nvicPrioBits";
-   public static String OFFSET_TAG               = "offset";
-   public static String PERIPHERAL_TAG           = "peripheral";
-   public static String PERIPHERALS_TAG          = "peripherals";
-   public static String PREPENDTONAME_TAG        = "prependToName";
-   public static String READACTION_TAG           = "readAction";
-   public static String REGISTERS_TAG            = "registers";
-   public static String REGISTER_TAG             = "register";
-   public static String RESERVED_TAG             = "RESERVED";
-   public static String RESETVALUE_TAG           = "resetValue";
-   public static String RESETMASK_TAG            = "resetMask";
-   public static String REVISION_TAG             = "revision";
-   public static String SERIES_TAG               = "series";
-   public static String SIZE_TAG                 = "size";
-   public static String TRUE_TAG                 = "true";
-   public static String USAGE_TAG                = "usage";
-   public static String VALUE_TAG                = "value";
-   public static String VENDORSYSTICKCONFIG_TAG  = "vendorSystickConfig";
-   public static String VENDOREXTENSIONS_TAG     = "vendorExtensions";
-   public static String VENDOR_TAG               = "vendor";
-   public static String VERSION_TAG              = "version";
-   public static String WRITECONSTRAINTS_TAG     = "writeConstraint";
-   public static String WIDTH_TAG                = "width";
-   public static String WRITECONSTRAINT_TAG      = "writeConstraint";
+   static final String ALTERNATEREGISTER_TAG    = "alternateRegister";
+   static final String ACCESS_TAG               = "access";
+   static final String ADDRESSBLOCK_TAG         = "addressBlock";
+   static final String ADDRESSOFFSET_TAG        = "addressOffset";
+   static final String ADDRESSUNITSBITS_TAG     = "addressUnitBits";
+   static final String ALTERNATEGROUP_TAG       = "alternateGroup";
+   static final String APPENDTONAME_TAG         = "appendToName";
+   static final String BASEADDRESS_TAG          = "baseAddress";
+   static final String BITOFFSET_TAG            = "bitOffset";
+   static final String BITWIDTH_TAG             = "bitWidth";
+   static final String BITRANGE_TAG             = "bitRange";
+   static final String CLUSTER_TAG              = "cluster";
+   static final String CPU_TAG                  = "cpu";
+   static final String DESCRIPTION_TAG          = "description";
+   static final String DIM_TAG                  = "dim";
+   static final String DIMINCREMENT_TAG         = "dimIncrement";
+   static final String DIMINDEX_TAG             = "dimIndex";
+   static final String DISABLECONDITION_TAG     = "disableCondition";
+   static final String DISPLAYNAME_TAG          = "displayName";
+   static final String ENDIAN_TAG               = "endian";
+   static final String ENUMERATEDVALUES_TAG     = "enumeratedValues";
+   static final String ENUMERATEDVALUE_TAG      = "enumeratedValue";
+   static final String FALSE_TAG                = "false";
+   static final String FIELDS_TAG               = "fields";
+   static final String FIELD_TAG                = "field";
+   static final String FPUPRESENT_TAG           = "fpuPresent";
+   static final String VTORPRESENT_TAG          = "vtorPresent";
+   static final String GROUPNAME_TAG            = "groupName";
+   static final String HEADERSTRUCTNAME_TAG     = "headerStructName";
+   static final String ISDEFAULT_TAG            = "isDefault";
+   static final String INTERRUPT_TAG            = "interrupt";
+   static final String INTERRUPTS_TAG           = "interrupts";
+   static final String LICENSE_TAG              = "licenseText";
+   static final String LSB_TAG                  = "lsb";
+   static final String MODIFIEDWRITEVALUES_TAG  = "modifiedWriteValues";
+   static final String MPUPRESENT_TAG           = "mpuPresent";
+   static final String MSB_TAG                  = "msb";
+   static final String NAME_TAG                 = "name";
+   static final String NVICPRIOBITS_TAG         = "nvicPrioBits";
+   static final String OFFSET_TAG               = "offset";
+   static final String PERIPHERAL_TAG           = "peripheral";
+   static final String PERIPHERALS_TAG          = "peripherals";
+   static final String PREPENDTONAME_TAG        = "prependToName";
+   static final String READACTION_TAG           = "readAction";
+   static final String REGISTERS_TAG            = "registers";
+   static final String REGISTER_TAG             = "register";
+   static final String RESERVED_TAG             = "RESERVED";
+   static final String RESETVALUE_TAG           = "resetValue";
+   static final String RESETMASK_TAG            = "resetMask";
+   static final String REVISION_TAG             = "revision";
+   static final String SERIES_TAG               = "series";
+   static final String SIZE_TAG                 = "size";
+   static final String TRUE_TAG                 = "true";
+   static final String USAGE_TAG                = "usage";
+   static final String VALUE_TAG                = "value";
+   static final String VENDORSYSTICKCONFIG_TAG  = "vendorSystickConfig";
+   static final String VENDOREXTENSIONS_TAG     = "vendorExtensions";
+   static final String VENDORID_TAG             = "vendorID";
+   static final String VENDOR_TAG               = "vendor";
+   static final String VERSION_TAG              = "version";
+   static final String WRITECONSTRAINTS_TAG     = "writeConstraint";
+   static final String WIDTH_TAG                = "width";
+   static final String WRITECONSTRAINT_TAG      = "writeConstraint";
    
 
    DevicePeripherals devicePeripherals = null;          
@@ -109,7 +113,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private Enumeration parseEnumeratedValue(Field field, Element enumeratedValue) throws Exception {
+   private static Enumeration parseEnumeratedValue(Field field, Element enumeratedValue) throws Exception {
 
       Enumeration enumeration = new Enumeration();
       
@@ -145,7 +149,15 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       return enumeration;
    }
    
-   private String getMappedEnumeratedValue(String value) {
+   /**
+    * Convert enumerated values to standard form
+    * e.g. #BBBB => 0bBBBB
+    * 
+    * @param value
+    * 
+    * @return
+    */
+   private static String getMappedEnumeratedValue(String value) {
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
@@ -173,7 +185,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private void parseEnumeratedValues(Field field, Element enumeratedValuesElement) throws Exception {
+   private static void parseEnumeratedValues(Field field, Element enumeratedValuesElement) throws Exception {
 
       for (Node node = enumeratedValuesElement.getFirstChild();
             node != null;
@@ -201,7 +213,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private Field parseField(Register register, Element fieldElement) throws Exception {
+   private static Field parseField(Register register, Element fieldElement) throws Exception {
       Field field = null;
       if (fieldElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
          Field referencedField = null;
@@ -295,7 +307,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       return field;
    }
 
-
    /**
     * Parse a <fields> element
     * 
@@ -304,7 +315,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private void parseFields(Register register, Element fieldsElement) throws Exception {
+   private static void parseFields(Register register, Element fieldsElement) throws Exception {
       for (Node node = fieldsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -335,7 +346,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
+   private static Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
 
       Register register = new Register(peripheral, cluster);
       boolean derived = false;
@@ -468,7 +479,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private Cluster parseCluster(Peripheral peripheral, Element clusterElement) throws Exception {
+   private static Cluster parseCluster(Peripheral peripheral, Element clusterElement) throws Exception {
 
       Cluster cluster = new Cluster(peripheral);
       
@@ -480,6 +491,16 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       for (Node node = clusterElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
+         if (node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+            ProcessingInstruction element = (ProcessingInstruction) node;
+            if (element.getNodeName() == HIDE_ATTRIB) {
+               cluster.setHidden(true);
+            }            
+            else {
+               System.err.println("parseRegister() - unknown attribute " + element.getNodeName());
+            }
+            continue;
+         }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
@@ -523,7 +544,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private void parseRegisters(Peripheral peripheral, Element peripheralElement) throws Exception {
+   private static void parseRegisters(Peripheral peripheral, Element peripheralElement) throws Exception {
 
       for (Node node = peripheralElement.getFirstChild();
             node != null;
@@ -572,7 +593,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private AddressBlock parseAddressBlock(Element addressBlockElement) throws Exception {
+   private static AddressBlock parseAddressBlock(Element addressBlockElement) throws Exception {
 
 //      System.out.println("parsePeripheral");
       AddressBlock addressBlock = new AddressBlock();
@@ -621,7 +642,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     *  
     * @throws Exception 
     */
-   private InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
+   private static InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
 
       InterruptEntry interruptEntry = new InterruptEntry();
 
@@ -658,7 +679,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
+   private static Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
 
       boolean derived       = false;
       boolean interruptsSet = false;
@@ -793,7 +814,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private void parsePeripherals(DevicePeripherals device, Element peripheralsElement) throws Exception {
+   private static void parsePeripherals(DevicePeripherals device, Element peripheralsElement) throws Exception {
 
 //      System.out.println("parsePeripherals");
 
@@ -835,7 +856,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private void parseCpu(DevicePeripherals devicePeripherals, Element cpuElement) throws Exception {
+   private static void parseCpu(DevicePeripherals devicePeripherals, Element cpuElement) throws Exception {
 
       Cpu cpu = new Cpu();
       
@@ -886,7 +907,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private void parseInterrupts(DevicePeripherals devicePeripherals, Element interruptElement) throws Exception {
+   private static void parseInterrupts(DevicePeripherals devicePeripherals, Element interruptElement) throws Exception {
       int lastEntryNumber = -1000;
       VectorTable vectorTable = VectorTable.factory(devicePeripherals.getCpu().getName());
 
@@ -937,7 +958,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private void parseVendorExtensions(DevicePeripherals devicePeripherals, Element vendorExtensionsElement) throws Exception {
+   private static void parseVendorExtensions(DevicePeripherals devicePeripherals, Element vendorExtensionsElement) throws Exception {
       for (Node node = vendorExtensionsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -955,19 +976,19 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    }
 
    /**
-    * @return Description of the device peripherals
+    * Parses document from top element
     * 
     * @throws Exception
     */
-   DevicePeripherals parseDocument(Element documentElement) throws Exception {
+   public static void parseDocument(Path path, DevicePeripherals devicePeripherals) throws Exception {
       
+      Document document = parseXmlFile(path);
+      
+      Element documentElement = document.getDocumentElement();
+
       if (documentElement == null) {
          System.out.println("DeviceDatabase.parseDocument() - failed to get documentElement");
-         return null;
       }
-
-      DevicePeripherals devicePeripherals = new DevicePeripherals();
-
       for (Node node = documentElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -1009,19 +1030,24 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             parseCpu(devicePeripherals, element);
          }
          else if (element.getTagName() == VENDOR_TAG) {
-            // Ignores
+            devicePeripherals.setVendor(element.getTextContent());
+         }
+         else if (element.getTagName() == VENDORID_TAG) {
+            devicePeripherals.setVendor(element.getTextContent());
+         }
+         else if (element.getTagName() == LICENSE_TAG) {
+            devicePeripherals.setLicense(element.getTextContent());
          }
          else if (element.getTagName() == SERIES_TAG) {
-            // Ignores
+            // Ignore
          }
          else if (element.getTagName() == VENDOREXTENSIONS_TAG) {
             parseVendorExtensions(devicePeripherals, element);
          }
          else {
-            throw new Exception("Unexpected field in DEVICE', value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in DEVICE, value = \'"+element.getTagName()+"\'");
          }
       }
-      return devicePeripherals;
    }
-
+   
 }

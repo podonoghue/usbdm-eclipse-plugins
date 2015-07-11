@@ -1,0 +1,226 @@
+<!--
+Devices using this peripheral: 
+      MKL16Z4
+      MKL17Z4
+      MKL26Z4
+      MKL27Z4
+      MKL33Z4
+      MKL34Z4
+      MKL36Z4
+      MKL43Z4
+      MKL46Z4
+      MKW01Z4
+-->
+      <peripheral>
+         <?sourceFile "PIT_62" ?>
+         <name>PIT</name>
+         <description>Periodic Interrupt Timer</description>
+         <groupName>PIT</groupName>
+         <prependToName>PIT_</prependToName>
+         <headerStructName>PIT</headerStructName>
+         <baseAddress>0x40037000</baseAddress>
+         <size>32</size>
+         <access>read-write</access>
+         <resetValue>0x0</resetValue>
+         <resetMask>0xFFFFFFFF</resetMask>
+         <addressBlock>
+            <offset>0x0</offset>
+            <size>0x120</size>
+            <usage>registers</usage>
+         </addressBlock>
+         <registers>
+            <register>
+               <name>MCR</name>
+               <description>PIT Module Control Register</description>
+               <addressOffset>0x0</addressOffset>
+               <resetValue>0x6</resetValue>
+               <fields>
+                  <field>
+                     <name>FRZ</name>
+                     <description>Freeze</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Timers continue to run in Debug mode</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Timers are stopped in Debug mode</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>MDIS</name>
+                     <description>Module Disable - (PIT section)</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Clock for standard PIT timers is enabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Clock for standard PIT timers is disabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>LTMR64H</name>
+               <description>PIT Upper Lifetime Timer Register</description>
+               <addressOffset>0xE0</addressOffset>
+               <access>read-only</access>
+               <fields>
+                  <field>
+                     <name>LTH</name>
+                     <description>Life Timer value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>LTMR64L</name>
+               <description>PIT Lower Lifetime Timer Register</description>
+               <addressOffset>0xE4</addressOffset>
+               <access>read-only</access>
+               <fields>
+                  <field>
+                     <name>LTL</name>
+                     <description>Life Timer value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>2</dim>
+               <dimIncrement>16</dimIncrement>
+               <dimIndex>0,1</dimIndex>
+               <name>LDVAL%s</name>
+               <description>Timer Load Value Register</description>
+               <addressOffset>0x100</addressOffset>
+               <fields>
+                  <field>
+                     <name>TSV</name>
+                     <description>Timer Start Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>2</dim>
+               <dimIncrement>16</dimIncrement>
+               <dimIndex>0,1</dimIndex>
+               <name>CVAL%s</name>
+               <description>Current Timer Value Register</description>
+               <addressOffset>0x104</addressOffset>
+               <access>read-only</access>
+               <fields>
+                  <field>
+                     <name>TVL</name>
+                     <description>Current Timer Value</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>2</dim>
+               <dimIncrement>16</dimIncrement>
+               <dimIndex>0,1</dimIndex>
+               <name>TCTRL%s</name>
+               <description>Timer Control Register</description>
+               <addressOffset>0x108</addressOffset>
+               <fields>
+                  <field>
+                     <name>TEN</name>
+                     <description>Timer Enable</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Timer n is disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Timer n is enabled</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>TIE</name>
+                     <description>Timer Interrupt Enable</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Interrupt requests from Timer n are disabled</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Interrupt will be requested whenever TIF is set</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>CHN</name>
+                     <description>Chain Mode</description>
+                     <bitOffset>2</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Timer is not chained</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Timer is chained to previous timer. For example, for Channel 2, if this field is set, Timer 2 is chained to Timer 1</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>2</dim>
+               <dimIncrement>16</dimIncrement>
+               <dimIndex>0,1</dimIndex>
+               <name>TFLG%s</name>
+               <description>Timer Flag Register</description>
+               <addressOffset>0x10C</addressOffset>
+               <fields>
+                  <field>
+                     <name>TIF</name>
+                     <description>Timer Interrupt Flag</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>Timeout has not yet occurred</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Timeout has occurred</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+         </registers>
+      </peripheral>

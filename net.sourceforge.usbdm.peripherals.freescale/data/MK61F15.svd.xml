@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE device
+[
+<!ENTITY VECTOR_TABLE SYSTEM "vectorTables/MK61F15_VectorTable.svd.xml">
+<!ENTITY ADC0         SYSTEM "peripherals/ADC0_MKF12.svd.xml">
+<!ENTITY AIPS0        SYSTEM "peripherals/AIPS0_2.svd.xml">
+<!ENTITY AXBS         SYSTEM "peripherals/AXBS_14.svd.xml">
+<!ENTITY CAN0         SYSTEM "peripherals/CAN0_1.svd.xml">
+<!ENTITY CAU          SYSTEM "peripherals/CAU_0.svd.xml">
+<!ENTITY CMP0         SYSTEM "peripherals/CMP0_2.svd.xml">
+<!ENTITY CMT          SYSTEM "peripherals/CMT_1.svd.xml">
+<!ENTITY CRC          SYSTEM "peripherals/CRC_1.svd.xml">
+<!ENTITY DAC0         SYSTEM "peripherals/DAC0_1.svd.xml">
+<!ENTITY DDR          SYSTEM "peripherals/DDR_0.svd.xml">
+<!ENTITY DMA          SYSTEM "peripherals/DMA_5.svd.xml">
+<!ENTITY DMAMUX0      SYSTEM "peripherals/DMAMUX0_0.svd.xml">
+<!ENTITY ENET         SYSTEM "peripherals/ENET_0.svd.xml">
+<!ENTITY EWM          SYSTEM "peripherals/EWM_2.svd.xml">
+<!ENTITY FB           SYSTEM "peripherals/FB_1.svd.xml">
+<!ENTITY FMC          SYSTEM "peripherals/FMC_3.svd.xml">
+<!ENTITY FTFE         SYSTEM "peripherals/FTFE_0.svd.xml">
+<!ENTITY FTFE_FlashConfig SYSTEM "peripherals/FTFE_FlashConfig.svd.xml">
+<!ENTITY FTM0         SYSTEM "peripherals/FTM0_2.svd.xml">
+<!ENTITY FTM1         SYSTEM "peripherals/FTM1_2.svd.xml">
+<!ENTITY I2C0         SYSTEM "peripherals/I2C0_2.svd.xml">
+<!ENTITY I2S0         SYSTEM "peripherals/I2S0_1.svd.xml">
+<!ENTITY LLWU         SYSTEM "peripherals/LLWU_1.svd.xml">
+<!ENTITY LMEM         SYSTEM "peripherals/LMEM_0.svd.xml">
+<!ENTITY LPTMR0       SYSTEM "peripherals/LPTMR0_0.svd.xml">
+<!ENTITY MCG          SYSTEM "peripherals/MCG_4.svd.xml">
+<!ENTITY MCM          SYSTEM "peripherals/MCM_27.svd.xml">
+<!ENTITY MPU          SYSTEM "peripherals/MPU_1.svd.xml">
+<!ENTITY NFC          SYSTEM "peripherals/NFC_0.svd.xml">
+<!ENTITY NVIC         SYSTEM "peripherals/NVIC_0.svd.xml">
+<!ENTITY OSC0         SYSTEM "peripherals/OSC0_0.svd.xml">
+<!ENTITY PDB0         SYSTEM "peripherals/PDB0_5.svd.xml">
+<!ENTITY PIT          SYSTEM "peripherals/PIT_2.svd.xml">
+<!ENTITY PMC          SYSTEM "peripherals/PMC_2.svd.xml">
+<!ENTITY PORTA        SYSTEM "peripherals/PORTA_3.svd.xml">
+<!ENTITY PTA          SYSTEM "peripherals/PTA_0.svd.xml">
+<!ENTITY RCM          SYSTEM "peripherals/RCM_3.svd.xml">
+<!ENTITY RFSYS        SYSTEM "peripherals/RFSYS_0.svd.xml">
+<!ENTITY RFVBAT       SYSTEM "peripherals/RFVBAT_0.svd.xml">
+<!ENTITY RNG          SYSTEM "peripherals/RNG_0.svd.xml">
+<!ENTITY RTC          SYSTEM "peripherals/RTC_4.svd.xml">
+<!ENTITY SDHC         SYSTEM "peripherals/SDHC_1.svd.xml">
+<!ENTITY SIM          SYSTEM "peripherals/SIM_45.svd.xml">
+<!ENTITY SMC          SYSTEM "peripherals/SMC_4.svd.xml">
+<!ENTITY SPI0         SYSTEM "peripherals/SPI0_5.svd.xml">
+<!ENTITY SysTick      SYSTEM "peripherals/SysTick_0.svd.xml">
+<!ENTITY SystemControl SYSTEM "peripherals/SystemControl_3.svd.xml">
+<!ENTITY TSI0         SYSTEM "peripherals/TSI0_4.svd.xml">
+<!ENTITY UART0        SYSTEM "peripherals/UART0_1.svd.xml">
+<!ENTITY UART1        SYSTEM "peripherals/UART1_4.svd.xml">
+<!ENTITY UART2        SYSTEM "peripherals/UART2_0.svd.xml">
+<!ENTITY USB0         SYSTEM "peripherals/USB0_0.svd.xml">
+<!ENTITY USBDCD       SYSTEM "peripherals/USBDCD.svd.xml">
+<!ENTITY USBHS        SYSTEM "peripherals/USBHS_0.svd.xml">
+<!ENTITY VREF         SYSTEM "peripherals/VREF_2.svd.xml">
+<!ENTITY WDOG         SYSTEM "peripherals/WDOG_0.svd.xml">
+]>
+<device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
+   <name>MK61F15</name>
+   <version>1.6</version>
+   <description>MK61F15 Freescale Microcontroller</description>
+   <cpu>
+      <name>CM4</name>
+      <revision>r0p1</revision>
+      <endian>little</endian>
+      <mpuPresent>false</mpuPresent>
+      <fpuPresent>true</fpuPresent>
+      <vtorPresent>true</vtorPresent>
+      <nvicPrioBits>4</nvicPrioBits>
+      <vendorSystickConfig>false</vendorSystickConfig>
+   </cpu>
+   <addressUnitBits>8</addressUnitBits>
+   <width>32</width>
+   <peripherals>
+&ADC0;
+<peripheral derivedFrom="ADC0"><name>ADC1</name><prependToName>ADC1_</prependToName><baseAddress>0x400BB000</baseAddress>         <interrupt>
+            <name>ADC1</name>
+            <description>Analog-to-Digital Converter</description>
+            <value>58</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="ADC0"><name>ADC2</name><prependToName>ADC2_</prependToName><baseAddress>0x4003C000</baseAddress>         <interrupt>
+            <name>ADC2</name>
+            <description>Analog-to-Digital Converter</description>
+            <value>102</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="ADC0"><name>ADC3</name><prependToName>ADC3_</prependToName><baseAddress>0x400BC000</baseAddress>         <interrupt>
+            <name>ADC3</name>
+            <description>Analog-to-Digital Converter</description>
+            <value>103</value>
+         </interrupt>
+</peripheral>
+&AIPS0;
+<peripheral derivedFrom="AIPS0"><name>AIPS1</name><prependToName>AIPS1_</prependToName><baseAddress>0x40080000</baseAddress></peripheral>
+&AXBS;
+&CAN0;
+<peripheral derivedFrom="CAN0"><name>CAN1</name><prependToName>CAN1_</prependToName><baseAddress>0x400A4000</baseAddress>         <interrupt>
+            <name>CAN1_ORed_Message_buffer</name>
+            <description>Flex Controller Area Network module</description>
+            <value>37</value>
+         </interrupt>
+         <interrupt>
+            <name>CAN1_Bus_Off</name>
+            <description>Flex Controller Area Network module</description>
+            <value>38</value>
+         </interrupt>
+         <interrupt>
+            <name>CAN1_Error</name>
+            <description>Flex Controller Area Network module</description>
+            <value>39</value>
+         </interrupt>
+         <interrupt>
+            <name>CAN1_Tx_Warning</name>
+            <description>Flex Controller Area Network module</description>
+            <value>40</value>
+         </interrupt>
+         <interrupt>
+            <name>CAN1_Rx_Warning</name>
+            <description>Flex Controller Area Network module</description>
+            <value>41</value>
+         </interrupt>
+         <interrupt>
+            <name>CAN1_Wake_Up</name>
+            <description>Flex Controller Area Network module</description>
+            <value>42</value>
+         </interrupt>
+</peripheral>
+&CAU;
+&CMP0;
+<peripheral derivedFrom="CMP0"><name>CMP1</name><prependToName>CMP1_</prependToName><baseAddress>0x40073008</baseAddress>         <interrupt>
+            <name>CMP1</name>
+            <description>High-Speed Comparator (CMP), Voltage Reference (VREF) Digital-to-Analog Converter (DAC), and Analog Mux</description>
+            <value>60</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="CMP0"><name>CMP2</name><prependToName>CMP2_</prependToName><baseAddress>0x40073010</baseAddress>         <interrupt>
+            <name>CMP2</name>
+            <description>High-Speed Comparator (CMP), Voltage Reference (VREF) Digital-to-Analog Converter (DAC), and Analog Mux</description>
+            <value>61</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="CMP0"><name>CMP3</name><prependToName>CMP3_</prependToName><baseAddress>0x40073018</baseAddress>         <interrupt>
+            <name>CMP3</name>
+            <description>High-Speed Comparator (CMP), Voltage Reference (VREF) Digital-to-Analog Converter (DAC), and Analog Mux</description>
+            <value>98</value>
+         </interrupt>
+</peripheral>
+&CMT;
+&CRC;
+&DAC0;
+<peripheral derivedFrom="DAC0"><name>DAC1</name><prependToName>DAC1_</prependToName><baseAddress>0x400CD000</baseAddress>         <interrupt>
+            <name>DAC1</name>
+            <description>12-Bit Digital-to-Analog Converter</description>
+            <value>82</value>
+         </interrupt>
+</peripheral>
+&DDR;
+&DMA;
+&DMAMUX0;
+<peripheral derivedFrom="DMAMUX0"><name>DMAMUX1</name><prependToName>DMAMUX1_</prependToName><baseAddress>0x40022000</baseAddress></peripheral>
+&ENET;
+&EWM;
+&FB;
+&FMC;
+&FTFE;
+&FTFE_FlashConfig;
+&FTM0;
+&FTM1;
+<peripheral derivedFrom="FTM1"><name>FTM2</name><prependToName>FTM2_</prependToName><baseAddress>0x400B8000</baseAddress>         <interrupt>
+            <name>FTM2</name>
+            <description>FlexTimer Module</description>
+            <value>64</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="FTM0"><name>FTM3</name><prependToName>FTM3_</prependToName><baseAddress>0x400B9000</baseAddress>         <interrupt>
+            <name>FTM3</name>
+            <description>FlexTimer Module</description>
+            <value>101</value>
+         </interrupt>
+</peripheral>
+&I2C0;
+<peripheral derivedFrom="I2C0"><name>I2C1</name><prependToName>I2C1_</prependToName><baseAddress>0x40067000</baseAddress>         <interrupt>
+            <name>I2C1</name>
+            <description>Inter-Integrated Circuit</description>
+            <value>25</value>
+         </interrupt>
+</peripheral>
+&I2S0;
+<peripheral derivedFrom="I2S0"><name>I2S1</name><prependToName>I2S1_</prependToName><baseAddress>0x400AF000</baseAddress>         <interrupt>
+            <name>I2S1_Tx</name>
+            <description>Inter-IC Sound / Synchronous Audio Interface</description>
+            <value>104</value>
+         </interrupt>
+         <interrupt>
+            <name>I2S1_Rx</name>
+            <description>Inter-IC Sound / Synchronous Audio Interface</description>
+            <value>105</value>
+         </interrupt>
+</peripheral>
+&LLWU;
+&LMEM;
+&LPTMR0;
+&MCG;
+&MCM;
+&MPU;
+&NFC;
+&NVIC;
+&OSC0;
+<peripheral derivedFrom="OSC0"><name>OSC1</name><prependToName>OSC1_</prependToName><baseAddress>0x400E5000</baseAddress></peripheral>
+&PDB0;
+&PIT;
+&PMC;
+&PORTA;
+<peripheral derivedFrom="PORTA"><name>PORTB</name><prependToName>PORTB_</prependToName><baseAddress>0x4004A000</baseAddress>         <interrupt>
+            <name>PORTB</name>
+            <description>Pin Control and Interrupts</description>
+            <value>88</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTC</name><prependToName>PORTC_</prependToName><baseAddress>0x4004B000</baseAddress>         <interrupt>
+            <name>PORTC</name>
+            <description>Pin Control and Interrupts</description>
+            <value>89</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTD</name><prependToName>PORTD_</prependToName><baseAddress>0x4004C000</baseAddress>         <interrupt>
+            <name>PORTD</name>
+            <description>Pin Control and Interrupts</description>
+            <value>90</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTE</name><prependToName>PORTE_</prependToName><baseAddress>0x4004D000</baseAddress>         <interrupt>
+            <name>PORTE</name>
+            <description>Pin Control and Interrupts</description>
+            <value>91</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTF</name><prependToName>PORTF_</prependToName><baseAddress>0x4004E000</baseAddress>         <interrupt>
+            <name>PORTF</name>
+            <description>Pin Control and Interrupts</description>
+            <value>92</value>
+         </interrupt>
+</peripheral>
+&PTA;
+<peripheral derivedFrom="PTA"><name>PTB</name><prependToName>GPIOB_</prependToName><baseAddress>0x400FF040</baseAddress>         <interrupt>
+            <name>PORTB</name>
+            <description>General Purpose Input/Output</description>
+            <value>88</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTC</name><prependToName>GPIOC_</prependToName><baseAddress>0x400FF080</baseAddress>         <interrupt>
+            <name>PORTC</name>
+            <description>General Purpose Input/Output</description>
+            <value>89</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTD</name><prependToName>GPIOD_</prependToName><baseAddress>0x400FF0C0</baseAddress>         <interrupt>
+            <name>PORTD</name>
+            <description>General Purpose Input/Output</description>
+            <value>90</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTE</name><prependToName>GPIOE_</prependToName><baseAddress>0x400FF100</baseAddress>         <interrupt>
+            <name>PORTE</name>
+            <description>General Purpose Input/Output</description>
+            <value>91</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTF</name><prependToName>GPIOF_</prependToName><baseAddress>0x400FF140</baseAddress>         <interrupt>
+            <name>PORTF</name>
+            <description>General Purpose Input/Output</description>
+            <value>92</value>
+         </interrupt>
+</peripheral>
+&RCM;
+&RFSYS;
+&RFVBAT;
+&RNG;
+&RTC;
+&SDHC;
+&SIM;
+&SMC;
+&SPI0;
+<peripheral derivedFrom="SPI0"><name>SPI1</name><prependToName>SPI1_</prependToName><baseAddress>0x4002D000</baseAddress>         <interrupt>
+            <name>SPI1</name>
+            <description>Deserial Serial Peripheral Interface</description>
+            <value>27</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="SPI0"><name>SPI2</name><prependToName>SPI2_</prependToName><baseAddress>0x400AC000</baseAddress>         <interrupt>
+            <name>SPI2</name>
+            <description>Deserial Serial Peripheral Interface</description>
+            <value>28</value>
+         </interrupt>
+</peripheral>
+&SysTick;
+&SystemControl;
+&TSI0;
+&UART0;
+&UART1;
+&UART2;
+<peripheral derivedFrom="UART2"><name>UART3</name><prependToName>UART3_</prependToName><baseAddress>0x4006D000</baseAddress>         <interrupt>
+            <name>UART3_RX_TX</name>
+            <description>Serial Communication Interface</description>
+            <value>51</value>
+         </interrupt>
+         <interrupt>
+            <name>UART3_ERR</name>
+            <description>Serial Communication Interface</description>
+            <value>52</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="UART2"><name>UART4</name><prependToName>UART4_</prependToName><baseAddress>0x400EA000</baseAddress>         <interrupt>
+            <name>UART4_RX_TX</name>
+            <description>Serial Communication Interface</description>
+            <value>53</value>
+         </interrupt>
+         <interrupt>
+            <name>UART4_ERR</name>
+            <description>Serial Communication Interface</description>
+            <value>54</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="UART2"><name>UART5</name><prependToName>UART5_</prependToName><baseAddress>0x400EB000</baseAddress>         <interrupt>
+            <name>UART5_RX_TX</name>
+            <description>Serial Communication Interface</description>
+            <value>55</value>
+         </interrupt>
+         <interrupt>
+            <name>UART5_ERR</name>
+            <description>Serial Communication Interface</description>
+            <value>56</value>
+         </interrupt>
+</peripheral>
+&USB0;
+&USBDCD;
+&USBHS;
+&VREF;
+&WDOG;
+   </peripherals>
+   <vendorExtensions>
+&VECTOR_TABLE;
+   </vendorExtensions>
+</device>

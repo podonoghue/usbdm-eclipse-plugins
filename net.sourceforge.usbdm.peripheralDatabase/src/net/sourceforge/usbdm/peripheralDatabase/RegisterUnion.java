@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,7 +19,7 @@ public class RegisterUnion {
    private long  size;
    private int   suffix = 0;
    
-   private final PrintWriter  writer;
+   private final Writer       writer;
    private final Peripheral   peripheral;
    private final int          indent;
    private final String       indenter;
@@ -33,14 +34,14 @@ public class RegisterUnion {
     * Creates a structure to hold a collection of registers being written to a header file.<br>
     * It handles assembling them and writing the appropriate structs using the writer.
     *  
-    * @param writer      Writer to use when outputting the struct
+    * @param writer2      Writer to use when outputting the struct
     * @param indent      Indent level to indent the structure by
     * @param peripheral  The peripheral containing the registers
     * @param owner       The Peripheral or Cluster that owns the register
     */
-   public RegisterUnion(PrintWriter writer, int indent, Peripheral peripheral, long baseAddress) {
+   public RegisterUnion(Writer writer2, int indent, Peripheral peripheral, long baseAddress) {
       reset(0);
-      this.writer      = writer;
+      this.writer      = writer2;
       this.peripheral  = peripheral;
       this.indent      = indent;
       this.indenter    = getIndent(indent);
@@ -118,7 +119,7 @@ public class RegisterUnion {
       if (offset == -1) {
          throw new Exception("RegisterUnion in invalid state");
       }
-//    writer.println("Writing union");
+//    writer.writeln("Writing union");
       boolean wrapInUnion = union.size()>1;
       
       // Write Fill if necessary
@@ -128,7 +129,7 @@ public class RegisterUnion {
          lastWrittenOffset = offset;
       }
       if (wrapInUnion) {
-         writer.print(String.format(Register.lineFormat, indenter+unionOpening, baseAddress, String.format("(size=%04X)", size)));
+         writer.write(String.format(Register.lineFormat, indenter+unionOpening, baseAddress, String.format("(size=%04X)", size)));
       }
       sort();
       
@@ -140,7 +141,7 @@ public class RegisterUnion {
       for (Cluster register : union) {
          long regSize = register.getTotalSizeInBytes();
          if (regSize == size) {
-            // Initial regs that occupy the entire union are simply written
+            // Initial registers that occupy the entire union are simply written
             register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
             regsDone++;
          }
@@ -149,7 +150,7 @@ public class RegisterUnion {
                // Need to wrap in struct if more than a single element or needs padding before the element
                wrapInStruct = ((union.size()-regsDone)>1)||(register.getAddressOffset() != lastWrittenOffset);
                if (wrapInStruct) {
-                  writer.print(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
+                  writer.write(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
                }
                subStruct = new RegisterUnion(writer, indent+3+(wrapInStruct?3:0), peripheral, baseAddress);
                subStruct.reset(lastWrittenOffset);
@@ -163,11 +164,11 @@ public class RegisterUnion {
          if (wrapInStruct) {
             // Fill to boundary
             subStruct.fillTo(offset+size);
-            writer.print(indenter+"   "+nestedStructClosing);
+            writer.write(indenter+"   "+nestedStructClosing);
          }
       }
       if (wrapInUnion) {
-         writer.print(indenter+unionClosing);         
+         writer.write(indenter+unionClosing);         
       }
       reset(offset+size);
    }
@@ -207,8 +208,9 @@ public class RegisterUnion {
     * Fills the structure up to the given address
     * 
     * @param address
+    * @throws IOException 
     */
-   public void fillTo(long address) {
+   public void fillTo(long address) throws IOException {
       writeFill(writer, indent, suffix++, address, address-lastWrittenOffset);
       lastWrittenOffset = address;
    }
@@ -218,8 +220,9 @@ public class RegisterUnion {
     * 
     * @param address
     * @param size
+    * @throws IOException 
     */
-   public void fill(long address, long size) {
+   public void fill(long address, long size) throws IOException {
       writeFill(writer, indent, suffix++, address, size);
       lastWrittenOffset = address+size;
    }
@@ -227,13 +230,14 @@ public class RegisterUnion {
    /**
     * Write fill within a structure e.g. "uint32_t  RESERVED[x]"
     * 
-    * @param writer        Location for write
+    * @param writer2        Location for write
     * @param indent        Indentation for line
     * @param suffix        Suffix to generate unique symbol
     * @param address       Current address (for alignment)
     * @param size          Number of bytes to pad - may be zero
+    * @throws IOException 
     */
-   public void writeFill(PrintWriter writer, int indent, int suffix, long address, long size) {
+   public void writeFill(Writer writer2, int indent, int suffix, long address, long size) throws IOException {
       
       if (size == 0) {
          return;
@@ -257,7 +261,7 @@ public class RegisterUnion {
       else {
          line.append(';');
       }
-      writer.print(String.format(Register.lineFormat, line.toString(), baseAddress+lastWrittenOffset, ""));
+      writer2.write(String.format(Register.lineFormatNoDocumentation, line.toString()));//, baseAddress+lastWrittenOffset, ""));
    }
 
    /**

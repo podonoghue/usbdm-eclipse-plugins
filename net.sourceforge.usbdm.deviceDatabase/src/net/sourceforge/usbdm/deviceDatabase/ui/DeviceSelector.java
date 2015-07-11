@@ -76,6 +76,9 @@ public class DeviceSelector extends TitleAreaDialog  {
       return comp;
    }
 
+   /**
+    * Validate dialogue contents and update status message
+    */
    void validate() {
       if (deviceSelectorPanel != null) {
          setMessage(deviceSelectorPanel.validate());
@@ -111,7 +114,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     */
    @Override
    protected Point getInitialSize() {
-     return new Point(300, 500);
+     return new Point(350, 500);
    }
    
    /*

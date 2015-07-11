@@ -6,7 +6,7 @@ package net.sourceforge.usbdm.peripheralDatabase;
 | 19 Jan 2015 | Added support for more complex <dim>'s                                            | V4.10.6.250
 ===============================================================================================================
 */
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +28,7 @@ public class Cluster extends ModeControl implements Cloneable {
    private  String               baseName          = "";
    private  String               nameMacroformat   = "";
    protected Peripheral          owner;
+   private boolean               hidden;
 
    Cluster(Peripheral owner) {
       this.owner            = owner;
@@ -37,6 +38,7 @@ public class Cluster extends ModeControl implements Cloneable {
       dimensionIncrement    = 0;
       dimensionIndexes      = null;
       sorted                = false;
+      hidden                = false;
       if (owner != null) {
          accessType     = owner.getAccessType();
          resetValue     = owner.getResetValue();
@@ -516,23 +518,26 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param level
     *    @throws Exception 
     */
-   public void writeSVD(PrintWriter writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
+   public void writeSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
 
       sortRegisters();
       
-      writer.print(                 indenter+"<cluster>\n");
+      writer.write(                 indenter+"<cluster>\n");
       if ((dimensionIndexes!= null) && (dimensionIndexes.size()>0)) {
-         writer.print(String.format(indenter+"   <dim>%d</dim>\n",                       dimensionIndexes.size()));
-         writer.print(String.format(indenter+"   <dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
-         writer.print(String.format(indenter+"   <dimIndex>%s</dimIndex>\n",             SVD_XML_BaseParser.escapeString(getDimensionIndexesAsString())));
+         writer.write(String.format(indenter+"   <dim>%d</dim>\n",                       dimensionIndexes.size()));
+         writer.write(String.format(indenter+"   <dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
+         writer.write(String.format(indenter+"   <dimIndex>%s</dimIndex>\n",             SVD_XML_BaseParser.escapeString(getDimensionIndexesAsString())));
       }
-      writer.print(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
-      writer.print(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", getAddressOffset()));
+      writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
+      if (isHidden()) {
+         writer.write(            indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
+      }
+      writer.write(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", getAddressOffset()));
       for (Register register : registers) {
          register.writeSVD(writer, standardFormat, owner, indent+3);
       }
-      writer.print(                 indenter+"</cluster>\n");
+      writer.write(                 indenter+"</cluster>\n");
    }
 
 
@@ -553,8 +558,8 @@ public class Cluster extends ModeControl implements Cloneable {
    public void setDeleted(boolean b) {
    }
 
-   private final String clusterOpenStruct     = "struct { /* (cluster) */";
-   private final String clusterCloseStruct    = "} %s;\n";
+   private final String clusterOpenStruct     = "struct {\n";
+   private final String clusterCloseStruct    = "} %s;";
 
    /**
     *    Writes C code for Cluster as a STRUCT element e.g.<br>
@@ -564,12 +569,13 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param registerUnion 
     *    @param devicePeripherals
     */
-   public void writeHeaderFileDeclaration(PrintWriter writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long baseAddress) throws Exception {
+   public void writeHeaderFileDeclaration(Writer writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long baseAddress) throws Exception {
 
       final String indenter = RegisterUnion.getIndent(indent);
       sortRegisters();
       RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, peripheral, baseAddress);
-      writer.print(String.format(Register.lineFormat, indenter+clusterOpenStruct, baseAddress, String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
+//      writer.write(String.format(Register.lineFormat, indenter+clusterOpenStruct, baseAddress, String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
+      writer.write(indenter+clusterOpenStruct);
       
       for(Cluster cluster : registers) {
          unionRegisters.add(cluster);
@@ -581,11 +587,24 @@ public class Cluster extends ModeControl implements Cloneable {
          // Fill to array boundary
          unionRegisters.fillTo(getDimensionIncrement());
          // Finish off struct as array
-         writer.print(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())));
+//         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())));
+         
+         writer.write(String.format(Register.lineFormat, // s # s
+               indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())),
+               baseAddress,
+               String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
+               
+//                String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
+//         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())) + 
+//               String.format(Register.lineFormat, baseAddress, String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
       }
       else {
          // Finish off struct
-         writer.print(indenter+String.format(clusterCloseStruct, getBaseName()));
+//         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()));
+         writer.write(String.format(Register.lineFormat, // s # s
+               indenter+String.format(clusterCloseStruct, getBaseName()),
+               baseAddress,
+               String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
       }
    }
 
@@ -597,7 +616,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param  devicePeripherals
     *    @throws Exception
     */
-   public void writeHeaderFileRegisterMacro(PrintWriter writer, Peripheral peripheral)  throws Exception{
+   public void writeHeaderFileRegisterMacro(Writer writer, Peripheral peripheral)  throws Exception{
       writeHeaderFileRegisterMacro(writer, peripheral, "");
    }
    
@@ -640,7 +659,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param  registerPrefix             Prefix to add to peripheral name
     *    @throws Exception
     */
-   public void writeHeaderFileRegisterMacro(PrintWriter writer, Peripheral peripheral, String registerPrefix)  throws Exception{
+   public void writeHeaderFileRegisterMacro(Writer writer, Peripheral peripheral, String registerPrefix)  throws Exception{
       if (getDimension()>0) {
          for(int index=0; index<getDimension(); index++) {
             for (Register register : registers) {
@@ -648,10 +667,10 @@ public class Cluster extends ModeControl implements Cloneable {
                   for (int arIndex=0; arIndex<register.getDimension(); arIndex++) {
                      String name = peripheral.getName()+"_"+ getSimpleArrayName(index)+"_"+register.getSimpleArrayName(arIndex);
                      name = ModeControl.getMappedRegisterMacroName(name);
-//                     writer.print(String.format("#define %-30s (%s->%s[%s].%s)\n", 
+//                     writer.write(String.format("#define %-30s (%s->%s[%s].%s)\n", 
 //                           name2,
 //                           peripheral.getName(), getBaseName(), dimensionIndexes.get(index), register.getSimpleArraySubscriptedName(arIndex)));
-                     writer.print(String.format("#define %-30s (%s)\n", 
+                     writer.write(String.format("#define %-30s (%s)\n", 
                            name,
                            peripheral.getName()+"->"+getSimpleArraySubscriptedName(index)+"."+register.getSimpleArraySubscriptedName(arIndex)));
                   }
@@ -659,7 +678,7 @@ public class Cluster extends ModeControl implements Cloneable {
                else {
                   String name = peripheral.getName()+"_"+ getSimpleArrayName(index)+"_"+    register.getBaseName();
                   name = ModeControl.getMappedRegisterMacroName(name);
-                  writer.print(String.format("#define %-30s (%s)\n", 
+                  writer.write(String.format("#define %-30s (%s)\n", 
                         name,
                         peripheral.getName()+"->"+getSimpleArraySubscriptedName(index)+"."+register.getBaseName()));
                }
@@ -682,7 +701,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param  devicePeripherals
     *    @throws Exception
     */
-   public void writeHeaderFileFieldMacros(PrintWriter writer, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer, Peripheral peripheral) throws Exception {
       for (Register register : registers) {
          register.writeHeaderFileFieldMacros(writer, peripheral, getFormattedName(-1, peripheral.getName(), this, ""));
       }
@@ -921,6 +940,14 @@ public class Cluster extends ModeControl implements Cloneable {
       }
       // Return the one found
       return visibleRegister;
+   }
+
+   public boolean isHidden() {
+      return hidden;
+   }
+
+   public void setHidden(boolean hidden) {
+      this.hidden = hidden;
    }
 
 }

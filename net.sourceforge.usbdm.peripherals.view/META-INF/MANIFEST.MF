@@ -8,7 +8,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.dsf.gdb,
  net.sourceforge.usbdm.constants,
- org.eclipse.cdt.core
+ org.eclipse.cdt.core,
+ org.eclipse.ui.workbench
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.deviceDatabase,
@@ -16,6 +17,7 @@ Import-Package: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.gdb,
  net.sourceforge.usbdm.jni,
  net.sourceforge.usbdm.peripheralDatabase,
+ net.sourceforge.usbdm.peripherals.usbdm,
  org.eclipse.cdt.debug.core.cdi,
  org.eclipse.cdt.debug.core.cdi.model,
  org.eclipse.cdt.debug.core.model,

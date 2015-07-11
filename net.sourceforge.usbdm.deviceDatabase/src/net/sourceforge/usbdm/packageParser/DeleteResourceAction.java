@@ -5,7 +5,7 @@ public class DeleteResourceAction extends ProjectAction {
    private       String    root;
    private final String    target;
 
-   public DeleteResourceAction(String target) throws Exception {
+   public DeleteResourceAction(String target) {
       super("---delete---");
       this.target  = target;
       this.root    = null;

@@ -18,6 +18,7 @@ import net.sourceforge.usbdm.packageParser.ProjectCustomAction;
 import net.sourceforge.usbdm.packageParser.ProjectOption;
 import net.sourceforge.usbdm.packageParser.ProjectVariable;
 import net.sourceforge.usbdm.packageParser.WizardGroup;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -81,6 +82,9 @@ public class ProcessProjectActions {
                }
                else if (action instanceof ProjectVariable) {
                   // Ignore as already added to paramMap
+               }
+               else if (action instanceof WizardPageInformation) {
+                  // Ignore as only applicable to wizard dialogues
                }
                else {
                   throw new Exception("Unexpected action class: " + action.getClass());

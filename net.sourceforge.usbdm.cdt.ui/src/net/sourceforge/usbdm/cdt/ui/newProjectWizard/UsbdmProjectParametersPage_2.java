@@ -27,6 +27,7 @@ import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 import org.eclipse.core.runtime.IPath;
@@ -52,9 +53,8 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmProjectTypeSelection {
 
-   private final static String PAGE_ID    = UsbdmConstants.PROJECT_PAGE_ID;
-   private final static String PAGE_NAME  = UsbdmConstants.PROJECT_PAGE_NAME;
-   private final static String PAGE_TITLE = "USBDM Project Parameters";
+   static final String PAGE_NAME  = "UsbdmProjectParametersPage";
+   static final String PAGE_TITLE = "USBDM Project Parameters";
 
    private InterfaceType         fInterfaceType;
    private Combo                 fBuildToolsCombo;
@@ -71,14 +71,8 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
 //      getName();
    }
 
-   public String getPageID() {
-    return PAGE_ID;
- }
-
    /**
     *  Validates control & sets error message
-    *  
-    * @param message error message (null if none)
     */
    private void validate() {
       String message = null;
@@ -173,7 +167,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       else {
          // For debug
          // TODO - Change default device for testing
-         fDeviceSelector.setDevice("FRDM_KL27Z");
+         fDeviceSelector.setDevice("FRDM_K64F");
       }
    }
      
@@ -576,16 +570,18 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          if (externalVectorTableFile.isEmpty()) {
             String cVectorTable = null;
             // Generate vector table from SVD files if possible
-            DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device.getName());
+
+            DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+            DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device.getName());
             if (devicePeripherals == null) {
-               devicePeripherals = DevicePeripherals.createDatabase(device.getSubFamily());
+               devicePeripherals = factory.getDevicePeripherals(device.getSubFamily());
             }
             if (devicePeripherals != null) {
                cVectorTable = devicePeripherals.getCVectorTableEntries();
             }
             if (cVectorTable == null) {
                // Generate default vector tables
-               System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
+//               System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
                switch(fInterfaceType) {
                case T_ARM: 
                default:

@@ -7,7 +7,7 @@ public class ProjectOption extends ProjectAction {
       private final boolean  fReplace;
       private final String   fConfig;
 
-      public ProjectOption(String id, String path,  String[] value, String config, boolean replace) throws Exception {
+      public ProjectOption(String id, String path,  String[] value, String config, boolean replace) {
          super(id);
          fPath     = path;
          fValue    = value;

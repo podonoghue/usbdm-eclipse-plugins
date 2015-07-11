@@ -5,9 +5,6 @@ public class UsbdmConstants {
    public final static String EXE_PROJECT_TYPE_ID              = "net.sourceforge.usbdm.cdt.newProjectType.exe";                 //$NON-NLS-1$
    public final static String STATIC_LIB_PROJECT_TYPE_ID       = "net.sourceforge.usbdm.cdt.newProjectType.staticLib";           //$NON-NLS-1$
 
-   public final static String PAGE_ID                          = "net.sourceforge.usbdm.cdt.wizardPage";                         //$NON-NLS-1$
-   public final static String PROJECT_PAGE_ID                  = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectPage";        //$NON-NLS-1$
-   public final static String PROJECT_PAGE_NAME                = "UsbdmProjectPage";                                             //$NON-NLS-1$
    public final static String PROJECT_OPTIONS_PAGE_ID          = "net.sourceforge.usbdm.cdt.wizardPage.UsbdmProjectOptionsPage"; //$NON-NLS-1$
    public final static String PROJECT_OPTIONS_PAGE_NAME        = "UsbdmProjectOptionsPage";                                      //$NON-NLS-1$
    public final static String CMSIS_OPTIONS_PAGE_ID            = "net.sourceforge.usbdm.cdt.wizardPage.CMSISOptionsPage";        //$NON-NLS-1$

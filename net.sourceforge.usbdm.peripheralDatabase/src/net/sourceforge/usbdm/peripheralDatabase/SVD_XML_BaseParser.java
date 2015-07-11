@@ -1,14 +1,13 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sourceforge.usbdm.jni.Usbdm;
-
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -16,8 +15,7 @@ import org.w3c.dom.Node;
 public class SVD_XML_BaseParser {
 
    static final Pattern whiteSpacePattern = Pattern.compile("\\s+");
-   static final String USBDM_SVD_DEFAULT_PATH = "/DeviceData/Device.SVD/Internal";
-   
+
    /**
     * Escapes a string for writing to an XML file
     * 
@@ -25,61 +23,61 @@ public class SVD_XML_BaseParser {
     * @return
     */
    public static String escapeString(String str) {
-         if (str == null || str.length() == 0) {
-            return "";
-         }
-         if (ModeControl.isStripWhiteSpace()) {
-            str = whiteSpacePattern.matcher(str).replaceAll(" ");
-         }
-         StringBuffer sb = new StringBuffer();
-         int len = str.length();
-         for (int i = 0; i < len; i++) {
-            char ch = str.charAt(i);
-            switch (ch) {
-            case '<':
-               sb.append("&lt;");
-               break;
-            case '>':
-               sb.append("&gt;");
-               break;
-            case '&':
-               sb.append("&amp;");
-               break;
-            case '"':
-               sb.append("&quot;");
-               break;
-            case '\'':
-               sb.append("&apos;");
-               break;
-            case '×':
-               sb.append("x");
-               break;
-            case 'µ':
-               sb.append("u");
-               break;
-// Used once-off to change description formats
-//            case '\n':
-//               sb.append("\\");
-//               sb.append("n");
-//               sb.append("\n");
-//               break;
-            default:
-               // This is really crude!
-               if (Character.isLetterOrDigit(ch) || Character.isWhitespace(ch)) {
-                  sb.append(ch);
-               }
-               else if ((ch >= 0x20) && (ch <= 0x7F)) {
-                  sb.append(ch);
-               }
-               else {
-                  sb.append('?');
-               }
-               break;
+      if (str == null || str.length() == 0) {
+         return "";
+      }
+      if (ModeControl.isStripWhiteSpace()) {
+         str = whiteSpacePattern.matcher(str).replaceAll(" ");
+      }
+      StringBuffer sb = new StringBuffer();
+      int len = str.length();
+      for (int i = 0; i < len; i++) {
+         char ch = str.charAt(i);
+         switch (ch) {
+         case '<':
+            sb.append("&lt;");
+            break;
+         case '>':
+            sb.append("&gt;");
+            break;
+         case '&':
+            sb.append("&amp;");
+            break;
+         case '"':
+            sb.append("&quot;");
+            break;
+         case '\'':
+            sb.append("&apos;");
+            break;
+         case '×':
+            sb.append("x");
+            break;
+         case 'µ':
+            sb.append("u");
+            break;
+            // Used once-off to change description formats
+            //            case '\n':
+            //               sb.append("\\");
+            //               sb.append("n");
+            //               sb.append("\n");
+            //               break;
+         default:
+            // This is really crude!
+            if (Character.isLetterOrDigit(ch) || Character.isWhitespace(ch)) {
+               sb.append(ch);
             }
+            else if ((ch >= 0x20) && (ch <= 0x7F)) {
+               sb.append(ch);
+            }
+            else {
+               sb.append('?');
+            }
+            break;
          }
-         return sb.toString();
+      }
+      return sb.toString();
    }
-     
+
    /**
     * Converts a string (usually a description) into plain text for use
     * 
@@ -145,11 +143,19 @@ public class SVD_XML_BaseParser {
          }
       }
       return sb.toString();
-}
+   }
 
+   /**
+    * Parses number element of form 0bBBBB or 0xXXXX
+    * 
+    * @param element Element to parse
+    * 
+    * @return numeric value
+    * 
+    * @throws Exception
+    */
+   protected static long getNumberElement(Element element) throws Exception {
 
-protected static long getNumberElement(Element element) throws Exception {
-      
       String s = element.getTextContent();
       if ((s == null) || (s.length()==0)) {
          throw new Exception("Text not found");
@@ -164,8 +170,6 @@ protected static long getNumberElement(Element element) throws Exception {
       }
       return Long.parseLong(s, 10);
    }
-   
-
 
    /**
     * @param element - XML element to parse
@@ -176,14 +180,14 @@ protected static long getNumberElement(Element element) throws Exception {
     */
    protected static String stripQuotes(String s) {
       final Pattern x = Pattern.compile("^(\\s)*\\\"(.*)\\\"(\\s)*$");
-      
+
       if (s != null) {
          // Strip enclosing quotes and white space
          s = x.matcher(s).replaceAll("$2");
       }
       return s;
    }
-   
+
    /**
     * @param element - XML element to parse
     * 
@@ -192,7 +196,7 @@ protected static long getNumberElement(Element element) throws Exception {
     * @throws Exception
     */
    protected static long getIntElement(Node element) throws Exception {
-      
+
       String s = stripQuotes(element.getTextContent());
 
       if ((s == null) || (s.length()==0)) {
@@ -263,7 +267,13 @@ protected static long getNumberElement(Element element) throws Exception {
       return value;
    }
 
-   static Field.AccessType getAccessElement(Element element) throws Exception {
+   /**
+    * 
+    * @param element
+    * @return
+    * @throws Exception
+    */
+   protected static Field.AccessType getAccessElement(Element element) throws Exception {
       String accessName = element.getTextContent();
       if (accessName.equals("read-only")) {
          return Field.AccessType.ReadOnly;
@@ -285,7 +295,13 @@ protected static long getNumberElement(Element element) throws Exception {
       }
    }
 
-   static Field.AccessType getModifiedWriteValuesType(Element element) throws Exception {
+   /**
+    * 
+    * @param element
+    * @return
+    * @throws Exception
+    */
+   protected static Field.AccessType getModifiedWriteValuesType(Element element) throws Exception {
       String accessName = element.getTextContent();
       if (accessName.equals("oneToClear")) {
          return Field.AccessType.ReadOnly;
@@ -318,8 +334,14 @@ protected static long getNumberElement(Element element) throws Exception {
          throw new Exception("Failed to parse ACCESS', value = \'"+accessName+"\'");
       }
    }
-   
-   static Field.AccessType getReadActionType(Element element) throws Exception {
+
+   /**
+    * 
+    * @param element
+    * @return
+    * @throws Exception
+    */
+   protected static Field.AccessType getReadActionType(Element element) throws Exception {
       String accessName = element.getTextContent();
       if (accessName.equals("clear")) {
          return Field.AccessType.ReadOnly;
@@ -337,8 +359,14 @@ protected static long getNumberElement(Element element) throws Exception {
          throw new Exception("Failed to parse ACCESS', value = \'"+accessName+"\'");
       }
    }
-   
-   static Field.AccessType getEnumUsageType(Element element) throws Exception {
+
+   /**
+    * 
+    * @param element
+    * @return
+    * @throws Exception
+    */
+   protected static Field.AccessType getEnumUsageType(Element element) throws Exception {
       String accessName = element.getTextContent();
       if (accessName.equals("read")) {
          return Field.AccessType.ReadOnly;
@@ -353,8 +381,14 @@ protected static long getNumberElement(Element element) throws Exception {
          throw new Exception("Failed to parse ACCESS', value = \'"+accessName+"\'");
       }
    }
-   
-   static Field.AccessType getWriteConstraintType(Element element) throws Exception {
+
+   /**
+    * 
+    * @param element
+    * @return
+    * @throws Exception
+    */
+   protected static Field.AccessType getWriteConstraintType(Element element) throws Exception {
       String accessName = element.getTextContent();
       if (accessName.equals("writeAsRead")) {
          return Field.AccessType.ReadOnly;
@@ -369,122 +403,63 @@ protected static long getNumberElement(Element element) throws Exception {
          throw new Exception("Failed to parse ACCESS', value = \'"+accessName+"\'");
       }
    }
-   
-   static IPath xmlRootPath   = Path.EMPTY;
-   static String xmlExtension = "xml";
-   
-   /**
-    * @param fileName - Name of the file to get path to
-    * 
-    * @return Path to the XML file describing the device peripherals
-    * 
-    * @throws Exception
-    */
-   public static IPath getXmlFilepath(String fileName) {
-      IPath path = xmlRootPath.append(fileName).addFileExtension(xmlExtension);
-//      System.out.println("getXmlFilepath() => \"" + path.toOSString() + "\"");
-      return path;
-   }
+   //   
+   //   private static Path xmlRootPath;
+   //   
+   //   /**
+   //    * Sets where to look for XML files
+   //    * 
+   //    * @param xmlRootPath the xmlRootPath to set
+   //    */
+   //   public static void setXmlRootPath(Path xmlRootPath) {
+   //      SVD_XML_BaseParser.xmlRootPath = xmlRootPath;
+   //   }
+   //
+   //   /**
+   //    * Sets where to look for XML files
+   //    * 
+   //    * @param xmlRootPath the xmlRootPath to set
+   //    */
+   //   public static Path getXmlRootPath() {
+   //      return xmlRootPath;
+   //   }
+   //
+   //   /**
+   //    * Sets default extension added to XML files
+   //    * 
+   //    * @param xmlExtension the xmlExtension to set
+   //    */
+   //   public static void setXmlExtension(String xmlExtension) {
+   //      SVD_XML_BaseParser.xmlExtension = xmlExtension;
+   //   }
 
-   /**
-    * Sets where to look for XML files
-    * 
-    * @param xmlRootPath the xmlRootPath to set
-    */
-   public static void setXmlRootPath(IPath xmlRootPath) {
-      SVD_XML_BaseParser.xmlRootPath = xmlRootPath;
-   }
-
-   /**
-    * Sets where to look for XML files
-    * 
-    * @param xmlRootPath the xmlRootPath to set
-    */
-   public static IPath getXmlRootPath() {
-      return xmlRootPath;
-   }
-
-   /**
-    * Sets default extension added to XML files
-    * 
-    * @param xmlExtension the xmlExtension to set
-    */
-   public static void setXmlExtension(String xmlExtension) {
-      SVD_XML_BaseParser.xmlExtension = xmlExtension;
-   }
-   
-   public SVD_XML_BaseParser() {
-      IPath usbdmResourcePath = Usbdm.getResourcePath();
-      if (usbdmResourcePath == null) {
-         xmlRootPath = Path.EMPTY;
-      }
-      else {
-         xmlRootPath = usbdmResourcePath.append(USBDM_SVD_DEFAULT_PATH);
-      }
-//      System.out.println("SVD_XML_BaseParser() xmlRootPath = \"" + xmlRootPath.toOSString() + "\"");
-   }
-   
    /**
     * Parse the XML file into the XML internal DOM representation
     * 
-    * @param devicenameOrFilename Either a full path to device SVD file or device name (default location & default extension will be added)
+    * @param path path to device SVD file
     * 
     * @return DOM Document representation (or null if locating file fails)
     * 
     * @throws Exception on XML parsing error or similar unexpected event
     */
-   protected static Document parseXmlFile(String devicenameOrFilename) throws Exception {
-      
-      // Try deviceName as full path
-      IPath databasePath = new Path(devicenameOrFilename);
-//      System.err.println("SVD_XML_BaseParser.parseXmlFile()" + devicenameOrFilename);
-      if (!databasePath.toFile().exists()) {
-         // Retry using deviceName as simply name
-         databasePath = getXmlFilepath(devicenameOrFilename);
-      }
-      if (!databasePath.toFile().exists()) {
-         // Retry after stripping speed grade e.g. MK20DX128M5 => MK20DX128
-         devicenameOrFilename = devicenameOrFilename.replaceAll("^(.*)M\\d$", "$1");
-         databasePath = getXmlFilepath(devicenameOrFilename);
-      }
-      if (!databasePath.toFile().exists()) {
-         // Retry after stripping speed grade e.g. MK20DX128M5Z => MK20DX128Z
-         devicenameOrFilename = devicenameOrFilename.replaceAll("^(.*)M\\dZ$", "$1Z");
-         databasePath = getXmlFilepath(devicenameOrFilename);
-      }
-      if (!databasePath.toFile().exists()) {
-         return null;
-      }
+   protected static Document parseXmlFile(Path path) throws Exception {
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder db = dbf.newDocumentBuilder();
 
-      //  Parse using builder to get DOM representation of the XML file
-      return db.parse(databasePath.toOSString());
-   }
-   
-   /**
-    * Parse the XML file into the XML internal DOM representation
-    * 
-    * @param databasePath Path to XML file to process
-    * 
-    * @return DOM Document representation
-    * 
-    * @throws Exception 
-    */
-   protected static Document parseXmlFile(IPath databasePath) throws Exception {
-      
-      if (!databasePath.toFile().exists()) {
-         throw new Exception("Device file not found : \'"+databasePath.toOSString()+"\'");
+      InputStream is  = null;
+      Document    doc = null;
+
+      try {
+         is = Files.newInputStream(path);
+         //  Parse using builder to get DOM representation of the XML file
+         doc = db.parse(is, path.toString());
       }
-
-      // Get the factory
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      DocumentBuilder db = dbf.newDocumentBuilder();
-
-      //  Parse using builder to get DOM representation of the XML file
-//      System.out.println("parseXmlFile()"+databasePath.toOSString());
-      return db.parse(databasePath.toOSString());
+      finally {
+         if (is != null) {
+            is.close();
+         }
+      }
+      return doc;
    }
-   
 }

@@ -6,7 +6,9 @@ Bundle-Version: 4.11.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripheralDatabase.Activator
 Bundle-Vendor: pgo
 Require-Bundle: net.sourceforge.usbdm.jni,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.osgi
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.peripheralDatabase;uses:="org.osgi.framework"
+Import-Package: net.sourceforge.usbdm.constants

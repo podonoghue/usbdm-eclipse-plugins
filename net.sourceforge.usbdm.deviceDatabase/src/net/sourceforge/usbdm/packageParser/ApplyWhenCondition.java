@@ -109,7 +109,7 @@ public class ApplyWhenCondition {
     * 
     * @return true/false result of evaluation
     */
-   public boolean applies(Map<String, String> variableMap) throws Exception {
+   public boolean applies(Map<String, String> variableMap) {
       return evaluateCondition(null, variableMap, null);
    }
    
@@ -121,7 +121,7 @@ public class ApplyWhenCondition {
     * 
     * @return true/false result of evaluation
     */
-   public boolean appliesTo(Device device, Map<String, String> variableMap) throws Exception {
+   public boolean appliesTo(Device device, Map<String, String> variableMap) {
       return evaluateCondition(device, variableMap, null);
    }
 
@@ -142,7 +142,14 @@ public class ApplyWhenCondition {
       return result;
    }
    
-   public boolean evaluateCondition(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) throws Exception {
+   /**
+    * 
+    * @param device
+    * @param variableMap
+    * @param buttonMap
+    * @return
+    */
+   public boolean evaluateCondition(Device device, Map<String, String> variableMap, HashMap<String, Button> buttonMap) {
       Button button = null;
       if (fVerbose) {
          System.err.println(String.format("ApplyWhenCondition.evaluateCondition(%s)", toString() ));
@@ -184,7 +191,7 @@ public class ApplyWhenCondition {
          return (device!= null) && (device.getHardware() != null) && device.getHardware().matches(fValue);
       case variableRef: {
          if (variableMap == null) {
-            throw new Exception("Evaluation of 'variableIs' without variable map - " + fVariableName);
+            throw new RuntimeException("Evaluation of 'variableIs' without variable map - " + fVariableName);
          }
          String variableValue = variableMap.get(fVariableName);
          if (fCondition == Condition.isDefined) {
@@ -198,7 +205,7 @@ public class ApplyWhenCondition {
                return fDefaultValue; // Assume defaultValue for simple test on missing variable
             }
             System.err.println("Cannot locate variable '"+fVariableName+"' when evaluating requirement: " + fCondition + ", assumed " + fDefaultValue);
-            throw new Exception("Error evaluating " + fCondition);
+            throw new RuntimeException("Error evaluating " + fCondition);
          }
          Long variableNumericValue  = null;
          Long conditionNumericValue = null;
@@ -207,13 +214,13 @@ public class ApplyWhenCondition {
                variableNumericValue = Long.decode(variableValue);
             }
             catch (Exception e) {
-               throw new Exception("Variable value is illegal in ApplyWhenCondition - " + fVariableName + ", " + fCondition);
+               throw new RuntimeException("Variable value is illegal in ApplyWhenCondition - " + fVariableName + ", " + fCondition);
             }
             try {
                conditionNumericValue = Long.decode(fValue);
             }
             catch (Exception e) {
-               throw new Exception("Condition value is illegal in ApplyWhenCondition - " + fVariableName + ", " + fCondition);
+               throw new RuntimeException("Condition value is illegal in ApplyWhenCondition - " + fVariableName + ", " + fCondition);
             }
          }
          switch (fCondition) {

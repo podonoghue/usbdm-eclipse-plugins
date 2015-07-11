@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -162,22 +164,25 @@ public class Cpu extends ModeControl {
    }
    
    
-   private final String banner = 
-         "/* ----------------Configuration of the cm4 Processor and Core Peripherals---------------- */\n";
+   private final String cpuBrief = 
+         "Configuration of the cm4 Processor and Core Peripherals";
    
    /**
     *   Writes the CPU description to file in C Header file format
     *   
     *  @param writer          The destination for the data
+    *  @throws IOException 
     */
-   public void writeCHeaderFile(PrintWriter writer) {
-      writer.print(banner);
-      writer.print(String.format(   "#define %s                %s\n",             getVersionIdString(), getRevisionNumber()));
-      writer.print(String.format(   "#define __MPU_PRESENT            %s\n",      isMpuPresent()?"1":"0"));
-      writer.print(String.format(   "#define __NVIC_PRIO_BITS         %d\n",      getNvicPrioBits()));
-      writer.print(String.format(   "#define __Vendor_SysTickConfig   %s\n",      isVendorSystickConfig()?"1":"0"));
-      writer.print(String.format(   "#define __FPU_PRESENT            %s\n",      isFpuPresent()?"1":"0"));
-      writer.print(String.format(   "#define __VTOR_PRESENT           %s\n\n",    isVtorPresent()?"1":"0"));
+   public void writeCHeaderFile(Writer writer) throws IOException {
+      
+      writeGroupPreamble(writer, "Cortex_Core_Configuration", "Cortex Core Configuration", cpuBrief);
+      writer.write(String.format(   "#define %-14s            %-10s /**< CPU Revision                                        */\n",   getVersionIdString(), getRevisionNumber()));
+      writer.write(String.format(   "#define __MPU_PRESENT             %-10s /**< Whether MPU is present                              */\n",   isMpuPresent()?"1":"0"));
+      writer.write(String.format(   "#define __NVIC_PRIO_BITS          %-10d /**< Number of implemented bits in NVIC PRIO register    */\n",   getNvicPrioBits()));
+      writer.write(String.format(   "#define __Vendor_SysTickConfig    %-10s /**< Whether Vendor implemented SYSTICK timer is present */\n",   isVendorSystickConfig()?"1":"0"));
+      writer.write(String.format(   "#define __FPU_PRESENT             %-10s /**< Whether FPU is present                              */\n",   isFpuPresent()?"1":"0"));
+      writer.write(String.format(   "#define __VTOR_PRESENT            %-10s /**< Whether VTOR register is present                    */\n\n", isVtorPresent()?"1":"0"));
+      writeGroupPostamble(writer, "Cortex_Core_Configuration");
    }
 
    String getHeaderFileName() {

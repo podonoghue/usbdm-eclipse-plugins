@@ -35,8 +35,14 @@ public class ProjectActionList extends ProjectAction {
    }
    
    public static interface Visitor {
-      
+      /**
+       * Indicates to continue processing
+       */
       Result CONTINUE = new Result(Status.CONTINUE);
+      /**
+       * Indicates to stop processing this node <br>
+       * Used to 'prune' subtrees
+       */
       Result PRUNE    = new Result(Status.PRUNE);
 
       /**
@@ -46,7 +52,21 @@ public class ProjectActionList extends ProjectAction {
        *
        */
       public static class Result {
-         public enum Status {CONTINUE, PRUNE, EXCEPTION};
+         public enum Status {
+            /**
+             * Indicates to continue processing
+             */
+            CONTINUE, 
+            /**
+             * Indicates to stop processing this node <br>
+             * Used to 'prune' subtrees
+             */
+            PRUNE, 
+            /**
+             * Indicates processing should stop and throw an exception <br>
+             * Used for unexpected happenings
+             */
+            EXCEPTION};
          
          private final Status fStatus;
          private final Exception fException;
@@ -104,7 +124,7 @@ public class ProjectActionList extends ProjectAction {
    private ApplyWhenCondition               fApplyWhenCondition   = ApplyWhenCondition.trueCondition;
    private ArrayList<ProjectAction>         fProjectActionList    = new ArrayList<ProjectAction>();
 
-   public ProjectActionList(String id) throws Exception {
+   public ProjectActionList(String id) {
       super(id);
    }
 
@@ -136,11 +156,11 @@ public class ProjectActionList extends ProjectAction {
       return buffer.toString();     
    }
    
-   public boolean appliesTo(Device device, Map<String, String> variableMap) throws Exception {
+   public boolean appliesTo(Device device, Map<String, String> variableMap) {
       return fApplyWhenCondition.appliesTo(device, variableMap);
    }
    
-   public boolean applies(Map<String, String> variableMap) throws Exception {
+   public boolean applies(Map<String, String> variableMap) {
       return fApplyWhenCondition.applies(variableMap);
    }
    

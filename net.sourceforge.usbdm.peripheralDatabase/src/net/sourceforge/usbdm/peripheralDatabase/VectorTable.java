@@ -7,7 +7,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public abstract class VectorTable {
+public abstract class VectorTable extends ModeControl {
    
    protected InterruptEntry[]   interrupts        = new InterruptEntry[256];
    protected ArrayList<String>  usedBy            = new ArrayList<String>();
@@ -289,14 +289,18 @@ public abstract class VectorTable {
    }
 
    static final String INTERRUPT_BANNER            = "/* -------------------------  Interrupt Number Definition  ------------------------ */\n\n";
-   static final String INTERRUPT_PREAMBLE          = "typedef enum {\n";
+   static final String INTERRUPT_PREAMBLE          = 
+           "/**\n" +
+            " * Interrupt vector numbers\n" +
+            " */\n" +
+            "typedef enum {\n";
    static final String INTERRUPT_SEPARATOR         = "/* ------------------------  Processor Exceptions Numbers  ------------------------- */\n";
-   static final String INTERRUPT_ENTRY_FORMAT      = "  %-29s = %3d,   /*!< %3d %-80s */\n";
+   static final String INTERRUPT_ENTRY_FORMAT      = "  %-29s = %3d,   /**< %3d %-80s */\n";
    static final String INTERRUPT_SPU_SEPARATOR     = "/* ----------------------   %-40s ---------------------- */\n";
    static final String INTERRUPT_POSTAMBLE         = "} IRQn_Type;\n\n";
 
    static final String EXTERNAL_HANDLER_BANNER     = "/* -------------------------  Exception Handlers  ------------------------ */\n";
-   static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %s;\n";
+   static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %-32s   /**< %-80s */\n";
 
    /** 
     * Writes a C-code fragment that is suitable for inclusion in a C header file<br>
@@ -306,8 +310,9 @@ public abstract class VectorTable {
     * @param writer  Where to write the fragment
     * 
     * @throws IOException
+    * @throws Exception 
     */
-   public abstract void writeCInterruptHeader(Writer writer) throws IOException;
+   public abstract void writeCInterruptHeader(Writer writer) throws Exception;
    
    /**
     * Writes a C-code fragment the is suitable for creating a vector table for the device.

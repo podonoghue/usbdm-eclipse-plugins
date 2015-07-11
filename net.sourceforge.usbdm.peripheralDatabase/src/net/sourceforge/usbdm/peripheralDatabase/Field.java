@@ -8,7 +8,8 @@ package net.sourceforge.usbdm.peripheralDatabase;
 +===================================================================================
  */
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -322,59 +323,58 @@ public class Field extends ModeControl implements Cloneable {
     *   Writes the Register description to file in a SVF format
     *   
     *  @param writer          The destination for the XML
-    *  @param standardFormat  Suppresses some non-standard size optimizations 
+    *  @param standardFormat  Suppresses some non-standard size optimisations 
     *  @param owner           The owner - This is used to reduce the size by inheriting default values
+    * @throws IOException 
     */
-   public void writeSVD(PrintWriter writer, boolean standardFormat, Register owner, int indent) {
+   public void writeSVD(Writer writer, boolean standardFormat, Register owner, int indent) throws IOException {
       final String indenter = RegisterUnion.getIndent(indent);
-
-
       if (derivedFrom!=null) {
-         writer.print(String.format(indenter+"<field derivedFrom=\"%s\" >", derivedFrom.getName()));
+         writer.write(String.format(indenter+"<field derivedFrom=\"%s\" >", derivedFrom.getName()));
          if (!derivedFrom.getName().equals(getName()) && (getName().length()>0)) {
-            writer.print(String.format(" <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
+            writer.write(String.format(" <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
          }
          if (!derivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
-            writer.print(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
+            writer.write(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
          }
          if (derivedFrom.getBitOffset() != getBitOffset()) {
-            writer.print(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
+            writer.write(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
          }
          if (derivedFrom.getBitwidth() != getBitwidth()) {
-            writer.print(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
+            writer.write(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
          }
          if (derivedFrom.getAccessType() != getAccessType()) {
-            writer.print(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
+            writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
          }
-         writer.println(" </field>");
+         writer.write(" </field>\n");
       }
       else {
-         writer.println(                 indenter+"<field>");
-         writer.println(String.format(   indenter+"   <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
+         writer.write(                 indenter+"<field>\n");
+         writer.write(String.format(   indenter+"   <name>%s</name>\n",               SVD_XML_BaseParser.escapeString(getName())));
          if (isIgnoreOverlap()) {
-            writer.println(              indenter+"   <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>");
+            writer.write(              indenter+"   <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>\n");
          }
          if (isHidden()) {
-            writer.println(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+            writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
          }
          if (getDescription().length() > 0) {
-            writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
+            writer.write(String.format(indenter+"   <description>%s</description>\n", SVD_XML_BaseParser.escapeString(getDescription())));
          }
-         writer.println(String.format(   indenter+"   <bitOffset>%d</bitOffset>",     getBitOffset()));
+         writer.write(String.format(   indenter+"   <bitOffset>%d</bitOffset>\n",     getBitOffset()));
          if ((owner == null) || standardFormat || (owner.getWidth() != getBitwidth())) {
-            writer.println(String.format(indenter+"   <bitWidth>%d</bitWidth>",       getBitwidth()));
+            writer.write(String.format(indenter+"   <bitWidth>%d</bitWidth>\n",       getBitwidth()));
          }
          if ((owner == null) || standardFormat || (owner.getAccessType() != getAccessType())) {
-            writer.println(String.format(indenter+"   <access>%s</access>",           getAccessType().getPrettyName()));
+            writer.write(String.format(indenter+"   <access>%s</access>\n",           getAccessType().getPrettyName()));
          }
          if ((getEnumerations() != null) && (!getEnumerations().isEmpty())) {
-            writer.println(              indenter+"   <enumeratedValues>");
+            writer.write(              indenter+"   <enumeratedValues>\n");
             for (Enumeration enumeration : getEnumerations()) {
                enumeration.writeSVD(writer, standardFormat, indent+6);
             }
-            writer.println(              indenter+"   </enumeratedValues>");
+            writer.write(              indenter+"   </enumeratedValues>\n");
          }
-         writer.println(                 indenter+"</field>");
+         writer.write(                 indenter+"</field>\n");
       }
    }
 
@@ -404,10 +404,12 @@ public class Field extends ModeControl implements Cloneable {
          // Fields are masked to a root name e.g. GPIOA_PDOR_PDO_MASK => GPIO_PDOR_PDO_MASK
          // Fields can also be deleted by mapping to null
          mappedMacros.add(new Pair(Pattern.compile("^(ADC)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(ACMP)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(CAN)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(CMP)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(DMA)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(GPIO_.*)(?:AN|AS|DD|GP|LD|NQ|QS|TA|TC|TD|TE|TF|TG|TH|TI|TJ|UA|UB|UC)(_.*)$"),  "$1$2")); // GPIO_PORTNQ_PORT_MASK => GPIO_PORT_PORT_MASK
          mappedMacros.add(new Pair(Pattern.compile("^F?(GPIO)[A-Z](_.*)$"),                    null));    // Delete useless pin macros 
@@ -475,7 +477,7 @@ public class Field extends ModeControl implements Cloneable {
     * @param  baseName  Basename of the peripheral
     * @throws Exception 
     */
-   public void writeHeaderFileFieldMacros(PrintWriter writer, String baseName) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer, String baseName) throws Exception {
       String fieldname = baseName+"_"+getBaseName();
       // Filter names
       fieldname = getMappedBitfieldMacroName(fieldname);
@@ -489,27 +491,27 @@ public class Field extends ModeControl implements Cloneable {
       String mskName   = fieldname+getFieldMaskSuffixName();
       
       if (isUseShiftsInFieldMacros()) {
-         writer.print(String.format("%-100s%s",
+         writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_MSK_FORMAT, mskName, ((1L<<getBitwidth())-1), posName), 
 //               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
                String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
       }
       else {
-         writer.print(String.format("%-100s%s",
+         writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
 //               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
                String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
       }
-      writer.print(String.format("%-100s%s",
+      writer.write(String.format("%-100s%s",
             String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),      
             String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Position")));      
 
       if (getBitwidth()>1) {
          String width = getCWidth(this.owner.getWidth());
-         writer.print(String.format("%-100s%s",
+         writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
                String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
-//         writer.print(String.format("%-100s%s",
+//         writer.write(String.format("%-100s%s",
 //            String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", posName, mskName), 
 //            String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
 //         String.format(BitfieldFormatComment,    baseName+": "+getBaseName()+" Field"))); 

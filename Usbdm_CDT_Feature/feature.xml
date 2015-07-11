@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="net.sourceforge.usbdm.cdt.feature"
+      label="USBDM Eclipse CDT Feature"
+      version="4.11.1.qualifier"
+      provider-name="pgo"
+      os="linux,win32"
+      arch="x86,x86_64">
+
+   <description url="http://www.example.com/description">
+      USBDM Plugin for Eclipse CDT
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      USBDM
+Copyright (C) 2007-14  Peter O&apos;Donoghue
+   </copyright>
+
+   <license url="http://www.eclipse.org/org/documents/epl-v10.php">
+      This plugin contains components licensed under the Eclipse Public License.
+Non-derivative components are licensed under the GPL.
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.swt"/>
+      <import plugin="net.sourceforge.usbdm.jni" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="net.sourceforge.usbdm.constants" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.cdt.core" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.cdt.managedbuilder.core"/>
+      <import plugin="org.eclipse.core.variables"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="net.sourceforge.usbdm.cdt.tools" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.gdb.ui" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="4.10.6" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.ui"/>
+      <import plugin="org.eclipse.cdt.dsf.ui"/>
+      <import plugin="org.eclipse.core.expressions"/>
+      <import plugin="org.eclipse.cdt.launch"/>
+      <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.cdt.dsf"/>
+      <import plugin="org.eclipse.cdt.dsf.gdb"/>
+      <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.cdt.debug.mi.core"/>
+      <import plugin="org.eclipse.cdt.debug.gdbjtag.core"/>
+      <import plugin="org.eclipse.cdt.debug.gdbjtag.ui"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.editors"/>
+      <import plugin="org.eclipse.debug.core"/>
+   </requires>
+
+   <plugin
+         id="net.sourceforge.usbdm.jni"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.deviceDatabase"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.cdt.tools"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.cdt.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.constants"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.gdb.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripheralDatabase"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.annotationEditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.view"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.freescale"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.atmel"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.stmicro"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.peripherals.usbdm"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

@@ -10,7 +10,7 @@ public class ProjectVariable extends ProjectAction {
    protected       String              fButtonGroupId;
    protected       int                 fButtonStyle;
    
-   public ProjectVariable(String id, String name, String description, String defaultValue) throws Exception {
+   public ProjectVariable(String id, String name, String description, String defaultValue) {
       super(id);
       this.fName           = name;
       this.fDescription    = description;

@@ -172,7 +172,7 @@ public class ColdfireV1VectorTable extends VectorTable {
       for (int index=2; index<=lastEntry; index++) {
          String handlerName = getHandlerName(index);
          if (handlerName != null) {
-            writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void)"));
+            writer.write(String.format(EXTERNAL_HANDLER_TEMPLATE, handlerName+"(void);", getHandlerDescription(index)));
          }
       }
       writer.write('\n');

@@ -437,10 +437,8 @@ public class Device implements Cloneable {
     * @param variableMap Variables to use when evaluation conditions
     * 
     * @return ArrayList of ProjectActionLists (an empty list if none)
-    * 
-    * @throws Exception 
     */
-   public ProjectActionList getProjectActionList(Map<String, String> variableMap) throws Exception {
+   public ProjectActionList getProjectActionList(Map<String, String> variableMap) {
       return PackageParser.getDevicePackageList(this, variableMap);
    }
 

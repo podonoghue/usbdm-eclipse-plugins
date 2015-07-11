@@ -1,0 +1,798 @@
+<!--
+Devices using this peripheral: 
+      MK11D5
+      MK11DA5
+      MK21D5
+      MK21DA5
+      MK21F12
+      MK21FA12
+      MK24F12
+      MK26F18
+      MK52D10
+      MK52DZ10
+      MK53D10
+      MK53DZ10
+      MK60D10
+      MK60DZ10
+      MK60F15
+      MK61F15
+      MK63F12
+      MK64F12
+      MK65F18
+      MK66F18
+      MK70F15
+      MKW21D5
+      MKW22D5
+      MKW24D5
+-->
+      <peripheral>
+         <?sourceFile "CAU_0" ?>
+         <name>CAU</name>
+         <description>Memory Mapped Cryptographic Acceleration Unit</description>
+         <groupName>CAU</groupName>
+         <headerStructName>CAU</headerStructName>
+         <baseAddress>0xE0081000</baseAddress>
+         <size>32</size>
+         <access>read-write</access>
+         <resetValue>0x0</resetValue>
+         <resetMask>0xFFFFFFFF</resetMask>
+         <addressBlock>
+            <offset>0x0</offset>
+            <size>0xB6C</size>
+            <usage>registers</usage>
+         </addressBlock>
+         <registers>
+            <register>
+               <dim>16</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15</dimIndex>
+               <name>CAU_DIRECT%s</name>
+               <description>Direct access register %s</description>
+               <addressOffset>0x0</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CAU_DIRECT0</name>
+                     <description>Direct register 0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_LDR_CASR</name>
+               <description>Status register - Load Register command</description>
+               <addressOffset>0x840</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_LDR_CAA</name>
+               <description>Accumulator register - Load Register command</description>
+               <addressOffset>0x844</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_LDR_CA%s</name>
+               <description>General Purpose Register %s - Load Register command</description>
+               <addressOffset>0x848</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_STR_CASR</name>
+               <description>Status register - Store Register command</description>
+               <addressOffset>0x880</addressOffset>
+               <access>read-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_STR_CAA</name>
+               <description>Accumulator register - Store Register command</description>
+               <addressOffset>0x884</addressOffset>
+               <access>read-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_STR_CA%s</name>
+               <description>General Purpose Register %s - Store Register command</description>
+               <addressOffset>0x888</addressOffset>
+               <access>read-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_ADR_CASR</name>
+               <description>Status register - Add Register command</description>
+               <addressOffset>0x8C0</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_ADR_CAA</name>
+               <description>Accumulator register - Add to register command</description>
+               <addressOffset>0x8C4</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_ADR_CA%s</name>
+               <description>General Purpose Register %s - Add to register command</description>
+               <addressOffset>0x8C8</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_RADR_CASR</name>
+               <description>Status register - Reverse and Add to Register command</description>
+               <addressOffset>0x900</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_RADR_CAA</name>
+               <description>Accumulator register - Reverse and Add to Register command</description>
+               <addressOffset>0x904</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_RADR_CA%s</name>
+               <description>General Purpose Register %s - Reverse and Add to Register command</description>
+               <addressOffset>0x908</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_XOR_CASR</name>
+               <description>Status register - Exclusive Or command</description>
+               <addressOffset>0x980</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_XOR_CAA</name>
+               <description>Accumulator register - Exclusive Or command</description>
+               <addressOffset>0x984</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_XOR_CA%s</name>
+               <description>General Purpose Register %s - Exclusive Or command</description>
+               <addressOffset>0x988</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_ROTL_CASR</name>
+               <description>Status register - Rotate Left command</description>
+               <addressOffset>0x9C0</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_ROTL_CAA</name>
+               <description>Accumulator register - Rotate Left command</description>
+               <addressOffset>0x9C4</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_ROTL_CA%s</name>
+               <description>General Purpose Register %s - Rotate Left command</description>
+               <addressOffset>0x9C8</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_AESC_CASR</name>
+               <description>Status register - AES Column Operation command</description>
+               <addressOffset>0xB00</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_AESC_CAA</name>
+               <description>Accumulator register - AES Column Operation command</description>
+               <addressOffset>0xB04</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_AESC_CA%s</name>
+               <description>General Purpose Register %s - AES Column Operation command</description>
+               <addressOffset>0xB08</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_AESIC_CASR</name>
+               <description>Status register - AES Inverse Column Operation command</description>
+               <addressOffset>0xB40</addressOffset>
+               <access>write-only</access>
+               <resetValue>0x20000000</resetValue>
+               <fields>
+                  <field>
+                     <name>IC</name>
+                     <description>no description available</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No illegal commands issued</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>Illegal command issued</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>DPE</name>
+                     <description>no description available</description>
+                     <bitOffset>1</bitOffset>
+                     <bitWidth>1</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0</name>
+                           <description>No error detected</description>
+                           <value>0b0</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>1</name>
+                           <description>DES key parity error detected</description>
+                           <value>0b1</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+                  <field>
+                     <name>VER</name>
+                     <description>CAU version</description>
+                     <bitOffset>28</bitOffset>
+                     <bitWidth>4</bitWidth>
+                     <enumeratedValues>
+                        <enumeratedValue>
+                           <name>0001</name>
+                           <description>Initial CAU version</description>
+                           <value>0b0001</value>
+                        </enumeratedValue>
+                        <enumeratedValue>
+                           <name>0010</name>
+                           <description>Second version, added support for SHA-256 algorithm.(This is the value on this device)</description>
+                           <value>0b0010</value>
+                        </enumeratedValue>
+                     </enumeratedValues>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>CAU_AESIC_CAA</name>
+               <description>Accumulator register - AES Inverse Column Operation command</description>
+               <addressOffset>0xB44</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>ACC</name>
+                     <description>ACC</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <dim>9</dim>
+               <dimIncrement>4</dimIncrement>
+               <dimIndex>0,1,2,3,4,5,6,7,8</dimIndex>
+               <name>CAU_AESIC_CA%s</name>
+               <description>General Purpose Register %s - AES Inverse Column Operation command</description>
+               <addressOffset>0xB48</addressOffset>
+               <access>write-only</access>
+               <fields>
+                  <field>
+                     <name>CA0</name>
+                     <description>CA0</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+         </registers>
+      </peripheral>

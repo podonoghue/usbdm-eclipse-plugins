@@ -4,11 +4,14 @@ package net.sourceforge.usbdm.packageParser;
 public class ProjectConstant extends ProjectAction {
    protected       String  fValue;
    protected final boolean fDoReplace;
+   protected final boolean fIsWeak;
    
-   public ProjectConstant(String id, String value, boolean doReplace) throws Exception {
+   
+   public ProjectConstant(String id, String value, boolean doReplace, boolean isWeak) {
       super(id);
       fValue     = value;
       fDoReplace = doReplace;
+      fIsWeak    = isWeak;
    }
    public String getValue() {
       return fValue;
@@ -22,5 +25,11 @@ public class ProjectConstant extends ProjectAction {
     */
    public boolean doReplace() {
       return fDoReplace;
+   }
+   /**
+    * @return true if this constant is a weak value
+    */
+   public boolean isWeak() {
+      return fIsWeak;
    }
 }

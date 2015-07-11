@@ -1,0 +1,323 @@
+<!--
+Devices using this peripheral: 
+      MKE02Z2
+      MKE02Z4
+      MKE04Z4
+      SKEAZN84
+      SKEAZN642
+-->
+      <peripheral>
+         <?sourceFile "NVIC_2" ?>
+         <name>NVIC</name>
+         <description>Nested Vectored Interrupt Controller</description>
+         <groupName>NVIC</groupName>
+         <headerStructName>NVIC</headerStructName>
+         <baseAddress>0xE000E100</baseAddress>
+         <size>32</size>
+         <access>read-write</access>
+         <resetValue>0x0</resetValue>
+         <resetMask>0xFFFFFFFF</resetMask>
+         <addressBlock>
+            <offset>0x0</offset>
+            <size>0x320</size>
+            <usage>registers</usage>
+         </addressBlock>
+         <registers>
+            <register>
+               <name>NVIC_ISER</name>
+               <description>Interrupt Set Enable Register</description>
+               <addressOffset>0x0</addressOffset>
+               <fields>
+                  <field>
+                     <name>SETENA</name>
+                     <description>Interrupt set enable bits</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_ICER</name>
+               <description>Interrupt Clear Enable Register</description>
+               <addressOffset>0x80</addressOffset>
+               <fields>
+                  <field>
+                     <name>CLRENA</name>
+                     <description>Interrupt clear-enable bits</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_ISPR</name>
+               <description>Interrupt Set Pending Register</description>
+               <addressOffset>0x100</addressOffset>
+               <fields>
+                  <field>
+                     <name>SETPEND</name>
+                     <description>Interrupt set-pending bits</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_ICPR</name>
+               <description>Interrupt Clear Pending Register</description>
+               <addressOffset>0x180</addressOffset>
+               <fields>
+                  <field>
+                     <name>CLRPEND</name>
+                     <description>Interrupt clear-pending bits</description>
+                     <bitOffset>0</bitOffset>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR0</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x300</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_0</name>
+                     <description>Priority of interrupt 0</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_1</name>
+                     <description>Priority of interrupt 1</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_2</name>
+                     <description>Priority of interrupt 2</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_3</name>
+                     <description>Priority of interrupt 3</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR1</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x304</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_4</name>
+                     <description>Priority of interrupt 4</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_5</name>
+                     <description>Priority of interrupt 5</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_6</name>
+                     <description>Priority of interrupt 6</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_7</name>
+                     <description>Priority of interrupt 7</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR2</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x308</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_8</name>
+                     <description>Priority of interrupt 8</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_9</name>
+                     <description>Priority of interrupt 9</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_10</name>
+                     <description>Priority of interrupt 10</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_11</name>
+                     <description>Priority of interrupt 11</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR3</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x30C</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_12</name>
+                     <description>Priority of interrupt 11</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_13</name>
+                     <description>Priority of interrupt 12</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_14</name>
+                     <description>Priority of interrupt 14</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_15</name>
+                     <description>Priority of interrupt 15</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR4</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x310</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_16</name>
+                     <description>Priority of interrupt 17</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_17</name>
+                     <description>Priority of interrupt 18</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_18</name>
+                     <description>Priority of interrupt 19</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_19</name>
+                     <description>Priority of interrupt 20</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR5</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x314</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_20</name>
+                     <description>Priority of interrupt 0</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_21</name>
+                     <description>Priority of interrupt 21</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_22</name>
+                     <description>Priority of interrupt 22</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_23</name>
+                     <description>Priority of interrupt 23</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR6</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x318</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_24</name>
+                     <description>Priority of interrupt 24</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_25</name>
+                     <description>Priority of interrupt 25</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_26</name>
+                     <description>Priority of interrupt 26</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_27</name>
+                     <description>Priority of interrupt 27</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+            <register>
+               <name>NVIC_IPR7</name>
+               <description>Interrupt Priority Register n</description>
+               <addressOffset>0x31C</addressOffset>
+               <fields>
+                  <field>
+                     <name>PRI_28</name>
+                     <description>Priority of interrupt 28</description>
+                     <bitOffset>0</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_29</name>
+                     <description>Priority of interrupt 29</description>
+                     <bitOffset>8</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_30</name>
+                     <description>Priority of interrupt 30</description>
+                     <bitOffset>16</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+                  <field>
+                     <name>PRI_31</name>
+                     <description>Priority of interrupt 31</description>
+                     <bitOffset>24</bitOffset>
+                     <bitWidth>8</bitWidth>
+                  </field>
+               </fields>
+            </register>
+         </registers>
+      </peripheral>

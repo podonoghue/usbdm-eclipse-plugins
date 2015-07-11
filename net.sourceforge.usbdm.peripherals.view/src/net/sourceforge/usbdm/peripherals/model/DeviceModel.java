@@ -52,11 +52,11 @@ public class DeviceModel extends BaseModel {
       }
    }
 
-   public void setTargetType(InterfaceType interfaceType) {
+   public void setInterfaceType(InterfaceType interfaceType) {
       this.interfaceType = interfaceType;
    }
 
-   public InterfaceType getTargetType() {
+   public InterfaceType getInterfaceType() {
       return interfaceType;
    }
 

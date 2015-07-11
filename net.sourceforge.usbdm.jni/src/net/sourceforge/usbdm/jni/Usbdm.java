@@ -68,18 +68,19 @@ public class Usbdm {
     *  Target processor type (interface types)
     */
    public static enum TargetType {
-      T_HCS12     (0),   //!< HC12 or HCS12 target
-      T_HCS08     (1),   //!< HCS08 target
-      T_RS08      (2),   //!< RS08 target
-      T_CFV1      (3),   //!< Coldfire Version 1 target
-      T_CFVx      (4),   //!< Coldfire Version 2,3,4 target
-      T_JTAG      (5),   //!< JTAG target - TAP is set to \b RUN-TEST/IDLE
-      T_EZFLASH   (6),   //!< EzPort Flash interface (SPI?)
-      T_MC56F80xx (7),   //!< JTAG target with MC56F80xx optimised subroutines
-      T_ARM_JTAG  (8),   //!< ARM target using JTAG
-      T_ARM_SWD   (9),   //!< ARM target using SWD
-      T_ARM       (10),  //!< ARM target using either SWD (preferred) or JTAG as supported
+      T_HCS12     (0),     //!< HC12 or HCS12 target
+      T_HCS08     (1),     //!< HCS08 target
+      T_RS08      (2),     //!< RS08 target
+      T_CFV1      (3),     //!< Coldfire Version 1 target
+      T_CFVx      (4),     //!< Coldfire Version 2,3,4 target
+      T_JTAG      (5),     //!< JTAG target - TAP is set to \b RUN-TEST/IDLE
+      T_EZFLASH   (6),     //!< EzPort Flash interface (SPI?)
+      T_MC56F80xx (7),     //!< JTAG target with MC56F80xx optimised subroutines
+      T_ARM_JTAG  (8),     //!< ARM target using JTAG
+      T_ARM_SWD   (9),     //!< ARM target using SWD
+      T_ARM       (10),    //!< ARM target using either SWD (preferred) or JTAG as supported
       T_OFF       (0xFF),
+      T_UNKNOWN   (0xFF),
       ;
       private int mask;
       TargetType(int mask) {

@@ -1,0 +1,104 @@
+<!--
+Devices using this vector table: 
+   MKE04Z4
+   SKEAZN84
+-->
+      <interrupts>
+         <name>MKE04Z4_VectorTable</name>
+         <interrupt>
+            <name>FTMRE</name>
+            <description>Flash Memory</description>
+            <value>5</value>
+         </interrupt>
+         <interrupt>
+            <name>LVD_LVW</name>
+            <description>Power management</description>
+            <value>6</value>
+         </interrupt>
+         <interrupt>
+            <name>IRQ</name>
+            <description>Interrupt</description>
+            <value>7</value>
+         </interrupt>
+         <interrupt>
+            <name>I2C0</name>
+            <description>Inter-Integrated Circuit</description>
+            <value>8</value>
+         </interrupt>
+         <interrupt>
+            <name>SPI0</name>
+            <description>Serial Peripheral Interface</description>
+            <value>10</value>
+         </interrupt>
+         <interrupt>
+            <name>UART0</name>
+            <description>Universal Asynchronous Receiver/Transmitter</description>
+            <value>12</value>
+         </interrupt>
+         <interrupt>
+            <name>ADC0</name>
+            <description>Analog-to-digital converter</description>
+            <value>15</value>
+         </interrupt>
+         <interrupt>
+            <name>ACMP0</name>
+            <description>Analog comparator</description>
+            <value>16</value>
+         </interrupt>
+         <interrupt>
+            <name>FTM0</name>
+            <description>FlexTimer Module</description>
+            <value>17</value>
+         </interrupt>
+         <interrupt>
+            <name>FTM2</name>
+            <description>FlexTimer Module</description>
+            <value>19</value>
+         </interrupt>
+         <interrupt>
+            <name>RTC</name>
+            <description>Real-time counter</description>
+            <value>20</value>
+         </interrupt>
+         <interrupt>
+            <name>ACMP1</name>
+            <description>Analog comparator</description>
+            <value>21</value>
+         </interrupt>
+         <interrupt>
+            <name>PIT_CH0</name>
+            <description>Periodic Interrupt Timer</description>
+            <value>22</value>
+         </interrupt>
+         <interrupt>
+            <name>PIT_CH1</name>
+            <description>Periodic Interrupt Timer</description>
+            <value>23</value>
+         </interrupt>
+         <interrupt>
+            <name>KBI0</name>
+            <description>Keyboard interrupts</description>
+            <value>24</value>
+         </interrupt>
+         <interrupt>
+            <name>KBI1</name>
+            <description>Keyboard interrupts</description>
+            <value>25</value>
+         </interrupt>
+         <interrupt>
+            <name>ICS</name>
+            <description>Clock management</description>
+            <value>27</value>
+         </interrupt>
+         <interrupt>
+            <name>WDOG_EWM</name>
+            <description>Watchdog timer</description>
+            <value>28</value>
+         </interrupt>
+         <interrupt>
+            <name>PWT</name>
+            <description>Pulse Width Timer</description>
+            <value>29</value>
+         </interrupt>
+      </interrupts>
+

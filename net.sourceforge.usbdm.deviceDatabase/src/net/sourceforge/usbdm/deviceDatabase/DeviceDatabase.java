@@ -480,7 +480,7 @@ public class DeviceDatabase {
          filename = UsbdmJniConstants.MC56F_DEVICE_FILE;
          break;
       default:
-         throw new UsbdmException("Device file not found");
+         throw new UsbdmException("Unsupported target");
       };
       IPath usbdmResourcePath = Usbdm.getResourcePath();
       if (usbdmResourcePath == null) {

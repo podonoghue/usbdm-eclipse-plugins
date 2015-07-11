@@ -2,6 +2,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public class TestVectorTable {
@@ -10,11 +11,10 @@ public class TestVectorTable {
    }
 
    static void testVectorTable(String device) throws Exception {
-      
-//      VectorTable vt = VectorTable.factory(device);
-      
+
       // Get description of all peripherals for device
-      DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device);
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device);
       if (devicePeripherals == null) {
          // Return empty model
          System.err.println("Failed");
@@ -26,32 +26,33 @@ public class TestVectorTable {
    }
    
    static void testHeaderFile(String device) {
-    DevicePeripherals devicePeripherals = DevicePeripherals.createDatabase(device);
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device);
 
-    StringWriter stringWriter = new StringWriter();
-    PrintWriter  printWriter  = null;
-    try {
-       printWriter = new PrintWriter(stringWriter);
-       devicePeripherals.writeHeaderFile(printWriter);
-    } catch (Exception e) {
-       e.printStackTrace();
-    }
-    finally {
-       if (printWriter != null) {
-          printWriter.close();
-       }
-    }
-    System.err.print(stringWriter.toString());
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter  printWriter  = null;
+      try {
+         printWriter = new PrintWriter(stringWriter);
+         devicePeripherals.writeHeaderFile(printWriter);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      finally {
+         if (printWriter != null) {
+            printWriter.close();
+         }
+      }
+      System.err.print(stringWriter.toString());
    }
    
    public static void main(String[] args) throws Exception {
 //      String device="MCF51JF128";
 //      String device="MCF52259";
 //      String device="MK20D5";
-      String device="MKL25Z4";
+      String device="MKL25Z32M4";
       
       testVectorTable(device);
-      testHeaderFile(device);
+//      testHeaderFile(device);
    }
 
 }

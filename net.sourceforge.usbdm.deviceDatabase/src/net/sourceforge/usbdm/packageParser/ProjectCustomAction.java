@@ -6,7 +6,7 @@ public class ProjectCustomAction extends ProjectAction {
       private final String   className;
       private final String[] value;
 
-      public ProjectCustomAction(String className, String[] value) throws Exception {
+      public ProjectCustomAction(String className, String[] value) {
          super("---custom---");
          this.className     = className;
          this.value    = value;

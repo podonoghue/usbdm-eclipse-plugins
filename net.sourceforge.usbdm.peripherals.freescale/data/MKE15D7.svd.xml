@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE device
+[
+<!ENTITY VECTOR_TABLE SYSTEM "vectorTables/MKE14D7_VectorTable.svd.xml">
+<!ENTITY ADC0         SYSTEM "peripherals/ADC0_MKE14D7.svd.xml">
+<!ENTITY AIPS         SYSTEM "peripherals/AIPS_0.svd.xml">
+<!ENTITY CMP0         SYSTEM "peripherals/CMP0_51.svd.xml">
+<!ENTITY CMT          SYSTEM "peripherals/CMT_47.svd.xml">
+<!ENTITY CRC          SYSTEM "peripherals/CRC_2.svd.xml">
+<!ENTITY DMA          SYSTEM "peripherals/DMA_51.svd.xml">
+<!ENTITY DMAMUX       SYSTEM "peripherals/DMAMUX_5.svd.xml">
+<!ENTITY EWM          SYSTEM "peripherals/EWM_43.svd.xml">
+<!ENTITY FB           SYSTEM "peripherals/FB_0.svd.xml">
+<!ENTITY FMC          SYSTEM "peripherals/FMC_10.svd.xml">
+<!ENTITY FTM0         SYSTEM "peripherals/FTM0_56.svd.xml">
+<!ENTITY FTM1         SYSTEM "peripherals/FTM1_53.svd.xml">
+<!ENTITY FTMRA        SYSTEM "peripherals/FTMRA_0.svd.xml">
+<!ENTITY FTMRA_FlashConfig SYSTEM "peripherals/FTMRA_FlashConfig_0.svd.xml">
+<!ENTITY I2C0         SYSTEM "peripherals/I2C0_56.svd.xml">
+<!ENTITY ICS          SYSTEM "peripherals/ICS_5.svd.xml">
+<!ENTITY IEVENT       SYSTEM "peripherals/IEVENT_0.svd.xml">
+<!ENTITY MCM          SYSTEM "peripherals/MCM_33.svd.xml">
+<!ENTITY MPU          SYSTEM "peripherals/MPU_4.svd.xml">
+<!ENTITY NVIC         SYSTEM "peripherals/NVIC_0.svd.xml">
+<!ENTITY OSC          SYSTEM "peripherals/OSC_4.svd.xml">
+<!ENTITY PDB0         SYSTEM "peripherals/PDB0_51.svd.xml">
+<!ENTITY PIT          SYSTEM "peripherals/PIT_56.svd.xml">
+<!ENTITY PMC          SYSTEM "peripherals/PMC_56.svd.xml">
+<!ENTITY PORTA        SYSTEM "peripherals/PORTA_51.svd.xml">
+<!ENTITY PTA          SYSTEM "peripherals/PTA_MKE.svd.xml">
+<!ENTITY RCM          SYSTEM "peripherals/RCM_6.svd.xml">
+<!ENTITY RTC          SYSTEM "peripherals/RTC_55.svd.xml">
+<!ENTITY SIM          SYSTEM "peripherals/SIM_52.svd.xml">
+<!ENTITY SMC          SYSTEM "peripherals/SMC_12.svd.xml">
+<!ENTITY SPI0         SYSTEM "peripherals/SPI0_56.svd.xml">
+<!ENTITY SysTick      SYSTEM "peripherals/SysTick_2.svd.xml">
+<!ENTITY SystemControl SYSTEM "peripherals/SystemControl_2.svd.xml">
+<!ENTITY TSI0         SYSTEM "peripherals/TSI0_34.svd.xml">
+<!ENTITY UART0        SYSTEM "peripherals/UART0_56.svd.xml">
+<!ENTITY UART1        SYSTEM "peripherals/UART1_50.svd.xml">
+<!ENTITY WDOG         SYSTEM "peripherals/WDOG_56.svd.xml">
+]>
+<device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
+   <name>MKE15D7</name>
+   <version>1.6</version>
+   <description>MKE15D7 Freescale Microcontroller</description>
+   <cpu>
+      <name>CM3</name>
+      <revision>r1p0</revision>
+      <endian>little</endian>
+      <mpuPresent>false</mpuPresent>
+      <fpuPresent>false</fpuPresent>
+      <vtorPresent>true</vtorPresent>
+      <nvicPrioBits>0</nvicPrioBits>
+      <vendorSystickConfig>false</vendorSystickConfig>
+   </cpu>
+   <addressUnitBits>8</addressUnitBits>
+   <width>32</width>
+   <peripherals>
+&ADC0;
+<peripheral derivedFrom="ADC0"><name>ADC1</name><prependToName>ADC1_</prependToName><baseAddress>0x4003C000</baseAddress></peripheral>
+<peripheral derivedFrom="ADC0"><name>ADC2</name><prependToName>ADC2_</prependToName><baseAddress>0x4003D000</baseAddress></peripheral>
+<peripheral derivedFrom="ADC0"><name>ADC3</name><prependToName>ADC3_</prependToName><baseAddress>0x4003E000</baseAddress></peripheral>
+&AIPS;
+&CMP0;
+<peripheral derivedFrom="CMP0"><name>CMP1</name><prependToName>CMP1_</prependToName><baseAddress>0x40051000</baseAddress></peripheral>
+<peripheral derivedFrom="CMP0"><name>CMP2</name><prependToName>CMP2_</prependToName><baseAddress>0x40052000</baseAddress></peripheral>
+<peripheral derivedFrom="CMP0"><name>CMP3</name><prependToName>CMP3_</prependToName><baseAddress>0x40053000</baseAddress></peripheral>
+&CMT;
+&CRC;
+&DMA;
+&DMAMUX;
+&EWM;
+&FB;
+&FMC;
+&FTM0;
+&FTM1;
+<peripheral derivedFrom="FTM1"><name>FTM2</name><prependToName>FTM2_</prependToName><baseAddress>0x4002B000</baseAddress></peripheral>
+<peripheral derivedFrom="FTM0"><name>FTM3</name><prependToName>FTM3_</prependToName><baseAddress>0x4002C000</baseAddress></peripheral>
+&FTMRA;
+&FTMRA_FlashConfig;
+&I2C0;
+<peripheral derivedFrom="I2C0"><name>I2C1</name><prependToName>I2C1_</prependToName><baseAddress>0x40048000</baseAddress></peripheral>
+&ICS;
+&IEVENT;
+&MCM;
+&MPU;
+&NVIC;
+&OSC;
+&PDB0;
+<peripheral derivedFrom="PDB0"><name>PDB1</name><prependToName>PDB1_</prependToName><baseAddress>0x40026000</baseAddress></peripheral>
+<peripheral derivedFrom="PDB0"><name>PDB2</name><prependToName>PDB2_</prependToName><baseAddress>0x40027000</baseAddress></peripheral>
+<peripheral derivedFrom="PDB0"><name>PDB3</name><prependToName>PDB3_</prependToName><baseAddress>0x40028000</baseAddress></peripheral>
+&PIT;
+&PMC;
+&PORTA;
+<peripheral derivedFrom="PORTA"><name>PORTB</name><prependToName>PORTB_</prependToName><baseAddress>0x40034000</baseAddress></peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTC</name><prependToName>PORTC_</prependToName><baseAddress>0x40035000</baseAddress></peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTD</name><prependToName>PORTD_</prependToName><baseAddress>0x40036000</baseAddress></peripheral>
+<peripheral derivedFrom="PORTA"><name>PORTE</name><prependToName>PORTE_</prependToName><baseAddress>0x40037000</baseAddress></peripheral>
+&PTA;
+<peripheral derivedFrom="PTA"><name>PTB</name><prependToName>GPIOB_</prependToName><baseAddress>0x4007F040</baseAddress>         <interrupt>
+            <name>PORTB</name>
+            <description>General Purpose Input/Output</description>
+            <value>76</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTC</name><prependToName>GPIOC_</prependToName><baseAddress>0x4007F080</baseAddress>         <interrupt>
+            <name>PORTC</name>
+            <description>General Purpose Input/Output</description>
+            <value>77</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTD</name><prependToName>GPIOD_</prependToName><baseAddress>0x4007F0C0</baseAddress>         <interrupt>
+            <name>PORTD</name>
+            <description>General Purpose Input/Output</description>
+            <value>78</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="PTA"><name>PTE</name><prependToName>GPIOE_</prependToName><baseAddress>0x4007F100</baseAddress>         <interrupt>
+            <name>PORTE</name>
+            <description>General Purpose Input/Output</description>
+            <value>79</value>
+         </interrupt>
+</peripheral>
+&RCM;
+&RTC;
+&SIM;
+&SMC;
+&SPI0;
+<peripheral derivedFrom="SPI0"><name>SPI1</name><prependToName>SPI1_</prependToName><baseAddress>0x4004F000</baseAddress>         <interrupt>
+            <name>SPI1</name>
+            <description>Serial Peripheral Interface</description>
+            <value>42</value>
+         </interrupt>
+</peripheral>
+&SysTick;
+&SystemControl;
+&TSI0;
+&UART0;
+&UART1;
+<peripheral derivedFrom="UART1"><name>UART2</name><prependToName>UART2_</prependToName><baseAddress>0x4004B000</baseAddress>         <interrupt>
+            <name>PDB0</name>
+            <description>Serial Communication Interface</description>
+            <value>65</value>
+         </interrupt>
+</peripheral>
+<peripheral derivedFrom="UART1"><name>UART3</name><prependToName>UART3_</prependToName><baseAddress>0x4004C000</baseAddress></peripheral>
+&WDOG;
+   </peripherals>
+   <vendorExtensions>
+&VECTOR_TABLE;
+   </vendorExtensions>
+</device>
