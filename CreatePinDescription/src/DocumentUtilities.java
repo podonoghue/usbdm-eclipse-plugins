@@ -3,6 +3,55 @@ import java.io.IOException;
 
 
 public class DocumentUtilities {
+   
+   class PeripheralTypeDescription {
+      String baseName;
+      String groupName;
+      String groupTitle;
+      String groupBriefDescription;
+      String outputTemplate;
+      String className;
+      
+      public PeripheralTypeDescription(String baseName, String groupName, String groupTitle, String groupBriefDescription, String className, String outputTemplate) {
+         this.baseName              = baseName;
+         this.groupName             = groupName;
+         this.groupTitle            = groupTitle;
+         this.groupBriefDescription = groupBriefDescription;
+         this.outputTemplate        = outputTemplate;
+         this.className             = className;
+      }
+   }
+
+   class PinFunctionDescription {
+      String baseName;
+      String outputTemplate;
+      String className;
+      
+      public PinFunctionDescription(String baseName, String className, String outputTemplate) {
+         this.baseName              = baseName;
+         this.outputTemplate        = outputTemplate;
+         this.className             = className;
+      }
+   }
+
+   /**
+    * Write open group comment
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <i><b>groupName groupTitle</i></b>                   
+    *  * @brief       <i><b>groupBrief</i></b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param writer        Where to write 
+    * @param description   Description of group to use
+    * 
+    * @throws IOException
+    */
+   static void writeStartGroup(BufferedWriter writer, PeripheralTypeDescription description) throws IOException {
+      writeStartGroup(writer, description.groupName, description.groupTitle, description.groupBriefDescription);
+   }
+
    /**
     * Write open group comment
     * <pre><code>

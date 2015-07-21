@@ -80,7 +80,7 @@ public class UsbdmOptionsPanel  extends Composite {
    protected List<Group>                     fGroupList          = null;
 
 
-   public UsbdmOptionsPanel(
+   public UsbdmOptionsPanel (
          Composite               parent, 
          int                     style, 
          IDialogSettings         dialogSettings,
@@ -98,17 +98,19 @@ public class UsbdmOptionsPanel  extends Composite {
       fWizardPageInfo     = wizardPageInfo;
    }
 
-   public UsbdmOptionsPanel(
-         Composite                  parent, 
-         int                        style, 
-         ProjectActionList          projectActionList, 
-         IDialogSettings            dialogSettings) {
-
-      super(parent, style);
-
-      fProjectActionList  = projectActionList;
-      fDialogSettings     = dialogSettings;
-   }
+//   public UsbdmOptionsPanel(
+//         Composite                  parent, 
+//         int                        style, 
+//         IDialogSettings            dialogSettings, 
+//         ProjectActionList          projectActionList,
+//         WizardPageInformation      wizardPageInfo) {
+//
+//      super(parent, style);
+//
+//      fProjectActionList  = projectActionList;
+//      fDialogSettings     = dialogSettings;
+//      fWizardPageInfo     = wizardPageInfo;
+//   }
 
    /**
     * Get Project action lists

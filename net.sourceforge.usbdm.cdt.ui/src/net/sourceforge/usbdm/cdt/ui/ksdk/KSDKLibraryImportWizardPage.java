@@ -35,7 +35,6 @@ import org.eclipse.swt.widgets.Listener;
 public class KSDKLibraryImportWizardPage extends WizardPage {
 
    // These constants are used both for the dialogue persistent storage AND the page data map keys
-   private final static String PAGE_ID    = UsbdmConstants.PROJECT_OPTIONS_PAGE_ID;
    private final static String PAGE_NAME  = UsbdmConstants.PROJECT_OPTIONS_PAGE_NAME;
 
    private KSDKLibraryImportOptionsPanel fKSDKLibraryImportOptionsPanel;
@@ -47,10 +46,6 @@ public class KSDKLibraryImportWizardPage extends WizardPage {
       setTitle("Create KDS Library Project");
       setDescription("Select options for creation of library project");
       setPageComplete(false);
-   }
-
-   public String getPageID() {
-      return PAGE_ID;
    }
 
    /* (non-Javadoc)

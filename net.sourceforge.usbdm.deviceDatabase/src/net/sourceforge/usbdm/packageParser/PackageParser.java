@@ -390,7 +390,7 @@ public class PackageParser {
          }
       }
       return projectActionList;
-      }
+   }
 
    /**
     * Parse a <projectActionList> element
