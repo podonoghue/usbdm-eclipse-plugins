@@ -74,7 +74,7 @@ public abstract class GdbCommonInterface {
     * @param littleEndian
     */
    public void setLittleEndian(boolean littleEndian) {
-      System.err.println("GdbCommonInterface.setLittleEndian(" + littleEndian + ")");
+//      System.err.println("GdbCommonInterface.setLittleEndian(" + littleEndian + ")");
       this.littleEndian = littleEndian;
    }
 

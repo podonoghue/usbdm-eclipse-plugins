@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import net.sourceforge.usbdm.gdb.GdbServerParameters.GdbServerType;
+import net.sourceforge.usbdm.gdb.ttyConsole.MyConsoleInterface;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 import org.eclipse.cdt.debug.core.CDebugUtils;
@@ -98,6 +99,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    private IMIContainerDMContext fContainerCtx;
    private CommandFactory        fCommandFactory;
    private String                fLaunchMode;
+   private int                   fTtyPortNum;
 
    private boolean               fDoSyncTarget;
    
@@ -108,10 +110,50 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
       fGdbServerParameters = gdbServerParameters;		
       fDoSyncTarget        = false;
       ILaunch launch       = (ILaunch)fSession.getModelAdapter(ILaunch.class);
-      fLaunchMode          = launch.getLaunchMode();
-//      System.err.println("UsbdmGdbDsfFinalLaunchSequence() mode = " + fLaunchMode);
+      fTtyPortNum          = -1;
+      boolean ttyOpen = getBooleanLaunchSetting(launch, net.sourceforge.usbdm.gdb.GdbServerParameters.USE_SEMI_HOSTING_KEY);
+      if (ttyOpen) {
+         fTtyPortNum = getIntegerSetting(launch, net.sourceforge.usbdm.gdb.GdbServerParameters.TTY_PORT_KEY);
+      }
+      fLaunchMode = launch.getLaunchMode();
    }
 
+   int getIntegerSetting(ILaunch launch, String key) {
+      int value = 0;
+      try {
+         value = launch.getLaunchConfiguration().getAttribute(
+               net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY+key, 0);
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
+//      System.err.println("getLaunchSetting() "+ key + " => " + value);
+      return value;
+   }
+   
+   String getStringLaunchSetting(ILaunch launch, String key) {
+      String value = null;
+      try {
+         value = launch.getLaunchConfiguration().getAttribute(
+               net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY+key, "");
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
+//      System.err.println("getLaunchSetting() "+ key + " => " + value);
+      return value;
+   }
+   
+   boolean getBooleanLaunchSetting(ILaunch launch, String key) {
+      boolean value = false;
+      try {
+         value = launch.getLaunchConfiguration().getAttribute(
+               net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY+key, false);
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
+//      System.err.println("getLaunchSetting() "+ key + " => " + value);
+      return value;
+   }
+   
    public UsbdmGdbDsfFinalLaunchSequence(DsfExecutor executor, GdbLaunch launch, SessionType sessionType, boolean attach, RequestMonitorWithProgress rm, GdbServerParameters gdbServerParameters) {
       this(launch.getSession(), getAttributes(launch), rm, gdbServerParameters);
    }
@@ -140,11 +182,11 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          // Initialize the list with the base class' steps
          // We need to create a list that we can modify, which is why we create our own ArrayList.
          List<String> orderList = new ArrayList<String>(Arrays.asList(super.getExecutionOrder(GROUP_TOP_LEVEL)));
-         System.err.println("============ GROUP_TOP_LEVEL original =========== \n");
-         for (String s : orderList) {
-            System.err.println(s);
-         }
-         System.err.println("============ GROUP_TOP_LEVEL original =========== \n");
+//         System.err.println("============ GROUP_TOP_LEVEL original =========== \n");
+//         for (String s : orderList) {
+//            System.err.println(s);
+//         }
+//         System.err.println("============ GROUP_TOP_LEVEL original =========== \n");
          // First, remove all steps of the base class that we don't want to use.
          orderList.removeAll(Arrays.asList(new String[] { 
                "stepRemoteConnection",    //$NON-NLS-1$
@@ -153,12 +195,11 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          }));
          // Now insert our steps before the data model initialized event is sent
          orderList.add(orderList.indexOf("stepDataModelInitializationComplete"), GROUP_USBDM);
-         System.err.println("============ GROUP_TOP_LEVEL modified =========== \n");
-         for (String s : orderList) {
-            System.err.println(s);
-         }
-         System.err.println("============ GROUP_TOP_LEVEL modified =========== \n");
-         
+//         System.err.println("============ GROUP_TOP_LEVEL modified =========== \n");
+//         for (String s : orderList) {
+//            System.err.println(s);
+//         }
+//         System.err.println("============ GROUP_TOP_LEVEL modified =========== \n");
          return orderList.toArray(new String[orderList.size()]);
       }
 
@@ -188,6 +229,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          else { // Assume DEBUG_MODE
             steps = new String[] {
                   "stepInitUsbdmGdbDsfFinalLaunchSequence", //$NON-NLS-1$
+                  "stepOpenUsbdmTtyConsole",                //$NON-NLS-1$
                   "stepLaunchUsbdmGdbServer",               //$NON-NLS-1$
                   "stepCreateUsbdmInterface",               //$NON-NLS-1$ 
                   // -- x
@@ -244,7 +286,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepInitUsbdmGdbDsfFinalLaunchSequence(RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepInitUsbdmGdbDsfFinalLaunchSequence()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepInitUsbdmGdbDsfFinalLaunchSequence()");
       fTracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
       fGDBBackend = fTracker.getService(IGDBBackend.class);
       if (fGDBBackend == null) {
@@ -289,8 +331,25 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     * 
     */
    @Execute
+   public void stepOpenUsbdmTtyConsole(final RequestMonitor rm) {
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepOpenUsbdmTtyConsole()");
+      try {
+         if (fTtyPortNum>0) {
+            MyConsoleInterface.startServer(fTtyPortNum);
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      rm.done();
+   }
+
+   /**
+    * Create Local USBDM GDB Server (if needed)
+    * 
+    */
+   @Execute
    public void stepLaunchUsbdmGdbServer(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLaunchUsbdmGdbServer()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLaunchUsbdmGdbServer()");
 
       if (fGdbServerParameters == null) {
          rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
@@ -320,7 +379,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepCreateUsbdmInterface(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepCreateUsbdmInterface()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepCreateUsbdmInterface()");
       fUsbdmGdbInterface = new UsbdmGdbInterface();
       rm.done();
    }
@@ -330,7 +389,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepLoadSymbols(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLoadSymbols()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLoadSymbols()");
 
       if (!CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_LOAD_SYMBOLS, IGDBJtagConstants.DEFAULT_LOAD_SYMBOLS)) {
          rm.done();
@@ -379,7 +438,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepConnectToTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepConnectToTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepConnectToTarget()");
 
       if (fGdbServerParameters == null) {
          rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1,"Unable to obtain server parameters", null)); //$NON-NLS-1$
@@ -410,7 +469,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepResetTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResetTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResetTarget()");
       // Always reset if Run mode or Loading an image
       if (fLaunchMode.equals(ILaunchManager.RUN_MODE) || 
           CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_LOAD_IMAGE, IGDBJtagConstants.DEFAULT_LOAD_IMAGE) ||
@@ -429,7 +488,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepHaltTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepHaltTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepHaltTarget()");
       // No need to halt if Loading an image as already reset
       if (!CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_LOAD_IMAGE, IGDBJtagConstants.DEFAULT_LOAD_IMAGE) &&
           !CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_DO_RESET,   IGDBJtagConstants.DEFAULT_DO_RESET) &&
@@ -448,7 +507,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepUserInitCommands(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUserInitCommands()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUserInitCommands()");
       try {
          String userCmd = CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_INIT_COMMANDS, IGDBJtagConstants.DEFAULT_INIT_COMMANDS);
          userCmd = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(userCmd);
@@ -464,7 +523,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepLoadImage(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLoadImage()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepLoadImage()");
 
       if (fLaunchMode.equals(ILaunchManager.DEBUG_MODE) &&
             !CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_LOAD_IMAGE, IGDBJtagConstants.DEFAULT_LOAD_IMAGE)) {
@@ -520,7 +579,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepUpdateContainer(RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUpdateContainer()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUpdateContainer()");
       String groupId = getContainerContext().getGroupId();
       setContainerContext(fProcService.createContainerContextFromGroupId(fCommandControl.getContext(), groupId));
       rm.done();
@@ -531,7 +590,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepSetArguments(RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetArguments()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetArguments()");
       try {
          String args = CDebugUtils.getAttribute(fAttributes, ICDTLaunchConfigurationConstants.ATTR_PROGRAM_ARGUMENTS, ""); //$NON-NLS-1$
          if (args.length() != 0) {
@@ -554,7 +613,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepSetEnvironmentVariables(RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetEnvironmentVariables()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetEnvironmentVariables()");
       boolean    clear      = false;
       Properties properties = new Properties();
       try {
@@ -578,7 +637,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepStartTrackingBreakpoints(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepStartTrackingBreakpoints()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepStartTrackingBreakpoints()");
       MIBreakpointsManager bpmService = fTracker.getService(MIBreakpointsManager.class);
       bpmService.startTrackingBpForProcess(getContainerContext(), rm);
    }
@@ -588,7 +647,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepSetProgramCounter(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetProgramCounter()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetProgramCounter()");
       if (CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_SET_PC_REGISTER, IGDBJtagConstants.DEFAULT_SET_PC_REGISTER)) {
          String pcRegister = CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_PC_REGISTER, 
                CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_IMAGE_OFFSET, IGDBJtagConstants.DEFAULT_PC_REGISTER)); 
@@ -606,7 +665,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepSetInitialBreakpoint(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetInitialBreakpoint()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSetInitialBreakpoint()");
       if (CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_SET_STOP_AT, IGDBJtagConstants.DEFAULT_SET_STOP_AT)) {
          String stopAt = CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_STOP_AT, IGDBJtagConstants.DEFAULT_STOP_AT); 
          List<String> commands = new ArrayList<String>();
@@ -622,7 +681,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepResumeTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResumeTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResumeTarget()");
       // Resume target if
       // - Run mode or
       // - Loading image AND selected Resume OR
@@ -647,7 +706,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepRunTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepRunTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepRunTarget()");
       // Resume target if
       // - Run mode or
       // - Loading image AND selected Resume OR
@@ -672,7 +731,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepRunUserCommands(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepRunUserCommands()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepRunUserCommands()");
       try {
          String userCmd = CDebugUtils.getAttribute(fAttributes, IGDBJtagConstants.ATTR_RUN_COMMANDS, IGDBJtagConstants.DEFAULT_RUN_COMMANDS); 
          userCmd = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(userCmd);
@@ -721,7 +780,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepUsbdmAttachToProcess(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUsbdmAttachToProcess()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUsbdmAttachToProcess()");
       if (fGDBBackend.getIsAttachSession() && fGDBBackend.getSessionType() != SessionType.REMOTE) {
          // Is the process id already stored in the launch?
          int pid = CDebugUtils.getAttribute(fAttributes, ICDTLaunchConfigurationConstants.ATTR_ATTACH_PROCESS_ID, -1);
@@ -749,7 +808,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepDetachTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepDetachTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepDetachTarget()");
       List<String> commands = new ArrayList<String>();
       fUsbdmGdbInterface.doDetach(commands);
       queueCommands(commands, rm);  
@@ -762,7 +821,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepSyncTarget(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSyncTarget()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepSyncTarget()");
       if (!fDoSyncTarget) {
          rm.done();
          return;
@@ -777,7 +836,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
     */
    @Execute
    public void stepUsbdmCleanup(final RequestMonitor rm) {
-      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUsbdmCleanup()");
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepUsbdmCleanup()");
       fTracker.dispose();
       fTracker = null;
       rm.done();

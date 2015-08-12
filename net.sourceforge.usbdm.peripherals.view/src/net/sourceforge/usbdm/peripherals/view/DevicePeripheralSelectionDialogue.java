@@ -68,9 +68,9 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
    private Button            btnDeviceSelect         = null;
    private Button            chkUseExternalSVDFile   = null;
    private Button            btnFileBrowse           = null;
-   private Group             grpInternal;
-   private Group             grpExternal;
-   private Text              txtFilePath;
+   private Group             grpInternal             = null;
+   private Group             grpExternal             = null;
+   private Text              txtFilePath             = null;
 
    //TODO - make variable
    private TargetType targetType = TargetType.T_ARM;
@@ -324,7 +324,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
    }
 
    void svdToInternal(SVDIdentifier svdId) {
-      System.err.println("svdToInternal()" + svdId);
+//      System.err.println("svdToInternal()" + svdId);
       if (svdId != null) {
          // Load previous device file
          devicePeripherals = devicePeriperalsProviderInterface.getDevice(svdId);

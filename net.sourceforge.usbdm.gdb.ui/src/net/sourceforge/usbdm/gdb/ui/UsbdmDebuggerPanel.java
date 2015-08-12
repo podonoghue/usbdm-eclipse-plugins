@@ -124,8 +124,11 @@ public class UsbdmDebuggerPanel {
    private Label                       lblBDMInformation;
    private Button                      btnRequireExactBdm;
 
-   private Text                        txtGdbPort;
-   private NumberTextAdapter           txtGdbPortAdapter;
+   private Text                        txtGdbServerPort;
+   private NumberTextAdapter           txtGdbServerPortAdapter;
+   private Button                      btnUseSemihosting;
+   private Text                        txtGdbTtyPort;
+   private NumberTextAdapter           txtGdbTtyPortAdapter;
    private Button                      btnUseDebug;
    private Button                      btnExitOnClose;
 //   private Button                      btnPipeServer;
@@ -514,11 +517,35 @@ public class UsbdmDebuggerPanel {
       grpGdbControl.setLayout(gridLayout);
 
       Label lbl = new Label(grpGdbControl, SWT.NONE);
-      lbl.setText("Port ");
-      txtGdbPort = new Text(grpGdbControl, SWT.BORDER);
-      txtGdbPortAdapter = new NumberTextAdapter("GDB Server port", txtGdbPort,  1234);
-//      txtGdbPort.setLayoutData(new GridData(60, 16));
-      txtGdbPort.addModifyListener(new ModifyListener() {
+      lbl.setText("Server Port ");
+      txtGdbServerPort = new Text(grpGdbControl, SWT.BORDER|SWT.FILL);
+      txtGdbServerPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      txtGdbServerPort.setToolTipText("Port number used for GDB Server connection");
+      txtGdbServerPortAdapter = new NumberTextAdapter("GDB Server port", txtGdbServerPort,  1234);
+      txtGdbServerPort.addModifyListener(new ModifyListener() {
+         @Override
+         public void modifyText(ModifyEvent e) {
+            doUpdate();
+         }
+      });
+      btnUseSemihosting = new Button(grpGdbControl, SWT.CHECK);
+      btnUseSemihosting.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      btnUseSemihosting.setText("Open semi-hosting TTY");
+      btnUseSemihosting.setToolTipText("Open a TTY console for GDB to connect to");
+      btnUseSemihosting.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent arg0) {
+            doUpdate();
+         }
+      });
+
+      lbl = new Label(grpGdbControl, SWT.NONE);
+      lbl.setText("TTY Port ");
+      txtGdbTtyPort = new Text(grpGdbControl, SWT.BORDER);
+      txtGdbTtyPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      txtGdbTtyPort.setToolTipText("Port number used for GDB TTY connection");
+      txtGdbTtyPortAdapter = new NumberTextAdapter("GDB TTY port", txtGdbTtyPort,  4321);
+      txtGdbTtyPort.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
@@ -535,7 +562,7 @@ public class UsbdmDebuggerPanel {
             doUpdate();
          }
       });
-
+      
       btnExitOnClose = new Button(grpGdbControl, SWT.CHECK);
       btnExitOnClose.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
       btnExitOnClose.setToolTipText("Exit the server when the client connection is closed.");
@@ -588,6 +615,7 @@ public class UsbdmDebuggerPanel {
       Label lbl = new Label(grpConnectionControl, SWT.NONE);
       lbl.setText("Timeout");
       Text txtConnectionTimeout = new Text(grpConnectionControl, SWT.BORDER);
+      txtConnectionTimeout.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
       txtConnectionTimeout.setToolTipText("How long to wait for an unresponsive target\n"+
                                           "(e.g. target may be in VLLSx mode)\n"+
                                           "0 indicates indefinite wait");
@@ -636,8 +664,8 @@ public class UsbdmDebuggerPanel {
       
       btnDriveReset = new Button(grpConnectionControl, SWT.CHECK);
       btnDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnDriveReset.setToolTipText("Drive target reset pin when resetting the target."); //$NON-NLS-1$
-      btnDriveReset.setText("Drive RESET pin"); //$NON-NLS-1$
+      btnDriveReset.setToolTipText("Drive target reset pin to reset the target."); //$NON-NLS-1$
+      btnDriveReset.setText("Hardware RESET"); //$NON-NLS-1$
       btnDriveReset.setBounds(0, 0, 140, 16);
       btnDriveReset.addSelectionListener(new SelectionAdapter() {
          @Override
@@ -1332,18 +1360,16 @@ public class UsbdmDebuggerPanel {
    private void loadGdbServerParameters() {
     //  System.err.println("loadGdbServerParameters()");
     //  System.err.print(gdbServerParameters.toString());
-
       if (gdbServerParameters == null) {
          return;
       }
-      //      setTargetDevice(                           gdbServerParameters.getDeviceName());
       populateBdmChoices(                        gdbServerParameters.getBdmSerialNumber(), true);
       btnRequireExactBdm.setSelection(           gdbServerParameters.isBdmSerialNumberMatchRequired());
-      txtGdbPortAdapter.setDecimalValue(         gdbServerParameters.getGdbPortNumber());
+      txtGdbServerPortAdapter.setDecimalValue(   gdbServerParameters.getGdbServerPortNumber());
+      txtGdbTtyPortAdapter.setDecimalValue(      gdbServerParameters.getGdbTtyPortNumber());
+      btnUseSemihosting.setSelection(            gdbServerParameters.isUseSemihosting());
       btnUseDebug.setSelection(                  gdbServerParameters.isUseDebugVersion());
       btnExitOnClose.setSelection(               gdbServerParameters.isExitOnClose());
-//      btnPipeServer.setSelection(                gdbServerParameters.getServerType() == GdbServerType.SERVER_PIPE);
-//      btnSocketServer.setSelection(              gdbServerParameters.getServerType() == GdbServerType.SERVER_SOCKET);
       comboInterfaceSpeed.setText(              
             ClockSpeed.findSuitable(             gdbServerParameters.getInterfaceFrequency()).toString());
       btnAutomaticallyReconnect.setSelection(    gdbServerParameters.getAutoReconnect().name() != AutoConnect.AUTOCONNECT_NEVER.name());
@@ -1367,14 +1393,14 @@ public class UsbdmDebuggerPanel {
    private void saveGdbServerParameters() {
       //      System.err.println("saveGdbServerParameters()");
 
-//      gdbServerParameters.setDeviceName(                       comboTargetDeviceName.getText());
       gdbServerParameters.setDeviceName(                       txtTargetDeviceName.getText());
       gdbServerParameters.setBdmSerialNumber(                  comboSelectBDM.getText());
       gdbServerParameters.enableBdmSerialNumberMatchRequired(  btnRequireExactBdm.getSelection());
-      gdbServerParameters.setGdbPortNumber(                    txtGdbPortAdapter.getDecimalValue());
+      gdbServerParameters.setGdbServerPortNumber(              txtGdbServerPortAdapter.getDecimalValue());
+      gdbServerParameters.setGdbTtyPortNumber(                 txtGdbTtyPortAdapter.getDecimalValue());
+      gdbServerParameters.enableUseSemiHosting(                btnUseSemihosting.getSelection());
       gdbServerParameters.enableUseDebugVersion(               btnUseDebug.getSelection());
       gdbServerParameters.enableExitOnClose(                   btnExitOnClose.getSelection());
-//      gdbServerParameters.setServerType(                       btnPipeServer.getSelection()?GdbServerType.SERVER_PIPE:GdbServerType.SERVER_SOCKET);
       gdbServerParameters.setInterfaceFrequency(               getInterfaceSpeed());
       gdbServerParameters.setAutoReconnect(                    btnAutomaticallyReconnect.getSelection()?AutoConnect.AUTOCONNECT_ALWAYS:AutoConnect.AUTOCONNECT_NEVER);
       gdbServerParameters.enableUseReset(                      btnDriveReset.getSelection());
@@ -1388,7 +1414,6 @@ public class UsbdmDebuggerPanel {
       gdbServerParameters.setClockTrimFrequency(          (int)Math.round(txtTrimFrequencyAdapter.getDoubleValue()*1000));
       gdbServerParameters.setNvmClockTrimLocation(             txtNVTRIMAddressAdapter.getHexValue());
       gdbServerParameters.setConnectionTimeout(                getTimeout());
-      //      System.err.print(gdbServerParameters.toString());
    }
 
    /**
@@ -1562,6 +1587,7 @@ public class UsbdmDebuggerPanel {
       if (listener != null) {
          listener.handleEvent(new Event());
       }
+      txtGdbTtyPort.setEnabled(btnUseSemihosting.getSelection());
       lblcommandLine.setText(gdbServerParameters.getServerCommandLineAsString());
    }
 
@@ -1598,7 +1624,7 @@ public class UsbdmDebuggerPanel {
       usbdmTab.addListener(SWT.CHANGED, new Listener() {
          @Override
          public void handleEvent(Event event) {
-            System.err.println("Changed");
+//            System.err.println("Changed");
          }
       });
       shell.open();

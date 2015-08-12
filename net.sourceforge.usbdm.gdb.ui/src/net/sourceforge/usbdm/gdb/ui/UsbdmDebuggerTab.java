@@ -35,7 +35,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    private static final String   TAB_NAME = "Debugger";
    private static final String   TAB_ID   = "net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab";
 
-   UsbdmDebuggerPanel            usbdmDebuggerPanel;
+   UsbdmDebuggerPanel usbdmDebuggerPanel;
    
    public UsbdmDebuggerTab() {
       super();
@@ -92,7 +92,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
       try {
          usbdmDebuggerPanel.initializeFrom(configuration);
       } catch (Exception e) {
-         System.err.println("UsbdmDebuggerTab.initializeFrom()");
+//         System.err.println("UsbdmDebuggerTab.initializeFrom()");
          e.printStackTrace();
       }
    }

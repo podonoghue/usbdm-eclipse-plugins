@@ -596,7 +596,7 @@ public class CreateAlternativePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    void writePinMappingHeaderFile(BufferedWriter headerFile) throws Exception {
-      writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", VERSION, "Pin declarations for "+deviceName);
+      writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", "", VERSION, "Pin declarations for "+deviceName);
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
       writeWizardMarker(headerFile);
@@ -695,7 +695,7 @@ public class CreateAlternativePinDescription extends DocumentUtilities {
     * @throws IOException
     */
    private void writeGpioHeaderFile(BufferedWriter gpioHeaderFile) throws IOException {
-      writeHeaderFilePreamble(gpioHeaderFile, "GPIO.h", VERSION, "Pin declarations for "+deviceName);
+      writeHeaderFilePreamble(gpioHeaderFile, "GPIO.h", "", VERSION, "Pin declarations for "+deviceName);
       writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
       writeHeaderFileInclude(gpioHeaderFile, "PinMapping.h");
       writeHeaderFileInclude(gpioHeaderFile, "GPIO_defs.h");

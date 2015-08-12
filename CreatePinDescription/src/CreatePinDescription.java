@@ -69,10 +69,16 @@ public class CreatePinDescription extends DocumentUtilities {
    };
    ArrayList<PinInformation> pins = new ArrayList<CreatePinDescription.PinInformation>();
    HashMap<String, MuxValues> portMapping = new HashMap<String, MuxValues>();
+   
    //! Mapping of Alias pins to Kinetis pins
-   HashMap<String, String> aliasMapping = new HashMap<String, String>(); 
+   //! Many-to-1
+   HashMap<String, String> aliasMapping = new HashMap<String, String>();
+   
    //! Mapping of Kinetis pins to Alias pins
-   HashMap<String, String> reverseAliasMapping = new HashMap<String, String>();
+   //! 1-to-Many
+   HashMap<String, ArrayList<String>> reverseAliasMapping = new HashMap<String, ArrayList<String>>();
+   
+   ArrayList<String> gpio     = new ArrayList<String>(); // Pins with ADC feature
    ArrayList<String> analogue = new ArrayList<String>(); // Pins with ADC feature
    ArrayList<String> ftm      = new ArrayList<String>(); // Pins with FTM feature
    ArrayList<String> tpm      = new ArrayList<String>(); // Pins with TPM feature
@@ -82,6 +88,17 @@ public class CreatePinDescription extends DocumentUtilities {
    final static String pinMappingBaseFileName   = "pin_mapping";
    final static String gpioBaseFileName         = "gpio";
    String deviceName;
+
+   private String pinMappingHeaderFileName;  // Name of pin-mapping-XX.h header file
+   private String gpioCppFileName;           // Name of gpio-XX.cpp source file
+   private String gpioHeaderFileName;        // Name of gpio-XX.h header file
+
+   int      gpioFunctionMuxValue          = 1; // Ports default to mux setting 1
+   boolean  gpioFunctionMuxValueChanged   = false;
+   int      adcFunctionMuxValue           = 0; // ADCs default to mux setting 0
+   boolean  adcFunctionMuxValueChanged    = false;
+   String   portClockRegisterValue        = null;
+   boolean  portClockRegisterValueChanged = false;
 
    class ClockInfo {
       String clockReg;
@@ -119,7 +136,7 @@ public class CreatePinDescription extends DocumentUtilities {
       MuxValues muxValues = portMapping.get(portName);
       if (muxValues == null) {
          System.err.println("OPPS- looking for " + portName);
-         System.err.println("OPPS- looking in " + portMapping);
+         System.err.println("OPPS- looking in " + portMapping.keySet());
       }
       else {
          int index = muxValues.alternatives.indexOf(preferredMapping);
@@ -145,7 +162,12 @@ public class CreatePinDescription extends DocumentUtilities {
       String aliasName    = line[1];
       String mappedName   = line[2];
       aliasMapping.put(aliasName, mappedName);
-      reverseAliasMapping.put(mappedName, aliasName);
+      ArrayList<String> aliasList = reverseAliasMapping.get(mappedName);
+      if (aliasList == null) {
+         aliasList = new ArrayList<String>();
+         reverseAliasMapping.put(mappedName, aliasList);
+      }
+      aliasList.add(aliasName);
    }
    /**
     * Parse line containing ClockReg value
@@ -187,21 +209,21 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param elements      List to add discovered ports to
     * @param pinNames      List to add pin names to add 
     */
-   void doPinPeripheral(String[] line, StringBuilder description, String template, PinInformation pinInfo, ArrayList<String> pinNames) {
+   void doPinPeripheral(String[] line, StringBuilder description, String baseName, String template, PinInformation pinInfo, ArrayList<String> pinNames) {
       String pinName  = line[pinIndex];
       Pattern pattern = Pattern.compile(template);
       for (int col=altStartIndex; col<line.length; col++) {
          Matcher matcher = pattern.matcher(line[col]);
          if (matcher.matches()) {
-            String baseName      = matcher.group(1);
+//            String pn = matcher.group(1);
             String peripheralNum = matcher.group(2);
             String signalName    = matcher.group(3);
-
+//            System.err.println(String.format("pn = %s, p#=%s, sn=%s", pn, peripheralNum, signalName));
             baseNames.add(baseName);
             
-            int peripheralFn     = col-altStartIndex;
-            String peripheralSignalName = String.format("%s%s_%s", baseName, peripheralNum, signalName);
-            MuxValues mapEntry = portMapping.get(peripheralSignalName);
+            int       peripheralFn         = col-altStartIndex;
+            String    peripheralSignalName = String.format("%s%s_%s", baseName, peripheralNum, signalName);
+            MuxValues mapEntry             = portMapping.get(peripheralSignalName);
             if (mapEntry == null) {
                // Add new entry
                mapEntry = new MuxValues();
@@ -240,21 +262,45 @@ public class CreatePinDescription extends DocumentUtilities {
          System.err.println("Line discarded");
          return;
       }
-      StringBuilder description = new StringBuilder();
-      PinInformation pinInfo = new PinInformation(pinName);
-      pins.add(pinInfo);
-      doPinPeripheral(line, description, "^.*(PT)([A-Z])(\\d*)(/.*|$)",                                       pinInfo, null);
-      doPinPeripheral(line, description, "^.*(ADC)(\\d*)_SE(\\d*)(b.*|/.*|$)",                                pinInfo, analogue);
-      doPinPeripheral(line, description, "^.*(FTM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, ftm);
-      doPinPeripheral(line, description, "^.*(TPM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, tpm);
-      doPinPeripheral(line, description, "^.*(LPTMR)(\\d*)_ALT(\\d*)(b.*|/.*|$)",                             pinInfo, null);
-      doPinPeripheral(line, description, "^.*(SDHC)(\\d*)_((CLKIN)|(D\\d)|(CMD)|(DCLK))(/.*|$)",              pinInfo, null);
-      doPinPeripheral(line, description, "^.*(SPI)(\\d*)_((SOUT)|(SIN)|(SCK)|(PCS\\d)|(MOSI)|(MISO))(/.*|$)", pinInfo, null);
-      doPinPeripheral(line, description, "^.*(I2C)(\\d*)_((SDA)|(SCL))(/.*|$)",                               pinInfo, null);
+      StringBuilder  description = new StringBuilder();
+      PinInformation pinInfo     = new PinInformation(pinName);
+      pins.add(pinInfo); 
+      doPinPeripheral(line, description, "GPIO",  "^.*(GPIO)([A-Z])_(\\d*)(/.*|$)",                                    pinInfo, gpio);
+      if (!deviceIsMKE) {
+         doPinPeripheral(line, description, "ADC",   "^.*(ADC)(\\d*)(?:_SE)?(\\d*)(b.*|/.*|$)",                           pinInfo, analogue);
+         doPinPeripheral(line, description, "FTM",   "^.*(FTM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, ftm);
+         doPinPeripheral(line, description, "TPM",   "^.*(TPM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, tpm);
+         doPinPeripheral(line, description, "LPTMR", "^.*(LPTMR)(\\d*)_ALT(\\d*)(b.*|/.*|$)",                             pinInfo, null);
+         doPinPeripheral(line, description, "SDHC",  "^.*(SDHC)(\\d*)_((CLKIN)|(D\\d)|(CMD)|(DCLK))(/.*|$)",              pinInfo, null);
+         doPinPeripheral(line, description, "SPI",   "^.*(SPI)(\\d*)_((SOUT)|(SIN)|(SCK)|(PCS\\d)|(MOSI)|(MISO))(/.*|$)", pinInfo, null);
+         doPinPeripheral(line, description, "I2C",   "^.*(I2C)(\\d*)_((SDA)|(SCL))(/.*|$)",                               pinInfo, null);
+      }
       pinInfo.description = pinName;
       if (description.length() > 0) {
          pinInfo.description += " = "+description.toString();
       }
+   }
+   /**
+    * Gets list of alias for this pin as a comma separated string.
+    * 
+    * @param pinName
+    * @return String of form alias1,alias2 ... or null if no aliases defined
+    */
+   String getAliasList(String pinName) {
+      ArrayList<String> aliasList = reverseAliasMapping.get(pinName);
+      if (aliasList == null) {
+         return null;
+      }
+      StringBuilder b = new StringBuilder();
+      boolean firstTime = true;
+      for(String s:aliasList) {
+         if (!firstTime) {
+            b.append(",");
+         }
+         firstTime = false;
+         b.append(s);
+      }
+      return b.toString();
    }
    /**
     * Writes macros describing pin functions
@@ -265,73 +311,99 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception 
     */
    void writePinDefines(PinInformation pinInfo, BufferedWriter headerFile) throws Exception {
-      String aliasName = reverseAliasMapping.get(pinInfo.name);
+      String aliasName = getAliasList(pinInfo.name);
       String description = pinInfo.description;
       if (aliasName != null) {
          description += " (Alias: " + aliasName + ")";
       }
       headerFile.append("// "+description + "\n");
       String pinName  = pinInfo.name;
-      String result      = "";
       
       /*
        * Do port functions
        */
-      ArrayList<MappingInfo> mappingList = pinInfo.getMappingList("PT");
+      ArrayList<MappingInfo> mappingList = pinInfo.getMappingList("GPIO");
       if (mappingList.size()>0) {
          if (mappingList.size() > 1) {
             throw new Exception("Multiple ports mapped!");
          }
          MappingInfo info = mappingList.get(0);
-         if (info.mux != 1) {
-            throw new Exception("Port not mapped to 1!");
+         String baseName  = info.baseName;
+         String name      = info.name;
+         String chNum     = info.channel;
+         int    pinMux    = info.mux; 
+         if (info.mux != gpioFunctionMuxValue) {
+            if (gpioFunctionMuxValueChanged) {
+               throw new Exception(
+                     String.format("GPIO pin mux value non-constant, pin = %s, mux = %d", pinName, info.mux));
+            }
+            gpioFunctionMuxValueChanged = true;
+            gpioFunctionMuxValue = info.mux;
+            System.err.println(String.format("Changing GPIO pin mapping, pin = %s, mux = %d", pinName, info.mux));
          }
-         // Port description
-         String name     = info.name;
-         String chNum    = info.channel;
-         result += String.format(
-                     "#define %-18s         %-3s   //!< %s Port name\n"+
-                     "#define %-18s         %-3s   //!< %s Port number\n",
-                     pinName+"_PORT", name,   pinName, 
-                     pinName+"_NUM",  chNum,  pinName
-                     );
+         headerFile.append(String.format(
+               "#define %-18s         %-3s   //!< %s %s name\n"+
+               "#define %-18s         %-3s   //!< %s %s bit number\n",
+               pinInfo.name+"_"+baseName+"_NAME", name,  pinName, baseName,
+               pinInfo.name+"_"+baseName+"_BIT",  chNum, pinName, baseName
+               ));
+//         headerFile.append(String.format(
+//                     "#define %-18s         %-3s   //!< %s Port name\n"+
+//                     "#define %-18s         %-3s   //!< %s Port number\n",
+//                     pinName+"_PORT", name,   pinName, 
+//                     pinName+"_NUM",  chNum,  pinName
+//                     ));
+         headerFile.append(String.format(
+               "#define %-18s         %-3d   //!< %s Pin multiplexor for %s\n",
+               pinInfo.name+"_"+baseName+"_FN", pinMux,    pinName, baseName
+               ));
       }
       /*
        * Do ADC functions
        */
       mappingList = pinInfo.getMappingList("ADC");
       if (mappingList.size() >0 ) {
-         if (mappingList.size() > 1) {
-            throw new Exception("Multiple ports mapped!");
-         }
          MappingInfo info = mappingList.get(0);
-         if (info.mux != 0) {
-            throw new Exception("ADC not mapped to 0!");
-         }
          String baseName  = info.baseName;
          String name      = info.name;
          String chNum     = info.channel;
+         int    pinMux    = info.mux; 
          String fullName  = info.getName();
          MuxValues muxValues = portMapping.get(fullName);
+         if (mappingList.size() > 1) {
+            throw new Exception(String.format("ADC multiple ports mapped!, pin = %s, mux = %d", pinName, pinMux));
+         }
+         if (pinMux != adcFunctionMuxValue) {
+            if (adcFunctionMuxValueChanged) {
+               System.err.println(String.format("ADC pin mux value non-constant, pin = %s, mux = %d", pinName, pinMux));
+            }
+            adcFunctionMuxValueChanged = true;
+            adcFunctionMuxValue = pinMux;
+            System.err.println(String.format("Changing ADC pin mapping, pin = %s, mux = %d", pinName, pinMux));
+         }
          if (muxValues == null) {
             throw new Exception("Failed to find "+fullName);
          }
          ArrayList<String> mapEntry = muxValues.alternatives;
          if (mapEntry.size()>2) {
             int selectionIndex = mapEntry.indexOf(pinName);
-            result += String.format(
+            headerFile.append(String.format(
                "#if %s_SEL == %d\n",
                baseName+name+"_"+chNum, selectionIndex
-               );
+               ));
          }
-         result += String.format(
+         headerFile.append(String.format(
                "#define %-18s         %-3s   //!< %s %s number\n"+
                "#define %-18s         %-3s   //!< %s %s channel\n",
                pinInfo.name+"_"+baseName+"_NUM", name,  pinName, baseName,
                pinInfo.name+"_"+baseName+"_CH",  chNum, pinName, baseName
-               );
+               ));
+         headerFile.append(String.format(
+               "#define %-18s         %-3d   //!< %s Pin multiplexor for %s\n",
+               pinInfo.name+"_"+baseName+"_FN", pinMux,    pinName, baseName
+               ));
          if (mapEntry.size()>2) {
-            result += "#endif\n";
+            headerFile.append("#endif\n");
          }
       }
    
@@ -340,7 +412,7 @@ public class CreatePinDescription extends DocumentUtilities {
          String baseName  = info.baseName;
          String name      = info.name;
          String chNum     = info.channel;
-         int    adcFn     = info.mux; // always 0
+         int    pinMux    = info.mux; 
          String fullName  = info.getName();
          MuxValues muxValues = portMapping.get(fullName);
          if (muxValues == null) {
@@ -349,23 +421,23 @@ public class CreatePinDescription extends DocumentUtilities {
          ArrayList<String> mapEntry = muxValues.alternatives;
          if (mapEntry.size()>2) {
             int selectionIndex = mapEntry.indexOf(pinName);
-            result += String.format(
+            headerFile.append(String.format(
                   "#if %s_SEL == %d\n",
                   baseName+name+"_"+chNum, selectionIndex
-                  );
+                  ));
          }
-         result += String.format(
+         headerFile.append(String.format(
                "#define %-18s         %-3s   //!< %s %s number\n"+
                "#define %-18s         %-3s   //!< %s %s channel\n",
                pinInfo.name+"_"+baseName+"_NUM", name,  pinName, baseName,
                pinInfo.name+"_"+baseName+"_CH",  chNum, pinName, baseName
-               );
-         result += String.format(
+               ));
+         headerFile.append(String.format(
                "#define %-18s         %-3d   //!< %s Pin multiplexor for %s\n",
-               pinInfo.name+"_"+baseName+"_FN", adcFn,    pinName, baseName
-               );
+               pinInfo.name+"_"+baseName+"_FN", pinMux,    pinName, baseName
+               ));
          if (mapEntry.size()>2) {
-            result += "#endif\n";
+            headerFile.append("#endif\n");
          }
       }
       mappingList = pinInfo.getMappingList("TPM");
@@ -373,7 +445,7 @@ public class CreatePinDescription extends DocumentUtilities {
          String baseName  = info.baseName;
          String name      = info.name;
          String chNum     = info.channel;
-         int    adcFn     = info.mux; // always 0
+         int    pinMux    = info.mux;
          String fullName  = info.getName();
          MuxValues muxValues = portMapping.get(fullName);
          if (muxValues == null) {
@@ -382,23 +454,23 @@ public class CreatePinDescription extends DocumentUtilities {
          ArrayList<String> mapEntry = muxValues.alternatives;
          if (mapEntry.size()>2) {
             int selectionIndex = mapEntry.indexOf(pinName);
-            result += String.format(
+            headerFile.append(String.format(
                   "#if %s_SEL == %d\n",
                   baseName+name+"_"+chNum, selectionIndex
-                  );
+                  ));
          }
-         result += String.format(
+         headerFile.append(String.format(
                "#define %-18s         %-3s   //!< %s %s number\n"+
                "#define %-18s         %-3s   //!< %s %s channel\n",
                pinInfo.name+"_"+baseName+"_NUM", name,  pinName, baseName,
                pinInfo.name+"_"+baseName+"_CH",  chNum, pinName, baseName
-               );
-         result += String.format(
+               ));
+         headerFile.append(String.format(
                "#define %-18s         %-3d   //!< %s Pin multiplexor for %s\n",
-               pinInfo.name+"_"+baseName+"_FN", adcFn,    pinName, baseName
-               );
+               pinInfo.name+"_"+baseName+"_FN", pinMux,    pinName, baseName
+               ));
          if (mapEntry.size()>2) {
-            result += "#endif\n";
+            headerFile.append("#endif\n");
          }
       }
       for (PinFunctionDescription pinFunctionDescription:pinFunctionDescriptions) {
@@ -407,7 +479,7 @@ public class CreatePinDescription extends DocumentUtilities {
             String baseName  = info.baseName;
             String name      = info.name;
             String chNum     = info.channel;
-            int    adcFn     = info.mux; // always 0
+            int    pinMux    = info.mux;
             String fullName  = info.getName();
             MuxValues muxValues = portMapping.get(fullName);
             if (muxValues == null) {
@@ -416,216 +488,25 @@ public class CreatePinDescription extends DocumentUtilities {
             ArrayList<String> mapEntry = muxValues.alternatives;
             if (mapEntry.size()>1) {
                int selectionIndex = mapEntry.indexOf(pinName);
-               result += String.format(
+               headerFile.append(String.format(
                   "#if %s_SEL == %d\n",
                   baseName+name+"_"+chNum, selectionIndex
-                  );
+                  ));
             }
-            result += String.format(
+            headerFile.append(String.format(
                   "#define %-18s         %-3d   //!< %s Pin multiplexor for %s\n",
-                  fullName+"_FN", adcFn,    pinName, baseName
-                  );
-            result += String.format(
+                  fullName+"_FN", pinMux,    pinName, baseName
+                  ));
+            headerFile.append(String.format(
                "#define %-18s         digitalIO_%-3s   //!< %s %s GPIO\n",
                fullName+"_GPIO",  pinName, pinName, baseName
-               );
+               ));
             if (mapEntry.size()>1) {
-               result += "#endif\n";
+               headerFile.append("#endif\n");
             }
          }
       }
-//      
-//      if (pinInfo.getMappingList("PT").size()>0) {
-//         // Port description
-//         String portName = pinInfo.getMappingList("PT").get(0).name;
-//         String portNum  = pinInfo.getMappingList("PT").get(0).channel;
-////         int    portFn   = pinInfo.portNames.get(0).mux; // always 1
-//         result += String.format(
-//                     "#define %-18s         %-3s   //!< %s Port name\n"+
-//                     "#define %-18s         %-3s   //!< %s Port number\n",
-//                     String.format("%s_PORT", pinName), portName, pinName, 
-//                     String.format("%s_NUM", pinName),  portNum,  pinName
-//                     );
-//      }
-//      for(MappingInfo adcInfo:pinInfo.adcNames) {
-//         String adcNum   = adcInfo.name;
-//         String adcChNum = adcInfo.channel;
-//         int    adcFn    = adcInfo.mux; // always 0
-//         String adcName  = adcInfo.getName();
-//         MuxValues muxValues = portMapping.get(adcName);
-//         if (muxValues == null) {
-//            throw new Exception("Failed to find "+adcName);
-//         }
-//         ArrayList<String> mapEntry = muxValues.alternatives;
-//         if (mapEntry.size()>2) {
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("ADC%s_%s",      adcNum,   adcChNum), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//                     "#define %-18s         %-3s   //!< %s ADC number\n"+
-//                     "#define %-18s         %-3s   //!< %s ADC channel\n",
-//                     String.format("%s_ADC_NUM", pinName), adcNum,   pinName, 
-//                     String.format("%s_ADC_CH",  pinName), adcChNum, pinName
-//                     );
-//         if (adcFn != 0) {
-//            result += String.format(
-//                  "#define %-18s         %-3d   //!< %s Pin multiplexor for ADC\n",
-//                  String.format("%s_ADC_FN",  pinName), adcFn,    pinName
-//                  );
-//            throw new Exception("ADC Function must be on MUX=0");
-//         }
-//         if (mapEntry.size()>2) {
-//            result += "#endif\n\n";
-//         }
-//      }
-//      for(MappingInfo ftmInfo:pinInfo.ftmNames) {
-//         String ftmNum   = ftmInfo.name;
-//         String ftmChNum = ftmInfo.channel;
-//         int    ftmFn    = ftmInfo.mux;
-//         String ftmName  = ftmInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(ftmName).alternatives;
-//         if (mapEntry.size()>2) {
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  ftmName, selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//                     "#define %-18s         %-3s   //!< %s FTM number\n"+
-//                     "#define %-18s         %-3s   //!< %s FTM channel\n" +
-//                     "#define %-18s         %-3d   //!< %s Pin multiplexor for FTM\n",
-//                     String.format("%s_FTM_NUM", pinName), ftmNum,   pinName, 
-//                     String.format("%s_FTM_CH",  pinName), ftmChNum, pinName, 
-//                     String.format("%s_FTM_FN",  pinName), ftmFn,    pinName
-//                     );
-//         if (mapEntry.size()>2) {
-//            result += "#endif\n";
-//         }
-//      }
-//      for(MappingInfo tpmInfo:pinInfo.tpmNames) {
-//         String tpmNum   = tpmInfo.name;
-//         String tpmChNum = tpmInfo.channel;
-//         int    tpmFn    = tpmInfo.mux;
-//         String tpmName  = tpmInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(tpmName).alternatives;
-//         if (mapEntry.size()>2) {
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("TPM%s_%s",      tpmNum,   tpmChNum), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//                     "#define %-18s         %-3s   //!< %s TPM number\n"+
-//                     "#define %-18s         %-3s   //!< %s TPM channel\n" +
-//                     "#define %-18s         %-3d   //!< %s Pin multiplexor for TPM\n",
-//                     String.format("%s_TPM_NUM", pinName), tpmNum,   pinName, 
-//                     String.format("%s_TPM_CH",  pinName), tpmChNum, pinName, 
-//                     String.format("%s_TPM_FN",  pinName), tpmFn,    pinName
-//                     );
-//         if (mapEntry.size()>2) {
-//            result += "#endif\n";
-//         }
-//      }
-//      for(MappingInfo spiInfo:pinInfo.spiNames) {
-//         String spiNum        = spiInfo.name;
-//         String spiSignalName = spiInfo.channel;
-//         int spiFn            = spiInfo.mux;
-//         String spiName       = spiInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(spiName).alternatives;
-//         if (mapEntry.size()>1){
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("SPI%s_%s",      spiNum,   spiSignalName), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//               "#define %-18s         %-3d   //!< %s Pin multiplexor for SPI\n"+
-//               "#define %-18s         digitalIO_%-2s  //!< %s = SPI\n",
-//               String.format("SPI%s_%s_FN",   spiNum,   spiSignalName), spiFn, pinName,
-//               String.format("SPI%s_%s_GPIO", spiNum,   spiSignalName), pinName, pinName
-//               );
-//         if (mapEntry.size()>1){
-//            result += "#endif\n";
-//         }
-//      }            
-//      for(MappingInfo i2cInfo:pinInfo.i2cNames) {
-//         String i2cNum        = i2cInfo.name;
-//         String i2cSignalName = i2cInfo.channel;
-//         int i2cFn            = i2cInfo.mux;
-//         String i2cName       = i2cInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(i2cName).alternatives;
-//         if (mapEntry.size()>1) {
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("I2C%s_%s",      i2cNum,   i2cSignalName), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//                  "#define %-18s         %-3d   //!< Pin multiplexor for I2C\n"+
-//                  "#define %-18s         digitalIO_%-2s  //!< %s = I2C\n",
-//                  String.format("I2C%s_%s_FN",   i2cNum,   i2cSignalName), i2cFn, 
-//                  String.format("I2C%s_%s_GPIO", i2cNum,   i2cSignalName), pinName, pinName
-//                  );
-//         if (mapEntry.size()>1) {
-//            result += "#endif\n";
-//         }
-//      }
-//      for(MappingInfo sdhcInfo:pinInfo.sdhcNames) {
-//         String sdhcNum        = sdhcInfo.name;
-//         String sdhcSignalName = sdhcInfo.channel;
-//         int sdhcFn            = sdhcInfo.mux;
-//         String sdhcName       = sdhcInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(sdhcName).alternatives;
-//         if (mapEntry.size()>2){
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("SDHC%s_%s",      sdhcNum,   sdhcSignalName), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//               "#define %-18s         %-3d   //!< %s Pin multiplexor for SDHC\n"+
-//               "#define %-18s         digitalIO_%-2s  //!< %s = SDHC\n",
-//               String.format("SDHC%s_%s_FN",   sdhcNum,   sdhcSignalName), sdhcFn, pinName,
-//               String.format("SDHC%s_%s_GPIO", sdhcNum,   sdhcSignalName), pinName, pinName
-//               );
-//         if (mapEntry.size()>2){
-//            result += "#endif\n";
-//         }
-//      }            
-//      for(MappingInfo lptmrInfo:pinInfo.lptmrNames) {
-//         String lptmrNum        = lptmrInfo.name;
-//         String lptmrSignalName = lptmrInfo.channel;
-//         int lptmrFn            = lptmrInfo.mux;
-//         String lptmrName       = lptmrInfo.getName();
-//         ArrayList<String> mapEntry = portMapping.get(lptmrName).alternatives;
-//         if (mapEntry.size()>2){
-//            int selectionIndex = mapEntry.indexOf(pinName);
-//            result += String.format(
-//                  "#if %s_SEL == %d\n",
-//                  String.format("LPTMR%s_%s",      lptmrNum,   lptmrSignalName), selectionIndex
-//                  );
-//         }
-//         result += String.format(
-//               "#define %-18s         %-3d   //!< %s Pin multiplexor for LPTMR\n"+
-//               "#define %-18s         digitalIO_%-2s  //!< %s = LPTMR\n",
-//               String.format("LPTMR%s_%s_FN",   lptmrNum,   lptmrSignalName), lptmrFn, pinName,
-//               String.format("LPTMR%s_%s_GPIO", lptmrNum,   lptmrSignalName), pinName, pinName
-//               );
-//         if (mapEntry.size()>2){
-//            result += "#endif\n";
-//         }
-//      }            
-      result += "\n";
-
-      headerFile.append(result);
+      headerFile.append("\n");
    }
 
    /**
@@ -640,7 +521,7 @@ public class CreatePinDescription extends DocumentUtilities {
       MuxValues muxValues = portMapping.get(peripheralPin);
       ArrayList<String> portMap = muxValues.alternatives;
       boolean isConstant = false;
-      if ((portMap.size() <= 2) && peripheralPin.startsWith("PT")) {
+      if ((portMap.size() <= 2) && peripheralPin.startsWith("GPIO")) {
          return;
       }
       if ((portMap.size() <= 2) && peripheralPin.startsWith("ADC")) {
@@ -668,7 +549,8 @@ public class CreatePinDescription extends DocumentUtilities {
          if (sb.length()>0) {
             sb.append(", ");
          }
-         String aliasName = reverseAliasMapping.get(mappedPin);
+         String aliasName = getAliasList(mappedPin);
+//         System.err.println(mappedPin + " => " + aliasName);
          if (aliasName != null) {
             mappedPin += "(" + aliasName + ")";
          }
@@ -684,7 +566,7 @@ public class CreatePinDescription extends DocumentUtilities {
       int selection = 0;
       int defaultSelection = muxValues.defaultValue;
       for(String mappedPin:portMap) {
-         String aliasName = reverseAliasMapping.get(mappedPin);
+         String aliasName = getAliasList(mappedPin);
          if (aliasName != null) {
             mappedPin += " (Alias: " + aliasName + ")";
          }
@@ -703,19 +585,21 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws IOException
     */
    void writePeripheralPinMappings(BufferedWriter writer) throws IOException {
-      ArrayList<String> peripheralPins = new ArrayList<String>();
-      peripheralPins.addAll(portMapping.keySet());
-      Collections.sort(peripheralPins);
+      ArrayList<String> peripheralPins = new ArrayList<String>(portMapping.keySet());
+      Collections.sort(peripheralPins, portNameComparator);
       for (String s:peripheralPins) {
          processPeripheralPinMapping(s, writer);
       }
+//      for (String e:reverseAliasMapping.keySet()) {
+//         System.err.println(e + " => " + reverseAliasMapping.get(e));
+//      }
    }
 
-
    /**
-    * Comparator for sorting by port names
+    * Comparator for peripheral names e.g. FTM0_CH3 c.f. SPI_SCK
+    * Treats the number separately as a number.
     */
-   static Comparator<String> portNameComparator = new Comparator<String>() {
+   static Comparator<String> peripheralNameComparator = new Comparator<String>() {
       @Override
       public int compare(String arg0, String arg1) {
          Pattern p = Pattern.compile("([^\\d]*)(\\d*)");
@@ -744,7 +628,66 @@ public class CreatePinDescription extends DocumentUtilities {
    };
 
    /**
-    * Comparator for lines based on the port names in [1]
+    * Comparator for port names e.g. PTA13 c.f. PTB12
+    * Treats the number separately as a number.
+    */
+   static Comparator<String> portNameComparator = new Comparator<String>() {
+      @Override
+      public int compare(String arg0, String arg1) {
+         Pattern p = Pattern.compile("([^\\d]*)(\\d*)(.*)");
+         Matcher m0 = p.matcher(arg0);
+         Matcher m1 = p.matcher(arg1);
+         if (m0.matches() && m1.matches()) {
+            String t0 = m0.group(1);
+            String n0 = m0.group(2);
+            String s0 = m0.group(3);
+            String t1 = m1.group(1);
+            String n1 = m1.group(2);
+            String s1 = m1.group(3);
+            int r = t0.compareTo(t1);
+            if (r == 0) {
+               int no0 = -1, no1 = -1;
+               if (n0.length() > 0) {
+                  no0 = Integer.parseInt(n0);
+               }
+               if (n1.length() > 0) {
+                  no1 = Integer.parseInt(n1);
+               }
+               r = -no1 + no0;
+            }
+            if (r == 0) {
+               Pattern pp = Pattern.compile("([^\\d]*)(\\d*)(.*)");
+               Matcher mm0 = pp.matcher(s0);
+               Matcher mm1 = pp.matcher(s1);
+               if (mm0.matches() && mm1.matches()) {
+                  String tt0 = mm0.group(1);
+                  String nn0 = mm0.group(2);
+                  String tt1 = mm1.group(1);
+                  String nn1 = mm1.group(2);
+                  r = tt0.compareTo(tt1);
+                  if (r == 0) {
+                     int no0 = -1, no1 = -1;
+                     if (nn0.length() > 0) {
+                        no0 = Integer.parseInt(nn0);
+                     }
+                     if (nn1.length() > 0) {
+                        no1 = Integer.parseInt(nn1);
+                     }
+                     r = -no1 + no0;
+                  }
+               }
+               else {
+                  r = s0.compareTo(s1);
+               }
+            }
+            return r;
+         }
+         return arg0.compareTo(arg1);
+      }
+   };
+
+   /**
+    * Comparator two lines based upon the Port name in line[0]
     */
    static Comparator<String[]> LineComparitor = new Comparator<String[]>() {
       @Override
@@ -815,6 +758,18 @@ public class CreatePinDescription extends DocumentUtilities {
    void writePeripheralDefines(BufferedWriter headerFile) throws Exception {
       for(PinInformation p : pins) {
          writePinDefines(p, headerFile);
+      }
+      if (adcFunctionMuxValueChanged) {
+         headerFile.append(String.format("#define ADC_FN_CHANGES      //!< Indicates ADC Multiplexing varies with pin\n"));
+      }
+      else {
+         headerFile.append(String.format("#define DEFAULT_ADC_FN   %d //!< Fixed ADC Multiplexing value for pins\n", adcFunctionMuxValue));
+      }
+      if (gpioFunctionMuxValueChanged) {
+         headerFile.append(String.format("#define GPIO_FN_CHANGES     //!< Indicates GPIO Multiplexing varies with pin\n"));
+      }
+      else {
+         headerFile.append(String.format("#define DEFAULT_GPIO_FN  %d //!< Fixed GPIO Multiplexing value for pins\n", gpioFunctionMuxValue));
       }
    }
 
@@ -894,7 +849,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    void writePinMappingHeaderFile(BufferedWriter headerFile) throws Exception {
-      writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", VERSION, "Pin declarations for "+deviceName);
+      writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", pinMappingHeaderFileName, VERSION, "Pin declarations for "+deviceName);
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
       writeWizardMarker(headerFile);
@@ -902,8 +857,8 @@ public class CreatePinDescription extends DocumentUtilities {
       writeClockMacros(headerFile);
       writeWizardSectionOpen(headerFile, "Pin Peripheral mapping");
       writePeripheralPinMappings(headerFile);
-      writePeripheralDefines(headerFile);
       writeWizardSectionClose(headerFile);
+      writePeripheralDefines(headerFile);
       writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
    }
 
@@ -912,23 +867,28 @@ public class CreatePinDescription extends DocumentUtilities {
     * 
     * @param writer
     * @param aliasIndex
-    * @param analogue2
+    * @param peripheralList
     * @param prefix
     * @throws IOException
     */
-   void writeAliases(BufferedWriter writer, ArrayList<String> aliasIndex, ArrayList<String> analogue2, String prefix) throws IOException {
+   void writeAliases(BufferedWriter writer, ArrayList<String> aliasIndex, ArrayList<String> peripheralList, String prefix) throws IOException {
       for (String aliasName:aliasIndex) {
          String mappedName = aliasMapping.get(aliasName);
-         if ((analogue2==null) || analogue2.contains(mappedName)) {
+         if ((peripheralList==null) || peripheralList.contains(mappedName)) {
             writer.write( String.format(
-                  "#define %-20s %-20s %s\n", prefix+aliasName, prefix+mappedName, "//!< alias "+aliasName+"=>"+mappedName ));
+                  "#define %-25s %-20s %s\n", prefix+aliasName, prefix+mappedName, "//!< alias "+aliasName+"=>"+mappedName ));
          }
       }
    }
    
    ArrayList<PeripheralTypeDescription> deviceDescriptions      = new ArrayList<PeripheralTypeDescription>();
    ArrayList<PinFunctionDescription>    pinFunctionDescriptions = new ArrayList<PinFunctionDescription>();
-   
+   private boolean deviceIsMKE;
+   @SuppressWarnings("unused")
+   private boolean deviceIsMKL;
+   @SuppressWarnings("unused")
+   private boolean deviceIsMKM;
+
    /**
     * Write GPIO Header file
     * 
@@ -936,7 +896,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws IOException
     */
    private void writeGpioHeaderFile(BufferedWriter gpioHeaderFile) throws IOException {
-      writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", VERSION, "Pin declarations for "+deviceName);
+      writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", gpioHeaderFileName, VERSION, "Pin declarations for "+deviceName);
       writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
       writeHeaderFileInclude(gpioHeaderFile, "pin_mapping.h");
       writeHeaderFileInclude(gpioHeaderFile, "gpio_defs.h");
@@ -956,7 +916,7 @@ public class CreatePinDescription extends DocumentUtilities {
                String fullName = info.getName();
                ArrayList<String> mapEntry = portMapping.get(fullName).alternatives;
                boolean macroDone = false;
-               if ((mapEntry.size()>2) || (!baseName.equals("PT") && (mapEntry.size()>1))) {
+               if ((mapEntry.size()>2) || (!baseName.equals("GPIO") && (mapEntry.size()>1))) {
                   macroDone = true;
                   int selectionIndex = mapEntry.indexOf(pinName);
                   gpioHeaderFile.write(String.format(
@@ -982,10 +942,10 @@ public class CreatePinDescription extends DocumentUtilities {
       ArrayList<String> aliasIndex = new ArrayList<String>();
       aliasIndex.addAll(aliasMapping.keySet());
       Collections.sort(aliasIndex, portNameComparator);
-      writeAliases(gpioHeaderFile, aliasIndex, null, "digitalIO_");
+      writeAliases(gpioHeaderFile, aliasIndex, gpio,     "digitalIO_");
       writeAliases(gpioHeaderFile, aliasIndex, analogue, "analogueIO_");
-      writeAliases(gpioHeaderFile, aliasIndex, ftm, "pwmIO_");
-      writeAliases(gpioHeaderFile, aliasIndex, tpm, "pwmIO_");
+      writeAliases(gpioHeaderFile, aliasIndex, ftm,      "pwmIO_");
+      writeAliases(gpioHeaderFile, aliasIndex, tpm,      "pwmIO_");
       writeCloseGroup(gpioHeaderFile);
 
       /* 
@@ -994,7 +954,7 @@ public class CreatePinDescription extends DocumentUtilities {
       gpioHeaderFile.write("/*\n");
       ArrayList<String> peripheralPins = new ArrayList<String>();
       peripheralPins.addAll(portMapping.keySet());
-      Collections.sort(peripheralPins);
+      Collections.sort(peripheralPins, portNameComparator);
       for (String pinName:peripheralPins) {
          MuxValues muxValues = portMapping.get(pinName);
          ArrayList<String> mappings = muxValues.alternatives;
@@ -1006,7 +966,7 @@ public class CreatePinDescription extends DocumentUtilities {
          if (mappings.size()<=1) { 
             continue;
          }
-         if ((mappings.size()<=2) && pinName.startsWith("PT")) {
+         if ((mappings.size()<=2) && pinName.startsWith("GPIO")) {
             continue;
          }
 //         if ((mappings.size()<=2) && pinName.startsWith("ADC")) {
@@ -1020,6 +980,11 @@ public class CreatePinDescription extends DocumentUtilities {
       gpioHeaderFile.write("\n");
 
       for (String peripheral:peripheralInstances.keySet()) {
+         if (peripheral.startsWith("GPIO")) {
+            // GPIO don't have a clock
+            // The clock controls the PORT not the GPIO!
+            continue;
+         }
          HashSet<String> instances = peripheralInstances.get(peripheral);
          for (String instance : instances) {
             boolean incomplete = false;
@@ -1044,14 +1009,6 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
    }
    
-   static final String cppFilePreambleTemplate = 
-         " /**\n"+
-               "  * @file     %s\n"+
-               "  *\n"+
-               "  * @brief   Pin declarations for %s\n"+ 
-               "  */\n"+
-               "\n";
-  
    void writeMacroDefinition(BufferedWriter writer, String briefDescription, String paramDescription, String name, String value) throws IOException {
       writer.write( String.format(
       "/**\n"+
@@ -1072,51 +1029,64 @@ public class CreatePinDescription extends DocumentUtilities {
    * @throws IOException 
    */                    
    void writeGpioCppFile(BufferedWriter cppFile) throws IOException {
-      cppFile.write( String.format(cppFilePreambleTemplate, gpioBaseFileName+".cpp", deviceName ));
+      String description = "Pin declarations for " + deviceName;
+      writeCppFilePreable(cppFile, gpioBaseFileName+".cpp", gpioCppFileName, description);
       writeHeaderFileInclude(cppFile, "utilities.h");
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register name from timer number", 
-            "number Timer number e.g. 1 => FTM1_CLOCK_REG", 
-            "FTM_CLOCK_REG(number)", 
-            "CONCAT3_(FTM,number,_CLOCK_REG)");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register mask from timer number", 
-            "number Timer number e.g. 1 => FTM1_CLOCK_MASK", 
-            "FTM_CLOCK_MASK(number)", 
-            "CONCAT3_(FTM,number,_CLOCK_MASK)");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register name from timer number", 
-            "number Timer number e.g. 1 => TPM1_CLOCK_REG", 
-            "TPM_CLOCK_REG(number)", 
-            "CONCAT3_(TPM,number,_CLOCK_REG)");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register mask from timer number", 
-            "number Timer number e.g. 1 => TPM1_CLOCK_MASK", 
-            "TPM_CLOCK_MASK(number)", 
-            "CONCAT3_(TPM,number,_CLOCK_MASK)");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register name from timer number", 
-            "number Timer number e.g. 1 => ADC1_CLOCK_REG", 
-            "ADC_CLOCK_REG(number)", 
-            "CONCAT3_(ADC,number,_CLOCK_REG)");
-      writeMacroDefinition(cppFile, 
-            "Create Timer Clock register mask from timer number", 
-            "number Timer number e.g. 1 => ADC1_CLOCK_MASK", 
-            "ADC_CLOCK_MASK(number)", 
-            "CONCAT3_(ADC,number,_CLOCK_MASK)");
+      if (!ftm.isEmpty()) {
+         writeMacroDefinition(cppFile, 
+               "Create Timer Clock register name from timer number", 
+               "number Timer number e.g. 1 => FTM1_CLOCK_REG", 
+               "FTM_CLOCK_REG(number)", 
+               "CONCAT3_(FTM,number,_CLOCK_REG)");
+         writeMacroDefinition(cppFile, 
+               "Create Timer Clock register mask from timer number", 
+               "number Timer number e.g. 1 => FTM1_CLOCK_MASK", 
+               "FTM_CLOCK_MASK(number)", 
+               "CONCAT3_(FTM,number,_CLOCK_MASK)");
+      }
+      if (!tpm.isEmpty()) {
+         writeMacroDefinition(cppFile, 
+               "Create Timer Clock register name from timer number", 
+               "number Timer number e.g. 1 => TPM1_CLOCK_REG", 
+               "TPM_CLOCK_REG(number)", 
+               "CONCAT3_(TPM,number,_CLOCK_REG)");
+         writeMacroDefinition(cppFile, 
+               "Create Timer Clock register mask from timer number", 
+               "number Timer number e.g. 1 => TPM1_CLOCK_MASK", 
+               "TPM_CLOCK_MASK(number)", 
+               "CONCAT3_(TPM,number,_CLOCK_MASK)");
+      }
+      if (!analogue.isEmpty()) {
+         writeMacroDefinition(cppFile, 
+               "Create ADC Clock register name from ADC number", 
+               "number Timer number e.g. 1 => ADC1_CLOCK_REG", 
+               "ADC_CLOCK_REG(number)", 
+               "CONCAT3_(ADC,number,_CLOCK_REG)");
+         writeMacroDefinition(cppFile, 
+               "Create ADC Clock register mask from ADC number", 
+               "number Timer number e.g. 1 => ADC1_CLOCK_MASK", 
+               "ADC_CLOCK_MASK(number)", 
+               "CONCAT3_(ADC,number,_CLOCK_MASK)");
+      }
       writeMacroDefinition(cppFile, "ADC(num)", "CONCAT2_(ADC,num)");
       writeMacroDefinition(cppFile, "FTM(num)", "CONCAT2_(FTM,num)");
       writeMacroDefinition(cppFile, "TPM(num)", "CONCAT2_(TPM,num)");
       cppFile.write("\n");
       
       for (PinInformation pin:pins) {
-         if (pin.getMappingList("PT").size() > 0) {
-            String pinName = pin.name;
-            cppFile.write(String.format("const DigitalIO %-18s = {%-18s%-12s%-18s%-29s%s};\n", 
-                  "digitalIO_"+pinName, "&PCR("+pinName+"_PORT,", pinName+"_NUM),", "GPIO("+pinName+"_PORT),", "PORT_CLOCK_MASK("+pinName+"_PORT),", "(1UL<<"+pinName+"_NUM)"));
+         String pinName = pin.name;
+         if (pin.getMappingList("GPIO").size() > 0) {
+            if (deviceIsMKE) {
+               cppFile.write(String.format("const DigitalIO %-18s = {%-18s%s};\n", 
+                     "digitalIO_"+pinName, "(volatile GPIO_Type*)GPIO("+pinName+"_GPIO_NAME),", "(1UL<<"+pinName+"_GPIO_BIT)"));
+            }
+            else {
+               cppFile.write(String.format("const DigitalIO %-18s = {%-18s%-12s%-18s%-29s%s};\n", 
+                     "digitalIO_"+pinName, "&PCR("+pinName+"_GPIO_NAME,", pinName+"_GPIO_BIT),", "GPIO("+pinName+"_GPIO_NAME),", "PORT_CLOCK_MASK("+pinName+"_GPIO_NAME),", "(1UL<<"+pinName+"_GPIO_BIT)"));
+            }
          }
       }
       for (PinInformation pin:pins) {
@@ -1134,7 +1104,7 @@ public class CreatePinDescription extends DocumentUtilities {
                      adcInfo.getName(), selectionIndex
                      ));
             }
-            if (pin.getMappingList("PT").size() == 0) {
+            if (pin.getMappingList("GPIO").size() == 0) {
                cppFile.write(String.format("const AnalogueIO %-22s = {%-18s%-20s%-31s%-31s%s};\n", 
                      "analogueIO_"+pinName, "0,", "ADC("+pinName+"_ADC_NUM),", "&ADC_CLOCK_REG("+pinName+"_ADC_NUM),", "ADC_CLOCK_MASK("+pinName+"_ADC_NUM),", pinName+"_ADC_CH"));
             }
@@ -1193,11 +1163,23 @@ public class CreatePinDescription extends DocumentUtilities {
             }
          }
       }
+      writeCppFilePostAmple();
    }
 
-   void writeClockMacros(BufferedWriter writer) throws IOException {
-      for (String peripheral:clockInfo.keySet()) {
+   void writeClockMacros(BufferedWriter writer) throws Exception {
+      ArrayList<String> ar = new ArrayList<String>(clockInfo.keySet());
+      Collections.sort(ar, portNameComparator);
+      for (String peripheral:ar) {
          ClockInfo cInfo = clockInfo.get(peripheral);
+         if (peripheral.matches("PORT[A-Z]")) {
+            if (portClockRegisterValue == null) {
+               portClockRegisterValue = cInfo.clockReg;
+            }
+            else if (!portClockRegisterValue.equals(cInfo.clockReg)) {
+               throw new Exception(
+                  String.format("Multiple port clock registers existing=%s, new=%s", portClockRegisterValue, cInfo.clockReg));
+            }
+         }
          writeMacroDefinition(writer, peripheral+"_CLOCK_REG",  cInfo.clockReg);
          writeMacroDefinition(writer, peripheral+"_CLOCK_MASK", cInfo.clockMask);
       }
@@ -1211,6 +1193,7 @@ public class CreatePinDescription extends DocumentUtilities {
 //            writeMacroDefinition(writer, peripheral+instance+"_CLOCK_MASK", clockMask);
 //         }
 //      }
+      writeMacroDefinition(writer, "PORT_CLOCK_REG", portClockRegisterValue);
       writer.write("\n");
    }
 
@@ -1222,22 +1205,27 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    void processFile(Path filePath) throws Exception {
 
-      deviceDescriptions.add(new PeripheralTypeDescription("PT",  "DigitalIO_Group",  "Digital Input/Output",               "Allows use of port pins as simple digital inputs or outputs", "digitalIO_",  "extern const DigitalIO %-24s //!< DigitalIO on %s\n"));
-      deviceDescriptions.add(new PeripheralTypeDescription("ADC", "AnalogueIO_Group", "Analogue Input",                     "Allows use of port pins as analogue inputs",                  "analogueIO_", "extern const AnalogueIO %-24s //!< AnalogueIO on %s\n"));
-      deviceDescriptions.add(new PeripheralTypeDescription("FTM", "PwmIO_Group",      "PWM, Input capture, Output compare", "Allows use of port pins as PWM outputs",                      "pwmIO_",      "extern const PwmIO  %-24s //!< PwmIO on %s\n"));
-      deviceDescriptions.add(new PeripheralTypeDescription("TPM", "PwmIO_Group",      "PWM, Input capture, Output compare", "Allows use of port pins as PWM outputs",                      "pwmIO_",      "extern const PwmIO  %-24s //!< PwmIO on %s\n"));
+      deviceName = filePath.getFileName().toString().replace(".csv", "");
+      deviceIsMKE = deviceName.startsWith("MKE");
+      deviceIsMKL = deviceName.startsWith("MKL");
+      deviceIsMKM = deviceName.startsWith("MKL");
 
+      deviceDescriptions.add(new PeripheralTypeDescription("GPIO", "GPIO", "DigitalIO_Group",  "Digital Input/Output",               "Allows use of port pins as simple digital inputs or outputs", "digitalIO_",  "extern const DigitalIO %-24s //!< DigitalIO on %s\n"));
+      if (!deviceIsMKE) {
+         deviceDescriptions.add(new PeripheralTypeDescription("ADC",  "ADC",  "AnalogueIO_Group", "Analogue Input",                     "Allows use of port pins as analogue inputs",                  "analogueIO_", "extern const AnalogueIO %-24s //!< AnalogueIO on %s\n"));
+         deviceDescriptions.add(new PeripheralTypeDescription("FTM",  "FTM",  "PwmIO_Group",      "PWM, Input capture, Output compare", "Allows use of port pins as PWM outputs",                      "pwmIO_",      "extern const PwmIO  %-24s //!< PwmIO on %s\n"));
+         deviceDescriptions.add(new PeripheralTypeDescription("TPM",  "TPM",  "PwmIO_Group",      "PWM, Input capture, Output compare", "Allows use of port pins as PWM outputs",                      "pwmIO_",      "extern const PwmIO  %-24s //!< PwmIO on %s\n"));
+      }
       pinFunctionDescriptions.add(new PinFunctionDescription("LPTMR", "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SPI",   "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("I2C",   "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SDHC",   "", ""));
-
-      deviceName = filePath.getFileName().toString().replace(".csv", "");
+      
       Path sourceDirectory = filePath.getParent().resolve("Sources");
       Path headerDirectory = filePath.getParent().resolve("Project_Headers");
-      String pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
-      String gpioCppFileName          = gpioBaseFileName+"-"+deviceName+".cpp";
-      String gpioHeaderFileName       = gpioBaseFileName+"-"+deviceName+".h";
+      pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
+      gpioCppFileName          = gpioBaseFileName+"-"+deviceName+".cpp";
+      gpioHeaderFileName       = gpioBaseFileName+"-"+deviceName+".h";
 
       System.err.println("deviceName = " + deviceName);
 

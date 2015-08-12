@@ -6,14 +6,16 @@ public class DocumentUtilities {
    
    class PeripheralTypeDescription {
       String baseName;
+      String pattern;
       String groupName;
       String groupTitle;
       String groupBriefDescription;
       String outputTemplate;
       String className;
       
-      public PeripheralTypeDescription(String baseName, String groupName, String groupTitle, String groupBriefDescription, String className, String outputTemplate) {
+      public PeripheralTypeDescription(String baseName, String pattern, String groupName, String groupTitle, String groupBriefDescription, String className, String outputTemplate) {
          this.baseName              = baseName;
+         this.pattern               = pattern;
          this.groupName             = groupName;
          this.groupTitle            = groupTitle;
          this.groupBriefDescription = groupBriefDescription;
@@ -125,7 +127,7 @@ public class DocumentUtilities {
     * Write header file preamble e.g.
     * <pre><code>
     *  /**
-    *   * @file    <i><b>fileName</i></b>
+    *   * @file    <i><b>fileName</i></b> (derived from <i><b>trueFileName</i></b>)
     *   * @version <i><b>version</i></b>
     *   * @brief   <i><b>description</i></b> 
     *   *&#47;
@@ -135,15 +137,16 @@ public class DocumentUtilities {
     *
     * @param writer        Where to write
     * @param fileName      Filename to use in header block
+    * @param trueFileName  Filename of actual file being written
     * @param version       Version to use in header block
     * @param description   Description to use in header block
     * 
     * @throws IOException
     */
-   void writeHeaderFilePreamble(BufferedWriter writer, String fileName, String version, String description) throws IOException {
+   void writeHeaderFilePreamble(BufferedWriter writer, String fileName, String trueFileName, String version, String description) throws IOException {
       final String headerfilePreambleTemplate = 
             "/**\n"+
-            " * @file      %s\n"+
+            " * @file      %s %s\n"+
             " * @version   %s\n"+
             " * @brief     %s\n"+ 
             " */\n"+
@@ -152,8 +155,51 @@ public class DocumentUtilities {
             "#define %s\n"+
             "\n";
       String macroName = fileName.toUpperCase().replaceAll("(\\.|-)", "_")+"_";
+      if ((trueFileName == null) || trueFileName.isEmpty()) {
+         trueFileName = "";
+      }
+      else {
+         trueFileName = "(derived from "+trueFileName+")";
+      }
       writer.write( String.format(headerfilePreambleTemplate, 
-            fileName, version, description, macroName, macroName ));
+            fileName, trueFileName, version, description, macroName, macroName ));
+   }
+
+   /**
+    * Write source file preamble e.g.
+    * <pre><code>
+    *  /**
+    *   * @file    <i><b>fileName</i></b> (derived from <i><b>trueFileName</i></b>)
+    *   * @brief   <i><b>description</i></b> 
+    *   *&#47;
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param fileName      Filename to use in header block
+    * @param trueFileName  Filename of actual file being written
+    * @param description   Description to use in header block
+    * 
+    * @throws IOException
+    */
+   void writeCppFilePreable(BufferedWriter writer, String fileName, String trueFileName, String description) throws IOException {
+      final String cppFilePreambleTemplate = 
+            " /**\n"+
+            "  * @file     %s %s\n"+
+            "  *\n"+
+            "  * @brief   %s\n"+ 
+            "  */\n"+
+            "\n";
+      if ((trueFileName == null) || trueFileName.isEmpty()) {
+         trueFileName = "";
+      }
+      else {
+         trueFileName = "(from "+trueFileName+")";
+      }
+      writer.write( String.format(cppFilePreambleTemplate, fileName, trueFileName, description ));
+   }
+   
+   void writeCppFilePostAmple() {
+      
    }
    
    /**

@@ -659,17 +659,19 @@ public class PackageParser {
    }
 
    /**
-    * Parse a <variable> element
+    * Parse a <constant> element
     * 
-    * @param    <variable> element
+    * @param    <constant> element
     * 
     * @return   File list described 
     * @throws Exception 
     */
    private ProjectConstant parseConstantElement(Element projectConstantElement) throws Exception {
-      // <projectVariable>
+      // <constant>
       String id         = projectConstantElement.getAttribute("id");
       String value      = projectConstantElement.getAttribute("value");
+      value = value.replaceAll("\\\\n", "\n");
+      value = value.replaceAll("\\\\t", "\t");
       String replace    = projectConstantElement.getAttribute("replace");
       String weak       = projectConstantElement.getAttribute("weak");
       boolean doReplace = replace.equalsIgnoreCase("true");

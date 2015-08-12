@@ -108,17 +108,17 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    
    @Override
    public void init(IViewSite site, IMemento memento) throws PartInitException {
-      System.err.println("UsbdmDevicePeripheralsView.init()");
+//      System.err.println("UsbdmDevicePeripheralsView.init()");
       super.init(site, memento);
       loadSettings();
    }
 
    private void loadSettings() {
-      System.err.println("UsbdmDevicePeripheralsView.loadSettings()");
+//      System.err.println("UsbdmDevicePeripheralsView.loadSettings()");
       if (settings != null) {
          String value = settings.get(SETTINGS_SVD);
          if (value != null) {
-            System.err.println("UsbdmDevicePeripheralsView.createPartControl() svdId init = " + value);
+//            System.err.println("UsbdmDevicePeripheralsView.createPartControl() svdId init = " + value);
             try {
                svdId = new SVDIdentifier(value);
             } catch (Exception e) {
@@ -129,9 +129,9 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    }
    private void saveSettings() {
-      System.err.println("UsbdmDevicePeripheralsView.saveSettings()");
+//      System.err.println("UsbdmDevicePeripheralsView.saveSettings()");
       if ((settings != null) && (svdId != null)) {
-         System.err.println("UsbdmDevicePeripheralsView.createPartControl() svdId save = " + svdId);
+//         System.err.println("UsbdmDevicePeripheralsView.createPartControl() svdId save = " + svdId);
          settings.put(SETTINGS_SVD, svdId.toString());
       }
    }
@@ -259,7 +259,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
     * Testing constructor.
     */
    public UsbdmDevicePeripheralsView() {
-      System.err.println("UsbdmDevicePeripheralsView()");
+//      System.err.println("UsbdmDevicePeripheralsView()");
       settings = null;
       Activator activator = Activator.getDefault();
       if (activator != null) {
@@ -645,10 +645,10 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             }
             if (peripheralsModel == null) {
                // If there is no existing model we are finished (model will be created later)
-               System.err.println("UsbdmDevicePeripheralsView.Action() - peripheralsModel == null");
+//               System.err.println("UsbdmDevicePeripheralsView.Action() - peripheralsModel == null");
                return;
             }
-            System.err.println("UsbdmDevicePeripheralsView.Action() - Setting peripheral model");
+//            System.err.println("UsbdmDevicePeripheralsView.Action() - Setting peripheral model");
             // Update model
             DevicePeripherals manuallySelectedPeripheralDescription = dialogue.getDevicePeripherals();
             try {
@@ -704,12 +704,12 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       Display.getDefault().asyncExec(new Runnable() {
          public void run() {
             if ((peripheralsTreeViewer == null) || peripheralsTreeViewer.getControl().isDisposed()) {
-               System.err.println("UsbdmDevicePeripheralsView.SessionCreate() - no peripheral view or already disposed()");
+//               System.err.println("UsbdmDevicePeripheralsView.SessionCreate() - no peripheral view or already disposed()");
                return;
             }
             if (peripheralsModel != null) {
                // Model already set - ignore
-               System.err.println("UsbdmDevicePeripheralsView.sessionStarted() - peripheralsModel already set");
+//               System.err.println("UsbdmDevicePeripheralsView.sessionStarted() - peripheralsModel already set");
                return;
             }
             peripheralsModel = model;
@@ -832,7 +832,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
          view.createPartControl(composite);
          Path                        path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
-         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
+         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
+//         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
          UsbdmDevicePeripheralsModel peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, svdId);
 
          //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
@@ -854,7 +855,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          }
          display.dispose();
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }

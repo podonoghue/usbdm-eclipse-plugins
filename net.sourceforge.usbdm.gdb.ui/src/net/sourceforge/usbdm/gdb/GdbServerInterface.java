@@ -117,7 +117,7 @@ public class GdbServerInterface {
             return;
          }
       }
-      else if (independentServerRunning(serverParameters.getGdbPortNumber())) {
+      else if (independentServerRunning(serverParameters.getGdbServerPortNumber())) {
          if (shell == null) {
             // Quietly return
             return;
@@ -163,7 +163,7 @@ public class GdbServerInterface {
    public void stopServer(Shell shell) {
 
       if (!isServerRunning()) {
-         if (independentServerRunning(serverParameters.getGdbPortNumber())) {
+         if (independentServerRunning(serverParameters.getGdbServerPortNumber())) {
             MessageBox mbox = new MessageBox(shell,  SWT.ICON_QUESTION|SWT.OK);
             mbox.setMessage("An independent server is running on the selected socket.\n" +
             		          "This server cannot be stopped from Eclipse.");

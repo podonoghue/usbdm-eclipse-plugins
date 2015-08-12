@@ -426,6 +426,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(PIT)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));

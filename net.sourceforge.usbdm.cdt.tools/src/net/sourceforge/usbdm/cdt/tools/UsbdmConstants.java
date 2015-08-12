@@ -84,6 +84,7 @@ public class UsbdmConstants {
    public static final String USBDM_GCC_DEBUG_OTHER_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.other";
    public static final String USBDM_GCC_DEBUG_PROF_OPTION_KEY                  = "net.sourceforge.usbdm.cdt.toolchain.debug.prof";
    public static final String USBDM_GCC_DEBUG_GPROF_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.gprof";
+   public static final String USBDM_GCC_DEBUG_SEMIHOSTING_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.debug.rdimon";
 
    public static final String USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY          = "net.sourceforge.usbdm.cdt.toolchain.optimization.level";
    public static final String USBDM_GCC_OPTIMIZATION_PACKSTRUCTS_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs";

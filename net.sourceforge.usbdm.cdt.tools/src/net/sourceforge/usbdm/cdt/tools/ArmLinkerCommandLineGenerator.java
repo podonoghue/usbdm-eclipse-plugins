@@ -15,6 +15,7 @@ public class ArmLinkerCommandLineGenerator extends GccCommandLineGenerator {
       UsbdmConstants.USBDM_GCC_DEBUG_OTHER_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_DEBUG_PROF_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_DEBUG_GPROF_OPTION_KEY,
+      UsbdmConstants.USBDM_GCC_DEBUG_SEMIHOSTING_OPTION_KEY,
       
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY,         
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY,   

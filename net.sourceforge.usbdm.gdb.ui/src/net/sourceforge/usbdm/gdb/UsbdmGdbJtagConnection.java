@@ -126,7 +126,7 @@ public class UsbdmGdbJtagConnection extends DefaultGDBJtagDeviceImpl implements 
 
    @Override
    public void doReset(Collection<String> commands) {
-      System.err.println("UsbdmGdbJtagConnection.doReset()");
+//      System.err.println("UsbdmGdbJtagConnection.doReset()");
       addCmd(commands, "monitor reset run");
       addCmd(commands, "-exec-step");  //$NON-NLS-1$
    }

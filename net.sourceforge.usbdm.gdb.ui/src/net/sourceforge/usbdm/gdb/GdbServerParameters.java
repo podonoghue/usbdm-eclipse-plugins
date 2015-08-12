@@ -40,10 +40,11 @@ public class GdbServerParameters {
    private String                deviceName;
    private String                bdmSerialNumber;
    private boolean               bdmSerialNumberMatchRequired;
-   private int                   gdbPortNumber;
+   private int                   gdbServerPortNumber;
+   private int                   gdbTtyPortNumber;
+   private boolean               useSemiHosting;
    private boolean               useDebugVersion;
    private boolean               exitOnClose;
-//   private GdbServerType         serverType;
    
    private EraseMethod           eraseMethod;
    private boolean               trimClock;
@@ -65,7 +66,9 @@ public class GdbServerParameters {
    private static final String   deviceNameKey                   = "deviceName";
    private static final String   bdmSerialNumberKey              = "bdmSerialNumber";
    private static final String   bdmSerialNumberMatchRequiredKey = "bdmSerialNumberMatchRequired";
-   private static final String   portKey                         = "port";
+   private static final String   serverPortKey                   = "port";
+   public  static final String   TTY_PORT_KEY                    = "ttyPort";
+   public  static final String   USE_SEMI_HOSTING_KEY            = "useSemiHosting";
    private static final String   useDebugVersionKey              = "useDebugVersion";
    private static final String   exitOnCloseKey                  = "exitOnClose";
    private static final String   serverTypeKey                   = "serverType";
@@ -99,7 +102,7 @@ public class GdbServerParameters {
    public  static final int      NEEDS_CLKTRIM     = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
    public  static final int      NEEDS_MASKINTS    = 1<<6;  // Mask indicating Interface requires VLLSCatch selection
    
-   private static final int      armDialogueNeeds  = NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
+   private static final int      armDialogueNeeds  = NEEDS_RESET|NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
    private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK|NEEDS_CLKTRIM;
    private static final int      cfvxDialogueNeeds = NEEDS_SPEED|NEEDS_PST;
            
@@ -216,7 +219,7 @@ public class GdbServerParameters {
 
       setBdmSerialNumber(null, false);
       setInterfaceType(interfaceType);
-      setGdbPortNumber(1234);
+      setGdbServerPortNumber(1234);
       setDeviceName(null);
       enableExitOnClose(false);
       setNvmClockTrimLocation(-1);
@@ -228,6 +231,7 @@ public class GdbServerParameters {
       } catch (UsbdmException e) {
          // Ignore if we can't load defaults
          e.printStackTrace();
+         extendedOptions = new ExtendedOptions(interfaceType.toTargetType());
       }
       setInterfaceType(interfaceType);
    }
@@ -270,16 +274,28 @@ public class GdbServerParameters {
       }
    }
 
-   public void setGdbPortNumber(int port) {
-      this.gdbPortNumber = port;
+   public void setGdbServerPortNumber(int serverPort) {
+      this.gdbServerPortNumber = serverPort;
    }
 
-   public int getGdbPortNumber() {
-      return gdbPortNumber;
+   public int getGdbServerPortNumber() {
+      return gdbServerPortNumber;
    }
 
-   public String getGdbPortNumberAsOption() {
-      return "-port="+getGdbPortNumber();
+   public void setGdbTtyPortNumber(int ttyPort) {
+      this.gdbTtyPortNumber = ttyPort;
+   }
+
+   public int getGdbTtyPortNumber() {
+      return gdbTtyPortNumber;
+   }
+
+   public String getGdbServerPortNumberAsOption() {
+      return "-port="+getGdbServerPortNumber();
+   }
+
+   public String getGdbTtyPortNumberAsOption() {
+      return "-tty="+getGdbTtyPortNumber();
    }
 
    public String getDeviceName() {
@@ -574,7 +590,7 @@ public class GdbServerParameters {
    public ArrayList<String> getCommandLine() {
       ArrayList<String> commandList =  new ArrayList<String>(20);
       if (getServerType() == GdbServerType.SERVER_SOCKET) {
-         commandList.add("localhost:" + Integer.toString(getGdbPortNumber()));
+         commandList.add("localhost:" + Integer.toString(getGdbServerPortNumber()));
          return commandList;
       }
       else {
@@ -595,7 +611,8 @@ public class GdbServerParameters {
       if (getDeviceName() != null) {
          commandList.add("-device="+getDeviceName());
       }
-      commandList.add(getGdbPortNumberAsOption());
+      commandList.add(getGdbServerPortNumberAsOption());
+      commandList.add(getGdbTtyPortNumberAsOption());
       if ((getBdmSerialNumber() != null) && !getBdmSerialNumber().equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber)) {
          if (isBdmSerialNumberMatchRequired()) {
             commandList.add("-requiredBdm="+getBdmSerialNumber());
@@ -631,6 +648,9 @@ public class GdbServerParameters {
       if (isMaskInterrupts()) {
          commandList.add("-maskInterrupts");
       }
+      if (isUseReset()) {
+         commandList.add("-useReset");
+      }
       return commandList;
    }
    
@@ -656,19 +676,23 @@ public class GdbServerParameters {
       if (interfaceType == null) {
          throw new Exception("Interface type must be set before loading defaults");
       }
-      UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+      extendedOptions = Usbdm.getDefaultExtendedOptions(interfaceType.targetType);
       
+      UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+
       setDeviceName(                                  settings.get(getKey(deviceNameKey),                   null));
       setBdmSerialNumber(                             settings.get(getKey(bdmSerialNumberKey),              null));
       enableBdmSerialNumberMatchRequired(             settings.get(getKey(bdmSerialNumberMatchRequiredKey), false));
-      setGdbPortNumber(                               settings.get(getKey(portKey),                         1234));
+      setGdbServerPortNumber(                         settings.get(getKey(serverPortKey),                   1234));
+      setGdbTtyPortNumber(                            settings.get(getKey(TTY_PORT_KEY),                    4321));
+      enableUseSemiHosting(                           settings.get(getKey(USE_SEMI_HOSTING_KEY),            false));
       enableUseDebugVersion(                          settings.get(getKey(useDebugVersionKey),              false));
       enableExitOnClose(                              settings.get(getKey(exitOnCloseKey),                  false));
       setServerType(GdbServerType.valueOf(            settings.get(getKey(serverTypeKey),                   GdbServerType.SERVER_SOCKET.name())));
       setInterfaceFrequency(ClockSpeed.findSuitable(  settings.get(getKey(interfaceFrequencyKey),           4000000)).getFrequency());
       setAutoReconnect(AutoConnect.valueOf(           settings.get(getKey(autoReconnectKey),                AutoConnect.AUTOCONNECT_ALWAYS.name())));
-      enableUseReset(                                 settings.get(getKey(useResetKey),                     false));
-      enableUsePstSignals(                            settings.get(getKey(usePstSignalsKey),                false));
+      enableUseReset(                                 settings.get(getKey(useResetKey),                     isUseReset()));
+      enableUsePstSignals(                            settings.get(getKey(usePstSignalsKey),                isUsePstSignals()));
       setEraseMethod(EraseMethod.valueOf(             settings.get(getKey(eraseMethodKey),                  getPreferredEraseMethod().name())));
       setSecurityOption(SecurityOptions.valueOf(      settings.get(getKey(securityOptionKey),               SecurityOptions.SECURITY_SMART.name())));
       setTargetVdd(TargetVddSelect.valueOf(           settings.get(getKey(targetVddKey),                    TargetVddSelect.BDM_TARGET_VDD_OFF.name())));
@@ -694,7 +718,9 @@ public class GdbServerParameters {
       settings.put(getKey(deviceNameKey),                   getDeviceName());
       settings.put(getKey(bdmSerialNumberKey),              getBdmSerialNumber());
       settings.put(getKey(bdmSerialNumberMatchRequiredKey), isBdmSerialNumberMatchRequired());
-      settings.put(getKey(portKey),                         getGdbPortNumber());
+      settings.put(getKey(serverPortKey),                   getGdbServerPortNumber());
+      settings.put(getKey(TTY_PORT_KEY),                      getGdbServerPortNumber());
+      settings.put(getKey(USE_SEMI_HOSTING_KEY),               isUseSemihosting());
       settings.put(getKey(useDebugVersionKey),              isUseDebugVersion());
       settings.put(getKey(exitOnCloseKey),                  isExitOnClose());
       settings.put(getKey(serverTypeKey),                   getServerType().name());
@@ -724,7 +750,8 @@ public class GdbServerParameters {
       buff.append("getDeviceName =                  " + getDeviceName()+"\n");
       buff.append("bdmSerialNumberKey =             " + getBdmSerialNumber()+"\n");
       buff.append("isBdmSerialNumberMatchRequired = " + isBdmSerialNumberMatchRequired()+"\n");
-      buff.append("getGdbPortNumber =               " + getGdbPortNumber()+"\n");
+      buff.append("getGdbServerPortNumber =         " + getGdbServerPortNumber()+"\n");
+      buff.append("getGdbTtyPortNumber =            " + getGdbTtyPortNumber()+"\n");
       buff.append("isUseDebugServer =               " + isUseDebugVersion()+"\n");
       buff.append("isExitOnClose =                  " + isExitOnClose()+"\n");
       buff.append("getServerType =                  " + getServerType()+"\n");
@@ -751,7 +778,9 @@ public class GdbServerParameters {
       configuration.setAttribute((key+deviceNameKey),                    getDeviceName());
       configuration.setAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber());
       configuration.setAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired());
-      configuration.setAttribute((key+portKey),                          getGdbPortNumber());
+      configuration.setAttribute((key+serverPortKey),                    getGdbServerPortNumber());
+      configuration.setAttribute((key+TTY_PORT_KEY),                       getGdbTtyPortNumber());
+      configuration.setAttribute((key+USE_SEMI_HOSTING_KEY),                isUseSemihosting());
       configuration.setAttribute((key+useDebugVersionKey),               isUseDebugVersion());
       configuration.setAttribute((key+exitOnCloseKey),                   isExitOnClose());
       configuration.setAttribute((key+serverTypeKey),                    getServerType().name());
@@ -779,7 +808,9 @@ public class GdbServerParameters {
       setBdmSerialNumber(       configuration.getAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
       enableBdmSerialNumberMatchRequired(  
                                 configuration.getAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
-      setGdbPortNumber(         configuration.getAttribute((key+portKey),                          getGdbPortNumber()));
+      setGdbServerPortNumber(   configuration.getAttribute((key+serverPortKey),                    getGdbServerPortNumber()));
+      setGdbTtyPortNumber(      configuration.getAttribute((key+TTY_PORT_KEY),                       getGdbTtyPortNumber()));
+      enableUseSemiHosting(     configuration.getAttribute((key+USE_SEMI_HOSTING_KEY),                isUseSemihosting()));
       enableUseDebugVersion(    configuration.getAttribute((key+useDebugVersionKey),               isUseDebugVersion()));
       enableExitOnClose(        configuration.getAttribute((key+exitOnCloseKey),                   isExitOnClose()));
       setServerType(GdbServerType.valueOf(
@@ -801,5 +832,13 @@ public class GdbServerParameters {
       setConnectionTimeout(     configuration.getAttribute((key+connectionTimeoutKey),             getConnectionTimeout()));
       enableCatchVLLSxEvents(   configuration.getAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
       enableCatchVLLSxEvents(   configuration.getAttribute((key+maskInterruptsKey),                isMaskInterrupts()));
+   }
+
+   public boolean isUseSemihosting() {
+      return useSemiHosting;
+   }
+
+   public void enableUseSemiHosting(boolean selection) {
+      useSemiHosting = selection;
    }
 }

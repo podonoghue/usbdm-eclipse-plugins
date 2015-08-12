@@ -41,7 +41,7 @@ public class GdbMiInterface extends GdbCommonInterface {
     *  @return byte[size] containing the data read 
     */
    private byte[] readMemory(long address, int size) {
-      System.err.println("GDBInterface.readMemory(MI)");
+//      System.err.println("GDBInterface.readMemory(MI)");
       if (miSession == null) {
          return null;
       }

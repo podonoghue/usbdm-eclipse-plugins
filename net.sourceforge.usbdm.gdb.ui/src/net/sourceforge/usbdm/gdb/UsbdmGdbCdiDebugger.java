@@ -67,7 +67,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    }
    
    private MISession createMISession(Session session, SubMonitor submonitor) throws CoreException {
-      System.err.println("UsbdmGdbDebugger.createMISession()");
+//      System.err.println("UsbdmGdbDebugger.createMISession()");
 
       submonitor.subTask("Creating debug session"); //$NON-NLS-1$
       
@@ -100,7 +100,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    }
    
    private void sessionLoadSymbols(ILaunchConfiguration config, IGDBJtagDevice gdbJtagDevice, MISession miSession, SubMonitor submonitor) throws CoreException {
-      System.err.println("UsbdmGdbDebugger.sessionLoadSymbols()");
+//      System.err.println("UsbdmGdbDebugger.sessionLoadSymbols()");
 
       List<String> commands = new ArrayList<String>();
 
@@ -164,8 +164,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    }
 
    public void startServer(GdbServerParameters gdbServerParameters) throws CoreException {
-      
-    System.err.println("UsbdmGdbDebugger.startServer()");
+//    System.err.println("UsbdmGdbDebugger.startServer()");
 
     GdbServerInterface gdbServerInterface = new GdbServerInterface(gdbServerParameters);  
     try {
@@ -179,7 +178,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
  }  
 
    private void sessionDoRemote(ILaunchConfiguration config, UsbdmGdbInterface usbdmGdbInterface, MISession miSession, SubMonitor submonitor) throws CoreException {
-      System.err.println("UsbdmGdbDebugger.sessionDoRemote()");
+//      System.err.println("UsbdmGdbDebugger.sessionDoRemote()");
 
       GdbServerParameters gdbServerParameters = GdbServerParameters.getInitializedServerParameters(config);
       if (gdbServerParameters == null) {
@@ -203,7 +202,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
       for (int index=1; index<serverCommandLine.size(); index++) { 
          commandLine += serverCommandLine.get(index) + " ";
       }
-      System.err.println("sessionDoRemote() command = \'" + commandLine + "\'");
+//      System.err.println("sessionDoRemote() command = \'" + commandLine + "\'");
       List<String> commands = new ArrayList<String>();
       usbdmGdbInterface.doRemote(commandLine, commands);
       executeGDBScript(getGDBScript(commands), miSession, submonitor.newChild(10));
@@ -217,7 +216,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    private void sessionDoResetandHalt(ILaunchConfiguration config, IGDBJtagDevice gdbJtagDevice, MISession miSession, SubMonitor submonitor) throws CoreException {
       List<String> commands = new ArrayList<String>();
 
-      System.err.println("UsbdmGdbDebugger.sessionDoResetandHalt()");
+//      System.err.println("UsbdmGdbDebugger.sessionDoResetandHalt()");
 
       // execute init script
       submonitor.subTask("Executing initialization commands"); //$NON-NLS-1$
@@ -247,8 +246,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    }
    
    private void sessionDoLoad(ILaunchConfiguration config, IGDBJtagDevice gdbJtagDevice, MISession miSession, SubMonitor submonitor) throws CoreException {
-
-      System.err.println("UsbdmGdbDebugger.sessionDoLoad()");
+//      System.err.println("UsbdmGdbDebugger.sessionDoLoad()");
 
       // execute load
       boolean doLoad = config.getAttribute(IGDBJtagConstants.ATTR_LOAD_IMAGE, IGDBJtagConstants.DEFAULT_LOAD_IMAGE);
@@ -297,7 +295,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    
    @Override
    protected void doStartSession(ILaunch launch, Session session, IProgressMonitor monitor) throws CoreException {
-      System.err.println("UsbdmGdbDebugger.doStartSession()");
+//      System.err.println("UsbdmGdbDebugger.doStartSession()");
       
       SubMonitor submonitor = SubMonitor.convert(monitor, 100);
 
@@ -329,7 +327,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    }
 
    public void doRunSession(ILaunch launch, ICDISession session, IProgressMonitor monitor) throws CoreException {
-      System.err.println("UsbdmGdbDebugger.doRunSession()");
+//      System.err.println("UsbdmGdbDebugger.doRunSession()");
       
       SubMonitor submonitor = SubMonitor.convert(monitor, 100);
       
@@ -392,7 +390,7 @@ public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
    private void executeGDBScript(String script, MISession miSession, 
          IProgressMonitor monitor) throws CoreException {
       
-      System.err.println("UsbdmGdbDebugger.executeGDBScript()");
+//      System.err.println("UsbdmGdbDebugger.executeGDBScript()");
       
       // Try to execute any extra command
       if (script == null || script.length() == 0)

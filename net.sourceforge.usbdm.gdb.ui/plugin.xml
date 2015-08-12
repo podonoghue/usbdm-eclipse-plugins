@@ -168,4 +168,15 @@
          </placement>
       </tab>
    </extension>
+      <extension
+         point="org.eclipse.ui.console.consolePageParticipants">
+      <consolePageParticipant
+            class="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant"
+            id="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant">
+         <enablement>
+            <instanceof value="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsole"/>
+         </enablement>
+      </consolePageParticipant>
+   </extension> 
+   
 </plugin>

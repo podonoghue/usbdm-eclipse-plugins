@@ -64,7 +64,7 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
     * @return the shared instance
     */
    public static UsbdmGdbServer getDefault() {
-      // System.err.println("USBDM::Activator::getDefault()");
+//       System.err.println("USBDM::Activator::getDefault()");
       return plugin;
    }
 

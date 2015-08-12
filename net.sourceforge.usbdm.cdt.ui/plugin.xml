@@ -21,6 +21,12 @@
       </command>
       <command
             categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
+            description="Open GDB Console"
+            id="net.sourceforge.usbdm.cdt.wizard.commands.openGdbConsoleCommand"
+            name="Open GDB Console">
+      </command>
+      <command
+            categoryId="net.sourceforge.usbdm.cdt.wizard.commands.category"
             description="Open USBDM New Project Wizard"
             id="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand"
             name="New Project...">
@@ -78,6 +84,10 @@
             commandId="net.sourceforge.usbdm.cdt.wizard.commands.openPeripheralsViewCommand">
       </handler>
       <handler
+            class="net.sourceforge.usbdm.cdt.ui.handlers.OpenGdbConsoleHandler"
+            commandId="net.sourceforge.usbdm.cdt.wizard.commands.openGdbConsoleCommand">
+      </handler>
+      <handler
             class="net.sourceforge.usbdm.cdt.ui.handlers.ExampleHandler"
             commandId="net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand">
       </handler>
@@ -124,7 +134,7 @@
    </extension>
    <extension
          point="org.eclipse.ui.menus">
-      <menuContribution
+        <menuContribution
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
                id="net.sourceforge.usbdm.cdt.wizard.menus.usbdmMenu"
@@ -142,6 +152,12 @@
                   icon="icons/cog.png"
                   id="net.sourceforge.usbdm.cdt.wizard.menus.openPeripheralsViewMenuItem"
                   mnemonic="P">
+            </command>
+            <command
+                  commandId="net.sourceforge.usbdm.cdt.wizard.commands.openGdbConsoleCommand"
+                  icon="icons/cog.png"
+                  id="net.sourceforge.usbdm.cdt.wizard.menus.openGdbConsoleCommand"
+                  mnemonic="C">
             </command>
             <command
                   commandId="net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand"

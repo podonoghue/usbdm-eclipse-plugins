@@ -249,6 +249,7 @@ public class UsbdmDevicePeripheralsModel {
        try {
          model = new UsbdmDevicePeripheralsModel(gdbInterface, svdIdentifier);
       } catch (Exception e) {
+         e.printStackTrace();
          model = new UsbdmDevicePeripheralsModel(gdbInterface);
       }
       return model;
@@ -335,7 +336,7 @@ public class UsbdmDevicePeripheralsModel {
     * @throws Exception 
     */
    public void setDevice(DevicePeripherals devicePeripherals) throws Exception {
-      System.err.println("UsbdmDevicePeripheralsModel.setDevice()");
+//      System.err.println("UsbdmDevicePeripheralsModel.setDevice()");
       model = createDeviceModel(devicePeripherals, gdbInterface);
    }
    
