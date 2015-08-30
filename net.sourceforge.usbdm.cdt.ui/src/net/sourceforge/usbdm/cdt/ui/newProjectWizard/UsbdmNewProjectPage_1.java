@@ -35,6 +35,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
    private Text            fProjectNameText;
    private Label           fLocationText;
    private Button          fUseDefaultLocationButton;
+   private Button          fUseSemiHosting;
    private Boolean         fHasCCNature         = false;
    private InterfaceType   fInterfaceType       = null;
    private Boolean         fHasChanged          = true;
@@ -176,58 +177,94 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
    };
    
    private Control createProjectChoiceControl(final Composite parent) {
+	      GridLayout layout;
+
+	      Group group = new Group(parent, SWT.NONE);
+	      group.setText("Project Type");
+	      //
+	      layout = new GridLayout(3, false);
+	      group.setLayout(layout);
+	      
+	      IDialogSettings dialogSettings = getDialogSettings();
+
+	      fInterfaceType = InterfaceType.T_ARM;
+	      fHasCCNature  = true;
+	      if (dialogSettings != null) {
+	         try {
+	            String sInterfaceType = dialogSettings.get(UsbdmConstants.INTERFACE_TYPE_KEY);
+	            if (sInterfaceType != null) {
+	               fInterfaceType = InterfaceType.values()[Integer.parseInt(sInterfaceType)];
+	            }
+	            String sHasCCNature = dialogSettings.get(UsbdmConstants.HAS_CC_NATURE_KEY);
+	            if (sHasCCNature != null) {
+	               fHasCCNature = Boolean.valueOf(sHasCCNature);
+	            }
+	         } catch (Exception e) {
+	         }
+	      }
+	      for (final ButtonValues b : buttonValues) {
+	         if (b.fDescription != null) {
+	            Label label = new Label(group, SWT.NONE);
+	            label.setText(b.fDescription);
+	         }
+	         Button button = new Button(group, SWT.RADIO);
+	         if (b.fHasCcNature) {
+	            button.setText(" C++");
+	         }
+	         else {
+	            button.setText(" C  ");
+	         }
+	         if ((b.fInterfaceType == fInterfaceType) && (b.fHasCcNature == fHasCCNature)) {
+	            button.setSelection(true);
+	         }
+	         button.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {
+	               fInterfaceType = b.fInterfaceType;           
+	               fHasCCNature   = b.fHasCcNature;
+	               validate();
+	            }
+	            @Override
+	            public void widgetDefaultSelected(SelectionEvent e) {
+	            }
+	         });
+	      }
+	      return group;
+	   }
+	   
+
+   private Control createDebugChoiceControl(final Composite parent) {
       GridLayout layout;
 
       Group group = new Group(parent, SWT.NONE);
-      group.setText("Project Type");
+      group.setText("Debug Options (Debug target only)");
       //
       layout = new GridLayout(3, false);
       group.setLayout(layout);
       
       IDialogSettings dialogSettings = getDialogSettings();
 
-      fInterfaceType = InterfaceType.T_ARM;
-      fHasCCNature  = true;
+      fUseSemiHosting = new Button(group, SWT.CHECK);
+      fUseSemiHosting.setText("Semi-hosting");
+      fUseSemiHosting.setToolTipText("Add semi-hosting option to debug target");
+      fUseSemiHosting.addSelectionListener(new SelectionListener() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+        	validate();
+         }
+         @Override
+         public void widgetDefaultSelected(SelectionEvent e) {
+         }
+      });
       if (dialogSettings != null) {
-         try {
-            String sInterfaceType = dialogSettings.get(UsbdmConstants.INTERFACE_TYPE_KEY);
-            if (sInterfaceType != null) {
-               fInterfaceType = InterfaceType.values()[Integer.parseInt(sInterfaceType)];
-            }
-            String sHasCCNature = dialogSettings.get(UsbdmConstants.HAS_CC_NATURE_KEY);
-            if (sHasCCNature != null) {
-               fHasCCNature = Boolean.valueOf(sHasCCNature);
-            }
-         } catch (Exception e) {
-         }
-      }
-      for (final ButtonValues b : buttonValues) {
-         if (b.fDescription != null) {
-            Label label = new Label(group, SWT.NONE);
-            label.setText(b.fDescription);
-         }
-         Button button = new Button(group, SWT.RADIO);
-         if (b.fHasCcNature) {
-            button.setText(" C++");
-         }
-         else {
-            button.setText(" C  ");
-         }
-         if ((b.fInterfaceType == fInterfaceType) && (b.fHasCcNature == fHasCCNature)) {
-            button.setSelection(true);
-         }
-         button.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-               fInterfaceType = b.fInterfaceType;           
-               fHasCCNature   = b.fHasCcNature;
-               validate();
-            }
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-            }
-         });
-      }
+          try {
+             String sSemiHosting = dialogSettings.get(UsbdmConstants.SEMI_HOSTING_TYPE_KEY);
+             if (sSemiHosting != null) {
+             	fUseSemiHosting.setSelection(Boolean.valueOf(sSemiHosting));
+             }
+          } catch (Exception e) {
+          }
+       }
       return group;
    }
    
@@ -298,6 +335,10 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
+      control = createDebugChoiceControl(composite);
+      gd = new GridData(SWT.FILL, SWT.NONE, true, false);
+      control.setLayoutData(gd);
+
       control = createProjectOutcome(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
@@ -340,6 +381,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
          dialogSettings.put(UsbdmConstants.INTERFACE_TYPE_KEY,       fInterfaceType.ordinal());
          dialogSettings.put(UsbdmConstants.HAS_CC_NATURE_KEY,        fHasCCNature);
          dialogSettings.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,  fCreateStaticLibrary);
+         dialogSettings.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,    fUseSemiHosting.getSelection());
       }
    }
 
@@ -375,6 +417,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       paramMap.put(UsbdmConstants.INTERFACE_TYPE_KEY,       fInterfaceType.name());
       paramMap.put(UsbdmConstants.HAS_CC_NATURE_KEY,        fHasCCNature.toString());
       paramMap.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,  getProjectOutputType());
+      paramMap.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,    Boolean.valueOf(fUseSemiHosting.getSelection()).toString());
    }
 
 }

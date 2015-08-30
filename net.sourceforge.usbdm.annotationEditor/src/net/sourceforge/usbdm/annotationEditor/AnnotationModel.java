@@ -759,7 +759,9 @@ public class AnnotationModel {
          if (value instanceof Boolean) {
             setValue(new Long(((Boolean)value)?1:0));
          }
-         setValue((long)(Long)value);
+         else {
+            setValue((long)(Long)value);
+         }
       }
 
       private long roundValue(long value) {

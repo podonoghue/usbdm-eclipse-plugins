@@ -1658,7 +1658,7 @@
                   superClass="cdt.managedbuild.tool.gnu.c.linker.output">
             </outputType>
             <outputType
-                  id="net.sourceforge.usbdm.cdt.toolchain.cpp.linker.map.outputType"
+                  id="net.sourceforge.usbdm.cdt.toolchain.c.linker.map.outputType"
                   name="Map File"
                   outputNames="${BuildArtifactFileBaseName}.map"
                   outputs="map">
@@ -1981,7 +1981,7 @@
             </outputType>
             <option
                id="net.sourceforge.usbdm.cdt.toolchain.sizer.inFile"
-               value="${BuildArtifactFileName}"
+               value="&quot;${BuildArtifactFileName}&quot;"
                valueType="string">
             </option>
             <optionCategory
@@ -2073,7 +2073,7 @@
             </outputType>
             <option
                id="net.sourceforge.usbdm.cdt.toolchain.sym.inFile"
-               value="${BuildArtifactFileName}"
+               value="&quot;${BuildArtifactFileName}&quot;"
                valueType="string">
             </option>
             <optionCategory

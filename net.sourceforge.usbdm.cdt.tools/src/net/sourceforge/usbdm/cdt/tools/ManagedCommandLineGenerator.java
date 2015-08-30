@@ -21,17 +21,6 @@ import org.eclipse.core.variables.VariablesPlugin;
  */
 public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator {
 
-//   private static ManagedCommandLineGenerator self = null;
-//
-//   protected ManagedCommandLineGenerator() {
-//      self = null;
-//   }
-//
-//   public static ManagedCommandLineGenerator getCommandLineGenerator() {
-//      if( self == null ) self = new ManagedCommandLineGenerator();
-//      return self;
-//   }
-//
    private class RelacementPair {
       public String key;
       public String value;
@@ -69,7 +58,7 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
       if ((token == null) || (token.length() == 0) || (token.indexOf("$(") == 0)) { //$NON-NLS-1$
          return token;
       }
-      return DOUBLE_QUOTE+token+DOUBLE_QUOTE; //$NON-NLS-1$ //$NON-NLS-2$
+      return DOUBLE_QUOTE+token+DOUBLE_QUOTE;
    }
 
    private static final String DEFAULT_PATTERN = "${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}"; //$NON-NLS-1$
@@ -94,8 +83,9 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
       String inputsStr = stringArrayToString(inputResources, false);
       String flagsStr  = stringArrayToString(flags, false);
 
-//      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(inputsStr=\'"+inputsStr+"\')");
-//      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(flagsStr=\'"+flagsStr+"\')");
+      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(inputsStr=\'"+inputsStr+"\')");
+      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(flagsStr =\'"+flagsStr+"\')");
+      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(output   =\'"+output+"\')");
       
       RelacementPair[] replacementPair = {
             new RelacementPair("COMMAND", 		 commandName),
@@ -131,10 +121,9 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
       StringBuilder buffer = new StringBuilder();
       for (String s : str) {
          if (quoteStrings) {
-            buffer.append(quoteToken(s));
-         } else {
-            buffer.append(s);
+            s = quoteToken(s);
          }
+         buffer.append(s);
          buffer.append(WHITE_SPACE);
       }
       return buffer.toString();

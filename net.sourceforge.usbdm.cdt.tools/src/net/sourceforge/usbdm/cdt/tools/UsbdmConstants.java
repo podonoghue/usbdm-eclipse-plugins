@@ -19,6 +19,7 @@ public class UsbdmConstants {
    public final static String PROJECT_OUTPUT_TYPE_KEY          = "outputType";             //$NON-NLS-1$
    public final static String PROJECT_NAME_KEY                 = "projectName";            //$NON-NLS-1$
    public final static String INTERFACE_TYPE_KEY               = "interfaceType";          //$NON-NLS-1$
+   public final static String SEMI_HOSTING_TYPE_KEY            = "semiHosting";            //$NON-NLS-1$
    public final static String TARGET_DEVICE_KEY                = "targetDevice";           //$NON-NLS-1$
    public final static String TARGET_DEVICE_NAME_KEY           = "targetDeviceName";       //$NON-NLS-1$
    public final static String HAS_CC_NATURE_KEY                = "hasCCNature";            //$NON-NLS-1$

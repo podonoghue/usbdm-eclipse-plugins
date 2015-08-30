@@ -29,11 +29,13 @@ public class CreatePeripheralDatabase {
    private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
 //   @SuppressWarnings("unused")
    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
-   private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
+   @SuppressWarnings("unused")
+private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
    private static final  Path usbdmFolder            = MAIN_FOLDER.resolve("Internal");
 //   @SuppressWarnings("unused")
    private static final  Path usbdmCheckFolder       = MAIN_FOLDER.resolve("Internal.Check");
-   private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freescale.Check");
+   @SuppressWarnings("unused")
+private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freescale.Check");
    
    private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";
    private static final  String CMSIS_SCHEMA_FILENAME       = "CMSIS-SVD_Schema_1_1.xsd";

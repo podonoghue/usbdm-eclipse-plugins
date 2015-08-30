@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1229,7 +1230,7 @@ public class CreatePinDescription extends DocumentUtilities {
 
       System.err.println("deviceName = " + deviceName);
 
-      BufferedReader sourceFile = Files.newBufferedReader(filePath);
+      BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
 
       if (!sourceDirectory.toFile().exists()) {
          Files.createDirectory(sourceDirectory);
@@ -1238,13 +1239,13 @@ public class CreatePinDescription extends DocumentUtilities {
          Files.createDirectory(headerDirectory);
       }
       Path pinMappingHeaderPath = headerDirectory.resolve(pinMappingHeaderFileName);
-      BufferedWriter pinMappingHeaderFile = Files.newBufferedWriter(pinMappingHeaderPath);
+      BufferedWriter pinMappingHeaderFile = Files.newBufferedWriter(pinMappingHeaderPath, StandardCharsets.UTF_8);
 
       Path gpioCppPath = sourceDirectory.resolve(gpioCppFileName);
-      BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath);
+      BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath, StandardCharsets.UTF_8);
 
       Path gpioHeaderPath = headerDirectory.resolve(gpioHeaderFileName);
-      BufferedWriter gpioHeaderFile    = Files.newBufferedWriter(gpioHeaderPath);
+      BufferedWriter gpioHeaderFile    = Files.newBufferedWriter(gpioHeaderPath, StandardCharsets.UTF_8);
       
       parseFile(sourceFile);
       writePinMappingHeaderFile(pinMappingHeaderFile);
