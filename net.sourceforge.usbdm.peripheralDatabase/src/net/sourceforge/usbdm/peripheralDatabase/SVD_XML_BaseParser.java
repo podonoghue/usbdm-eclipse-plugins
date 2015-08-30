@@ -49,18 +49,18 @@ public class SVD_XML_BaseParser {
          case '\'':
             sb.append("&apos;");
             break;
-//         case '�':
-//            sb.append("x");
-//            break;
-//         case '�':
-//            sb.append("u");
-//            break;
-// Used once-off to change description formats
-//            case '\n':
-//               sb.append("\\");
-//               sb.append("n");
-//               sb.append("\n");
-//               break;
+         case '×':
+            sb.append("x");
+            break;
+         case 'µ':
+            sb.append("u");
+            break;
+            // Used once-off to change description formats
+            //            case '\n':
+            //               sb.append("\\");
+            //               sb.append("n");
+            //               sb.append("\n");
+            //               break;
          default:
             // This is really crude!
             if (Character.isLetterOrDigit(ch) || Character.isWhitespace(ch)) {

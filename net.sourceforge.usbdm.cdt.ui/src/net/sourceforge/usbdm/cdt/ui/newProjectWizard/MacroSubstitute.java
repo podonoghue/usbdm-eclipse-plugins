@@ -25,12 +25,27 @@ public class MacroSubstitute {
          return input;
       }
       ArrayList<String> patterns = findAllPatterns(input);
-      for (String p : patterns) {
-         String replaceWith = map.get(p);
+      Pattern variablePattern = Pattern.compile("([^:]+):(.*)");
+      for (String pattern : patterns) {
+         // p is the middle part of the pattern 
+    	 // e.g. $(pattern) => pattern, $(pattern:default) => pattern:default
+         Matcher matcher = variablePattern.matcher(pattern);
+         String key = pattern;
+    	 String defaultValue = null;
+         if (matcher.find()) {
+    		key          = matcher.group(1);
+    		defaultValue = matcher.group(2);
+//    		System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
+    	 }
+         String replaceWith = map.get(key);
          if (replaceWith == null) {
-            continue;
+//        	 System.out.println("Using default \'" + defaultValue + "\'");
+        	 replaceWith = defaultValue;
          }
-         input = input.replaceAll("\\$\\("+p+"\\)", Matcher.quoteReplacement(replaceWith));
+         if (replaceWith == null) {
+             continue;
+         }
+         input = input.replaceAll("\\$\\("+pattern+"\\)", Matcher.quoteReplacement(replaceWith));
       }
       return input;
    }
@@ -60,19 +75,24 @@ public class MacroSubstitute {
    public static void main(String[] args) {
       System.out.println("Starting");
       Map<String,String> map = new HashMap<String,String>();
-      String input = "$(This) is a $(test) with some $(not replaced) ";
+      String input = 
+		  "$(NoDef1)        => \'NoDefault1\'\n" +
+		  "$(NoDef2)        => \'NoDef2\' (with prefix)\n" +
+		  "$(Def1:XXXX)     => \'Default1-found\'\n" +
+		  "$(Def2:Default2-used) => \'Default2-used\'\n";
       
-      System.out.println("Input = " + input);
+      System.out.println("Input = \n" + input);
 
-      map.put("This", "THIS");
-      map.put("test", "TEST");
+      map.put("NoDef1", "NoDefault1");
+      map.put("Def1",   "Default1-found");
+      
       ArrayList<String> x = findAllPatterns(input);
       for (String s : x) {
          System.out.println("Pattern = " + s);
       }
 
       String output = substitute(input, map);
-      System.out.println("Output = " + output);
+      System.out.println("\nOutput = \n" + output);
       
       System.out.println("Done");
    }

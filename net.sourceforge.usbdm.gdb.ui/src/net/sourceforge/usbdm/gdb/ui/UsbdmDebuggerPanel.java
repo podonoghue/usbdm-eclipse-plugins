@@ -1302,34 +1302,33 @@ public class UsbdmDebuggerPanel {
 
       String buildToolsId = null;
       try {
-
          //ToDo   Consider using -      ICProject projectHandle = CDebugUtils.verifyCProject(configuration);
-
          String projectName    = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME,            (String)null);
          String projectBuildId = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_BUILD_CONFIG_ID, (String)null);
 
-       //  System.err.println("projectName    = "+projectName);
-       //  System.err.println("projectBuildId = "+projectBuildId);
+         //  System.err.println("projectName    = "+projectName);
+         //  System.err.println("projectBuildId = "+projectBuildId);
 
          if ((projectName != null) && (projectBuildId != null)) {
             ICProject projectHandle = CoreModel.getDefault().getCModel().getCProject(projectName);
             IConfiguration buildConfig = ManagedBuildManager.getBuildInfo(projectHandle.getProject()).getManagedProject().getConfiguration(projectBuildId);
-            IToolChain toolChain = buildConfig.getToolChain();
-            IOption option = null;
-            option = toolChain.getOptionBySuperClassId("net.sourceforge.usbdm.cdt.arm.toolchain.buildtools");
-            if (option == null) {
-               option = toolChain.getOptionBySuperClassId("net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools");
-            }
-            if (option != null) {
-             //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getId() = "+option.getId());
-             //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getName() = "+option.getName());
-               buildToolsId = option.getStringValue();
+            if (buildConfig != null) {
+               IToolChain toolChain = buildConfig.getToolChain();
+               if (toolChain != null) {
+                  IOption option = toolChain.getOptionBySuperClassId("net.sourceforge.usbdm.cdt.arm.toolchain.buildtools");
+                  if (option == null) {
+                     option = toolChain.getOptionBySuperClassId("net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools");
+                  }
+                  if (option != null) {
+                     //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getId() = "+option.getId());
+                     //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getName() = "+option.getName());
+                     buildToolsId = option.getStringValue();
+            	  }
+               }
             }
          }
-      } catch (BuildException e) {
-         //         e.printStackTrace();
       } catch (Exception e) {
-         //         e.printStackTrace();
+          e.printStackTrace();
       }
     //  System.err.println("Selected Build Tools ID = " + buildToolsId);
 

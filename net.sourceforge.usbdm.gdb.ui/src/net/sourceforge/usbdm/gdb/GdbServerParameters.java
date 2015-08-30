@@ -66,7 +66,7 @@ public class GdbServerParameters {
    private static final String   deviceNameKey                   = "deviceName";
    private static final String   bdmSerialNumberKey              = "bdmSerialNumber";
    private static final String   bdmSerialNumberMatchRequiredKey = "bdmSerialNumberMatchRequired";
-   private static final String   serverPortKey                   = "port";
+   private static final String   SERVER_PORT_KEY                 = "port";
    public  static final String   TTY_PORT_KEY                    = "ttyPort";
    public  static final String   USE_SEMI_HOSTING_KEY            = "useSemiHosting";
    private static final String   useDebugVersionKey              = "useDebugVersion";
@@ -220,6 +220,7 @@ public class GdbServerParameters {
       setBdmSerialNumber(null, false);
       setInterfaceType(interfaceType);
       setGdbServerPortNumber(1234);
+      setGdbTtyPortNumber(4321);
       setDeviceName(null);
       enableExitOnClose(false);
       setNvmClockTrimLocation(-1);
@@ -683,7 +684,7 @@ public class GdbServerParameters {
       setDeviceName(                                  settings.get(getKey(deviceNameKey),                   null));
       setBdmSerialNumber(                             settings.get(getKey(bdmSerialNumberKey),              null));
       enableBdmSerialNumberMatchRequired(             settings.get(getKey(bdmSerialNumberMatchRequiredKey), false));
-      setGdbServerPortNumber(                         settings.get(getKey(serverPortKey),                   1234));
+      setGdbServerPortNumber(                         settings.get(getKey(SERVER_PORT_KEY),                 1234));
       setGdbTtyPortNumber(                            settings.get(getKey(TTY_PORT_KEY),                    4321));
       enableUseSemiHosting(                           settings.get(getKey(USE_SEMI_HOSTING_KEY),            false));
       enableUseDebugVersion(                          settings.get(getKey(useDebugVersionKey),              false));
@@ -718,9 +719,9 @@ public class GdbServerParameters {
       settings.put(getKey(deviceNameKey),                   getDeviceName());
       settings.put(getKey(bdmSerialNumberKey),              getBdmSerialNumber());
       settings.put(getKey(bdmSerialNumberMatchRequiredKey), isBdmSerialNumberMatchRequired());
-      settings.put(getKey(serverPortKey),                   getGdbServerPortNumber());
-      settings.put(getKey(TTY_PORT_KEY),                      getGdbServerPortNumber());
-      settings.put(getKey(USE_SEMI_HOSTING_KEY),               isUseSemihosting());
+      settings.put(getKey(SERVER_PORT_KEY),                 getGdbServerPortNumber());
+      settings.put(getKey(TTY_PORT_KEY),                    getGdbTtyPortNumber());
+      settings.put(getKey(USE_SEMI_HOSTING_KEY),            isUseSemihosting());
       settings.put(getKey(useDebugVersionKey),              isUseDebugVersion());
       settings.put(getKey(exitOnCloseKey),                  isExitOnClose());
       settings.put(getKey(serverTypeKey),                   getServerType().name());
@@ -778,9 +779,9 @@ public class GdbServerParameters {
       configuration.setAttribute((key+deviceNameKey),                    getDeviceName());
       configuration.setAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber());
       configuration.setAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired());
-      configuration.setAttribute((key+serverPortKey),                    getGdbServerPortNumber());
-      configuration.setAttribute((key+TTY_PORT_KEY),                       getGdbTtyPortNumber());
-      configuration.setAttribute((key+USE_SEMI_HOSTING_KEY),                isUseSemihosting());
+      configuration.setAttribute((key+SERVER_PORT_KEY),                  getGdbServerPortNumber());
+      configuration.setAttribute((key+TTY_PORT_KEY),                     getGdbTtyPortNumber());
+      configuration.setAttribute((key+USE_SEMI_HOSTING_KEY),             isUseSemihosting());
       configuration.setAttribute((key+useDebugVersionKey),               isUseDebugVersion());
       configuration.setAttribute((key+exitOnCloseKey),                   isExitOnClose());
       configuration.setAttribute((key+serverTypeKey),                    getServerType().name());
@@ -808,9 +809,9 @@ public class GdbServerParameters {
       setBdmSerialNumber(       configuration.getAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
       enableBdmSerialNumberMatchRequired(  
                                 configuration.getAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
-      setGdbServerPortNumber(   configuration.getAttribute((key+serverPortKey),                    getGdbServerPortNumber()));
-      setGdbTtyPortNumber(      configuration.getAttribute((key+TTY_PORT_KEY),                       getGdbTtyPortNumber()));
-      enableUseSemiHosting(     configuration.getAttribute((key+USE_SEMI_HOSTING_KEY),                isUseSemihosting()));
+      setGdbServerPortNumber(   configuration.getAttribute((key+SERVER_PORT_KEY),                  getGdbServerPortNumber()));
+      setGdbTtyPortNumber(      configuration.getAttribute((key+TTY_PORT_KEY),                     getGdbTtyPortNumber()));
+      enableUseSemiHosting(     configuration.getAttribute((key+USE_SEMI_HOSTING_KEY),             isUseSemihosting()));
       enableUseDebugVersion(    configuration.getAttribute((key+useDebugVersionKey),               isUseDebugVersion()));
       enableExitOnClose(        configuration.getAttribute((key+exitOnCloseKey),                   isExitOnClose()));
       setServerType(GdbServerType.valueOf(
