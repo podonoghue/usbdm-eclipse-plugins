@@ -6,7 +6,7 @@ Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
-Bundle-Version: 4.11.1.qualifier
+Bundle-Version: 4.12.1.qualifier
 Require-Bundle: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.deviceDatabase,
  net.sourceforge.usbdm.jni,

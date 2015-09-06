@@ -19,23 +19,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.ListIterator;
 
-import net.sourceforge.usbdm.constants.ToolInformationData;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.deviceDatabase.ClockTypes;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
-import net.sourceforge.usbdm.gdb.GdbServerParameters;
-import net.sourceforge.usbdm.jni.JTAGInterfaceData;
-import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
-import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
-import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
-import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
-import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
-import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
-import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
-
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
@@ -45,7 +28,6 @@ import org.eclipse.cdt.debug.mi.core.MIPlugin;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryDescriptor;
 import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryManager;
 import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
-import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -80,6 +62,23 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import net.sourceforge.usbdm.constants.ToolInformationData;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.deviceDatabase.ClockTypes;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
+import net.sourceforge.usbdm.gdb.GdbServerParameters;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
+import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
+import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
+import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 public class UsbdmDebuggerPanel {
    /*extends AbstractLaunchConfigurationTab*/

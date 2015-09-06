@@ -2,13 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM CDT New Project Wizard
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.tools;singleton:=true
-Bundle-Version: 4.11.1.qualifier
+Bundle-Version: 4.12.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.tools.Activator
 Require-Bundle: net.sourceforge.usbdm.constants,
  net.sourceforge.usbdm.jni,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
+ org.eclipse.cdt.make.ui,
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.core.variables,
  org.eclipse.core.resources,

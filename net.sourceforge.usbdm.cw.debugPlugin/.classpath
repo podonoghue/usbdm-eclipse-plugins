@@ -4,7 +4,5 @@
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="C:/Apps/Freescale/CW MCU v10.6.4/eclipse/plugins/com.freescale.core.debugger.ui.cdt_7.24.0.FSL_b14240/cdtcwcoreui.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.freescale.mcu.debug.connections"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.freescale.core.debugger.ui.cdt"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

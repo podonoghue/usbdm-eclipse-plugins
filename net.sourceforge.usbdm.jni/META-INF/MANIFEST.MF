@@ -1,6 +1,4 @@
 Manifest-Version: 1.0
-Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .
 Bundle-Name: USBDM JNI Plugin
 Bundle-NativeCode: 
  x86/libgcc_s_dw2-1.dll;x86/libstdc++-6.dll;x86/usbdm.4.dll;x86/usbdm-jni.4.dll;x86/usbdm-debug.4.dll;x86/usbdm-jni-debug.4.dll;osname=Win32;processor=x86,
@@ -8,12 +6,14 @@ Bundle-NativeCode:
  x86/libusbdm-jni.so;x86/libusbdm-jni-debug.so;osname=linux;processor=x86,
  x86_64/libusbdm-jni.so;x86_64/libusbdm-jni-debug.so;osname=linux;processor=x86_64,
  *
-Bundle-Vendor: pgo
 Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
-Bundle-Version: 4.11.1.qualifier
+Bundle-Version: 4.12.1.qualifier
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.swt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.jni
+Bundle-Vendor: pgo
+Bundle-ClassPath: .

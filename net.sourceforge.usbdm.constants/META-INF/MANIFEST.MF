@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Constants
 Bundle-SymbolicName: net.sourceforge.usbdm.constants;singleton:=true
-Bundle-Version: 4.11.1.qualifier
+Bundle-Version: 4.12.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.constants.Activator
 Require-Bundle: net.sourceforge.usbdm.jni,
  org.eclipse.core.runtime,
