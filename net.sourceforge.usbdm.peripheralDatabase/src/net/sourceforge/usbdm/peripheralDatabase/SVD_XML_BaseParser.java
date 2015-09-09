@@ -49,10 +49,10 @@ public class SVD_XML_BaseParser {
          case '\'':
             sb.append("&apos;");
             break;
-         case 'Ã—':
+         case '×':
             sb.append("x");
             break;
-         case 'Âµ':
+         case 'µ':
             sb.append("u");
             break;
             // Used once-off to change description formats

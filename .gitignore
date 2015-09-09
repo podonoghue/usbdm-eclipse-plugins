@@ -13,10 +13,11 @@
 *.exe
 *.dll
 
-bin
+/bin
 
 .metadata
 
 .settings
 
 *.class
+/x86_64
