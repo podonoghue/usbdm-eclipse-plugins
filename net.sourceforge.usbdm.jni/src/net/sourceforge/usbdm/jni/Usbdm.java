@@ -15,8 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author podonoghue
- * @since 4.10
- *
+ * @since 4.12
  */
 public class Usbdm {
    private Usbdm(int deviceNum) throws UsbdmException {

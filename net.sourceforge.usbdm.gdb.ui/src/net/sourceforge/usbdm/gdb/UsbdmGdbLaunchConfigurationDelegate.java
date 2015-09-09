@@ -25,7 +25,7 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import org.eclipse.debug.core.model.IProcess;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbLaunchConfigurationDelegate extends AbstractCLaunchDelegate implements
       ILaunchConfigurationDelegate {

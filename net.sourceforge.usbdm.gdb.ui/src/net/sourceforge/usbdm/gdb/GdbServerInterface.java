@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class GdbServerInterface {
 

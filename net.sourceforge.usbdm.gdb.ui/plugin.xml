@@ -177,6 +177,12 @@
             <instanceof value="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsole"/>
          </enablement>
       </consolePageParticipant>
-   </extension> 
+   </extension>
+      <extension
+            point="org.eclipse.cdt.launch.launchConfigAffinity">
+         <launchConfigTypeId
+               id="net.sourceforge.usbdm.gdb.launchConfigurationType">
+         </launchConfigTypeId>
+      </extension> 
    
 </plugin>

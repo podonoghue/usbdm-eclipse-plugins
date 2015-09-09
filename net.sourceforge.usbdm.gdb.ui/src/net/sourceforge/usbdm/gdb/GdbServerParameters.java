@@ -31,7 +31,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
 /**
  * @author Peter
- * @since 4.10
+ * @since 4.12
  *
  */
 public class GdbServerParameters {

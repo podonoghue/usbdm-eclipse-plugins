@@ -27,6 +27,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
 
    private static final String TAB_NAME = "Startup";

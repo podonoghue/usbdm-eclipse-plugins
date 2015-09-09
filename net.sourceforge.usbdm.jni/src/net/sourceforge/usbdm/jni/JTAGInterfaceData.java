@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class JTAGInterfaceData {
 

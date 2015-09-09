@@ -80,6 +80,7 @@ import org.eclipse.debug.core.ILaunchManager;
  * <code>org.eclipse.cdt.dsf.gdb.launching.FinalLaunchSequence</code>
  * <p>
  * It adds hardware debugging specific steps to initialize a USBDM interface
+ * @since 4.12
  * 
  */
 public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {

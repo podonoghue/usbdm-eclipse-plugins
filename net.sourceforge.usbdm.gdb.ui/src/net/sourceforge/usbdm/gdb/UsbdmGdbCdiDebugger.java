@@ -40,7 +40,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbCdiDebugger extends AbstractGDBCDIDebugger {
 

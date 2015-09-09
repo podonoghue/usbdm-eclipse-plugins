@@ -12,6 +12,9 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.views.navigator.ResourceComparator;
 
+/**
+ * @since 4.12
+ */
 public class Utility {
    /**
     * Browse for external binary file

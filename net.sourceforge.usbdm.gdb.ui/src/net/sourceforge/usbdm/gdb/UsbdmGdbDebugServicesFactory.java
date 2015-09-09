@@ -17,7 +17,7 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
 

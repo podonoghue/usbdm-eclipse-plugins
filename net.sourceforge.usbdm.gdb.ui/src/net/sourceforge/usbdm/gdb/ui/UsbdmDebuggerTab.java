@@ -30,6 +30,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    
    private static final String   TAB_NAME = "Debugger";

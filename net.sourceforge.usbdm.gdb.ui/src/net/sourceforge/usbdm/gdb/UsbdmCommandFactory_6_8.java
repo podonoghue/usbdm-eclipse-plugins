@@ -8,6 +8,9 @@ import org.eclipse.cdt.dsf.debug.service.command.ICommand;
 import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmCommandFactory_6_8 extends CommandFactory_6_8 {
    
    public ICommand<MIInfo> createMIExecReset(IExecutionDMContext dmc) {

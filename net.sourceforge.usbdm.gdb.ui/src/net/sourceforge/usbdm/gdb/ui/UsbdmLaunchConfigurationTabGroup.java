@@ -18,6 +18,7 @@ import org.eclipse.debug.ui.ILaunchConfigurationTab;
 
 /**
  * @author Doug Schaefer
+ * @since 4.12
  *
  */
 public class UsbdmLaunchConfigurationTabGroup extends

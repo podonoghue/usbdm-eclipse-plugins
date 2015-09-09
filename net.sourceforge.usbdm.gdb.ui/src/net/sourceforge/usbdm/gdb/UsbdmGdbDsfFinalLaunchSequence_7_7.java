@@ -27,7 +27,7 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 /**
  * Subclass for GDB >= 7.7.
  * 
- * @since 8.4
+ * @since 4.12
  */
 public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSequence_7_2 {
 	

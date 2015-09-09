@@ -13,6 +13,9 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 
+/**
+ * @since 4.12
+ */
 public class MyConsoleInterface {
 
    public static final String    CONSOLE_NAME = "Usbdm GDB Semihosting Console (Port #%d)";

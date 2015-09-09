@@ -14,7 +14,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate
       implements ILaunchConfigurationDelegate {

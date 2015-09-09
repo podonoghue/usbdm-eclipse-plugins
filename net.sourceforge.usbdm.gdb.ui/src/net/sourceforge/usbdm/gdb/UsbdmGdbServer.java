@@ -13,7 +13,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * The activator class controls the plug-in life cycle
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbServer extends AbstractUIPlugin {
 

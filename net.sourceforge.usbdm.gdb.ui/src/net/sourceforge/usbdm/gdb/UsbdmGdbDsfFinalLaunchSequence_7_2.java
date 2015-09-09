@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.Status;
 
 /**
  * Version for GDB 7.2 and higher.
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
 

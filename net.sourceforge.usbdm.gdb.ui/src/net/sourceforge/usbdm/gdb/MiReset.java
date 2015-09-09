@@ -5,7 +5,7 @@ import org.eclipse.cdt.dsf.mi.service.command.commands.MICommand;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class MiReset extends MICommand<MIInfo> {
 

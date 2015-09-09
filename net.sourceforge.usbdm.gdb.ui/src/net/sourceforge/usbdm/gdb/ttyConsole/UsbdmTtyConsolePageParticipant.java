@@ -7,6 +7,9 @@ import org.eclipse.ui.console.IConsolePageParticipant;
 import org.eclipse.ui.console.actions.CloseConsoleAction;
 import org.eclipse.ui.part.IPageBookViewPage;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmTtyConsolePageParticipant implements IConsolePageParticipant {
 
    private CloseConsoleAction closeAction;

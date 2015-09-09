@@ -25,7 +25,7 @@ import org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.DefaultGDBJtagDeviceImpl;
  * Used for USBDM connection
  */
 /**
- * @since 4.10
+ * @since 4.12
  */
 public class UsbdmGdbInterface extends DefaultGDBJtagDeviceImpl implements IGDBJtagConnection {
 

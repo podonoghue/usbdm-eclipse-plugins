@@ -3,6 +3,9 @@ package net.sourceforge.usbdm.gdb;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * @since 4.12
+ */
 public class NullOutputStream extends OutputStream {
 
    @Override

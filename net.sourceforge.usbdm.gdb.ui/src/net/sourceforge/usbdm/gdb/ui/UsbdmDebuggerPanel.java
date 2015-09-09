@@ -80,6 +80,9 @@ import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmDebuggerPanel {
    /*extends AbstractLaunchConfigurationTab*/
    

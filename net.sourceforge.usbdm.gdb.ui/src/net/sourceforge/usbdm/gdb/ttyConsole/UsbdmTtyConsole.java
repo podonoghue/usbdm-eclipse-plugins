@@ -3,6 +3,9 @@ package net.sourceforge.usbdm.gdb.ttyConsole;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.console.IOConsole;
 
+/**
+ * @since 4.12
+ */
 public class UsbdmTtyConsole extends IOConsole {
    protected int fPortNum;
    
