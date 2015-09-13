@@ -20,6 +20,7 @@ public class DeviceModel extends BaseModel {
 
    public DeviceModel(String deviceName) {
       super(null, deviceName, deviceName);
+      new BaseModel(this, "Loading...", "Loading...") {};
    }
 
    /**
@@ -29,7 +30,9 @@ public class DeviceModel extends BaseModel {
     */
    public void setNeedsUpdate(boolean needsUpdate) {
       for (Object peripheralModel : getChildren()) {
-         ((PeripheralModel)peripheralModel).setNeedsUpdate(needsUpdate);
+         if (peripheralModel instanceof PeripheralModel) {
+            ((PeripheralModel)peripheralModel).setNeedsUpdate(needsUpdate);
+         }
       }
    }
    
@@ -38,7 +41,9 @@ public class DeviceModel extends BaseModel {
     */
    public void loadResetValues() {
       for (Object peripheralModel : getChildren()) {
-         ((PeripheralModel)peripheralModel).loadResetValues();
+         if (peripheralModel instanceof PeripheralModel) {
+            ((PeripheralModel)peripheralModel).loadResetValues();
+         }
       }
    }
    
@@ -48,7 +53,9 @@ public class DeviceModel extends BaseModel {
     */
    public void setChangeReference() {
       for (Object peripheralModel : getChildren()) {
-         ((PeripheralModel)peripheralModel).setChangeReference();
+         if (peripheralModel instanceof PeripheralModel) {
+            ((PeripheralModel)peripheralModel).setChangeReference();
+         }
       }
    }
 

@@ -83,9 +83,9 @@ public class ManagedCommandLineGenerator implements IManagedCommandLineGenerator
       String inputsStr = stringArrayToString(inputResources, false);
       String flagsStr  = stringArrayToString(flags, false);
 
-      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(inputsStr=\'"+inputsStr+"\')");
-      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(flagsStr =\'"+flagsStr+"\')");
-      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(output   =\'"+output+"\')");
+//      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(inputsStr=\'"+inputsStr+"\')");
+//      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(flagsStr =\'"+flagsStr+"\')");
+//      System.err.println("ManagedCommandLineGenerator.generateCommandLineInfo(output   =\'"+output+"\')");
       
       RelacementPair[] replacementPair = {
             new RelacementPair("COMMAND", 		 commandName),

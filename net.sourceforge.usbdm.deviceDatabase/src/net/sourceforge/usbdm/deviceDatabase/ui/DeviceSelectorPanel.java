@@ -2,10 +2,6 @@ package net.sourceforge.usbdm.deviceDatabase.ui;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -22,6 +18,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 public class DeviceSelectorPanel extends Composite {
 
@@ -41,11 +41,15 @@ public class DeviceSelectorPanel extends Composite {
 //      });
    }
 
-   private DeviceDatabase  deviceDatabase = null;
-   private TargetType      targetType     = TargetType.T_ARM;
-   private Tree            tree           = null;
-   private Text            text           = null;
+   // Controls
+   private Tree            fTree           = null;
+   private Text            fDeviceText     = null;
    
+   // Internal state
+   private TargetType      fTargetType     = TargetType.T_ARM;
+   private DeviceDatabase  fDeviceDatabase = null;
+   private String          fDeviceName     = null;
+
    private class Pair {
       String pattern;
       String substitution;
@@ -76,7 +80,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^(MCF[0-9]{4}).*$", "$1"),
       };
       Pair[] patterns = null;
-      switch (targetType) {
+      switch (fTargetType) {
       case T_ARM:
          patterns = armPatterns;
          break;
@@ -126,7 +130,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^(.*)$",      "$1"),
       };
       Pair[] patterns = null;
-      switch (targetType) {
+      switch (fTargetType) {
       case T_ARM:
          patterns = armPatterns;
          break;
@@ -206,29 +210,31 @@ public class DeviceSelectorPanel extends Composite {
     * @param targetType
     */
    public void setTargetType(TargetType targetType) {
-      this.targetType = targetType;
-      if ((deviceDatabase == null) || (deviceDatabase.getTargetType() != targetType)) {
-         deviceDatabase = new DeviceDatabase(targetType);
+      fTargetType = targetType;
+      fDeviceName = null;
+      
+      if ((fDeviceDatabase == null) || (fDeviceDatabase.getTargetType() != targetType)) {
+         fDeviceDatabase = new DeviceDatabase(targetType);
       }
-      if (!deviceDatabase.isValid()) {
-         text.setText("Device database invalid");
+      if (!fDeviceDatabase.isValid()) {
+         fDeviceText.setText("<Device database invalid>");
       }
       else {
          String currentFamily    = null;
          TreeItem familyTree     = null;
          String currentSubFamily = null;
          TreeItem subFamilyTree  = null;
-         for (Device device : deviceDatabase.getDeviceList()) {
+         for (Device device : fDeviceDatabase.getDeviceList()) {
             if (device.isHidden()) {
                continue;
             }
             String family = getFamilyNamePrefix(device.getName());
             if ((familyTree == null) || !currentFamily.equalsIgnoreCase(family)) {
-               familyTree = findCatergoryNode(tree, family);
+               familyTree = findCatergoryNode(fTree, family);
             }
             if (familyTree == null) {
                currentFamily = family;
-               familyTree = new TreeItem(tree, 0);
+               familyTree = new TreeItem(fTree, 0);
                familyTree.setText(family);
                currentSubFamily = null;
                subFamilyTree = null;
@@ -253,17 +259,20 @@ public class DeviceSelectorPanel extends Composite {
 
    /**
     * Set device name<br>
-    * Used to determine initially selected devices
+    * Used to determine initially selected device
     *  
     * @param targetName
     */
-   public void setDevice(String name) {
-      if (name == null) {
+   public void setDevice(String targetName) {
+      fDeviceName = null;
+      if (targetName == null) {
+         fTree.select(null);
          return;
       }
-      TreeItem item = findLeafNode(tree, name);
+      TreeItem item = findLeafNode(fTree, targetName);
       if (item != null) {
-         text.setText(item.getText());
+         fDeviceName = item.getText();
+         fDeviceText.setText(fDeviceName);
       }
    }
 
@@ -275,38 +284,41 @@ public class DeviceSelectorPanel extends Composite {
    private void createControl(Composite parent) {
       setLayout(new GridLayout(2, false));
 
-      Label label =new Label(this, SWT.NONE);
+      Label label = new Label(this, SWT.NONE);
       label.setText("Device: ");
-      text = new Text(this, SWT.BORDER|SWT.READ_ONLY|SWT.NO_FOCUS);
-      text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-      text.addFocusListener(new FocusListener() {
+      fDeviceText = new Text(this, SWT.BORDER|SWT.READ_ONLY|SWT.NO_FOCUS);
+      fDeviceText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+      fDeviceText.addFocusListener(new FocusListener() {
          @Override
          public void focusLost(FocusEvent e) {
          }
          
          @Override
          public void focusGained(FocusEvent e) {
-            tree.setFocus();
+            fTree.setFocus();
          }
       });
-      tree = new Tree(this, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-      tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-      tree.addListener(SWT.Selection, new Listener() {
+      fDeviceText.setText("<No device selected>");
+      
+      fTree = new Tree(this, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+      fTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+      
+      fTree.addListener(SWT.Selection, new Listener() {
          public void handleEvent(Event event) {
-
             if (event.detail != SWT.CHECK) {
                if (event.item instanceof TreeItem) {
                   TreeItem treeItem = (TreeItem) event.item;
                   if (treeItem.getItemCount() == 0) {
-                     text.setText(treeItem.getText());
-                     text.notifyListeners(SWT.CHANGED, new Event());
+                     fDeviceName = treeItem.getText();
+                     fDeviceText.setText(fDeviceName);
+                     fDeviceText.notifyListeners(SWT.CHANGED, new Event());
                   }
                }
             }
          }
       });
 
-      tree.addListener(SWT.Expand, new Listener() {
+      fTree.addListener(SWT.Expand, new Listener() {
          public void handleEvent(Event event) {
 
             if (event.detail != SWT.CHECK) {
@@ -342,10 +354,10 @@ public class DeviceSelectorPanel extends Composite {
     * @return Error message or null if no problems
     */
    public String validate() {
-      if ((deviceDatabase == null) || (!deviceDatabase.isValid())) {
+      if ((fDeviceDatabase == null) || (!fDeviceDatabase.isValid())) {
          return "Device database is invalid";
       }
-      if (text.getText().length() == 0) {
+      if (fDeviceText.getText().length() == 0) {
          return "Select device";
       }
       return null;
@@ -357,42 +369,43 @@ public class DeviceSelectorPanel extends Composite {
     * @return Selected device
     */
    public Device getDevice() {
-      if ((deviceDatabase == null) || (deviceDatabase.getTargetType() != targetType)) {
-         deviceDatabase = new DeviceDatabase(targetType);
+      if ((fDeviceDatabase == null) || 
+          (!fDeviceDatabase.isValid()) || 
+          (fDeviceDatabase.getTargetType() != fTargetType)) {
+         return null;
       }
+//      if ((fDeviceDatabase == null) || (fDeviceDatabase.getTargetType() != fTargetType)) {
+//         fDeviceDatabase = new DeviceDatabase(fTargetType);
+//      }
       Device device = null;
-      if (deviceDatabase.isValid()) {
-         String deviceName = text.getText();
-         device = deviceDatabase.getDevice(deviceName);
-         if (device == null) {
-            device = deviceDatabase.getDefaultDevice();
-         }
+      if ((fDeviceName != null) && fDeviceDatabase.isValid()) {
+         device = fDeviceDatabase.getDevice(fDeviceName);
       }
       return device;
    }
 
+   /**
+    * Get name of selected device (or null if none)
+    * 
+    * @return Selected device
+    */
+   public String getDeviceName() {
+      return fDeviceName;
+   }
+   
    /* (non-Javadoc)
     * @see org.eclipse.swt.widgets.Widget#addListener(int, org.eclipse.swt.widgets.Listener)
     */
    @Override
    public void addListener(int eventType, Listener listener) {
       if (eventType == SWT.CHANGED) {
-         text.addListener(eventType, listener);
+         fDeviceText.addListener(eventType, listener);
       }
       else {
          super.addListener(eventType, listener);
       }
    }
 
-   /**
-    * Get name of selected device
-    * 
-    * @return Name of device
-    */
-   public String getText() {
-      return text.getText();
-   }
-   
    public static void main(String[] args) {
       Display display = new Display();
       Shell shell = new Shell(display);

@@ -159,7 +159,7 @@ public class UsbdmExampleSelectionPage extends WizardPage  implements IWizardPag
 //   }
 //   
    @Override
-   public String getSelectedBuildToolsId() {
+   public String getBuildToolsId() {
 
       if (projectInformation == null) {
          return "";

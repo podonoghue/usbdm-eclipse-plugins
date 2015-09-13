@@ -98,7 +98,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    private CheckboxTreeViewer peripheralsTreeViewer;
    private final String[] treeProperties = new String[] { "col1", "col2", "col3", "col4" };
-   private PeripheralsInformationPanel peripheralsInformationPanel;
+   private PeripheralsInformationPanel peripheralsInformationPanel = null;
 
    private Action        filterPeripheralAction;
    private Action        setDeviceAction;
@@ -463,9 +463,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       peripheralsInformationPanel = new PeripheralsInformationPanel(form, SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY, this.peripheralsTreeViewer);
       form.setWeights(new int[] { 80, 20 });
 
-      // So information panel is updated when selection changes
-      peripheralsTreeViewer.addSelectionChangedListener(peripheralsInformationPanel);
-
       // Tree expansion/collapse
       peripheralsTreeViewer.addTreeListener(new ITreeViewerListener() {
 
@@ -806,6 +803,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                   peripheralsTreeViewer.refresh(node);
                }
             }
+            // TODO - Check if needed
             peripheralsInformationPanel.updateContent();
          }
       });
@@ -831,7 +829,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          UsbdmDevicePeripheralsView view = new UsbdmDevicePeripheralsView();
 
          view.createPartControl(composite);
-         Path                        path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+         Path                        path = Paths.get("C:/Users/Peter/Documents/Development/Git/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
          SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
 //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
          UsbdmDevicePeripheralsModel peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, svdId);

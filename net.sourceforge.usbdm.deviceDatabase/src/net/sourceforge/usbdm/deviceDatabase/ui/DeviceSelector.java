@@ -19,9 +19,9 @@ import org.eclipse.swt.widgets.Shell;
 public class DeviceSelector extends TitleAreaDialog  {
 
    DeviceSelectorPanel deviceSelectorPanel;
-   TargetType          targetType   = null;
-   String              targetName   = null;
-   Device              targetDevice = null;
+   TargetType          fTargetType   = null;
+   String              fTargetName   = null;
+   Device              fTargetDevice = null;
    
    /**
     * Create dialog
@@ -32,8 +32,8 @@ public class DeviceSelector extends TitleAreaDialog  {
     */
    public DeviceSelector(Shell parent, TargetType targetType, String targetName) {
       super(parent);
-      this.targetType = targetType;
-      this.targetName = targetName;
+      fTargetType = targetType;
+      fTargetName = targetName;
    }
    
    /**
@@ -43,7 +43,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     * @param targetType
     */
    public void setTargetType(TargetType targetType) {
-      this.targetType = targetType;
+      fTargetType = targetType;
    }
    
    /**
@@ -53,7 +53,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     * @param targetName
     */
    public void setDevice(String targetName) {
-      this.targetName = targetName;
+      fTargetName = targetName;
    }
    
    /* (non-Javadoc)
@@ -63,8 +63,8 @@ public class DeviceSelector extends TitleAreaDialog  {
    protected Control createDialogArea(Composite parent) {
       Composite comp = (Composite)super.createDialogArea(parent);
       deviceSelectorPanel = new DeviceSelectorPanel(comp, SWT.NONE);
-      deviceSelectorPanel.setTargetType(targetType);
-      deviceSelectorPanel.setDevice(targetName);
+      deviceSelectorPanel.setTargetType(fTargetType);
+      deviceSelectorPanel.setDevice(fTargetName);
       GridDataFactory.generate(deviceSelectorPanel, 1, 1);
       
       deviceSelectorPanel.addListener(SWT.CHANGED, new Listener() {
@@ -83,8 +83,8 @@ public class DeviceSelector extends TitleAreaDialog  {
       if (deviceSelectorPanel != null) {
          setMessage(deviceSelectorPanel.validate());
          getButton(IDialogConstants.OK_ID).setEnabled(deviceSelectorPanel.validate() == null);
-         targetName   = deviceSelectorPanel.getText();
-         targetDevice = deviceSelectorPanel.getDevice();
+         fTargetName   = deviceSelectorPanel.getDeviceName();
+         fTargetDevice = deviceSelectorPanel.getDevice();
       }
    }
    
@@ -132,7 +132,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     * @return Name of device as string
     */
    public String getText() {
-      return targetName;
+      return fTargetName;
    }
    
    /**
@@ -141,7 +141,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     * @return Device
     */
    public Device getDevice() {
-      return targetDevice;
+      return fTargetDevice;
    }
    
    public static void main(String[] args) {
@@ -151,7 +151,9 @@ public class DeviceSelector extends TitleAreaDialog  {
       
       DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, null);//"MK20DX128M5");
       deviceSelector.open();
-
+      
+      System.out.println("Device = " + deviceSelector.getDevice().getName());
+      
       display.dispose();
    }
 }

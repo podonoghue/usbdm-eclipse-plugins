@@ -41,10 +41,11 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
    private Boolean         fHasChanged          = true;
    private Boolean         fCreateStaticLibrary = false;
 
-   protected UsbdmNewProjectPage_1() {
+   protected UsbdmNewProjectPage_1(UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
       setTitle(PAGE_TITLE);
       setDescription("Creates a new USBDM C/C++ Project");
+      setWizard(usbdmNewProjectWizard);
    }
 
    private Control createProjectNameControl(Composite parent) {
@@ -411,6 +412,18 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       return outputType;
    }
    
+   /**
+    * Updates paramMap from dialogue contents
+    * 
+    * @param paramMap
+    * 
+    * projectName      Name of project being created 
+    * projectHomePath  Home path of project (empty indicates default)
+    * interfaceType    ARM/Coldfire interface type e.g. T_ARM
+    * hasCCNature      Indicates C++ nature (true/false)
+    * outputType       net.sourceforge.usbdm.cdt.newProjectType.exe/net.sourceforge.usbdm.cdt.newProjectType.staticLib
+    * semiHosting      Indicates semi-hosting is desired (true/false)
+    */
    public void getPageData(Map<String, String> paramMap) {
       paramMap.put(UsbdmConstants.PROJECT_NAME_KEY,         fProjectNameText.getText().trim());
       paramMap.put(UsbdmConstants.PROJECT_HOME_PATH_KEY,    getProjectLocation());

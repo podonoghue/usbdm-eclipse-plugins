@@ -10,6 +10,12 @@ package net.sourceforge.usbdm.peripherals.model;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.widgets.Display;
+
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
@@ -191,20 +197,21 @@ public class UsbdmDevicePeripheralsModel {
    }
    
    /**
-    * Creates the tree entries for a peripheral
+    * Creates the tree entries for a device's peripherals
     * 
-    * @param devicePeripherals 
-    * @param gdbInterface
+    * @param deviceModel               Model to load into
+    * @param devicePeripherals         Description of device peripherals
+    * @param gdbInterface              GDB interface to associate with model
     * 
-    * @throws IllegalArgumentException 
-    * @throws RegisterException 
+    * @throws IllegalArgumentException
+    * @throws RegisterException
     */
-   public static DeviceModel createDeviceModel(DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) throws IllegalArgumentException, RegisterException {
+   public static void loadDeviceModel(DeviceModel deviceModel, DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) throws IllegalArgumentException, RegisterException {
 
       if (devicePeripherals == null) {
          throw new IllegalArgumentException("devicePeripherals may not be null");
       }
-      DeviceModel deviceModel = new DeviceModel(devicePeripherals.getName()) ;
+      deviceModel.setName(devicePeripherals.getName());
       if (gdbInterface != null) {
          gdbInterface.setLittleEndian(devicePeripherals.getCpu().getEndian().equalsIgnoreCase("little"));
       }
@@ -222,6 +229,8 @@ public class UsbdmDevicePeripheralsModel {
          throw new IllegalArgumentException("unexpected value from devicePeripherals.getCpu().getName()");
       }
 
+      deviceModel.children.clear();
+      
       // Add the peripherals
       for (Peripheral peripheral : devicePeripherals.getPeripherals()) {
          if (isExcludedPeripheral(peripheral.getName())) {
@@ -229,7 +238,6 @@ public class UsbdmDevicePeripheralsModel {
          }
          createPeripheralModel(deviceModel, peripheral, gdbInterface);     
       }
-      return deviceModel;
    }
 
    private DeviceModel        model        = null;
@@ -246,7 +254,7 @@ public class UsbdmDevicePeripheralsModel {
     */
    public static final UsbdmDevicePeripheralsModel createModel(GdbCommonInterface gdbInterface, SVDIdentifier svdIdentifier) {
       UsbdmDevicePeripheralsModel model = null;
-       try {
+      try {
          model = new UsbdmDevicePeripheralsModel(gdbInterface, svdIdentifier);
       } catch (Exception e) {
          e.printStackTrace();
@@ -321,12 +329,32 @@ public class UsbdmDevicePeripheralsModel {
     * Loads device model using path to SVD file or device name
     * 
     * @param svdId Path to SVD file or device name (standard locations are searched)
-    * @throws Exception 
     */
-   public void setDevice(SVDIdentifier svdId) throws Exception {
-      DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
-      DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
-      setDevice(devicePeripherals);
+   public void setDevice(final SVDIdentifier svdId) {
+      model = new DeviceModel(svdId.getDeviceName());
+      
+      Job job = new Job("Loading Peripheral models") {
+         protected IStatus run(IProgressMonitor monitor) {
+            monitor.beginTask("Loading Peripheral models...", 10);
+            DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
+            DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
+            try {
+               setDevice(devicePeripherals);
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+            Display.getDefault().asyncExec(new Runnable() {
+               public void run() {
+                  model.notifyStructureChangeListeners();
+                  model.notifyListeners();
+               }
+            });
+            monitor.done();
+            return Status.OK_STATUS;
+         }
+      };
+      job.setUser(false);
+      job.schedule();
    }
    
    /**
@@ -337,7 +365,7 @@ public class UsbdmDevicePeripheralsModel {
     */
    public void setDevice(DevicePeripherals devicePeripherals) throws Exception {
 //      System.err.println("UsbdmDevicePeripheralsModel.setDevice()");
-      model = createDeviceModel(devicePeripherals, gdbInterface);
+      loadDeviceModel(model, devicePeripherals, gdbInterface);
    }
    
    /**

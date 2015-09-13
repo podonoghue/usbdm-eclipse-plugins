@@ -127,13 +127,6 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
       }
       
       /**
-       * Notifies listeners of a change in value
-       */
-      private void notifyAllListeners() {
-         notifyListeners();
-      }
-      
-      /**
        * Set the value of the register quietly - doesn't synchronize with target
        * May triggers view update
        * Updates last value
@@ -276,13 +269,13 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
             // Always report if changed
 //            System.err.println("RegisterModel.notifyMemoryChanged() - Changed - notifying listeners");
             haveReportedChanged = true;
-            notifyAllListeners();
+            notifyListeners();
          }
          else if (haveReportedChanged) {
             // Only report if need to remove highlight
 //            System.err.println("RegisterModel.notifyMemoryChanged() - Not changed but clearing highlight - notifying listeners");
             haveReportedChanged = false;
-            notifyAllListeners();
+            notifyListeners();
          }
          else {
             // Nothing of interest changed

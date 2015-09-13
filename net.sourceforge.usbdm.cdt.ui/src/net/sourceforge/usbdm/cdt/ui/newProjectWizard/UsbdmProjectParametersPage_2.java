@@ -11,26 +11,18 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.constants.ToolInformationData;
-//import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
-import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
-import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
-import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
-import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
-
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -47,6 +39,19 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.constants.ToolInformationData;
+//import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
+import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
+import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
+
 /**
  *  USBDM New Project Wizard page "USBDM Project"
  *
@@ -61,28 +66,64 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
    private DeviceSelectorPanel   fDeviceSelector;
    private String                fBuildToolIds[] = null;
    private Boolean               fHasChanged     = true;
+   
+   private String                fBuildToolId = null;
+   Map<String, String>           fPageData    = null;
 
-   public UsbdmProjectParametersPage_2(Map<String, String> paramMap) {
+   public UsbdmProjectParametersPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
       fInterfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
       setTitle(PAGE_TITLE);
       setDescription("Select project parameters");
       setPageComplete(false);
-//      getName();
+      setWizard(usbdmNewProjectWizard);
    }
 
+   /**
+    * Updates the internal state
+    * This is done on a worker thread as it is time consuming
+    * After completion it calls page.setPageComplete() to notify wizard of changes
+    */
+   void updateState() {
+      final UsbdmNewProjectWizard wizard = (UsbdmNewProjectWizard) getWizard();
+      final UsbdmProjectParametersPage_2 page = this;
+
+      if (wizard != null) {
+         Job job = new Job("Updating configuration") {
+            protected IStatus run(IProgressMonitor monitor) {
+               monitor.beginTask("Updating Pages...", 10);
+               updatePageData();
+               Display.getDefault().asyncExec(new Runnable() {
+                  @Override
+                  public void run() {
+                     page.setPageComplete(true);
+                  }
+               });
+               monitor.done();
+               return Status.OK_STATUS;
+            }
+         };
+         job.setUser(true);
+         job.schedule();
+      }      
+   }
+   
    /**
     *  Validates control & sets error message
     */
    private void validate() {
+//      System.err.println("UsbdmProjectParametersPage_2.validate()");
+      fHasChanged = true;
+      setPageComplete(false);
       String message = null;
       if (fDeviceSelector != null) {
          message = fDeviceSelector.validate();
       }
 //      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
       setErrorMessage(message);
-      setPageComplete(message == null);
-      fHasChanged = true;
+      if (message == null) {
+         updateState();
+      }
    }
 
    private void loadBuildtoolNames() {
@@ -100,10 +141,15 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       }
       // Try to restore current selection
       fBuildToolsCombo.setText(currentTool);
+      updateBuildToolId();
+   }
+   
+   private void updateBuildToolId() {
       int buildToolIndex = fBuildToolsCombo.getSelectionIndex();
       if (buildToolIndex<0) {
          fBuildToolsCombo.select(0);
       }
+      fBuildToolId = fBuildToolIds[fBuildToolsCombo.getSelectionIndex()];
    }
    
    private void createUsbdmParametersControl(Composite parent) {
@@ -128,13 +174,18 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       label.setText("Build tools:"); //$NON-NLS-1$
       fBuildToolsCombo = new Combo(group, SWT.BORDER|SWT.READ_ONLY);
       fBuildToolsCombo.setLayoutData(GridDataFactory.fillDefaults().hint(250, SWT.DEFAULT).create());
-      fBuildToolsCombo.select(0);
       loadBuildtoolNames();
-
+      fBuildToolsCombo.addListener(SWT.CHANGED, new Listener() {
+         @Override
+         public void handleEvent(Event paramEvent) {
+            updateBuildToolId();
+         }
+      });
       if (dialogSettings != null) {
          String attrValue = dialogSettings.get(fInterfaceType.name()+UsbdmConstants.BUILD_TOOLS_ID_KEY);
          if (attrValue != null) {
             fBuildToolsCombo.setText(attrValue);
+            updateBuildToolId();
          }
       }
       
@@ -165,8 +216,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          }
       }
       else {
-         // For debug
-         // TODO - Change default device for testing
+         // XXX - Change default device for testing
          fDeviceSelector.setDevice("FRDM_K64F");
       }
    }
@@ -183,13 +233,8 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       validate();
    }
 
-   public String getSelectedBuildToolsId() {
-      
-      int index = fBuildToolsCombo.getSelectionIndex();
-      if (index > fBuildToolIds.length) {
-         return "";
-      }
-      return fBuildToolIds[index];
+   public String getBuildToolsId() {
+      return fBuildToolId;
    }
    
    static String getRangeSuffix(int count) {
@@ -539,13 +584,21 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
    " * ============================\n"+
    " */\n";
    
+   DevicePeripherals getDevicePeripherals(final Device device) {
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device.getName());
+      if (devicePeripherals == null) {
+         devicePeripherals = factory.getDevicePeripherals(device.getSubFamily());
+      }
+      return devicePeripherals;
+   }
+   
    /**
     * Adds device specific attributes to map
     * 
     * @param paramMap Map to add attributes to
     */
    private void addDeviceAttributes(Device device, Map<String, String> paramMap) {
-      
       if (device == null) {
          return;
       }
@@ -568,14 +621,9 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
 
       try {
          if (externalVectorTableFile.isEmpty()) {
-            String cVectorTable = null;
             // Generate vector table from SVD files if possible
-
-            DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
-            DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device.getName());
-            if (devicePeripherals == null) {
-               devicePeripherals = factory.getDevicePeripherals(device.getSubFamily());
-            }
+            DevicePeripherals devicePeripherals = getDevicePeripherals(device);
+            String cVectorTable = null;
             if (devicePeripherals != null) {
                cVectorTable = devicePeripherals.getCVectorTableEntries();
             }
@@ -604,58 +652,72 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,   externalVectorTableFile);
    }
    
-   /*
-    Names available in template:
-    
-    $(buildToolsBinPath)      Build tools path (usually a variable reference e.g. "${codesource_bin_path}"
-    $(buildToolsId)           Build tools Id e.g. "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.gnuToolsForARM"
-    $(clockTrimFrequency)     Clock trim frequency
-    $(cDeviceParameters)
-    $(cVectorTable)           Vector table for insertion into C startup code
-    $(externalHeaderFile)     Path to external device specific header file <deviceName>.h (if found)
-    $(externalLinkerScript)   Path to external device specific linker file (if found)
-    $(externalVectorTable)    Path to external device specific vector table file vectors.c (if found)
-    $(gdbCommand)             GDB command (usually involves a variable reference e.g."${codesourcery_coldfire_prefix}/gdb")
-    $(interfaceType)          Hardware interface type (e.g. T_ARM)
-    $(linkerRamSize)
-    $(linkerStackSize)
-    $(linkerHeapSize)
-    $(linkerInformation)      Information for linker file
-    $(nvmClockTrimLocation)   Non-volatile clock trim location
-    $(pathSeparator)          OS dependent path separator
-    $(startup_ARMLtdGCC_S)    Name of ARM Ltd GCC target specific startup file
-    $(targetDevice)           Target device name (mixed case e.g. MCF51cn128)
-    $(targetDeviceName)       Target device name (lower case mcf51cn18)
-    $(targetDeviceFamily)     Target device family (e.g. CortexM4)
-    $(targetDeviceSubFamily)  Target device sub-family (e.g. MK50D10)s
-    $(usbdmGdbSprite)         USBDM GDB sprite (e.g. "usbdm-arm-gdbServer.exe")
-    $(usbdmApplicationPath)   Substitution variable ${usbdm_application_path}
+   /**
+    * Gets data from this page as a map
+    * 
+    * @param paramMap Map to add data to
+    * 
+    * buildToolsBinPath      Build tools path (usually a variable reference e.g. "${usbdm_armLtd_arm_path}"
+    * buildToolsId           Build tools Id e.g. "net.sourceforge.usbdm.cdt.toolchain.processor.usbdmConfigure.armLtdGnuToolsForARM"
+    * clockTrimFrequency     Clock trim frequency
+    * cDeviceParameters
+    * cVectorTable           Vector table for insertion into C startup code
+    * externalHeaderFile     Path to external device specific header file <deviceName>.h (if found)
+    * externalLinkerScript   Path to external device specific linker file (if found)
+    * externalVectorTable    Path to external device specific vector table file vectors.c (if found)
+    * gdbCommand             GDB command (usually involves a variable reference e.g."${codesourcery_coldfire_prefix}gdb")
+    * linkerFlashSize        e.g.0x100000
+    * linkerHeapSize         e.g.0x10000
+    * linkerRamSize          e.g.0x40000
+    * linkerStackSize        e.g.0x10000
+    * linkerInformation      Information for linker file
+    * nvmClockTrimLocation   Non-volatile clock trim location
+    * pathSeparator          OS dependent path separator
+    * startup_ARMLtdGCC_S    Name of ARM Ltd GCC target specific startup file
+    * targetDevice           Target device name (mixed case e.g. MCF51cn128)
+    * targetDeviceName       Target device name (lower case mcf51cn18)
+    * targetDeviceFamily     Target device family (e.g. CortexM4)
+    * targetDeviceSubFamily  Target device sub-family (e.g. MK50D10)
     */
-   public void getPageData(Map<String, String> paramMap)  {
+   public synchronized void getPageData(Map<String, String> paramMap)  {
+      if (fPageData != null) {
+         paramMap.putAll(fPageData);
+      }
+   }
+
+   private synchronized void updatePageData()  {
+      Map<String, String> pageData = new HashMap<String, String>();
+
       Device device = getDevice();
+//      System.err.println("UsbdmProjectParametersPage_2.updatePageData() device = " + ((device==null)?"null":device.getName()));
+      if (device == null) {
+         return;
+      }
+      pageData.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
 
-      paramMap.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
-
-      String buildToolsId = getSelectedBuildToolsId();
+      String buildToolsId = getBuildToolsId();
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(buildToolsId);
       if (toolInfo == null) {
-         paramMap.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
-         paramMap.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
+         pageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
+         pageData.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
       }
       else {
-         paramMap.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
-         paramMap.put(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
+         pageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
+         pageData.put(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
       }
-      paramMap.put(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
-      paramMap.put(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
-      paramMap.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
-      paramMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
-      paramMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
+      pageData.put(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
+      pageData.put(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
+      pageData.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
+      pageData.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
+      pageData.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
       
-      paramMap.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
+      pageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
 
-      addDeviceAttributes(device, paramMap);
-//      System.err.println("UsbdmProjectPage.getPageData()");
+//      System.err.println("getPageData() - #2");
+      addDeviceAttributes(device, pageData);
+      fPageData = pageData;
+      
+//      System.err.println("UsbdmProjectParametersPage_2.updatePageData() - exit");
    }
 
    public Device getDevice() {
@@ -681,7 +743,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings != null) {
          dialogSettings.put(fInterfaceType.name()+UsbdmConstants.BUILD_TOOLS_ID_KEY, fBuildToolsCombo.getText());
-         dialogSettings.put(fInterfaceType.name()+UsbdmConstants.TARGET_DEVICE_KEY, fDeviceSelector.getText());
+         dialogSettings.put(fInterfaceType.name()+UsbdmConstants.TARGET_DEVICE_KEY,  fDeviceSelector.getDeviceName());
       }
    }
    
@@ -701,7 +763,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       Composite composite = new Composite(shell, SWT.NONE);
       composite.setLayout(new FillLayout());
 
-      UsbdmProjectParametersPage_2 page = new UsbdmProjectParametersPage_2(null);
+      UsbdmProjectParametersPage_2 page = new UsbdmProjectParametersPage_2(null, null);
       page.createControl(composite);
 
       shell.open();

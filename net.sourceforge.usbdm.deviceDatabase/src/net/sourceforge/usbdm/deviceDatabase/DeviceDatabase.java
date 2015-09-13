@@ -15,6 +15,17 @@ import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.custom.BusyIndicator;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
@@ -23,12 +34,6 @@ import net.sourceforge.usbdm.jni.UsbdmJniConstants;
 import net.sourceforge.usbdm.packageParser.FileList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 public class DeviceDatabase {
 
    private ArrayList<Device> deviceList;       // List of all devices (including aliases)
@@ -36,7 +41,7 @@ public class DeviceDatabase {
 
    private Document          dom;
    private boolean           valid = false;
-   private TargetType        targetType;
+   private TargetType        fTargetType;
    
    class SharedInformationMap extends HashMap<String, Object> {
       private static final long serialVersionUID = 1192713020204077765L;
@@ -236,7 +241,7 @@ public class DeviceDatabase {
       String name = deviceElement.getAttribute("name");
 
       //  Create a new Device with the value read from the XML nodes
-      Device device = new Device(targetType, name);
+      Device device = new Device(fTargetType, name);
 
       if (deviceElement.hasAttribute("alias")) {
          String aliasName = deviceElement.getAttribute("alias");
@@ -398,6 +403,7 @@ public class DeviceDatabase {
             parseDeviceList(element);
          }
       }
+      valid = true;
    }
 
    /**
@@ -519,30 +525,68 @@ public class DeviceDatabase {
     *  
     *  @throws Exception 
     */
-   public DeviceDatabase(TargetType targetType) {
-            
-      this.targetType   = targetType;
-      
+   public DeviceDatabase(final TargetType targetType) {
+
+      fTargetType   = targetType;
+
       deviceList        = new ArrayList<Device>();
       sharedInformation = new SharedInformationMap();
       valid             = false;
-      
-      try {
-         Path databasePath = getXmlFilepath(targetType);
-         
-         // Parse the xml file
-         parseXmlFile(databasePath);
-         
-         //  Process XML contents and generate Device list
-         parseDocument();
-         valid = true;
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
+
+      BusyIndicator.showWhile(null, new Runnable() {
+         public void run() {
+            try {
+               // Parse the xml file
+               parseXmlFile(getXmlFilepath(targetType));
+
+               //  Process XML contents and generate Device list
+               parseDocument();
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+      });
+   }
+   
+   /**
+    *  Constructor
+    * 
+    *  @param xmlFilename device database file name e.g. arm_devices.xml
+    *  
+    *  @throws Exception 
+    */
+   public DeviceDatabase(final TargetType targetType, final IDatabaseListener listener) {
+
+      fTargetType       = targetType;
+      deviceList        = new ArrayList<Device>();
+      sharedInformation = new SharedInformationMap();
+      valid             = false;
+
+      Job job = new Job("Long Job") {
+         protected IStatus run(IProgressMonitor monitor) {
+            monitor.beginTask("Loading device database...", 10);
+            
+            try {
+               // Parse the xml file
+               parseXmlFile(getXmlFilepath(targetType));
+               
+               //  Process XML contents and generate Device list
+               parseDocument();
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+            // Run long running task here
+            monitor.done();
+            listener.databaseLoaded(DeviceDatabase.this);
+            return Status.OK_STATUS;
+         }
+      };
+      job.setUser(true);
+      job.schedule();
    }
    
    public TargetType getTargetType() {
-      return targetType;
+      return fTargetType;
    }
 
 //   private int nestingLimit = 0;

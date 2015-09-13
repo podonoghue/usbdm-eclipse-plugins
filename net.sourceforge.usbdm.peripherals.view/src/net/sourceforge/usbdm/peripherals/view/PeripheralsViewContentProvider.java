@@ -1,13 +1,13 @@
 package net.sourceforge.usbdm.peripherals.view;
 
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+
 import net.sourceforge.usbdm.peripherals.model.BaseModel;
 import net.sourceforge.usbdm.peripherals.model.IModelChangeListener;
 import net.sourceforge.usbdm.peripherals.model.ObservableModel;
-
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.ITreeSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.Viewer;
+import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
 
 /**
  * Provides the contents from the tree view (from model)
@@ -59,7 +59,9 @@ class PeripheralsViewContentProvider implements ITreeContentProvider, IModelChan
       // + model.toString());
       model.addListener(this);
       for (Object childModel : model.getChildren()) {
-         addListenerTo(((BaseModel) childModel));
+         if (childModel instanceof PeripheralModel) {
+            addListenerTo(((BaseModel) childModel));
+         }
          // System.err.println("PeripheralsViewContentProvider.addListenerTo(), listener = "
          // + childModel.toString());
       }
@@ -74,22 +76,23 @@ class PeripheralsViewContentProvider implements ITreeContentProvider, IModelChan
 
    @Override
    public void modelElementChanged(ObservableModel model) {
-      // System.err.println("modelElementChanged() model = " +
-      // ((BaseModel)model).getName() );
-
       if (treeViewer != null) {
-         // System.err.println("modelElementChanged() model is expanded");
-         // treeViewer.update(model, new String[]{treeProperties[1]});
          treeViewer.refresh(model, true);
-         ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-         if (selection.getFirstElement() == model) {
-            PeripheralsInformationPanel panel = view.getInformationPanel();
-            if (panel != null) {
-               panel.updateContent();
-            }
-         }
+//         ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
+//         if (selection.getFirstElement() == model) {
+//            PeripheralsInformationPanel panel = view.getInformationPanel();
+//            if (panel != null) {
+//               // TODO - Check if needed
+////               panel.updateContent();
+//            }
+//         }
       }
    }
 
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+      // Add listeners to new structure
+      addListenerTo((BaseModel) model);
+   }
 }
 

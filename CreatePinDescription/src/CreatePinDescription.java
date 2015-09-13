@@ -950,7 +950,7 @@ public class CreatePinDescription extends DocumentUtilities {
       writeCloseGroup(gpioHeaderFile);
 
       /* 
-       * TODO - Write debug information
+       * XXX - Write debug information
        */
       gpioHeaderFile.write("/*\n");
       ArrayList<String> peripheralPins = new ArrayList<String>();

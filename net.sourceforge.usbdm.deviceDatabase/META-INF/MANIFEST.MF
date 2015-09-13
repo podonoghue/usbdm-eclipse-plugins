@@ -18,4 +18,5 @@ Import-Package: net.sourceforge.usbdm.deviceDatabase,
  org.eclipse.swt.events,
  org.eclipse.swt.graphics,
  org.eclipse.swt.layout,
- org.eclipse.swt.widgets
+ org.eclipse.swt.widgets,
+ org.eclipse.ui

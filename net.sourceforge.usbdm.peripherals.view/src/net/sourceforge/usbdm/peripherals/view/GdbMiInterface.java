@@ -179,19 +179,16 @@ public class GdbMiInterface extends GdbCommonInterface {
 
    @Override
    public long setFrame(int frameNum) throws Exception {
-      // TODO Auto-generated method stub
       return 0;
    }
 
    @Override
    public IFrameDMContext getExceptionStackFrameContext() throws Exception {
-      // TODO Auto-generated method stub
       return null;
    }
 
    @Override
    public long evaluateExpression(IExpressions expressionService, IFrameDMContext frame, String expression) {
-      // TODO Auto-generated method stub
       return 0;
    }
 }

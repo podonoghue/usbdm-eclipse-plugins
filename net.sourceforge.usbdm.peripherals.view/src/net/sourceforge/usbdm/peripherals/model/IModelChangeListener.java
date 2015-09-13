@@ -13,4 +13,12 @@ public interface IModelChangeListener {
     * @param observableModel - The model element that has changed
     */
    void modelElementChanged(ObservableModel observableModel);
+   
+   /**
+    * Called when the model changes structure.
+    * 
+    * @param observableModel - The model element that has changed
+    */
+   void modelStructureChanged(ObservableModel observableModel);
+   
 }

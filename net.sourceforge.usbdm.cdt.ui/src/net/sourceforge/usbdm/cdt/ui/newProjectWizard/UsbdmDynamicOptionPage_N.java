@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 /**
  *  USBDM New Project Wizard page "USBDM Project"
  */
-public class UsbdmProjectOptionsPage_3 extends WizardPage {
+public class UsbdmDynamicOptionPage_N extends WizardPage {
 
    private UsbdmNewProjectOptionsPanel    fUsbdmNewProjectOptionsPanel = null;
    private Device                         fDevice = null;
@@ -40,28 +40,28 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
    private Map<String, String>            fParamMap = null;
    private WizardPageInformation          fWizardPageInfo = null;
 
-   public UsbdmProjectOptionsPage_3 (
+   public UsbdmDynamicOptionPage_N (
          Device                  device, 
          ProjectActionList       projectActionList,
-         Map<String, String>     paramMap, 
          WizardPageInformation   wizardPageInfo) {
       
       super(wizardPageInfo.getName());
       fDevice              = device;
       fProjectActionList   = projectActionList;
-      fParamMap            = paramMap;
+      fParamMap            = null;
       fWizardPageInfo      = wizardPageInfo;
       
       setTitle(wizardPageInfo.getName());
       setDescription(wizardPageInfo.getDescription());
       setPageComplete(false);
-//      System.err.println("UsbdmProjectOptionsPage_3() name = " + fWizardPageInfo.getName());
+//      System.err.println("UsbdmDynamicOptionPage_N() name = " + fWizardPageInfo.getName());
    }
 
    public String getPageID() {
       return fWizardPageInfo.getId();
    }
 
+   
    /* (non-Javadoc)
     * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
     */
@@ -70,9 +70,11 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
 
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings == null) {
-         System.err.println("UsbdmProjectOptionsPage_3.createControl() dialogSettings == null!");
+         System.err.println("UsbdmDynamicOptionPage_N.createControl() dialogSettings == null!");
       }
       try {
+         UsbdmNewProjectWizard wizard = (UsbdmNewProjectWizard) getWizard();
+         fParamMap = wizard.getparamMap();
          fUsbdmNewProjectOptionsPanel = new UsbdmNewProjectOptionsPanel(parent, SWT.NONE, dialogSettings, fDevice, fProjectActionList, fParamMap, fWizardPageInfo);
          fUsbdmNewProjectOptionsPanel.addListener(SWT.CHANGED, new Listener() {
             @Override
@@ -110,7 +112,7 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
     *   
     *   @param paramMap
     */
-   public void getButtonData(Map<String, String> paramMap) {
+   public void getPageData(Map<String, String> paramMap) {
       if (fUsbdmNewProjectOptionsPanel != null) {
          fUsbdmNewProjectOptionsPanel.getButtonData(paramMap);
       }
@@ -176,13 +178,13 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
       paramMap.put("linkerRamSize",   "0x100");
       paramMap.put("outputType",      "xxxxxProjectType.exe");
       paramMap.put("targetDevice",    deviceName);
-//      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap, "usbdm-project-options-page");
-//      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(deviceName, paramMap, "kinetis-CPP-abstraction-options-page");
+//      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(deviceName, paramMap, "usbdm-project-options-page");
+//      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(deviceName, paramMap, "kinetis-CPP-abstraction-options-page");
       WizardPageInformation wizardPageInfo = new WizardPageInformation("kinetis-sdk-options-page", "Kinetis", "Kinetis description");
       DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
       Device device = deviceDatabase.getDevice(deviceName);
       ProjectActionList projectActionList = device.getProjectActionList(paramMap);
-      UsbdmProjectOptionsPage_3 page = new UsbdmProjectOptionsPage_3(device, projectActionList, paramMap, wizardPageInfo);
+      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(device, projectActionList, wizardPageInfo);
       page.createControl(composite);
 
       shell.open();
@@ -190,7 +192,7 @@ public class UsbdmProjectOptionsPage_3 extends WizardPage {
          if (!display.readAndDispatch())
             display.sleep();
       }
-      page.getButtonData(paramMap);
+      page.getPageData(paramMap);
       display.dispose();
    }
    

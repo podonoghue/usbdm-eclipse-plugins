@@ -2,12 +2,13 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Apps/Freescale/KDS_3.0.0/eclipse/plugins/com.freescale.processorexpert.ui.pewizard_1.6.1.RT7_b1531-0480/com.freescale.processorexpert.ui.pewizard.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/net.sourceforge.usbdm.jni">
+	<classpathentry kind="src" path="src">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="net.sourceforge.usbdm.jni"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="net.sourceforge.usbdm.cdt.ui"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Apps/Freescale/KDS_3.0.0/eclipse/plugins/com.freescale.processorexpert.ui.pewizard_1.6.1.RT7_b1531-0480/com.freescale.processorexpert.ui.pewizard.jar"/>
+	<classpathentry kind="lib" path="/net.sourceforge.usbdm.jni/x86"/>
+	<classpathentry kind="lib" path="/net.sourceforge.usbdm.jni/x86_64"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

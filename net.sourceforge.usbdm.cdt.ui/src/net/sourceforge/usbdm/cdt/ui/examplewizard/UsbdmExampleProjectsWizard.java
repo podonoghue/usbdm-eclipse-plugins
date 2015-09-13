@@ -256,11 +256,11 @@ public class UsbdmExampleProjectsWizard extends Wizard implements INewWizard {
          newProject.open(null); 
 
          String additionalProjectNature = null;
-         if ((usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID)) ||
-               (usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID))) {
+         if ((usbdmSelectProjectWizardPage.getBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_ARM_BUILD_ID)) ||
+               (usbdmSelectProjectWizardPage.getBuildToolsId().equals(UsbdmSharedConstants.ARMLTD_ARM_BUILD_ID))) {
             additionalProjectNature = "net.sourceforge.usbdm.cdt.tools.ArmProjectNature";
          }
-         else if (usbdmSelectProjectWizardPage.getSelectedBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID)) {
+         else if (usbdmSelectProjectWizardPage.getBuildToolsId().equals(UsbdmSharedConstants.CODESOURCERY_COLDFIRE_BUILD_ID)) {
             additionalProjectNature = "net.sourceforge.usbdm.cdt.tools.ColdfireProjectNature";            
          }
          if (additionalProjectNature != null) {

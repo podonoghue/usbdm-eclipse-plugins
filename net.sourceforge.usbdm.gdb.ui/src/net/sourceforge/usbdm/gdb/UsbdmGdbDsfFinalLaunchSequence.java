@@ -241,7 +241,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
                   "stepUserInitCommands",                   //$NON-NLS-1$
                   "stepLoadImage",                          //$NON-NLS-1$
                   "stepUpdateContainer",                    //$NON-NLS-1$
-                  "stepInitializeMemory",                   //$NON-NLS-1$ //TODO check
+                  "stepInitializeMemory",                   //$NON-NLS-1$
                   "stepSetArguments",                       //$NON-NLS-1$
                   "stepSetEnvironmentVariables",            //$NON-NLS-1$
                   "stepStartTrackingBreakpoints",           //$NON-NLS-1$

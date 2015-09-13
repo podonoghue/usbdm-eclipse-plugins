@@ -3,12 +3,6 @@ package net.sourceforge.usbdm.peripherals.view;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
-import net.sourceforge.usbdm.peripherals.model.DeviceModel;
-import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
-import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
-
 import org.eclipse.cdt.dsf.debug.service.IRunControl.IExitedDMEvent;
 import org.eclipse.cdt.dsf.debug.service.IRunControl.IStartedDMEvent;
 import org.eclipse.cdt.dsf.debug.service.IRunControl.ISuspendedDMEvent;
@@ -19,6 +13,12 @@ import org.eclipse.cdt.dsf.service.DsfSession.SessionStartedListener;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
+import net.sourceforge.usbdm.peripherals.model.DeviceModel;
+import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
+import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 public class GdbDsfSessionListener implements SessionStartedListener, SessionEndedListener {
 
@@ -109,24 +109,20 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
       dsfSessions.remove(dsfSession.getId());
    }
 
-   /*
-    * ========================================================
-    *  Listeners on this DSF session interface
-    * ========================================================
-    */
    /**
     * Add a listener for GDB events
+    * 
+    * @param listener
     */
-   public void addListener(GdbSessionListener listener) {
-      
-//      System.err.println("addListener(GdbSessionListener) : " + listener);      
+   public void addListener(final GdbSessionListener listener) {
+
       gdbSessionListeners.add(listener);
       if (gdbSessionListeners.size() == 1) {
          // First listener - add session hooks
-//         System.err.println("addListener(GdbSessionListener) : adding session listeners");      
+//               System.err.println("addListener(GdbSessionListener) : adding session listeners");      
          addExistingSessions();
-         DsfSession.addSessionStartedListener(this);
-         DsfSession.addSessionEndedListener(this);
+         DsfSession.addSessionStartedListener(GdbDsfSessionListener.this);
+         DsfSession.addSessionEndedListener(GdbDsfSessionListener.this);
       }
       // Notify of any existing sessions
       for (DsfSession dsfSession : DsfSession.getActiveSessions()) {
@@ -137,6 +133,8 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
 
    /**
     * Remove a listener for GDB events
+    * 
+    * @param listener Listener to remove
     */
    public void removeListener(GdbSessionListener listener) {
 //      System.err.println("removeListener(GdbSessionListener) : " + listener);      
@@ -163,7 +161,10 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
     * 
     * @param event Event indicating session exists
     *  
-    * @return true => new session was added, false => session already exists
+    * @return true => new session was added, 
+    *     <br>false => session already exists
+    *     
+    * @note This can be time consuming as model is loaded from disk
     */
    private boolean addSession(String sessionId) {
       if (!dsfSessions.containsKey(sessionId)) {

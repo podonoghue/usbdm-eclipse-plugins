@@ -126,7 +126,7 @@ public class DevicePeripheralsProviderInterface {
     * @return
     */
    public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) {
-      System.err.println("DevicePeripherals.getDevice() looking for device = " + svdIdentifier);
+//      System.err.println("DevicePeripherals.getDevice() looking for device = " + svdIdentifier);
       if (svdIdentifier == null) {
          return null;
       }
@@ -150,7 +150,7 @@ public class DevicePeripheralsProviderInterface {
     * @return
     */
    public IPeripheralDescriptionProvider getProvider(final String providerId) {
-      System.err.println("IPeripheralDescriptionProvider.getProvider() looking for providerId = " + providerId);
+//      System.err.println("IPeripheralDescriptionProvider.getProvider() looking for providerId = " + providerId);
 
       IExtensionRegistry registry = Platform.getExtensionRegistry();
       if (registry == null) {

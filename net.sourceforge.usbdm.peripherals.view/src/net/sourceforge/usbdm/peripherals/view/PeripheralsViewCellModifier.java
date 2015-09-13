@@ -55,10 +55,11 @@ public class PeripheralsViewCellModifier implements ICellModifier {
 //               System.err.println("PeripheralsViewCellModifier.modify(FieldModel, ...) - format error");
             }
          }
-         PeripheralsInformationPanel panel = view.getInformationPanel();
-         if (panel != null) {
-            view.getInformationPanel().updateContent();
-         }
+//         PeripheralsInformationPanel panel = view.getInformationPanel();
+//         if (panel != null) {
+//            // TODO - Check if needed
+////        	    panel.updateContent();
+//         }
       }
    }
 

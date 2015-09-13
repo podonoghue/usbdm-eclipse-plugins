@@ -8,12 +8,17 @@
 package net.sourceforge.usbdm.peripherals.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 import net.sourceforge.usbdm.peripheralDatabase.AddressBlock;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripherals.view.GdbCommonInterface;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 
 public class MemoryBlockCache {
@@ -100,6 +105,9 @@ public class MemoryBlockCache {
        */
       public long getValue(long address, int sizeInBytes) throws MemoryException {
          allocateDataIfNeeded();
+         if (gdbInterface == null) {
+            return 0;
+         }
          switch (sizeInBytes) {
          case 1:  return get8bitValue(address);
          case 2:  return get16bitValue(address);
@@ -159,6 +167,7 @@ public class MemoryBlockCache {
       private void allocateDataIfNeeded() {
          if (data == null) {
             data = new byte[(int) getSize()];
+            Arrays.fill(data, (byte)0xAA);
          }
       }
 
@@ -327,172 +336,189 @@ public class MemoryBlockCache {
       /**
        * Retrieves block contents from target (if update not already pending).
        * This may trigger a view update.
+       * 
+       * @param model
+       * @note Done on worker thread
        */
-      public void retrieveValue(final ObservableModel model) {
+      public synchronized void retrieveValue(final ObservableModel model) {
          if (updatePending) {
+            // Update already initiated
             return;
          }
          allocateDataIfNeeded();
          updatePending = true;
-//         System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue schedule action", getAddress(), getAddress()+getSize()-1));
-         Runnable r = new Runnable() {
-            public void run() {
-               if (!isNeedsUpdate()) {
-                  // May have been updated since original request
-//                  System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.run() - no action", getAddress(), getAddress()+getSize()-1));
+
+         Job job = new Job("Updating peripheral display") {
+            protected IStatus run(IProgressMonitor monitor) {
+               monitor.beginTask("Updating peripheral display...", 10);
+               IStatus rv = Status.OK_STATUS;
+               try {
+                  if (!isNeedsUpdate()) {
+                     // May have been updated since original request
+//                     System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - no action", getAddress(), getAddress()+getSize()-1));
+                     updatePending = false;
+                     return Status.OK_STATUS;
+                  }
+//                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - reading from target", getAddress(), getAddress()+getSize()-1));
+                  byte[] value = null;
+                  try {
+                     value = gdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidthInBits());
+                  } catch (Exception e) {
+                     System.err.println("Unable to access target");
+                  }
+//                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - read from target", getAddress(), getAddress()+getSize()-1));
+                  setData(value);
+                  needsUpdate   = false;
                   updatePending = false;
-                  return;
-               }
-//               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.run() - reading from target", getAddress(), getAddress()+getSize()-1));
-               byte[] value = null;
-               try {
-                  value = gdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidthInBits());
-               } catch (Exception e) {
-                  System.err.println("Unable to access target");
-                  value = null;
-               }
-//               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.run() - read from target", getAddress(), getAddress()+getSize()-1));
-               setData(value);
-               needsUpdate   = false;
-               updatePending = false;
-//               System.err.println("MemoryBlockCache([0x%X..0x%X]).retrieveValue.timerExec() model = "+ model);
-               if (model != null) {
-                  if (model.isRefreshPending()) {
-//                     System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).retrieveValue.timerExec() refreshPending", getAddress(), getAddress()+getSize()-1));
-                     return;
-                  }
-                  model.setRefreshPending(true);
-               }
-               Display.getDefault().asyncExec(new Runnable () {
-                  @Override
-                  public void run () {
+//                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() model = %s", getAddress(), getAddress()+getSize()-1,  model));
+                  if ((model == null) || !model.isRefreshPending()) {
+                     // No model or model needs refreshing
                      if (model != null) {
-                        model.setRefreshPending(false);
+                        model.setRefreshPending(true);
                      }
-                     notifyAllChangeListeners();
+                     Display.getDefault().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                           if (model != null) {
+                              model.setRefreshPending(false);
+                           }
+                           notifyAllChangeListeners();
+                        }
+                     });
                   }
-               });
-            }
-         };
-         Display.getDefault().asyncExec(r);
-      }
-      
-      /**
-       * Indicates that the current value of the data is to be used as the reference
-       * for determining changed values. 
-       */
-      public void setChangeReference() {
-         if (data != null) {
-            lastData = new byte[data.length];
-            System.arraycopy(data, 0, lastData, 0, data.length);
-         }
-      }
-      
-      /**
-       * Checks if a memory range has changed since changes last reset by setChangeReference()
-       * 
-       * @param address       Start address of range to check
-       * @param sizeInBytes   Size in bytes of range
-       * @return
-       */
-      public boolean isChanged(long address, long sizeInBytes) {
-         long offset = address-this.address;
-         if ((offset<0) || ((offset+sizeInBytes)>this.sizeInBytes)) { 
-            System.err.println(String.format("MemoryBlockCache.isChanged() - Invalid address range [0x%X..0x%x]", offset, offset+sizeInBytes-1));
-            System.err.println(String.format("MemoryBlockCache.isChanged() - Should be within      [0x%X..0x%x]", 0,      this.sizeInBytes-1));
-            return false;
-         }
-         if (lastData == null) {
-            return (data == null)?false:true;
-         }
-         if (data == null) {
-            return false;
-         }
-         for (int index=(int)offset; index<(offset+sizeInBytes); index++) {
-            if (data[index] != lastData[index]) {
-               return true;
-            }
-         }
-         return false;
-      }
-
-      /**
-       *  Set range to reset value - not yet implemented
-       *  
-       * @param address      Address of start of value
-       * @param resetValue   Reset value
-       * @param sizeInBytes  Size of value (in bytes)
-       */
-      public void loadResetValue(long address, long resetValue, int sizeInBytes) {
-//         setValue(address, resetValue, size);
-         setNeedsUpdate(false);
-      }
-
-      /**
-       *  Sets a range of addresses as not needing update
-       *  
-       * @param address Start address of range
-       * @param size    Size of range in bytes
-       */
-      public void setChangeReference(long address, int size) {
-         if (data == null) {
-            System.err.println("MemoryBlockCache.setChangeReference() - Attempt to change reference before initial read");
-            return;
-         }
-         if (lastData == null) {
-            // Update all
-            setChangeReference();
-            return;
-         }
-         long offset = address-this.address;
-         if ((offset<0)|| ((offset+size)>this.sizeInBytes)) {
-            System.err.println("MemoryBlockCache.setChangeReference() - Invalid address range");
-            return;
-         }
-         for (int index = (int)offset; index<(offset+size); index++) {
-            lastData[index] = data[index];
-         }
-      }
-
-      /**
-       * Synchronize a value between cached value and target
-       * This consist of:<br>
-       *  - Writing the range of data values to target<br>
-       *  - Reading the entire peripheral state back from target (if readable)<br>
-       * 
-       * @param address       Start address of data range
-       * @param sizeInBytes   Size in bytes of data range
-       */
-      public void synchronizeValue(final long address, final int sizeInBytes) {
-//         System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X])", address, address+sizeInBytes-1));
-         if (!isWriteable()) {
-            System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]) - not writeable", address, address+sizeInBytes-1));
-            return;
-         }
-         long offset = address-this.address;
-         assert (offset>=0)                : "Invalid address range";
-         assert ((offset+sizeInBytes)<=this.sizeInBytes) : "Invalid address";
-         if (data == null) {
-            System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]) - data null", address, address+sizeInBytes-1));
-            return;
-         }
-         final byte[] writeData = new byte[sizeInBytes];
-         System.arraycopy(data, (int) offset, writeData, 0, sizeInBytes);
-         Runnable r = new Runnable() {
-            public void run() {
-//               System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]).run() - writing to target", address, address+sizeInBytes-1));
-               try {
-                  gdbInterface.writeMemory(address, writeData, (int)getWidthInBits());
-               } catch (TimeoutException e1) {
-                  System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]).run() - Unable to access target", address, address+sizeInBytes-1));
+               } finally {
+                  monitor.done();
                }
-//               System.err.println(String.format("MemoryBlockCache([0x%X..0x%X]).synchronizeValue.run() - reading from target", address, address+size-1));
-               setNeedsUpdate(true);
-               retrieveValue(null);
-//               System.err.println("MemoryBlockCache([0x%X..0x%X]).synchronizeValue.run() - complete");               
-            }
-         };
-         Display.getDefault().asyncExec(r);
-      }
+               return rv;
+            }};
+            job.setUser(false);
+            job.schedule();
+         }
 
-   }
+         /**
+          * Indicates that the current value of the data is to be used as the reference
+          * for determining changed values. 
+          */
+         public void setChangeReference() {
+            if (data != null) {
+               lastData = new byte[data.length];
+               System.arraycopy(data, 0, lastData, 0, data.length);
+            }
+         }
+
+         /**
+          * Checks if a memory range has changed since changes last reset by setChangeReference()
+          * 
+          * @param address       Start address of range to check
+          * @param sizeInBytes   Size in bytes of range
+          * @return
+          */
+         public boolean isChanged(long address, long sizeInBytes) {
+            long offset = address-this.address;
+            if ((offset<0) || ((offset+sizeInBytes)>this.sizeInBytes)) { 
+               System.err.println(String.format("MemoryBlockCache.isChanged() - Invalid address range [0x%X..0x%x]", offset, offset+sizeInBytes-1));
+               System.err.println(String.format("MemoryBlockCache.isChanged() - Should be within      [0x%X..0x%x]", 0,      this.sizeInBytes-1));
+               return false;
+            }
+            if (lastData == null) {
+               return (data == null)?false:true;
+            }
+            if (data == null) {
+               return false;
+            }
+            for (int index=(int)offset; index<(offset+sizeInBytes); index++) {
+               if (data[index] != lastData[index]) {
+                  return true;
+               }
+            }
+            return false;
+         }
+
+         /**
+          *  Set range to reset value - not yet implemented
+          *  
+          * @param address      Address of start of value
+          * @param resetValue   Reset value
+          * @param sizeInBytes  Size of value (in bytes)
+          */
+         public void loadResetValue(long address, long resetValue, int sizeInBytes) {
+            //         setValue(address, resetValue, size);
+            setNeedsUpdate(false);
+         }
+
+         /**
+          *  Sets a range of addresses as not needing update
+          *  
+          * @param address Start address of range
+          * @param size    Size of range in bytes
+          */
+         public void setChangeReference(long address, int size) {
+            if (data == null) {
+               System.err.println("MemoryBlockCache.setChangeReference() - Attempt to change reference before initial read");
+               return;
+            }
+            if (lastData == null) {
+               // Update all
+               setChangeReference();
+               return;
+            }
+            long offset = address-this.address;
+            if ((offset<0)|| ((offset+size)>this.sizeInBytes)) {
+               System.err.println("MemoryBlockCache.setChangeReference() - Invalid address range");
+               return;
+            }
+            for (int index = (int)offset; index<(offset+size); index++) {
+               lastData[index] = data[index];
+            }
+         }
+
+         /**
+          * Synchronize a value between cached value and target
+          * This consist of:<br>
+          *  - Writing the range of data values to target<br>
+          *  - Reading the entire peripheral state back from target (if readable)<br>
+          * 
+          * @param address       Start address of data range
+          * @param sizeInBytes   Size in bytes of data range
+          */
+         public void synchronizeValue(final long address, final int sizeInBytes) {
+//            System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X])", address, address+sizeInBytes-1));
+            if (!isWriteable()) {
+               System.err.println(String.format("MemoryBlockCache.synchronizeValue([0x%X..0x%X]) - not writeable", address, address+sizeInBytes-1));
+               return;
+            }
+            long offset = address-this.address;
+            assert (offset>=0) : "Invalid address range";
+            assert ((offset+sizeInBytes)<=this.sizeInBytes) : "Invalid address";
+            if (data == null) {
+               System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].synchronizeValue() - data null", address, address+sizeInBytes-1));
+               return;
+            }
+            final byte[] writeData = new byte[sizeInBytes];
+            System.arraycopy(data, (int) offset, writeData, 0, sizeInBytes);
+            
+            Job job = new Job("Updating peripheral display") {
+               protected IStatus run(IProgressMonitor monitor) {
+                  monitor.beginTask("Updating peripheral display...", 10);
+                  IStatus rv = Status.OK_STATUS;
+                  try {
+                     try {
+//                        System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].synchronizeValue.run() - writing to target", address, address+sizeInBytes-1));
+                        gdbInterface.writeMemory(address, writeData, (int)getWidthInBits());
+                     } catch (TimeoutException e1) {
+//                        System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].synchronizeValue.run() - Unable to access target", address, address+sizeInBytes-1));
+                     }
+//                     System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].synchronizeValue.run() - reading from target", address, address+sizeInBytes-1));
+                     setNeedsUpdate(true);
+                     retrieveValue(null);
+//                     System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].synchronizeValue.run() - complete", address, address+sizeInBytes-1));               
+                  } finally {
+                     monitor.done();
+                  }
+                  return rv;
+               }};
+               job.setUser(false);
+               job.schedule();
+         }
+
+      }

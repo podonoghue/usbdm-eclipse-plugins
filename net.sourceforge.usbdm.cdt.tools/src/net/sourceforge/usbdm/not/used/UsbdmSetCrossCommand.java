@@ -80,7 +80,6 @@ public class UsbdmSetCrossCommand extends ProcessRunner {
          //             }
          //             
          //             // Clear the path info that was captured at project creation time
-         //             // TODO we need an API to do this to avoid the discouraged access warnings.
          //             
          //             DiscoveredPathInfo pathInfo = new DiscoveredPathInfo(project);
          //             InfoContext infoContext = cfgInfoContext.toInfoContext();

@@ -239,7 +239,6 @@ public abstract class BaseModel extends ObservableModel {
       return false;
    }
 
-
    /*
     * Returns the register value as a binary string of form 0b001100...
     */
@@ -253,5 +252,4 @@ public abstract class BaseModel extends ObservableModel {
    public String getValueAsHexString() {
       return "-- invalid --";
    }
-
 }
