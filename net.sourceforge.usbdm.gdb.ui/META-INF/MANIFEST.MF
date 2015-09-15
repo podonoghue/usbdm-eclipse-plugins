@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Name: USBDM GDB Debugger Plugin
-Bundle-Vendor: pgo
+Bundle-Vendor: USBDM
 Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true

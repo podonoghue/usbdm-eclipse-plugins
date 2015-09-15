@@ -43,6 +43,6 @@ Import-Package: net.sourceforge.usbdm.constants,
  org.eclipse.debug.core,
  org.eclipse.debug.core.model,
  org.eclipse.debug.ui
-Bundle-Vendor: pgo
+Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.peripherals.model
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

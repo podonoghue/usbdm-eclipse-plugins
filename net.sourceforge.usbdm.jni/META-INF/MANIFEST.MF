@@ -15,5 +15,5 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.jni
-Bundle-Vendor: pgo
+Bundle-Vendor: USBDM
 Bundle-ClassPath: .

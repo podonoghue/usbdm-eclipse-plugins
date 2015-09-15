@@ -3,7 +3,8 @@
       id="net.sourceforge.usbdm.cdt.feature"
       label="USBDM Eclipse CDT Feature"
       version="4.12.1.qualifier"
-      provider-name="pgo"
+      provider-name="USBDM"
+      plugin="net.sourceforge.usbdm.constants"
       os="linux,win32"
       arch="x86,x86_64">
 
@@ -13,7 +14,7 @@
 
    <copyright url="http://www.example.com/copyright">
       USBDM
-Copyright (C) 2007-14  Peter O&apos;Donoghue
+Copyright (C) 2007-15  Peter O&apos;Donoghue
    </copyright>
 
    <license url="http://www.eclipse.org/org/documents/epl-v10.php">

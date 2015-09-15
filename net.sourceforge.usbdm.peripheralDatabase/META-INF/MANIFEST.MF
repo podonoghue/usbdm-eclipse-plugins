@@ -4,7 +4,7 @@ Bundle-Name: USBDM Peripheral Database
 Bundle-SymbolicName: net.sourceforge.usbdm.peripheralDatabase;singleton:=true
 Bundle-Version: 4.12.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripheralDatabase.Activator
-Bundle-Vendor: pgo
+Bundle-Vendor: USBDM
 Require-Bundle: net.sourceforge.usbdm.jni,
  org.eclipse.core.runtime,
  org.eclipse.osgi

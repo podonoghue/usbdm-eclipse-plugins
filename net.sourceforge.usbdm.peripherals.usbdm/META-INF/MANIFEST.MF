@@ -4,7 +4,7 @@ Bundle-Name: Freescale device descriptions
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.usbdm;singleton:=true
 Bundle-Version: 4.12.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.usbdm.Activator
-Bundle-Vendor: pgo
+Bundle-Vendor: USBDM
 Require-Bundle: org.eclipse.core.runtime,
  net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.osgi
