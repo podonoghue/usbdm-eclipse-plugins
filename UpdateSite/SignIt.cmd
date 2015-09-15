@@ -1,7 +1,9 @@
 @echo off
 rem if "%1"=="" goto usage
 
-set /p PASS=Enter new Password:
+set PASS=
+set /p PASS=Enter Certificate Password:
+if [%PASS%] == []  goto done
 
 set KEYTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\keytool.exe"
 set SIGNTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\jarsigner.exe"
