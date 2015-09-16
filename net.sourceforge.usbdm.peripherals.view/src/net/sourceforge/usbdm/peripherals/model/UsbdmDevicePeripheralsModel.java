@@ -229,7 +229,7 @@ public class UsbdmDevicePeripheralsModel {
          throw new IllegalArgumentException("unexpected value from devicePeripherals.getCpu().getName()");
       }
 
-      deviceModel.children.clear();
+      deviceModel.fChildren.clear();
       
       // Add the peripherals
       for (Peripheral peripheral : devicePeripherals.getPeripherals()) {

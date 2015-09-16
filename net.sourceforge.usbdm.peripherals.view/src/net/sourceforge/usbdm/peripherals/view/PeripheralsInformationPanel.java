@@ -92,30 +92,28 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
     */
    public void updateContent() {
 
-//      ITreeSelection selection = (ITreeSelection) fPeripheralsTreeViewer.getSelection();
-//      Object uModel = selection.getFirstElement();
-//      if ((uModel == null) || !(uModel instanceof BaseModel)) {
-//         return;
-//      }
-//      fCurrentModel = (BaseModel) uModel;
-      
+      //      ITreeSelection selection = (ITreeSelection) fPeripheralsTreeViewer.getSelection();
+      //      Object uModel = selection.getFirstElement();
+      //      if ((uModel == null) || !(uModel instanceof BaseModel)) {
+      //         return;
+      //      }
+      //      fCurrentModel = (BaseModel) uModel;
+      //XXX
+//      System.err.println("PeripheralsInformationPanel.updateContent()");
+
       setText("");
       if (fCurrentModel == null) {
          return;
       }
       String basicDescription = fCurrentModel.getDescription();
       String valueString = "";
-      try {
-         if (fCurrentModel instanceof RegisterModel) {
-            RegisterModel model = (RegisterModel)fCurrentModel;
-            valueString = String.format(" (%d,%s,%s)", model.getValue(), model.getValueAsHexString(), model.getValueAsBinaryString());
-         }
-         else if (fCurrentModel instanceof FieldModel) {
-            FieldModel model = (FieldModel)fCurrentModel;
-            valueString = String.format(" (%d,%s,%s)", model.getValue(), model.getValueAsHexString(), model.getValueAsBinaryString());
-         }
-      } catch (MemoryException e) {
-         valueString = "--invalid--";
+      if (fCurrentModel instanceof RegisterModel) {
+         RegisterModel model = (RegisterModel)fCurrentModel;
+         valueString = String.format(" (%s,%s,%s)", model.getValueAsDecimalString(), model.getValueAsHexString(), model.getValueAsBinaryString());
+      }
+      else if (fCurrentModel instanceof FieldModel) {
+         FieldModel model = (FieldModel)fCurrentModel;
+         valueString = String.format(" (%s,%s,%s)", model.getValueAsDecimalString(), model.getValueAsHexString(), model.getValueAsBinaryString());
       }
       StringBuffer description     = new StringBuffer();
       StyleRange   valueStyleRange = null;

@@ -40,8 +40,7 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang
-    * .Object, int)
+    * org.eclipse.jface.viewers.ITableLabelProvider#getColumnImage(java.lang.Object, int)
     */
    @Override
    public Image getColumnImage(Object element, int columnIndex) {

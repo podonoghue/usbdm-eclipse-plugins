@@ -7,9 +7,9 @@ import java.util.ArrayList;
  *
  */
 public class ObservableModel {
-   
+
    private boolean refreshPending = false;
-   
+
    private ArrayList<IModelChangeListener> fListener = new ArrayList<IModelChangeListener>();
 
    /**
@@ -18,13 +18,11 @@ public class ObservableModel {
     * @param listener
     */
    public void addListener(IModelChangeListener listener) {
-//      System.err.println("ObservableModel.addListener(), this = " + this);
-//      System.err.println("ObservableModel.addListener(), listener = " + listener);
       if (!fListener.contains(listener)) {
          fListener.add(listener);
       }
    }
-   
+
    /**
     * Remove the model change listener (if present)
     * 
@@ -34,21 +32,25 @@ public class ObservableModel {
       fListener.remove(listener);
    }
 
+   /**
+    * Notify all listeners
+    * 
+    */
    protected void notifyListeners() {
-//      System.err.println("ObservableModel.notifyListeners(), this = " + this);
       for (IModelChangeListener listener:fListener) {
-//         System.err.println("notify: " + listener.getClass());
          listener.modelElementChanged(this);
       }
    }
 
+   /**
+    * Notify structure change listeners
+    * 
+    */
    protected void notifyStructureChangeListeners() {
-//    System.err.println("ObservableModel.notifyListeners(), this = " + this);
-    for (IModelChangeListener listener:fListener) {
-//       System.err.println("notify: " + listener.getClass());
-       listener.modelStructureChanged(this);
-    }
- }
+      for (IModelChangeListener listener:fListener) {
+         listener.modelStructureChanged(this);
+      }
+   }
 
    public boolean isRefreshPending() {
       return refreshPending;

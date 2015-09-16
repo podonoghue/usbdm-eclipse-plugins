@@ -13,11 +13,11 @@ import java.util.ArrayList;
  * Base Model for tree item
  */
 public abstract class BaseModel extends ObservableModel {
-   protected final BaseModel         parent;
-   protected final ArrayList<Object> children = new ArrayList<Object>();
-   private         String            name;
-   protected final String            description;
-   protected       long              address;
+   protected final BaseModel         fParent;
+   protected final ArrayList<Object> fChildren = new ArrayList<Object>();
+   private         String            fName;
+   protected final String            fDescription;
+   protected       long              fAddress;
 
    /**
     * Constructor
@@ -34,12 +34,12 @@ public abstract class BaseModel extends ObservableModel {
       if (description == null) {
          description = "No description";
       }
-      this.parent      = parent;
-      this.name        = name;
-      this.description = description;
-      this.address     = 0x00000000;
+      fParent      = parent;
+      fName        = name;
+      fDescription = description;
+      fAddress     = 0x00000000;
       if (parent != null) {
-         parent.children.add(this);
+         parent.fChildren.add(this);
       }
    }
 
@@ -47,14 +47,14 @@ public abstract class BaseModel extends ObservableModel {
     * @return the parent
     */
    public BaseModel getParent() {
-      return parent;
+      return fParent;
    }
 
    /**
     * @return the children
     */
    public ArrayList<Object> getChildren() {
-      return children;
+      return fChildren;
    }
 
    /**
@@ -63,7 +63,7 @@ public abstract class BaseModel extends ObservableModel {
     * @return String name
     */
    public String getName() {
-      return name;
+      return fName;
    }
 
    /**
@@ -72,7 +72,7 @@ public abstract class BaseModel extends ObservableModel {
     * @param name
     */
    protected void setName(String name) {
-      this.name = name;
+      this.fName = name;
    }
    
    /**
@@ -122,7 +122,7 @@ public abstract class BaseModel extends ObservableModel {
     * @throws MemoryException 
     */
    public String getValueAsString() throws MemoryException {
-      return "-- invalid --";
+      return "<invalid>";
    }
 
    /**
@@ -136,7 +136,7 @@ public abstract class BaseModel extends ObservableModel {
          return getValueAsString();
       } catch (MemoryException e) {
          e.printStackTrace();
-         return "-- invalid --";
+         return "<invalid>";
       }
    }
 
@@ -146,7 +146,7 @@ public abstract class BaseModel extends ObservableModel {
     * @return Address
     */
    public long getAddress() {
-      return address;
+      return fAddress;
    }
 
    /**
@@ -164,11 +164,11 @@ public abstract class BaseModel extends ObservableModel {
     * @return string
     */
    public String toString() {
-      if (name != null) {
-         return name;
+      if (fName != null) {
+         return fName;
       }
-      if (description != null) {
-         return description;
+      if (fDescription != null) {
+         return fDescription;
       }
       return super.toString();
    }
@@ -198,7 +198,7 @@ public abstract class BaseModel extends ObservableModel {
     * @return string
     */
    public String getDescription() {
-      return description;
+      return fDescription;
    }
 
    /**
@@ -239,17 +239,24 @@ public abstract class BaseModel extends ObservableModel {
       return false;
    }
 
-   /*
+   /**
     * Returns the register value as a binary string of form 0b001100...
     */
    public String getValueAsBinaryString() {
-      return "-- invalid --";
+      return "<invalid>";
    }
 
-   /*
+   /**
     * Returns the register value as a hex string of form 0x12AB03......
     */
    public String getValueAsHexString() {
-      return "-- invalid --";
+      return "<invalid>";
+   }
+   
+   /**
+    * Returns the register value as a decimal string of form 12345......
+    */
+   public String getValueAsDecimalString() {
+      return "<invalid>";
    }
 }

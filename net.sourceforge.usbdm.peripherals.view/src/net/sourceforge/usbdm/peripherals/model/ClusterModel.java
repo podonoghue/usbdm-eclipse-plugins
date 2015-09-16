@@ -15,13 +15,13 @@ public class ClusterModel extends RegisterHolder {
     */
    public ClusterModel(BaseModel parent, ModelInformation information) throws RegisterException {
       super(parent, information.getClusterName(), information.getDescription());
-      address = information.getClusterAddress();
+      fAddress = information.getClusterAddress();
    }
 
    private PeripheralModel getPeripheralModel() {
       BaseModel model = this;
       while ((model != null) && !(model instanceof PeripheralModel)) {
-         model = model.parent;
+         model = model.fParent;
       }
       return (PeripheralModel)model;
    }

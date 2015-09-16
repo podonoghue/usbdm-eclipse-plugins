@@ -8,43 +8,54 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
     * Model for a register within a peripheral
     */
    public class RegisterModel extends BaseModel implements MemoryBlockChangeListener, UpdateInterface {
-      protected long               resetMask;
-      protected long               resetValue;
-      protected int                sizeInBits;
-      private   String             accessMode;
-      private   MemoryBlockCache   memoryBlockCache;
-      private   boolean            haveReportedChanged = false;
-      private   AccessType         accessType;
+      protected long               fResetMask;
+      protected long               fResetValue;
+      protected int                fSizeInBits;
+      private   String             fAccessMode;
+      private   MemoryBlockCache   fMemoryBlockCache;
+      private   boolean            fHaveReportedChanged = false;
+      private   AccessType         fAccessType;
       
       private void initCommon(RegisterHolder peripheral, Register register) throws RegisterException {
          if (register.isHidden()) {
             throw new RegisterException("Creating hidden register!!!");
          }
-         this.sizeInBits   = (int)register.getWidth();
-         this.resetValue   = register.getResetValue();
-         this.resetMask    = register.getResetMask();
-         this.accessType   = register.getAccessType();
-         this.accessMode   = this.accessType.getAbbreviatedName();
-         this.memoryBlockCache = peripheral.findAddressBlock(address, (sizeInBits+7)/8);
-         if (memoryBlockCache == null) {
+         fSizeInBits   = (int)register.getWidth();
+         fResetValue   = register.getResetValue();
+         fResetMask    = register.getResetMask();
+         fAccessType   = register.getAccessType();
+         fAccessMode   = fAccessType.getAbbreviatedName();
+         fMemoryBlockCache = peripheral.findAddressBlock(fAddress, (fSizeInBits+7)/8);
+         if (fMemoryBlockCache == null) {
 //            System.err.println(String.format("initCommon() reg=%s adr=0x%X", register.getName(), address));
             throw new RegisterException(String.format("RegisterModel() %s - No memoryBlockCache found", getName()));
          }
-         if (this.accessType.isWriteable()) {
-            memoryBlockCache.setWriteable(true);
+         if (fAccessType.isWriteable()) {
+            fMemoryBlockCache.setWriteable(true);
          }
-         if (this.accessType.isReadable()) {
-            memoryBlockCache.setReadable(true);
+         if (fAccessType.isReadable()) {
+            fMemoryBlockCache.setReadable(true);
          }
       }
 
+      /**
+       * Indicates if the register is readable
+       * 
+       * @return true/false
+       */
       public boolean isReadable() {
-         return (memoryBlockCache != null) && (memoryBlockCache.isReadable()); 
+         return (fMemoryBlockCache != null) && (fMemoryBlockCache.isReadable()); 
       }
 
-      public boolean isWriteable() {
-         return (memoryBlockCache != null) && (memoryBlockCache.isWriteable()); 
+      /**
+       * Indicates if the register is writable
+       * 
+       * @return true/false
+       */
+      public boolean isWritable() {
+         return (fMemoryBlockCache != null) && (fMemoryBlockCache.isWriteable()); 
       }
+      
       /**
        * Constructor - applicable to simple register (which may be part of register array)
        * 
@@ -55,8 +66,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       public RegisterModel(RegisterHolder peripheral, ModelInformation information) throws RegisterException {
          super(peripheral, information.getRegisterName(), information.getDescription());
-         assert(parent != null) : "parent can't be null";
-         this.address = information.getRegisterAddress();
+         assert(fParent != null) : "parent can't be null";
+         fAddress = information.getRegisterAddress();
          initCommon(peripheral, information.getRegister());
       }
 
@@ -64,8 +75,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * Resets the model register values to their expected reset values  
        */
       public void loadResetValues() {
-         if (memoryBlockCache != null) {
-            memoryBlockCache.loadResetValue(address, resetValue, (sizeInBits+7)/8);
+         if (fMemoryBlockCache != null) {
+            fMemoryBlockCache.loadResetValue(fAddress, fResetValue, (fSizeInBits+7)/8);
          }
       }
 
@@ -76,10 +87,10 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * @throws MemoryException 
        */
       public long getValue() throws MemoryException {
-         if (memoryBlockCache == null) {
+         if (fMemoryBlockCache == null) {
             throw new MemoryException("memoryBlockCache not set");
           }
-          return memoryBlockCache.getValue(address, (sizeInBits+7)/8);
+          return fMemoryBlockCache.getValue(fAddress, (fSizeInBits+7)/8);
        }
       
       /**
@@ -89,10 +100,10 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * @throws MemoryException 
        */
       public long getLastValue() throws MemoryException {
-         if (memoryBlockCache == null) {
+         if (fMemoryBlockCache == null) {
             return 0;
          }
-         return memoryBlockCache.getLastValue(address, (sizeInBits+7)/8);
+         return fMemoryBlockCache.getLastValue(fAddress, (fSizeInBits+7)/8);
       }
 
       /**
@@ -100,18 +111,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       public void update() {
 //         System.err.println(String.format("RegisterModel.update(%s)", getName()));
-         if (accessType.isReadable() && (memoryBlockCache != null)) {
-            memoryBlockCache.update(parent);
-         }
-      }
-      
-      /**
-       * Retrieves register value from target.
-       * This may trigger a view update.
-       */
-      public void retrieveValue() {
-         if (accessType.isReadable() && (memoryBlockCache != null)) {
-            memoryBlockCache.retrieveValue(this);
+         if (fAccessType.isReadable() && (fMemoryBlockCache != null)) {
+            fMemoryBlockCache.update(fParent);
          }
       }
       
@@ -121,8 +122,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       public void synchronizeValue() {
 //         System.err.println(String.format("synchronizeValue()"));
-         if (memoryBlockCache != null) {
-            memoryBlockCache.synchronizeValue(address, (sizeInBits+7)/8);
+         if (fMemoryBlockCache != null) {
+            fMemoryBlockCache.synchronizeValue(fAddress, (fSizeInBits+7)/8);
          }
       }
       
@@ -135,37 +136,43 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * @throws Exception 
        */
       public void setValueQuiet(long value) throws Exception {
-         if (accessType.isWriteable() && (memoryBlockCache != null)) {
-            memoryBlockCache.setValue(address, value, (sizeInBits+7)/8);
+         if (!fAccessType.isWriteable() || (fMemoryBlockCache == null)) {
+            // Ignore write
+            return;
          }
+         fMemoryBlockCache.setValue(fAddress, (fSizeInBits+7)/8, value);
       }
 
       /**
-       * Set the value of the register.
-       * Synchronizes value with target
+       * Set the value of the register.<br>
+       * Synchronizes value with target.<br>
        * Triggers view update.
        * 
        * @param value - Value to set
        * @throws Exception 
        */
       public void setValue(long value) {
-         if (accessType == AccessType.ReadOnly) {
-            // Ignore writes to read-only register
-//            System.err.println(String.format("RegisterModel.setValue() - readOnly n=%s, a=0x%X, s=%d bytes", this.getName(), address, (sizeInBits+7)/8));
+         if (!fAccessType.isWriteable() || (fMemoryBlockCache == null)) {
+            System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, s=%d bytes - not writable", getName(), fAddress, (fSizeInBits+7)/8));
             return;
          }
          try {
-            if (memoryBlockCache != null) {
-//               System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, v=%d, s=%d ", this.getName(), address, value, (sizeInBits+7)/8));
-               memoryBlockCache.setValue(address, value, (sizeInBits+7)/8);
-               synchronizeValue();
-//         notifyAllListeners();
-            }
+//            System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, v=%d, s=%d ", getName(), fAddress, value, (fSizeInBits+7)/8));
+            fMemoryBlockCache.setValue(fAddress, (fSizeInBits+7)/8, value);
+            fMemoryBlockCache.synchronizeValue(fAddress, (fSizeInBits+7)/8);
+//            BaseModel parent = getParent();
+//            if (parent instanceof ClusterModel) {
+//               parent = parent.getParent();
+//            }
+//            if (parent instanceof PeripheralModel) {
+//               PeripheralModel peripheral = (PeripheralModel) parent;
+//               peripheral.setNeedsUpdate(true);
+//            }
+//            notifyAllListeners();
          } catch (Exception e) {
-            System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, s=%d bytes", this.getName(), address, (sizeInBits+7)/8));
+            System.err.println(String.format("RegisterModel.setValue() n=%s, a=0x%X, s=%d bytes", getName(), fAddress, (fSizeInBits+7)/8));
             e.printStackTrace();
          }
-         ((RegisterHolder)(this.parent)).registerChanged(this);
       }
 
       /* (non-Javadoc)
@@ -173,13 +180,13 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public boolean isChanged() {
-         if (!accessType.isReadable()) {
+         if (!fAccessType.isReadable()) {
             return false;
          }
-         if (memoryBlockCache == null) {
+         if (fMemoryBlockCache == null) {
             return false;
          }
-         return memoryBlockCache.isChanged(address, (sizeInBits+7)/8);
+         return fMemoryBlockCache.isChanged(fAddress, (fSizeInBits+7)/8);
       }
 
       /* (non-Javadoc)
@@ -187,18 +194,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsString() throws MemoryException {
-         if (!accessType.isReadable()) {
-            return "-- not readable -- ";
-         }
-         if (isNeedsUpdate()) {
-            update();
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
-         }
-         else {
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
-         }
-         // Always return as HEX string
-         return getValueAsHexString(getValue(), sizeInBits);
+         // Default to HEX
+         return getValueAsHexString();
       }
 
       /* (non-Javadoc)
@@ -206,14 +203,22 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsBinaryString() {
-         if (!accessType.isReadable()) {
-            return "-- not readable -- ";
+         if (!fAccessType.isReadable()) {
+            return "<not readable>";
+         }
+         if (isNeedsUpdate()) {
+//            update();
+            return "<pending>";
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
+         }
+         else {
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
          }
          try {
-            return super.getValueAsBinaryString(getValue(), sizeInBits);
+            return super.getValueAsBinaryString(getValue(), fSizeInBits);
          } catch (MemoryException e) {
             e.printStackTrace();
-            return "-- invalid --";
+            return "<invalid>";
          }
       }
 
@@ -222,14 +227,46 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsHexString() {
-         if (!accessType.isReadable()) {
-            return "-- not readable -- ";
+         if (!fAccessType.isReadable()) {
+            return "<not readable> ";
+         }
+         if (isNeedsUpdate()) {
+//            update();
+            return "<pending>";
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
+         }
+         else {
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
          }
          try {
-            return super.getValueAsHexString(getValue(), sizeInBits);
+            return super.getValueAsHexString(getValue(), fSizeInBits);
          } catch (MemoryException e) {
             e.printStackTrace();
-            return "-- invalid --";
+            return "<invalid>";
+         }
+      }
+
+      /* (non-Javadoc)
+       * @see net.sourceforge.usbdm.peripherals.model.BaseModel#getValueAsDecimalString()
+       */
+      @Override
+      public String getValueAsDecimalString() {
+         if (!fAccessType.isReadable()) {
+            return "<not readable>";
+         }
+         if (isNeedsUpdate()) {
+//            update();
+            return "<pending>";
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
+         }
+         else {
+//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
+         }
+         try {
+            return String.format("%d", getValue());
+         } catch (MemoryException e) {
+            e.printStackTrace();
+            return "<invalid>";
          }
       }
 
@@ -238,7 +275,7 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getAccessMode() {
-         return accessMode;
+         return fAccessMode;
       }
 
       /* (non-Javadoc)
@@ -246,18 +283,14 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public boolean isNeedsUpdate() {
-         if (!accessType.isReadable()) {
+         if (!fAccessType.isReadable()) {
             return false;
          }
-         if (memoryBlockCache == null) {
+         if (fMemoryBlockCache == null) {
             return false;
          }
-         return memoryBlockCache.isNeedsUpdate();
+         return fMemoryBlockCache.isNeedsUpdate();
       }
-
-//      public void setName(String name) {
-//         this.name = name;
-//      }
 
       /**
        * Used by the address block to notify of changes.
@@ -265,28 +298,33 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public void notifyMemoryChanged(MemoryBlockCache memoryBlockCache) {
-         if (memoryBlockCache.isChanged(address, (sizeInBits+7)/8)) {
-            // Always report if changed
-//            System.err.println("RegisterModel.notifyMemoryChanged() - Changed - notifying listeners");
-            haveReportedChanged = true;
-            notifyListeners();
-         }
-         else if (haveReportedChanged) {
-            // Only report if need to remove highlight
-//            System.err.println("RegisterModel.notifyMemoryChanged() - Not changed but clearing highlight - notifying listeners");
-            haveReportedChanged = false;
-            notifyListeners();
-         }
-         else {
-            // Nothing of interest changed
-//            System.err.println("RegisterModel.notifyMemoryChanged() - Not changed - no action");
-         }
+
+         ((RegisterHolder)(fParent)).registerChanged(this);
+         //XXX
+         notifyListeners();
+
+//         if (memoryBlockCache.isChanged(fAddress, (fSizeInBits+7)/8)) {
+//            // Always report if changed
+////            System.err.println("RegisterModel.notifyMemoryChanged() - Changed - notifying listeners");
+//            fHaveReportedChanged = true;
+//            notifyListeners();
+//         }
+//         else if (fHaveReportedChanged) {
+//            // Only report if need to remove highlight
+////            System.err.println("RegisterModel.notifyMemoryChanged() - Not changed but clearing highlight - notifying listeners");
+//            fHaveReportedChanged = false;
+//            notifyListeners();
+//         }
+//         else {
+//            // Nothing of interest changed
+////            System.err.println("RegisterModel.notifyMemoryChanged() - Not changed - no action");
+//         }
       }
 
       @Override
       public void forceUpdate() {
-         if (memoryBlockCache != null) {
-            memoryBlockCache.setNeedsUpdate(true);
+         if (fMemoryBlockCache != null) {
+            fMemoryBlockCache.retrieveValue();
          }
       }
    }

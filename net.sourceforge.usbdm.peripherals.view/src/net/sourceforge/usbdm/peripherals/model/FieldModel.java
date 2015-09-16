@@ -49,7 +49,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @throws MemoryException 
     */
    public long getValue() throws MemoryException {
-      RegisterModel parent = (RegisterModel) this.parent;
+      RegisterModel parent = (RegisterModel) this.fParent;
       return ((1l<<size)-1)&(parent.getValue()>>bitOffset);
    }
    
@@ -60,7 +60,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @throws MemoryException 
     */
    public long getLastValue() throws MemoryException {
-      RegisterModel parent = (RegisterModel) this.parent;
+      RegisterModel parent = (RegisterModel) this.fParent;
       return ((1l<<size)-1)&(parent.getLastValue()>>bitOffset);
    }
 
@@ -85,7 +85,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       try {
          return super.getValueAsBinaryString(getValue(), size);
       } catch (MemoryException e) {
-         return "-- invalid --";
+         return "<invalid>";
       }
    }
 
@@ -97,10 +97,22 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       try {
          return super.getValueAsHexString(getValue(), size);
       } catch (MemoryException e) {
-         return "-- invalid --";
+         return "<invalid>";
       }
    }
 
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.model.BaseModel#getValueAsDecimalString()
+    */
+   @Override
+   public String getValueAsDecimalString() {
+      try {
+         return String.format("%d", getValue());
+      } catch (MemoryException e) {
+         return "<invalid>";
+      }
+   }
    /* (non-Javadoc)
     * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
     */
@@ -156,12 +168,12 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    public void setValue(Long bitField) {
       Long currentValue;
       try {
-         currentValue = ((RegisterModel)(this.parent)).getValue();
+         currentValue = ((RegisterModel)(this.fParent)).getValue();
       } catch (MemoryException e) {
          currentValue = 0L;
       }
       Long mask         = ((1l<<size)-1)<<bitOffset;
-      ((RegisterModel)(this.parent)).setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
+      ((RegisterModel)(this.fParent)).setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
    }
 
    /* (non-Javadoc)
@@ -177,7 +189,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public boolean isNeedsUpdate() {
-      return parent.isNeedsUpdate();
+      return fParent.isNeedsUpdate();
    }
 
    /**
@@ -196,8 +208,9 @@ public class FieldModel extends BaseModel implements UpdateInterface {
 
    @Override
    public void forceUpdate() {
-      // Pass to parent - entire register is updated
-      ((RegisterModel)parent).forceUpdate();
+         // Pass to parent - entire register is updated
+         RegisterModel reg = (RegisterModel) fParent;
+         reg.forceUpdate();
    }
 
 }

@@ -14,17 +14,26 @@ import org.eclipse.swt.widgets.TreeItem;
  * 
  */
 public class PeripheralsViewCellModifier implements ICellModifier {
-   final UsbdmDevicePeripheralsView view;
    
+   final UsbdmDevicePeripheralsView fView;
+   
+   /**
+    * Cell modifier for tree
+    *  
+    * @param view
+    */
    public PeripheralsViewCellModifier(UsbdmDevicePeripheralsView view) {
-      this.view = view;
+      fView = view;
    }
    
+   /* (non-Javadoc)
+    * @see org.eclipse.jface.viewers.ICellModifier#modify(java.lang.Object, java.lang.String, java.lang.Object)
+    */
    @Override
    public void modify(Object element, String property, Object value) {
       // System.err.println("PeripheralsViewCellModifier.modify("+element.getClass()+", "+value.toString()+")");
       if (element instanceof TreeItem) {
-         // update element and tree model
+         // Update element and tree model
          TreeItem treeItem = (TreeItem) element;
          Object treeItemData = treeItem.getData();
          if (treeItemData instanceof RegisterModel) {
@@ -37,7 +46,7 @@ public class PeripheralsViewCellModifier implements ICellModifier {
                } else {
                   registerModel.setValue(Long.decode(s));
                }
-               treeItem.setText(1, registerModel.safeGetValueAsString());
+//               treeItem.setText(1, registerModel.safeGetValueAsString());
             } catch (NumberFormatException e) {
 //               System.err.println("PeripheralsViewCellModifier.modify(RegisterModel, ...) - format error");
             }
@@ -50,36 +59,39 @@ public class PeripheralsViewCellModifier implements ICellModifier {
                } else {
                   fieldModel.setValue(Long.decode(s));
                }
-               treeItem.setText(1, fieldModel.safeGetValueAsString());
+//               treeItem.setText(1, fieldModel.safeGetValueAsString());
             } catch (NumberFormatException e) {
 //               System.err.println("PeripheralsViewCellModifier.modify(FieldModel, ...) - format error");
             }
          }
-//         PeripheralsInformationPanel panel = view.getInformationPanel();
-//         if (panel != null) {
-//            // TODO - Check if needed
-////        	    panel.updateContent();
-//         }
       }
    }
 
+   /* (non-Javadoc)
+    * @see org.eclipse.jface.viewers.ICellModifier#getValue(java.lang.Object, java.lang.String)
+    */
    @Override
    public Object getValue(Object element, String property) {
       if (element instanceof RegisterModel) {
-         // System.err.println("PeripheralsViewCellModifier.getValue(RegisterModel, "+((RegisterModel)element).getValueAsString()+")");
-         return ((RegisterModel) element).safeGetValueAsString();
+         RegisterModel reg = (RegisterModel) element;
+//         System.err.println("PeripheralsViewCellModifier.getValue(RegisterModel, "+reg.safeGetValueAsString()+")");
+         return reg.safeGetValueAsString();
       } else if (element instanceof FieldModel) {
-         // System.err.println("PeripheralsViewCellModifier.getValue(FieldModel, "+((FieldModel)element).getValueAsString()+")");
-         return ((FieldModel) element).safeGetValueAsString();
+         FieldModel field = (FieldModel) element;
+//         System.err.println("PeripheralsViewCellModifier.getValue(FieldModel, "+field.getValueAsString()+")");
+         return field.safeGetValueAsString();
       }
       // System.err.println("PeripheralsViewCellModifier.getValue("+element.getClass()+", "+element.toString()+")");
       return element.toString();
    }
 
+   /* (non-Javadoc)
+    * @see org.eclipse.jface.viewers.ICellModifier#canModify(java.lang.Object, java.lang.String)
+    */
    @Override
    public boolean canModify(Object element, String property) {
       if (element instanceof RegisterModel) {
-         return ((RegisterModel) element).isWriteable();
+         return ((RegisterModel) element).isWritable();
       }
       if (element instanceof FieldModel) {
          return ((FieldModel) element).isWriteable();

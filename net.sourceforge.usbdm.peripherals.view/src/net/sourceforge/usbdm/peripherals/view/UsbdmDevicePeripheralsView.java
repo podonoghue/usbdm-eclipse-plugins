@@ -780,7 +780,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             deviceModel.setNeedsUpdate(true);
          }
       }
-
 //      System.err.println("UsbdmDevicePeripheralsView.SessionSuspend() - reason = " + reason);
       Display.getDefault().asyncExec(new Runnable() {
          public void run() {
@@ -796,15 +795,12 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 //               System.err.println("UsbdmDevicePeripheralsView.sessionTerminated() - periperalsModel != aPeriperalsModel");
                return;
             }
-            Object[] openNodes = peripheralsTreeViewer.getVisibleExpandedElements();
-//            System.err.println("UsbdmDevicePeripheralsView.SessionSuspend() - openNodes.length = " + openNodes.length);
-            for (Object node : openNodes) {
-               if (node instanceof PeripheralModel) {
-                  peripheralsTreeViewer.refresh(node);
+            Object[] visibleObjects = peripheralsTreeViewer.getExpandedElements();
+            for (Object object : visibleObjects) {
+               if (object instanceof PeripheralModel) {
+                  ((PeripheralModel) object).forceUpdate();
                }
             }
-            // TODO - Check if needed
-            peripheralsInformationPanel.updateContent();
          }
       });
    }

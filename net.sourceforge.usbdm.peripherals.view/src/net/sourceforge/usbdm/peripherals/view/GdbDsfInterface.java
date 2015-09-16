@@ -74,6 +74,8 @@ public class GdbDsfInterface extends GdbCommonInterface {
     *  @return byte[size] containing the data read or null on failure
     */
    private byte[] readMemory(long address, int size) throws TimeoutException {
+      System.err.println(String.format("GdbDsfInterface.readMemory(0x%X, %d)", address, size));
+      
       DsfServicesTracker  tracker = null;
       if (dsfSession != null) {
          tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());

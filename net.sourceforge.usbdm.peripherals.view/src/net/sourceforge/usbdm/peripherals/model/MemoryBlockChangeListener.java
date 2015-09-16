@@ -11,7 +11,7 @@ public interface MemoryBlockChangeListener {
    /**
     * Receive notification when the address block changes
     * 
-    * @param memoryBlockCache
+    * @param memoryBlockCache block sending notification
     */
    void notifyMemoryChanged(MemoryBlockCache memoryBlockCache);
 }

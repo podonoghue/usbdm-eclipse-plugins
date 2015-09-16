@@ -29,9 +29,9 @@ public class Field extends ModeControl implements Cloneable {
       WriteOnce      ("write-once",       "W1",  ONCE_MASK| WRITE_MASK           ),
       ReadWriteOnce  ("readWrite-once",   "RW1", ONCE_MASK| WRITE_MASK| READ_MASK),
       ;
-      final String prettyName;
-      final String abbreviatedName;
-      final int    mask;
+      final String fPrettyName;
+      final String fAbbreviatedName;
+      final int    fMask;
 
       // Used for reverse lookup of AccessType from prettyName
       private static final Map<String,AccessType> lookupPrettyName
@@ -43,25 +43,25 @@ public class Field extends ModeControl implements Cloneable {
 
       static {
          for(AccessType accessType : AccessType.values()) {
-            lookupPrettyName.put(accessType.prettyName, accessType);
+            lookupPrettyName.put(accessType.fPrettyName, accessType);
          }
          for(AccessType accessType : AccessType.values()) {
-            lookupMask.put(accessType.mask, accessType);
+            lookupMask.put(accessType.fMask, accessType);
          }
       }
       
       AccessType(String prettyName, String abbreviatedName, int mask) {
-         this.prettyName      = prettyName;
-         this.abbreviatedName = abbreviatedName;
-         this.mask            = mask;
+         fPrettyName      = prettyName;
+         fAbbreviatedName = abbreviatedName;
+         fMask            = mask;
       }
       
       public String getPrettyName() {
-         return prettyName;
+         return fPrettyName;
       }
       
       public String getAbbreviatedName() {
-         return abbreviatedName;
+         return fAbbreviatedName;
       }
       
       public static AccessType lookup(String prettyName) {
@@ -69,55 +69,55 @@ public class Field extends ModeControl implements Cloneable {
       }
       
       public AccessType or(AccessType other) {
-         return lookupMask.get(this.mask | other.mask);
+         return lookupMask.get(fMask | other.fMask);
       }
 
       public AccessType and(AccessType other) {
-         return lookupMask.get(this.mask & other.mask);
+         return lookupMask.get(fMask & other.fMask);
       }
       
       public boolean isWriteable() {
-         return (this.mask & WRITE_MASK) != 0;
+         return (fMask & WRITE_MASK) != 0;
       }
       public boolean isReadable() {
-         return (this.mask & READ_MASK) != 0;
+         return (fMask & READ_MASK) != 0;
       }
    };
 
    /*
     * ====================================================================
     */
-   private AccessType             accessType;
-   private long                   bitOffset;
-   private long                   bitwidth;
-   private Field                  derivedFrom;
-   private String                 description;
-   private ArrayList<Enumeration> enumerations;
-   private String                 name;
-   private boolean                ignoreOverlap;
-   private boolean                hidden;
-   private final Register         owner;
+   private AccessType             fAccessType;
+   private long                   fBitOffset;
+   private long                   fBitwidth;
+   private Field                  fDerivedFrom;
+   private String                 fDescription;
+   private ArrayList<Enumeration> fEnumerations;
+   private String                 fName;
+   private boolean                fIgnoreOverlap;
+   private boolean                fHidden;
+   private final Register         fOwner;
 
    /*
     * Constructor
     */
    public Field(Register owner) {
-      accessType    = null;
-      bitOffset     = 0;
-      bitwidth      = 0;
-      description   = "";
-      derivedFrom   = null;
-      enumerations  = new ArrayList<Enumeration>();
-      name          = "";
-      ignoreOverlap = false;
-      this.owner    = owner;
+      fAccessType    = null;
+      fBitOffset     = 0;
+      fBitwidth      = 0;
+      fDescription   = "";
+      fDerivedFrom   = null;
+      fEnumerations  = new ArrayList<Enumeration>();
+      fName          = "";
+      fIgnoreOverlap = false;
+      fOwner         = owner;
       if (owner != null) {
-         bitwidth       = owner.getWidth();
-         accessType     = owner.getAccessType();
+         fBitwidth       = owner.getWidth();
+         fAccessType     = owner.getAccessType();
       }
       else {
-         bitwidth       =  32;
-         accessType     =  AccessType.ReadWrite;
+         fBitwidth       =  32;
+         fAccessType     =  AccessType.ReadWrite;
       }
    }
 
@@ -125,18 +125,18 @@ public class Field extends ModeControl implements Cloneable {
     * SHALLOW Copy constructor
     */
    public Field(Field other) {
-      accessType   = other.accessType;    
-      bitOffset    = other.bitOffset;     
-      bitwidth     = other.bitwidth;      
-      description  = other.description;
-      derivedFrom  = other;
-      enumerations = other.enumerations;  
-      name         = other.name;          
-      owner        = other.owner;
+      fAccessType   = other.fAccessType;    
+      fBitOffset    = other.fBitOffset;     
+      fBitwidth     = other.fBitwidth;      
+      fDescription  = other.fDescription;
+      fDerivedFrom  = other;
+      fEnumerations = other.fEnumerations;  
+      fName         = other.fName;          
+      fOwner        = other.fOwner;
    }
 
    public Field getDerivedFrom() {
-      return derivedFrom;
+      return fDerivedFrom;
    }
 
    /* (non-Javadoc)
@@ -148,15 +148,15 @@ public class Field extends ModeControl implements Cloneable {
    }
 
    public String getName() {
-      return name;
+      return fName;
    }
 
    public String getName(int index) {
-      return owner.format(name, index);
+      return fOwner.format(fName, index);
    }
 
    public void setName(String name) {
-      this.name = name;
+      fName = name;
    }
 
    public String getCDescription() {
@@ -164,73 +164,73 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    public String getCDescription(int index) {
-      return SVD_XML_BaseParser.unEscapeString(owner.format(description, index));
+      return SVD_XML_BaseParser.unEscapeString(fOwner.format(fDescription, index));
    }
    
    public String getCDescription(int clusterIndex, int registerIndex) {
-      return SVD_XML_BaseParser.unEscapeString(owner.format(description, clusterIndex, registerIndex));
+      return SVD_XML_BaseParser.unEscapeString(fOwner.format(fDescription, clusterIndex, registerIndex));
    }
 
    public String getDescription() {
-      return description;
+      return fDescription;
    }
 
    public void setDescription(String description) {
-      this.description = getSanitizedDescription(description.trim());
+      fDescription = getSanitizedDescription(description.trim());
    }
 
    public long getBitOffset() {
-      return bitOffset;
+      return fBitOffset;
    }
 
    public void setBitOffset(long bitOffset) {
-      this.bitOffset = bitOffset;
+      fBitOffset = bitOffset;
    }
 
    public long getBitwidth() {
-      return bitwidth;
+      return fBitwidth;
    }
 
    public void setBitwidth(long bitwidth) throws Exception {
       if (bitwidth == 0) {
          throw new Exception("Illegal width");
       }
-      this.bitwidth = bitwidth;
+      fBitwidth = bitwidth;
    }
 
    public AccessType getAccessType() {
-      return accessType;
+      return fAccessType;
    }
 
    public void setAccessType(AccessType accessType) {
-      this.accessType = accessType;
+      fAccessType = accessType;
    }
    
    public boolean isIgnoreOverlap() {
-      return ignoreOverlap;
+      return fIgnoreOverlap;
    }
 
    public void setIgnoreOverlap(boolean ignoreOverlap) {
-      this.ignoreOverlap = ignoreOverlap;
+      fIgnoreOverlap = ignoreOverlap;
    }
 
    public boolean isHidden() {
-      return hidden;
+      return fHidden;
    }
 
    public void setHidden(boolean hide) {
-      this.hidden = hide;
+      fHidden = hide;
    }
 
    public ArrayList<Enumeration> getEnumerations() {
-      return enumerations;
+      return fEnumerations;
    }
 
    public void addEnumeration(Enumeration enumeration) throws Exception {
-      if (derivedFrom != null) {
+      if (fDerivedFrom != null) {
          throw new Exception("Cannot change enumerations of a derived Field");
       }
-      this.enumerations.add(enumeration);
+      fEnumerations.add(enumeration);
    }
 
    /** Determines if two fields are equivalent
@@ -246,9 +246,9 @@ public class Field extends ModeControl implements Cloneable {
    public boolean equivalent(Field other, String pattern1, String pattern2) {
       boolean verbose = false; //name.equalsIgnoreCase("TFWM1") && other.getName().equalsIgnoreCase("TFWM1");
       boolean rv =  
-            (this.accessType == other.accessType) &&
-            (this.bitOffset == other.bitOffset) &&
-            (this.bitwidth == other.bitwidth);
+            (fAccessType == other.fAccessType) &&
+            (fBitOffset == other.fBitOffset) &&
+            (fBitwidth == other.fBitwidth);
       if (!rv) {
          if (verbose) {
             System.err.println("Comparing simple field structure \""+getName()+"\", \""+other.getName()+"\"=> false");
@@ -263,9 +263,9 @@ public class Field extends ModeControl implements Cloneable {
             return false;
          }
       }
-      for(Enumeration enumeration : enumerations) {
+      for(Enumeration enumeration : fEnumerations) {
          boolean foundEquivalent = false;
-         for(Enumeration otherEnumeration : other.enumerations) {
+         for(Enumeration otherEnumeration : other.fEnumerations) {
             if (enumeration.equivalent(otherEnumeration, pattern1, pattern2)) {
                foundEquivalent = true;
                break;
@@ -286,16 +286,16 @@ public class Field extends ModeControl implements Cloneable {
     */
    public boolean equivalent(Field other) {
       boolean verbose = false; //name.equalsIgnoreCase("TFWM1") && other.getName().equalsIgnoreCase("TFWM1");
-      boolean rv =  this.name.equals(other.name) && equivalent(other, null, null);
+      boolean rv =  fName.equals(other.fName) && equivalent(other, null, null);
       if (!rv) {
          if (verbose) {
             System.err.println("Comparing simple field structure \""+getName()+"\", \""+other.getName()+"\"=> false");
          }
          return false;
       }
-      for(Enumeration enumeration : enumerations) {
+      for(Enumeration enumeration : fEnumerations) {
          boolean foundEquivalent = false;
-         for(Enumeration otherEnumeration : other.enumerations) {
+         for(Enumeration otherEnumeration : other.fEnumerations) {
             if (enumeration.getName().equals(otherEnumeration.getName())) {
                foundEquivalent = enumeration.equivalent(otherEnumeration);
                if (foundEquivalent) {
@@ -311,10 +311,10 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    public void report() {
-      System.out.println(String.format("          Field \"%s\" [%d-%d], Description = \"%s\" : " + accessType.toString(), 
+      System.out.println(String.format("          Field \"%s\" [%d-%d], Description = \"%s\" : " + fAccessType.toString(), 
             getName(), getBitOffset(), getBitOffset()+getBitwidth()-1, getDescription()));
       
-      for(Enumeration enumeration : enumerations) {
+      for(Enumeration enumeration : fEnumerations) {
          enumeration.report();
       }
    }
@@ -329,21 +329,21 @@ public class Field extends ModeControl implements Cloneable {
     */
    public void writeSVD(Writer writer, boolean standardFormat, Register owner, int indent) throws IOException {
       final String indenter = RegisterUnion.getIndent(indent);
-      if (derivedFrom!=null) {
-         writer.write(String.format(indenter+"<field derivedFrom=\"%s\" >", derivedFrom.getName()));
-         if (!derivedFrom.getName().equals(getName()) && (getName().length()>0)) {
+      if (fDerivedFrom!=null) {
+         writer.write(String.format(indenter+"<field derivedFrom=\"%s\" >", fDerivedFrom.getName()));
+         if (!fDerivedFrom.getName().equals(getName()) && (getName().length()>0)) {
             writer.write(String.format(" <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
          }
-         if (!derivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
+         if (!fDerivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
             writer.write(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
          }
-         if (derivedFrom.getBitOffset() != getBitOffset()) {
+         if (fDerivedFrom.getBitOffset() != getBitOffset()) {
             writer.write(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
          }
-         if (derivedFrom.getBitwidth() != getBitwidth()) {
+         if (fDerivedFrom.getBitwidth() != getBitwidth()) {
             writer.write(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
          }
-         if (derivedFrom.getAccessType() != getAccessType()) {
+         if (fDerivedFrom.getAccessType() != getAccessType()) {
             writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
          }
          writer.write(" </field>\n");
@@ -380,10 +380,10 @@ public class Field extends ModeControl implements Cloneable {
 
    public static class Pair {
       public Pattern regex;
-      public String replacement;
+      public String  replacement;
       
       public Pair(Pattern regex, String replacement) {
-         this.regex       = regex;
+         this.regex      = regex;
          this.replacement = replacement;
       }
    }
@@ -508,7 +508,7 @@ public class Field extends ModeControl implements Cloneable {
             String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Position")));      
 
       if (getBitwidth()>1) {
-         String width = getCWidth(this.owner.getWidth());
+         String width = getCWidth(fOwner.getWidth());
          writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
                String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
