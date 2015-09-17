@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Atmel device descriptions
+Bundle-Name: Atmel device peripheral descriptions
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.atmel;singleton:=true
 Bundle-Version: 4.12.1.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.atmel.Activator
