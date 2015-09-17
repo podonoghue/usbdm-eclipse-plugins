@@ -32,7 +32,9 @@ public class MemoryBlockCache {
       private byte[]             fData;
       // Reference copy of data for change indication
       private byte[]             fLastData;
-      // Indicates data is invalid (out of date)
+      // Indicates block is inaccessible (access error)
+      private boolean            fInaccessible;
+      // Indicates data is out of date
       private boolean            fNeedsUpdate;
       // Update from target has been scheduled
       private boolean            fUpdatePending;
@@ -95,7 +97,8 @@ public class MemoryBlockCache {
       }
 
       /**
-       * Gets an 8, 16 or 32-bit value - does not trigger an update
+       * Gets an 8, 16 or 32-bit value<br>
+       * Does not trigger change listeners
        * 
        * @param address
        * @param sizeInBytes size in bytes!
@@ -116,6 +119,15 @@ public class MemoryBlockCache {
          throw new MemoryException("memoryBlockCache invalid data size");
       }
 
+      /**
+       * Set 8-bit value in data<br>
+       * Does not trigger change listeners
+       * 
+       * @param address Start address
+       * @param value   Value to set
+       * 
+       * @throws Exception
+       */
       private void set8bitValue(long address, long value) throws Exception {
          long offset = address-fAddress;
          if ((offset<0) || (offset>=fSizeInBytes)) {
@@ -124,6 +136,15 @@ public class MemoryBlockCache {
          fData[(int)offset] = (byte)value;
       }
 
+      /**
+       * Set 16-bit value in data<br>
+       * Does not trigger change listeners
+       * 
+       * @param address Start address
+       * @param value   Value to set
+       * 
+       * @throws Exception
+       */
       private void set16bitValue(long address, long value) throws Exception {
          long offset = address-fAddress;
          long size = 2;
@@ -134,6 +155,15 @@ public class MemoryBlockCache {
          fData[(int)(offset++)] = (byte)(value>>8);
       }
 
+      /**
+       * Set 32-bit value in data<br>
+       * Does not trigger change listeners
+       * 
+       * @param address Start address
+       * @param value   Value to set
+       * 
+       * @throws Exception
+       */
       private void set32bitValue(long address, long value) throws Exception {
          long offset = address-fAddress;
          long size = 4;
@@ -147,11 +177,13 @@ public class MemoryBlockCache {
       }
 
       /**
-       * Sets an 8, 16 or 32-bit value in block - does not trigger updates
+       * Sets an 8, 16 or 32-bit value in block<br>
+       * Does not trigger change listeners
        * 
-       * @param address
-       * @param value
-       * @param sizeInBytes
+       * @param address       Start address
+       * @param value         Value to set
+       * @param sizeInBytes   Size of value in bytes (1, 2 or 4)
+       * 
        * @throws Exception 
        */
       public void setValue(long address, int sizeInBytes, long value) throws Exception {
@@ -164,6 +196,9 @@ public class MemoryBlockCache {
          }
       }
       
+      /**
+       * Allocate data block if not already done
+       */
       private void allocateDataIfNeeded() {
          if (fData == null) {
             fData = new byte[(int) getSize()];
@@ -171,6 +206,15 @@ public class MemoryBlockCache {
          }
       }
 
+      /**
+       * Get 8-bit value from last data value reference
+       * 
+       * @param address Memory address (expected to lie within block)
+       *  
+       * @return Value 
+       * 
+       * @throws MemoryException
+       */
       private long get8bitLastValue(long address) throws MemoryException {
          long offset = address-fAddress;
          if (fLastData == null) {
@@ -182,6 +226,15 @@ public class MemoryBlockCache {
          return fGdbInterface.getValue8bit(fLastData, (int)offset);
       }
       
+      /**
+       * Get 16-bit value from last data value reference
+       * 
+       * @param address Memory address (expected to lie within block)
+       *  
+       * @return Value 
+       * 
+       * @throws MemoryException
+       */
       private long get16bitLastValue(long address) throws MemoryException {
          long offset = address-fAddress;
          if (fLastData == null) {
@@ -193,6 +246,15 @@ public class MemoryBlockCache {
          return fGdbInterface.getValue16bit(fLastData, (int)offset);
       }
 
+      /**
+       * Get 32-bit value from last data value reference
+       * 
+       * @param address Memory address (expected to lie within block)
+       *  
+       * @return Value 
+       * 
+       * @throws MemoryException
+       */
       private long get32bitLastValue(long address) throws MemoryException {
          long offset = address-fAddress;
          if (fLastData == null) {
@@ -207,8 +269,8 @@ public class MemoryBlockCache {
       /**
        * Get last value i.e. value recorded when setChangeReference() was last called
        * 
-       * @param address
-       * @param sizeInBytes
+       * @param address       Memory address (expected to lie within block)
+       * @param sizeInBytes   Size of data (1, 2 or 4 bytes)
        * 
        * @return Value
        * @throws MemoryException 
@@ -230,7 +292,8 @@ public class MemoryBlockCache {
       }
       
       /**
-       * Sets whether the data needs update from target
+       * Sets whether the data needs update from target<br>
+       * Does not initiate update
        *  
        * @param needsUpdate 
        */
@@ -335,7 +398,7 @@ public class MemoryBlockCache {
 
       /**
        * Retrieves block contents from target (if update not already pending).<br>
-       * This may trigger a view update.
+       * Change listeners will be notified when complete
        * 
        * @note Done on worker thread
        */
@@ -344,8 +407,8 @@ public class MemoryBlockCache {
       }
 
       /**
-       * Retrieves block contents from target (if update not already pending).
-       * This may trigger a view update.
+       * Retrieves block contents from target (if update not already pending).<br>
+       * Change listeners will be notified when complete
        * 
        * @param model
        * @note Done on worker thread
@@ -355,7 +418,7 @@ public class MemoryBlockCache {
             // Ignore
             return;
          }
-         fNeedsUpdate   = true;
+         fNeedsUpdate = true;
 
 //         System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue", getAddress(), getAddress()+getSize()-1));
          if (fUpdatePending) {
@@ -382,11 +445,14 @@ public class MemoryBlockCache {
                   try {
                      value = fGdbInterface.readMemory(getAddress(), (int)getSize(), (int)getWidthInBits());
                   } catch (Exception e) {
+                     fInaccessible = true;
+                     fNeedsUpdate  = false;
                      System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - Unable to access target", getAddress(), getAddress()+getSize()-1));
                   }
 //                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - read from target", getAddress(), getAddress()+getSize()-1));
                   setData(value);
-                  fNeedsUpdate   = false;
+                  fInaccessible = false;
+                  fNeedsUpdate  = false;
 //                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() model = %s", getAddress(), getAddress()+getSize()-1,  model));
 //                  if ((model == null) || !model.isRefreshPending()) {
 //                     // No model or model needs refreshing
@@ -412,17 +478,6 @@ public class MemoryBlockCache {
 //            job.setPriority(Job.SHORT);
             job.setUser(false);
             job.schedule();
-         }
-
-         /**
-          * Indicates that the current value of the data is to be used as the reference
-          * for determining changed values. 
-          */
-         public void setChangeReference() {
-            if (fData != null) {
-               fLastData = new byte[fData.length];
-               System.arraycopy(fData, 0, fLastData, 0, fData.length);
-            }
          }
 
          /**
@@ -454,6 +509,15 @@ public class MemoryBlockCache {
          }
 
          /**
+          * Indicates block is invalid due to access error
+          * 
+          * @return
+          */
+         public boolean isInaccessible() {
+            return fInaccessible;
+         }
+
+         /**
           *  Set range to reset value - not yet implemented
           *  
           * @param address      Address of start of value
@@ -461,12 +525,22 @@ public class MemoryBlockCache {
           * @param sizeInBytes  Size of value (in bytes)
           */
          public void loadResetValue(long address, long resetValue, int sizeInBytes) {
-            //         setValue(address, resetValue, size);
+//          setValue(address, resetValue, size);
             setNeedsUpdate(false);
          }
 
          /**
-          *  Sets a range of addresses as not needing update
+          * Sets the current data value as the reference for determining changed values. 
+          */
+         public void setChangeReference() {
+            if (fData != null) {
+               fLastData = new byte[fData.length];
+               System.arraycopy(fData, 0, fLastData, 0, fData.length);
+            }
+         }
+
+         /**
+          * Sets the current data value as the reference for determining changed values. 
           *  
           * @param address Start address of range
           * @param size    Size of range in bytes
@@ -492,10 +566,11 @@ public class MemoryBlockCache {
          }
 
          /**
-          * Synchronize a value between cached value and target
+          * Synchronize cached value and target<br>
           * This consist of:<br>
           *  - Writing the range of data values to target<br>
-          *  - Reading the entire peripheral state back from target (if readable)<br>
+          *  - Reading the entire block back from target (if readable)<br>
+          * Change listeners will be notified when complete
           * 
           * @param address       Start address of data range
           * @param sizeInBytes   Size in bytes of data range

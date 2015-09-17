@@ -14,12 +14,12 @@ public interface GdbSessionListener {
       EVT_OTHER,
       EVT_UNKNOWN;
       
-      /*
+      /**
        * Maps DSF StateChangeReason to EventType
        * 
-       * @param reason - Value to map
+       * @param reason Value to map
        * 
-       * @return corresponding EventType 
+       * @return Corresponding EventType 
        */
       public static EventType getEventFromDsfEvent(StateChangeReason reason) {
          switch (reason) {
@@ -44,12 +44,12 @@ public interface GdbSessionListener {
          }
       }
       
-      /*
+      /**
        * Maps MI Event Type to EventType
        * 
-       * @param reason - Value to map
+       * @param reason Value to map
        * 
-       * @return corresponding EventType 
+       * @return Corresponding EventType 
        */
       public static EventType getEventFromMiEvent(int reason) {
          switch (reason) {
@@ -63,18 +63,25 @@ public interface GdbSessionListener {
       }
    };
    
-   /*
-    * Session associated with this model has started
+   /**
+    * Session associated with this model has started execution
+    * 
+    * @param model Model associated with this session
     */
    public void sessionStarted(UsbdmDevicePeripheralsModel model);
 
-   /*
+   /**
     * Session associated with this model has terminated
+    * 
+    * @param model Model associated with this session
     */
    public void sessionTerminated(UsbdmDevicePeripheralsModel model);
 
-   /*
-    * Session associated with this model has suspended
+   /**
+    * Session associated with this model has been suspended
+    * 
+    * @param model Model associated with this session
+    * @param reason  Reason for Suspension
     */
    public void sessionSuspended(UsbdmDevicePeripheralsModel model, GdbSessionListener.EventType reason);
 

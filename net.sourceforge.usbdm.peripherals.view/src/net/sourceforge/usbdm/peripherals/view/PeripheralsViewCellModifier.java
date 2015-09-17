@@ -46,7 +46,6 @@ public class PeripheralsViewCellModifier implements ICellModifier {
                } else {
                   registerModel.setValue(Long.decode(s));
                }
-//               treeItem.setText(1, registerModel.safeGetValueAsString());
             } catch (NumberFormatException e) {
 //               System.err.println("PeripheralsViewCellModifier.modify(RegisterModel, ...) - format error");
             }
@@ -59,7 +58,6 @@ public class PeripheralsViewCellModifier implements ICellModifier {
                } else {
                   fieldModel.setValue(Long.decode(s));
                }
-//               treeItem.setText(1, fieldModel.safeGetValueAsString());
             } catch (NumberFormatException e) {
 //               System.err.println("PeripheralsViewCellModifier.modify(FieldModel, ...) - format error");
             }
@@ -94,7 +92,7 @@ public class PeripheralsViewCellModifier implements ICellModifier {
          return ((RegisterModel) element).isWritable();
       }
       if (element instanceof FieldModel) {
-         return ((FieldModel) element).isWriteable();
+         return ((FieldModel) element).isWritable();
       }
       return false;
    }

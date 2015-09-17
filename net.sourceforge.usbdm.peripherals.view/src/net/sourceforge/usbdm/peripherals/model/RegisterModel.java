@@ -13,7 +13,7 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
       protected int                fSizeInBits;
       private   String             fAccessMode;
       private   MemoryBlockCache   fMemoryBlockCache;
-      private   boolean            fHaveReportedChanged = false;
+//      private   boolean            fHaveReportedChanged = false;
       private   AccessType         fAccessType;
       
       private void initCommon(RegisterHolder peripheral, Register register) throws RegisterException {
@@ -61,8 +61,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * 
        * @param peripheral       Peripheral that contains register
        * @param register         Register being created
+       * 
        * @throws RegisterException 
-       * @throws Exception 
        */
       public RegisterModel(RegisterHolder peripheral, ModelInformation information) throws RegisterException {
          super(peripheral, information.getRegisterName(), information.getDescription());
@@ -117,20 +117,9 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
       }
       
       /**
-       * Synchronizes register value to target.
-       * This may trigger a view update
-       */
-      public void synchronizeValue() {
-//         System.err.println(String.format("synchronizeValue()"));
-         if (fMemoryBlockCache != null) {
-            fMemoryBlockCache.synchronizeValue(fAddress, (fSizeInBits+7)/8);
-         }
-      }
-      
-      /**
-       * Set the value of the register quietly - doesn't synchronize with target
-       * May triggers view update
-       * Updates last value
+       * Set the value of the register quietly<br>
+       * Doesn't synchronize with target<br>
+       * Does not trigger change listeners 
        * 
        * @param value - Value to set
        * @throws Exception 
@@ -189,6 +178,27 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
          return fMemoryBlockCache.isChanged(fAddress, (fSizeInBits+7)/8);
       }
 
+      /**
+       * Gets status string indicating busy invalid etc.
+       * 
+       * @return String or null if data is available
+       */
+      private String getStatus() {
+         if (!fAccessType.isReadable()) {
+            return "<not readable>";
+         }
+         if (fMemoryBlockCache.isInaccessible()) {
+            return "<inaccessible>";
+         }
+         if (fMemoryBlockCache.isNeedsUpdate()) {
+            return "<pending>";
+         }
+         if (isNeedsUpdate()) {
+          return "<pending>";
+         }
+         return null;
+      }
+      
       /* (non-Javadoc)
        * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
        */
@@ -203,16 +213,9 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsBinaryString() {
-         if (!fAccessType.isReadable()) {
-            return "<not readable>";
-         }
-         if (isNeedsUpdate()) {
-//            update();
-            return "<pending>";
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
-         }
-         else {
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
+         String rv = getStatus();
+         if (rv != null) {
+            return rv;
          }
          try {
             return super.getValueAsBinaryString(getValue(), fSizeInBits);
@@ -227,16 +230,9 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsHexString() {
-         if (!fAccessType.isReadable()) {
-            return "<not readable> ";
-         }
-         if (isNeedsUpdate()) {
-//            update();
-            return "<pending>";
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
-         }
-         else {
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
+         String rv = getStatus();
+         if (rv != null) {
+            return rv;
          }
          try {
             return super.getValueAsHexString(getValue(), fSizeInBits);
@@ -251,16 +247,9 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        */
       @Override
       public String getValueAsDecimalString() {
-         if (!fAccessType.isReadable()) {
-            return "<not readable>";
-         }
-         if (isNeedsUpdate()) {
-//            update();
-            return "<pending>";
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), update", getName()));
-         }
-         else {
-//            System.err.println(String.format("RegisterModel.getValueAsString(%s), no update", getName()));
+         String rv = getStatus();
+         if (rv != null) {
+            return rv;
          }
          try {
             return String.format("%d", getValue());
@@ -292,9 +281,8 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
          return fMemoryBlockCache.isNeedsUpdate();
       }
 
-      /**
-       * Used by the address block to notify of changes.
-       * In turn, if there is a change within the register range, this is passed on to the register change listeners.
+      /* (non-Javadoc)
+       * @see net.sourceforge.usbdm.peripherals.model.MemoryBlockChangeListener#notifyMemoryChanged(net.sourceforge.usbdm.peripherals.model.MemoryBlockCache)
        */
       @Override
       public void notifyMemoryChanged(MemoryBlockCache memoryBlockCache) {
@@ -321,6 +309,9 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
 //         }
       }
 
+      /* (non-Javadoc)
+       * @see net.sourceforge.usbdm.peripherals.model.UpdateInterface#forceUpdate()
+       */
       @Override
       public void forceUpdate() {
          if (fMemoryBlockCache != null) {

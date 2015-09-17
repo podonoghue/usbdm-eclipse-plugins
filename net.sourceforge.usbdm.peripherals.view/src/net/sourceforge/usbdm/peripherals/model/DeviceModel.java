@@ -29,20 +29,10 @@ public class DeviceModel extends BaseModel {
     * @param needsUpdate
     */
    public void setNeedsUpdate(boolean needsUpdate) {
-      for (Object peripheralModel : getChildren()) {
-         if (peripheralModel instanceof PeripheralModel) {
-            ((PeripheralModel)peripheralModel).setNeedsUpdate(needsUpdate);
-         }
-      }
-   }
-   
-   /**
-    * Resets the model register values to their expected reset values  
-    */
-   public void loadResetValues() {
-      for (Object peripheralModel : getChildren()) {
-         if (peripheralModel instanceof PeripheralModel) {
-            ((PeripheralModel)peripheralModel).loadResetValues();
+      for (Object model : getChildren()) {
+         if (model instanceof PeripheralModel) {
+            PeripheralModel peripheralModel = (PeripheralModel) model;
+            peripheralModel.setNeedsUpdate(needsUpdate);
          }
       }
    }
@@ -52,17 +42,38 @@ public class DeviceModel extends BaseModel {
     * for determining changed values. 
     */
    public void setChangeReference() {
-      for (Object peripheralModel : getChildren()) {
-         if (peripheralModel instanceof PeripheralModel) {
-            ((PeripheralModel)peripheralModel).setChangeReference();
+      for (Object model : getChildren()) {
+         if (model instanceof PeripheralModel) {
+            PeripheralModel peripheralModel = (PeripheralModel) model;
+            peripheralModel.setChangeReference();
          }
       }
    }
 
+   /**
+    * Resets the model register values to their expected reset values  
+    */
+   public void loadResetValues() {
+      for (Object model : getChildren()) {
+         if (model instanceof PeripheralModel) {
+            PeripheralModel peripheralModel = (PeripheralModel) model;
+            peripheralModel.loadResetValues();
+         }
+      }
+   }
+   
+   /**
+    * 
+    * @param interfaceType
+    */
    public void setInterfaceType(InterfaceType interfaceType) {
       this.interfaceType = interfaceType;
    }
 
+   /**
+    * 
+    * @return
+    */
    public InterfaceType getInterfaceType() {
       return interfaceType;
    }

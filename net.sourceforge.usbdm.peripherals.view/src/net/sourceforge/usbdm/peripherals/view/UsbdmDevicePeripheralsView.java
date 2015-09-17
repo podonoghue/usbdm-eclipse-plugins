@@ -126,8 +126,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             }
          }
       }
-
    }
+
    private void saveSettings() {
 //      System.err.println("UsbdmDevicePeripheralsView.saveSettings()");
       if ((settings != null) && (svdId != null)) {
@@ -217,7 +217,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          Object[] visibleObjects = peripheralsTreeViewer.getVisibleExpandedElements();
          for (Object object : visibleObjects) {
             if (object instanceof PeripheralModel) {
-               ((PeripheralModel) object).forceUpdate();
+               PeripheralModel peripheral = (PeripheralModel) object;
+               peripheral.forceUpdate();
             }
          }
       }
@@ -234,26 +235,24 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          Object obj = ((IStructuredSelection) selection).getFirstElement();
          // System.err.println("Action1.run(), obj = " +
          // obj.toString()+", class=" + obj.getClass().toString());
-         if (obj != null) {
-            if (obj instanceof UpdateInterface) {
-               ((UpdateInterface) obj).forceUpdate();
-            }
+         if (obj instanceof UpdateInterface) {
+            UpdateInterface updateInterface = (UpdateInterface) obj;
+            updateInterface.forceUpdate();
          }
       }
    }
    
-   private Action openFaultDialogue;
-
+   private Action                openFaultDialogue;
    private GdbDsfSessionListener gdbDsfSessionListener = null;
-   private GdbMiSessionListener gdbMiSessionListener = null;
+   private GdbMiSessionListener  gdbMiSessionListener = null;
 
    // Current model being displayed
    private UsbdmDevicePeripheralsModel peripheralsModel = null;
    
    private static final String DEVICE_TOOLTIP_STRING = "Current device\nClick to change device";
    
-   private LocalResourceManager resManager = null;
-   private HashMap<String, Image> imageCache = new HashMap<String,Image>();
+   private LocalResourceManager     resManager = null;
+   private HashMap<String, Image>   imageCache = new HashMap<String,Image>();
 
    /**
     * Testing constructor.
@@ -527,6 +526,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    /**
     * Fill menu bar drop-down menu
+    * 
+    * @param manager
     */
    private void fillLocalPullDown(IMenuManager manager) {
       for (Action action:myActions) {
@@ -538,6 +539,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    
    /**
     * Fill Context menu
+    * 
     * @param manager
     */
    private void fillContextMenu(IMenuManager manager) {
@@ -555,6 +557,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
    /**
     * Fill menu bar
+    * 
     * @param manager
     */
    private void fillLocalToolBar(IToolBarManager manager) {
@@ -676,10 +679,16 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    public class MyViewerFilter extends ViewerFilter {
       final boolean enabled;
 
+      /**
+       * @param enabled
+       */
       MyViewerFilter(boolean enabled) {
          this.enabled = enabled;
       }
 
+      /* (non-Javadoc)
+       * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+       */
       @Override
       public boolean select(Viewer viewer, Object parentElement, Object element) {
          // System.err.println("MyViewerFilter.select(), element.getClass() = "
@@ -691,10 +700,14 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    /**
     * Passing the focus request to the viewer's control.
     */
+   @Override
    public void setFocus() {
       peripheralsTreeViewer.getControl().setFocus();
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.view.GdbSessionListener#sessionStarted(net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel)
+    */
    @Override
    public void sessionStarted(final UsbdmDevicePeripheralsModel model) {
 //      System.err.println(String.format("UsbdmDevicePeripheralsView.sessionStarted(%s)", (aPeripheralsModel == null) ? "null" : aPeripheralsModel.getDeviceName()));
@@ -737,6 +750,9 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       });
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.view.GdbSessionListener#sessionTerminated(net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel)
+    */
    @Override
    public void sessionTerminated(final UsbdmDevicePeripheralsModel model) {
       
@@ -769,6 +785,9 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       });
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.view.GdbSessionListener#sessionSuspended(net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel, net.sourceforge.usbdm.peripherals.view.GdbSessionListener.EventType)
+    */
    @Override
    public void sessionSuspended(final UsbdmDevicePeripheralsModel model, GdbSessionListener.EventType reason) {
       if (model != null) {

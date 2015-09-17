@@ -64,6 +64,24 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       return ((1l<<size)-1)&(parent.getLastValue()>>bitOffset);
    }
 
+   /**
+    * Sets the value of this bit-field within the register
+    * Note this actually modifies the owning register
+    * May trigger view updates
+    * 
+    * @param bitField New bit-field value
+    */
+   public void setValue(Long bitField) {
+      Long currentValue = 0L;
+      RegisterModel reg = (RegisterModel) fParent;
+      try {
+         currentValue = reg.getValue();
+      } catch (MemoryException e) {
+      }
+      Long mask         = ((1l<<size)-1)<<bitOffset;
+      reg.setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
+   }
+
    /* (non-Javadoc)
     * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#isChanged()
     */
@@ -113,17 +131,18 @@ public class FieldModel extends BaseModel implements UpdateInterface {
          return "<invalid>";
       }
    }
+   
    /* (non-Javadoc)
     * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getValueAsString()
     */
    @Override
    public String getValueAsString() {
-         if ((enumerations != null) || (size<9)) {
-            return getValueAsBinaryString();
-         }
-         else {
-            return getValueAsHexString();
-         }
+      if ((enumerations != null) || (size<9)) {
+         return getValueAsBinaryString();
+      }
+      else {
+         return getValueAsHexString();
+      }
    }
 
    /**
@@ -144,6 +163,22 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       return enumerations;
    }
 
+   /**
+    * @return the readable
+    */
+   public boolean isReadable() {
+      return readable;
+   }
+
+   /**
+    * Check if field is writable
+    * 
+    * @return true is writable
+    */
+   public boolean isWritable() {
+      return writeable;
+   }
+
    /* (non-Javadoc)
     * @see net.sourceforge.usbdm.peripherals.ui.UsbdmDevicePeripheralsModel.BaseModel#getAddressAsString()
     */
@@ -155,25 +190,6 @@ public class FieldModel extends BaseModel implements UpdateInterface {
       else {
          return String.format("[%d:%d]", bitOffset+size-1, bitOffset);
       }
-   }
-
-   /**
-    * Sets the value of this bit-field within the register
-    * Note this actually modifies the owning register
-    * May trigger view updates
-    * 
-    * @param bitField New bit-field value
-    * @throws Exception 
-    */
-   public void setValue(Long bitField) {
-      Long currentValue;
-      try {
-         currentValue = ((RegisterModel)(this.fParent)).getValue();
-      } catch (MemoryException e) {
-         currentValue = 0L;
-      }
-      Long mask         = ((1l<<size)-1)<<bitOffset;
-      ((RegisterModel)(this.fParent)).setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
    }
 
    /* (non-Javadoc)
@@ -189,23 +205,13 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public boolean isNeedsUpdate() {
-      return fParent.isNeedsUpdate();
+      RegisterModel reg = (RegisterModel) fParent;
+      return reg.isNeedsUpdate();
    }
 
-   /**
-    * @return the readable
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripherals.model.UpdateInterface#forceUpdate()
     */
-   public boolean isReadable() {
-      return readable;
-   }
-
-   /**
-    * @return the writeable
-    */
-   public boolean isWriteable() {
-      return writeable;
-   }
-
    @Override
    public void forceUpdate() {
          // Pass to parent - entire register is updated

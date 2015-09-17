@@ -9,8 +9,8 @@ public abstract class RegisterHolder extends BaseModel {
    /**
     * Finds the MemoryBlockCache containing this register
     * 
-    * @param address
-    * @param sizeInBytes in bytes!
+    * @param address       Address to look for
+    * @param sizeInBytes   Size in bytes of data
     * 
     * @return null if not found, block otherwise
     */

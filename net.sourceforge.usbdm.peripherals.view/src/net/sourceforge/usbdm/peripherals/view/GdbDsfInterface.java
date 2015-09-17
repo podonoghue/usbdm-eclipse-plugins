@@ -73,22 +73,22 @@ public class GdbDsfInterface extends GdbCommonInterface {
     *  
     *  @return byte[size] containing the data read or null on failure
     */
-   private byte[] readMemory(long address, int size) throws TimeoutException {
-      System.err.println(String.format("GdbDsfInterface.readMemory(0x%X, %d)", address, size));
+   private synchronized byte[] readMemory(long address, int size) throws TimeoutException {
+//      System.err.println(String.format("GdbDsfInterface.readMemory(0x%X, %d)", address, size));
       
       DsfServicesTracker  tracker = null;
       if (dsfSession != null) {
          tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
       }
-//      System.err.println("GDBInterface.readMemory(DSF)");
+//      System.err.println("GdbDsfInterface.readMemory()");
       if (tracker == null) {
-         System.err.println("GDBInterface.readMemory(DSF) tracker = null");
+         System.err.println("GdbDsfInterface.readMemory() tracker = null");
          return null;
       }
       byte[] ret = null;
       final IGDBControl fGdb = (IGDBControl) tracker.getService(IGDBControl.class);
       if (fGdb == null) {
-         System.err.println("GDBInterface.readMemory(DSF) fGdb = null");
+         System.err.println("GdbDsfInterface.readMemory() fGdb = null");
          return null;
       }
       CommandFactory factory = fGdb.getCommandFactory();
@@ -121,17 +121,18 @@ public class GdbDsfInterface extends GdbCommonInterface {
             ret = arraybytes;
          }
          else {
-            System.err.println("GDBInterface.readMemory(DSF) - failed, result == null or result.isError()");
+            System.err.println("GdbDsfInterface.readMemory(DSF) - failed, result == null or result.isError()");
          }
       } catch (TimeoutException localTimeoutException) {
-//         System.err.println("GDBInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
+         System.err.println("GdbDsfInterface.readMemory() localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
          // Reduced wait on next failure
          memoryWaitTimeInMilliseconds = reducedMemoryWaitTimeInMilliseconds;
       } catch (Exception e) {
-         System.err.println("GDBInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
+         System.err.println("GdbDsfInterface.readMemory() - failed, ErrorMessage: " + e.getMessage());
       } finally {
          tracker.dispose();
       }
+//      System.err.println(String.format("GdbDsfInterface.readMemory() " + ret[0]));
       return ret;
    }
 
@@ -184,7 +185,7 @@ public class GdbDsfInterface extends GdbCommonInterface {
       default: 
          throw new Exception("Illegal access size"); 
       }
-      //      System.err.println(String.format("GDBInterface.readMemory(0x%08X, %d)", address, iByteCount));
+      //      System.err.println(String.format("GdbDsfInterface.readMemory(0x%08X, %d)", address, iByteCount));
       return readMemory(address, byteCount);
    }
 
@@ -208,7 +209,7 @@ public class GdbDsfInterface extends GdbCommonInterface {
          tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
       }
       if (tracker == null) {
-         System.err.println("GDBInterface.writeMemory(DSF) tracker = null");
+         System.err.println("GdbDsfInterface.writeMemory(DSF) tracker = null");
          return 0;
       }
       final IGDBControl fGdb = tracker.getService(IGDBControl.class);
@@ -246,14 +247,14 @@ public class GdbDsfInterface extends GdbCommonInterface {
             ret = data.length;
          }
          else {
-            System.err.println("GDBInterface.writeMemory() - failed, result == null or result.isError()");
+            System.err.println("GdbDsfInterface.writeMemory() - failed, result == null or result.isError()");
          }
       } catch (TimeoutException localTimeoutException) {
-//         System.err.println("GDBInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
+//         System.err.println("GdbDsfInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
          // Reduced wait on next failure
          memoryWaitTimeInMilliseconds = reducedMemoryWaitTimeInMilliseconds;
       } catch (Exception e) {
-         System.err.println("GDBInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
+         System.err.println("GdbDsfInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
       } finally {
          tracker.dispose();
       }
@@ -271,7 +272,7 @@ public class GdbDsfInterface extends GdbCommonInterface {
     */
    @Override
    public void writeMemory(long address, byte[] data, int accessWidth) throws TimeoutException {
-      //      System.err.println(String.format("GDBInterface.writeMemory(0x%08X, %d)", address, data.length));
+      //      System.err.println(String.format("GdbDsfInterface.writeMemory(0x%08X, %d)", address, data.length));
       writeMemory(address, data);
    }
 
@@ -314,9 +315,9 @@ public class GdbDsfInterface extends GdbCommonInterface {
 //               (MIDataEvaluateExpressionInfo) query.get(memoryWaitTimeInMilliseconds, TimeUnit.MILLISECONDS);
 //         // Reset wait time
 //         if ((result != null) && !result.isError()) {
-//            //            System.err.println("GDBInterface.readRegister() - ok");
-//            //            System.err.println("GDBInterface.readRegister() - result = "+result.toString());
-//            //            System.err.println("GDBInterface.readRegister() - result.getValue() = "+result.getValue());
+//            //            System.err.println("GdbDsfInterface.readRegister() - ok");
+//            //            System.err.println("GdbDsfInterface.readRegister() - result = "+result.toString());
+//            //            System.err.println("GdbDsfInterface.readRegister() - result.getValue() = "+result.getValue());
 //            Matcher matcher = stringPattern.matcher(result.getValue());
 //            if (matcher.matches()) {
 //               //               System.err.println(String.format("group 0 = "+matcher.group(0)));
@@ -341,14 +342,14 @@ public class GdbDsfInterface extends GdbCommonInterface {
 //            //            System.err.println(String.format("rv = 0x%X (%d)", rv, rv));
 //         }
 //         else {
-//            System.err.println("GDBInterface.evaluateExpression() - failed, result == null or result.isError()");
+//            System.err.println("GdbDsfInterface.evaluateExpression() - failed, result == null or result.isError()");
 //         }
 //      } catch (TimeoutException localTimeoutException) {
-//         System.err.println("GDBInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
+//         System.err.println("GdbDsfInterface.readMemory(DSF) localTimeoutException - waiting time of " + memoryWaitTimeInMilliseconds + " ms exceeded");
 //         // Reduced wait on next failure
 //         memoryWaitTimeInMilliseconds = reducedMemoryWaitTimeInMilliseconds;
 //      } catch (Exception e) {
-//         System.err.println("GDBInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
+//         System.err.println("GdbDsfInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
 //      } finally {
 //         tracker.dispose();
 //      }
@@ -399,7 +400,7 @@ public class GdbDsfInterface extends GdbCommonInterface {
             rv = -1;
          }
       } catch (Exception e) {
-         System.err.println("GDBInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
+         System.err.println("GdbDsfInterface.setFrame() - failed, ErrorMessage: " + e.getMessage());
       } finally {
          tracker.dispose();
       }
