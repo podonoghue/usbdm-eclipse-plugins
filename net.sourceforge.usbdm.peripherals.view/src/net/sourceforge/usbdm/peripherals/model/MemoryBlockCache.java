@@ -368,7 +368,7 @@ public class MemoryBlockCache {
       /**
        * Sets the data associated with this block
        * 
-       * @param data the data to set
+       * @param data The data to set
        */
       public void setData(byte[] data) {
          fData = data;
@@ -432,7 +432,6 @@ public class MemoryBlockCache {
          Job job = new Job("Updating peripheral display") {
             protected synchronized IStatus run(IProgressMonitor monitor) {
                monitor.beginTask("Updating peripheral display...", 10);
-               IStatus rv = Status.OK_STATUS;
                try {
                   fUpdatePending = false;
                   if (!fNeedsUpdate) {
@@ -448,6 +447,7 @@ public class MemoryBlockCache {
                      fInaccessible = true;
                      fNeedsUpdate  = false;
                      System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - Unable to access target", getAddress(), getAddress()+getSize()-1));
+                     return Status.OK_STATUS;
                   }
 //                  System.err.println(String.format("MemoryBlockCache[0x%X..0x%X].retrieveValue.run() - read from target", getAddress(), getAddress()+getSize()-1));
                   setData(value);
@@ -459,7 +459,6 @@ public class MemoryBlockCache {
 //                     if (model != null) {
 //                        model.setRefreshPending(true);
 //                     }
-                  //XXXX
                      Display.getDefault().syncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -473,7 +472,7 @@ public class MemoryBlockCache {
                } finally {
                   monitor.done();
                }
-               return rv;
+               return Status.OK_STATUS;
             }};
 //            job.setPriority(Job.SHORT);
             job.setUser(false);

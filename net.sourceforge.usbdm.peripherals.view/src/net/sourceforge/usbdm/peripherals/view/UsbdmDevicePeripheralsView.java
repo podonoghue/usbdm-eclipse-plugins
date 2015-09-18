@@ -843,8 +843,17 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
 
          UsbdmDevicePeripheralsView view = new UsbdmDevicePeripheralsView();
 
+         String os    = System.getProperty("os.name");            
+         System.err.println("os.name      => "+os );
+         
+         Path path = null;
+         if ((os != null) && os.toUpperCase().contains("LINUX")) {
+            path = Paths.get("/usr/share/usbdm/DeviceData/Device.SVD/Internal/");
+         } else {
+            path = Paths.get("C:/Users/Peter/Documents/Development/Git/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+         }
+         
          view.createPartControl(composite);
-         Path                        path = Paths.get("C:/Users/Peter/Documents/Development/Git/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
          SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
 //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
          UsbdmDevicePeripheralsModel peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, svdId);
