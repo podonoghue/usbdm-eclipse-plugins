@@ -349,12 +349,12 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
 
-      // Suppress tree expansion on double-click
-      // see http://www.eclipse.org/forums/index.php/t/257325/
-      peripheralsTreeViewer.getControl().addListener(SWT.MeasureItem, new Listener(){
-         @Override
-         public void handleEvent(Event event) {
-         }});
+//      // Suppress tree expansion on double-click
+//      // see http://www.eclipse.org/forums/index.php/t/257325/
+//      peripheralsTreeViewer.getControl().addListener(SWT.MeasureItem, new Listener(){
+//         @Override
+//         public void handleEvent(Event event) {
+//         }});
 
       peripheralsTreeViewer.setColumnProperties(treeProperties);
       peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new TextCellEditor(peripheralsTreeViewer.getTree()), null });

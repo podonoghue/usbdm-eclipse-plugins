@@ -38,7 +38,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
    public class ChoiceCellEditor extends ComboBoxCellEditor {
 
       public ChoiceCellEditor(Tree tree, String[] choices) {
-         super(tree, choices);
+         super(tree, choices, SWT.READ_ONLY);
          setValueValid(true);
       }
       

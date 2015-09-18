@@ -207,12 +207,13 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       viewer.getTree().setLinesVisible(true);
       viewer.getTree().setHeaderVisible(true);
       ColumnViewerToolTipSupport.enableFor(viewer);
-      // Suppress tree expansion on double-click
-      // see http://www.eclipse.org/forums/index.php/t/257325/
-      viewer.getControl().addListener(SWT.MeasureItem, new Listener(){
-         @Override
-         public void handleEvent(Event event) {
-         }});
+      
+//      // Suppress tree expansion on double-click
+//      // see http://www.eclipse.org/forums/index.php/t/257325/
+//      viewer.getControl().addListener(SWT.MeasureItem, new Listener(){
+//         @Override
+//         public void handleEvent(Event event) {
+//         }});
       
       viewer.setContentProvider(new ViewContentProvider());
 
