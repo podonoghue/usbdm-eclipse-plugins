@@ -12,15 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
-import net.sourceforge.usbdm.peripherals.model.DeviceModel;
-import net.sourceforge.usbdm.peripherals.model.FieldModel;
-import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
-import net.sourceforge.usbdm.peripherals.model.RegisterModel;
-import net.sourceforge.usbdm.peripherals.model.UpdateInterface;
-import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
-
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
@@ -53,8 +44,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -63,7 +52,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
@@ -71,6 +59,15 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
+
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
+import net.sourceforge.usbdm.peripherals.model.DeviceModel;
+import net.sourceforge.usbdm.peripherals.model.FieldModel;
+import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
+import net.sourceforge.usbdm.peripherals.model.RegisterModel;
+import net.sourceforge.usbdm.peripherals.model.UpdateInterface;
+import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
 
 /**
  * @author podonoghue
@@ -299,33 +296,33 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       return image;
    }
    
-   /**
-    * Provides the editor for the tree elements
-    * 
-    * Does minor modifications to the default editor.
-    */
-   private class PeripheralsViewTextCellEditor extends TextCellEditor {
-
-      private int minHeight;
-
-      public PeripheralsViewTextCellEditor(Tree tree) {
-         super(tree, SWT.BORDER);
-         Text txt = (Text) getControl();
-
-         Font fnt = txt.getFont();
-         FontData[] fontData = fnt.getFontData();
-         if (fontData != null && fontData.length > 0) {
-            minHeight = fontData[0].getHeight() + 10;
-         }
-      }
-
-      public LayoutData getLayoutData() {
-         LayoutData data = super.getLayoutData();
-         if (minHeight > 0)
-            data.minimumHeight = minHeight;
-         return data;
-      }
-   }
+//   /**
+//    * Provides the editor for the tree elements
+//    * 
+//    * Does minor modifications to the default editor.
+//    */
+//   private class PeripheralsViewTextCellEditor extends TextCellEditor {
+//
+//      private int minHeight;
+//
+//      public PeripheralsViewTextCellEditor(Tree tree) {
+//         super(tree, SWT.BORDER);
+//         Text txt = (Text) getControl();
+//
+//         Font fnt = txt.getFont();
+//         FontData[] fontData = fnt.getFontData();
+//         if (fontData != null && fontData.length > 0) {
+//            minHeight = fontData[0].getHeight() + 10;
+//         }
+//      }
+//
+//      public LayoutData getLayoutData() {
+//         LayoutData data = super.getLayoutData();
+//         if (minHeight > 0)
+//            data.minimumHeight = minHeight;
+//         return data;
+//      }
+//   }
 
    /**
     * Callback that creates the viewer and initialises it.
@@ -360,7 +357,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          }});
 
       peripheralsTreeViewer.setColumnProperties(treeProperties);
-      peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new PeripheralsViewTextCellEditor(peripheralsTreeViewer.getTree()), null });
+      peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new TextCellEditor(peripheralsTreeViewer.getTree()), null });
+//      peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new PeripheralsViewTextCellEditor(peripheralsTreeViewer.getTree()), null });
       peripheralsTreeViewer.setCellModifier(new PeripheralsViewCellModifier(this));
 
       peripheralsTreeViewer.getControl().addListener(SWT.MeasureItem, new Listener() {
