@@ -49,7 +49,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @throws MemoryException 
     */
    public long getValue() throws MemoryException {
-      RegisterModel parent = (RegisterModel) this.fParent;
+      RegisterModel parent = (RegisterModel) fParent;
       return ((1l<<size)-1)&(parent.getValue()>>bitOffset);
    }
    
@@ -60,7 +60,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @throws MemoryException 
     */
    public long getLastValue() throws MemoryException {
-      RegisterModel parent = (RegisterModel) this.fParent;
+      RegisterModel parent = (RegisterModel) fParent;
       return ((1l<<size)-1)&(parent.getLastValue()>>bitOffset);
    }
 
@@ -100,6 +100,11 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getValueAsBinaryString() {
+      RegisterModel parent = (RegisterModel) this.fParent;
+      String rv = parent.getStatus();
+      if (rv != null) {
+         return rv;
+      }
       try {
          return super.getValueAsBinaryString(getValue(), size);
       } catch (MemoryException e) {
@@ -112,6 +117,11 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getValueAsHexString() {
+      RegisterModel parent = (RegisterModel) fParent;
+      String rv = parent.getStatus();
+      if (rv != null) {
+         return rv;
+      }
       try {
          return super.getValueAsHexString(getValue(), size);
       } catch (MemoryException e) {
@@ -125,6 +135,11 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getValueAsDecimalString() {
+      RegisterModel parent = (RegisterModel) fParent;
+      String rv = parent.getStatus();
+      if (rv != null) {
+         return rv;
+      }
       try {
          return String.format("%d", getValue());
       } catch (MemoryException e) {

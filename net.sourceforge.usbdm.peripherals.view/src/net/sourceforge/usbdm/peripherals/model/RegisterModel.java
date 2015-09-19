@@ -183,12 +183,12 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
        * 
        * @return String or null if data is available
        */
-      private String getStatus() {
+      public String getStatus() {
          if (!fAccessType.isReadable()) {
-            return "<not readable>";
+            return "<unreadable>";
          }
          if (fMemoryBlockCache.isInaccessible()) {
-            return "<inaccessible>";
+            return "<no access>";
          }
          if (fMemoryBlockCache.isNeedsUpdate()) {
             return "<pending>";
