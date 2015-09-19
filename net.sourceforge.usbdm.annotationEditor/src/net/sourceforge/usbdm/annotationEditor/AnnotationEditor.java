@@ -34,6 +34,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Tree;
 //import org.eclipse.swt.widgets.Event;
 //import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IEditorInput;
@@ -204,8 +205,10 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
    
    public void createControls(Composite parent) {
       viewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
-      viewer.getTree().setLinesVisible(true);
-      viewer.getTree().setHeaderVisible(true);
+      
+      Tree tree = viewer.getTree();
+      tree.setLinesVisible(true);
+      tree.setHeaderVisible(true);
       ColumnViewerToolTipSupport.enableFor(viewer);
       
 //      // Suppress tree expansion on double-click
@@ -217,32 +220,34 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       
       viewer.setContentProvider(new ViewContentProvider());
 
-      FocusCellOwnerDrawHighlighter highlighter = new FocusCellOwnerDrawHighlighter(viewer) {
-         protected Color getSelectedCellBackgroundColorNoFocus(ViewerCell cell) {
-            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-         }
-         protected Color getSelectedCellForegroundColorNoFocus(ViewerCell cell) {
-            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
+//      FocusCellOwnerDrawHighlighter highlighter = new FocusCellOwnerDrawHighlighter(viewer) {
+//         protected Color getSelectedCellBackgroundColorNoFocus(ViewerCell cell) {
+//            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+//         }
+//         protected Color getSelectedCellForegroundColorNoFocus(ViewerCell cell) {
+//            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
+//         }
+//      };
+
+//      TreeViewerFocusCellManager focusCellManager     = new TreeViewerFocusCellManager(viewer, highlighter);
+      
+//      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
+//         @Override
+//         protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
+//            return event.eventType == ColumnViewerEditorActivationEvent.TRAVERSAL
+//                  || event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION
+//                  || (event.eventType == ColumnViewerEditorActivationEvent.KEY_PRESSED && event.keyCode == SWT.CR)
+//                  || event.eventType == ColumnViewerEditorActivationEvent.PROGRAMMATIC;
+//         }
+//      };  
+      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
+         @Override
+         protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
+            return event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION;
          }
       };
 
-      TreeViewerFocusCellManager focusCellManager     = new TreeViewerFocusCellManager(viewer, highlighter);
-      
-      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
-         @Override
-         protected boolean isEditorActivationEvent(
-               ColumnViewerEditorActivationEvent event) {
-            return event.eventType == ColumnViewerEditorActivationEvent.TRAVERSAL
-                  || event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION
-                  || (event.eventType == ColumnViewerEditorActivationEvent.KEY_PRESSED && event.keyCode == SWT.CR)
-                  || event.eventType == ColumnViewerEditorActivationEvent.PROGRAMMATIC;
-         }
-      };    
-      TreeViewerEditor.create(viewer, focusCellManager, actSupport, 
-              ColumnViewerEditor.TABBING_HORIZONTAL
-            | ColumnViewerEditor.TABBING_MOVE_TO_ROW_NEIGHBOR
-            | ColumnViewerEditor.TABBING_VERTICAL 
-            | ColumnViewerEditor.KEYBOARD_ACTIVATION);
+      TreeViewerEditor.create(viewer, actSupport, ColumnViewerEditor.DEFAULT);
 
       /*
        * Do columns

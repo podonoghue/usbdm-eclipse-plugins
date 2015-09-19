@@ -342,6 +342,8 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       Tree tree = peripheralsTreeViewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
+      ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
+
 
 //      // Suppress tree expansion on double-click
 //      // see http://www.eclipse.org/forums/index.php/t/257325/
@@ -429,14 +431,14 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       // Content provider
       peripheralsTreeViewer.setContentProvider(new PeripheralsViewContentProvider(this));
 
-      // Tooltips doesn't work???? 
-      //      ColumnViewerToolTipSupport.enableFor(peripheralsTreeViewer);
-
-      TreeViewerEditor.create(peripheralsTreeViewer, new ColumnViewerEditorActivationStrategy(peripheralsTreeViewer) {
+      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(peripheralsTreeViewer) {
+         @Override
          protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
-            return event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION;
+            return (event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION);// ||
+//                   (event.eventType == ColumnViewerEditorActivationEvent.KEY_PRESSED && event.keyCode == SWT.CR);
          }
-      }, TreeViewerEditor.DEFAULT);
+      };
+      TreeViewerEditor.create(peripheralsTreeViewer, actSupport, TreeViewerEditor.DEFAULT);
 
       // Create the help context id for the viewer's control
       // PlatformUI.getWorkbench().getHelpSystem().setHelp(treeViewer.getControl(),
