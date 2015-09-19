@@ -7,8 +7,6 @@
 */
 package net.sourceforge.usbdm.peripherals.view;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -43,15 +41,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
@@ -360,13 +354,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new TextCellEditor(peripheralsTreeViewer.getTree()), null });
 //      peripheralsTreeViewer.setCellEditors(new CellEditor[] { null, new PeripheralsViewTextCellEditor(peripheralsTreeViewer.getTree()), null });
       peripheralsTreeViewer.setCellModifier(new PeripheralsViewCellModifier(this));
-
-      peripheralsTreeViewer.getControl().addListener(SWT.MeasureItem, new Listener() {
-         @Override
-         public void handleEvent(Event event) {
-
-         }
-      });
 
       /*
        * Name column
@@ -820,63 +807,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
             }
          }
       });
-   }
-
-   /**
-    * Test main
-    * 
-    * @param args
-    */
-   public static void main(String[] args) {
-      try {
-         Display display = new Display();
-
-         Shell shell = new Shell(display);
-         shell.setText("Task List - TableViewer Example");
-         shell.setLayout(new FillLayout());
-
-         Composite composite = new Composite(shell, SWT.NONE);
-         composite.setBackground(new Color(display, 255, 0, 0));
-         composite.setLayout(new FillLayout());
-
-         UsbdmDevicePeripheralsView view = new UsbdmDevicePeripheralsView();
-
-         String os    = System.getProperty("os.name");            
-         System.err.println("os.name      => "+os );
-         
-         Path path = null;
-         if ((os != null) && os.toUpperCase().contains("LINUX")) {
-            path = Paths.get("/usr/share/usbdm/DeviceData/Device.SVD/Internal/");
-         } else {
-            path = Paths.get("C:/Users/Peter/Documents/Development/Git/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
-         }
-         
-         view.createPartControl(composite);
-         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
-//         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
-         UsbdmDevicePeripheralsModel peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, svdId);
-
-         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
-         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK10D10.svd.xml", null);
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK11D5.svd.xml", null);
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK64F12.svd.xml", null);
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF5225x.svd.xml", null);
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MCF51JF.svd.xml", null);
-         // Try illegal path/name
-         //      peripheralsModel = new UsbdmDevicePeripheralsModel("xxxx", null);
-
-         view.sessionStarted(peripheralsModel);
-
-         shell.open();
-         while (!shell.isDisposed()) {
-            if (!display.readAndDispatch())
-               display.sleep();
-         }
-         display.dispose();
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
    }
 
    public PeripheralsInformationPanel getInformationPanel() {
