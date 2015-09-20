@@ -3,8 +3,9 @@
       id="net.sourceforge.usbdm.cw.feature"
       label="USBDM Codewarrior Feature"
       version="4.12.1.qualifier"
-      provider-name="pgo"
-      os="linux,win32">
+      provider-name="USBDM"
+      os="linux,win32"
+      arch="x86,x86_64">
 
    <description url="http://usbdm.sourceforge.net/">
       USBDM Plugin for Codewarrior
