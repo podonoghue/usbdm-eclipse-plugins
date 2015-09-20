@@ -4,6 +4,7 @@
       label="USBDM Codewarrior Feature"
       version="4.12.1.qualifier"
       provider-name="USBDM"
+      plugin="net.sourceforge.usbdm.cw.debugPlugin"
       os="linux,win32"
       arch="x86,x86_64">
 
