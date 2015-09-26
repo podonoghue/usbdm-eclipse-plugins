@@ -453,6 +453,12 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
    
    public final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
    
+   public final static String MEM_DOCUMENTATION = 
+     "/*\n"                             +
+     " *  <o>  %-6s address <constant>\n" +
+     " *  <o1> %-6s size    <constant>\n"  +
+     " */\n";
+
    /**
     * Adds the device memory map information to the paramMap
     * 
@@ -535,16 +541,30 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       flashRegions = coalesce(flashRegions);
       // 1st FLASH region
       flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
+      
+      int    suffix  = 0;
+      String capName = "ROM"; 
+      String name    = "rom"; 
       for(MemoryRange flashRegion:flashRegions) {
-         memoryMap.append(String.format(MEM_FORMAT, "rom", "(rx)", flashRegion.start, flashRegion.end-flashRegion.start+1));
+         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", flashRegion.start, flashRegion.end-flashRegion.start+1));
+         suffix++;
+         capName = "ROM" + suffix; 
+         name    = "rom" + suffix; 
       }
 
       ramRegions = coalesce(ramRegions);
       // 1st RAM region contains stack
       ramSize         = (ramRegions.get(0).end-ramRegions.get(0).start+1);
       gdbGuardAddress = ramRegions.get(0).end+1;
+      suffix  = 0;
+      capName = "RAM"; 
+      name    = "ram"; 
       for(MemoryRange ramRegion:ramRegions) {
-         memoryMap.append(String.format(MEM_FORMAT, "ram", "(rwx)", ramRegion.start, ramRegion.end-ramRegion.start+1));
+         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", ramRegion.start, ramRegion.end-ramRegion.start+1));
+         capName = "RAM" + suffix; 
+         name    = "ram" + suffix; 
       }
       if (gdbGuardAddress > 0) {
          memoryMap.append("  /* Guard region above stack for GDB */\n");
