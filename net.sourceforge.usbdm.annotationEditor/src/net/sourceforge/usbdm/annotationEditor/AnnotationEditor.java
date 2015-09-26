@@ -2,13 +2,6 @@ package net.sourceforge.usbdm.annotationEditor;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BitField;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.ErrorNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.HeadingModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.DocumentEvent;
@@ -19,14 +12,11 @@ import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
-import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
-import org.eclipse.jface.viewers.TreeViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -43,6 +33,13 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BitField;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.ErrorNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.HeadingModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 
 /**
  *  USBDM Annotation Editor
