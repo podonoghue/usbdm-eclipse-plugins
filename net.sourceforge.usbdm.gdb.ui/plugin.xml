@@ -19,16 +19,6 @@
    <extension
          point="org.eclipse.debug.core.launchDelegates">
       <launchDelegate
-            delegate="net.sourceforge.usbdm.gdb.UsbdmGdbLaunchConfigurationDelegate"
-            delegateDescription="Hardware debugging using the USBDM debugger framework"
-            id="net.sourceforge.usbdm.gdb.LaunchDelegate"
-            modes="debug"
-            name="USBDM Hardware Debugger"
-            sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
-            sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
-            type="net.sourceforge.usbdm.gdb.launchConfigurationType">
-      </launchDelegate>
-      <launchDelegate
             delegate="net.sourceforge.usbdm.gdb.UsbdmGdbDsfLaunchConfigurationDelegate"
             delegateDescription="Hardware debugging using the USBDM debugger framework (DSF-debug)"
             id="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"
@@ -58,14 +48,6 @@
       </device>
    </extension>
    <extension
-         point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
-      <device
-            class="net.sourceforge.usbdm.gdb.UsbdmGdbJtagConnection"
-            id="net.sourceforge.usbdm.interface"
-            name="USBDM Interface">
-      </device>
-   </extension>
-   <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
             class="net.sourceforge.usbdm.gdb.ui.UsbdmLaunchConfigurationTabGroup"
@@ -83,9 +65,6 @@
                delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
-         </associatedDelegate>
-         <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
       </tab>
@@ -94,9 +73,6 @@
             group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
             id="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab"
             name="Debugger">
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
@@ -112,9 +88,6 @@
          group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
          id="net.sourceforge.usbdm.gdb.ui.usbdmStartupTab"
          name="Startup">
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
@@ -140,9 +113,6 @@
             id="net.sourceforge.usbdm.gdb.ui.usbdmSourceLookupTab"
             name="Source">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
-         <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
          <placement
@@ -154,9 +124,6 @@
             group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
             id="net.sourceforge.usbdm.gdb.ui.usbdmCommonTab"
             name="Common">
-         <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.LaunchDelegate">
-         </associatedDelegate>
          <associatedDelegate
                delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
