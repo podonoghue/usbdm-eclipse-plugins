@@ -18,44 +18,8 @@ public class CreatePinDescription extends DocumentUtilities {
 
    static final String VERSION = "1.0.0";
 
-   /*
-    * Indicates what function may be mapped to a pin
-    */
-   static class MappingInfo {
-      public String baseName;    // Base name of the peripheral e.g. FTM0_CH6 => FTM, PTA3 => PT
-      public String name;        // Name/Number of the peripheral e.g. FTM0_CH6 => 0, PTA3 => A
-      public String channel;     // Channel or pin operation e.g. FTM0_CH6 => 6, PTA3 => 3, SPI0_SCK => SCK
-      public int    mux;         // Pin multiplexor setting
-      
-      public MappingInfo(String baseName, String name, String channel, int mux) {
-         this.baseName = baseName;
-         this.name     = name;
-         this.channel  = channel;
-         this.mux      = mux;
-      }
-      String getName() {
-         return baseName+name+"_"+channel;
-      }
-   };
-   HashSet<String> baseNames = new HashSet<String>();
-   
-   static class PinInformation {
-      public String name;                     // Name of the pin, usually the port name e.g. PTA1
-      public String description;              // Description of pin functions e.g. // PTA1 = PTA1,FTM0.6
-      public HashMap<String, ArrayList<MappingInfo>> mappedPins = new HashMap<String, ArrayList<MappingInfo>>();
-
-      public PinInformation(String name) {
-         this.name = name;
-      }
-      ArrayList<MappingInfo> getMappingList(String baseName) {
-         ArrayList<MappingInfo> list = mappedPins.get(baseName);
-         if (list == null) {
-            list = new ArrayList<CreatePinDescription.MappingInfo>();
-            mappedPins.put(baseName, list);
-         }
-         return list;
-      }
-   };
+//   HashSet<String> baseNames = new HashSet<String>();
+     
    static class MuxValues {
       ArrayList<String> alternatives;
       int defaultValue;
@@ -68,50 +32,94 @@ public class CreatePinDescription extends DocumentUtilities {
          this.defaultValue = defaultValue;
       }
    };
-   ArrayList<PinInformation> pins = new ArrayList<CreatePinDescription.PinInformation>();
+   ArrayList<PinInformation> pins = new ArrayList<PinInformation>();
    HashMap<String, MuxValues> portMapping = new HashMap<String, MuxValues>();
    
-   //! Mapping of Alias pins to Kinetis pins
-   //! Many-to-1
+   /**
+    *  Mapping of Alias pins to Kinetis pins<br>
+    *  Many-to-1
+    */
    HashMap<String, String> aliasMapping = new HashMap<String, String>();
    
-   //! Mapping of Kinetis pins to Alias pins
-   //! 1-to-Many
+   /**
+    * Mapping of Kinetis pins to Alias pins<br>
+    * 1-to-Many
+    */
    HashMap<String, ArrayList<String>> reverseAliasMapping = new HashMap<String, ArrayList<String>>();
    
-   ArrayList<String> gpio     = new ArrayList<String>(); // Pins with ADC feature
-   ArrayList<String> analogue = new ArrayList<String>(); // Pins with ADC feature
-   ArrayList<String> ftm      = new ArrayList<String>(); // Pins with FTM feature
-   ArrayList<String> tpm      = new ArrayList<String>(); // Pins with TPM feature
+   /** Names of pins with GPIO feature */
+   ArrayList<String> gpio     = new ArrayList<String>();
+   
+   /** Names of pins with ADC feature */
+   ArrayList<String> analogue = new ArrayList<String>();
+   
+   /** Names of pins with FTM feature */
+   ArrayList<String> ftm      = new ArrayList<String>();
+   
+   /** Names of pins with TPM feature */
+   ArrayList<String> tpm      = new ArrayList<String>();
+   
+   /** Map from peripheral base name to set of instances<br>
+    *  e.g. FTM => map(0,1), PT => map(A,B)  
+    */
    HashMap<String, HashSet<String>> peripheralInstances = new HashMap<String, HashSet<String>>();
+   
+   /** Map from peripheral to associated clock information<br> 
+    * e.g. DMAMUX0 => ClockInfo(SIM->SCGC6, SIM_SCGC6_DMAMUX0_MASK) 
+    */
    HashMap<String, ClockInfo>       clockInfo           = new HashMap<String, ClockInfo>();
    
    final static String pinMappingBaseFileName   = "pin_mapping";
    final static String gpioBaseFileName         = "gpio";
    String deviceName;
-
-   private String pinMappingHeaderFileName;  // Name of pin-mapping-XX.h header file
-   private String gpioCppFileName;           // Name of gpio-XX.cpp source file
-   private String gpioHeaderFileName;        // Name of gpio-XX.h header file
+   
+   /** Name of pin-mapping-XX.h header file */
+   private String pinMappingHeaderFileName;
+   
+   /** Name of gpio-XX.cpp source file */
+   private String gpioCppFileName;
+   
+   /** Name of gpio-XX.h header file */
+   private String gpioHeaderFileName;
 
    int      gpioFunctionMuxValue          = 1; // Ports default to mux setting 1
    boolean  gpioFunctionMuxValueChanged   = false;
+   
    int      adcFunctionMuxValue           = 0; // ADCs default to mux setting 0
    boolean  adcFunctionMuxValueChanged    = false;
+   
    String   portClockRegisterValue        = null;
    boolean  portClockRegisterValueChanged = false;
 
+   /**
+    * Associates a clock register, clock mask pair<br>
+    * e.g. ClockInfo(SIM->SCGC6, SIM_SCGC6_DMAMUX0_MASK)
+    */
    class ClockInfo {
       String clockReg;
       String clockMask;
       
+      /**
+       * Creates a clock register, clock mask pair
+       * 
+       * @param clockReg   Clock register e.g. SIM->SCGC6
+       * @param clockMask  Clock mask e.g. SIM_SCGC6_DMAMUX0_MASK
+       */
       ClockInfo(String clockReg, String clockMask) {
          this.clockReg = clockReg;
          this.clockMask = clockMask;
       }
    };
    
+   /**
+    * Record an instance of a peripheral
+    * 
+    * @param peripheral       Base name of peripheral e.g. FTM
+    * @param instanceNumber   Instance e.g. 2
+    */
    void addPeripheralCount(String peripheral, String instanceNumber) {
+//      System.err.println(String.format("p=%s, i=%s",peripheral, instanceNumber));
+
       HashSet<String> instances = peripheralInstances.get(peripheral);
       if (instances == null) {
          instances = new HashSet<String>();
@@ -119,6 +127,7 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       instances.add(instanceNumber);
    }
+   
    /**
     * Parse line containing Default value
     * 
@@ -192,6 +201,8 @@ public class CreatePinDescription extends DocumentUtilities {
       else {
          peripheralClockMask = line[3];
       }
+//      System.err.println(String.format("p=%s, cr=%s, cm=%s",peripheralName, peripheralClockReg, peripheralClockMask));
+
       clockInfo.put(peripheralName, new ClockInfo(peripheralClockReg, peripheralClockMask));
    }
 
@@ -201,7 +212,6 @@ public class CreatePinDescription extends DocumentUtilities {
    /**
     * 
     * @param line          Line to process
-    * @param description   Description of peripheral functions that may be mapped to this pin
     * @param template      Template for matching port names e.g. "^.*(FTM)(\\d*)_CH(\\d*).*$"<br>
     *                      <li>group(1)=baseName e.g. ADC, 
     *                      <li>group(2)=peripheral number/name e.g. PT,ADC, 
@@ -210,7 +220,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param elements      List to add discovered ports to
     * @param pinNames      List to add pin names to add 
     */
-   void doPinPeripheral(String[] line, StringBuilder description, String baseName, String template, PinInformation pinInfo, ArrayList<String> pinNames) {
+   void doPinPeripheral(String[] line, String baseName, String template, PinInformation pinInfo, ArrayList<String> pinNames) {
       String pinName  = line[pinIndex];
       Pattern pattern = Pattern.compile(template);
       for (int col=altStartIndex; col<line.length; col++) {
@@ -220,7 +230,7 @@ public class CreatePinDescription extends DocumentUtilities {
             String peripheralNum = matcher.group(2);
             String signalName    = matcher.group(3);
 //            System.err.println(String.format("pn = %s, p#=%s, sn=%s", pn, peripheralNum, signalName));
-            baseNames.add(baseName);
+//            baseNames.add(baseName);
             
             int       peripheralFn         = col-altStartIndex;
             String    peripheralSignalName = String.format("%s%s_%s", baseName, peripheralNum, signalName);
@@ -234,17 +244,11 @@ public class CreatePinDescription extends DocumentUtilities {
             if (pinNames != null) {
                pinNames.add(pinName);
             }
-            ArrayList<MappingInfo> elements = pinInfo.getMappingList(baseName);
-            elements.add(new MappingInfo(baseName, peripheralNum, signalName, peripheralFn));
+            pinInfo.addPeripheralFunction(PeripheralFunction.getPeripheralFunction(baseName, peripheralNum, signalName), peripheralFn);
             if (peripheralSignalName.startsWith("PT")) {
                continue;
             }
             addPeripheralCount(baseName, peripheralNum);
-            
-            if (description.length() != 0) {
-               description.append(",");
-            }
-            description.append(peripheralSignalName);
          }
       }
    }
@@ -263,22 +267,17 @@ public class CreatePinDescription extends DocumentUtilities {
          System.err.println("Line discarded");
          return;
       }
-      StringBuilder  description = new StringBuilder();
       PinInformation pinInfo     = new PinInformation(pinName);
       pins.add(pinInfo); 
-      doPinPeripheral(line, description, "GPIO",  "^.*(GPIO)([A-Z])_(\\d*)(/.*|$)",                                    pinInfo, gpio);
+      doPinPeripheral(line, "GPIO",  "^.*(GPIO)([A-Z])_(\\d*)(/.*|$)",                                    pinInfo, gpio);
       if (!deviceIsMKE) {
-         doPinPeripheral(line, description, "ADC",   "^.*(ADC)(\\d*)(?:_SE)?(\\d*)(b.*|/.*|$)",                           pinInfo, analogue);
-         doPinPeripheral(line, description, "FTM",   "^.*(FTM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, ftm);
-         doPinPeripheral(line, description, "TPM",   "^.*(TPM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, tpm);
-         doPinPeripheral(line, description, "LPTMR", "^.*(LPTMR)(\\d*)_ALT(\\d*)(b.*|/.*|$)",                             pinInfo, null);
-         doPinPeripheral(line, description, "SDHC",  "^.*(SDHC)(\\d*)_((CLKIN)|(D\\d)|(CMD)|(DCLK))(/.*|$)",              pinInfo, null);
-         doPinPeripheral(line, description, "SPI",   "^.*(SPI)(\\d*)_((SOUT)|(SIN)|(SCK)|(PCS\\d)|(MOSI)|(MISO))(/.*|$)", pinInfo, null);
-         doPinPeripheral(line, description, "I2C",   "^.*(I2C)(\\d*)_((SDA)|(SCL))(/.*|$)",                               pinInfo, null);
-      }
-      pinInfo.description = pinName;
-      if (description.length() > 0) {
-         pinInfo.description += " = "+description.toString();
+         doPinPeripheral(line, "ADC",   "^.*(ADC)(\\d*)(?:_SE)?(\\d*)(b.*|/.*|$)",                           pinInfo, analogue);
+         doPinPeripheral(line, "FTM",   "^.*(FTM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, ftm);
+         doPinPeripheral(line, "TPM",   "^.*(TPM)(\\d*)_CH(\\d*)(/.*|$)",                                    pinInfo, tpm);
+         doPinPeripheral(line, "LPTMR", "^.*(LPTMR)(\\d*)_ALT(\\d*)(b.*|/.*|$)",                             pinInfo, null);
+         doPinPeripheral(line, "SDHC",  "^.*(SDHC)(\\d*)_((CLKIN)|(D\\d)|(CMD)|(DCLK))(/.*|$)",              pinInfo, null);
+         doPinPeripheral(line, "SPI",   "^.*(SPI)(\\d*)_((SOUT)|(SIN)|(SCK)|(PCS\\d)|(MOSI)|(MISO))(/.*|$)", pinInfo, null);
+         doPinPeripheral(line, "I2C",   "^.*(I2C)(\\d*)_((SDA)|(SCL))(/.*|$)",                               pinInfo, null);
       }
    }
    /**
@@ -313,7 +312,7 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    void writePinDefines(PinInformation pinInfo, BufferedWriter headerFile) throws Exception {
       String aliasName = getAliasList(pinInfo.name);
-      String description = pinInfo.description;
+      String description = pinInfo.getDescription();
       if (aliasName != null) {
          description += " (Alias: " + aliasName + ")";
       }
@@ -329,9 +328,9 @@ public class CreatePinDescription extends DocumentUtilities {
             throw new Exception("Multiple ports mapped!");
          }
          MappingInfo info = mappingList.get(0);
-         String baseName  = info.baseName;
-         String name      = info.name;
-         String chNum     = info.channel;
+         String baseName  = info.function.baseName;
+         String name      = info.function.name;
+         String chNum     = info.function.channel;
          int    pinMux    = info.mux; 
          if (info.mux != gpioFunctionMuxValue) {
             if (gpioFunctionMuxValueChanged) {
@@ -365,11 +364,11 @@ public class CreatePinDescription extends DocumentUtilities {
       mappingList = pinInfo.getMappingList("ADC");
       if (mappingList.size() >0 ) {
          MappingInfo info = mappingList.get(0);
-         String baseName  = info.baseName;
-         String name      = info.name;
-         String chNum     = info.channel;
+         String baseName  = info.function.baseName;
+         String name      = info.function.name;
+         String chNum     = info.function.channel;
          int    pinMux    = info.mux; 
-         String fullName  = info.getName();
+         String fullName  = info.function.getName();
          MuxValues muxValues = portMapping.get(fullName);
          if (mappingList.size() > 1) {
             throw new Exception(String.format("ADC multiple ports mapped!, pin = %s, mux = %d", pinName, pinMux));
@@ -408,13 +407,16 @@ public class CreatePinDescription extends DocumentUtilities {
          }
       }
    
+      /*
+       * Do FTM functions
+       */
       mappingList = pinInfo.getMappingList("FTM");
       for(MappingInfo info:mappingList) {
-         String baseName  = info.baseName;
-         String name      = info.name;
-         String chNum     = info.channel;
+         String baseName  = info.function.baseName;
+         String name      = info.function.name;
+         String chNum     = info.function.channel;
          int    pinMux    = info.mux; 
-         String fullName  = info.getName();
+         String fullName  = info.function.getName();
          MuxValues muxValues = portMapping.get(fullName);
          if (muxValues == null) {
             throw new Exception("Failed to find "+fullName);
@@ -441,13 +443,16 @@ public class CreatePinDescription extends DocumentUtilities {
             headerFile.append("#endif\n");
          }
       }
+      /*
+       * Do TPM functions
+       */
       mappingList = pinInfo.getMappingList("TPM");
       for(MappingInfo info:mappingList) {
-         String baseName  = info.baseName;
-         String name      = info.name;
-         String chNum     = info.channel;
+         String baseName  = info.function.baseName;
+         String name      = info.function.name;
+         String chNum     = info.function.channel;
          int    pinMux    = info.mux;
-         String fullName  = info.getName();
+         String fullName  = info.function.getName();
          MuxValues muxValues = portMapping.get(fullName);
          if (muxValues == null) {
             throw new Exception("Failed to find "+fullName);
@@ -477,11 +482,11 @@ public class CreatePinDescription extends DocumentUtilities {
       for (PinFunctionDescription pinFunctionDescription:pinFunctionDescriptions) {
          mappingList = pinInfo.getMappingList(pinFunctionDescription.baseName);
          for(MappingInfo info:mappingList) {
-            String baseName  = info.baseName;
-            String name      = info.name;
-            String chNum     = info.channel;
+            String baseName  = info.function.baseName;
+            String name      = info.function.name;
+            String chNum     = info.function.channel;
             int    pinMux    = info.mux;
-            String fullName  = info.getName();
+            String fullName  = info.function.getName();
             MuxValues muxValues = portMapping.get(fullName);
             if (muxValues == null) {
                throw new Exception("Failed to find "+fullName);
@@ -774,73 +779,75 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
 
-   void writeTimerControls(BufferedWriter headerFile) throws IOException {      
+   void writeTimerControls(BufferedWriter headerFile) throws IOException {
+//      for (int ftmIndex=0; ftmIndex<ftm.size(); ftmIndex++) {
       if (ftm.size()>0) {
-      writeWizardSectionOpen(headerFile, "FTM Clock settings");
-      writeWizardOptionSelectionPreamble(headerFile, 
-            String.format("FTM%s_SC.CLKS ================================\n//", ""), 
-            0,
-            false,
-            String.format("FTM%s_SC.CLKS Clock source", ""),
-            String.format("Selects the clock source for the FTM%s module. [FTM%s_SC.CLKS]", "", ""));
-      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-      writeWizardOptionSelectionEnty(headerFile, "1", "System clock");
-      writeWizardOptionSelectionEnty(headerFile, "2", "Fixed frequency clock");
-      writeWizardOptionSelectionEnty(headerFile, "3", "External clock");
-      writeWizardDefaultSelectionEnty(headerFile, "1");
-      writeWizardOptionSelectionPreamble(headerFile, 
-            String.format("FTM%s_SC.PS ================================\n//", ""),
-            1,
-            false,
-            String.format("FTM%s_SC.PS Clock prescaler", ""),
-            String.format("Selects the prescaler for the FTM%s module. [FTM%s_SC.PS]", "", ""));
-      writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
-      writeWizardOptionSelectionEnty(headerFile, "1", "Divide by 2");
-      writeWizardOptionSelectionEnty(headerFile, "2", "Divide by 4");
-      writeWizardOptionSelectionEnty(headerFile, "3", "Divide by 8");
-      writeWizardOptionSelectionEnty(headerFile, "4", "Divide by 16");
-      writeWizardOptionSelectionEnty(headerFile, "5", "Divide by 32");
-      writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
-      writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
-      writeWizardDefaultSelectionEnty(headerFile, "0");
-      writeMacroDefinition(headerFile, "FTM_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
-      headerFile.write("\n");
-      writeWizardSectionClose(headerFile);
-//      headerFile.write( String.format(optionSectionClose));
-   }
-   if (tpm.size()>0) {
-      writeWizardSectionOpen(headerFile, "TPM Clock settings");
-//      headerFile.write( String.format(optionSectionOpenTemplate, "TPM Clock settings"));
-      writeWizardOptionSelectionPreamble(headerFile, 
-            String.format("TPM%s_SC.CMOD ================================\n//", ""),
-            0,
-            false,
-            String.format("TPM%s_SC.CMOD Clock source", ""),
-            String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", "", ""));
-      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-      writeWizardOptionSelectionEnty(headerFile, "1", "Internal clock");
-      writeWizardOptionSelectionEnty(headerFile, "2", "External clock");
-      writeWizardOptionSelectionEnty(headerFile, "3", "Reserved");
-      writeWizardDefaultSelectionEnty(headerFile, "1");
-      writeWizardOptionSelectionPreamble(headerFile, 
-            String.format("TPM%s_SC.PS ================================\n//", ""),
-            1,
-            false,
-            String.format("TPM%s_SC.PS Clock prescaler", ""),
-            String.format("Selects the prescaler for the TPM%s module. [TPM%s_SC.PS]", "", ""));
-      writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
-      writeWizardOptionSelectionEnty(headerFile, "1", "Divide by 2");
-      writeWizardOptionSelectionEnty(headerFile, "2", "Divide by 4");
-      writeWizardOptionSelectionEnty(headerFile, "3", "Divide by 8");
-      writeWizardOptionSelectionEnty(headerFile, "4", "Divide by 16");
-      writeWizardOptionSelectionEnty(headerFile, "5", "Divide by 32");
-      writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
-      writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
-      writeWizardDefaultSelectionEnty(headerFile, "0");
-      writeMacroDefinition(headerFile, "TPM_SC", "(TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0))");
-      headerFile.write("\n");
-      writeWizardSectionClose(headerFile);
-   }
+         writeWizardSectionOpen(headerFile, "FTM Clock settings");
+         writeWizardOptionSelectionPreamble(headerFile, 
+               String.format("FTM%s_SC.CLKS ================================\n//", ""), 
+               0,
+               false,
+               String.format("FTM%s_SC.CLKS Clock source", ""),
+               String.format("Selects the clock source for the FTM%s module. [FTM%s_SC.CLKS]", "", ""));
+         writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
+         writeWizardOptionSelectionEnty(headerFile, "1", "System clock");
+         writeWizardOptionSelectionEnty(headerFile, "2", "Fixed frequency clock");
+         writeWizardOptionSelectionEnty(headerFile, "3", "External clock");
+         writeWizardDefaultSelectionEnty(headerFile, "1");
+         writeWizardOptionSelectionPreamble(headerFile, 
+               String.format("FTM%s_SC.PS ================================\n//", ""),
+               1,
+               false,
+               String.format("FTM%s_SC.PS Clock prescaler", ""),
+               String.format("Selects the prescaler for the FTM%s module. [FTM%s_SC.PS]", "", ""));
+         writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
+         writeWizardOptionSelectionEnty(headerFile, "1", "Divide by 2");
+         writeWizardOptionSelectionEnty(headerFile, "2", "Divide by 4");
+         writeWizardOptionSelectionEnty(headerFile, "3", "Divide by 8");
+         writeWizardOptionSelectionEnty(headerFile, "4", "Divide by 16");
+         writeWizardOptionSelectionEnty(headerFile, "5", "Divide by 32");
+         writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
+         writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
+         writeWizardDefaultSelectionEnty(headerFile, "0");
+         writeMacroDefinition(headerFile, "FTM_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
+         headerFile.write("\n");
+         writeWizardSectionClose(headerFile);
+         //      headerFile.write( String.format(optionSectionClose));
+      }
+//      for (int tpmIndex=0; tpmIndex<tpm.size(); tpmIndex++) {
+      if (tpm.size()>0) {
+         writeWizardSectionOpen(headerFile, "TPM Clock settings");
+         //      headerFile.write( String.format(optionSectionOpenTemplate, "TPM Clock settings"));
+         writeWizardOptionSelectionPreamble(headerFile, 
+               String.format("TPM%s_SC.CMOD ================================\n//", ""),
+               0,
+               false,
+               String.format("TPM%s_SC.CMOD Clock source", ""),
+               String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", "", ""));
+         writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
+         writeWizardOptionSelectionEnty(headerFile, "1", "Internal clock");
+         writeWizardOptionSelectionEnty(headerFile, "2", "External clock");
+         writeWizardOptionSelectionEnty(headerFile, "3", "Reserved");
+         writeWizardDefaultSelectionEnty(headerFile, "1");
+         writeWizardOptionSelectionPreamble(headerFile, 
+               String.format("TPM%s_SC.PS ================================\n//", ""),
+               1,
+               false,
+               String.format("TPM%s_SC.PS Clock prescaler", ""),
+               String.format("Selects the prescaler for the TPM%s module. [TPM%s_SC.PS]", "", ""));
+         writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
+         writeWizardOptionSelectionEnty(headerFile, "1", "Divide by 2");
+         writeWizardOptionSelectionEnty(headerFile, "2", "Divide by 4");
+         writeWizardOptionSelectionEnty(headerFile, "3", "Divide by 8");
+         writeWizardOptionSelectionEnty(headerFile, "4", "Divide by 16");
+         writeWizardOptionSelectionEnty(headerFile, "5", "Divide by 32");
+         writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
+         writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
+         writeWizardDefaultSelectionEnty(headerFile, "0");
+         writeMacroDefinition(headerFile, "TPM_SC", "(TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0))");
+         headerFile.write("\n");
+         writeWizardSectionClose(headerFile);
+      }
 }
    /**
     * Writes pin mapping header file
@@ -913,8 +920,8 @@ public class CreatePinDescription extends DocumentUtilities {
                   groupDone = true;
                   writeStartGroup(gpioHeaderFile, deviceDescription);
                }
-               String baseName = info.baseName;
-               String fullName = info.getName();
+               String baseName = info.function.baseName;
+               String fullName = info.function.getName();
                ArrayList<String> mapEntry = portMapping.get(fullName).alternatives;
                boolean macroDone = false;
                if ((mapEntry.size()>2) || (!baseName.equals("GPIO") && (mapEntry.size()>1))) {
@@ -1094,15 +1101,15 @@ public class CreatePinDescription extends DocumentUtilities {
          String pinName = pin.name;
          ArrayList<MappingInfo> info = pin.getMappingList("ADC");
          for(MappingInfo adcInfo:info) {
-            String adcNum   = adcInfo.name;
-            String adcChNum = adcInfo.channel;
+            String adcNum   = adcInfo.function.name;
+            String adcChNum = adcInfo.function.channel;
             String adcName = String.format("ADC%s_%s", adcNum, adcChNum);
             ArrayList<String> mapEntry = portMapping.get(adcName).alternatives;
             if (mapEntry.size()>2) {
                int selectionIndex = mapEntry.indexOf(pinName);
                cppFile.write(String.format(
                      "#if %s_SEL == %d\n",
-                     adcInfo.getName(), selectionIndex
+                     adcInfo.function.getName(), selectionIndex
                      ));
             }
             if (pin.getMappingList("GPIO").size() == 0) {
@@ -1122,8 +1129,8 @@ public class CreatePinDescription extends DocumentUtilities {
          String pinName = pin.name;
          ArrayList<MappingInfo> info = pin.getMappingList("FTM");
          for(MappingInfo ftmInfo:info) {
-            String ftmNum   = ftmInfo.name;
-            String ftmChNum = ftmInfo.channel;
+            String ftmNum   = ftmInfo.function.name;
+            String ftmChNum = ftmInfo.function.channel;
             String ftmName = String.format("FTM%s_%s", ftmNum, ftmChNum);
             ArrayList<String> mapEntry = portMapping.get(ftmName).alternatives;
             if (mapEntry.size()>2) {
@@ -1145,8 +1152,8 @@ public class CreatePinDescription extends DocumentUtilities {
          String pinName = pin.name;
          ArrayList<MappingInfo> info = pin.getMappingList("TPM");
          for(MappingInfo tpmInfo:info) {
-            String tpmNum   = tpmInfo.name;
-            String tpmChNum = tpmInfo.channel;
+            String tpmNum   = tpmInfo.function.name;
+            String tpmChNum = tpmInfo.function.channel;
             String tpmName = String.format("TPM%s_%s", tpmNum, tpmChNum);
             ArrayList<String> mapEntry = portMapping.get(tpmName).alternatives;
             if (mapEntry.size()>2) {
