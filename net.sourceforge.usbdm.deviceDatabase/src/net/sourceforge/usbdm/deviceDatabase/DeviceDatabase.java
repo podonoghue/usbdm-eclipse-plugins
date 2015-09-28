@@ -11,6 +11,8 @@ package net.sourceforge.usbdm.deviceDatabase;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -589,32 +591,44 @@ public class DeviceDatabase {
       return fTargetType;
    }
 
-//   private int nestingLimit = 0;
-   /**
-    * Returns the device with the given name
-    * 
-    * @param name
-    * @return
-    */
-   public Device getDevice(String name) {
-//      if (nestingLimit++ > 10) {
-//         nestingLimit = 0;
-//         return null;
-//      }
-      for (int index = 0; index<deviceList.size(); index++) {
-         Device device = deviceList.get(index);
-         if (device.getName().equals(name)) {
-//            if (device.isAlias()) {
-//               return getDevice(device.getAlias());
-//            }
-//            nestingLimit = 0;
-            return device;
-         }
-      }
-//      nestingLimit = 0;
-      return null;
-   }
-   
+final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
+
+ /**
+  * Returns the device with the given name
+  * 
+  * @param name
+  * @return
+  */
+ public Device getDevice(String name) {
+    Device device = getExactDevice(name);
+    if (device != null) {
+       return device;
+    }
+    Matcher m = namePattern.matcher(name);
+    if (!m.matches()) {
+       return null;
+    }
+    name = m.group(1)+"M"+m.group(2);
+    device = getExactDevice(name);
+    return device;
+ }
+ 
+/**
+* Returns the device with the given name
+* 
+* @param name
+* @return
+*/
+public Device getExactDevice(String name) {
+  for (int index = 0; index<deviceList.size(); index++) {
+     Device device = deviceList.get(index);
+     if (device.getName().equals(name)) {
+        return device;
+     }
+  }
+  return null;
+}
+
    public Device getDefaultDevice() {
       return defaultDevice;
    }

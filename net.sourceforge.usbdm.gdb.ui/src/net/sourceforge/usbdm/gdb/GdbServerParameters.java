@@ -5,9 +5,12 @@
 package net.sourceforge.usbdm.gdb;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
@@ -806,6 +809,12 @@ public class GdbServerParameters {
       
       // Update from settings 
       setDeviceName(            configuration.getAttribute((key+deviceNameKey),                    getDeviceName()));
+      // Map KDS internal name to USBDM name e.g. MK20DN512xxx10 => MK20DN512M10
+      final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
+      Matcher m = namePattern.matcher(getDeviceName());
+      if (m.matches()) {
+         setDeviceName(m.group(1)+"M"+m.group(2));
+      }
       setBdmSerialNumber(       configuration.getAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
       enableBdmSerialNumberMatchRequired(  
                                 configuration.getAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
