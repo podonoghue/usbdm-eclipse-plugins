@@ -1,42 +1,200 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Information about a pin<br>
- * - Peripheral functions mapped to that pin
+ * <li>Pin name
+ * <li>Peripheral functions mapped to that pin
  */
 public class PinInformation {
+   
+   public final static PinInformation DISABLED_PIN = new PinInformation("Disabled");
+   
+   /**
+    * Map of all pins created<br>
+    * May be searched by pin name
+    */
+   private static HashMap<String, PinInformation> fPins = new HashMap<String, PinInformation>();
+   private static ArrayList<String> fPinNames = null;
+
+   
+   /**
+    * Reset shared internal state
+    */
+   public static void reset() {
+      fPins = new HashMap<String, PinInformation>();
+      fPinNames = null;
+   }
+   
+   /**
+    * Get Map of all pins
+    * 
+    * @return
+    */
+   public static HashMap<String, PinInformation> getPins() {
+      return fPins;
+   }
+   
+   public static ArrayList<String> getPinNames() {
+      if (fPinNames == null) {
+         fPinNames = new ArrayList<String>(PinInformation.getPins().keySet());
+         Collections.sort(fPinNames, portNameComparator);
+      }
+      return fPinNames;
+   }
+   
+   /**
+    * Comparator for port names e.g. PTA13 c.f. PTB12
+    * Treats the number separately as a number.
+    */
+   private static Comparator<String> portNameComparator = new Comparator<String>() {
+      @Override
+      public int compare(String arg0, String arg1) {
+         Pattern p = Pattern.compile("([^\\d]*)(\\d*)(.*)");
+         Matcher m0 = p.matcher(arg0);
+         Matcher m1 = p.matcher(arg1);
+         if (m0.matches() && m1.matches()) {
+            String t0 = m0.group(1);
+            String n0 = m0.group(2);
+            String s0 = m0.group(3);
+            String t1 = m1.group(1);
+            String n1 = m1.group(2);
+            String s1 = m1.group(3);
+            int r = t0.compareTo(t1);
+            if (r == 0) {
+               int no0 = -1, no1 = -1;
+               if (n0.length() > 0) {
+                  no0 = Integer.parseInt(n0);
+               }
+               if (n1.length() > 0) {
+                  no1 = Integer.parseInt(n1);
+               }
+               r = -no1 + no0;
+            }
+            if (r == 0) {
+               Pattern pp = Pattern.compile("([^\\d]*)(\\d*)(.*)");
+               Matcher mm0 = pp.matcher(s0);
+               Matcher mm1 = pp.matcher(s1);
+               if (mm0.matches() && mm1.matches()) {
+                  String tt0 = mm0.group(1);
+                  String nn0 = mm0.group(2);
+                  String tt1 = mm1.group(1);
+                  String nn1 = mm1.group(2);
+                  r = tt0.compareTo(tt1);
+                  if (r == 0) {
+                     int no0 = -1, no1 = -1;
+                     if (nn0.length() > 0) {
+                        no0 = Integer.parseInt(nn0);
+                     }
+                     if (nn1.length() > 0) {
+                        no1 = Integer.parseInt(nn1);
+                     }
+                     r = -no1 + no0;
+                  }
+               }
+               else {
+                  r = s0.compareTo(s1);
+               }
+            }
+            return r;
+         }
+         return arg0.compareTo(arg1);
+      }
+   };
+
    /** Name of the pin, usually the port name e.g. PTA1 */
-   public String name;
+   private String fName;
    
    /** Description of peripheral functions that may be mapped to this pin */
-   StringBuilder  description = new StringBuilder();
+   private StringBuilder  fDescription = new StringBuilder();
 
+   /**
+    * Peripheral functions associated with this pin<br> 
+    */
+   private  ArrayList<PeripheralFunction> mappedPins = new ArrayList<PeripheralFunction>();
+
+   /**
+    * Peripheral functions associated with this pin arranged by function base name<br> 
+    * e.g. multiple FTMs may be associated with a pin 
+    */
+   private HashMap<String, ArrayList<MappingInfo>> mappedPinsByFunction = new HashMap<String, ArrayList<MappingInfo>>();
+
+   /**
+    * Factory to create pin from name<br>
+    * 
+    * @param name Name of pin
+    *                      
+    * @return Created pin
+    * 
+    * @throws Exception If the pin already exists
+    */
+   public static PinInformation createPin(String name) throws Exception {
+      PinInformation pinInformation = fPins.get(name);
+      if (pinInformation != null) {
+         throw new Exception("Pin already exists: " + name);
+      }
+      pinInformation = new PinInformation(name);
+      fPins.put(name, pinInformation);
+      return pinInformation;
+   }
+   
+   /**
+    * Finds pin from name<br>
+    * 
+    * @param name Name of pin
+    *                      
+    * @return Pin found or null if not present
+    */
+   public static PinInformation find(String name) {
+      if (name.equalsIgnoreCase(DISABLED_PIN.fName)) {
+         return DISABLED_PIN;
+      }
+      return fPins.get(name);
+   }
+   
+   /**
+    * Create empty pin function for given pin
+    * 
+    * @param fName Name of the pin, usually the port name e.g. PTA1
+    */
+   private PinInformation(String name) {
+      this.fName  = name;
+   }
+   
+   /**
+    * Get pin name
+    * 
+    * @return
+    */
+   String getName() {
+      return fName;
+   }
+   
    /**
     * Get description of functions mapped to this pin
     * 
     * @return Description
     */
    String getDescription() {
-      if (description.length() == 0) {
-         return name;
+      if (fDescription.length() == 0) {
+         return fName;
       }
-      return name + " = " + description.toString();
+      return fName + " = " + fDescription.toString();
    }
    
-   /** s
-    * Functions associated with this pin arranged by function base name<br> 
-    * e.g. multiple FTMs may be associated with a pin 
-    */
-   public HashMap<String, ArrayList<MappingInfo>> mappedPins = new HashMap<String, ArrayList<MappingInfo>>();
-
    /**
-    * Create empty pin function for given pin
+    * Gets list of peripheral functions mapped to this pin
     * 
-    * @param name Name of the pin, usually the port name e.g. PTA1
+    * @param   baseName
+    * 
+    * @return  List (may be empty, never null)
     */
-   public PinInformation(String name) {
-      this.name  = name;
+   public ArrayList<PeripheralFunction> getMappingPeripheralFunctions() {
+      return mappedPins;
    }
    
    /**
@@ -47,10 +205,10 @@ public class PinInformation {
     * @return  List (may be empty, never null)
     */
    public ArrayList<MappingInfo> createMappingList(String baseName) {
-      ArrayList<MappingInfo> list = mappedPins.get(baseName);
+      ArrayList<MappingInfo> list = mappedPinsByFunction.get(baseName);
       if (list == null) {
          list = new ArrayList<MappingInfo>();
-         mappedPins.put(baseName, list);
+         mappedPinsByFunction.put(baseName, list);
       }
       return list;
    }
@@ -58,33 +216,54 @@ public class PinInformation {
    /**
     * Adds a peripheral function to the pin
     * 
-    * @param function Function to add
-    * @param mux      Mux setting for this function
-    * 
-    * @return  The sub-list of <b>similar</b> functions mapped to this pin
+    * @param peripheralFunction  Peripheral function to add
+    * @param multiplexorIndex    Multiplexor index setting for this function
     */
-   ArrayList<MappingInfo> addPeripheralFunction(PeripheralFunction function, int mux) {
-      ArrayList<MappingInfo> elements = createMappingList(function.baseName);
-      elements.add(new MappingInfo(function, mux));
-      if (description.length() > 0) {
-         description.append(",");
+   void addPeripheralFunction(PeripheralFunction peripheralFunction, int multiplexorIndex) {
+      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fBaseName);
+      MappingInfo mappingInfo = new MappingInfo(peripheralFunction, this, multiplexorIndex);
+      elements.add(mappingInfo);
+      mappedPins.add(peripheralFunction);
+      if (fDescription.length() > 0) {
+         fDescription.append(",");
       }
-      description.append(function.getName());
-      return elements;
+      fDescription.append(peripheralFunction.getName());
+      fPinNames = null;
    }
    
    /**
-    * Gets sub-list of peripheral functions mapped to this pin
+    * Gets sub-list of peripheral functions mapped to this pin that have this basename
     * 
     * @param   baseName
     * 
     * @return  List (never null)
     */
    public ArrayList<MappingInfo> getMappingList(String baseName) {
-      ArrayList<MappingInfo> list = mappedPins.get(baseName);
+      ArrayList<MappingInfo> list = mappedPinsByFunction.get(baseName);
       if (list == null) {
          list = new ArrayList<MappingInfo>();
       }
       return list;
+   }
+   
+//   /**
+//    * Get index of pin that this peripheral function is mapped to
+//    * 
+//    * @return index of function if mapped, -1 if not mapped to this pin
+//    */
+//   public int getMappedPinIndex(PeripheralFunction peripheralFunction) {
+//      for (int index=0; index<7; index++) {
+//         if (mappedPins[index] == peripheralFunction) {
+//            return index;
+//         }
+//      }
+//      return -1;
+//   }
+   
+   /* (non-Javadoc)
+    * @see java.lang.Object#toString()
+    */
+   public String toString() {
+      return getDescription();
    }
 }

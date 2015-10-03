@@ -1,21 +1,27 @@
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-
 public class DocumentUtilities {
    
    class PeripheralTypeDescription {
       String baseName;
-      String pattern;
       String groupName;
       String groupTitle;
       String groupBriefDescription;
       String outputTemplate;
       String className;
       
-      public PeripheralTypeDescription(String baseName, String pattern, String groupName, String groupTitle, String groupBriefDescription, String className, String outputTemplate) {
+      /**
+       * 
+       * @param baseName               e.g. GPIO
+       * @param groupName              e.g. "DigitalIO_Group"
+       * @param groupTitle             e.g. "Digital Input/Output"
+       * @param groupBriefDescription  e.g. "Allows use of port pins as simple digital inputs or outputs"
+       * @param className              e.g. "digitalIO_"
+       * @param outputTemplate         e.g. "extern const DigitalIO %-24s //!< DigitalIO on %s\n"
+       */
+      public PeripheralTypeDescription(String baseName, String groupName, String groupTitle, String groupBriefDescription, String className, String outputTemplate) {
          this.baseName              = baseName;
-         this.pattern               = pattern;
          this.groupName             = groupName;
          this.groupTitle            = groupTitle;
          this.groupBriefDescription = groupBriefDescription;
@@ -252,7 +258,22 @@ public class DocumentUtilities {
    }
    
    /**
-    * Write end of wizard section marker e.g.
+    * Write end wizard marker e.g.
+    * <pre><code>
+    * //-------- <<< end of configuration section >>> -----------------
+    * </code></pre>
+    * 
+    * @param writer Where to write
+    * @throws IOException
+    */
+   void writeEndWizardMarker(BufferedWriter writer) throws IOException {
+      final String wizardMarker =                                                            
+            "//-------- <<< end of configuration section >>> -----------------  \n\n";
+      writer.write(wizardMarker);
+   }
+   
+   /**
+    * Write start of wizard section marker e.g.
     * <pre><code>
     * //  &lth&gt; <i><b>title</i></b>
     * </code></pre>
@@ -348,6 +369,23 @@ public class DocumentUtilities {
    /**
     * Write simple macro definition e.g.
     * <pre><code>
+    * #define <i><b>name value</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param name          Macro name
+    * @param value         Macro value
+    * 
+    * @throws IOException
+    */
+   void writeMacroDefinition(BufferedWriter writer, String name, String value) throws IOException {
+      final String defineTemplate = "#define %-20s %-20s\n";
+      writer.write(String.format(defineTemplate, name, value));
+   }
+
+   /**
+    * Write simple macro definition with in-line comment e.g.
+    * <pre><code>
     * #define <i><b>name value</i></b> // <i><b>comment</i></b>
     * </code></pre>
     * 
@@ -364,20 +402,40 @@ public class DocumentUtilities {
    }
    
    /**
-    * Write simple macro definition e.g.
+    * Write parametised macro with comment block
+    * 
     * <pre><code>
-    * #define <i><b>name value</i></b>
+    * &#47;**
+    *  *  &#64;brief <i>briefDescription</i>
+    *  *
+    *  *  &#64;param <i>paramDescription</i>
+    *  *
+    *  *  #define <i>name</i>    <i>value</i>
+    *  *&#47;
     * </code></pre>
     * 
-    * @param writer        Where to write
-    * @param name          Macro name
-    * @param value         Macro value
+    * @param writer              Where to write
+    * @param briefDescription    Brief description
+    * @param paramDescription    Parameter with description e.g. <i>value Value to square</i>
+    * @param name                Macro name with parameter e.g. <i>sqr(value)</i>
+    * @param value               Macro value with substitutions e.g. <i>((value)&(value))</i>
     * 
     * @throws IOException
     */
-   void writeMacroDefinition(BufferedWriter writer, String name, String value) throws IOException {
-      final String defineTemplate = "#define %-20s %-20s\n";
-      writer.write(String.format(defineTemplate, name, value));
+   static void writeMacroDefinition(BufferedWriter writer, String briefDescription, String paramDescription, String name, String value) throws IOException {
+      
+      writer.write( String.format(
+      "/**\n"+
+      " * @brief %s\n"+
+      " *\n"+
+      " * @param %s\n"+
+      " */\n"+
+      "#define %-20s  %s\n"+
+      "\n",
+      briefDescription, paramDescription, name, value
+      ));
+      
    }
-   
+
 }
+   
