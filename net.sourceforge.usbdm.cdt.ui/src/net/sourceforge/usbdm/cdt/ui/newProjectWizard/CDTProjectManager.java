@@ -94,23 +94,23 @@ public class CDTProjectManager {
          IProgressMonitor     monitor) throws Exception {
 
       final int WORK_SCALE = 1000;
-      
+
       // Create model project and accompanied descriptions
       IProject project;
       try {
          monitor.beginTask("Create configuration", WORK_SCALE*100);
-         
+
          String        projectName   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
          String        directoryPath = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
          String        projectType   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY), paramMap);
          InterfaceType interfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
          boolean       hasCCNature   = Boolean.valueOf(paramMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
          String        artifactName  = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_ARTIFACT_KEY), paramMap); 
-         
+
          if ((artifactName == null) || (artifactName.length()==0)) {
             artifactName = "${ProjName}";
          }
-         
+
          project = createProject(projectName, directoryPath, new SubProgressMonitor(monitor, WORK_SCALE*70));
 
          CoreModel coreModel = CoreModel.getDefault();
@@ -118,15 +118,15 @@ public class CDTProjectManager {
          // Create project description
          ICProjectDescription projectDescription = coreModel.createProjectDescription(project, false);
          Assert.isNotNull(projectDescription, "createProjectDescription returned null");
-         
+
          // Create one configuration description
          ManagedBuildInfo info = ManagedBuildManager.createBuildInfo(project);
          IProjectType     type = ManagedBuildManager.getProjectType(projectType);
          Assert.isNotNull(type, "project type not found");
-         
+
          ManagedProject mProj = new ManagedProject(project, type);
          info.setManagedProject(mProj);
-         
+
          IConfiguration cfgs[] = type.getConfigurations();
          Assert.isNotNull(cfgs, "configurations not found");
          Assert.isTrue(cfgs.length>0, "no configurations found in the project type");
@@ -134,9 +134,9 @@ public class CDTProjectManager {
          String configurationName = null;
          String os = System.getProperty("os.name");
          switch (interfaceType) {
-            case T_ARM:  configurationName = ARM_CONFIGURATION_ID;      break;
-            case T_CFV1:
-            case T_CFVX: configurationName = COLDFIRE_CONFIGURATION_ID; break;
+         case T_ARM:  configurationName = ARM_CONFIGURATION_ID;      break;
+         case T_CFV1:
+         case T_CFVX: configurationName = COLDFIRE_CONFIGURATION_ID; break;
          }
          for (IConfiguration configuration : cfgs) {
             String configId = configuration.getId();
@@ -153,30 +153,35 @@ public class CDTProjectManager {
             //======================================================================
             //======================================================================
             // Not working
-//            if (false) {
-//               System.err.println("createCDTProj() ==================================================");
-//               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
-//               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
-//               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
-//                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
-//               }
-//               languageSettingsProviderIdsList.remove(idToRemove);
-//               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
-//               for (String languageSettingsProviderId : languageSettingsProviderIds) {
-//                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
-//               }
-//               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-//               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
-//                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
-//                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
-//               }
-//               else {
-//                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
-//               }
-//            }
+            //            if (false) {
+            //               System.err.println("createCDTProj() ==================================================");
+            //               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
+            //               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
+            //               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
+            //                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+            //               }
+            //               languageSettingsProviderIdsList.remove(idToRemove);
+            //               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
+            //               for (String languageSettingsProviderId : languageSettingsProviderIds) {
+            //                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
+            //               }
+            //               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+            //               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
+            //                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
+            //                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
+            //               }
+            //               else {
+            //                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
+            //               }
+            //            }
             //======================================================================
             //======================================================================
          }
+         Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
+
+         // Persist project description.
+         coreModel.setProjectDescription(project, projectDescription);
+         final String ccNature = "org.eclipse.cdt.core.ccnature";
          try {
             if (hasCCNature) {
                // Add cc nature
@@ -184,22 +189,31 @@ public class CDTProjectManager {
                String[] natures = description.getNatureIds();
                String[] newNatures = new String[natures.length + 1];
                System.arraycopy(natures, 0, newNatures, 0, natures.length);
-               newNatures[natures.length] = "org.eclipse.cdt.core.ccnature";
+               newNatures[natures.length] = ccNature;
                description.setNatureIds(newNatures);
                project.setDescription(description, new SubProgressMonitor(monitor, WORK_SCALE*30));
+               if (!project.hasNature(ccNature)) {
+                  throw new Exception("Failed to set CC nature");
+               }
+//               description = project.getDescription();
+//               natures = description.getNatureIds();
+//               boolean foundCCNature = false;
+//               for (String n:natures) {
+//                  if (n.equals("org.eclipse.cdt.core.ccnature")) {
+//                     foundCCNature = true;
+//                  }
+//               }
+//               if (!foundCCNature) {
+//                  throw new Exception("Failed to set CC nature");
+//               }
             }
          } catch (CoreException e) {
             throw new Exception("Failed to set CC nature", e);
          }
-         Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
-
-         // Persist project description.
-         coreModel.setProjectDescription(project, projectDescription);
-         
       } finally {
          monitor.done();
       }
-      
+
       return project;
    }
 
