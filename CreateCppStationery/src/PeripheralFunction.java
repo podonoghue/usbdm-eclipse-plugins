@@ -30,7 +30,7 @@ class PeripheralFunction {
     * Comparator for port names e.g. PTA13 c.f. PTB12
     * Treats the number separately as a number.
     */
-   private static Comparator<String> portNameComparator = new Comparator<String>() {
+   private static final Comparator<String> portNameComparator = new Comparator<String>() {
       @Override
       public int compare(String arg0, String arg1) {
          Pattern p = Pattern.compile("([^\\d]*)(\\d*)(.*)");
@@ -108,11 +108,9 @@ class PeripheralFunction {
    /** Peripheral signal name.number e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK */
    public   String fSignal;
 
+   /** Name of peripheral function e.g. FTM0_CH3 */
    private String fName;     
    
-   /** Disabled function - used for pin mappings that are unassigned */
-   public static final PeripheralFunction disabledValue = new PeripheralFunction("Disabled", "Disabled", "", "");
-
    /**
     * Get map of all peripheral functions
     * 
@@ -124,6 +122,11 @@ class PeripheralFunction {
 
    static ArrayList<String> peripheralFunctions = null;
    
+   /**
+    * Get list of all peripheral functions sorted by name
+    * 
+    * @return list
+    */
    public static ArrayList<String> getPeripheralFunctionsAsList() {
       if (peripheralFunctions == null) {
          peripheralFunctions = new ArrayList<String>(PeripheralFunction.getFunctions().keySet());
@@ -131,9 +134,10 @@ class PeripheralFunction {
       }
       return peripheralFunctions;
    }
+   
    /**
     * Get map of peripheral functions associated with the given baseName<br>
-    * e.g. FTM with return all the FTM peripheral functions
+    * e.g. "FTM" with return all the FTM peripheral functions
     * 
     * @param baseName Base name to search for e.g. FTM, ADC etc
     * 
@@ -181,8 +185,10 @@ class PeripheralFunction {
       fBaseName  = baseName;
       fInstance  = instance;
       fSignal    = signal;
+	  
       mappablePins.add(PinInformation.DISABLED_PIN);
       
+      // Add to basename map
       HashMap<String, PeripheralFunction> map = functionsByBaseName.get(baseName);
       if (map == null) {
          map = new HashMap<String, PeripheralFunction>();
@@ -198,7 +204,7 @@ class PeripheralFunction {
     * 
     * @param function   Name of peripheral function to process e.g. FTM0_CH6
     *                      
-    * @return Created function if matches an expected pattern
+    * @return Created function if matches an expected pattern and is not marked as useful
     * 
     * @throws Exception if function does fit expected form
     * 

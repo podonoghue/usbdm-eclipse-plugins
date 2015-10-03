@@ -1,7 +1,5 @@
 /**
  * Describes how a peripheral function is mapped to a pin<br>
- * e.g. FTM0_CH6(fn4) = MappingInfo(PeripheralFunction(FTM, 0, 6), 4)<br>
- * e.g. PTA3(fn1) = MappingInfo(PeripheralFunction(PT, A, 3), 1)
  */
 public class MappingInfo {
    /** Peripheral function that is mapped */

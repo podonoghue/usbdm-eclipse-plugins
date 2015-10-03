@@ -230,17 +230,6 @@ public class CreatePinDescription extends DocumentUtilities {
       return b.toString();
    }
    
-//   /**
-//    * Gets the aliases for a pin
-//    * 
-//    * @param pinInformation
-//    * 
-//    * @return Set of aliases associated with this pin
-//    */
-//   private ArrayList<String> getAliases(PinInformation pinInformation) {
-//      return pinToAliases.get(pinInformation);
-//   }
-   
    /**
     * Parse line containing Default value for peripheral pin mapping
     * 
@@ -759,10 +748,9 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception 
     */
    private void writePeripheralPinMappings(BufferedWriter writer) throws Exception {
-      ArrayList<String> peripheralFunctions = new ArrayList<String>(PeripheralFunction.getFunctions().keySet());
-      Collections.sort(peripheralFunctions, portNameComparator);
-      for (String key:peripheralFunctions) {
-         PeripheralFunction peripheralFunction = PeripheralFunction.lookup(key);
+      ArrayList<String> peripheralFunctions = PeripheralFunction.getPeripheralFunctionsAsList();
+      for (String name:peripheralFunctions) {
+         PeripheralFunction peripheralFunction = PeripheralFunction.lookup(name);
          writePeripheralPinMapping(peripheralFunction, writer);
       }
    }
@@ -1391,6 +1379,7 @@ public class CreatePinDescription extends DocumentUtilities {
    private void processFile(Path filePath) throws Exception {
       PinInformation.reset();
       PeripheralFunction.reset();
+      MappingInfo.reset();
       
       deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");

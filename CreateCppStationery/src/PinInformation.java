@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
  */
 public class PinInformation {
    
+   /**
+    * Pin used to denote a disabled mapping
+    */
    public final static PinInformation DISABLED_PIN = new PinInformation("Disabled");
    
    /**
@@ -19,8 +22,11 @@ public class PinInformation {
     * May be searched by pin name
     */
    private static HashMap<String, PinInformation> fPins = new HashMap<String, PinInformation>();
+   
+   /**
+    * Sorted list of pins - Created when needed
+    */
    private static ArrayList<String> fPinNames = null;
-
    
    /**
     * Reset shared internal state
@@ -133,12 +139,18 @@ public class PinInformation {
     * @throws Exception If the pin already exists
     */
    public static PinInformation createPin(String name) throws Exception {
+      // Check for repeated pin
       PinInformation pinInformation = fPins.get(name);
       if (pinInformation != null) {
          throw new Exception("Pin already exists: " + name);
       }
+      // Created pin
       pinInformation = new PinInformation(name);
+      // Add to map
       fPins.put(name, pinInformation);
+      // Name list is now invalid
+      fPinNames = null;
+      
       return pinInformation;
    }
    
