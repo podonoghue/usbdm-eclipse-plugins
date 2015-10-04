@@ -1,2 +1,2 @@
 # CreateCppStationery 
-The code produces stationery for a CPP for various microcontroller peripherals
+The code produces CPP stationery for various microcontroller peripherals
