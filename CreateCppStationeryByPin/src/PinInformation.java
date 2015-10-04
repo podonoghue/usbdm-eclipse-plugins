@@ -112,6 +112,36 @@ public class PinInformation {
       }
    };
 
+   /** Port instance e.g. PTA3 => A */
+   private String fPortInstance = null;
+
+   /** Pin instance e.g. PTA3 => 3 */
+   private String fPortPin = null;
+
+   /**
+    * Get PCR register e.g. PORTA->PCR[3]
+    * 
+    * @return
+    */
+   public String getPCR() {
+      if (fPortInstance == null) {
+         return "0";
+      }
+      return String.format("&PORT%s->PCR[%s]", fPortInstance, fPortPin);
+   }
+   
+   /**
+    * Get clock mask e.g. PORTA_CLOCK_MASK
+    * 
+    * @return
+    */
+   public String getClockMask() {
+      if (fPortInstance == null) {
+         return "0";
+      }
+      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
+   }
+   
    /** Name of the pin, usually the port name e.g. PTA1 */
    private String fName;
    
@@ -175,6 +205,12 @@ public class PinInformation {
     */
    private PinInformation(String name) {
       this.fName  = name;
+      Pattern p = Pattern.compile("^\\s*PT(.)(\\d*)\\s*$");
+      Matcher m = p.matcher(name);
+      if (m.matches()) {
+         fPortInstance = m.group(1);
+         fPortPin      = m.group(2);
+      }
    }
    
    /**
@@ -201,7 +237,7 @@ public class PinInformation {
    /**
     * Gets list of peripheral functions mapped to this pin
     * 
-    * @param   baseName
+    * @param   fBaseName
     * 
     * @return  List (may be empty, never null)
     */
@@ -226,14 +262,15 @@ public class PinInformation {
    }
    
    /**
-    * Adds a peripheral function to the pin
+    * Adds a mapping of a peripheral function to the pin
     * 
-    * @param peripheralFunction  Peripheral function to add
-    * @param multiplexorIndex    Multiplexor index setting for this function
+    * @param mappingInfo        Mapping to add
+    * 
+    * @throws Exception 
     */
-   void addPeripheralFunction(PeripheralFunction peripheralFunction, int multiplexorIndex) {
-      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fBaseName);
-      MappingInfo mappingInfo = new MappingInfo(peripheralFunction, this, multiplexorIndex);
+   public void addPeripheralFunctionMapping(MappingInfo mappingInfo) {
+      PeripheralFunction peripheralFunction = mappingInfo.function;
+      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fPeripheral.fBaseName);
       elements.add(mappingInfo);
       mappedPins.add(peripheralFunction);
       if (fDescription.length() > 0) {
@@ -242,7 +279,7 @@ public class PinInformation {
       fDescription.append(peripheralFunction.getName());
       fPinNames = null;
    }
-   
+
    /**
     * Gets sub-list of peripheral functions mapped to this pin that have this basename
     * 
@@ -278,4 +315,5 @@ public class PinInformation {
    public String toString() {
       return getDescription();
    }
+
 }

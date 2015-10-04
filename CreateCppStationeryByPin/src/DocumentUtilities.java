@@ -305,8 +305,39 @@ public class DocumentUtilities {
       final String headerTemplate =                                                            
             "//   <o%s> %s %s\n"+
             "//   <i> %s\n";
+      hint = hint.replaceAll("\n", "\n//   <i> ");
       writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
    }
+
+   /**
+    * Write wizard selection preamble e.g.
+    * <pre><code>
+    * //  comment
+    * //  &lt;o<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;constant&gt;]</i></b>
+    * //  &lt;i&gt;   <i><b>hint</i></b>
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param comment    Comment written above (may be null)
+    * @param offset     Offset to argument
+    * @param isConstant Indicates the entry should be marked &lt;constant&gt;
+    * @param title      Title to use in selection
+    * @param hint       Hint to use with title
+    * 
+    * @throws IOException
+    */
+   void writeWizardBinaryOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, boolean isConstant, String title, String hint) 
+         throws IOException {
+      if (comment != null) {
+         writer.write(String.format("// %s\n", comment));
+      }
+      final String headerTemplate =                                                            
+            "//   <q%s> %s %s\n"+
+            "//   <i> %s\n";
+      hint = hint.replaceAll("\n", "\n//   <i> ");
+      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
+   }
+
    /**
     * Write wizard selection entry e.g.
     * <pre><code>

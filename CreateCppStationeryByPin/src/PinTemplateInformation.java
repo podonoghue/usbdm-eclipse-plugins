@@ -7,14 +7,20 @@ import java.util.ArrayList;
  */
 class PinTemplateInformation {
 
+   /**
+    * List of templates
+    */
    static private ArrayList<PinTemplateInformation> list = new ArrayList<PinTemplateInformation>();
-//   static private HashMap<String, PinTemplateInformation> map = new HashMap<String, PinTemplateInformation>();
 
    static void reset() {
-//      map = new HashMap<String, PinTemplateInformation>();
       list = new ArrayList<PinTemplateInformation>();
    }
 
+   /**
+    * Get list of templates for given basename
+    * 
+    * @return list
+    */
    static PinTemplateInformation getTemplate(String baseName) {
       for (PinTemplateInformation item:list) {
          if (item.baseName == baseName) {
@@ -24,16 +30,44 @@ class PinTemplateInformation {
       return null;
    }
 
+   /**
+    * Get list of all templates
+    * 
+    * @return
+    */
    static ArrayList<PinTemplateInformation> getList() {
-//      ArrayList<String> list = new ArrayList<String>(map.keySet());
-//      Collections.sort(list);
       return list;
    }
 
+   /**
+    * Class encapsulating the code for writing an instance
+    */
    static abstract interface IInstanceWriter {
-      public void writeInstance(MappingInfo mappedPeripheral, int instanceCount, BufferedWriter cppFile) throws IOException;
+      public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException;
    };
 
+   /**
+    * Get PCR initialisation string for given pin
+    * 
+    * @param pin The pin being configured
+    * 
+    * @return
+    */
+   private static String getPCRInitString(PinInformation pin) throws IOException {
+      String pcrInstance      = pin.getPCR()+",";
+      String portClockMask    = pin.getClockMask();
+
+      boolean noDigitalIO = pin.getMappingList("GPIO").size() == 0;
+      if (noDigitalIO) {
+         // No PCR register - Only analogue function on pin
+         return "{0,0}";
+      }
+      return String.format("{%-18s%-10s}", pcrInstance, portClockMask);
+   }
+
+   /**
+    * Class encapsulating the code for writing an instance of DigitalIO
+    */
    static class digitalIO_Writer implements IInstanceWriter {
       private final boolean deviceIsMKE;
 
@@ -56,34 +90,49 @@ class PinTemplateInformation {
        */
       @Override
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
-         String pinName          = mappingInfo.pin.getName();
-         String instanceName     = "digitalIO_"+pinName;                                    // digitalIO_PTA0
-//         String pcrInstance      = "&PCR("+pinName+"_GPIO_NAME,"+pinName+"_GPIO_BIT),";   // &PCR(PTA0_GPIO_NAME,PTA0_GPIO_BIT)
-//         String gpioInstance     = "GPIO("+pinName+"_GPIO_NAME),";                        // GPIO(PTA0_GPIO_NAME),
-//         String gpioInstanceMKE  = "(volatile GPIO_Type*)GPIO("+pinName+"_GPIO_NAME),";   // (volatile GPIO_Type*)GPIO(PTA0_GPIO_NAME),
-//         String gpioClockMask    =  "PORT_CLOCK_MASK("+pinName+"_GPIO_NAME),";            // PORT_CLOCK_MASK(PTA0_GPIO_NAME),
-//         String gpioBitMask      = "(1UL<<"+pinName+"_GPIO_BIT)";                         // (1UL<<PTA0_GPIO_BIT)
-
-         String instance = mappingInfo.function.fInstance;
-         String signal   = mappingInfo.function.fSignal;
-         String pcrInstance      = String.format("&PORT%s->PCR[%s],", instance, signal);     // &PORTx->PCR[n]
+         String pinName          = mappingInfo.pin.getName(); // e.g. PTA0
+         String instanceName     = "digitalIO_"+pinName;      // e.g. digitalIO_PTA0
+         
+         String instance         = mappingInfo.function.fPeripheral.fInstance;
+         String signal           = mappingInfo.function.fSignal;
          String gpioInstance     = String.format("GPIO%s,", instance);                       // GPIOx,
          String gpioInstanceMKE  = String.format("(volatile GPIO_Type*)GPIO%s,", instance);  // (volatile GPIO_Type*)GPIOx,
-         String gpioClockMask    = String.format("PORT%s_CLOCK_MASK,", instance);            // PORTx_CLOCK_MASK,
          String gpioBitMask      = String.format("(1UL<<%s)", signal);                       // (1UL<<n)
-         
+         String pcrInit          = getPCRInitString(mappingInfo.pin);
+               
+         cppFile.write(String.format("const DigitalIO %-18s = ", instanceName));
+         boolean noDigitalIO = mappingInfo.pin.getMappingList("GPIO").size() == 0;
          if (deviceIsMKE) {
-            cppFile.write(String.format("const DigitalIO %-18s = {%-18s%s};\n", 
-                  instanceName, gpioInstanceMKE, gpioBitMask));
+            if (noDigitalIO) {
+               // No PCR register - Only analogue function on pin
+               cppFile.write("{0,0}");
+            }
+            else {
+               cppFile.write(String.format("{%-18s%s};\n", gpioInstanceMKE, gpioBitMask));
+            }
          }
          else {
-            cppFile.write(String.format("const DigitalIO %-18s = {%-18s%-10s%-20s%s};\n", 
-                  instanceName, pcrInstance, gpioInstance, gpioClockMask, gpioBitMask));
+            if (noDigitalIO) {
+               // No PCR register - Only analogue function on pin
+               cppFile.write("{0,0,0,0}");
+            }
+            else {
+               cppFile.write(String.format("{%s, %-8s%s}", pcrInit, gpioInstance, gpioBitMask));
+            }
          }
+         cppFile.write(String.format(";\n"));
       }
    };
 
-   static class pwmIO_FTM_Writer implements IInstanceWriter {
+   /**
+    * Class encapsulating the code for writing an instance of PwmIO (FTM)
+    */
+   static class pwmIO_FTM_Writer extends digitalIO_Writer {
+
+      public pwmIO_FTM_Writer(boolean deviceIsMKE) {
+         super(deviceIsMKE);
+      }
+
       /** 
        * Write PwmIO instance for a FTM e.g. 
        * <pre>
@@ -98,39 +147,38 @@ class PinTemplateInformation {
        */
       @Override
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
-//         String ftmNum       = mappingInfo.function.fInstance;
          String pinName      = mappingInfo.pin.getName();
 
-//         String instanceName = "pwmIO_"+pinName;                                 // pwmIO_PTA0
-//         String gpioName     = "&digitalIO_"+pinName+",";                        // &digitalIO_PTA0,
-//         String ftmInstance  = "(volatile FTM_Type*)FTM("+pinName+"_FTM_NUM),";  // (volatile FTM_Type*)FTM(PTA0_FTM_NUM),
-//         String ftmChannel   = pinName+"_FTM_CH,";                               // PTA0_FTM_CH
-//         String ftmMuxValue  = "PORT_PCR_MUX("+pinName+"_FTM_FN),";              // PORT_PCR_MUX(PTA0_FTM_FN);
-//         String ftmClockReg  = "&FTM_CLOCK_REG("+pinName+"_FTM_NUM),";           // &FTM_CLOCK_REG(PTA0_FTM_NUM),
-//         String ftmClockMask = "FTM_CLOCK_MASK("+pinName+"_FTM_NUM),";           // FTM_CLOCK_MASK(PTA0_FTM_NUM),
-//         String ftmSCValue   = "FTM"+ftmNum+"_SC";                               // FTM0_SC
-
-         String instance = mappingInfo.function.fInstance;
+         String instance = mappingInfo.function.fPeripheral.fInstance;
          String signal   = mappingInfo.function.fSignal;
          String muxValue = Integer.toString(mappingInfo.mux);
          
          String instanceName = "pwmIO_"+pinName;                                       // pwmIO_PTA0
-         String gpioName     = String.format("&digitalIO_%s,", pinName);               // &digitalIO_PTA0,
          String ftmInstance  = String.format("(volatile FTM_Type*)FTM%s,", instance);  // (volatile FTM_Type*)FTMx,
          String ftmChannel   = String.format("%s,", signal);                           // n
          String ftmMuxValue  = String.format("%s,", muxValue);                         // m;
          String ftmClockReg  = String.format("&FTM%s_CLOCK_REG,", instance);           // &FTMx_CLOCK_REG,
          String ftmClockMask = String.format("FTM%s_CLOCK_MASK,", instance);           // FTMx_CLOCK_MASK,
          String ftmSCValue   = String.format("FTM%s_SC", instance);                    // FTMx_SC
+         String pcrInit      = getPCRInitString(mappingInfo.pin);
 
-         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
-         cppFile.write(String.format("const PwmIO  %-15s = {%-19s%-28s%-6s%-6s%-20s%s %s};\n", 
-               instanceName, gpioName, ftmInstance, ftmChannel, ftmMuxValue, ftmClockReg, ftmClockMask,ftmSCValue) );
-         cppFile.write(String.format("#endif\n"));
+//         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
+         cppFile.write(String.format("const PwmIO  %-15s = {", instanceName));
+         cppFile.write(String.format("%s,%-28s%-6s%-6s%-20s%s %s};\n", 
+               pcrInit, ftmInstance, ftmChannel, ftmMuxValue, ftmClockReg, ftmClockMask,ftmSCValue) );
+//         cppFile.write(String.format("#endif\n"));
       }
    };
 
-   static class pwmIO_TPM_Writer implements IInstanceWriter {      
+   /**
+    * Class encapsulating the code for writing an instance of PwmIO (TPM)
+    */
+   static class pwmIO_TPM_Writer extends digitalIO_Writer {     
+      
+      public pwmIO_TPM_Writer(boolean deviceIsMKE) {
+         super(deviceIsMKE);
+      }
+
       /** 
        * Write PwmIO instance for a TPM e.g. 
        * <pre>
@@ -145,38 +193,38 @@ class PinTemplateInformation {
        */
       @Override
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
-//         String ftmNum       = mappingInfo.function.fInstance;
          String pinName      = mappingInfo.pin.getName();
 
-//         String instanceName = "pwmIO_"+pinName;                                 // pwmIO_PTA0
-//         String gpioName     = "&digitalIO_"+pinName+",";                        // &digitalIO_PTA0,
-//         String ftmInstance  = "(volatile TPM_Type*)TPM("+pinName+"_TPM_NUM),";  // (volatile TPM_Type*)TPM(PTA0_TPM_NUM),
-//         String ftmChannel   = pinName+"_TPM_CH,";                               // PTA0_TPM_CH
-//         String ftmMuxValue  = "PORT_PCR_MUX("+pinName+"_TPM_FN),";              // PORT_PCR_MUX(PTA0_TPM_FN);
-//         String ftmClockReg  = "&TPM_CLOCK_REG("+pinName+"_TPM_NUM),";           // &TPM_CLOCK_REG(PTA0_TPM_NUM),
-//         String ftmClockMask = "TPM_CLOCK_MASK("+pinName+"_TPM_NUM),";           // TPM_CLOCK_MASK(PTA0_TPM_NUM),
-//         String ftmSCValue   = "TPM"+ftmNum+"_SC";                               // TPM0_SC
-
-         String instance = mappingInfo.function.fInstance;
+         String instance = mappingInfo.function.fPeripheral.fInstance;
          String signal   = mappingInfo.function.fSignal;
          String muxValue = Integer.toString(mappingInfo.mux);
          
          String instanceName = "pwmIO_"+pinName;                                       // pwmIO_PTA0
-         String gpioName     = String.format("&digitalIO_%s,", pinName);               // &digitalIO_PTA0,
          String ftmInstance  = String.format("(volatile TPM_Type*)TPM%s,", instance);  // (volatile TPM_Type*)TPMx,
          String ftmChannel   = String.format("%s,", signal);                           // n
          String ftmMuxValue  = String.format("%s,", muxValue);                         // m;
          String ftmClockReg  = String.format("&TPM%s_CLOCK_REG,", instance);           // &FTMx_CLOCK_REG,
          String ftmClockMask = String.format("TPM%s_CLOCK_MASK,", instance);           // FTMx_CLOCK_MASK,
          String ftmSCValue   = String.format("TPM%s_SC", instance);                    // FTMx_SC
-         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
-         cppFile.write(String.format("const PwmIO  %-15s = {%-19s%-28s%-6s%-6s%-20s%s %s};\n", 
-               instanceName, gpioName, ftmInstance, ftmChannel, ftmMuxValue, ftmClockReg, ftmClockMask,ftmSCValue) );
-         cppFile.write(String.format("#endif\n"));
+         String pcrInit      = getPCRInitString(mappingInfo.pin);
+
+//         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
+         cppFile.write(String.format("const PwmIO  %-15s = {", instanceName));
+         cppFile.write(String.format("%s, %-28s%-6s%-6s%-20s%s %s};\n", 
+               pcrInit, ftmInstance, ftmChannel, ftmMuxValue, ftmClockReg, ftmClockMask,ftmSCValue) );
+//         cppFile.write(String.format("#endif\n"));
       }
    };
 
-   static class analogueIO_Writer implements IInstanceWriter {      
+   /**
+    * Class encapsulating the code for writing an instance of AnalogueIO
+    */
+   static class analogueIO_Writer extends digitalIO_Writer {      
+      
+      public analogueIO_Writer(boolean deviceIsMKE) {
+         super(deviceIsMKE);
+      }
+
       /** 
        * Write AnalogueIO instance e.g. 
        * <pre>
@@ -194,38 +242,25 @@ class PinTemplateInformation {
        */
       @Override
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
-//         String modifier = "";
-//         String pinName      = mappingInfo.pin.getName();
-//         String instanceName = "analogueIO_"+pinName+modifier;                      // analogueIO_PTE1
-//         String gpioName     = "&digitalIO_"+pinName+",";                           // &digitalIO_PTE1,
-//         String adcInstance  = "ADC("+pinName+"_ADC_NUM"+modifier+"),";             // ADC(PTE1_ADC_NUM),
-//         String adcClockReg  = "&ADC_CLOCK_REG("+pinName+"_ADC_NUM"+modifier+"),";  // &ADC_CLOCK_REG(PTE1_ADC_NUM),
-//         String adcClockMask = "ADC_CLOCK_MASK("+pinName+"_ADC_NUM"+modifier+"),";  // ADC_CLOCK_MASK(PTE1_ADC_NUM),
-//         String adcChannel   = pinName+"_ADC_CH"+modifier+"";                       // PTE1_ADC_CH
 
-         String instance = mappingInfo.function.fInstance;
+         String instance = mappingInfo.function.fPeripheral.fInstance;
          String signal   = mappingInfo.function.fSignal;
-//         String muxValue = Integer.toString(mappingInfo.mux);
          
          String pinName      = mappingInfo.pin.getName();
          String instanceName = "analogueIO_"+pinName;                        // analogueIO_PTE1
          if (instanceCount>0) {
             instanceName += "_"+Integer.toString(instanceCount);
          }
-         String gpioName     = "&digitalIO_"+pinName+",";                    // &digitalIO_PTE1,
          String adcInstance  = String.format("ADC%s,", instance);            // ADC(PTE1_ADC_NUM),
          String adcClockReg  = String.format("&ADC%s_CLOCK_REG,", instance); // &ADCx_CLOCK_REG,
          String adcClockMask = String.format("ADC%s_CLOCK_MASK,", instance); // ADC_CLOCK_MASK(PTE1_ADC_NUM),
-         String adcChannel   = signal;                                       // nn
+         String adcChannel   = signal;                                       // N
+         String pcrInit      = getPCRInitString(mappingInfo.pin);
 
-         if (mappingInfo.pin.getMappingList("GPIO").size() == 0) {
-            // No PCR register - Only analogue function on pin
-            gpioName = "0,"; // NULL indicates no PCR
-         }
-         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
-         cppFile.write(String.format("const AnalogueIO %-25s = {%-18s%-10s%-20s%-20s%s};\n", 
-               instanceName, gpioName, adcInstance, adcClockReg, adcClockMask, adcChannel));
-         cppFile.write(String.format("#endif\n"));
+//         cppFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappingInfo.mux)));
+         cppFile.write(String.format("const AnalogueIO %-25s = {", instanceName));
+         cppFile.write(String.format("%s, %-10s%-20s%-20s%s};\n", pcrInit, adcInstance, adcClockReg, adcClockMask, adcChannel));
+//         cppFile.write(String.format("#endif\n"));
       }
    };
 
@@ -258,5 +293,5 @@ class PinTemplateInformation {
       this.instanceWriter        = instanceWriter;
       list.add(this);
    }
-
+  
 }

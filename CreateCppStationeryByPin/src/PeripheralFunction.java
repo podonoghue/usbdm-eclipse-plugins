@@ -7,10 +7,8 @@ import java.util.regex.Pattern;
 
 /**
  * Describes a peripheral function that may be mapped to a pin<br>
- * e.g. FTM0_CH6 = MappingInfo(FTM, 0, 6)<br>
  * Includes:
- * <li>baseName
- * <li>instance
+ * <li>peripheral
  * <li>signal
  */
 class PeripheralFunction {
@@ -98,19 +96,16 @@ class PeripheralFunction {
    private ArrayList<PinInformation> mappablePins = new ArrayList<PinInformation>();
    
    private int fPreferredPinIndex = 0;
+
+   /** Peripheral that signal belongs to */
+   public Peripheral fPeripheral;
    
-   /** Base name of the peripheral e.g. FTM0_CH6 = FTM, PTA3 = PT */
-   public   String fBaseName;   
-   
-   /** Name/Number of the peripheral instance e.g. FTM0_CH6 = 0, PTA3 = A */
-   public   String fInstance;   
-   
-   /** Peripheral signal name.number e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK */
+   /** Peripheral signal name number e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK */
    public   String fSignal;
 
    /** Name of peripheral function e.g. FTM0_CH3 */
    private String fName;     
-   
+
    /**
     * Get map of all peripheral functions
     * 
@@ -176,16 +171,16 @@ class PeripheralFunction {
     * e.g. FTM0_CH6 = <b>new</b> PeripheralFunction(FTM, 0, 6)
     * 
     * @param baseName   Base name of the peripheral e.g. FTM0_CH6 = FTM, PTA3 = PT
-    * @param instance   Number/name of the peripheral e.g. FTM0_CH6 = 0, PTA3 = A
+    * @param fInstance   Number/name of the peripheral e.g. FTM0_CH6 = 0, PTA3 = A
     * @param signal     Channel/pin number/operation e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK
+    * @throws Exception 
     */
-   private PeripheralFunction(String name, String baseName, String instance, String signal) {
+   private PeripheralFunction(String name, String baseName, String instance, String signal) throws Exception {
 //      System.err.println(String.format("PeripheralFunction(b=%s, n=%s, ch=%s)", baseName, instance, signal));
-      fName      = name;
-      fBaseName  = baseName;
-      fInstance  = instance;
-      fSignal    = signal;
-	  
+      fName       = name;
+      fPeripheral = Peripheral.addPeripheral(baseName, instance);
+      fSignal     = signal;
+
       mappablePins.add(PinInformation.DISABLED_PIN);
       
       // Add to basename map
@@ -215,7 +210,7 @@ class PeripheralFunction {
    }
    
    /**
-    * Factory to create peripheral function from a peripheral name<br>
+    * Find peripheral function from a peripheral name<br>
     * e.g. "FTM0_CH6" = <i>PeripheralFunction</i>(FTM, 0, 6)
     * 
     * @param function   Name of peripheral function to process e.g. FTM0_CH6
@@ -329,7 +324,7 @@ class PeripheralFunction {
          }
       }
       if (!patternMatched) {
-         throw new Exception("Failed to find pattern that matched peripheral function: " + name);
+         throw new Exception("Failed to find pattern that matched peripheral function: \'" + name + "\'");
       }
       return peripheralFunction;
    }
@@ -344,8 +339,9 @@ class PeripheralFunction {
     * @param create        If true then the peripheral function will be created if it does not already exist
     *                      
     * @return Peripheral function if found or created, null otherwise
+    * @throws Exception 
     */
-   private static PeripheralFunction findPeripheralFunction(String name, String baseName, String instanceNum, String signalName, boolean create) {
+   private static PeripheralFunction findPeripheralFunction(String name, String baseName, String instanceNum, String signalName, boolean create) throws Exception {
       
       PeripheralFunction peripheralFunction = functions.get(name);
       if ((peripheralFunction == null) && create) {
@@ -356,6 +352,7 @@ class PeripheralFunction {
             sorted = new HashMap<String, PeripheralFunction>();
          }
          sorted.put(name, peripheralFunction);
+         Peripheral.addPeripheral(baseName+instanceNum);
       }
 //      System.err.println(peripheralFunction.toString());
       return peripheralFunction;
@@ -382,13 +379,13 @@ class PeripheralFunction {
    /**
     * Add a pin that this peripheral function may be mapped to  
     * 
-    * @param pinInformation Mappable pin
+    * @param mappingInfo Mappable pin
     */
-   public void addPinMapping(PinInformation pinInformation) {
-      if (mappablePins.indexOf(pinInformation) > 0) {
-         System.err.println("Adding existing mapping: "+ pinInformation);
+   public void addPinMapping(MappingInfo mappingInfo) {
+      if (mappablePins.indexOf(mappingInfo.pin) > 0) {
+         System.err.println("Adding existing mapping: "+ mappingInfo);
       }
-      mappablePins.add(pinInformation);
+      mappablePins.add(mappingInfo.pin);
    }
    
    /**
@@ -442,4 +439,5 @@ class PeripheralFunction {
       buff.append(")");
       return buff.toString();
    }
-}
+ 
+ }
