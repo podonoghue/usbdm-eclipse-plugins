@@ -772,12 +772,12 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       gpioHeaderFile.write("*/\n\n");
     
-      gpioHeaderFile.write("/*\nDefault pin mappings \n");
-      for (String name:PinInformation.getPinNames()) {
-         PinInformation pin = PinInformation.find(name);
+//      gpioHeaderFile.write("/*\nDefault pin mappings \n");
+//      for (String name:PinInformation.getPinNames()) {
+//         PinInformation pin = PinInformation.find(name);
 //         gpioHeaderFile.write(String.format("%-10s %-12s %-10s\n", peripheral.fName,  peripheral.fClockReg, peripheral.fClockMask));
-      }
-      gpioHeaderFile.write("*/\n");
+//      }
+//      gpioHeaderFile.write("*/\n");
 
       
 //      ArrayList<String> ar = PeripheralFunction.getPeripheralFunctionsAsList();
