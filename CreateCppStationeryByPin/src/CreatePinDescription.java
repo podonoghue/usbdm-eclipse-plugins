@@ -77,7 +77,7 @@ public class CreatePinDescription extends DocumentUtilities {
    private boolean  portClockRegisterChanged      = false;
 
    /**
-    * Comparator for port names e.g. PTA13 c.f. PTB12
+    * Comparator for port names e.g. PTA13 c.f. PTB12<br>
     * Treats the number separately as a number.
     */
    private static Comparator<String> portNameComparator = new Comparator<String>() {
@@ -189,48 +189,6 @@ public class CreatePinDescription extends DocumentUtilities {
    }
    
    /**
-    * Adds an alias for a pin
-    * This is a one to many relationship
-    * 
-    * @param pinInformation Pin to add alias for
-    * @param aliasName      Alias name
-    */
-   private void addAlias(PinInformation pinInformation, String aliasName) {
-      aliasToPin.put(aliasName, pinInformation);
-      
-      /* Aliases for this pin */
-      ArrayList<String> aliases = pinToAliases.get(pinInformation);
-      if (aliases == null) {
-         aliases = new ArrayList<String>();
-         pinToAliases.put(pinInformation, aliases);
-      }
-      aliases.add(aliasName);
-   }
-   
-   /**
-    * Gets list of alias for this pin as a comma separated string.
-    * 
-    * @param pinName
-    * @return String of form alias1,alias2 ... or null if no aliases defined
-    */
-   private String getAliasList(PinInformation pinInformation) {
-      ArrayList<String> aliasList = pinToAliases.get(pinInformation);
-      if (aliasList == null) {
-         return null;
-      }
-      StringBuilder b = new StringBuilder();
-      boolean firstTime = true;
-      for(String s:aliasList) {
-         if (!firstTime) {
-            b.append(",");
-         }
-         firstTime = false;
-         b.append(s);
-      }
-      return b.toString();
-   }
-   
-   /**
     * Parse line containing Default value for peripheral pin mapping
     * 
     * @param line
@@ -327,7 +285,7 @@ public class CreatePinDescription extends DocumentUtilities {
       if (pinInformation == null) {
          throw new Exception("Illegal alias, Pin not found: " + pinName);
       }
-      addAlias(pinInformation, aliasName);
+      Aliases.addAlias(pinInformation, aliasName);
    }
    
    /**
@@ -437,16 +395,19 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
 
+   
    /**
     * Writes pin-mapping selection code to header file
     * e.g.<pre>
-    * // SPI0_PCS2 Pin Mapping
-    * //   &lt;o> SPI0_PCS2 Pin Selection [PTC2(D10), PTD5(A3)] 
-    * //   &lt;i> Selects which pin is used for SPI0_PCS2
-    * //     &lt;0=> Disabled
-    * //     &lt;1=> PTC2 (Alias: D10)
-    * //     &lt;2=> PTD5 (Alias: A3)
-    * //     &lt;0=> Default
+    * // <b><i>PTD1</b></i> Pin Mapping
+    * //   <o> <b><i>PTD1</b></i> Pin Selection [<b/><i/>ADC0_SE5b, GPIOD_1, SPI0_SCK, FTM3_CH1</b></i>] 
+    * //   <i> Selects which peripheral function is mapped to <b><i>PTD1</b></i> pin
+    * //     <0=> <b><i>ADC0_SE5b</b></i>
+    * //     <1=> <b><i>GPIOD_1</b></i>
+    * //     <2=> <b><i>SPI0_SCK</b></i>
+    * //     <4=> <b><i>FTM3_CH1</b></i>
+    * //     <0=> Default
+    * #define <b><i>PTD1_SEL</b></i>             0                   
     * </pre>
     *  
     * @param pinInformation  Peripheral function to write definitions for
@@ -708,6 +669,12 @@ public class CreatePinDescription extends DocumentUtilities {
          instanceName += "_" + Integer.toString(instanceCount);
       }
       gpioHeaderFile.write(String.format(template.externTemplate, instanceName+";", pinName));
+      Aliases x = Aliases.getAlias(mappedFunction.pin);
+      if (x != null) {
+         for (String alias:x.aliasList) {
+            gpioHeaderFile.write(String.format("#define %s %s\n", template.className+alias, template.className+pinName));
+         }
+      }
       gpioHeaderFile.write(String.format("#endif\n"));
    }
    
@@ -865,6 +832,7 @@ public class CreatePinDescription extends DocumentUtilities {
       PinInformation.reset();
       PeripheralFunction.reset();
       MappingInfo.reset();
+      Aliases.reset();
       
       deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");
