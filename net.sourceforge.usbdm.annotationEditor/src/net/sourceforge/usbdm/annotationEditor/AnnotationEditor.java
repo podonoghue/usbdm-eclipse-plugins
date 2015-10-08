@@ -346,7 +346,7 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
          return;
       }
       try {
-         annotationParser.collectNamedNodes();
+         annotationParser.collectScannedInformation();
          annotationParser.validate(viewer);
       } catch (Exception e) {
          e.printStackTrace();

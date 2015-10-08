@@ -46,7 +46,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    
    private UsbdmNewProjectPage_1                fUsbdmNewProjectPage_1 = null;
    private UsbdmProjectParametersPage_2         fUsbdmProjectParametersPage_2 = null;
-   private ArrayList<UsbdmDynamicOptionPage_N> fDynamicWizardPages  = null;
+   private ArrayList<UsbdmDynamicOptionPage_N>  fDynamicWizardPages  = null;
    private ArrayList<WizardPageInformation>     fWizardPageInformation = new ArrayList<WizardPageInformation>();
    private ProjectActionList                    fProjectActionList = null;
    private Map<String, String>                  fBaseParamMap = null;
@@ -363,14 +363,16 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    }
 
    public void updateConfigurations(IProject project, IProgressMonitor monitor) {
-      final int WORK_SCALE = 100;
+      monitor.beginTask("Update configuration", IProgressMonitor.UNKNOWN);
+
+//      final int WORK_SCALE = 100;
       try {
-         IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(project).getManagedProject().getConfigurations();
-         monitor.beginTask("Update configuration", WORK_SCALE*projectConfigs.length);
-         for (IConfiguration config : projectConfigs) {
-            ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);
-            monitor.worked(WORK_SCALE);
-         }
+//         IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(project).getManagedProject().getConfigurations();
+//         monitor.beginTask("Update configuration", WORK_SCALE*projectConfigs.length);
+//         for (IConfiguration config : projectConfigs) {
+//            ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);
+//            monitor.worked(WORK_SCALE);
+//         }
          CCorePlugin.getIndexManager().reindex(CoreModel.getDefault().create(project));
       }
       finally {
@@ -405,7 +407,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
          
          // Create project
-         IProject project = new CDTProjectManager().createCDTProj(fParamMap, fDevice, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         IProject project = new CDTProjectManager().createCDTProj(fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
       
          // Apply device project options
          ProcessProjectActions.process(project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));

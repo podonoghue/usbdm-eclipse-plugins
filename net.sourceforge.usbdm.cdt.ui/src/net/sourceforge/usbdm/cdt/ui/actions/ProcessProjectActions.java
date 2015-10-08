@@ -43,6 +43,7 @@ public class ProcessProjectActions {
          
          @Override
          public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
+//            System.err.println("ProjectCustomAction: "+action.toString());
             try {
                if (action instanceof FileAction) {
                   new AddTargetFiles().process(projectHandle, device, variableMap, (FileAction)action, monitor);
@@ -57,7 +58,6 @@ public class ProcessProjectActions {
                   applyOptions.process(device, variableMap, (ProjectOption)action, monitor);
                }
                else if (action instanceof ExcludeAction) {
-                  //                System.err.println("ProjectCustomAction: "+action.toString());
                   ProjectUtilities.excludeItem(projectHandle, (ExcludeAction)action, monitor);
                }
                else if (action instanceof ProjectActionList) {
@@ -65,7 +65,6 @@ public class ProcessProjectActions {
                   return new Result(projectActionList.appliesTo(device, variableMap)?Status.CONTINUE:Status.PRUNE);
                }
                else if (action instanceof ProjectCustomAction) {
-                  //              System.err.println("ProjectCustomAction: "+action.toString());
                   ProjectCustomAction customAction = (ProjectCustomAction) action;
                   Class<?> actionClass = Class.forName(customAction.getclassName());
                   Object clsInstance = actionClass.newInstance();
@@ -90,6 +89,7 @@ public class ProcessProjectActions {
                   throw new Exception("Unexpected action class: " + action.getClass());
                }
             } catch (Exception e) {
+               e.printStackTrace();
                StringBuffer sb = new StringBuffer();
                sb.append("Unable to process Action "+action.toString() + "\n");
                sb.append("Action id = " + action.getId() + "\n");

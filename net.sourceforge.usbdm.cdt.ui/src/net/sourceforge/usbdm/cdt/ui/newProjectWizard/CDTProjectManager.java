@@ -9,9 +9,11 @@ import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 
 import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvidersKeeper;
 import org.eclipse.cdt.core.language.settings.providers.LanguageSettingsManager;
 import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.core.settings.model.extension.CConfigurationData;
@@ -40,65 +42,103 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 @SuppressWarnings({ "restriction", "unused" })
 public class CDTProjectManager {
 
-   // Based on org.eclipse.cdt.managedbuilder.testplugin
-   public IProject createProject(String projectName, String directoryPath, IProgressMonitor monitor) throws CoreException {
+   final String ccNature = "org.eclipse.cdt.core.ccnature";
+
+   /**
+    * Create basic CDT project
+    * Based on org.eclipse.cdt.managedbuilder.testplugin
+    * 
+    * @param projectName      Name of project
+    * @param directoryPath    Where to create in file system
+    * @param hasCCNature      Adds C++ nature if true
+    * @param monitor          Where to report progress
+    * 
+    * @return CDT Project created
+    * 
+    * @throws Exception
+    */
+   public IProject createProject(String projectName, String directoryPath, boolean hasCCNature, IProgressMonitor monitor) throws Exception {
+//    System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
       final int WORK_SCALE = 1000;
       
-//      System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
-
-      monitor.beginTask("Creating project", IProgressMonitor.UNKNOWN);
-
-      IWorkspace          workspace          = ResourcesPlugin.getWorkspace();
-      IWorkspaceRoot      wrkSpaceRoot       = workspace.getRoot();
-      final IProject      newProjectHandle   = wrkSpaceRoot.getProject(projectName);
-      IProject            project            = null;
-
-      if (!newProjectHandle.exists()) {
+      IProject project = null;
+      try {
          monitor.beginTask("Creating project", IProgressMonitor.UNKNOWN);
+
+         IWorkspace          workspace          = ResourcesPlugin.getWorkspace();
+         IWorkspaceRoot      wrkSpaceRoot       = workspace.getRoot();
+         final IProject      newProjectHandle   = wrkSpaceRoot.getProject(projectName);
+
+         // Turn off Auto-build in workspace
+         // TODO - should restore to original after project construction?
          IWorkspaceDescription workspaceDesc = workspace.getDescription();
          workspaceDesc.setAutoBuilding(false);
          workspace.setDescription(workspaceDesc);
+
          IProjectDescription projectDescription = workspace.newProjectDescription(projectName);
          if ((directoryPath != null) && (!directoryPath.isEmpty())) {
             IPath path = new Path(directoryPath).append(projectName);
             projectDescription.setLocation(path);
          }
+         if (hasCCNature) {
+            // Add CC nature
+            String[] natures = projectDescription.getNatureIds();
+            String[] newNatures = new String[natures.length + 1];
+            System.arraycopy(natures, 0, newNatures, 0, natures.length);
+            newNatures[natures.length] = ccNature;
+            projectDescription.setNatureIds(newNatures);
+         }
          project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, new SubProgressMonitor(monitor, WORK_SCALE*30));     
+         Assert.isNotNull(project, "Project not created");
+
+         if (project.hasNature(ccNature)) {
+            System.err.println("C++ Nature is present");
+         }
+         // Open the project if we have to
+         if (!project.isOpen()) {
+            project.open(new SubProgressMonitor(monitor, WORK_SCALE*30));
+         }
+      } finally {
+         monitor.done();
       }
-      else {
-         monitor.beginTask("Refreshing project", IProgressMonitor.UNKNOWN);
-         IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-            public void run(IProgressMonitor monitor) throws CoreException {
-               newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, new SubProgressMonitor(monitor, WORK_SCALE*30));
-            }
-         };
-         workspace.run(runnable, wrkSpaceRoot, IWorkspace.AVOID_UPDATE, new SubProgressMonitor(monitor, WORK_SCALE*30));
-         project = newProjectHandle;
-      }
-      Assert.isNotNull(project, "Project not created");
-      
-      // Open the project if we have to
-      if (!project.isOpen()) {
-         project.open(new SubProgressMonitor(monitor, WORK_SCALE*30));
-      }
-      monitor.done();
       return project;
    }
-   
+
    private final String ARM_CONFIGURATION_ID        = "net.sourceforge.usbdm.cdt.arm";
    private final String COLDFIRE_CONFIGURATION_ID   = "net.sourceforge.usbdm.cdt.coldfire";
-   
+
+   /**
+    * Create USBDM project
+    * 
+    * @param paramMap      Parameters for project (from Wizard dialogue)
+    * @param monitor       Progress monitor
+    * 
+    * @return  Created project
+    * 
+    * @throws Exception
+    */
    public IProject createCDTProj(
          Map<String, String>  paramMap, 
-         Device               device,
          IProgressMonitor     monitor) throws Exception {
 
       final int WORK_SCALE = 1000;
 
+      // Used to suppress indexing while project is constructed
+      final IndexerSetupParticipant indexerParticipant = new IndexerSetupParticipant() {
+         @Override
+         public boolean postponeIndexerSetup(ICProject cProject) {
+            return true;
+         }
+      }; 
+
       // Create model project and accompanied descriptions
       IProject project;
+
       try {
          monitor.beginTask("Create configuration", WORK_SCALE*100);
+
+         // Suppress project indexing while project is constructed
+         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
 
          String        projectName   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
          String        directoryPath = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
@@ -110,8 +150,7 @@ public class CDTProjectManager {
          if ((artifactName == null) || (artifactName.length()==0)) {
             artifactName = "${ProjName}";
          }
-
-         project = createProject(projectName, directoryPath, new SubProgressMonitor(monitor, WORK_SCALE*70));
+         project = createProject(projectName, directoryPath, hasCCNature, new SubProgressMonitor(monitor, WORK_SCALE*70));
 
          CoreModel coreModel = CoreModel.getDefault();
 
@@ -149,68 +188,12 @@ public class CDTProjectManager {
             CConfigurationData data = config.getConfigurationData();
             Assert.isNotNull(data, "data is null for created configuration");
             projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-
-            //======================================================================
-            //======================================================================
-            // Not working
-            //            if (false) {
-            //               System.err.println("createCDTProj() ==================================================");
-            //               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
-            //               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
-            //               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
-            //                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
-            //               }
-            //               languageSettingsProviderIdsList.remove(idToRemove);
-            //               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
-            //               for (String languageSettingsProviderId : languageSettingsProviderIds) {
-            //                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
-            //               }
-            //               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-            //               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
-            //                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
-            //                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
-            //               }
-            //               else {
-            //                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
-            //               }
-            //            }
-            //======================================================================
-            //======================================================================
          }
          Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
-
-         // Persist project description.
          coreModel.setProjectDescription(project, projectDescription);
-         final String ccNature = "org.eclipse.cdt.core.ccnature";
-         try {
-            if (hasCCNature) {
-               // Add cc nature
-               IProjectDescription description = project.getDescription();
-               String[] natures = description.getNatureIds();
-               String[] newNatures = new String[natures.length + 1];
-               System.arraycopy(natures, 0, newNatures, 0, natures.length);
-               newNatures[natures.length] = ccNature;
-               description.setNatureIds(newNatures);
-               project.setDescription(description, new SubProgressMonitor(monitor, WORK_SCALE*30));
-               if (!project.hasNature(ccNature)) {
-                  throw new Exception("Failed to set CC nature");
-               }
-//               description = project.getDescription();
-//               natures = description.getNatureIds();
-//               boolean foundCCNature = false;
-//               for (String n:natures) {
-//                  if (n.equals("org.eclipse.cdt.core.ccnature")) {
-//                     foundCCNature = true;
-//                  }
-//               }
-//               if (!foundCCNature) {
-//                  throw new Exception("Failed to set CC nature");
-//               }
-            }
-         } catch (CoreException e) {
-            throw new Exception("Failed to set CC nature", e);
-         }
       } finally {
+         // Allow indexing
+         CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
          monitor.done();
       }
 
@@ -218,3 +201,45 @@ public class CDTProjectManager {
    }
 
 }
+
+/*
+ Code for existing project - not used
+else {
+   monitor.beginTask("Refreshing project", IProgressMonitor.UNKNOWN);
+   IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
+      public void run(IProgressMonitor monitor) throws CoreException {
+         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+      }
+   };
+   workspace.run(runnable, wrkSpaceRoot, IWorkspace.AVOID_UPDATE, new SubProgressMonitor(monitor, WORK_SCALE*30));
+   project = newProjectHandle;
+}
+*/
+
+//
+//======================================================================
+//======================================================================
+// Not working done inside ' for (IConfiguration configuration : cfgs) {'
+//            if (false) {
+//               System.err.println("createCDTProj() ==================================================");
+//               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
+//               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
+//               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
+//                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
+//               }
+//               languageSettingsProviderIdsList.remove(idToRemove);
+//               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
+//               for (String languageSettingsProviderId : languageSettingsProviderIds) {
+//                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
+//               }
+//               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
+//               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
+//                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
+//                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
+//               }
+//               else {
+//                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
+//               }
+//            }
+//======================================================================
+//======================================================================

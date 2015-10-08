@@ -1,11 +1,15 @@
 package net.sourceforge.usbdm.annotationEditor;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumeratedOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
 
 public abstract class MyValidator {
    protected      String[]               arguments;
@@ -97,6 +101,15 @@ public abstract class MyValidator {
    }
    
    /**
+    * This returns a list of nodes in the associated model which have selection tags
+    * 
+    * @return List
+    */
+   protected ArrayList<SelectionTag> getSelectionNodes() {
+      return model.getSelections();
+   }
+   
+   /**
     * Sets the node value & refreshes the viewer
     * 
     * @param viewer        Viewer containing the node
@@ -107,7 +120,8 @@ public abstract class MyValidator {
     * @note Done delayed on the display thread
     */
    protected void update(final TreeViewer viewer, final NumericOptionModelNode node, final long value) {
-      if (node.getValueAsLong() == node.limitedValue(value)) {
+      if ((node.safeGetValueAsLong() == node.limitedValue(value)) && 
+          (node.getErrorMessage() == null)) {
          // No update needed (after constricting to target range)
          return;
       }
@@ -125,6 +139,16 @@ public abstract class MyValidator {
       });
    }
 
+   /**
+    * Sets the node value & refreshes the viewer
+    * 
+    * @param viewer        Viewer containing the node
+    * @param node          Node to set error message foe
+    * @param value         Node value
+    * 
+    * @note The node is set valid
+    * @note Done delayed on the display thread
+    */
    protected void update(final TreeViewer viewer, final BinaryOptionModelNode node, final boolean value) {
       if (node.safeGetValue() == value) {
          // No update needed
@@ -134,7 +158,7 @@ public abstract class MyValidator {
          @Override
          public void run () {
             try {
-               System.err.println(String.format("Update(%s,%d)", node.getName(), value));
+//               System.err.println(String.format("Update(%s,%d)", node.getName(), value));
                node.setErrorMessage(null);
                node.setValue(value);
                refresh(viewer);
@@ -144,6 +168,36 @@ public abstract class MyValidator {
       });
    }
 
+   /**
+    * Sets the node value & refreshes the viewer
+    * 
+    * @param viewer        Viewer containing the node
+    * @param node          Node to set value for
+    * @param value         Node value
+    * 
+    * @note The node is set valid
+    * @note Done delayed on the display thread
+    */
+   protected void update(final TreeViewer viewer, final EnumeratedOptionModelNode node, final String value) {
+//      System.err.println(String.format("update(%s,%s)", node.getName(), value));
+      if (node.safeGetValueAsString().equals(value)) {
+         // No update needed
+//         System.err.println("No update needed");
+         return;
+      }
+      Display.getDefault().asyncExec(new Runnable () {
+         @Override
+         public void run () {
+            try {
+//               System.err.println(String.format("update.run(%s,%s)", node.getName(), value));
+               node.setErrorMessage(null);
+               node.setValueAsString(value);
+               refresh(viewer);
+            } catch (Exception e) {
+            }
+         }
+      });
+   }
 
    /**
     * Sets the node error message & refreshes the viewer

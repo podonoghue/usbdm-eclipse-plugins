@@ -2,11 +2,6 @@ package net.sourceforge.usbdm.cdt.ui.actions;
 
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.ProjectOption;
-
-import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.core.templateengine.process.ProcessFailureException;
 import org.eclipse.cdt.managedbuilder.core.BuildException;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -19,6 +14,10 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ProjectOption;
 
 /**
  * Adds project settings from USBDM device database
@@ -56,13 +55,13 @@ public class ApplyOptions {
       }
    }
    
-   public void updateConfigurations(IProgressMonitor monitor) {
-      ManagedBuildManager.saveBuildInfo(projectHandle, true);
-      IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
-      for (IConfiguration config : projectConfigs) {
-         ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);    
-      }
-   }
+//   public void updateConfigurations(IProgressMonitor monitor) {
+//      ManagedBuildManager.saveBuildInfo(projectHandle, true);
+//      IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(projectHandle).getManagedProject().getConfigurations();
+//      for (IConfiguration config : projectConfigs) {
+//         ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);    
+//      }
+//   }
 
    private boolean setOptionValue(String id, String[] value, String path, boolean replace, String targetConfig, IProgressMonitor monitor) 
          throws Exception {

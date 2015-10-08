@@ -11,29 +11,56 @@ import org.eclipse.jface.text.IDocument;
  * Used to represent a model created from the Wizard description in a C file
  * 
  * @author podonoghue
- *
  */
 public class AnnotationModel {
 
-   /**
-    * The root of the model
-    */
+   /** The root of the model */
    private AnnotationModelNode                   modelRoot  = null;
+   /** */
    private DocumentReferences                    references = null;
    private IDocument                             document   = null;
    private HashMap<String, AnnotationModelNode>  nameMap    = null;
+   /** List of selection tags in document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i> **/
+   private ArrayList<SelectionTag>               selectionTags = null;
 
+   /**
+    * Constructs a empty model to represent the Wizard description in a C file
+    * 
+    * @param document Associated document
+    */
    public AnnotationModel(IDocument document) {
       resetModel(document);
    }
    
    public void resetModel(IDocument document) {
-      this.references = new DocumentReferences();
-      this.document   = document;
-      this.modelRoot  = null;
-      this.nameMap    = new HashMap<String, AnnotationModelNode>();
+//      System.err.println("resetModel() resetting model");
+
+      this.references      = new DocumentReferences();
+      this.document        = document;
+      this.modelRoot       = null;
+      this.nameMap         = new HashMap<String, AnnotationModelNode>();
+      this.selectionTags   = new ArrayList<SelectionTag>();
    }
    
+   /**
+    * Get selections applied to this node 
+    * 
+    * @return List of selections applied e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+    */
+   public ArrayList<SelectionTag> getSelections() {
+      return selectionTags;
+   }
+
+   /**
+    * Add selection tag e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+    * 
+    * @param selectionTag Tag to add
+    */
+   public void addSelection(SelectionTag selectionTag) {
+      selectionTags.add(selectionTag); 
+//      System.err.println("addSelection() - Adding " + selectionTag);
+   }
+
    public IDocument getDocument() {
       return document;
    }
@@ -59,12 +86,13 @@ public class AnnotationModel {
       return this.nameMap;
    }
    
-   public void clearNameMap() {
+   public void clearScannedInformation() {
       this.nameMap = new HashMap<String, AnnotationModel.AnnotationModelNode>();
+      this.selectionTags   = new ArrayList<SelectionTag>();
    }
    
    /**
-    * Get the list of references 
+    * Get the list of references to strings or numbers in the associated document
     * 
     * @return the references
     */
@@ -72,18 +100,39 @@ public class AnnotationModel {
       return references;
    }
 
+   /**
+    * Represents a reference to a string or number in the associated document
+    */
    public class DocumentReference {
+      /** Offset in document */
       private final int     offset;
+      /** Length in document */
       private final int     length;
+      /** Indicates that numeric values should be represented in hex in the document e.g. 0x23 */
       private       boolean useHex;
+      /** Name of this reference */
       private       String  name = null;
 
+      /**
+       * Create Document reference
+       * 
+       * @param offset  Offset in document
+       * @param length  Length in document
+       */
       DocumentReference(int offset, int length) {
          this.offset = offset;
          this.length = length;
          this.useHex = false;
       }
 
+      /**
+       * Sets the value of this reference in the associated document i.e. <br>
+       * It changes the text in the document
+       * 
+       * @param value  Text to set
+       * 
+       * @throws Exception
+       */
       private void setValue(String value) throws Exception {
          try {
             document.replace(offset, length, value);
@@ -92,6 +141,14 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Gets the value of this reference in the associated document i.e.
+       * it obtains the text from the document
+       * 
+       * @return Text from document
+       * 
+       * @throws Exception
+       */
       private String getValue() {
          try {
             return document.get(offset, length);
@@ -100,10 +157,30 @@ public class AnnotationModel {
          }
       }
       
+      /**
+       * Gets the value of this reference in the associated document i.e. 
+       * it obtains the text from the document<br>
+       * Assumes the text is a quoted string and trims the quotes e.g. "Hello" => Hello
+       * 
+       * @return Contents quoted string from document
+       * 
+       * @throws Exception
+       */
       public String getStringValue() {
          return getValue().substring(1,getValue().length()-1);
       }
 
+      /**
+       * Gets the value of this reference in the associated document i.e. 
+       * it obtains the text from the document<br>
+       * Assumes the text is a number and returns it's numeric value e.g. "0x34" => 52
+       * 
+       * @return Value of number represented as a text in document
+       * 
+       * @note As a side-effect it sets hex format if the number is prefixed by "0x".  This is a persistent change
+       * 
+       * @throws Exception
+       */
       public long getIntegerValue() {
          try {
             String t = getValue();
@@ -116,10 +193,29 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Sets the value of this reference in the associated document i.e. 
+       * it changes the text in the document<br>
+       * Assumes the text is a quoted string and adds the quotes e.g. Hello => "Hello"
+       * 
+       * @param value   String to set
+       * 
+       * @throws Exception
+       */
       public void setStringValue(String value) throws Exception {
          setValue("\""+value+"\"");
       }
       
+      /**
+       * Sets the value of this reference in the associated document i.e. 
+       * it changes the text in the document<br>
+       * Assumes the text is a number and writes it's numeric value as text<br>
+       * If isUseHex() is true then it will be written as a hex number e.g. 53 => 0x34
+       * 
+       * @param value Number to set
+       * 
+       * @throws Exception
+       */
       public void setIntegerValue(long value) throws Exception {
          if (isUseHex()) {
             setValue(String.format("0x%X", value));
@@ -129,32 +225,61 @@ public class AnnotationModel {
          }
       }
       
+      /**
+       * Indicates if the number is to be represented in hex in the associated document
+       * 
+       * @return true indicates use hex prefix 0x
+       */
       public boolean isUseHex() {
          return useHex;
       }
 
+      /**
+       * Indicates if the number is to be represented in hex in the associated document
+       * 
+       * @param useHex true to convert numbers to/from hex when modifying document
+       */
       public void setUseHex(boolean useHex) {
          this.useHex = useHex;
       }
       
+      @Override
       public String toString() {
          return String.format("Ref[%d,%d]", this.offset, this.length);
       }
 
+      /**
+       * Set name of reference for indexing
+       * 
+       * @param name
+       */
       public void setName(String name) {
          this.name = name;
       }
       
+      /**
+       * Get name of reference
+       * 
+       * @return
+       */
       public String getName() {
          return this.name;
       }
    }
 
+   /**
+    * Maintains index of references to strings or numbers in the associated document
+    */
    public class DocumentReferences {
       
+      /** Vector of all references */
       private Vector<DocumentReference> references = null;
+      /** Map from name to reference */
       private HashMap<String, DocumentReference> map;
       
+      /**
+       * Constructs empty Reference list
+       */
       public DocumentReferences() {
          references = new Vector<DocumentReference>();
       }
@@ -182,112 +307,291 @@ public class AnnotationModel {
          }
       }
       
+      /**
+       * Obtain count of references to associated document
+       * 
+       * @return
+       */
       public int getReferenceCount() {
 //         System.err.println("DocumentReferences.getReferenceCount() => " + references.size());
          return references.size();
       }
 
+      /**
+       * Obtain reference at index to a string or number in the associated document
+       * 
+       * @param index
+       * 
+       * @return
+       */
       public DocumentReference get(int index) {
          return references.get(index);
       }
    }
    
+   /**
+    * Represents an enumerated value in a document annotation e.g. <br>
+    * <pre>
+    * //     &lt0=> No setup (Reset default)
+    * </pre>
+    */
    public static class EnumValue {
+      /** Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i> */
       private String name;
+      /** Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i> */
       private long   value;
 
+      /**
+       * Constructor for an enumerated value in a document annotation e.g. <br>
+       * <pre>
+       * //     &lt0=> No setup (Reset default)
+       * </pre>
+       * 
+       * @param name    Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i>
+       * @param value   Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i>
+       */
       EnumValue(String name, long value) {
          this.setName(name);
          this.setValue(value);
       }
 
+      /**
+       * Get name of enumeration
+       * 
+       * @return Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i>
+       */
       public String getName() {
          return name;
       }
 
+      /**
+       * Set name of enumeration
+       * 
+       * @param name Name e.g. <b><i>No setup (Reset default)</b></i>
+       */
       public void setName(String name) {
          this.name = name;
       }
 
+      /**
+       * Get value of enumeration
+       * 
+       * @return Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i>
+       */
       public long getValue() {
          return value;
       }
 
+      /**
+       * Set value of enumeration
+       * 
+       * @param value Value e.g. <b><i>0</b></i>
+       */
       public void setValue(long value) {
          this.value = value;
       }
    }
 
+   /**
+    * Represents a modifier for a numeric value e.g. <b><i>&lt;#/4></b></i>, <b><i>&lt;#*6></b></i>
+    */
    public static class Modifier {
+      /** Operation to apply e.g. <b><i>&lt;#/4></b></i> => <b><i>/</b></i> */
       private String operation;
+      
+      /** Factor to use with operation <b><i>&lt;#/4></b></i> => <b><i>4</b></i> */
       private long   factor;
+      
+      /**
+       * Constructor for a modifier mark-up in the document e.g. <b><i>&lt;#/4></b></i> 
+       * 
+       * @param operation  Operation to apply e.g. <b><i>&lt;#/4></b></i> => <b><i>/</b></i>
+       * @param factor     Factor to use with operation <b><i>&lt;#/4></b></i> => <b><i>4</b></i>
+       */
       Modifier(String operation, long factor) {
          this.setOperation(operation);
          this.setFactor(factor);
       }
+      /**
+       * Get operation
+       * 
+       * @return Operation to apply e.g. <b><i>&lt;#/4></b></i> => <b><i>/</b></i>
+       */
       public String getOperation() {
          return operation;
       }
+      /**
+       * Set operation 
+       * 
+       * @param operation Operation to apply e.g. <b><i>&lt;#/4></b></i> => <b><i>/</b></i>
+       */
       public void setOperation(String operation) {
          this.operation = operation;
       }
+      /**
+       * Get factor
+       * 
+       * @return Factor to use with operation <b><i>&lt;#/4></b></i> => <b><i>4</b></i>
+       */
       public long getFactor() {
          return factor;
       }
+      /**
+       * Set factor
+       * 
+       * @param factor Factor to use with operation <b><i>&lt;#/4><b><i> => <b><i>4</b></i>
+       */
       public void setFactor(long factor) {
          this.factor = factor;
       }
    }
 
+   /**
+    * Represent a selection annotation in the document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+    */
+   public static class SelectionTag {
+      /** Associated node that represents the pin that can be mapped to this peripheral signal */ 
+      public EnumeratedOptionModelNode   controllingNode;
+      /** Name of peripheral signal mapped to this node(pin) by this selection */
+      public String           signalName;
+      /** The index of the option that enables this peripheral function on the associated node(pin) */
+      public long             selectionValue;
+
+      /**
+       * Constructor<br>
+       * 
+       * Represent a selection annotation in the document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+       * 
+       * @param controllingNode  The node associated with the SelectionTag (controlling node)
+       * @param signalName       Name of signal being controller e.g. &lt;selection=i2c0_sda,2> => i2c0_sda<br>
+       *                         This is expected to be the name of another node but not enforced
+       * @param selectionValue   The value of the option that enables this signal on this pin e.g. &lt;selection=i2c0_sda,2> => 2<br>
+       */
+      SelectionTag(EnumeratedOptionModelNode controllingNode, String signalName, long selectionValue) {
+         this.controllingNode = controllingNode;
+         this.signalName      = signalName;
+         this.selectionValue  = selectionValue;
+      }
+      
+      @Override
+      public String toString() {
+         return String.format("SelectionTag(controllingNode=%s, signalName=%s, sel=%d)", controllingNode.getName(), signalName, selectionValue);
+      }
+   };
+
+   /**
+    * Represents a Bit-field part of mark-up in the document e.g. <b><i>&lt;o.4..5></b></i>
+    */
    public static class BitField {
+      /** Start of bit-field range */
       private final int start;
+      /** End of bit-field range */
       private final int end;
       
+      /**
+       * Constructor
+       * 
+       * @param start Start of bit-field span e.g. <b><i>&lt;o.4..5></b></i> => <b><i>4</b></i>
+       * @param end   End of bit-field span e.g. <b><i>&lt;o.4..5></b></i> => <b><i>5</b></i>
+       */
       BitField(int start, int end) {
          this.start = start;
          this.end   = end;
       }
 
+      /**
+       * Get start of span
+       * 
+       * @return Start of bit-field span e.g. <b><i>&lt;o.4..5></b></i> => <b><i>4</b></i>
+       */
       public int getStart() {
          return start;
       }
 
+      /**
+       * Get end of span
+       * 
+       * @return Start of bit-field span e.g. <b><i>&lt;o.4..5></b></i> => <b><i>5</b></i>
+       */
       public int getEnd() {
          return end;
       }
    }
    
+   /**
+    * Represents a range constraint on the node e.g. <b><i>&lt;64-32768:8></b></i>
+    */
    public static class Range {
+      /** Inclusive start of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>64</b></i> */
       private long start;
+      /** Inclusive end of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>32768</b></i> */
       private long end;
+      /** Value must be a multiple of this step size <b><i>&lt;64-32768:8></b></i> => <b><i>8</b></i> */
       private long step;
 
+      /**
+       * Constructor
+       * 
+       * @param start   Inclusive start of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>64</b></i>
+       * @param end     Inclusive end of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>32768</b></i>
+       * @param step    Value must be a multiple of this step size <b><i>&lt;64-32768:8></b></i> => <b><i>8</b></i>
+       */
       Range(long start, long end, long step) {
          this.start = start;
          this.end   = end;
          this.step  = step;
       }
 
+      /**
+       * Get start of range 
+       * 
+       * @return Inclusive start of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>64</b></i>
+       */
       public long getStart() {
          return start;
       }
 
+      /**
+       * Set start of range 
+       * 
+       * @param start Inclusive start of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>64</b></i>
+       */
       public void setStart(long start) {
          this.start = start;
       }
 
+      /**
+       * Get end of range
+       * 
+       * @return Inclusive end of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>32768</b></i>
+       */
       public long getEnd() {
          return end;
       }
 
+      /**
+       * Set end of range
+       * 
+       * @param end Inclusive end of permitted range <b><i>&lt;64-32768:8></b></i> => <b><i>32768</b></i>
+       */
       public void setEnd(long end) {
          this.end = end;
       }
 
+      /**
+       * Get step size
+       * 
+       * @return Value must be a multiple of this step size <b><i>&lt;64-32768:8></b></i> => <b><i>8</b></i>
+       */
       public long getStep() {
          return step;
       }
 
+      /**
+       * Set step size
+       * 
+       * @param step    Value must be a multiple of this step size <b><i>&lt;64-32768:8></b></i> => <b><i>8</b></i>
+       */
       public void setStep(long step) {
          this.step = step;
       }
@@ -304,9 +608,14 @@ public class AnnotationModel {
       private boolean                           enabled        = false;
       private boolean                           modifiable     = true;
       private String                            name           = null;
-//      private ArrayList<MyValidator>            listeners   = new ArrayList<MyValidator>();
       private String                            errorMessage   = null;
       
+      /**
+       * Create AnnotationModelNode
+       * 
+       * @param description Description of the node<br>
+       *                    This appears in the editor to describe the entry 
+       */
       public AnnotationModelNode(String description) {
          this.setDescription(description);
          this.toolTip    = null;
@@ -315,6 +624,11 @@ public class AnnotationModel {
          this.modifiable = false;
       }
 
+      /**
+       * Copy constructor
+       * 
+       * @param other
+       */
       public AnnotationModelNode(AnnotationModelNode other) {
          this.description = other.description;
          this.toolTip     = other.toolTip;
@@ -325,6 +639,13 @@ public class AnnotationModel {
          this.name        = other.name;
       }
 
+      /**
+       * Copy values from another AnnotationModelNode
+       * 
+       * @param other      Node to copy
+       * 
+       * @throws Exception if other is not of expected type
+       */
       public void copyFrom(Object other) throws Exception {
          if (!(other instanceof AnnotationModelNode)) {
             throw new Exception("Incompatible nodes in copyFrom()");
@@ -369,27 +690,55 @@ public class AnnotationModel {
          return true;
       }
       
+      /**
+       * Get node description
+       * 
+       * @return
+       */
       public String getDescription() {
          return description;
       }
 
+      /**
+       * Set Node description
+       * 
+       * @param description
+       */
       public void setDescription(String description) {
          this.description = description;
       }
 
+      /**
+       * Get child nodes
+       * 
+       * @return List of children
+       */
       public ArrayList<AnnotationModelNode> getChildren() {
          return children;
       }
 
+      /**
+       * Set child nodes
+       * 
+       * @param children List of children
+       */
       public void setChildren(ArrayList<AnnotationModelNode> children) {
          this.children = children;
       }
 
+      /**
+       * Add a child node
+       * 
+       * @param child node to add
+       */
       public void addChild(AnnotationModelNode child) {
          children.add(child);
          child.setParent(this);
       }
 
+      /**
+       * Remove all child nodes
+       */
       public void removeAllChildren() {
          children = new ArrayList<AnnotationModelNode>();
       }
@@ -403,10 +752,20 @@ public class AnnotationModel {
          return parent;
       }
 
+      /**
+       * Set parent node
+       * 
+       * @param parent
+       */
       public void setParent(AnnotationModelNode parent) {
          this.parent = parent; 
       }
 
+      /**
+       * Get tool tip 
+       * 
+       * @return Tool tip as string
+       */
       public String getToolTip() {
          if (errorMessage != null) {
             return errorMessage;
@@ -414,6 +773,11 @@ public class AnnotationModel {
          return toolTip;
       }
 
+      /**
+       * Set too tip
+       * 
+       * @param toolTip Tool tip as string
+       */
       public void addToolTip(String toolTip) {
          if (this.toolTip == null) {
             this.toolTip = toolTip;
@@ -485,18 +849,38 @@ public class AnnotationModel {
       public void setValue(Object obj) throws Exception {
       }
 
+      /**
+       * Indicates node can be modified in the editor
+       * 
+       * @return true if not a constant node and node is enabled
+       */
       public boolean canModify() {
          return isModifiable() && isEnabled();
       }
 
+      /**
+       * Indicates node can be modified
+       * 
+       * @return true if not a constant node
+       */
       public boolean isModifiable() {
          return modifiable;
       }
 
+      /**
+       * Sets modifiable state of node
+       * 
+       * @return true if not a constant node
+       */
       public void setModifiable(boolean modifiable) {
          this.modifiable = modifiable;
       }
 
+      /**
+       * Indicates if the node is enabled
+       * 
+       * @return true if enabled
+       */
       public boolean isEnabled() {
          return enabled;
       }
@@ -522,6 +906,11 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Lists the node to System.err
+       * 
+       * @param indent
+       */
       public void listNode(int indent) {         
          System.err.println(getIndent(indent)+getDescription());
          String toolTip = getToolTip();
@@ -530,6 +919,11 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Lists the node and children to System.err
+       * 
+       * @param indent
+       */
       public void listNodes(int indent) {
          listNode(indent);
          for (AnnotationModelNode child : children) {
@@ -537,55 +931,97 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Check if the value supplied is compatible with the node
+       * 
+       * @param value to test
+       * 
+       * @return
+       */
       public boolean isOKValue(Object value) {
          return false;
       }
 
-//      public void clearListeners() {
-//         listeners = new ArrayList<MyValidator>();
-//      }
-//
-//      public void addListener(MyValidator function) {
-//         listeners.add(function);
-////         System.err.println("AnnotationModel.addListener()");
-//      }
-      
-//      protected void notifyListeners() throws Exception {
-//         for (MyValidator function : listeners) {
-//            function.changed();
-//         }
-//      }
-
+      /**
+       * Set node name
+       * 
+       * @param name
+       */
       public void setName(String name) {
          this.name = name;
       }
 
+      /**
+       * Get node name
+       * 
+       * @return
+       */
       public String getName() {
          return name;
       }
 
+      /**
+       * Checks if node is valid (not in error state)
+       * 
+       * @return
+       */
       public boolean isValid() {
          return errorMessage == null;
       }
 
+      /**
+       * Set error message<br>
+       * If non-null then node will be invalid
+       * 
+       * @param errorMessage
+       */
       public void setErrorMessage(String errorMessage) {
          this.errorMessage = errorMessage;
       }
+      
+      /**
+       * Get error message<br>
+       * May be null
+       * 
+       * @return
+       */
+      public String getErrorMessage() {
+         return errorMessage;
+      }
    }
 
+   /**
+    * A visible node used to represent an error
+    */
    class ErrorNode extends AnnotationModelNode {
 
+      /**
+       * Constructor
+       * 
+       * @param description Description of error to display
+       */
       public ErrorNode(String description) {
          super(description);
       }
    }
    
    /**
-    * Describes a simple heading used to group options in the model
+    * Describes a simple heading used to group options in the model<br>
     * The node has no value associated with it.
+    * <pre>
+    * // &lt;h> Description
+    * </pre>
     */
    class HeadingModelNode extends AnnotationModelNode {
       
+      /**
+       * Constructor for a simple heading used to group options in the model
+       * <pre>
+       * // &lt;h> Description
+       * </pre>
+       * 
+       * @param description Description to display
+       */
       public HeadingModelNode(String description) {
          super(description);
       }
@@ -598,6 +1034,7 @@ public class AnnotationModel {
          super.copyFrom(other);
       }
       
+      @Override
       public boolean equals(Object other) {
          return (other instanceof HeadingModelNode) && super.equals(other);
       }
@@ -609,15 +1046,26 @@ public class AnnotationModel {
     *    <li> a value (untyped represented as a string)
     *    <li> an reference index allowing the location in the C file to be accessed.
     */
-   class OptionModelNode extends AnnotationModelNode {
-      private int    referenceIndex;
+   public class OptionModelNode extends AnnotationModelNode {
+      private int referenceIndex;
 
+      /**
+       * Create OptionModelNode
+       * 
+       * @param description Description
+       * @param offset
+       */
       public OptionModelNode(String description, int offset) {
          super(description);
          this.referenceIndex = references.getReferenceCount()+offset;
          setModifiable(true);
       }
 
+      /**
+       * Create OptionModelNode from another
+       * 
+       * @param other
+       */
       public OptionModelNode(OptionModelNode other) {
          super(other);
          this.referenceIndex  = other.referenceIndex;
@@ -632,6 +1080,7 @@ public class AnnotationModel {
          this.referenceIndex  = ((OptionModelNode)other).referenceIndex;
       }
       
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof OptionModelNode)) {
             return false;
@@ -640,6 +1089,11 @@ public class AnnotationModel {
          return (referenceIndex == otherNode.referenceIndex) && super.equals(otherNode);
       }
 
+      /**
+       * Obtains the reference index of the associated item in the file being edited
+       * 
+       * @return Index
+       */
       int getReferenceIndex() {
          return referenceIndex;
       }
@@ -664,6 +1118,12 @@ public class AnnotationModel {
             return getReference().getStringValue();
       }
       
+      /**
+       * Obtains the document reference of this node in the associated document
+       * 
+       * @return
+       * @throws Exception
+       */
       public DocumentReference getReference() throws Exception {
          try {
             return references.get(getReferenceIndex());
@@ -671,6 +1131,15 @@ public class AnnotationModel {
             throw new Exception("Illegal Reference @"+getReferenceIndex(), e);
          }
       }
+      /**
+       * Obtains the document reference of the node offset from this node in the associated document
+       * 
+       * @param offset Offset from this node to required node
+       *  
+       * @return node if found
+       * 
+       * @throws Exception if node cannot be located
+       */
       public DocumentReference getReference(int offset) throws Exception {
          try {
             return references.get(getReferenceIndex()+offset);
@@ -682,19 +1151,49 @@ public class AnnotationModel {
 
    /**
     * Describes an option that modifies a numeric value in the C file
-    *
+    * <pre>
+    * //   &lt;o> External Reference Clock (Hz) <constant> <name=system_erc_clock>
+    * //   &lt;i> Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL) or RTC_CLOCK(XTAL32/EXTAL32)
+    * #define SYSTEM_ERC_CLOCK (8000000UL)
+    * </pre>
     */
    public class NumericOptionModelNode extends OptionModelNode {
+      /** Range constraint on the node e.g. <b><i>&lt;64-32768:8></b></i> */
       private Range                    range       = null;
+      
+      /** List the modifiers applied e.g. <b><i>&lt;#/4></b></i>, <b><i>&lt;#*6></b></i>  */
       private ArrayList<Modifier>      modifiers   = null;
+      
+      /** Indicates the value should use hex notation e.g. 0x123 **/
       private boolean                  useHex      = false;
+      
+      /** Bit-field constraint applied to this node e.g. <b><i>&lt;o.4..5></b></i> */
       private BitField                 bitField    = null;
-
+      
+      /**
+       * Constructor<br>
+       * Represents a numeric node in the document
+       * <pre>
+       * //   &lt;o> External Reference Clock (Hz) <constant> <name=system_erc_clock>
+       * //   &lt;i> Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL) or RTC_CLOCK(XTAL32/EXTAL32)
+       * #define SYSTEM_ERC_CLOCK (8000000UL)
+       * </pre>
+       * 
+       * @param description   Description
+       * @param offset        Offset of numeric value 
+       * @param bitField      
+       */
       public NumericOptionModelNode(String description, int offset, BitField bitField) {
          super(description, offset);
          this.bitField = bitField;
       }
 
+      /**
+       * Constructor from another node<br>
+       * Represents a numeric node in the document
+       * 
+       * @param other      
+       */
       public NumericOptionModelNode(NumericOptionModelNode other) {
          super(other);
          this.range              = other.range;
@@ -703,6 +1202,7 @@ public class AnnotationModel {
          this.bitField           = other.bitField;
       }
 
+      @Override
       public void copyFrom(Object other) throws Exception {
          if (!(other instanceof NumericOptionModelNode)) {
             throw new Exception("Incompatible nodes in copyFrom()");
@@ -714,6 +1214,7 @@ public class AnnotationModel {
          this.bitField           = ((NumericOptionModelNode)other).bitField;
       }
       
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof NumericOptionModelNode)) {
             return false;
@@ -764,6 +1265,12 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Round value to step constraint
+       * 
+       * @param value Value to round
+       * @return  Rounded value
+       */
       private long roundValue(long value) {
          if (range != null) {
             value = value & ~(range.getStep()-1);
@@ -771,6 +1278,11 @@ public class AnnotationModel {
          return value;
       }
 
+      /**
+       * Get mask for bit-field
+       * 
+       * @return mask
+       */
       long getMask() {
          int width = bitField.getEnd()-bitField.getStart()+1;
          return ((1L<<width)-1);
@@ -802,7 +1314,6 @@ public class AnnotationModel {
        * @throws Exception
        * 
        * @note The value is modified by modifying factors before being applied to the file
-       * 
        */
       public void setValue(Long value) throws Exception {
          value = limitedValue(value);
@@ -876,6 +1387,11 @@ public class AnnotationModel {
          return new Long(value);
       }
 
+      /**
+       * Get value as Long
+       * 
+       * @return
+       */
       public long getValueAsLong() {
          try {
             Object value = getValue();
@@ -907,22 +1423,58 @@ public class AnnotationModel {
          }
       }
 
+      public long safeGetValueAsLong() {
+         long value = 0;
+         try {
+            value = (Long)getValue();
+         }
+         catch (Exception e) {
+            e.printStackTrace();
+         }
+         return value;
+      }
+
+      /**
+       * Get bitfield
+       * 
+       * @return
+       */
       public BitField getBitField() {
          return bitField;
       }
 
+      /**
+       * Get range of node
+       * 
+       * @return Range that has been set
+       */
       public Range getRange() {
          return range;
       }
 
+      /**
+       * Set range of node
+       * 
+       * @param range to set
+       */
       public void setRange(Range range) {
          this.range = range;
       }
 
+      /**
+       * Get modifiers applied to this node
+       * 
+       * @return  List of modifiers
+       */
       public ArrayList<Modifier> getModifiers() {
          return modifiers;
       }
 
+      /**
+       * Add modifier for this node
+       * 
+       * @param modifier Modifier to add
+       */
       public void addModifier(Modifier modifier) {
          if (modifiers == null) {
             modifiers = new ArrayList<Modifier>();
@@ -951,11 +1503,20 @@ public class AnnotationModel {
          }
       }
 
+      /**
+       * Set if number is to be represented in hex with 0x prefix
+       * 
+       * @param useHex
+       */
       public void setUseHex(boolean useHex) {
          this.useHex = useHex;
       }
+      
    }
 
+   /**
+    * Currently unused?
+    */
    public class PllConfigurationModelNode extends NumericOptionModelNode {
       public PllConfigurationModelNode(String description, int offset, BitField bitField) {
          super(description, offset, null);
@@ -965,6 +1526,7 @@ public class AnnotationModel {
          super(other);
       }
 
+      @Override
       public void copyFrom(Object other) throws Exception {
          if (!(other instanceof PllConfigurationModelNode)) {
             throw new Exception("Incompatible nodes in copyFrom()");
@@ -972,6 +1534,7 @@ public class AnnotationModel {
          super.copyFrom(other);
       }
       
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof PllConfigurationModelNode)) {
             return false;
@@ -980,9 +1543,6 @@ public class AnnotationModel {
          return super.equals(otherNode);
       }
 
-      /* (non-Javadoc)
-       * @see net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode#setValue(java.lang.Long)
-       */
       @Override
       public void setValue(Long value) throws Exception {
          super.setValue(value);
@@ -991,16 +1551,48 @@ public class AnnotationModel {
    }
    
    /**
-    * Describes an option that modifies a numeric value in the C file with an enumerated set of values
+    * Describes an option that modifies a numeric value in the C file from an enumerated set of values
+    * <pre>
+    * //   <o> Description
+    * //   <i> Tool-tip
+    * //     <0=> Option with value 0
+    * //     <1=> Option with value 1
+    * //     <12=> Option with value 12
+    * //     <1=> Default Option value
+    * </pre>
     */
    public class EnumeratedOptionModelNode extends NumericOptionModelNode {
-      private ArrayList<EnumValue>     enumerationValues;
+      /** List of enumerated values applied to this node e.g. &lt0=> No setup (Reset default) */
+      private ArrayList<EnumValue>     enumerationValues = null;
+      private ArrayList<SelectionTag>  selectionTags = null;
 
+      /**
+       * Constructor<br>
+       * Represents a enumeration node in the document
+       * <pre>
+       * //   <o> Description
+       * //   <i> Tool-tip
+       * //     <0=> Option with value 0
+       * //     <1=> Option with value 1
+       * //     <12=> Option with value 12
+       * //     <1=> Default Option value
+       * </pre>
+       * 
+       * @param description   Description
+       * @param offset        Offset of numeric value 
+       * @param bitField      
+       */
       public EnumeratedOptionModelNode(String description, int offset, BitField bitField) {
          super(description, offset, bitField);
          setModifiable(true);
       }
 
+      /**
+       * Constructor from another node<br>
+       * Represents a enumeration node in the document
+       * 
+       * @param other      
+       */
       public EnumeratedOptionModelNode(NumericOptionModelNode other) {
          super(other);
       }
@@ -1014,6 +1606,12 @@ public class AnnotationModel {
          this.enumerationValues = ((EnumeratedOptionModelNode)other).enumerationValues;
       }
       
+      /**
+       * Constructor from another node<br>
+       * Represents a numeric node in the document
+       * 
+       * @param other      
+       */
       public boolean equals(Object other) {
          if (!(other instanceof EnumeratedOptionModelNode)) {
             return false;
@@ -1033,6 +1631,11 @@ public class AnnotationModel {
          return true;
       }
 
+      /**
+       * Gets the text associated with the currently selected enumerated value
+       * 
+       * @return The selected value
+       */
       @Override
       public String getValueAsString() throws Exception {
          long value = (Long) getValue();
@@ -1047,21 +1650,40 @@ public class AnnotationModel {
          return enumerationValues.get(0).getName();
       }
       
+      /**
+       * Sets the currently selected value based on the text provided
+       * 
+       * @param The name of a enumerated value
+       * 
+       * @note If the value doesn't match any of the permitted enumerated values then it is ignored.
+       */
       @Override
       public void setValueAsString(String name) throws Exception {
          for (int index=0; index<enumerationValues.size(); index++) {
             EnumValue enumValue = enumerationValues.get(index);
-            if (enumValue.getName() == name) {
+            if (enumValue.getName().equals(name)) {
                super.setValue(enumValue.getValue());
                return;
             }
+//            System.err.println("Checking enumerated value '" + enumValue.getName() +"'");
          }
+         System.err.println("Failed to locate enumerated value '" + name +"'");
       }
 
+      /**
+       * Get list of enumerated values applied to this node e.g. &lt0=> No setup (Reset default)
+       * 
+       * @return List of enumerated values
+       */
       public ArrayList<EnumValue> getEnumerationValues() {
          return enumerationValues;
       }
 
+      /**
+       * Add enumerated value applied to this node e.g. &lt0=> No setup (Reset default)
+       * 
+       * @param enumerationValue Enumerated value to add
+       */
       public void addEnumerationValue(EnumValue enumerationValue) {
          if (enumerationValues == null) {
             enumerationValues = new ArrayList<EnumValue>();
@@ -1094,16 +1716,64 @@ public class AnnotationModel {
             System.err.println(getIndent(indent+3)+": "+ toolTip);
          }
       }
+
+      public String safeGetValueAsString() {
+         try {
+            return getValueAsString();
+         }
+         catch (Exception e) {
+            e.printStackTrace();
+         }
+      return "";
+      }
+
+      /**
+       * Add a selection tag to the node
+       * 
+       * @param selectionTag
+       */
+      public void addSelectionTag(SelectionTag selectionTag) {
+         if (selectionTags == null) {
+            selectionTags = new ArrayList<SelectionTag>();
+         }
+         selectionTags.add(selectionTag);
+      }
+      
+      ArrayList<SelectionTag> getSelectionTags() {
+         return selectionTags;
+      }
    }
 
    /**
-    * Represents a two value option
+    * Represents a two value option e.g. true/false, enabled/disabled
+    * <pre>
+    * // &lt;q> Description
+    * // &lt;i> Tool-tip
+    * //     &lt;0=> False option name
+    * //     &lt;1=> True option name
+    * </pre>
     */
    public class BinaryOptionModelNode extends NumericOptionModelNode {
 
+      /** Text to display of false */
       String   falseValueText = "false";
+      /** Text to display of true */
       String   trueValueText  = "true";
       
+      /**
+       * Constructor<br>
+       * Represents a binary (two value) node in the document
+       * <pre>
+       * // &lt;q> Description
+       * // &lt;i> Tool-tip
+       * //     &lt;0=> False option name
+       * //     &lt;1=> True option name
+       * </pre>
+       * 
+       * @param description   Description
+       * @param offset        Offset of numeric value 
+       * @param bitField      
+       */
       public BinaryOptionModelNode(String description, int offset, BitField bitField) throws Exception {
          super(description, offset, bitField);
          if ((bitField != null) && (bitField.getStart() != bitField.getEnd())) {
@@ -1122,6 +1792,7 @@ public class AnnotationModel {
          this.trueValueText  = ((BinaryOptionModelNode)other).trueValueText;
       }
       
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof BinaryOptionModelNode)) {
             return false;
@@ -1138,6 +1809,11 @@ public class AnnotationModel {
          return ((Boolean)getValue())?trueValueText:falseValueText;
       }
 
+      /**
+       * Add enumerated value applied to this node e.g. &lt0=> No setup (Reset default)
+       * 
+       * @param enumerationValue Enumerated value to add
+       */
       public void addEnumerationValue(EnumValue enumValue) {
          if (enumValue.getValue() == 0) {
             falseValueText = enumValue.getName();
@@ -1168,16 +1844,33 @@ public class AnnotationModel {
    }
 
    /**
-    * Describes a simple heading used to group options in the model
-    * 
+    * Describes a simple heading used to group options in the model<br>
     * The option has a binary value that can be used to enable/disable the group
+    * <pre>
+    *  // &lt;e> Configuration of FTM0
+    *  // &lt;0=> Disabled
+    *  // &lt;1=> Enabled
+    * </pre>
     */
    public class OptionHeadingModelNode extends BinaryOptionModelNode {
 
+      /**
+       * Constructor<br>
+       * Represent a simple heading used to group options in the model
+       * <pre>
+       *  // &lt;e> Configuration of FTM0
+       *  // &lt;0=> Disabled
+       *  // &lt;1=> Enabled
+       * </pre>
+       * @param description   Description
+       * @param offset        Offset of numeric value 
+       * @param bitField      
+       */
       public OptionHeadingModelNode(String description, int offset, BitField bitField) throws Exception {
          super(description, offset, bitField);
       }
       
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof OptionHeadingModelNode)) {
             return false;
@@ -1213,17 +1906,36 @@ public class AnnotationModel {
    }
 
    /**
-    * Describes an option that modifies a numeric value in the C file with an enumerated set of values
+    * Describes an option that modifies a string value in the C file
+    * <pre>
+    * //  &lt;s> String Option Description
+    * //  &lt;i> Tool-tip text
+    * //  #define STRING_OPTION "Value of string"
+    * <pre>
     */
    public class StringOptionModelNode extends OptionModelNode {
 
       int characterLimit;
 
+      /**
+       * Constructor<br>
+       * Represents an option that modifies a string value in the C file
+       * <pre>
+       * //  &lt;s> String Option Description
+       * //  &lt;i> Tool-tip text
+       * //  #define STRING_OPTION "Value of string"
+       * <pre>
+       * 
+       * @param description   Description
+       * @param offset        Offset of numeric value 
+       * @param bitField      
+       */
       public StringOptionModelNode(String description, int offset, int characterLimit) {
          super(description, offset);
          this.characterLimit = characterLimit;
       }
 
+      @Override
       public boolean equals(Object other) {
          if (!(other instanceof StringOptionModelNode)) {
             return false;
@@ -1234,12 +1946,13 @@ public class AnnotationModel {
                super.equals(otherNode);
       }
 
-      public void copyFrom(StringOptionModelNode other) throws Exception {
+      @Override
+      public void copyFrom(Object other) throws Exception {
          if (!(other instanceof StringOptionModelNode)) {
             throw new Exception("Incompatible nodes in copyFrom()");
          }
          super.copyFrom(other);
-         this.characterLimit = other.characterLimit;
+         this.characterLimit = ((StringOptionModelNode)other).characterLimit;
       }
       
       @Override
@@ -1288,10 +2001,20 @@ public class AnnotationModel {
       }
    }
 
-   private final static String indentString = "                                                                         ";
+   private final static String INDENT_STRING = "                                                                         ";
 
+   /**
+    * Obtain a string of spaces of the given length
+    * 
+    * @param indent
+    * @return
+    */
    public static String getIndent(int indent) {
-      return indentString.substring(0, indent);
+      if (indent>INDENT_STRING.length()) {
+         indent = INDENT_STRING.length();
+      }
+      return INDENT_STRING.substring(0, indent);
    }
+
 }
 
