@@ -1379,7 +1379,7 @@ public class CreatePinDescription extends DocumentUtilities {
    private void processFile(Path filePath) throws Exception {
       PinInformation.reset();
       PeripheralFunction.reset();
-      MappingInfo.reset();
+//      MappingInfo.reset();
       
       deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");

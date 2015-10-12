@@ -8,9 +8,15 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+//import org.eclipse.core.runtime.IStatus;
+//import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
 import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
@@ -24,13 +30,6 @@ import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-//import org.eclipse.core.runtime.IStatus;
-//import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
 /**
  * @author Peter

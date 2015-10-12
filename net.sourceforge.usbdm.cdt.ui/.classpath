@@ -7,8 +7,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="net.sourceforge.usbdm.cdt.ui"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Apps/Freescale/KDS_3.0.0/eclipse/plugins/com.freescale.processorexpert.ui.pewizard_1.6.1.RT7_b1531-0480/com.freescale.processorexpert.ui.pewizard.jar"/>
-	<classpathentry kind="lib" path="/net.sourceforge.usbdm.jni/x86"/>
-	<classpathentry kind="lib" path="/net.sourceforge.usbdm.jni/x86_64"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/net.sourceforge.usbdm.jni"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -6,20 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.ui.Activator;
-import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.ProjectAction;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
-import net.sourceforge.usbdm.packageParser.ProjectConstant;
-import net.sourceforge.usbdm.packageParser.WizardPageInformation;
-
-import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -38,6 +24,19 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
+
+import net.sourceforge.usbdm.cdt.ui.Activator;
+import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.ProjectAction;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
+import net.sourceforge.usbdm.packageParser.ProjectConstant;
+import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 /**
  * @author pgo
