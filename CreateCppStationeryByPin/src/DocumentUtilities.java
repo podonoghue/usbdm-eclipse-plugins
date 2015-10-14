@@ -297,16 +297,24 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   void writeWizardOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, boolean isConstant, String title, String hint) 
+   void writeWizardOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
          throws IOException {
       if (comment != null) {
          writer.write(String.format("// %s\n", comment));
       }
-      final String headerTemplate =                                                            
-            "//   <o%s> %s %s\n"+
-            "//   <i> %s\n";
+      final String oTemplate = "//   <o%s> %s";
+      writer.write(String.format(oTemplate, (offset==0)?"":Integer.toString(offset), title));
+      if (attributes != null) {
+         for (WizardAttribute attribute:attributes) {
+            if (attribute != null) {
+               writer.write(attribute.getAttributeString());
+            }
+         }
+      }
+      writer.write("\n");
+      final String iTemplate = "//   <i> %s\n";
       hint = hint.replaceAll("\n", "\n//   <i> ");
-      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
+      writer.write(String.format(iTemplate, hint));
    }
 
    /**
@@ -341,6 +349,32 @@ public class DocumentUtilities {
    /**
     * Write wizard selection entry e.g.
     * <pre><code>
+    * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b> <i><b>&lt;attribute ...&gt; ...</i></b>
+    * </code></pre>
+    * 
+    * @param writer       Where to write
+    * @param value        Value to use in selection
+    * @param description  Description to use in selection
+    * @param attributes   Attributes to add to the options
+    * 
+    * @throws IOException
+    */
+   void writeWizardOptionSelectionEnty(BufferedWriter writer, String value, String description, WizardAttribute[] attributes) throws IOException {
+      final String entryTemplate = "//     <%s=> %s";
+      writer.write(String.format(entryTemplate, value, description));
+      if (attributes != null) {
+         for (WizardAttribute attribute:attributes) {
+            if (attribute != null) {
+               writer.write(attribute.getAttributeString());
+            }
+         }
+      }
+      writer.write("\n");
+   }
+
+   /**
+    * Write wizard selection entry e.g.
+    * <pre><code>
     * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b>
     * </code></pre>
     * 
@@ -351,9 +385,9 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeWizardOptionSelectionEnty(BufferedWriter writer, String value, String description) throws IOException {
-      final String entryTemplate = "//     <%s=> %s\n";
-      writer.write(String.format(entryTemplate, value, description));
+      writeWizardOptionSelectionEnty(writer, value, description, null);
    }
+
    /**
     * Write wizard selection entry e.g.
     * <pre><code>

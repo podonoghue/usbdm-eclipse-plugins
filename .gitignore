@@ -22,3 +22,4 @@
 *.class
 /x86_64
 /RemoteSystemsTempFiles
+/.recommenders/

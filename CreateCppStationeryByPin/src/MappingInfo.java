@@ -49,7 +49,7 @@ public class MappingInfo {
     * @param info
     */
    private static void addToFunctionMap(MappingInfo info) {
-      ArrayList<MappingInfo> list = functionMap.get(info.pin);
+      ArrayList<MappingInfo> list = functionMap.get(info.function);
       if (list == null) {
          list = new ArrayList<MappingInfo>();
          functionMap.put(info.function, list);

@@ -45,6 +45,11 @@ public class PinInformation {
       return fPins;
    }
    
+   /**
+    * Get sorted List of all pin names
+    * 
+    * @return ArrayList of names
+    */
    public static ArrayList<String> getPinNames() {
       if (fPinNames == null) {
          fPinNames = new ArrayList<String>(PinInformation.getPins().keySet());

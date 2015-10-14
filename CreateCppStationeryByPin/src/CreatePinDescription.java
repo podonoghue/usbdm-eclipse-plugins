@@ -55,6 +55,50 @@ public class CreatePinDescription extends DocumentUtilities {
    /** PORT clock enable register varies with port */
    private boolean  portClockRegisterChanged      = false;
 
+   public static class NameAttribute implements WizardAttribute {
+      private String fName;
+      
+      NameAttribute(String name) {
+         fName = name;
+      }
+      
+      @Override
+      public String getAttributeString() {
+         return "<name=" + fName + ">";
+      }
+      
+   }
+
+   public static class ValidatorAttribute implements WizardAttribute {
+      private String fValidatorId;
+      
+      ValidatorAttribute(String validatorId) {
+         fValidatorId = validatorId;
+      }
+      
+      @Override
+      public String getAttributeString() {
+         return "<validate=" + fValidatorId + ">";
+      }
+      
+   }
+
+   public static class SelectionAttribute implements WizardAttribute {
+      private String fName;
+      private int    fIndex;
+      
+      SelectionAttribute(String name, int index) {
+         fName  = name;
+         fIndex = index;
+      }
+      
+      @Override
+      public String getAttributeString() {
+         return "<selection=" + fName + "," + Integer.toString(fIndex) + ">";
+      }
+      
+   }
+
    /**
     * Comparator for port names e.g. PTA13 c.f. PTB12<br>
     * Treats the number separately as a number.
@@ -202,7 +246,7 @@ public class CreatePinDescription extends DocumentUtilities {
                int functionSelector = col-ALT_START_INDEX;
                MappingInfo mappingInfo = new MappingInfo(peripheralFunction, pinInformation, functionSelector);
                pinInformation.addPeripheralFunctionMapping(mappingInfo);
-               peripheralFunction.addPinMapping(mappingInfo);
+//               peripheralFunction.addPinMapping(mappingInfo);
             }
          }
       }
@@ -390,7 +434,8 @@ public class CreatePinDescription extends DocumentUtilities {
          alternatives[selection] += alternative;
       }
 
-      boolean isConstant = selectionCount < 2;
+      
+      WizardAttribute[] isConstant = {new NameAttribute(pinInformation.getName()), (selectionCount < 2)?constantAttribute:null};
       
       String aliases = Aliases.getAliasList(pinInformation);
       if (aliases != null) {
@@ -416,7 +461,8 @@ public class CreatePinDescription extends DocumentUtilities {
             defaultSelection = selection;
          }
 //         String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
-         writeWizardOptionSelectionEnty(writer, Integer.toString(selection), alternatives[selection]);
+         SelectionAttribute[] selectionAttribute = {new SelectionAttribute(alternatives[selection], selection)};
+         writeWizardOptionSelectionEnty(writer, Integer.toString(selection), alternatives[selection], selectionAttribute);
       }
       writeWizardDefaultSelectionEnty(writer, Integer.toString(defaultSelection));
       writeMacroDefinition(writer, pinInformation.getName()+"_SEL", Integer.toString(defaultSelection));
@@ -431,12 +477,90 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception 
     */
    private void writePeripheralPinMappings(BufferedWriter headerFile) throws Exception {
-      writeWizardSectionOpen(headerFile, "Pin Peripheral mapping");
+      writeWizardSectionOpen(headerFile, "Pin Peripheral Mapping");
       ArrayList<String> pinNames = PinInformation.getPinNames();
       for (String name:pinNames) {
          PinInformation pinInformation = PinInformation.find(name);
          writePeripheralPinMapping(pinInformation, headerFile);
       }
+      writeWizardSectionClose(headerFile);
+   }
+
+   static class ConstantAttribute implements WizardAttribute {
+
+      @Override
+      public String getAttributeString() {
+         return "<constant>";
+      }
+      
+   };
+   
+   static final ConstantAttribute   constantAttribute      = new ConstantAttribute();
+   static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
+   
+   /**
+    * Writes pin-mapping selection code for all peripheral functions
+    *  
+    * @param writer  Header file to write result
+    * 
+    * @throws Exception 
+    */
+   private void writePeripheralPinMappingSummary(BufferedWriter writer, PeripheralFunction function) throws Exception {
+
+      ArrayList<MappingInfo> mappingInfos = MappingInfo.getPins(function);
+
+      String choices = null;
+      for (MappingInfo mappingInfo:mappingInfos) {
+//       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
+         if (choices == null) {
+            choices = mappingInfo.pin.getName();
+         }
+         else {
+            choices += ", " + mappingInfo.pin.getName();
+         }
+      }
+
+      WizardAttribute[] isConstant = {new NameAttribute(function.getName()), constantAttribute};
+      
+      writeWizardOptionSelectionPreamble(writer, 
+            function.getName()+" Pin Mapping",
+            0,
+            isConstant,
+            String.format("%s", function.getName() + " [" + choices + "]"),
+            String.format("Shows which pin %s is mapped to", function.getName()));
+
+      int selection = 0;
+      writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), "Disabled");
+      for (MappingInfo mappingInfo:mappingInfos) {
+//       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
+//         String aliases = Aliases.getAliasList(mappingInfo.pin);
+//         if (aliases != null) {
+//            aliases = " (Alias:"+aliases+") ";
+//         }
+//         else {
+//            aliases = "";
+//         }
+
+         writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), mappingInfo.pin.getName());
+      }
+      writeMacroDefinition(writer, function.getName()+"_SEL", Integer.toString(0));
+      writer.write("\n");
+   }
+
+   /**
+    * Writes pin-mapping selection code for all peripheral functions
+    *  
+    * @param writer  Header file to write result
+    * 
+    * @throws Exception 
+    */
+   private void writePeripheralPinMappingSummaries(BufferedWriter headerFile) throws Exception {
+      writeWizardSectionOpen(headerFile, "Peripheral Pin Summary (information only)");
+      ArrayList<String> peripheralNames = PeripheralFunction.getPeripheralFunctionsAsList();
+      for (String name:peripheralNames) {
+         writePeripheralPinMappingSummary(headerFile, PeripheralFunction.find(name));
+      }
+      writeWizardSectionClose(headerFile);
    }
 
    /**
@@ -480,12 +604,14 @@ public class CreatePinDescription extends DocumentUtilities {
          for (String function:map.keySet()) {
             instances.add(map.get(function).fPeripheral.fInstance);
          }
-         for (String ftm:instances) {
+         String[] sortedInstances = instances.toArray(new String[instances.size()]);
+         Arrays.sort(sortedInstances);
+         for (String ftm:sortedInstances) {
             writeWizardSectionOpen(headerFile, "Clock settings for FTM" + ftm);
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("FTM%s_SC.CLKS ================================\n//", ftm), 
                   0,
-                  false,
+                  null,
                   String.format("FTM%s_SC.CLKS Clock source", ftm),
                   String.format("Selects the clock source for the FTM%s module. [FTM%s_SC.CLKS]", ftm, ftm));
             writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
@@ -496,7 +622,7 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("FTM%s_SC.PS ================================\n//",ftm),
                   1,
-                  false,
+                  null,
                   String.format("FTM%s_SC.PS Clock prescaler", ftm),
                   String.format("Selects the prescaler for the FTM%s module. [FTM%s_SC.PS]", ftm, ftm));
             writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
@@ -520,12 +646,14 @@ public class CreatePinDescription extends DocumentUtilities {
          for (String function:map.keySet()) {
             instances.add(map.get(function).fPeripheral.fInstance);
          }
-         for (String ftm:instances) {
+         String[] sortedInstances = instances.toArray(new String[instances.size()]);
+         Arrays.sort(sortedInstances);
+         for (String ftm:sortedInstances) {
             writeWizardSectionOpen(headerFile, "Clock settings for TPM" + ftm);
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("TPM%s_SC.CMOD ================================\n//", ftm),
                   0,
-                  false,
+                  null,
                   String.format("TPM%s_SC.CMOD Clock source",ftm),
                   String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", ftm, ftm));
             writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
@@ -536,7 +664,7 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("TPM%s_SC.PS ================================\n//", ftm),
                   1,
-                  false,
+                  null,
                   String.format("TPM%s_SC.PS Clock prescaler", ftm),
                   String.format("Selects the prescaler for the TPM%s module. [TPM%s_SC.PS]", ftm, ftm));
             writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
@@ -636,13 +764,32 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
       writeWizardMarker(headerFile);
+      ValidatorAttribute[] attributes = 
+         {new ValidatorAttribute("net.sourceforge.usbdm.annotationEditor.validators.PinMappingValidator")};
+      writeValidators(headerFile, attributes);
       writeTimerWizard(headerFile);
       writeGpioWizard(headerFile);
       writePeripheralPinMappings(headerFile);
-      writeWizardSectionClose(headerFile);
+      writePeripheralPinMappingSummaries(headerFile);
+      
       writeEndWizardMarker(headerFile);
       writePinDefines(headerFile);
       writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
+   }
+
+   private void writeValidators(BufferedWriter writer, ValidatorAttribute[] attributes) throws IOException {
+      final String format = 
+         "//================================\n"
+         + "// Validators\n";
+      
+      writer.write(format);
+      
+      for (ValidatorAttribute validatorAttribute: attributes) {
+         if (validatorAttribute != null) {
+            writer.write("// " + validatorAttribute.getAttributeString() + "\n");
+         }
+      }
+      writer.write("\n");
    }
 
    private ArrayList<PinFunctionDescription>    pinFunctionDescriptions = new ArrayList<PinFunctionDescription>();
