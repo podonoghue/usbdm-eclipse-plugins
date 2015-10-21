@@ -24,6 +24,8 @@ class PeripheralFunction {
     */
    private static HashMap<String, HashMap<String, PeripheralFunction>> functionsByBaseName = new HashMap<String, HashMap<String, PeripheralFunction>>();
 
+   public static final PeripheralFunction DISABLED = new PeripheralFunction("Disabled", "", "", "");
+   
    /**
     * Comparator for port names e.g. PTA13 c.f. PTB12
     * Treats the number separately as a number.
@@ -175,7 +177,7 @@ class PeripheralFunction {
     * @param signal     Channel/pin number/operation e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK
     * @throws Exception 
     */
-   private PeripheralFunction(String name, String baseName, String instance, String signal) throws Exception {
+   private PeripheralFunction(String name, String baseName, String instance, String signal) {
 //      System.err.println(String.format("PeripheralFunction(b=%s, n=%s, ch=%s)", baseName, instance, signal));
       fName       = name;
       fPeripheral = Peripheral.addPeripheral(baseName, instance);
@@ -248,6 +250,7 @@ class PeripheralFunction {
          }
       }
       final PinDescription[] pinNamePatterns = {
+            new PinDescription("^\\s*(Disabled)()()\\s*$"),
             new PinDescription("^\\s*(PT)([A-Z])(\\d*)\\s*$"),
             new PinDescription("^\\s*(GPIO)([A-Z])_(\\d*)\\s*$"),
             new PinDescription("^\\s*(ADC)(\\d*)_(?:SE|DM|DP)(\\d*)[ab]?\\s*$"),
@@ -260,8 +263,8 @@ class PeripheralFunction {
             new PinDescription("^\\s*(I2S)(\\d*)_(TX_BCLK|TXD[0-1]|RXD[0-1]|TX_FS|RX_BCLK|MCLK|RX_FS|TXD1)\\s*$", false),
             new PinDescription("^\\s*(LPTMR)(\\d*)_ALT(\\d*)\\s*$"),
             
-            new PinDescription("^\\s*(TSI)(\\d*)_CH(\\d*)\\s*$", false),
-            new PinDescription("^\\s*(UART)(\\d*)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", false),
+            new PinDescription("^\\s*(TSI)(\\d*)_CH(\\d*)\\s*$", true),
+            new PinDescription("^\\s*(UART)(\\d*)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", true),
             new PinDescription("^\\s*(LPUART)(\\d*)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", false),
             new PinDescription("^\\s*(A?CMP)(\\d*)_((IN\\d*)|(OUT\\d*))\\s*$", false),
             new PinDescription("^\\s*(JTAG)()_(TCLK|TDI|TDO|TMS|TRST_b)\\s*$", false),
@@ -272,7 +275,7 @@ class PeripheralFunction {
             new PinDescription("^\\s*(NMI)()_b()\\s*$", false),
             new PinDescription("^\\s*(USB)(\\d*)_(CLKIN|SOF_OUT)\\s*$", false),
             new PinDescription("^\\s*(FTM)(\\d*)_(QD_PHA|QD_PHB|FLT2|CLKIN0|FLT[0-9]|CLKIN1)\\s*$", false),
-            new PinDescription("^\\s*(EXTAL)(\\d*)()\\s*$", false),
+            new PinDescription("^\\s*(EXTAL)(\\d*)()\\s*$", true),
             new PinDescription("^\\s*(XTAL)(\\d*)()\\s*$", false),
             new PinDescription("^\\s*(EWM)()_(IN|OUT_b|OUT)\\s*$", false),
             new PinDescription("^\\s*(PDB)(\\d*)_(EXTRG)\\s*$", false),

@@ -93,8 +93,8 @@ class PinTemplateInformation {
          String pinName          = mappingInfo.pin.getName(); // e.g. PTA0
          String instanceName     = "digitalIO_"+pinName;      // e.g. digitalIO_PTA0
          
-         String instance         = mappingInfo.function.fPeripheral.fInstance;
-         String signal           = mappingInfo.function.fSignal;
+         String instance         = mappingInfo.functions.get(0).fPeripheral.fInstance;
+         String signal           = mappingInfo.functions.get(0).fSignal;
          String gpioInstance     = String.format("GPIO%s,", instance);                       // GPIOx,
          String gpioInstanceMKE  = String.format("(volatile GPIO_Type*)GPIO%s,", instance);  // (volatile GPIO_Type*)GPIOx,
          String gpioBitMask      = String.format("(1UL<<%s)", signal);                       // (1UL<<n)
@@ -149,9 +149,9 @@ class PinTemplateInformation {
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
          String pinName      = mappingInfo.pin.getName();
 
-         String instance = mappingInfo.function.fPeripheral.fInstance;
-         String signal   = mappingInfo.function.fSignal;
-         String muxValue = Integer.toString(mappingInfo.mux);
+         String instance = mappingInfo.functions.get(0).fPeripheral.fInstance;
+         String signal   = mappingInfo.functions.get(0).fSignal;
+         String muxValue = mappingInfo.mux.toString();
          
          String instanceName = "pwmIO_"+pinName;                                       // pwmIO_PTA0
          String ftmInstance  = String.format("(volatile FTM_Type*)FTM%s,", instance);  // (volatile FTM_Type*)FTMx,
@@ -195,9 +195,9 @@ class PinTemplateInformation {
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
          String pinName      = mappingInfo.pin.getName();
 
-         String instance = mappingInfo.function.fPeripheral.fInstance;
-         String signal   = mappingInfo.function.fSignal;
-         String muxValue = Integer.toString(mappingInfo.mux);
+         String instance = mappingInfo.functions.get(0).fPeripheral.fInstance;
+         String signal   = mappingInfo.functions.get(0).fSignal;
+         String muxValue = mappingInfo.mux.toString();
          
          String instanceName = "pwmIO_"+pinName;                                       // pwmIO_PTA0
          String ftmInstance  = String.format("(volatile TPM_Type*)TPM%s,", instance);  // (volatile TPM_Type*)TPMx,
@@ -243,8 +243,8 @@ class PinTemplateInformation {
       @Override
       public void writeInstance(MappingInfo mappingInfo, int instanceCount, BufferedWriter cppFile) throws IOException {
 
-         String instance = mappingInfo.function.fPeripheral.fInstance;
-         String signal   = mappingInfo.function.fSignal;
+         String instance = mappingInfo.functions.get(0).fPeripheral.fInstance;
+         String signal   = mappingInfo.functions.get(0).fSignal;
          
          String pinName      = mappingInfo.pin.getName();
          String instanceName = "analogueIO_"+pinName;                        // analogueIO_PTE1

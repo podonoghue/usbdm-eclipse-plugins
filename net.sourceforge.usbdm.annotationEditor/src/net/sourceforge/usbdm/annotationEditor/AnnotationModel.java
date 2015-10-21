@@ -16,11 +16,17 @@ public class AnnotationModel {
 
    /** The root of the model */
    private AnnotationModelNode                   modelRoot  = null;
-   /** */
+   
+   /** Index of references to strings or numbers in the associated document */
    private DocumentReferences                    references = null;
+   
+   /** The associated document*/
    private IDocument                             document   = null;
+   
+   /** Map from node names to node */
    private HashMap<String, AnnotationModelNode>  nameMap    = null;
-   /** List of selection tags in document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i> **/
+   
+   /** List of selection tags in document e.g. <b><i>&lt;selection=GPIOA_1_PIN_SEL,PTA1></b></i> **/
    private ArrayList<SelectionTag>               selectionTags = null;
 
    /**
@@ -336,9 +342,9 @@ public class AnnotationModel {
     * </pre>
     */
    public static class EnumValue {
-      /** Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i> */
+      /** Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i> */
       private String name;
-      /** Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i> */
+      /** Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i> */
       private long   value;
 
       /**
@@ -347,8 +353,8 @@ public class AnnotationModel {
        * //     &lt0=> No setup (Reset default)
        * </pre>
        * 
-       * @param name    Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i>
-       * @param value   Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i>
+       * @param name    Name e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>"No setup (Reset default)"</b></i>
+       * @param value   Value e.g. <b><i>&lt0=> No setup (Reset default)</b></i> => <b><i>0</b></i>
        */
       EnumValue(String name, long value) {
          this.setName(name);
@@ -447,35 +453,44 @@ public class AnnotationModel {
    }
 
    /**
-    * Represent a selection annotation in the document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+    * Represent a selection annotation in the document e.g. <b><i>&lt;selection=GPIOA_1_PIN_SEL,PTA1></b></i>
     */
    public static class SelectionTag {
       /** Associated node that represents the pin that can be mapped to this peripheral signal */ 
-      public EnumeratedOptionModelNode   controllingNode;
+      public final EnumeratedOptionModelNode controllingNode;
+      
       /** Name of peripheral signal mapped to this node(pin) by this selection */
-      public String           signalName;
+      public final String           signalName;
+      
       /** The index of the option that enables this peripheral function on the associated node(pin) */
-      public long             selectionValue;
+      public final long             selectionValue;
+
+      /** Selection value for the signal node e.g. &lt;selection=GPIOA_1_PIN_SEL,PTA1> => PTA1<br> */
+      public final String          signalValue;
 
       /**
        * Constructor<br>
        * 
-       * Represent a selection annotation in the document e.g. <b><i>&lt;selection=i2c0_sda,2></b></i>
+       * Represent a selection annotation in the document e.g. <b><i>&lt;selection=GPIOA_1_PIN_SEL,PTA1></b></i>
        * 
-       * @param controllingNode  The node associated with the SelectionTag (controlling node)
-       * @param signalName       Name of signal being controller e.g. &lt;selection=i2c0_sda,2> => i2c0_sda<br>
-       *                         This is expected to be the name of another node but not enforced
-       * @param selectionValue   The value of the option that enables this signal on this pin e.g. &lt;selection=i2c0_sda,2> => 2<br>
+       * @param controllingNode  The node associated with the SelectionTag (pin that is controlling node)
+       * @param selectionValue   The value of the option that enables this signal on this pin
+       * @param signalName       Name of signal being controller e.g. &lt;selection=GPIOA_1_PIN_SEL,PTA1> => GPIOA_1_PIN_SEL<br>
+       *                         This is expected to be the name of another node representing the signal
+       * @param signalValue      Selection value for the signal node e.g. &lt;selection=GPIOA_1_PIN_SEL,PTA1> => PTA1<br>
+       *                         This is expected to be a valid selection for the signal node
        */
-      SelectionTag(EnumeratedOptionModelNode controllingNode, String signalName, long selectionValue) {
+      SelectionTag(EnumeratedOptionModelNode controllingNode, long selectionValue, String signalName, String signalValue) {
          this.controllingNode = controllingNode;
-         this.signalName      = signalName;
          this.selectionValue  = selectionValue;
+         this.signalName      = signalName;
+         this.signalValue     = signalValue;
       }
       
       @Override
       public String toString() {
-         return String.format("SelectionTag(controllingNode=%s, signalName=%s, sel=%d)", controllingNode.getName(), signalName, selectionValue);
+         return String.format("SelectionTag(controllingNode=%s, sel=%d, signalName=%s, value=%s)", 
+               controllingNode.getName(), selectionValue, signalName, signalValue);
       }
    };
 

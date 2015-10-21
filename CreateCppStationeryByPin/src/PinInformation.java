@@ -165,6 +165,16 @@ public class PinInformation {
    private HashMap<String, ArrayList<MappingInfo>> mappedPinsByFunction = new HashMap<String, ArrayList<MappingInfo>>();
 
    /**
+    * Reset pin
+    */
+   private PeripheralFunction fResetName;
+
+   /**
+    * Default pin
+    */
+   private PeripheralFunction fDefaultName;
+   
+   /**
     * Factory to create pin from name<br>
     * 
     * @param name Name of pin
@@ -216,6 +226,7 @@ public class PinInformation {
          fPortInstance = m.group(1);
          fPortPin      = m.group(2);
       }
+      fResetName = null;
    }
    
    /**
@@ -266,24 +277,24 @@ public class PinInformation {
       return list;
    }
    
-   /**
-    * Adds a mapping of a peripheral function to the pin
-    * 
-    * @param mappingInfo        Mapping to add
-    * 
-    * @throws Exception 
-    */
-   public void addPeripheralFunctionMapping(MappingInfo mappingInfo) {
-      PeripheralFunction peripheralFunction = mappingInfo.function;
-      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fPeripheral.fBaseName);
-      elements.add(mappingInfo);
-      mappedPins.add(peripheralFunction);
-      if (fDescription.length() > 0) {
-         fDescription.append(",");
-      }
-      fDescription.append(peripheralFunction.getName());
-      fPinNames = null;
-   }
+//   /**
+//    * Adds a mapping of a peripheral function to the pin
+//    * 
+//    * @param mappingInfo        Mapping to add
+//    * 
+//    * @throws Exception 
+//    */
+//   public void addPeripheralFunctionMapping(MappingInfo mappingInfo) {
+//      ArrayList<PeripheralFunction> peripheralFunction = mappingInfo.functions;
+//      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fPeripheral.fBaseName);
+//      elements.add(mappingInfo);
+//      mappedPins.add(peripheralFunction);
+//      if (fDescription.length() > 0) {
+//         fDescription.append(",");
+//      }
+//      fDescription.append(peripheralFunction.getName());
+//      fPinNames = null;
+//   }
 
    /**
     * Gets sub-list of peripheral functions mapped to this pin that have this basename
@@ -319,6 +330,42 @@ public class PinInformation {
     */
    public String toString() {
       return getDescription();
+   }
+
+   /**
+    * Sets the reset pin mapping
+    * 
+    * @param resetFunction
+    */
+   public void setResetValue(PeripheralFunction resetFunction) {
+      fResetName = resetFunction;
+   }
+
+   /**
+    * Returns the reset pin mapping
+    * 
+    * return resetName
+    */
+   public PeripheralFunction getResetValue() {
+      return fResetName;
+   }
+
+   /**
+    * Sets the default pin mapping
+    * 
+    * @param resetFunction
+    */
+   public void setDefaultValue(PeripheralFunction resetFunction) {
+      fDefaultName = resetFunction;
+   }
+
+   /**
+    * Returns the default pin mapping
+    * 
+    * return resetName
+    */
+   public PeripheralFunction getDefaultValue() {
+      return fDefaultName;
    }
 
 }

@@ -216,6 +216,51 @@ public class DocumentUtilities {
    }
 
    /**
+    * Write #if directive
+    * 
+    * <pre><code>
+    *  #if <i><b>condition</i></b>
+    * </code></pre>
+    * 
+    * @param writer
+    * @param condition
+    * @throws IOException
+    */
+   void writeConditionalStart(BufferedWriter writer, String condition) throws IOException {
+      writer.write(String.format("#if %s\n", condition));
+   }
+   
+   /**
+    * Write #elif directive
+    * 
+    * <pre><code>
+    *  #elif <i><b>condition</i></b>
+    * </code></pre>
+    * 
+    * @param writer
+    * @param condition
+    * @throws IOException
+    */
+   void writeConditionalElse(BufferedWriter writer, String condition) throws IOException {
+      writer.write(String.format("#elif %s\n", condition));
+   }
+   
+   /**
+    * Write #endif directive
+    * 
+    * <pre><code>
+    *  #endif
+    * </code></pre>
+    * 
+    * @param writer
+    * @param condition
+    * @throws IOException
+    */
+   void writeConditionalEnd(BufferedWriter writer) throws IOException {
+      writer.write(String.format("#endif\n"));
+   }
+   
+   /**
     * Write wizard marker e.g.
     * <pre><code>
     * //-------- <<< Use Configuration Wizard in Context Menu >>> -----------------

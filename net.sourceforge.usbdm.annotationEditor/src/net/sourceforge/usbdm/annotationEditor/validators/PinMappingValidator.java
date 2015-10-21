@@ -20,10 +20,12 @@ public class PinMappingValidator extends MyValidator {
    static class NodeToUpdate {
       /** Target i.e. node being forced */
       EnumeratedOptionModelNode target;
-      /** Value to force and/or farcing node */
-      String                    forcingNodes;
-      /** Count of forcing nodes.  If greater than 1 then the target needs to be set invalid*/
-      int                       forcingNodeCount;
+      
+      /** Nodes that are forcing */
+      ArrayList<SelectionTag> forcingNodes;
+      
+      /** Count of forcing nodes.  If greater than 1 then the target will be set invalid */
+      int forcingNodeCount;
       
       /**
        * Create forcing node
@@ -33,26 +35,41 @@ public class PinMappingValidator extends MyValidator {
        */
       NodeToUpdate(EnumeratedOptionModelNode target) {
          this.target       = target;
-         this.forcingNodes = null;
+         this.forcingNodes = new ArrayList<SelectionTag>();
          forcingNodeCount  = 0;
       }
 
       /**
        * Add forcing node - this will mean that the target needs to be set invalid.
        * 
-       * @param forcingNode Name of node forcing
+       * @param tag Name of node forcing
        */
-      void addForcingNode (String forcingNode) {
-         if (forcingNodeCount++ == 0) {
-            this.forcingNodes = forcingNode;
+      void addForcingNode (SelectionTag tag) {
+         forcingNodeCount++;
+         this.forcingNodes.add(tag);
          }
-         else {
-            this.forcingNodes += ", "+forcingNode;
+      
+      /** 
+       * Gets a formated list of the forcing nodes
+       * 
+       * @return
+       */
+      String getForcingNodeNames() {
+         StringBuffer sb = new StringBuffer();
+         boolean doneFirst = false;
+         for (SelectionTag tag:forcingNodes) {
+            if (doneFirst) {
+               sb.append(", \n");
+            }
+            sb.append("- ");
+            sb.append(tag.controllingNode.getDescription());
+            doneFirst = true;
          }
+         return sb.toString();
       }
       
       public String toString() {
-         return String.format("NodeToUpdate(t=%s, f=%s)", target.getName(), forcingNodes);
+         return String.format("NodeToUpdate(t=%s, f=%s)", target.getName(), forcingNodes.toString());
       }
    };
    
@@ -65,38 +82,41 @@ public class PinMappingValidator extends MyValidator {
       ArrayList<SelectionTag> selectionNodes = getSelectionNodes();
       
       // Collect target nodes to update
+//      System.err.println("Collecting Target Nodes");
       for (SelectionTag tag:selectionNodes) {
 //         System.err.println("Processing selection node = " + tag.toString());
 //         System.err.println(String.format("getValue() = %d, selectionValue= %d", tag.controllingNode.safeGetValueAsLong(), tag.selectionValue));
 
-         NumericOptionModelNode targetNode = getNumericModelNode(tag.signalName);
-         if (targetNode == null) {
+         NumericOptionModelNode targetSignalNode = getNumericModelNode(tag.signalName);
+         if (targetSignalNode == null) {
             setValid(viewer, tag.controllingNode, "Can't find referenced selection node "+tag.signalName);
             System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
             continue;
          }
-         if (!(targetNode instanceof EnumeratedOptionModelNode)) {
-            setValid(viewer, tag.controllingNode, "Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetNode.getClass());
-            System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetNode.getName() + ", class = " + targetNode.getClass());
+         if (!(targetSignalNode instanceof EnumeratedOptionModelNode)) {
+            setValid(viewer, tag.controllingNode, "Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetSignalNode.getClass());
+            System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
             continue;
          }
-         EnumeratedOptionModelNode target = (EnumeratedOptionModelNode) targetNode;
+         EnumeratedOptionModelNode target = (EnumeratedOptionModelNode) targetSignalNode;
          NodeToUpdate nodeToUpdate = nodesToUpdate.get(target);
          if (nodeToUpdate == null) {
             nodeToUpdate = new NodeToUpdate(target);
             nodesToUpdate.put(target, nodeToUpdate);
          }
-         if (tag.controllingNode.safeGetValueAsLong() != tag.selectionValue) {
-//            System.err.println("Peripheral signal not mapped to this pin");
-         }
-         else {
+         if (tag.controllingNode.safeGetValueAsLong() == tag.selectionValue) {
             // Peripheral signal has been mapped to this pin
-//            System.err.println("Peripheral signal has been mapped to this pin");
-            nodeToUpdate.addForcingNode(tag.controllingNode.getName());
-//            System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
-            }
+//          System.err.println("Peripheral signal has been mapped to this pin");
+//          System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
+          nodeToUpdate.addForcingNode(tag);
+         }
+//         else {
+//          System.err.println("Peripheral signal not mapped to this pin");
+//         }
       }
+      
       // Update target nodes
+//      System.err.println("Updating Target Nodes");
       for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
          NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);
 //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
@@ -106,13 +126,14 @@ public class PinMappingValidator extends MyValidator {
             setValid(viewer, targetNode, "Signal has not been mapped to a pin");
          }
          else if (nodeToUpdate.forcingNodeCount == 1) {
-            update(viewer, targetNode, nodeToUpdate.forcingNodes);
+            update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
          }
          else {
             update(viewer, targetNode, "Disabled");
-            setValid(viewer, targetNode, "Signal has been mapped to multiple pins [" + nodeToUpdate.forcingNodes + "]");
+            setValid(viewer, targetNode, "Signal has been mapped to multiple pins: \n" + nodeToUpdate.getForcingNodeNames());
          }
       }
+      
    }
    
 }

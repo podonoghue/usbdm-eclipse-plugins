@@ -24,7 +24,7 @@ public class CreatePinDescription extends DocumentUtilities {
    
    /** Base name for gpio files */
    private final static String gpioBaseFileName         = "gpio";
-   
+
    /** Name of the device e.g. MKL25Z4 */
    private String deviceName;
    
@@ -85,16 +85,16 @@ public class CreatePinDescription extends DocumentUtilities {
 
    public static class SelectionAttribute implements WizardAttribute {
       private String fName;
-      private int    fIndex;
+      private String fSelection;
       
-      SelectionAttribute(String name, int index) {
+      SelectionAttribute(String name, String selection) {
          fName  = name;
-         fIndex = index;
+         fSelection = selection;
       }
       
       @Override
       public String getAttributeString() {
-         return "<selection=" + fName + "," + Integer.toString(fIndex) + ">";
+         return "<selection=" + fName + "," + fSelection + ">";
       }
       
    }
@@ -206,10 +206,40 @@ public class CreatePinDescription extends DocumentUtilities {
          if (index <0) {
             System.err.println("OPPS- looking for " + pinInformation);
             System.err.println("OPPS- looking in " + peripheralFunction);
+            System.err.println("OPPS- looking in " + mappablePins);
             throw new Exception();
          }
       }
       peripheralFunction.setPreferredPin(pinInformation);
+   }
+
+   /**
+    * Create a list of peripheral functions described by a string
+    * 
+    * @param pinText Text of function names e.g. <b><i>PTA4/LLWU_P3</b></i>
+    * 
+    * @return List of functions created
+    * 
+    * @throws Exception
+    */
+   ArrayList<PeripheralFunction> createFunctionsFromString(String pinText) throws Exception {
+      ArrayList<PeripheralFunction> peripheralFunctionList = new ArrayList<PeripheralFunction>();
+      pinText = pinText.trim();
+      if (pinText.isEmpty()) {
+         return peripheralFunctionList;
+      }
+      String[] functions = pinText.split("\\s*/\\s*");
+      for (String function:functions) {
+         function = function.trim();
+         if (function.isEmpty()) {
+            continue;
+         }
+         PeripheralFunction peripheralFunction = PeripheralFunction.createPeripheralFunction(function);
+         if (peripheralFunction != null) {
+            peripheralFunctionList.add(peripheralFunction);
+         }
+      }
+      return peripheralFunctionList;
    }
    
    /**
@@ -221,8 +251,14 @@ public class CreatePinDescription extends DocumentUtilities {
    private void parsePinLine(String[] line) throws Exception {
       /** Index of Pin name in CSV file */
       final int PIN_INDEX       = 1;
+      /** Index of reset function in CSV file */
+      final int RESET_INDEX     = 2;
+      /** Index of default functions in CSV file */
+      final int DEFAULT_INDEX   = 3;
       /** Start index of multiplexor functions in CSV file */
-      final int ALT_START_INDEX = 2;
+      final int ALT_START_INDEX = 4;
+
+      StringBuffer sb = new StringBuffer();
       
       if (!line[0].equals("Pin")) {
          return;
@@ -232,26 +268,55 @@ public class CreatePinDescription extends DocumentUtilities {
          System.err.println("Line discarded");
          return;
       }
+
       PinInformation pinInformation = PinInformation.createPin(pinName);
 
+      sb.append(String.format("%-10s => ", pinInformation.getName()));
+
+      boolean pinIsMapped = false;
       for (int col=ALT_START_INDEX; col<line.length; col++) {
-         String[] functions = line[col].split("/");
-         for (String function:functions) {
-            function = function.trim();
-            if (function.isEmpty()) {
-               continue;
-            }
-            PeripheralFunction peripheralFunction = PeripheralFunction.createPeripheralFunction(function);
+         ArrayList<PeripheralFunction> peripheralFunctions = createFunctionsFromString(line[col]);
+         for (PeripheralFunction peripheralFunction:peripheralFunctions) {
+            sb.append(peripheralFunction.getName()+", ");
             if (peripheralFunction != null) {
-               int functionSelector = col-ALT_START_INDEX;
-               MappingInfo mappingInfo = new MappingInfo(peripheralFunction, pinInformation, functionSelector);
-               pinInformation.addPeripheralFunctionMapping(mappingInfo);
-//               peripheralFunction.addPinMapping(mappingInfo);
+               MuxSelection functionSelector = MuxSelection.valueOf(col-ALT_START_INDEX);
+               MappingInfo mappingInfo = MappingInfo.createMapping(peripheralFunction, pinInformation, functionSelector);
+               System.err.println(mappingInfo.toString());
+               pinIsMapped = true;
             }
          }
       }
+
+      if (line.length>RESET_INDEX) {
+         String resetName  = line[RESET_INDEX];
+         if ((resetName != null) && (!resetName.isEmpty())) {
+            ArrayList<PeripheralFunction> resetFunctions = createFunctionsFromString(resetName);
+            if (resetFunctions.size()>0) {
+               pinInformation.setResetValue(resetFunctions.get(0));
+               sb.append("R:" + resetFunctions.get(0).getName() + ", ");
+               if (!pinIsMapped) {
+                  // Pin is not mapped to this function in the ALT columns - must be a non-mappable pin
+                  MappingInfo mappingInfo = MappingInfo.createMapping(resetFunctions.get(0), pinInformation, MuxSelection.Disabled);
+                  System.err.println(mappingInfo.toString());
+//                  pinInformation.addPeripheralFunctionMapping(mappingInfo);
+               }
+            }
+         }
+      }
+      if (line.length>DEFAULT_INDEX) {
+         String defaultName  = line[DEFAULT_INDEX];
+         if ((defaultName != null) && (!defaultName.isEmpty())) {
+            ArrayList<PeripheralFunction> defaultFunctions = createFunctionsFromString(defaultName);
+            for (PeripheralFunction fn:defaultFunctions) {
+               pinInformation.setDefaultValue(fn);
+               sb.append("D:" + fn + ", ");
+               defaultFunctions.get(0).setPreferredPin(pinInformation);
+            }
+         }
+      }
+      System.err.println(sb.toString());
    }
-   
+
    /**
     * Parse line containing Alias value
     * 
@@ -388,54 +453,66 @@ public class CreatePinDescription extends DocumentUtilities {
 
    
    /**
-    * Writes pin-mapping selection code to header file
+    * Writes code to select which peripheral signal is mapped to a pin
     * e.g.<pre>
     * // <b><i>PTD1</b></i> Pin Mapping
-    * //   <o> <b><i>PTD1</b></i> Pin Selection [<b/><i/>ADC0_SE5b, GPIOD_1, SPI0_SCK, FTM3_CH1</b></i>] 
-    * //   <i> Selects which peripheral function is mapped to <b><i>PTD1</b></i> pin
-    * //     <0=> <b><i>ADC0_SE5b</b></i>
-    * //     <1=> <b><i>GPIOD_1</b></i>
-    * //     <2=> <b><i>SPI0_SCK</b></i>
-    * //     <4=> <b><i>FTM3_CH1</b></i>
-    * //     <0=> Default
-    * #define <b><i>PTD1_SEL</b></i>             0                   
+    * //   &lt;o&gt; <b><i>PTD1</b></i> (Alias:<b><i>D13</b></i>) [<b><i>ADC0_SE5b, GPIOD_1, SPI0_SCK</b></i>] &lt;name=<b><i>PTD1_SIG_SEL</b></i>&gt;
+    * //   &lt;i&gt; Selects which peripheral signal is mapped to <b><i>PTD1</b></i> pin
+    * //     &lt;0=&gt; <b><i>ADC0_SE5b</b></i>&lt;selection=<b><i>ADC0_SE5b_PIN_SEL,PTD1</b></i>&gt;
+    * //     &lt;1=&gt; <b><i>GPIOD_1</b></i>&lt;selection=<b><i>GPIOD_1_PIN_SEL,PTD1</b></i>&gt;
+    * //     &lt;2=&gt; <b><i>SPI0_SCK</b></i>&lt;selection=<b><i>SPI0_SCK_PIN_SEL,PTD1</b></i>&gt;
+    * //     &lt;0=&gt; <b><i>Default</b></i>
+    * #define <b><i>PTD1_SIG_SEL</b></i> 0                   
     * </pre>
     *  
     * @param pinInformation  Peripheral function to write definitions for
     * @param writer          Where to write
     * @throws Exception 
     */
-   private void writePeripheralPinMapping(PinInformation pinInformation, BufferedWriter writer) throws Exception {
+   private void writePinMapping(PinInformation pinInformation, BufferedWriter writer) throws Exception {
       
-      ArrayList<MappingInfo> mappingInfo = MappingInfo.getFunctions(pinInformation);
-      
-      String[] alternatives = new String[16];
+      HashMap<MuxSelection, MappingInfo>  mappingInfo  = MappingInfo.getFunctions(pinInformation);
+      HashMap<MuxSelection, String>       alternatives = new HashMap<MuxSelection, String>();
+
+      PeripheralFunction def = pinInformation.getDefaultValue();
+      MuxSelection defaultSelection = MuxSelection.Disabled; //pinInformation.getpreferredPinIndex();
+
       StringBuffer alternativeHint = new StringBuffer();
       int selectionCount = 0;
-      if (mappingInfo == null) {
-         return;
-      }
-      for (MappingInfo mapInfo:mappingInfo) {
-         String alternative = mapInfo.function.getName();
-         int selection = mapInfo.mux;
-         if (alternatives[selection] == null) {
-            alternatives[selection] = new String();
-            if (selectionCount>0) {
-               alternativeHint.append(", ");
+      if (mappingInfo != null) {
+         for (MuxSelection key:mappingInfo.keySet()) {
+            MappingInfo mapInfo = mappingInfo.get(key);
+            ArrayList<PeripheralFunction> functions = mapInfo.functions;
+            for (PeripheralFunction function:functions) {
+               String alternative = function.getName();
+               MuxSelection selection = mapInfo.mux;
+               String altName = alternatives.get(selection);
+               if (mapInfo.functions.indexOf(def) != -1) {
+                  defaultSelection = mapInfo.mux;
+               }
+               if (altName == null) {
+                  altName = new String();
+                  if (selectionCount>0) {
+                     alternativeHint.append(", ");
+                  }
+                  alternativeHint.append(alternative);
+                  selectionCount++;
+               }
+               else {
+                  altName += "/";
+                  alternativeHint.append("/");
+                  alternativeHint.append(alternative);
+               }
+               altName += alternative;
+               alternatives.put(selection, altName);
             }
-            alternativeHint.append(alternative);
-            selectionCount++;
+            
          }
-         else {
-            alternatives[selection] += "/";
-            alternativeHint.append("/");
-            alternativeHint.append(alternative);
-         }
-         alternatives[selection] += alternative;
       }
-
-      
-      WizardAttribute[] isConstant = {new NameAttribute(pinInformation.getName()), (selectionCount < 2)?constantAttribute:null};
+//      if (alternativeHint.length() == 0) {
+//         alternativeHint.append(pinInformation.getResetValue());
+//      }
+      WizardAttribute[] attributes = {new NameAttribute(pinInformation.getName()+"_SIG_SEL"), (selectionCount <= 1)?constantAttribute:null};
       
       String aliases = Aliases.getAliasList(pinInformation);
       if (aliases != null) {
@@ -445,27 +522,37 @@ public class CreatePinDescription extends DocumentUtilities {
          aliases = "";
       }
       writeWizardOptionSelectionPreamble(writer, 
-            pinInformation.getName()+" Pin Mapping",
+            "Signal mapping for " + pinInformation.getName() + " pin",
             0,
-            isConstant,
+            attributes,
             String.format("%s %s [%s]", pinInformation.getName(), aliases, alternativeHint),
-            String.format("Selects which peripheral function is mapped to %s pin", pinInformation.getName()));
+            String.format("Selects which peripheral signal is mapped to %s pin", pinInformation.getName()));
       
-      int defaultSelection = -1; //pinInformation.getpreferredPinIndex();
-
-      for (int selection=0; selection<alternatives.length; selection++) {
-         if (alternatives[selection] == null) {
+      MuxSelection[] sortedSelectionIndexes = alternatives.keySet().toArray(new MuxSelection[alternatives.keySet().size()]);
+      Arrays.sort(sortedSelectionIndexes);
+      for (MuxSelection selection:sortedSelectionIndexes) {
+         if (alternatives.get(selection) == null) {
             continue;
          }
-         if (defaultSelection <0) {
+         if (defaultSelection == MuxSelection.Disabled) {
             defaultSelection = selection;
          }
-//         String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
-         SelectionAttribute[] selectionAttribute = {new SelectionAttribute(alternatives[selection], selection)};
-         writeWizardOptionSelectionEnty(writer, Integer.toString(selection), alternatives[selection], selectionAttribute);
+         String name = alternatives.get(selection);
+         if (sortedSelectionIndexes.length <= 1) {
+            name += " (fixed)";
+         }
+         SelectionAttribute[] selectionAttribute = {new SelectionAttribute(alternatives.get(selection)+"_PIN_SEL", pinInformation.getName())};
+         writeWizardOptionSelectionEnty(writer, selection.toString(), name, selectionAttribute);
       }
-      writeWizardDefaultSelectionEnty(writer, Integer.toString(defaultSelection));
-      writeMacroDefinition(writer, pinInformation.getName()+"_SEL", Integer.toString(defaultSelection));
+      if (selectionCount >= 2) {
+         writeWizardDefaultSelectionEnty(writer, defaultSelection.toString());
+      }
+//      if (selectionCount == 0) {
+//         writeMacroDefinition(writer, pinInformation.getName()+"_SIG_SEL", Integer.toString(-1));
+//         writer.write("\n");
+//         return;
+//      }
+      writeMacroDefinition(writer, pinInformation.getName()+"_SIG_SEL", defaultSelection.toString());
       writer.write("\n");
    }
 
@@ -476,12 +563,12 @@ public class CreatePinDescription extends DocumentUtilities {
     * 
     * @throws Exception 
     */
-   private void writePeripheralPinMappings(BufferedWriter headerFile) throws Exception {
-      writeWizardSectionOpen(headerFile, "Pin Peripheral Mapping");
+   private void writePinMappings(BufferedWriter headerFile) throws Exception {
+      writeWizardSectionOpen(headerFile, "Pin peripheral signal mapping");
       ArrayList<String> pinNames = PinInformation.getPinNames();
       for (String name:pinNames) {
          PinInformation pinInformation = PinInformation.find(name);
-         writePeripheralPinMapping(pinInformation, headerFile);
+         writePinMapping(pinInformation, headerFile);
       }
       writeWizardSectionClose(headerFile);
    }
@@ -499,39 +586,53 @@ public class CreatePinDescription extends DocumentUtilities {
    static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
    
    /**
-    * Writes pin-mapping selection code for all peripheral functions
+    * Writes code to report what pin a peripheral function is mapped to
     *  
-    * @param writer  Header file to write result
+    * @param writer     Header file to write result
+    * @param function   The function to process
     * 
-    * @throws Exception 
+    * @throws Exception
     */
-   private void writePeripheralPinMappingSummary(BufferedWriter writer, PeripheralFunction function) throws Exception {
+   private void writePeripheralSignalMapping(BufferedWriter writer, PeripheralFunction function) throws Exception {
 
       ArrayList<MappingInfo> mappingInfos = MappingInfo.getPins(function);
 
       String choices = null;
-      for (MappingInfo mappingInfo:mappingInfos) {
-//       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
-         if (choices == null) {
-            choices = mappingInfo.pin.getName();
-         }
-         else {
-            choices += ", " + mappingInfo.pin.getName();
+      if (mappingInfos != null) {
+         for (MappingInfo mappingInfo:mappingInfos) {
+            //       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
+            if (choices == null) {
+               choices = mappingInfo.pin.getName();
+            }
+            else {
+               choices += ", " + mappingInfo.pin.getName();
+            }
          }
       }
+      if (choices == null) {
+         choices = "";
+      }
+      else {
+         choices = " [" + choices + "]";
+      }
+      WizardAttribute[] attributes = {new NameAttribute(function.getName()+"_PIN_SEL"), constantAttribute};
 
-      WizardAttribute[] isConstant = {new NameAttribute(function.getName()), constantAttribute};
-      
       writeWizardOptionSelectionPreamble(writer, 
-            function.getName()+" Pin Mapping",
+            "Pin Mapping for " + function.getName() + " signal",
             0,
-            isConstant,
-            String.format("%s", function.getName() + " [" + choices + "]"),
+            attributes,
+            String.format("%s", function.getName() + choices),
             String.format("Shows which pin %s is mapped to", function.getName()));
 
       int selection = 0;
       writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), "Disabled");
-      for (MappingInfo mappingInfo:mappingInfos) {
+
+      if (mappingInfos == null) {
+         writeWizardOptionSelectionEnty(writer, Integer.toString(-1), function.getName());
+         writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(-1));
+      }
+      else {
+         for (MappingInfo mappingInfo:mappingInfos) {
 //       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
 //         String aliases = Aliases.getAliasList(mappingInfo.pin);
 //         if (aliases != null) {
@@ -540,25 +641,44 @@ public class CreatePinDescription extends DocumentUtilities {
 //         else {
 //            aliases = "";
 //         }
+            writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), mappingInfo.pin.getName());
+         }
 
-         writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), mappingInfo.pin.getName());
+         writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(0));
+         
+         boolean firstIf = true;
+         selection = 1;
+         for (MappingInfo mappingInfo:mappingInfos) {
+            if (firstIf) {
+               writeConditionalStart(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+            }
+            else {
+               writeConditionalElse(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+            }
+            writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_GPIO", "digitalIO_"+mappingInfo.pin.getName());
+            writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_FN", mappingInfo.mux.toString());
+            selection++;
+            firstIf = false;
+         }
+         if (!firstIf) {
+            writeConditionalEnd(writer);
+         }
       }
-      writeMacroDefinition(writer, function.getName()+"_SEL", Integer.toString(0));
       writer.write("\n");
    }
 
    /**
-    * Writes pin-mapping selection code for all peripheral functions
+    * Writes code to report what pin peripheral functions are mapped to
     *  
     * @param writer  Header file to write result
     * 
     * @throws Exception 
     */
-   private void writePeripheralPinMappingSummaries(BufferedWriter headerFile) throws Exception {
-      writeWizardSectionOpen(headerFile, "Peripheral Pin Summary (information only)");
+   private void writePeripheralSignalMappings(BufferedWriter headerFile) throws Exception {
+      writeWizardSectionOpen(headerFile, "Peripheral signal mapping summary (information only)");
       ArrayList<String> peripheralNames = PeripheralFunction.getPeripheralFunctionsAsList();
       for (String name:peripheralNames) {
-         writePeripheralPinMappingSummary(headerFile, PeripheralFunction.find(name));
+         writePeripheralSignalMapping(headerFile, PeripheralFunction.find(name));
       }
       writeWizardSectionClose(headerFile);
    }
@@ -569,7 +689,6 @@ public class CreatePinDescription extends DocumentUtilities {
     * // &lth> Clock settings for FTM0
     * //
     * // FTM0_SC.CLKS ================================
-    * //
     * //   &lt;o> FTM0_SC.CLKS Clock source 
     * //   &lt;i> Selects the clock source for the FTM0 module. [FTM0_SC.CLKS]
     * //     &lt;0=> Disabled
@@ -577,8 +696,8 @@ public class CreatePinDescription extends DocumentUtilities {
     * //     &lt;2=> Fixed frequency clock
     * //     &lt;3=> External clock
     * //     &lt;1=> Default
+    * 
     * // FTM0_SC.PS ================================
-    * //
     * //   &lt;o1> FTM0_SC.PS Clock prescaler 
     * //   &lt;i> Selects the prescaler for the FTM0 module. [FTM0_SC.PS]
     * //     &lt;0=> Divide by 1
@@ -769,11 +888,11 @@ public class CreatePinDescription extends DocumentUtilities {
       writeValidators(headerFile, attributes);
       writeTimerWizard(headerFile);
       writeGpioWizard(headerFile);
-      writePeripheralPinMappings(headerFile);
-      writePeripheralPinMappingSummaries(headerFile);
-      
+      writePinMappings(headerFile);
+      writePeripheralSignalMappings(headerFile);
       writeEndWizardMarker(headerFile);
       writePinDefines(headerFile);
+      writeClockMacros(headerFile);
       writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
    }
 
@@ -821,23 +940,20 @@ public class CreatePinDescription extends DocumentUtilities {
     * <pre>
     * #if <b><i>PTD0</b></i>_SEL == 1
     * extern const DigitalIO digitalIO_<b><i>PTD0</b></i> //!< DigitalIO on <b><i>PTD0</b></i>
+    * #define digitalIO_D5 digitalIO_<b><i>PTD0</b></i>
     * #endif
     * </pre>
     * 
     * @param template         Template information
     * @param mappedFunction   Information about the pin and function being declared
-    * @param instanceCount 
+    * @param instanceCount    Instance number e.g. PTD0 => 0
     * @param gpioHeaderFile   Where to write
     * 
     * @throws IOException
     */
    void writeExternDeclaration(PinTemplateInformation template, MappingInfo mappedFunction, int instanceCount, BufferedWriter gpioHeaderFile) throws IOException {
-      boolean[] selectionValue = new boolean[16];
-      Arrays.fill(selectionValue, false);
-      selectionValue[mappedFunction.mux] = true;
-      
       String pinName = mappedFunction.pin.getName();
-//      gpioHeaderFile.write(String.format("#if %s == %s\n", pinName+"_SEL", Integer.toString(mappedFunction.mux)));
+//      writeConditionalStart(gpioHeaderFile, String.format("%s == %s", pinName+"_SEL", Integer.toString(mappedFunction.mux)));
       String instanceName = pinName;
       if (instanceCount>0) {
          instanceName += "_" + Integer.toString(instanceCount);
@@ -849,7 +965,7 @@ public class CreatePinDescription extends DocumentUtilities {
             gpioHeaderFile.write(String.format("#define %s %s\n", template.className+alias, template.className+pinName));
          }
       }
-//      gpioHeaderFile.write(String.format("#endif\n"));
+//      writeConditionalEnd(gpioHeaderFile);
    }
    
    /**
@@ -876,13 +992,14 @@ public class CreatePinDescription extends DocumentUtilities {
          boolean groupDone = false;
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation pinInfo = PinInformation.find(pinName);
-            ArrayList<MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
+            HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
             if (mappedFunctions == null) {
                continue;
             }
             int instanceCount = 0;
-            for (MappingInfo mappedFunction:mappedFunctions) {
-               if (pinTemplate.baseName.equals(mappedFunction.function.fPeripheral.fBaseName)) {
+            for (MuxSelection index:mappedFunctions.keySet()) {
+               MappingInfo mappedFunction = mappedFunctions.get(index);
+               if (pinTemplate.baseName.equals(mappedFunction.functions.get(0).fPeripheral.fBaseName)) {
                   if (!groupDone) {
                      writeStartGroup(gpioHeaderFile, pinTemplate);
                      groupDone = true;
@@ -952,11 +1069,11 @@ public class CreatePinDescription extends DocumentUtilities {
    }
 
    /**                    
-   * Write CPP file      
-   *                     
-   * @param cppFile      
+    * Write CPP file      
+    *                     
+    * @param cppFile      
     * @throws Exception 
-   */                    
+    */                    
    private void writeGpioCppFile(BufferedWriter cppFile) throws Exception {
       String description = "Pin declarations for " + deviceName;
       writeCppFilePreable(cppFile, gpioBaseFileName+".cpp", gpioCppFileName, description);
@@ -965,18 +1082,20 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
       
-      writeClockMacros(cppFile);
-
       for (PinTemplateInformation pinTemplate:PinTemplateInformation.getList()) {
          for (String pinName:PinInformation.getPinNames()) {
+            
+//            System.err.println("Name = " + pinName);
             PinInformation pinInfo = PinInformation.find(pinName);
-            ArrayList<MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
+            HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
             int instanceCount = 0;
             if (mappedFunctions == null) {
                continue;
             }
-            for (MappingInfo mappedFunction:mappedFunctions) {
-               if (pinTemplate.baseName.equals(mappedFunction.function.fPeripheral.fBaseName)) {
+//            System.err.println("Name = " + pinName + " Found");
+            for (MuxSelection key:mappedFunctions.keySet()) {
+               MappingInfo mappedFunction = mappedFunctions.get(key);
+               if (pinTemplate.baseName.equals(mappedFunction.functions.get(0).fPeripheral.fBaseName)) {
                   pinTemplate.instanceWriter.writeInstance(mappedFunction, instanceCount, cppFile);
                   instanceCount++;
                }

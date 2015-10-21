@@ -51,12 +51,12 @@ public class Peripheral {
    /**
     * Add peripheral
     * 
-    * @param baseName2
-    * @param baseName3
+    * @param baseName
+    * @param signal
+    * 
     * @return
-    * @throws Exception 
     */
-   public static Peripheral addPeripheral(String baseName, String signal) throws Exception {
+   public static Peripheral addPeripheral(String baseName, String signal) {
 //      System.err.println(String.format("addPeripheral(%s)", baseName+signal));
       String name = baseName+signal;
       Peripheral p = map.get(name);
@@ -134,9 +134,8 @@ public class Peripheral {
     * Create peripheral
     * 
     * @param fName
-    * @throws Exception
     */
-   private Peripheral(String baseName, String signal) throws Exception {
+   private Peripheral(String baseName, String signal) {
       this.fName      = baseName+signal;
       this.fBaseName  = baseName;
       this.fInstance  = signal;

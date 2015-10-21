@@ -32,25 +32,34 @@ import org.eclipse.jface.viewers.TreeViewer;
 public class AnnotationParser {
 
    /** The associated document */
-   private IDocument            document        = null;
+   private IDocument            document           = null;
+   
    /** The associated model */
-   private AnnotationModel      annotationModel = null;
+   private AnnotationModel      annotationModel    = null;
+   
    /** Current node being processed */
-   private AnnotationModelNode  currentNode     = null;
+   private AnnotationModelNode  currentNode        = null;
+   
    /** Current option within the current node */
-   private OptionModelNode      currentOption   = null;
+   private OptionModelNode      currentOption      = null;
+   
+   /** Current enumeration within the current node */
+   private EnumValue            currentEnumValue   = null;
+
    /** Indicates start of wizard mark-up has been found */
-   private boolean              wizardFound     = false;
+   private boolean              wizardFound        = false;
+   
    /** Indicates end of wizard mark-up has been found */
-   private boolean              wizardEndFound  = false;
+   private boolean              wizardEndFound     = false;
+   
    /** Current line number */
-   private int                  lineNumber      = 0;
+   private int                  lineNumber         = 0;
 
    private final static String VARIABLENAME_GROUP    = "(?<variableName>\\w+)";
    private final static String CLASS_NAME_GROUP      = "(?<className>\\w[\\w|.]+)";
-   private final static String NUMBER_PATTERN        = "(?:0x)?[0-9|a-f|A-F]*";
+   private final static String NUMBER_PATTERN        = "(?:\\+|\\-)?(?:0x)?[0-9|a-f|A-F]*";
    private final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
-   private final static String SELECTIONNAME_GROUP   = "(?<selectBody>\\s*(\\w*)\\s*,("+NUMBER_PATTERN+"))";
+   private final static String SELECTIONNAME_GROUP   = "\\s*(\\w*)\\s*,(\\w*)\\s*";
    
    private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
    private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
@@ -66,7 +75,7 @@ public class AnnotationParser {
    private final static String  constString                 = "<\\s*constant\\s*>";
    
    private final static String rangePatternString          = "<\\s*(?<rStart>(0x[0-9a-fA-F]*)|(\\d+))(\\s*\\-\\s*(?<rEnd>(0x[0-9a-fA-F]*)|(\\d+))(\\s*:\\s*(?<rStep>(0x[0-9a-fA-F]*)|(\\d+)))?)?\\s*>";
-   private final static String enumerationPatternString    = "<\\s*(?<enumValue>\\d+)\\s*=\\s*>(?<enumName>[^<]*)";
+   private final static String enumerationPatternString    = "<\\s*(?<enumValue>"+NUMBER_PATTERN+")\\s*=\\s*>(?<enumName>[^<]*)";
    private final static String modifierPatternString       = "<\\s*#\\s*(?<operation>.)\\s*(?<factor>(0x[0-9a-fA-F]*)|(\\d+))\\s*>";
 
    private final static int     matchFlags         = Pattern.DOTALL;
@@ -89,7 +98,7 @@ public class AnnotationParser {
    private ArrayList<ErrorMarker> errorMarkers;
    
    private final String markerId = "net.sourceforge.usbm.annotationEditor.errorMarker";
-   
+
    public class ErrorMarker {
       private int lineNumber;
       private String message;
@@ -148,8 +157,9 @@ public class AnnotationParser {
          // Start of Heading
          AnnotationModelNode heading = annotationModel.new HeadingModelNode(text);
          currentNode.addChild(heading);
-         currentNode    = heading;
-         currentOption  = null;
+         currentNode       = heading;
+         currentOption     = null;
+         currentEnumValue  = null;
       }
       else if (control.equals("/h")) {
          // End of Heading
@@ -157,8 +167,9 @@ public class AnnotationParser {
          if (parentNode == null) {
             throw new Exception("</h> without preceeding <h>");
          }
-         currentNode   = parentNode;
-         currentOption = null;
+         currentNode       = parentNode;
+         currentOption     = null;
+         currentEnumValue  = null;
       }
       else if (control.equals("e")) {
          // Start of Heading with enable
@@ -166,8 +177,9 @@ public class AnnotationParser {
          // May specify offset
          AnnotationModelNode heading = annotationModel.new OptionHeadingModelNode(text, offset, bitField);
          currentNode.addChild(heading);
-         currentNode    = heading;
-         currentOption  = (OptionModelNode) heading;
+         currentNode       = heading;
+         currentOption     = (OptionModelNode) heading;
+         currentEnumValue  = null;
       }
       else if (control.equals("/e")) {
          // End of Heading with enable
@@ -175,8 +187,9 @@ public class AnnotationParser {
          if (parentNode == null) {
             throw new Exception("</e> without preceeding <e>");
          }
-         currentNode   = parentNode;
-         currentOption = null;
+         currentNode       = parentNode;
+         currentOption     = null;
+         currentEnumValue  = null;
       }
       else if (control.equals("o")) {
          // Numeric Option with selection or number entry.
@@ -184,6 +197,7 @@ public class AnnotationParser {
          // May specify offset
          currentOption = annotationModel.new NumericOptionModelNode(text, offset, bitField);
          currentNode.addChild(currentOption);
+         currentEnumValue  = null;
       }
       else if (control.equals("pllConfigure")) {
          // Is this used??
@@ -198,6 +212,7 @@ public class AnnotationParser {
          // May specify offset
          currentOption = annotationModel.new BinaryOptionModelNode(text, offset, bitField);
          currentNode.addChild(currentOption);
+         currentEnumValue  = null;
       }
       else if (control.equals("s")) {
          // ASCII string entry.
@@ -209,6 +224,7 @@ public class AnnotationParser {
          }
          currentOption = annotationModel.new StringOptionModelNode(text, offset, length);
          currentNode.addChild(currentOption);
+         currentEnumValue  = null;
       }
       else if (control.equals("i")) {
          // Tool-tip applied to current option
@@ -249,7 +265,8 @@ public class AnnotationParser {
          parent.addChild(node);
          currentOption = node;
       }
-      ((EnumeratedOptionModelNode)currentOption).addEnumerationValue(new EnumValue(name, value));
+      currentEnumValue = new EnumValue(name, value);
+      ((EnumeratedOptionModelNode)currentOption).addEnumerationValue(currentEnumValue);
    }
    
    private void createModifier(String operation, long factor) throws Exception {
@@ -264,13 +281,13 @@ public class AnnotationParser {
       currentOption.setName(variableName);
    }
 
-   private void createSelection(String selectionName, String selectionIndex) throws Exception {
-      if (!(currentOption instanceof EnumeratedOptionModelNode)) {
+   private void createSelection(String selectionName, String selectionValue) throws Exception {
+      if (currentEnumValue == null) {
          System.err.println("currentOption = "+currentOption.getName()+": "+currentOption.getDescription());
          throw new Exception("selectionName may only be applied to an enumerated selection, found: " + currentOption.getClass().toString());
       }
-      EnumeratedOptionModelNode o = (EnumeratedOptionModelNode)currentOption;
-      o.addSelectionTag(new SelectionTag(o, selectionName, Long.parseLong(selectionIndex)));
+      EnumeratedOptionModelNode optionNode = (EnumeratedOptionModelNode)currentOption;
+      optionNode.addSelectionTag(new SelectionTag(optionNode, currentEnumValue.getValue(), selectionName, selectionValue));
    }
 
    private void collectScannedInformationFromNodes(AnnotationModelNode node) {
@@ -326,11 +343,13 @@ public class AnnotationParser {
                continue;
             }
             else if (m.group("annotation") != null) {
+               
                String  control     = null;
                int     offset      = 0;
                int     fieldStart  = -1;
                int     fieldEnd    = -1;
                String text         = "";
+               
                control = m.group("control").trim();
                if (m.group("offset") != null) {
                   offset = Integer.decode(m.group("offset").trim());
@@ -408,9 +427,9 @@ public class AnnotationParser {
                if (!nm.matches()) {
                   throw new Exception("Illegal selection \'" + selectionBody + "\'");
                }
-               String selectionName = nm.group(2);
-               String selectionIndex = nm.group(3);
-               createSelection(selectionName, selectionIndex);
+               String selectionName  = nm.group(1);
+               String selectionValue = nm.group(2);
+               createSelection(selectionName, selectionValue);
             }
             else if (m.group("validate") != null) {
                String validateBody = m.group("validateBody");
@@ -592,9 +611,11 @@ public class AnnotationParser {
 //            "<name=oscclk_clock  >", 
 //            "<0-50000000>",
 //            "<i> hello there */",
-            "<selection=i2c0_sda,2>",
-            "<selection=i2c0_sda,0x23>",
-            "<selection=_i2c0_sda,1024>"
+            "<selection=GPIOA_1_PIN_SEL,PTA1>",
+            "<1=> this is an enumeration",
+            "<0x1=> this is an enumeration",
+            "<-1=> this is an enumeration",
+            "<-0x12=> this is an enumeration",
       };
       Pattern wizardPattern = Pattern.compile(wizardPatternString);
       for (String s:test) {
@@ -604,10 +625,12 @@ public class AnnotationParser {
             System.err.println("No match");
             continue;
          }
-         String validateGroup = wizardMatcher.group("validate");
-         String nameGroup = wizardMatcher.group("name");
-         String annotationGroup = wizardMatcher.group("annotation");
-         String selectionGroup = wizardMatcher.group("selection");
+         String validateGroup    = wizardMatcher.group("validate");
+         String nameGroup        = wizardMatcher.group("name");
+         String annotationGroup  = wizardMatcher.group("annotation");
+         String selectionGroup   = wizardMatcher.group("selection");
+         String enumerationGroup = wizardMatcher.group("enumeration");
+         
          if (validateGroup != null) {
             System.err.println("validateGroup = \'"+validateGroup+"\'");
             String validateBody = wizardMatcher.group("validateBody");
@@ -660,6 +683,15 @@ public class AnnotationParser {
 //            System.err.println(String.format("variableName = \"%s\"", variableName));
 //            System.err.println("\n");
          }
+         else if (enumerationGroup != null) {
+            // "<\\s*(?<enumValue>\\d+)\\s*=\\s*>(?<enumName>[^<]*)"
+            System.err.println("enumerationGroup = \'"+enumerationGroup+"\'");
+
+            int    value = Integer.decode(wizardMatcher.group("enumValue"));
+            String name  = wizardMatcher.group("enumName").trim();
+            System.err.println("value = \'"+value+"\'");
+            System.err.println("name = \'"+name+"\'");
+         }
          else if (selectionGroup != null) {
             System.err.println("selectionGroup = \'"+selectionGroup+"\'");
             String selectionBody = wizardMatcher.group("selectionBody");
@@ -673,10 +705,10 @@ public class AnnotationParser {
             if (!nm.matches()) {
                System.err.println("Fails match");
             }
-            String selectionName = nm.group(2);
-            String selectionIndex = nm.group(3);
-            System.err.println(String.format("selectionName = \"%s\"", selectionName));
-            System.err.println(String.format("selectionIndex = \"%s\"", selectionIndex));
+            String selectionTarget = nm.group(1);
+            String selectionValue = nm.group(2);
+            System.err.println(String.format("selectionTarget = \"%s\"", selectionTarget));
+            System.err.println(String.format("selectionValue  = \"%s\"", selectionValue));
 
          }
          else {
