@@ -326,6 +326,52 @@ public class DocumentUtilities {
    }
    
    /**
+    * Write start of wizard conditional section marker e.g.
+    * <pre><code>
+    * //  comment
+    * //  &lt;e<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;constant&gt;]</i></b>
+    * //  &lt;i&gt;   <i><b>hint</i></b>
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param comment    Comment written above (may be null)
+    * @param offset     Offset to argument
+    * @param isConstant Indicates the entry should be marked &lt;constant&gt;
+    * @param title      Title to use in selection
+    * @param hint       Hint to use with title
+    * 
+    * @throws IOException
+    */
+   void writeWizardConditionalSectionOpen(BufferedWriter writer, String comment, int offset, boolean isConstant, String title, String hint) 
+         throws IOException {
+      if (comment != null) {
+         writer.write(String.format("// %s\n", comment));
+      }
+      final String headerTemplate =                                                            
+            "//   <e%s> %s %s\n"+
+            "//   <i> %s\n";
+      hint = hint.replaceAll("\n", "\n//   <i> ");
+      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
+   }
+
+   /**
+    * Write end of wizard section marker e.g.
+    * <pre><code>
+    * //  &lt/h&gt;
+    * </code></pre>
+    * 
+    * @param writer Where to write
+    * 
+    * @throws IOException
+    */
+   void writeWizardConditionalSectionClose(BufferedWriter writer) throws IOException {
+      final String optionSectionClose = 
+            "// </e>\n"+
+            "\n";
+      writer.write(optionSectionClose);
+   }
+   
+   /**
     * Write wizard selection preamble e.g.
     * <pre><code>
     * //  comment

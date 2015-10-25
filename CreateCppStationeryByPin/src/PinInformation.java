@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,7 +63,7 @@ public class PinInformation {
     * Comparator for port names e.g. PTA13 c.f. PTB12
     * Treats the number separately as a number.
     */
-   private static Comparator<String> portNameComparator = new Comparator<String>() {
+   public static Comparator<String> portNameComparator = new Comparator<String>() {
       @Override
       public int compare(String arg0, String arg1) {
          Pattern p = Pattern.compile("([^\\d]*)(\\d*)(.*)");
@@ -167,12 +168,12 @@ public class PinInformation {
    /**
     * Reset pin
     */
-   private PeripheralFunction fResetName;
+   private ArrayList<PeripheralFunction> fResetFunction = null;
 
    /**
-    * Default pin
+    * Default functions on this pin
     */
-   private PeripheralFunction fDefaultName;
+   private ArrayList<PeripheralFunction> fDefaultFunction = null;
    
    /**
     * Factory to create pin from name<br>
@@ -226,7 +227,7 @@ public class PinInformation {
          fPortInstance = m.group(1);
          fPortPin      = m.group(2);
       }
-      fResetName = null;
+      fResetFunction = null;
    }
    
    /**
@@ -335,37 +336,89 @@ public class PinInformation {
    /**
     * Sets the reset pin mapping
     * 
-    * @param resetFunction
+    * @param functions reset peripheral function on this pin
     */
-   public void setResetValue(PeripheralFunction resetFunction) {
-      fResetName = resetFunction;
+   public void setResetValue(ArrayList<PeripheralFunction> functions) {
+      fResetFunction = functions;
    }
 
    /**
     * Returns the reset pin mapping
     * 
-    * return resetName
+    * @return reset peripheral function on this pin
     */
-   public PeripheralFunction getResetValue() {
-      return fResetName;
+   public ArrayList<PeripheralFunction> getResetValue() {
+      return fResetFunction;
    }
 
    /**
     * Sets the default pin mapping
     * 
-    * @param resetFunction
+    * @param defaultFunctions default peripheral function on this pin
     */
-   public void setDefaultValue(PeripheralFunction resetFunction) {
-      fDefaultName = resetFunction;
+   public void setDefaultValue(ArrayList<PeripheralFunction> defaultFunctions) {
+      fDefaultFunction = defaultFunctions;
    }
 
    /**
     * Returns the default pin mapping
     * 
-    * return resetName
+    * @return default peripheral function on this pin
     */
-   public PeripheralFunction getDefaultValue() {
-      return fDefaultName;
+   public ArrayList<PeripheralFunction> getDefaultValue() {
+      return fDefaultFunction;
+   }
+
+   /**
+    * Sets the default peripheral functions for the pin
+    * 
+    * @param defaultPeripheralName  Name of peripherals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
+    * 
+    * @throws Exception If pin already has default or new default not found as available pin mapping
+    */
+   public void setDefaultPeripheralFunctions(final String defaultPeripheralName) throws Exception {
+      final PinInformation pinInformation = this;
+      if (pinInformation.getDefaultValue() != null) {
+         throw new Exception("Pin "+pinInformation.getName()+" already has default value "+pinInformation.getDefaultValue());
+      }
+      HashMap<MuxSelection, MappingInfo> functionMappings = MappingInfo.getFunctions(pinInformation);
+      functionMappings.forEach(new BiConsumer<MuxSelection, MappingInfo>() {
+         @Override
+         public void accept(MuxSelection muxSelection, MappingInfo mappingInfo) {
+           if (mappingInfo.getFunctionList().equalsIgnoreCase(defaultPeripheralName)) {
+              pinInformation.setDefaultValue(mappingInfo.functions);
+           }
+         }
+      } );
+      if (pinInformation.getDefaultValue() == null) {
+         throw new Exception("Peripheral "+defaultPeripheralName+" not found as option for pin " + getName());
+      }
+   }
+
+   /**
+    * Sets the reset peripheral functions for the pin
+    * 
+    * @param resetPeripheralName  Name of peripherals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
+    * 
+    * @throws Exception If pin already has default or new default not found as available pin mapping
+    */
+   public void setResetPeripheralFunctions(final String resetPeripheralName) throws Exception {
+      final PinInformation pinInformation = this;
+      if (pinInformation.getResetValue() != null) {
+         throw new Exception("Pin already has reset value: P = " + pinInformation.getName());
+      }
+      HashMap<MuxSelection, MappingInfo> functionMappings = MappingInfo.getFunctions(pinInformation);
+      functionMappings.forEach(new BiConsumer<MuxSelection, MappingInfo>() {
+         @Override
+         public void accept(MuxSelection muxSelection, MappingInfo mappingInfo) {
+           if (mappingInfo.getFunctionList().equalsIgnoreCase(resetPeripheralName)) {
+              pinInformation.setResetValue(mappingInfo.functions);
+           }
+         }
+      } );
+      if (pinInformation.getResetValue() == null) {
+         throw new Exception("Peripheral "+resetPeripheralName+" not found as option for pin " + getName());
+      }
    }
 
 }

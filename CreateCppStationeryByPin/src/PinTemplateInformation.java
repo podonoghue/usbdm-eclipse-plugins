@@ -1,6 +1,8 @@
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.regex.Pattern;
 
 /**
  * Class representing information about a type of pin
@@ -57,7 +59,8 @@ class PinTemplateInformation {
       String pcrInstance      = pin.getPCR()+",";
       String portClockMask    = pin.getClockMask();
 
-      boolean noDigitalIO = pin.getMappingList("GPIO").size() == 0;
+      HashSet<PinInformation> set = MappingInfo.getFunctionType("GPIO");
+      boolean noDigitalIO = (set != null) && set.contains(pin);
       if (noDigitalIO) {
          // No PCR register - Only analogue function on pin
          return "{0,0}";
@@ -100,8 +103,11 @@ class PinTemplateInformation {
          String gpioBitMask      = String.format("(1UL<<%s)", signal);                       // (1UL<<n)
          String pcrInit          = getPCRInitString(mappingInfo.pin);
                
+         HashSet<PinInformation> set = MappingInfo.getFunctionType("GPIO");
+         boolean noDigitalIO = (set != null) && set.contains(mappingInfo.pin);
+         
          cppFile.write(String.format("const DigitalIO %-18s = ", instanceName));
-         boolean noDigitalIO = mappingInfo.pin.getMappingList("GPIO").size() == 0;
+         
          if (deviceIsMKE) {
             if (noDigitalIO) {
                // No PCR register - Only analogue function on pin
@@ -151,12 +157,12 @@ class PinTemplateInformation {
 
          String instance = mappingInfo.functions.get(0).fPeripheral.fInstance;
          String signal   = mappingInfo.functions.get(0).fSignal;
-         String muxValue = mappingInfo.mux.toString();
+         String muxValue = Integer.toString(mappingInfo.mux.value);
          
          String instanceName = "pwmIO_"+pinName;                                       // pwmIO_PTA0
          String ftmInstance  = String.format("(volatile FTM_Type*)FTM%s,", instance);  // (volatile FTM_Type*)FTMx,
          String ftmChannel   = String.format("%s,", signal);                           // n
-         String ftmMuxValue  = String.format("%s,", muxValue);                         // m;
+         String ftmMuxValue  = String.format("PORT_PCR_MUX(%s),", muxValue);           // PORT_PCR_MUX(m),
          String ftmClockReg  = String.format("&FTM%s_CLOCK_REG,", instance);           // &FTMx_CLOCK_REG,
          String ftmClockMask = String.format("FTM%s_CLOCK_MASK,", instance);           // FTMx_CLOCK_MASK,
          String ftmSCValue   = String.format("FTM%s_SC", instance);                    // FTMx_SC
@@ -271,6 +277,7 @@ class PinTemplateInformation {
    String externTemplate;
    String className;
    IInstanceWriter instanceWriter;
+   Pattern matchPattern;
 
    /**
     * 
@@ -283,7 +290,9 @@ class PinTemplateInformation {
     */
    public PinTemplateInformation(
          String baseName, String groupName, String groupTitle, 
-         String groupBriefDescription, String className, String externTemplate, IInstanceWriter instanceWriter) {
+         String groupBriefDescription, String className, 
+         String externTemplate, String matchTemplate, 
+         IInstanceWriter instanceWriter) {
       this.baseName              = baseName;
       this.groupName             = groupName;
       this.groupTitle            = groupTitle;
@@ -291,6 +300,7 @@ class PinTemplateInformation {
       this.externTemplate        = externTemplate;
       this.className             = className;
       this.instanceWriter        = instanceWriter;
+      this.matchPattern          = Pattern.compile(matchTemplate);
       list.add(this);
    }
   
