@@ -361,6 +361,9 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       if (fProjectNameText.getText().trim().isEmpty()) {
          message = "Project name is required";
       }
+      else if (!fProjectNameText.getText().matches("^\\s*[a-zA-Z0-9_][a-zA-Z0-9_\\-\\.]*\\s*")) {
+         message = "Project name contains illegal characters, use only 'a-z A-Z 0-9 - _ .' and not start with '-' or '.'";
+      }
       else if (!file.isDirectory() || !file.canRead()) {
          message = "Project location is invalid or inaccessible"; 
       }
