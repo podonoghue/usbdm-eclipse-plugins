@@ -119,8 +119,9 @@ public abstract class MyValidator {
     * @note The node is set valid
     * @note Done delayed on the display thread
     */
-   protected void update(final TreeViewer viewer, final NumericOptionModelNode node, final long value) {
-      if ((node.safeGetValueAsLong() == node.limitedValue(value)) && 
+   protected void update(final TreeViewer viewer, final NumericOptionModelNode node, long value) {
+      final long limitedValue = node.limitedValue(value);
+      if ((node.safeGetValueAsLong() == limitedValue) && 
           (node.getErrorMessage() == null)) {
          // No update needed (after constricting to target range)
          return;
@@ -131,7 +132,9 @@ public abstract class MyValidator {
             try {
 //               System.err.println(String.format("MyValidator.Update(%s,%d)", node.getName(), value));
                node.setErrorMessage(null);
-               node.setValue(value);
+               if (node.getValueAsLong() != limitedValue) {
+                  node.setValue(limitedValue);
+               }
                refresh(viewer);
             } catch (Exception e) {
             }
@@ -180,19 +183,30 @@ public abstract class MyValidator {
     */
    protected void update(final TreeViewer viewer, final EnumeratedOptionModelNode node, final String value) {
 //      System.err.println(String.format("update(%s,%s)", node.getName(), value));
-      if (node.safeGetValueAsString().equals(value)) {
-         // No update needed
-//         System.err.println("No update needed");
-         return;
+      int index = node.getEnumIndex(value);
+      if (index>=0) {
+         update(viewer, node, node.getEnumerationValues().get(index).getValue());
       }
+   }
+
+   /**
+    * Clears the node error message & refreshes the viewer
+    * 
+    * @param viewer        Viewer containing the node
+    * @param node          Node to set error message for
+    * @param errorMessage  Error message.  A null value indicates no error
+    * 
+    * @note Done delayed on the display thread
+    */
+   protected void setValid(final TreeViewer viewer, final NumericOptionModelNode node) {
       Display.getDefault().asyncExec(new Runnable () {
          @Override
          public void run () {
             try {
-//               System.err.println(String.format("update.run(%s,%s)", node.getName(), value));
-               node.setErrorMessage(null);
-               node.setValueAsString(value);
-               refresh(viewer);
+               if (node.getErrorMessage() != null) {
+                  node.setErrorMessage(null);
+                  refresh(viewer);
+               }
             } catch (Exception e) {
             }
          }
@@ -208,13 +222,42 @@ public abstract class MyValidator {
     * 
     * @note Done delayed on the display thread
     */
-   protected void setValid(final TreeViewer viewer, final NumericOptionModelNode node, final String errorMessage ) {
+   protected void setValid(final TreeViewer viewer, final NumericOptionModelNode node, String errorMessage ) {
+      
+      final Message message = (errorMessage==null)?null:new Message(errorMessage);
+      
       Display.getDefault().asyncExec(new Runnable () {
          @Override
          public void run () {
             try {
-               node.setErrorMessage(errorMessage);
-               refresh(viewer);
+               if ((node.getErrorMessage() != null) || (message != null)) {
+                  node.setErrorMessage(message);
+                  refresh(viewer);
+               }
+            } catch (Exception e) {
+            }
+         }
+      });
+   }
+
+   /**
+    * Sets the node error message & refreshes the viewer
+    * 
+    * @param viewer        Viewer containing the node
+    * @param node          Node to set error message for
+    * @param errorMessage  Error message.  A null value indicates no error
+    * 
+    * @note Done delayed on the display thread
+    */
+   protected void setValid(final TreeViewer viewer, final NumericOptionModelNode node, final Message errorMessage ) {
+      Display.getDefault().asyncExec(new Runnable () {
+         @Override
+         public void run () {
+            try {
+               if ((node.getErrorMessage() != null) || (errorMessage != null)) {
+                  node.setErrorMessage(errorMessage);
+                  refresh(viewer);
+               }
             } catch (Exception e) {
             }
          }

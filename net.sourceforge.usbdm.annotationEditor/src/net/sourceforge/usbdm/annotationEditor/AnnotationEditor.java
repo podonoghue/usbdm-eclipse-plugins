@@ -145,16 +145,21 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
    
    class MyNameColumnLabelProvider extends ColumnLabelProvider {
       private final  Color errorColour       = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
-      private        Image invalidImage      = null;
+      private        Image errorImage        = null;
+      private        Image warningImage      = null;
 
       @Override
       public Image getImage(Object element) {
-         if ((invalidImage == null) && (Activator.getDefault() != null)) {
-            invalidImage = Activator.getDefault().getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
+         if ((errorImage == null) && (Activator.getDefault() != null)) {
+            errorImage   = Activator.getDefault().getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
+            warningImage = Activator.getDefault().getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
          }
          if (element instanceof AnnotationModelNode) {
-            if (!((AnnotationModelNode)element).isValid()) {
-               return invalidImage;
+            switch (((AnnotationModelNode)element).getErrorState()) {
+            case OK:
+            case INFORMATION:  return null;
+            case WARNING:      return warningImage;
+            case ERROR:        return errorImage;
             }
          }
          return null;
@@ -194,8 +199,8 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public void dispose() {
          super.dispose();
-         if (invalidImage != null) {
-            invalidImage.dispose();
+         if (errorImage != null) {
+            errorImage.dispose();
          }
       }
    }

@@ -14,6 +14,8 @@ import org.eclipse.jface.text.IDocument;
  */
 public class AnnotationModel {
 
+   public enum Severity {OK, INFORMATION, WARNING, ERROR};
+
    /** The root of the model */
    private AnnotationModelNode                   modelRoot  = null;
    
@@ -623,7 +625,7 @@ public class AnnotationModel {
       private boolean                           enabled        = false;
       private boolean                           modifiable     = true;
       private String                            name           = null;
-      private String                            errorMessage   = null;
+      private Message                           errorMessage   = null;
       
       /**
        * Create AnnotationModelNode
@@ -780,10 +782,12 @@ public class AnnotationModel {
        * Get tool tip 
        * 
        * @return Tool tip as string
+       * 
+       * @note May return error message if it exists instead
        */
       public String getToolTip() {
          if (errorMessage != null) {
-            return errorMessage;
+            return errorMessage.message;
          }
          return toolTip;
       }
@@ -980,8 +984,11 @@ public class AnnotationModel {
        * 
        * @return
        */
-      public boolean isValid() {
-         return errorMessage == null;
+      public Severity getErrorState() {
+         if (errorMessage == null) {
+            return Severity.OK;
+         }
+         return errorMessage.severity;
       }
 
       /**
@@ -990,7 +997,7 @@ public class AnnotationModel {
        * 
        * @param errorMessage
        */
-      public void setErrorMessage(String errorMessage) {
+      public void setErrorMessage(Message errorMessage) {
          this.errorMessage = errorMessage;
       }
       
@@ -1001,7 +1008,7 @@ public class AnnotationModel {
        * @return
        */
       public String getErrorMessage() {
-         return errorMessage;
+         return (errorMessage==null)?null:errorMessage.message;
       }
    }
 
@@ -1027,7 +1034,7 @@ public class AnnotationModel {
     * // &lt;h> Description
     * </pre>
     */
-   class HeadingModelNode extends AnnotationModelNode {
+   public class HeadingModelNode extends AnnotationModelNode {
       
       /**
        * Constructor for a simple heading used to group options in the model
@@ -1665,6 +1672,24 @@ public class AnnotationModel {
          return enumerationValues.get(0).getName();
       }
       
+
+      /**
+       * Get index of matching enumerated value
+       * 
+       * @param name Name to match
+       * 
+       * @return index or -1 if not found
+       */
+      public int getEnumIndex(String name) {
+         for (int index=0; index<enumerationValues.size(); index++) {
+            EnumValue enumValue = enumerationValues.get(index);
+            if (enumValue.getName().equals(name)) {
+               return index;
+            }
+         }
+         return -1;
+      }
+      
       /**
        * Sets the currently selected value based on the text provided
        * 
@@ -1674,13 +1699,9 @@ public class AnnotationModel {
        */
       @Override
       public void setValueAsString(String name) throws Exception {
-         for (int index=0; index<enumerationValues.size(); index++) {
-            EnumValue enumValue = enumerationValues.get(index);
-            if (enumValue.getName().equals(name)) {
-               super.setValue(enumValue.getValue());
-               return;
-            }
-//            System.err.println("Checking enumerated value '" + enumValue.getName() +"'");
+         int index = getEnumIndex(name);
+         if (index>=0) {
+            super.setValue(enumerationValues.get(index).getValue());
          }
          System.err.println("Failed to locate enumerated value '" + name +"'");
       }
@@ -1754,7 +1775,7 @@ public class AnnotationModel {
          selectionTags.add(selectionTag);
       }
       
-      ArrayList<SelectionTag> getSelectionTags() {
+      public ArrayList<SelectionTag> getSelectionTags() {
          return selectionTags;
       }
    }

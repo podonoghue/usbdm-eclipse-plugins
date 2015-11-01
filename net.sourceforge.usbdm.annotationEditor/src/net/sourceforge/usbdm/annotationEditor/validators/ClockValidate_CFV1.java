@@ -155,7 +155,7 @@ public class ClockValidate_CFV1 extends MyValidator {
       //===========================================
       long system_bus_clock = system_core_clock / 2;
       
-      setValid(viewer, system_bus_clockNode, null);
+      setValid(viewer, system_bus_clockNode);
       setValid(viewer, primaryClockModeNode, primaryClockModeMessage);
 
       // USB
