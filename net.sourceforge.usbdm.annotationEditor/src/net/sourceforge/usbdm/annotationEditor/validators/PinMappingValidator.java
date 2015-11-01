@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumeratedOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 //import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
@@ -75,6 +76,20 @@ public class PinMappingValidator extends MyValidator {
    
    @Override
    public void validate(TreeViewer viewer) throws Exception {
+      BinaryOptionModelNode  map_by_functionNode = getBinaryModelNode("MAP_BY_FUNCTION");
+      BinaryOptionModelNode  map_by_pinNode      = getBinaryModelNode("MAP_BY_PIN");
+
+      boolean mapByPin      = map_by_pinNode.safeGetValue();
+      
+      // Make selection consistent
+      if (mapByPin == map_by_functionNode.safeGetValue()) {
+         if (mapByPin) {
+            update(viewer, map_by_functionNode, false);
+         }
+         else {
+            update(viewer, map_by_functionNode, true);
+         }
+      }
 //      System.err.println("PinMappingValidator.validate()");
       super.validate(viewer);
       HashMap<EnumeratedOptionModelNode, NodeToUpdate> nodesToUpdate = new HashMap<EnumeratedOptionModelNode, NodeToUpdate>();
@@ -87,32 +102,34 @@ public class PinMappingValidator extends MyValidator {
 //         System.err.println("Processing selection node = " + tag.toString());
 //         System.err.println(String.format("getValue() = %d, selectionValue= %d", tag.controllingNode.safeGetValueAsLong(), tag.selectionValue));
 
-         NumericOptionModelNode targetSignalNode = getNumericModelNode(tag.signalName);
-         if (targetSignalNode == null) {
-            setValid(viewer, tag.controllingNode, "Can't find referenced selection node "+tag.signalName);
-            System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
-            continue;
+         if (tag.controllingNode.isEnabled()) {
+            NumericOptionModelNode targetSignalNode = getNumericModelNode(tag.signalName);
+            if (targetSignalNode == null) {
+               setValid(viewer, tag.controllingNode, "Can't find referenced selection node "+tag.signalName);
+               System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
+               continue;
+            }
+            if (!(targetSignalNode instanceof EnumeratedOptionModelNode)) {
+               setValid(viewer, tag.controllingNode, "Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetSignalNode.getClass());
+               System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
+               continue;
+            }
+            EnumeratedOptionModelNode target = (EnumeratedOptionModelNode) targetSignalNode;
+            NodeToUpdate nodeToUpdate = nodesToUpdate.get(target);
+            if (nodeToUpdate == null) {
+               nodeToUpdate = new NodeToUpdate(target);
+               nodesToUpdate.put(target, nodeToUpdate);
+            }
+            if (tag.controllingNode.safeGetValueAsLong() == tag.selectionValue) {
+               // Peripheral signal has been mapped to this pin
+//             System.err.println("Peripheral signal has been mapped to this pin");
+//             System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
+             nodeToUpdate.addForcingNode(tag);
+            }
+//            else {
+//             System.err.println("Peripheral signal not mapped to this pin");
+//            }
          }
-         if (!(targetSignalNode instanceof EnumeratedOptionModelNode)) {
-            setValid(viewer, tag.controllingNode, "Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetSignalNode.getClass());
-            System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
-            continue;
-         }
-         EnumeratedOptionModelNode target = (EnumeratedOptionModelNode) targetSignalNode;
-         NodeToUpdate nodeToUpdate = nodesToUpdate.get(target);
-         if (nodeToUpdate == null) {
-            nodeToUpdate = new NodeToUpdate(target);
-            nodesToUpdate.put(target, nodeToUpdate);
-         }
-         if (tag.controllingNode.safeGetValueAsLong() == tag.selectionValue) {
-            // Peripheral signal has been mapped to this pin
-//          System.err.println("Peripheral signal has been mapped to this pin");
-//          System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
-          nodeToUpdate.addForcingNode(tag);
-         }
-//         else {
-//          System.err.println("Peripheral signal not mapped to this pin");
-//         }
       }
       
       // Update target nodes
