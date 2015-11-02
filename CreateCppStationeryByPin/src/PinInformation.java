@@ -385,7 +385,7 @@ public class PinInformation {
       functionMappings.forEach(new BiConsumer<MuxSelection, MappingInfo>() {
          @Override
          public void accept(MuxSelection muxSelection, MappingInfo mappingInfo) {
-           if (mappingInfo.getFunctionList().equalsIgnoreCase(defaultPeripheralName)) {
+           if (mappingInfo.getFunctionList().equalsIgnoreCase(defaultPeripheralName) && (mappingInfo.mux != MuxSelection.Reset)) {
               pinInformation.setDefaultValue(mappingInfo.functions);
            }
          }

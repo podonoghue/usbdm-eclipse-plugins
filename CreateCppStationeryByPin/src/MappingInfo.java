@@ -151,7 +151,7 @@ public class MappingInfo {
          set = new HashSet<PinInformation>();
       }
       set.add(pinInfo);
-      System.err.println("Matches");
+//      System.err.println("Matches");
    }
 
 };

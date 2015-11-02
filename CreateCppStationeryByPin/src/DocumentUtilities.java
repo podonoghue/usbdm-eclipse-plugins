@@ -329,20 +329,20 @@ public class DocumentUtilities {
     * Write start of wizard conditional section marker e.g.
     * <pre><code>
     * //  comment
-    * //  &lt;e<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;constant&gt;]</i></b>
+    * //  &lt;e<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;attribute&gt;...]</i></b>
     * //  &lt;i&gt;   <i><b>hint</i></b>
     * </code></pre>
     * 
     * @param writer     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
-    * @param isConstant Indicates the entry should be marked &lt;constant&gt;
+    * @param attributes Attributes to apply e.g. &lt;constant>
     * @param title      Title to use in selection
     * @param hint       Hint to use with title
     * 
     * @throws IOException
     */
-   void writeWizardConditionalSectionOpen(BufferedWriter writer, String comment, int offset, boolean isConstant, String title, String hint) 
+   void writeWizardConditionalSectionOpen(BufferedWriter writer, String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
          throws IOException {
       if (comment != null) {
          writer.write(String.format("// %s\n", comment));
@@ -351,7 +351,17 @@ public class DocumentUtilities {
             "//   <e%s> %s %s\n"+
             "//   <i> %s\n";
       hint = hint.replaceAll("\n", "\n//   <i> ");
-      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
+
+      StringBuffer sb = new StringBuffer();
+      if (attributes != null) {
+         for (WizardAttribute attribute:attributes) {
+            if (attribute != null) {
+               sb.append(attribute.getAttributeString());
+            }
+         }
+      }
+      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, sb.toString(), hint));
+
    }
 
    /**
@@ -382,10 +392,20 @@ public class DocumentUtilities {
     * @param writer     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
-    * @param isConstant Indicates the entry should be marked &lt;constant&gt;
+    * @param attributes Attributes to apply e.g. <constant>
     * @param title      Title to use in selection
     * @param hint       Hint to use with title
     * 
+    * @throws IOException
+    */
+   /**
+    * 
+    * @param writer
+    * @param comment
+    * @param offset
+    * @param attributes
+    * @param title
+    * @param hint
     * @throws IOException
     */
    void writeWizardOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
