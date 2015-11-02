@@ -105,14 +105,14 @@ public class PinMappingValidator extends MyValidator {
 
       System.err.println("Collecting Selection Nodes");
       ArrayList<SelectionTag> activeSelectionNodes   = null;
-      ArrayList<SelectionTag> inactiveSelectionNodes = null;
+//      ArrayList<SelectionTag> inactiveSelectionNodes = null;
       if (mapByPin) {
          activeSelectionNodes   = pinSelectionNodes;
-         inactiveSelectionNodes = functionSelectionNodes;
+//         inactiveSelectionNodes = functionSelectionNodes;
       }
       else {
          activeSelectionNodes   = functionSelectionNodes;
-         inactiveSelectionNodes = pinSelectionNodes;
+//         inactiveSelectionNodes = pinSelectionNodes;
       }
 
 //      // Clear messages inactive nodes
@@ -122,8 +122,8 @@ public class PinMappingValidator extends MyValidator {
       
       // Collect target nodes to update
       for (SelectionTag tag:activeSelectionNodes) {
-         System.err.println("Processing active selection node = " + tag.toString());
-         System.err.println(String.format("getValue() = %d, selectionValue= %d", tag.controllingNode.safeGetValueAsLong(), tag.selectionValue));
+//         System.err.println("Processing active selection node = " + tag.toString());
+//         System.err.println(String.format("getValue() = %d, selectionValue= %d", tag.controllingNode.safeGetValueAsLong(), tag.selectionValue));
 
          // Clear messages inactive nodes
          setValid(viewer, tag.controllingNode);
@@ -157,7 +157,7 @@ public class PinMappingValidator extends MyValidator {
       }
 
       // Update target nodes
-      System.err.println("Updating Target Nodes");
+//      System.err.println("Updating Target Nodes");
       if (mapByPin) {
          for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
             NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);

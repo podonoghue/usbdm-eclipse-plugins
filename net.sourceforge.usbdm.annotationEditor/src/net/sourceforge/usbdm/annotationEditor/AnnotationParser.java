@@ -59,7 +59,7 @@ public class AnnotationParser {
    private final static String CLASS_NAME_GROUP      = "(?<className>\\w[\\w|.]+)";
    private final static String NUMBER_PATTERN        = "(?:\\+|\\-)?(?:0x)?[0-9|a-f|A-F]*";
    private final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
-   private final static String SELECTIONNAME_GROUP   = "\\s*(\\w*)\\s*,(\\w*)\\s*";
+   private final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*([^,]*)\\s*";
    
    private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
    private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
@@ -612,14 +612,15 @@ public class AnnotationParser {
 //            "<0-50000000>",
 //            "<i> hello there */",
             "<selection=GPIOA_1_PIN_SEL,PTA1>",
-            "<1=> this is an enumeration",
-            "<0x1=> this is an enumeration",
-            "<-1=> this is an enumeration",
-            "<-0x12=> this is an enumeration",
+            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
+//            "<1=> this is an enumeration",
+//            "<0x1=> this is an enumeration",
+//            "<-1=> this is an enumeration",
+//            "<-0x12=> this is an enumeration",
       };
       Pattern wizardPattern = Pattern.compile(wizardPatternString);
       for (String s:test) {
-         System.err.println("\nTesting \""+s+"\"");
+         System.out.println("\nTesting \""+s+"\"");
          Matcher wizardMatcher = wizardPattern.matcher(s);
          if (!wizardMatcher.matches()) {
             System.err.println("No match");
@@ -632,9 +633,9 @@ public class AnnotationParser {
          String enumerationGroup = wizardMatcher.group("enumeration");
          
          if (validateGroup != null) {
-            System.err.println("validateGroup = \'"+validateGroup+"\'");
+            System.out.println("validateGroup = \'"+validateGroup+"\'");
             String validateBody = wizardMatcher.group("validateBody");
-            System.err.println("validateBody = \'"+validateBody+"\'");
+            System.out.println("validateBody = \'"+validateBody+"\'");
             Pattern p = Pattern.compile(CLASS_NAME_GROUP+"\\s*("+ARGS_GROUP+")?");
             Matcher m = p.matcher(validateBody);
             if (!m.matches()) {
@@ -643,14 +644,14 @@ public class AnnotationParser {
             }
             String className = m.group("className");
             String arguments = m.group("args");
-            System.err.println(String.format("className = \"%s\"", className));
-            System.err.println(String.format("arguments = \"%s\"", arguments));
-            System.err.println("\n");
+            System.out.println(String.format("className = \"%s\"", className));
+            System.out.println(String.format("arguments = \"%s\"", arguments));
+            System.out.println("\n");
          }
          else if (nameGroup != null) {
-            System.err.println("nameGroup = \'"+nameGroup+"\'");
+            System.out.println("nameGroup = \'"+nameGroup+"\'");
             String nameBody = wizardMatcher.group("nameBody");
-            System.err.println("nameBody = \'"+nameBody+"\'");
+            System.out.println("nameBody = \'"+nameBody+"\'");
             Pattern p = Pattern.compile(VARIABLENAME_GROUP);
             Matcher m = p.matcher(nameBody);
             if (!m.matches()) {
@@ -658,45 +659,45 @@ public class AnnotationParser {
                continue;
             }
             String variableName = m.group("variableName");
-            System.err.println(String.format("variableName = \"%s\"", variableName));
-            System.err.println("\n");
+            System.out.println(String.format("variableName = \"%s\"", variableName));
+            System.out.println("\n");
          }
          else if (annotationGroup != null) {
-            System.err.println("annotationGroup = \'"+annotationGroup+"\'");
+            System.out.println("annotationGroup = \'"+annotationGroup+"\'");
             String text = wizardMatcher.group("text");
-            System.err.println("text = \'"+text+"\'");
+            System.out.println("text = \'"+text+"\'");
 
             Pattern p = Pattern.compile("(.*?)\\s*\\*/");
             Matcher m = p.matcher(text);
             if (m.matches()) {
                text = m.group(1);
             }
-            System.err.println("text = \'"+text+"\'");
+            System.out.println("text = \'"+text+"\'");
 
             //            Pattern p = Pattern.compile(VARIABLENAME_GROUP);
 //            Matcher m = p.matcher(nameBody);
 //            if (!m.matches()) {
-//               System.err.println("No match to \'nameBody\'");
+//               System.out.println("No match to \'nameBody\'");
 //               continue;
 //            }
 //            String variableName = m.group("variableName");
-//            System.err.println(String.format("variableName = \"%s\"", variableName));
-//            System.err.println("\n");
+//            System.out.println(String.format("variableName = \"%s\"", variableName));
+//            System.out.println("\n");
          }
          else if (enumerationGroup != null) {
             // "<\\s*(?<enumValue>\\d+)\\s*=\\s*>(?<enumName>[^<]*)"
-            System.err.println("enumerationGroup = \'"+enumerationGroup+"\'");
+            System.out.println("enumerationGroup = \'"+enumerationGroup+"\'");
 
             int    value = Integer.decode(wizardMatcher.group("enumValue"));
             String name  = wizardMatcher.group("enumName").trim();
-            System.err.println("value = \'"+value+"\'");
-            System.err.println("name = \'"+name+"\'");
+            System.out.println("value = \'"+value+"\'");
+            System.out.println("name = \'"+name+"\'");
          }
          else if (selectionGroup != null) {
-            System.err.println("selectionGroup = \'"+selectionGroup+"\'");
+            System.out.println("selectionGroup = \'"+selectionGroup+"\'");
             String selectionBody = wizardMatcher.group("selectionBody");
-            System.err.println("selectionBody = \'"+selectionBody+"\'");
-            System.err.println("SELECTIONNAME_GROUP = \'"+SELECTIONNAME_GROUP+"\'");
+            System.out.println("selectionBody = \'"+selectionBody+"\'");
+            System.out.println("SELECTIONNAME_GROUP = \'"+SELECTIONNAME_GROUP+"\'");
             
             // e.g. <selection=i2c0_sda,2>
             //"(?<selectionName>.*))";
@@ -704,11 +705,12 @@ public class AnnotationParser {
             Matcher nm = p.matcher(selectionBody);
             if (!nm.matches()) {
                System.err.println("Fails match");
+               continue;
             }
             String selectionTarget = nm.group(1);
             String selectionValue = nm.group(2);
-            System.err.println(String.format("selectionTarget = \"%s\"", selectionTarget));
-            System.err.println(String.format("selectionValue  = \"%s\"", selectionValue));
+            System.out.println(String.format("selectionTarget = \"%s\"", selectionTarget));
+            System.out.println(String.format("selectionValue  = \"%s\"", selectionValue));
 
          }
          else {
