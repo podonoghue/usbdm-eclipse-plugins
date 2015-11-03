@@ -1702,8 +1702,9 @@ public class AnnotationModel {
          int index = getEnumIndex(name);
          if (index>=0) {
             super.setValue(enumerationValues.get(index).getValue());
+            return;
          }
-         System.err.println("Failed to locate enumerated value '" + name +"'");
+         System.err.println("Failed to locate enumerated value n = '" + getName() + "', v = '" + name +"'");
       }
 
       /**

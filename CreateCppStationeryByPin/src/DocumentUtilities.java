@@ -528,7 +528,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeMacroDefinition(BufferedWriter writer, String name, String value) throws IOException {
-      final String defineTemplate = "#define %-20s %-20s\n";
+      final String defineTemplate = "#define %-20s %s\n";
       writer.write(String.format(defineTemplate, name, value));
    }
 

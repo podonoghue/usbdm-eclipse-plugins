@@ -242,6 +242,7 @@ class PeripheralFunction {
       final class PinDescription {
          Pattern pattern;
          Boolean include;
+         @SuppressWarnings("unused")
          PinDescription(String regex) {
             this.pattern = Pattern.compile(regex);
             this.include = false;
@@ -265,51 +266,51 @@ class PeripheralFunction {
             new PinDescription("^\\s*(I2S)(\\d+)_(TX_BCLK|TXD[0-1]|RXD[0-1]|TX_FS|RX_BCLK|MCLK|RX_FS|TXD1)\\s*$", true),
             new PinDescription("^\\s*(LPTMR)(\\d+)_ALT(\\d+)\\s*$", true),
             
-            new PinDescription("^\\s*(TSI)(\\d+)_CH(\\d+)\\s*$"),
-            new PinDescription("^\\s*(UART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$"),
-            new PinDescription("^\\s*(LPUART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$"),
-            new PinDescription("^\\s*(A?CMP)(\\d+)_((IN\\d*)|(OUT\\d*))\\s*$"),
+            new PinDescription("^\\s*(TSI)(\\d+)_CH(\\d+)\\s*$", true),
+            new PinDescription("^\\s*(UART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", true),
+            new PinDescription("^\\s*(LPUART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", true),
+            new PinDescription("^\\s*(A?CMP)(\\d+)_((IN\\d*)|(OUT\\d*))\\s*$", true),
             new PinDescription("^\\s*(JTAG)()_(TCLK|TDI|TDO|TMS|TRST_b)\\s*$", true),
             new PinDescription("^\\s*(SWD)()_(CLK|DIO|IO)\\s*$", true),
-            new PinDescription("^\\s*(EZP)()_(CLK|DI|DO|CS_b)\\s*$"),
-            new PinDescription("^\\s*(TRACE)()_(SWO)\\s*$"),
-            new PinDescription("^\\s*(LLWU)()_P(\\d+)\\s*$"),
-            new PinDescription("^\\s*(NMI)()_b()\\s*$"),
-            new PinDescription("^\\s*(USB)(\\d*)_(CLKIN|SOF_OUT)\\s*$"),
-            new PinDescription("^\\s*(FTM)(\\d+)_(QD_PHA|QD_PHB|FLT2|CLKIN[0-1]|FLT[0-9])\\s*$"),
+            new PinDescription("^\\s*(EZP)()_(CLK|DI|DO|CS_b)\\s*$", true),
+            new PinDescription("^\\s*(TRACE)()_(SWO)\\s*$", true),
+            new PinDescription("^\\s*(LLWU)()_P(\\d+)\\s*$", true),
+            new PinDescription("^\\s*(NMI)()_b()\\s*$", true),
+            new PinDescription("^\\s*(USB)(\\d*)_(CLKIN|SOF_OUT)\\s*$", true),
+            new PinDescription("^\\s*(FTM)(\\d+)_(QD_PHA|QD_PHB|FLT2|CLKIN[0-1]|FLT[0-9])\\s*$", true),
             new PinDescription("^\\s*(E?XTAL)(\\d+)()\\s*$", true),
-            new PinDescription("^\\s*(EWM)()_(IN|OUT_b|OUT)\\s*$"),
-            new PinDescription("^\\s*(PDB)(\\d+)_(EXTRG)\\s*$"),
-            new PinDescription("^\\s*(CMT)(\\d*)_(IRO)\\s*$"),
-            new PinDescription("^\\s*(RTC)(\\d*)_(CLKOUT|CLKIN)\\s*$"),
-            new PinDescription("^\\s*(DAC)(\\d+)_(OUT)\\s*$"),
-            new PinDescription("^\\s*(VREF)(\\d+)_(OUT)\\s*$"),
-            new PinDescription("^\\s*(CLKOUT)()()\\s*$"),
-            new PinDescription("^\\s*(TRACE)()_(CLKOUT|D[0-3])\\s*$"),
-            new PinDescription("^\\s*(CLKOUT32K)()()\\s*$"),
-            new PinDescription("^\\s*(R?MII)(\\d+)_(RXCLK|RXER|RXD[0-4]|CRS_DV|RXDV|TXEN|TXD[0-4]|TXCLK|CRS|TXER|COL|MDIO|MDC)\\s*$"),
-            new PinDescription("^\\s*(CAN)(\\d+)_(TX|RX)\\s*$"),
-            new PinDescription("^\\s*(FB)()_((AD?(\\d+))|OE_b|RW_b|CS[0-5]_b|TSIZ[0-1]|BE\\d+_\\d+_BLS\\d+_\\d+_b|TBST_b|TA_b|ALE|TS_b)\\s*$"),
-            new PinDescription("^\\s*(ENET)(\\d+)_(1588_TMR[0-3]|CLKIN|1588_CLKIN)\\s*$"),
-            new PinDescription("^\\s*(KBI)(\\d+)_(P\\d+)\\s*$"),
-            new PinDescription("^\\s*(IRQ)()()\\s*$"),
-            new PinDescription("^\\s*(RESET_[b|B])()()\\s*$"),
-            new PinDescription("^\\s*(BUSOUT)()()\\s*$"),
-            new PinDescription("^\\s*(RTCCLKOUT)()()\\s*$"),
-            new PinDescription("^\\s*(AFE)()_(CLK)\\s*$"),
-            new PinDescription("^\\s*(NMI_B)()()\\s*$"),
-            new PinDescription("^\\s*(EXTRG)()_(IN)\\s*$"),
-            new PinDescription("^\\s*(CMP)(\\d)(OUT|P[0-9])\\s*$"),
-            new PinDescription("^\\s*(TCLK)(\\d+)()\\s*$"),
-            new PinDescription("^\\s*(PWT)()_(IN\\d+)\\s*$"),
-            new PinDescription("^\\s*(LCD)()_(P\\d+)\\s*$"),
-            new PinDescription("^\\s*(LCD)()(\\d+)\\s*$"),
-            new PinDescription("^\\s*(QT)(\\d+)()\\s*$"),
-            new PinDescription("^\\s*(audioUSB)()_(SOF_OUT)\\s*$"),
-            new PinDescription("^\\s*(PXBAR)()_((IN\\d+)|(OUT\\d+))\\s*$"),
-            new PinDescription("^\\s*(SCI)(\\d+)_(RTS|CTS|TxD|RxD)\\s*$"),
-            new PinDescription("^\\s*(LGPIOI)()_(M\\d+)\\s*$"),
-            new PinDescription("^\\s*(SDA)()((DM|DP)[0-3])\\s*$"),
+            new PinDescription("^\\s*(EWM)()_(IN|OUT_b|OUT)\\s*$", true),
+            new PinDescription("^\\s*(PDB)(\\d+)_(EXTRG)\\s*$", true),
+            new PinDescription("^\\s*(CMT)(\\d*)_(IRO)\\s*$", true),
+            new PinDescription("^\\s*(RTC)(\\d*)_(CLKOUT|CLKIN)\\s*$", true),
+            new PinDescription("^\\s*(DAC)(\\d+)_(OUT)\\s*$", true),
+            new PinDescription("^\\s*(VREF)(\\d+)_(OUT)\\s*$", true),
+            new PinDescription("^\\s*(CLKOUT)()()\\s*$", true),
+            new PinDescription("^\\s*(TRACE)()_(CLKOUT|D[0-3])\\s*$", true),
+            new PinDescription("^\\s*(CLKOUT32K)()()\\s*$", true),
+            new PinDescription("^\\s*(R?MII)(\\d+)_(RXCLK|RXER|RXD[0-4]|CRS_DV|RXDV|TXEN|TXD[0-4]|TXCLK|CRS|TXER|COL|MDIO|MDC)\\s*$", true),
+            new PinDescription("^\\s*(CAN)(\\d+)_(TX|RX)\\s*$", true),
+            new PinDescription("^\\s*(FB)()_((AD?(\\d+))|OE_b|RW_b|CS[0-5]_b|TSIZ[0-1]|BE\\d+_\\d+_BLS\\d+_\\d+_b|TBST_b|TA_b|ALE|TS_b)\\s*$", true),
+            new PinDescription("^\\s*(ENET)(\\d+)_(1588_TMR[0-3]|CLKIN|1588_CLKIN)\\s*$", true),
+            new PinDescription("^\\s*(KBI)(\\d+)_(P\\d+)\\s*$", true),
+            new PinDescription("^\\s*(IRQ)()()\\s*$", true),
+            new PinDescription("^\\s*(RESET_[b|B])()()\\s*$", true),
+            new PinDescription("^\\s*(BUSOUT)()()\\s*$", true),
+            new PinDescription("^\\s*(RTCCLKOUT)()()\\s*$", true),
+            new PinDescription("^\\s*(AFE)()_(CLK)\\s*$", true),
+            new PinDescription("^\\s*(NMI_B)()()\\s*$", true),
+            new PinDescription("^\\s*(EXTRG)()_(IN)\\s*$", true),
+            new PinDescription("^\\s*(CMP)(\\d)(OUT|P[0-9])\\s*$", true),
+            new PinDescription("^\\s*(TCLK)(\\d+)()\\s*$", true),
+            new PinDescription("^\\s*(PWT)()_(IN\\d+)\\s*$", true),
+            new PinDescription("^\\s*(LCD)()_(P\\d+)\\s*$", true),
+            new PinDescription("^\\s*(LCD)()(\\d+)\\s*$", true),
+            new PinDescription("^\\s*(QT)(\\d+)()\\s*$", true),
+            new PinDescription("^\\s*(audioUSB)()_(SOF_OUT)\\s*$", true),
+            new PinDescription("^\\s*(PXBAR)()_((IN\\d+)|(OUT\\d+))\\s*$", true),
+            new PinDescription("^\\s*(SCI)(\\d+)_(RTS|CTS|TxD|RxD)\\s*$", true),
+            new PinDescription("^\\s*(LGPIOI)()_(M\\d+)\\s*$", true),
+            new PinDescription("^\\s*(SDA)()((DM|DP)[0-3])\\s*$", true),
       };
       
       PeripheralFunction peripheralFunction = null;
@@ -389,55 +390,6 @@ class PeripheralFunction {
       return getName();
    }
 
-//   /**
-//    * Add a pin that this peripheral function may be mapped to  
-//    * 
-//    * @param mappingInfo Mappable pin
-//    */
-//   public void addPinMapping(MappingInfo mappingInfo) {
-//      if (mappablePins.indexOf(mappingInfo.pin) > 0) {
-//         System.err.println("Adding existing mapping: "+ mappingInfo);
-//      }
-//      mappablePins.add(mappingInfo.pin);
-//   }
-//   
-//   /**
-//    * Get pins that this peripheral function may be mapped to
-//    * 
-//    * @return Map of mappable pins
-//    */
-//   public ArrayList<PinInformation> getMappablePins() {
-//      return mappablePins;
-//   }
-//   
-//   /**
-//    * Set preferred pin mapping for this peripheral function
-//    * 
-//    * @param pinInformation Preferred pin to set
-//    */
-//   public void setPreferredPin(PinInformation pinInformation) {
-//      fPreferredPinIndex = mappablePins.indexOf(pinInformation);
-////      System.err.println(String.format("%s ==> %d", getName(), fPreferredPinIndex ));
-//   }
-
-//   /**
-//    * Set preferred pin mapping for this peripheral function
-//    * 
-//    * @param pinInformation Preferred pin to set
-//    */
-//   public void setPreferredPin(int preferredPinIndex) {
-//      fPreferredPinIndex = preferredPinIndex;
-//   }
-//
-//   /**
-//    * Get preferred pin mapping for this peripheral function
-//    * 
-//    * @return Preferred pin (or null if none)
-//    */
-//   public int getpreferredPinIndex() {
-//      return fPreferredPinIndex;
-//   }
-   
    /**
     * A string listing all peripheral functions
     *  

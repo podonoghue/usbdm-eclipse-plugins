@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
@@ -93,7 +97,7 @@ public class PinMappingValidator extends MyValidator {
             update(viewer, map_by_functionNode, true);
          }
       }
-      //      System.err.println("PinMappingValidator.validate()");
+//      System.err.println("PinMappingValidator.validate()");
       super.validate(viewer);
       HashMap<EnumeratedOptionModelNode, NodeToUpdate> nodesToUpdate = new HashMap<EnumeratedOptionModelNode, NodeToUpdate>();
 
@@ -105,21 +109,13 @@ public class PinMappingValidator extends MyValidator {
 
       System.err.println("Collecting Selection Nodes");
       ArrayList<SelectionTag> activeSelectionNodes   = null;
-//      ArrayList<SelectionTag> inactiveSelectionNodes = null;
       if (mapByPin) {
          activeSelectionNodes   = pinSelectionNodes;
-//         inactiveSelectionNodes = functionSelectionNodes;
       }
       else {
          activeSelectionNodes   = functionSelectionNodes;
-//         inactiveSelectionNodes = pinSelectionNodes;
       }
 
-//      // Clear messages inactive nodes
-//      for (SelectionTag tag:activeSelectionNodes) {
-//         setValid(viewer, tag.controllingNode);
-//      }
-      
       // Collect target nodes to update
       for (SelectionTag tag:activeSelectionNodes) {
 //         System.err.println("Processing active selection node = " + tag.toString());
@@ -147,13 +143,10 @@ public class PinMappingValidator extends MyValidator {
          }
          if (tag.controllingNode.safeGetValueAsLong() == tag.selectionValue) {
             // Peripheral signal has been mapped to this pin
-            //             System.err.println("Peripheral signal has been mapped to this pin");
-            //             System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
+//             System.err.println("Peripheral signal has been mapped to this pin");
+//             System.err.println("Tag = " + tag.toString() + " applied to " + targetNode.getName());
             nodeToUpdate.addForcingNode(tag);
          }
-         //            else {
-         //             System.err.println("Peripheral signal not mapped to this pin");
-         //            }
       }
 
       // Update target nodes
@@ -161,8 +154,8 @@ public class PinMappingValidator extends MyValidator {
       if (mapByPin) {
          for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
             NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);
-            //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
-            //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
+//         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
+//         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
             if (nodeToUpdate.forcingNodeCount == 0) {
                update(viewer, targetNode, "Disabled");
                setValid(viewer, targetNode, new Message("Signal has not been mapped to a pin", AnnotationModel.Severity.WARNING));
@@ -171,67 +164,107 @@ public class PinMappingValidator extends MyValidator {
                update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
             }
             else {
-               update(viewer, targetNode, "Disabled");
-               setValid(viewer, targetNode, new Message("Signal has been mapped to multiple pins: \n" + nodeToUpdate.getForcingNodeNames()));
+               boolean clash = false;
+               for (SelectionTag tag:nodeToUpdate.forcingNodes) {
+                  if (!nodeToUpdate.forcingNodes.get(0).signalValue.equals(tag.signalValue)) {
+                     System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
+                     clash = true;
+                  }
+               }
+               if (clash) {
+                  update(viewer, targetNode, "Disabled");
+                  setValid(viewer, targetNode, new Message("Signal has been mapped to multiple pins: \n" + nodeToUpdate.getForcingNodeNames()));
+               }
+               else {
+                  update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
+               }
             }
          }
       }
       else {
+         // Map by function
          for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
             NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);
-            //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
-            //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
+//         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
+//         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
             if (nodeToUpdate.forcingNodeCount == 0) {
                update(viewer, targetNode, "Default");
-               setValid(viewer, targetNode, new Message("pin has not been mapped to a signal", AnnotationModel.Severity.WARNING));
+               setValid(viewer, targetNode, new Message("Pin has not been mapped to a signal\nSet to reset default value", AnnotationModel.Severity.WARNING));
             }
             else if (nodeToUpdate.forcingNodeCount == 1) {
                update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
             }
             else {
-               update(viewer, targetNode, "Default");
-               setValid(viewer, targetNode, new Message("pin has been mapped to multiple signals: \n" + nodeToUpdate.getForcingNodeNames()));
+               boolean      clash;
+               SelectionTag gpioTag;
+               do {
+                  clash   = false;
+                  gpioTag = null;
+                  for (SelectionTag tag:nodeToUpdate.forcingNodes) {
+                     if (!nodeToUpdate.forcingNodes.get(0).signalValue.equals(tag.signalValue)) {
+                        System.err.println(String.format("Conflict f=%s => t=%s", tag, targetNode.getName()));
+                        System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
+                        clash = true;
+                     }
+                     if (tag.controllingNode.getName().matches("GPIO[A-Z]+_[0-9]+.*")) {
+                        gpioTag = tag;
+                     }
+                  }
+                  if (clash && (gpioTag != null)) {
+                     final String name = nodeToUpdate.getForcingNodeNames(); 
+                     //gpioTag.controllingNode.getDescription();
+                     PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+                        public void run() {
+                           Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                           MessageBox messageBox = new MessageBox(activeShell, SWT.ICON_WARNING | SWT.OK);
+                           messageBox.setText("Warning");
+                           messageBox.setMessage("Conflict with GPIO\n" + name + "\n GPIO will be unmapped");
+                           messageBox.open();
+                        }
+                     });
+                     // Remove GPIO as forcing node
+                     System.err.println(String.format("Removing %s", gpioTag.controllingNode.getName()));
+                     update(viewer, gpioTag.controllingNode, "Disabled");
+                     nodeToUpdate.forcingNodes.remove(gpioTag);
+                  }
+               } while (clash && (gpioTag != null));
+               if (clash) {
+                  update(viewer, targetNode, "Default");
+                  setValid(viewer, targetNode, new Message("Pin has been mapped to multiple signals: \n" + nodeToUpdate.getForcingNodeNames()));
+                  for (SelectionTag forcingNode:nodeToUpdate.forcingNodes) {
+                     setValid(viewer, forcingNode.controllingNode, new Message("Selection conflicts between: \n" + nodeToUpdate.getForcingNodeNames()));
+                  }
+
+               }
+               else {
+                  update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
+               }
             }
          }
       }
    }
 
    ArrayList<SelectionTag> findActiveSelectionNodes(AnnotationModelNode node, ArrayList<SelectionTag> foundSelectionTags) {
-      //      System.err.println("findActiveSelectionNodes() - node = " + node.getName());
       if (!node.isEnabled()) {
-         //         System.err.println("findActiveSelectionNodes() - node = " + node.getName() + " not enabled");
          return foundSelectionTags;
       }
       if (((node instanceof OptionHeadingModelNode) && ((OptionHeadingModelNode)node).safeGetValue()) ||
             (node instanceof HeadingModelNode) ){
-         //         System.err.println("findActiveSelectionNodes() - node = " + node.getName() + " searching children");
-         // Search children if enabled and selected
          for (AnnotationModelNode child:node.getChildren()) {
             findActiveSelectionNodes(child, foundSelectionTags);
          }
          return foundSelectionTags;
       }
       if (node instanceof EnumeratedOptionModelNode) {
-         //         System.err.println("findActiveSelectionNodes() - EnumeratedOptionModelNode node = " + node.getName());
          EnumeratedOptionModelNode enNode = (EnumeratedOptionModelNode) node;
          ArrayList<SelectionTag> selectionTags = enNode.getSelectionTags();
          if (selectionTags != null) {
             for (SelectionTag selectionTag:selectionTags) {
-//               if (selectionTag.selectionValue == selectionTag.controllingNode.safeGetValueAsLong()) {
-                  //                  System.err.println("findActiveSelectionNodes() - selectionTag = " + node.getName() + " added");
                   foundSelectionTags.add(selectionTag);
-//               }
-//               else {
-                  //                  System.err.println("findActiveSelectionNodes() - selectionTag = " + node.getName() + " skipped");
-//               }
             }
          }
-         //         else {
-         //            System.err.println("findActiveSelectionNodes() - EnumeratedOptionModelNode node = " + node.getName() +" No selectionTags");
-         //         }
          return foundSelectionTags;
       }
-      //      System.err.println("findActiveSelectionNodes() - not processing = " + node.getName());
       return foundSelectionTags;
    }
 

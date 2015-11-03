@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 
 public class AnnotationEditingSupport  extends EditingSupport {
-   TreeViewer viewer;
+   final TreeViewer viewer;
    
    public class BooleanCellEditor extends CheckboxCellEditor {
       public BooleanCellEditor(Tree tree) {
@@ -146,9 +146,10 @@ public class AnnotationEditingSupport  extends EditingSupport {
       return null;
    }
 
+   @Override
    protected void setValue(Object element, Object value) {
       try {
-         //      System.err.println("MyEditingSupport.setValue() value = "+ value + ", " + value.getClass());
+//      System.err.println("MyEditingSupport.setValue() value = "+ value + ", " + value.getClass());
          if (element instanceof AnnotationModelNode) {
             if (value instanceof String) {
                // If a string get model to convert value

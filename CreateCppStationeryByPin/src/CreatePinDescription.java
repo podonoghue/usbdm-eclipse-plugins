@@ -646,7 +646,7 @@ public class CreatePinDescription extends DocumentUtilities {
    static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
    
    /**
-    * Writes code to report what pin a peripheral function is mapped to
+    * Writes code to select what pin a peripheral function is mapped to
     *  
     * @param writer     Header file to write result
     * @param function   The function to process
@@ -760,9 +760,15 @@ public class CreatePinDescription extends DocumentUtilities {
 //         else {
 //            aliases = "";
 //         }
-            writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), pinName);
+            String seletionTag = mappingInfo.getFunctionList();
+            if (mappingInfo.mux == MuxSelection.Reset) {
+               seletionTag += " (reset default)";
+            }
+            WizardAttribute[] functionAttributes = {new SelectionAttribute(mappingInfo.pin.getName()+"_SIG_SEL", seletionTag)};
+            writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), pinName, functionAttributes);
          }
 
+         writeWizardOptionSelectionEnty(writer, Integer.toString(defaultSelection), "Default", null);
          writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(defaultSelection));
          
          boolean firstIf = true;
@@ -820,7 +826,7 @@ public class CreatePinDescription extends DocumentUtilities {
             attributes, 
             "Mapping by Peripheral Function", 
             "This allows the mapping of peripheral functions to pins\n"+
-            "to be controlled by peripheral function\n" +
+            "to be controlled by peripheral function.\n" +
             "This option is active when Mapping by Pin is disabled");
       writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
       writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
@@ -840,14 +846,20 @@ public class CreatePinDescription extends DocumentUtilities {
       final String UNMATCHED_NAME = "Miscellaneous";
       Pair[] functionPatterns = {
             new Pair("(ADC\\d+).*",       "$1"), 
+            new Pair("A?(CMP\\d+).*",     "$1"), 
             new Pair("(FTM\\d+).*",       "$1"), 
             new Pair("(GPIO[A-E]+).*",    "$1"), 
             new Pair("(I2C\\d+).*",       "$1"), 
             new Pair("(I2S\\d+).*",       "$1"), 
-            new Pair("(LPTMR\\d+).*",     "$1"), 
+            new Pair("(LLWU\\d*).*",      "$1"), 
+            new Pair("(LLWU\\d+).*",      "$1"), 
             new Pair("(SPI\\d+).*",       "$1"), 
+            new Pair("(TSI\\d+).*",       "$1"), 
+            new Pair("(LPTMR\\d+).*",     "$1"), 
+            new Pair("(UART\\d+).*",      "$1"), 
+            new Pair("(USB\\d*).*",       "$1"), 
             new Pair("E?(XTAL).*",        "Crystal"),
-            new Pair("(JTAG|SWD).*",      "Debug"),
+            new Pair("(JTAG|SWD|NMI|TRACE).*",  "Debug and Control"),
       };
       
       ArrayList<String> categoryTitles = new ArrayList<String>();
@@ -1071,10 +1083,11 @@ public class CreatePinDescription extends DocumentUtilities {
             0,
             false,
             String.format("Map pins"),
-            String.format("Selects whether pin mappings are done when individual\n"+
-                          " peripherals are configured or during reset initialisation"));
+            String.format("Selects whether pin mappings are done when individual\n" +
+                          "peripherals are configured or during reset initialisation.\n" +
+                          "This will also cause unselected peripherals to be unavailable."));
       writeWizardOptionSelectionEnty(headerFile, "0", "Pins mapped on demand");
-      writeWizardOptionSelectionEnty(headerFile, "1", "All pins are mapped on reset");
+      writeWizardOptionSelectionEnty(headerFile, "1", "Pin mapping on reset  - unselected peripherals unavailable");
       writeMacroDefinition(headerFile, "DO_MAP_PINS_ON_RESET", "0");
       headerFile.write("\n");
    }
@@ -1210,7 +1223,10 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    void writeExternDeclaration(PinTemplateInformation template, MappingInfo mappedFunction, int instanceCount, BufferedWriter gpioHeaderFile) throws IOException {
       String pinName = mappedFunction.pin.getName();
-//      writeConditionalStart(gpioHeaderFile, String.format("%s == %s", pinName+"_SEL", Integer.toString(mappedFunction.mux)));
+      if (template.useGuard()) {
+         String format = "!defined(DO_MAP_PINS_ON_RESET) || (DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
+         writeConditionalStart(gpioHeaderFile, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+      }
       String instanceName = pinName;
       if (instanceCount>0) {
          instanceName += "_" + Integer.toString(instanceCount);
@@ -1222,7 +1238,9 @@ public class CreatePinDescription extends DocumentUtilities {
             writeMacroDefinition(gpioHeaderFile, template.className+alias, template.className+pinName);
          }
       }
-//      writeConditionalEnd(gpioHeaderFile);
+      if (template.useGuard()) {
+         writeConditionalEnd(gpioHeaderFile);
+      }
    }
    
    /**
@@ -1304,6 +1322,15 @@ public class CreatePinDescription extends DocumentUtilities {
          }
       }
 
+      gpioHeaderFile.write(
+            "#if defined(DO_MAP_PINS_ON_RESET) && (DO_MAP_PINS_ON_RESET>0)\n" +
+            "/**\n" + 
+            " * Used to configure pin-mapping before 1st use of peripherals\n" + 
+            " */\n" + 
+            "extern void usbdm_PinMapping();\n" +
+            "#endif\n\n"
+         );
+
       /* 
        * XXX - Write debug information
        */
@@ -1328,6 +1355,88 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
    }
 
+   /**
+    * Write Pin Mapping function to CPP file
+    * 
+    * @param cppFile    File to write to
+    * 
+    * @throws IOException
+    */
+   private void writePinMappingFunction(BufferedWriter cppFile) throws IOException {
+      
+      cppFile.write(
+         "\n" +
+         "#if defined(DO_MAP_PINS_ON_RESET) && (DO_MAP_PINS_ON_RESET>0)\n" +
+         "struct PinInit {\n"+
+         "   uint32_t pcrValue;\n"+
+         "   uint32_t volatile *pcr;\n"+
+         "};\n\n"+
+         "static const PinInit pinInit[] = {\n"
+      );
+
+      for (String pinName:PinInformation.getPinNames()) {
+         Pattern p = Pattern.compile("PT([A-Z]+)([0-9]+)");
+         Matcher m = p.matcher(pinName);
+         if (m.matches()) {
+            String instance = m.replaceAll("$1");
+            String signal   = m.replaceAll("$2");
+            cppFile.write(String.format("#if defined(%s_SIG_SEL) && (%s_SIG_SEL>=0)\n", pinName, pinName));
+            cppFile.write(String.format("   { %s_SIG_SEL|DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, instance, signal));
+            cppFile.write(String.format("#endif\n"));
+         }
+      }
+      cppFile.write("};\n\n");
+
+      
+      cppFile.write(
+         "/**\n" + 
+         " * Used to configure pin-mapping before 1st use of peripherals\n" + 
+         " */\n" + 
+         "void usbdm_PinMapping() {\n"
+      );
+      
+      boolean firstExpression = true;
+      String currentBasename = null;
+      String  instance = "X";
+      for (String pinName:PinInformation.getPinNames()) {
+         Pattern p = Pattern.compile("(PT([A-Z]))[0-9]+");
+         Matcher m = p.matcher(pinName);
+         if (m.matches()) {
+            String basename = m.replaceAll("$1");
+            if (!basename.equals(currentBasename)) {
+               if (!firstExpression) {
+                  cppFile.write(String.format("\n\n   FIXED_PORT_CLOCK_REG |= SIM_SCGC5_PORT%s_MASK;\n", instance));
+                  cppFile.write("#endif\n\n");
+               }
+               currentBasename = basename;
+               cppFile.write("#if ");
+               firstExpression = false;
+               instance = m.replaceAll("$2");
+            }
+            else {
+               cppFile.write(" || \\\n    ");
+            }
+            cppFile.write(String.format("(defined(%s_SIG_SEL) && (%s_SIG_SEL>=0))", pinName, pinName));
+         }
+      }
+      if (!firstExpression) {
+         cppFile.write(String.format("\n\n   FIXED_PORT_CLOCK_REG |= SIM_SCGC5_PORT%s_MASK;\n", instance));
+         cppFile.write("\n#endif\n");
+      }
+  
+      cppFile.write(
+         "\n"+
+         "   for (const PinInit *p=pinInit; p<(pinInit+(sizeof(pinInit)/sizeof(pinInit[0]))); p++) {\n"+   
+         "      *(p->pcr) = p->pcrValue;\n"+ 
+         "   }\n"
+      );
+      
+      cppFile.write(
+         "}\n" +
+         "#endif\n\n"
+      );
+   }
+   
    /**                    
     * Write CPP file      
     *                     
@@ -1341,7 +1450,7 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
-      
+
       for (PinTemplateInformation pinTemplate:PinTemplateInformation.getList()) {
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation                     pinInfo         = PinInformation.find(pinName);
@@ -1355,17 +1464,18 @@ public class CreatePinDescription extends DocumentUtilities {
                   continue;
                }
                MappingInfo mappedFunction = mappedFunctions.get(index);
-               for (PeripheralFunction x:mappedFunction.functions) {
-                  if (pinTemplate.matchPattern.matcher(x.getName()).matches()) {
+               for (PeripheralFunction function:mappedFunction.functions) {
+                  if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
                      pinTemplate.instanceWriter.writeInstance(mappedFunction, instanceCount, cppFile);
                      instanceCount++;
-//                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
-//                     System.err.println("Matches");
+                     //                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
+                     //                     System.err.println("Matches");
                   }
                }
             }
          }
       }
+      writePinMappingFunction(cppFile);
       writeCppFilePostAmple();
    }
 

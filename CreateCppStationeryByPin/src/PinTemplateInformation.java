@@ -80,7 +80,7 @@ class PinTemplateInformation {
       /** 
        * Write DigitalIO instance e.g. 
        * <pre>
-       * const DigitalIO digitalIO_<b><i>PTA17</i></b> = {&PCR(<b><i>PTA17</i></b>_GPIO_NAME,<b><i>PTA17</i></b>_GPIO_BIT),GPIO(<b><i>PTA17</i></b>_GPIO_NAME),PORT_CLOCK_MASK(<b><i>PTA17</i></b>_GPIO_NAME),(1UL<<<b><i>PTA17</i></b>_GPIO_BIT)};
+       * const DigitalIO digitalIO_<b><i>PTA0</b></i>  = {{&PORT<b><i>A</b></i>->PCR[<b><i>0</b></i>],   PORT<b><i>A</b></i>_CLOCK_MASK}, GPIO<b><i>A</b></i>,  (1UL<<<b><i>0</b></i>)};
        * </pre>
        * or for MKE devices
        * <pre>
@@ -270,14 +270,14 @@ class PinTemplateInformation {
       }
    };
 
-   String baseName;
-   String groupName;
-   String groupTitle;
-   String groupBriefDescription;
-   String externTemplate;
-   String className;
-   IInstanceWriter instanceWriter;
-   Pattern matchPattern;
+   final String baseName;
+   final String groupName;
+   final String groupTitle;
+   final String groupBriefDescription;
+   final String externTemplate;
+   final String className;
+   final IInstanceWriter instanceWriter;
+   final Pattern matchPattern;
 
    /**
     * 
@@ -301,7 +301,14 @@ class PinTemplateInformation {
       this.className             = className;
       this.instanceWriter        = instanceWriter;
       this.matchPattern          = Pattern.compile(matchTemplate);
+      this.fUseGuard             = !baseName.matches("GPIO");
       list.add(this);
+   }
+
+   final boolean fUseGuard;
+   
+   public boolean useGuard() {
+      return fUseGuard;
    }
   
 }
