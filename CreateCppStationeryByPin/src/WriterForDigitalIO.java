@@ -40,7 +40,7 @@ class WriterForDigitalIO extends InstanceWriter {
     * </pre>
     * or for MKE devices
     * <pre>
-    * const DigitalIO digitalIO_<b><i>PTA17</i></b> = {(volatile GPIO_Type*)GPIO(<b><i>PTA17</i></b>_GPIO_NAME),(1UL<<<b><i>PTA17</i></b>_GPIO_BIT)};
+    * const DigitalIO digitalIO_<b><i>PTA17</i></b> = {(volatile GPIO_Type*)GPIO<b><i>A</i></b>),(1UL<<<b><i>17</i></b>)};
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
@@ -69,7 +69,7 @@ class WriterForDigitalIO extends InstanceWriter {
             cppFile.write("{0,0}");
          }
          else {
-            cppFile.write(String.format("{%-18s%s};\n", gpioInstanceMKE, gpioBitMask));
+            cppFile.write(String.format("{%-18s%s}", gpioInstanceMKE, gpioBitMask));
          }
       }
       else {
