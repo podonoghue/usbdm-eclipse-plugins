@@ -1451,7 +1451,7 @@ public class CreatePinDescription extends DocumentUtilities {
    /**
     * Write conditional macro guard for function declaration or definition
     * <pre>
-    * e.g. #if (DO_MAP_PINS_ON_RESET==0) || (PTD5_SIG_SEL == 0)
+    * e.g. #if (PTD5_SIG_SEL == 0)
     * </pre>
     * 
     * @param pinTemplate
@@ -1463,14 +1463,20 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws IOException
     */
    private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file) throws IOException {
-      final String format = "(DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
+//      final String format = "(DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
+      final String format = "(%s == %s)";
       String pinName = mappedFunction.pin.getName();
 
-      if (pinTemplate.instanceWriter.useGuard()) {
-         writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
-         return true;
+      if (mappedFunction.mux == MuxSelection.Fixed) {
+         // Don't guard fixed selections
+         return false;
       }
-      return false;
+      if (!pinTemplate.instanceWriter.useGuard()) {
+         // Don't use guard
+         return false;
+      }
+      writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+      return true;
    }
    
    /**                    
