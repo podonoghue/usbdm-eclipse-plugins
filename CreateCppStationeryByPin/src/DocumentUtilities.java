@@ -29,7 +29,7 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   static void writeStartGroup(BufferedWriter writer, PinTemplateInformation description) throws IOException {
+   static void writeStartGroup(BufferedWriter writer, FunctionTemplateInformation description) throws IOException {
       writeStartGroup(writer, description.groupName, description.groupTitle, description.groupBriefDescription);
    }
 

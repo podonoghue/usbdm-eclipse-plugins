@@ -255,7 +255,7 @@ public class CreatePinDescription extends DocumentUtilities {
 
       sb.append(String.format("%-10s => ", pinInformation.getName()));
 //      boolean debug = false;
-//      if (pinName.equalsIgnoreCase("PTA5")) {
+//      if (pinName.equalsIgnoreCase("PTC1")) {
 //         System.err.println("pin = " + pinName);
 //         debug = true;
 //      }
@@ -304,7 +304,6 @@ public class CreatePinDescription extends DocumentUtilities {
             pinInformation.setDefaultPeripheralFunctions(defaultName);
             for (PeripheralFunction fn:pinInformation.getDefaultValue()) {
                sb.append("D:" + fn + ", ");
-//               fn.setPreferredPin(pinInformation);
             }
          }
       }
@@ -646,7 +645,7 @@ public class CreatePinDescription extends DocumentUtilities {
    static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
    
    /**
-    * Writes code to select what pin a peripheral function is mapped to
+    * Writes code to select which pin a peripheral function is mapped to
     *  
     * @param writer     Header file to write result
     * @param function   The function to process
@@ -794,12 +793,12 @@ public class CreatePinDescription extends DocumentUtilities {
                }
             }
             if (mappingInfo.mux.value < 0) {
-               writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_GPIO", "0");
-               writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_FN",   "0");
+               writeMacroDefinition(writer, function.getName()+"_GPIO", "0");
+               writeMacroDefinition(writer, function.getName()+"_FN",   "0");
             }
             else {
-               writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_GPIO", "digitalIO_"+mappingInfo.pin.getName());
-               writeMacroDefinition(writer, mappingInfo.functions.get(0).getName()+"_FN", Integer.toString(mappingInfo.mux.value));
+               writeMacroDefinition(writer, function.getName()+"_GPIO", "digitalIO_"+mappingInfo.pin.getName());
+               writeMacroDefinition(writer, function.getName()+"_FN", Integer.toString(mappingInfo.mux.value));
             }
             selection++;
          }
@@ -845,21 +844,40 @@ public class CreatePinDescription extends DocumentUtilities {
       };
       final String UNMATCHED_NAME = "Miscellaneous";
       Pair[] functionPatterns = {
-            new Pair("(ADC\\d+).*",       "$1"), 
-            new Pair("A?(CMP\\d+).*",     "$1"), 
-            new Pair("(FTM\\d+).*",       "$1"), 
-            new Pair("(GPIO[A-E]+).*",    "$1"), 
-            new Pair("(I2C\\d+).*",       "$1"), 
-            new Pair("(I2S\\d+).*",       "$1"), 
-            new Pair("(LLWU\\d*).*",      "$1"), 
-            new Pair("(LLWU\\d+).*",      "$1"), 
-            new Pair("(SPI\\d+).*",       "$1"), 
-            new Pair("(TSI\\d+).*",       "$1"), 
-            new Pair("(LPTMR\\d+).*",     "$1"), 
-            new Pair("(UART\\d+).*",      "$1"), 
-            new Pair("(USB\\d*).*",       "$1"), 
-            new Pair("E?(XTAL).*",        "Crystal"),
-            new Pair("(JTAG|SWD|NMI|TRACE).*",  "Debug and Control"),
+            new Pair("(ADC\\d+).*",             "Analogue to Digital ($1)"), 
+            new Pair("(VREF\\d*).*",            "Voltage Reference ($1)"), 
+            new Pair("(A?CMP\\d+).*",           "Analogue Comparator ($1)"), 
+            new Pair("(FTM\\d+).*",             "FlexTimer ($1)"), 
+            new Pair("(TPM\\d+).*",             "Timer ($1)"), 
+            new Pair("(LCD_P)?(\\d+).*",        "Liquid Crystal Display"), 
+            new Pair("(GPIO[A-Z]+).*",          "General Purpose I/O ($1)"), 
+            new Pair("(I2C\\d+).*",             "Inter-Integrated Circuit ($1)"), 
+            new Pair("(I2S\\d+).*",             "Integrated Interchip Sound ($1)"), 
+            new Pair("(LLWU\\d*).*",            "Low-Leakage Wake-up Unit ($1)"), 
+            new Pair("(SPI\\d+).*",             "Serial Peripheral Interface ($1)"), 
+            new Pair("(TSI\\d+).*",             "Touch Sense Interface ($1)"), 
+            new Pair("(LPTMR|LPTIM)(\\d+)*.*",  "Low Power Timer ($1)"), 
+            new Pair("(UART\\d+).*",            "Universal Asynchronous Rx/Tx ($1)"), 
+            new Pair("(PXBAR).*",               "($1)"), 
+            new Pair("(QT).*",                  "($1)"), 
+            new Pair("(SCI\\d+).*",             "Serial Communication Interface ($1)"), 
+            new Pair("(SDAD)(M|P)\\d+.*",       "Sigma-delta ADC ($1)"), 
+            new Pair("(LPUART\\d+).*",          "Low Power UART ($1)"), 
+            new Pair("(USB\\d*).*",             "Universal Serial Bus ($1)"), 
+            new Pair("(DAC\\d*).*",             "Digital to Analogue ($1)"), 
+            new Pair("(PDB\\d*).*",             "Programmable Delay Block ($1)"), 
+            new Pair("(CAN\\d*).*",             "CAN Bus ($1)"), 
+            new Pair("(ENET\\d*).*",            "Ethernet ($1)"), 
+            new Pair("(MII\\d*).*",             "Ethernet ($1)"), 
+            new Pair("(RMII\\d*).*",            "Ethernet ($1)"), 
+            new Pair("(SDHC\\d*).*",            "Secured Digital Host Controller ($1)"), 
+            new Pair("(CMT\\d*).*",             "Carrier Modulator Transmitter ($1)"), 
+            new Pair("(EWM).*",                 "External Watchdog Monitor ($1)"), 
+            new Pair("E?XTAL.*",              "Clock and Timing"),
+            new Pair("(JTAG|SWD|NMI|TRACE|RESET).*",  "Debug and Control"),
+            new Pair(".*(CLK|EXTRG).*",         "Clock and Timing"),
+            new Pair("(FB_).*",                 "Flexbus"),
+            
       };
       
       ArrayList<String> categoryTitles = new ArrayList<String>();
@@ -1216,29 +1234,25 @@ public class CreatePinDescription extends DocumentUtilities {
     * 
     * @param template         Template information
     * @param mappedFunction   Information about the pin and function being declared
-    * @param instanceCount    Instance number e.g. PTD0 => 0
+    * @param fnIndex    Instance number e.g. PTD0 => 0
     * @param gpioHeaderFile   Where to write
     * 
     * @throws IOException
     */
-   void writeExternDeclaration(PinTemplateInformation template, MappingInfo mappedFunction, int instanceCount, BufferedWriter gpioHeaderFile) throws IOException {
-      String pinName = mappedFunction.pin.getName();
-      if (template.useGuard()) {
-         String format = "!defined(DO_MAP_PINS_ON_RESET) || (DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
-         writeConditionalStart(gpioHeaderFile, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
-      }
-      String instanceName = pinName;
-      if (instanceCount>0) {
-         instanceName += "_" + Integer.toString(instanceCount);
-      }
-      gpioHeaderFile.write(String.format(template.externTemplate, instanceName+";", pinName));
+   void writeExternDeclaration(FunctionTemplateInformation template, MappingInfo mappedFunction, int fnIndex, BufferedWriter gpioHeaderFile) throws IOException {
+
+      boolean guardWritten = writeFunctionSelectionGuardMacro(template, mappedFunction, gpioHeaderFile);
+
+      template.instanceWriter.writeDeclaration(mappedFunction, fnIndex, gpioHeaderFile);
+      
       Aliases aliasList = Aliases.getAlias(mappedFunction.pin);
       if (aliasList != null) {
+         String instanceName = template.instanceWriter.getInstanceName(mappedFunction, fnIndex);
          for (String alias:aliasList.aliasList) {
-            writeMacroDefinition(gpioHeaderFile, template.className+alias, template.className+pinName);
+            writeMacroDefinition(gpioHeaderFile, template.instanceWriter.getAliasName(alias), instanceName);
          }
       }
-      if (template.useGuard()) {
+      if (guardWritten) {
          writeConditionalEnd(gpioHeaderFile);
       }
    }
@@ -1247,7 +1261,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * Process pins
     */
    void processPins() {
-      for (PinTemplateInformation pinTemplate:PinTemplateInformation.getList()) {
+      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation pinInfo = PinInformation.find(pinName);
             HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
@@ -1289,7 +1303,7 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(gpioHeaderFile, "pin_mapping.h");
       writeHeaderFileInclude(gpioHeaderFile, "gpio_defs.h");
       gpioHeaderFile.write("\n");
-      for (PinTemplateInformation pinTemplate:PinTemplateInformation.getList()) {
+      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          boolean groupDone = false;
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation pinInfo = PinInformation.find(pinName);
@@ -1297,22 +1311,19 @@ public class CreatePinDescription extends DocumentUtilities {
             if (mappedFunctions == null) {
                continue;
             }
-            int instanceCount = 0;
             for (MuxSelection index:mappedFunctions.keySet()) {
                if (index == MuxSelection.Reset) {
                   continue;
                }
                MappingInfo mappedFunction = mappedFunctions.get(index);
-               for (PeripheralFunction function:mappedFunction.functions) {
-//                  System.err.println(String.format("writeGpioHeaderFile() - N:%s, P:%s", function.getName(), pinTemplate.matchPattern.toString()));
+               for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
+                  PeripheralFunction function = mappedFunction.functions.get(fnIndex);
                   if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
                      if (!groupDone) {
                         writeStartGroup(gpioHeaderFile, pinTemplate);
                         groupDone = true;
                      }
-                     writeExternDeclaration(pinTemplate, mappedFunction, instanceCount, gpioHeaderFile);
-                     instanceCount++;
-//                     System.err.println("Matches");
+                     writeExternDeclaration(pinTemplate, mappedFunction, fnIndex, gpioHeaderFile);
                   }
                }
             }
@@ -1381,7 +1392,7 @@ public class CreatePinDescription extends DocumentUtilities {
             String instance = m.replaceAll("$1");
             String signal   = m.replaceAll("$2");
             cppFile.write(String.format("#if defined(%s_SIG_SEL) && (%s_SIG_SEL>=0)\n", pinName, pinName));
-            cppFile.write(String.format("   { %s_SIG_SEL|DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, instance, signal));
+            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, instance, signal));
             cppFile.write(String.format("#endif\n"));
          }
       }
@@ -1437,6 +1448,31 @@ public class CreatePinDescription extends DocumentUtilities {
       );
    }
    
+   /**
+    * Write conditional macro guard for function declaration or definition
+    * <pre>
+    * e.g. #if (DO_MAP_PINS_ON_RESET==0) || (PTD5_SIG_SEL == 0)
+    * </pre>
+    * 
+    * @param pinTemplate
+    * @param mappedFunction
+    * @param file
+    * 
+    * @return Indicates if guard was written (and hence closing macro needs to be written)
+    * 
+    * @throws IOException
+    */
+   private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file) throws IOException {
+      final String format = "(DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
+      String pinName = mappedFunction.pin.getName();
+
+      if (pinTemplate.instanceWriter.useGuard()) {
+         writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+         return true;
+      }
+      return false;
+   }
+   
    /**                    
     * Write CPP file      
     *                     
@@ -1451,25 +1487,28 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
 
-      for (PinTemplateInformation pinTemplate:PinTemplateInformation.getList()) {
+      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation                     pinInfo         = PinInformation.find(pinName);
             HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
-            int instanceCount = 0;
             if (mappedFunctions == null) {
                continue;
             }
-            for (MuxSelection index:mappedFunctions.keySet()) {
-               if (index == MuxSelection.Reset) {
+            for (MuxSelection muxSelection:mappedFunctions.keySet()) {
+               if (muxSelection == MuxSelection.Reset) {
                   continue;
                }
-               MappingInfo mappedFunction = mappedFunctions.get(index);
-               for (PeripheralFunction function:mappedFunction.functions) {
+               MappingInfo mappedFunction = mappedFunctions.get(muxSelection);
+               for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
+                  PeripheralFunction function = mappedFunction.functions.get(fnIndex);
                   if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
-                     pinTemplate.instanceWriter.writeInstance(mappedFunction, instanceCount, cppFile);
-                     instanceCount++;
-                     //                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
-                     //                     System.err.println("Matches");
+                     boolean guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, mappedFunction, cppFile);
+                     pinTemplate.instanceWriter.writeDefinition(mappedFunction, fnIndex, cppFile);
+                     if (guardWritten) {
+                        writeConditionalEnd(cppFile);
+                     }
+//                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
+//                     System.err.println("Matches");
                   }
                }
             }
@@ -1496,32 +1535,28 @@ public class CreatePinDescription extends DocumentUtilities {
       deviceIsMKE = deviceName.startsWith("MKE");
       deviceIsMKL = deviceName.startsWith("MKL");
       deviceIsMKM = deviceName.startsWith("MKL");
-      PinTemplateInformation.reset();
-      new PinTemplateInformation(
+      FunctionTemplateInformation.reset();
+      new FunctionTemplateInformation(
             "GPIO", "DigitalIO_Group",  "Digital Input/Output",               
             "Allows use of port pins as simple digital inputs or outputs", 
-            "digitalIO_",  "extern const DigitalIO digitalIO_%-24s //!< DigitalIO on %s\n",
             "GPIO.*",
-            new PinTemplateInformation.digitalIO_Writer(deviceIsMKE));
+            new WriterForDigitalIO(deviceIsMKE));
       if (!deviceIsMKE) {
-         new PinTemplateInformation(
+         new FunctionTemplateInformation(
                "ADC",  "AnalogueIO_Group", "Analogue Input",
                "Allows use of port pins as analogue inputs",
-               "analogueIO_", "extern const AnalogueIO analogueIO_%-24s //!< AnalogueIO on %s\n",
-               "ADC.*",
-               new PinTemplateInformation.analogueIO_Writer(deviceIsMKE));
-         new PinTemplateInformation(
+               "ADC[0-9]+_(SE).*",
+               new WriterForAnalogueIO(deviceIsMKE));
+         new FunctionTemplateInformation(
                "FTM",  "PwmIO_Group",      "PWM, Input capture, Output compare",
                "Allows use of port pins as PWM outputs",
-               "pwmIO_",      "extern const PwmIO  pwmIO_%-24s //!< PwmIO on %s\n",
                "FTM\\d+_CH\\d+",
-               new PinTemplateInformation.pwmIO_FTM_Writer(deviceIsMKE));
-         new PinTemplateInformation(
+               new WriterForPwmIO_FTM(deviceIsMKE));
+         new FunctionTemplateInformation(
                "TPM",  "PwmIO_Group",      "PWM, Input capture, Output compare",
                "Allows use of port pins as PWM outputs",
-               "pwmIO_",      "extern const PwmIO  pwmIO_%-24s //!< PwmIO on %s\n",
                "TPM\\d+_CH\\d+",
-               new PinTemplateInformation.pwmIO_TPM_Writer(deviceIsMKE));
+               new WriterForPwmIO_TPM(deviceIsMKE));
       }
       pinFunctionDescriptions.add(new PinFunctionDescription("LPTMR", "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SPI",   "", ""));

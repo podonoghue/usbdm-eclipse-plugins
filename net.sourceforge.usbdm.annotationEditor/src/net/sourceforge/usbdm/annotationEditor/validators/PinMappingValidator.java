@@ -189,7 +189,7 @@ public class PinMappingValidator extends MyValidator {
 //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
             if (nodeToUpdate.forcingNodeCount == 0) {
                update(viewer, targetNode, "Default");
-               setValid(viewer, targetNode, new Message("Pin has not been mapped to a signal\nSet to reset default value", AnnotationModel.Severity.WARNING));
+               setValid(viewer, targetNode, new Message("Pin has not been mapped to a signal\nLeft at reset default", AnnotationModel.Severity.WARNING));
             }
             else if (nodeToUpdate.forcingNodeCount == 1) {
                update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
