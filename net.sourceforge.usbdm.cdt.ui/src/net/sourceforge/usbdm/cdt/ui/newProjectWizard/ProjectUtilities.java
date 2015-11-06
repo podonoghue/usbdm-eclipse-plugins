@@ -15,9 +15,14 @@ import org.eclipse.cdt.core.model.CModelException;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.model.IPathEntry;
+import org.eclipse.cdt.core.settings.model.CIncludePathEntry;
 import org.eclipse.cdt.core.settings.model.CSourceEntry;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
+import org.eclipse.cdt.core.settings.model.ICFolderDescription;
+import org.eclipse.cdt.core.settings.model.ICLanguageSetting;
+import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
+import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.cdt.core.settings.model.ICSourceEntry;
 import org.eclipse.cdt.core.settings.model.WriteAccessException;
 import org.eclipse.cdt.core.settings.model.util.CDataUtil;
@@ -50,25 +55,30 @@ public class ProjectUtilities {
    
    private static void changeExcludedItem(IProject project, String targetPath, boolean isFolder, boolean excluded, IProgressMonitor progressMonitor) 
          throws CoreException, BuildException {
-      
-//      System.err.println(String.format("changeExcludedItem(p=%s, f=%s, e=%s)", targetPath, Boolean.toString(isFolder), Boolean.toString(excluded)));
+
+      IPath path = project.getFolder(targetPath).getProjectRelativePath();
+
+      System.err.println(String.format("changeExcludedItem(target=%s, isfolder=%s, exclude=%s)", path.toString(), Boolean.toString(isFolder), Boolean.toString(excluded)));
+
+//      ICProjectDescription projectDescription = CoreModel.getDefault().getProjectDescription(project, true);
+//      ICConfigurationDescription configDecriptions[] = projectDescription.getConfigurations();
+//      for (ICConfigurationDescription configDescription : configDecriptions) {
+//         // Exclude in each configuration
+//         System.err.println(String.format("Excluding in configuration %s", configDescription.toString()));
+//         ICSourceEntry[] sourceEntries         = configDescription.getSourceEntries();
+//         ICSourceEntry[] modifiedSourceEntries = CDataUtil.setExcludedIfPossible(path, isFolder, excluded, sourceEntries);
+//         configDescription.setSourceEntries(modifiedSourceEntries);
+//      }
+//      CoreModel.getDefault().setProjectDescription(project, projectDescription);
 
       IManagedBuildInfo info = ManagedBuildManager.getBuildInfo(project);
-      // Add to Include search paths
       IConfiguration[] configurations = info.getManagedProject().getConfigurations();
       for (IConfiguration configuration : configurations) {
          // Exclude in each configuration
-         IPath           path                  = project.getFolder(targetPath).getProjectRelativePath();
+         System.err.println(String.format("Excluding in configuration %s", configuration.toString()));
          ICSourceEntry[] sourceEntries         = configuration.getSourceEntries();
          ICSourceEntry[] modifiedSourceEntries = CDataUtil.setExcludedIfPossible(path, isFolder, excluded, sourceEntries);
          configuration.setSourceEntries(modifiedSourceEntries);
-//         System.err.println("changeExcludedItem() - Path = " + path.toPortableString());
-//         System.err.println("Before");
-//         listSourceEntries(sourceEntries);
-//         System.err.println("After #1");
-//         listSourceEntries(x);
-//         System.err.println("After #2");
-//         listSourceEntries(sourceEntries);
       }
    }
 
@@ -135,7 +145,7 @@ public class ProjectUtilities {
       IPath projPath = projectHandle.getFullPath();
       IFolder folder = projectHandle.getFolder(targetPath);
 
-      ICProject cProject = CoreModel.getDefault().create(projectHandle);
+      ICProject cProject = CoreModel.getDefault().getCModel().getCProject(projectHandle.getName());
       if (cProject != null) {
          if(CCorePlugin.getDefault().isNewStyleProject(cProject.getProject())){
             //create source folder for new style project

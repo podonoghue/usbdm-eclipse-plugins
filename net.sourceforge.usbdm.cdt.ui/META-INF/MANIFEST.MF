@@ -46,6 +46,7 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
  net.sourceforge.usbdm.cdt.ui.newProjectWizard
 Import-Package: org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.core.model,
+ org.eclipse.cdt.core.settings.model,
  org.eclipse.cdt.debug.gdbjtag.core,
  org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,

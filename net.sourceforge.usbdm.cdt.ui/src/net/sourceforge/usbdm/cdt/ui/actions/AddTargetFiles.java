@@ -239,7 +239,7 @@ public class AddTargetFiles {
       /*
        * Do macro substitution on path using Eclipse Variables
        */
-      root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root, false);
+      root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root,   false);
       source = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(source, false);
       target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target, false);
       /*

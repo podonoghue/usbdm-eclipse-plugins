@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.model.ICProject;
+import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
@@ -361,22 +364,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       }
    }
 
-   public void updateConfigurations(IProject project, IProgressMonitor monitor) {
+   public void reindexProject(IProject project, IProgressMonitor monitor) {
       monitor.beginTask("Update configuration", IProgressMonitor.UNKNOWN);
-
-//      final int WORK_SCALE = 100;
-      try {
-//         IConfiguration[] projectConfigs = ManagedBuildManager.getBuildInfo(project).getManagedProject().getConfigurations();
-//         monitor.beginTask("Update configuration", WORK_SCALE*projectConfigs.length);
-//         for (IConfiguration config : projectConfigs) {
-//            ScannerConfigBuilder.build(config, ScannerConfigBuilder.PERFORM_CORE_UPDATE, monitor);
-//            monitor.worked(WORK_SCALE);
-//         }
-         CCorePlugin.getIndexManager().reindex(CoreModel.getDefault().create(project));
-      }
-      finally {
-         monitor.done();
-      }
+      ICProject cproject = CoreModel.getDefault().getCModel().getCProject(project.getName());
+      CCorePlugin.getIndexManager().reindex(cproject);
    }
 
    @Override
@@ -402,17 +393,36 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       final int WORK_SCALE = 1000;
 //      System.err.println("UsbdmNewProjectWizard.run()");
 
+      // Used to suppress indexing while project is constructed
+      final IndexerSetupParticipant indexerParticipant = new IndexerSetupParticipant() {
+         @Override
+         public boolean postponeIndexerSetup(ICProject cProject) {
+            return true;
+         }
+      }; 
+
       try {
          monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
          
+         // Suppress project indexing while project is constructed
+         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
+
          // Create project
          IProject project = new CDTProjectManager().createCDTProj(fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
-      
+         System.err.println("After createCDTProj");
          // Apply device project options
          ProcessProjectActions.process(project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         System.err.println("After process");
          
-//         buildConfigurations(project,  new SubProgressMonitor(monitor, WORK_SCALE*40));
-         updateConfigurations(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         reindexProject(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         System.err.println("After reindexProject");
+         
+         // Allow indexing
+         CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
+
+         CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
+         System.err.println("After updateProjectDescriptions");
+         
       } catch (Exception e) {
          e.printStackTrace();
          throw new InvocationTargetException(e);

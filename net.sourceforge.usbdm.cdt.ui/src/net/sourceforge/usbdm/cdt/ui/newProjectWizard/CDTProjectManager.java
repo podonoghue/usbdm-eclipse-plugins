@@ -108,7 +108,7 @@ public class CDTProjectManager {
    private final String COLDFIRE_CONFIGURATION_ID   = "net.sourceforge.usbdm.cdt.coldfire";
 
    /**
-    * Create USBDM project
+    * Create USBDM CDT project
     * 
     * @param paramMap      Parameters for project (from Wizard dialogue)
     * @param monitor       Progress monitor
@@ -123,22 +123,11 @@ public class CDTProjectManager {
 
       final int WORK_SCALE = 1000;
 
-      // Used to suppress indexing while project is constructed
-      final IndexerSetupParticipant indexerParticipant = new IndexerSetupParticipant() {
-         @Override
-         public boolean postponeIndexerSetup(ICProject cProject) {
-            return true;
-         }
-      }; 
-
       // Create model project and accompanied descriptions
       IProject project;
 
       try {
          monitor.beginTask("Create configuration", WORK_SCALE*100);
-
-         // Suppress project indexing while project is constructed
-         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
 
          String        projectName   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
          String        directoryPath = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
@@ -192,54 +181,9 @@ public class CDTProjectManager {
          Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
          coreModel.setProjectDescription(project, projectDescription);
       } finally {
-         // Allow indexing
-         CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
          monitor.done();
       }
-
       return project;
    }
 
 }
-
-/*
- Code for existing project - not used
-else {
-   monitor.beginTask("Refreshing project", IProgressMonitor.UNKNOWN);
-   IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-      public void run(IProgressMonitor monitor) throws CoreException {
-         newProjectHandle.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-      }
-   };
-   workspace.run(runnable, wrkSpaceRoot, IWorkspace.AVOID_UPDATE, new SubProgressMonitor(monitor, WORK_SCALE*30));
-   project = newProjectHandle;
-}
-*/
-
-//
-//======================================================================
-//======================================================================
-// Not working done inside ' for (IConfiguration configuration : cfgs) {'
-//            if (false) {
-//               System.err.println("createCDTProj() ==================================================");
-//               final String idToRemove = "org.eclipse.cdt.managedbuilder.core.MBSLanguageSettingsProvider";
-//               Vector<String> languageSettingsProviderIdsList = new Vector<String>(Arrays.asList(config.getDefaultLanguageSettingsProviderIds()));
-//               for (String languageSettingsProviderId : languageSettingsProviderIdsList) {
-//                  System.err.println("languageSettingsProviderId (before) = " + languageSettingsProviderId);
-//               }
-//               languageSettingsProviderIdsList.remove(idToRemove);
-//               String[] languageSettingsProviderIds = (String[])languageSettingsProviderIdsList.toArray(new String[languageSettingsProviderIdsList.size()]);
-//               for (String languageSettingsProviderId : languageSettingsProviderIds) {
-//                  System.err.println("languageSettingsProviderId (after)  = " + languageSettingsProviderId);
-//               }
-//               ICConfigurationDescription newConfig = projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
-//               if (newConfig instanceof ILanguageSettingsProvidersKeeper) {
-//                  ILanguageSettingsProvidersKeeper languageSettingsProvidersKeeper = (ILanguageSettingsProvidersKeeper) newConfig;
-//                  languageSettingsProvidersKeeper.setLanguageSettingProviders(LanguageSettingsManager.createLanguageSettingsProviders(languageSettingsProviderIds));
-//               }
-//               else {
-//                  System.err.println("createCDTProj() - newConfig not instance of ILanguageSettingsProvidersKeeper");
-//               }
-//            }
-//======================================================================
-//======================================================================
