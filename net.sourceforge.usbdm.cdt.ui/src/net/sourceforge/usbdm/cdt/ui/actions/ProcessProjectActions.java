@@ -2,6 +2,10 @@ package net.sourceforge.usbdm.cdt.ui.actions;
 
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.wizard.Wizard;
+
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.ProjectUtilities;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.CreateFolderAction;
@@ -20,17 +24,15 @@ import net.sourceforge.usbdm.packageParser.ProjectVariable;
 import net.sourceforge.usbdm.packageParser.WizardGroup;
 import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
-
 public class ProcessProjectActions {
  
    public static void process(
-         final IProject             projectHandle, 
-         final Device               device, 
-         final ProjectActionList    actionList,
-         final Map<String,String>   variableMap, 
-         final IProgressMonitor     monitor) throws Exception {
+         final Wizard                wizard, 
+         final IProject              projectHandle, 
+         final Device                device, 
+         final ProjectActionList     actionList,
+         final Map<String,String>    variableMap, 
+         final IProgressMonitor      monitor) throws Exception {
 
 //      System.err.println("ProcessProjectActions.process("+device.getName()+") =============================================");
       if (actionList == null) {
@@ -65,13 +67,14 @@ public class ProcessProjectActions {
                   return new Result(projectActionList.appliesTo(device, variableMap)?Status.CONTINUE:Status.PRUNE);
                }
                else if (action instanceof ProjectCustomAction) {
+                  
                   ProjectCustomAction customAction = (ProjectCustomAction) action;
                   Class<?> actionClass = Class.forName(customAction.getclassName());
                   Object clsInstance = actionClass.newInstance();
                   if (!(clsInstance instanceof CustomAction)) {
                      throw new Exception("Custom action does not implement required interface");
                   }
-                  ((CustomAction)clsInstance).action(projectHandle, device, variableMap, monitor, customAction.getValue());
+                  ((CustomAction)clsInstance).action(wizard, projectHandle, device, variableMap, monitor, customAction.getValue());
                }
                else if (action instanceof ProjectConstant) {
                   // Ignore as already added to paramMap

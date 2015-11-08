@@ -540,12 +540,12 @@ public class ModeControl {
    }
 
    /**
-    * Sets whether to use shifts in filed macros
+    * Sets whether to use shifts in field macros
     *  
-    * @param useShiftsInFiledMacros the useShiftsInFiledMacros to set
+    * @param useShiftsInFieldMacros the useShiftsInFiledMacros to set
     */
-   public static void setUseShiftsInFieldMacros(boolean useShiftsInFiledMacros) {
-      ModeControl.useShiftsInFieldMacros = useShiftsInFiledMacros;
+   public static void setUseShiftsInFieldMacros(boolean useShiftsInFieldMacros) {
+      ModeControl.useShiftsInFieldMacros = useShiftsInFieldMacros;
    }
 
    static final String groupPostamble =  

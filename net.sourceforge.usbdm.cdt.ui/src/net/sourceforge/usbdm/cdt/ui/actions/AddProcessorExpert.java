@@ -14,27 +14,28 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.eclipse.ui.wizards.IWizardRegistry;
 
 public class AddProcessorExpert implements CustomAction {
-
    @Override
    public boolean action(
-         IProject             projectHandle, 
-         Device               device, 
-         Map<String, String>  variableMap, 
-         IProgressMonitor     progressMonitor, 
-         String[]             parameters) {
+         final Wizard                 wizard, 
+         final IProject               projectHandle, 
+         final Device                 device, 
+         final Map<String, String>    variableMap, 
+         final IProgressMonitor       progressMonitor, 
+         final String[]               parameters) {
       
-      IWorkbench wb = PlatformUI.getWorkbench();
-      IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-      executePeWizard(win.getShell(), projectHandle);
+      PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+         public void run() {
+            executePeWizard(wizard.getShell(), projectHandle);
+        }
+     });
       return false;
    }
 
@@ -289,6 +290,6 @@ public class AddProcessorExpert implements CustomAction {
          }
       }
       return null;
-   }   
-   
+   }
+
 }

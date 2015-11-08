@@ -863,7 +863,6 @@ public class CreatePinDescription extends DocumentUtilities {
             new Pair("(SCI\\d+).*",             "Serial Communication Interface ($1)"), 
             new Pair("(SDAD)(M|P)\\d+.*",       "Sigma-delta ADC ($1)"), 
             new Pair("(LPUART\\d+).*",          "Low Power UART ($1)"), 
-            new Pair("(USB\\d*).*",             "Universal Serial Bus ($1)"), 
             new Pair("(DAC\\d*).*",             "Digital to Analogue ($1)"), 
             new Pair("(PDB\\d*).*",             "Programmable Delay Block ($1)"), 
             new Pair("(CAN\\d*).*",             "CAN Bus ($1)"), 
@@ -873,11 +872,12 @@ public class CreatePinDescription extends DocumentUtilities {
             new Pair("(SDHC\\d*).*",            "Secured Digital Host Controller ($1)"), 
             new Pair("(CMT\\d*).*",             "Carrier Modulator Transmitter ($1)"), 
             new Pair("(EWM).*",                 "External Watchdog Monitor ($1)"), 
-            new Pair("E?XTAL.*",              "Clock and Timing"),
+            new Pair("E?XTAL.*",                "Clock and Timing"),
             new Pair("(JTAG|SWD|NMI|TRACE|RESET).*",  "Debug and Control"),
-            new Pair(".*(CLK|EXTRG).*",         "Clock and Timing"),
             new Pair("(FB_).*",                 "Flexbus"),
-            
+            new Pair("(FXIO\\d+).*",            "Flexbus ($1)"),
+            new Pair(".*(USB).*",               "Universal Serial Bus"), 
+            new Pair(".*(CLK|EXTRG).*",         "Clock and Timing"),
       };
       
       ArrayList<String> categoryTitles = new ArrayList<String>();

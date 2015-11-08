@@ -261,7 +261,7 @@ class PeripheralFunction {
             new PinDescription("^\\s*(TPM)(\\d+)_CH(\\d+)\\s*$", true),
             new PinDescription("^\\s*(TPM)(\\d+)_(CLKIN\\d+)\\s*$", true),
             new PinDescription("^\\s*(SDHC)(\\d+)_((CLKIN)|(D\\d)|(CMD)|(DCLK))\\s*$", true),
-            new PinDescription("^\\s*(SPI)(\\d+)_(SOUT|SIN|SCK|(PCS(\\d+)?)|MOSI|MISO|SS_B)\\s*$", true),
+            new PinDescription("^\\s*(SPI)(\\d+)_(SOUT|SIN|SCK|SS|(PCS(\\d+)?)|MOSI|MISO|SS_B)\\s*$", true),
             new PinDescription("^\\s*(I2C)(\\d+)_((SDA)|(SCL|4WSCLOUT|4WSDAOUT))\\s*$", true),
             new PinDescription("^\\s*(I2S)(\\d+)_(TX_BCLK|TXD[0-1]|RXD[0-1]|TX_FS|RX_BCLK|MCLK|RX_FS|TXD1)\\s*$", true),
             new PinDescription("^\\s*(LPTMR)(\\d+)_ALT(\\d+)\\s*$", true),
@@ -277,7 +277,7 @@ class PeripheralFunction {
             new PinDescription("^\\s*(TRACE)()_(SWO)\\s*$", true),
             new PinDescription("^\\s*(LLWU)()_P(\\d+)\\s*$", true),
             new PinDescription("^\\s*(NMI)()_[bB]()\\s*$", true),
-            new PinDescription("^\\s*(USB)(\\d*)_(CLKIN|SOF_OUT)\\s*$", true),
+            new PinDescription("^\\s*(USB\\d*)(\\d*)_(CLKIN|SOF_OUT|DP|DM)\\s*$", true),
             new PinDescription("^\\s*(FTM)(\\d+)_(QD_PHA|QD_PHB|FLT2|CLKIN[0-1]|FLT[0-9])\\s*$", true),
             new PinDescription("^\\s*(E?XTAL(?:32K?)?)(\\d*)()\\s*$", true),
             new PinDescription("^\\s*(EWM)()_(IN|OUT_b|OUT)\\s*$", true),
@@ -312,6 +312,8 @@ class PeripheralFunction {
             new PinDescription("^\\s*(LGPIOI)()_(M\\d+)\\s*$", true),
             new PinDescription("^\\s*(SDAD)()((M|P)[0-3])\\s*$", true),
             new PinDescription("^\\s*(FTM|TPM)()_(CLKIN\\d+)\\s*$", true),
+            new PinDescription("^\\s*(FXIO)(\\d+)_(D\\d+)\\s*$", true),
+            new PinDescription("^\\s*(VOUT33|VREGIN)()()\\s*$", true),
       };
       
       PeripheralFunction peripheralFunction = null;

@@ -409,19 +409,15 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
          // Create project
          IProject project = new CDTProjectManager().createCDTProj(fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
-         System.err.println("After createCDTProj");
          // Apply device project options
-         ProcessProjectActions.process(project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
-         System.err.println("After process");
+         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
          
          reindexProject(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
-         System.err.println("After reindexProject");
          
          // Allow indexing
          CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
 
          CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
-         System.err.println("After updateProjectDescriptions");
          
       } catch (Exception e) {
          e.printStackTrace();

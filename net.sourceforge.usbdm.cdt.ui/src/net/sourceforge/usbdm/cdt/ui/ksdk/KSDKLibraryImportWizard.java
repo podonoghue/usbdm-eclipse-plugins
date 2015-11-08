@@ -150,14 +150,14 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
          
          // Apply default device project options
          System.err.println("KSDKLibraryImportWizard.run() - Applying deviceActionLists");
-         ProcessProjectActions.process(project, device, deviceActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
+         ProcessProjectActions.process(this, project, device, deviceActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
          
          // Apply Library options
          System.err.println("KSDKLibraryImportWizard.run() - Getting libraryActionList");
          ProjectActionList libraryActionList = kdsLibraryImportWizardPage.getProjectActionList();
          
          System.err.println("KSDKLibraryImportWizard.run() - Applying libraryActionList");
-         ProcessProjectActions.process(project, device, libraryActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
+         ProcessProjectActions.process(this, project, device, libraryActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
 
          updateConfigurations(project, new SubProgressMonitor(monitor, WORK_SCALE*10));
          

@@ -22,6 +22,9 @@ import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 public class PinMappingValidator extends MyValidator {
 
+   // Bit of a hack - Magic number used to indicate reset value 
+   private final long RESET_MUX_VALUE = -2;
+   
    /**
     * Represents a node that is forcing
     */
@@ -174,6 +177,9 @@ public class PinMappingValidator extends MyValidator {
                if (clash) {
                   update(viewer, targetNode, "Disabled");
                   setValid(viewer, targetNode, new Message("Signal has been mapped to multiple pins: \n" + nodeToUpdate.getForcingNodeNames()));
+                  for (SelectionTag forcingNode:nodeToUpdate.forcingNodes) {
+                     setValid(viewer, forcingNode.controllingNode, new Message("Selection conflicts between: \n" + nodeToUpdate.getForcingNodeNames()));
+                  }
                }
                else {
                   update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
@@ -188,8 +194,9 @@ public class PinMappingValidator extends MyValidator {
 //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
 //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
             if (nodeToUpdate.forcingNodeCount == 0) {
-               update(viewer, targetNode, "Default");
-               setValid(viewer, targetNode, new Message("Pin has not been mapped to a signal\nLeft at reset default", AnnotationModel.Severity.WARNING));
+//               update(viewer, targetNode, "Default");
+               update(viewer, targetNode, RESET_MUX_VALUE);
+               setValid(viewer, targetNode, new Message("Pin has not been mapped to a signal\nSet to default", AnnotationModel.Severity.WARNING));
             }
             else if (nodeToUpdate.forcingNodeCount == 1) {
                update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);
@@ -234,7 +241,6 @@ public class PinMappingValidator extends MyValidator {
                   for (SelectionTag forcingNode:nodeToUpdate.forcingNodes) {
                      setValid(viewer, forcingNode.controllingNode, new Message("Selection conflicts between: \n" + nodeToUpdate.getForcingNodeNames()));
                   }
-
                }
                else {
                   update(viewer, targetNode, nodeToUpdate.forcingNodes.get(0).signalValue);

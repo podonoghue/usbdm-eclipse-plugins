@@ -981,14 +981,20 @@ public class AnnotationModel {
 
       /**
        * Checks if node is valid (not in error state)
+       * Note: This will recurse through child nodes and propagate error severity
        * 
-       * @return
+       * @return Severity level.
        */
       public Severity getErrorState() {
-         if (errorMessage == null) {
-            return Severity.OK;
+         if (errorMessage != null) {
+            return errorMessage.severity;
          }
-         return errorMessage.severity;
+         for (AnnotationModelNode child:children) {
+            if (child.getErrorState() == Severity.ERROR) {
+               return Severity.ERROR;
+            }
+         }
+         return Severity.OK;
       }
 
       /**
