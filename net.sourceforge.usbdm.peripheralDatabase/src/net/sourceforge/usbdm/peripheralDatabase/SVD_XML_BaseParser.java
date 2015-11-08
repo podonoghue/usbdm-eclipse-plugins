@@ -445,6 +445,10 @@ public class SVD_XML_BaseParser {
    protected static Document parseXmlFile(Path path) throws Exception {
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      
+      dbf.setXIncludeAware(true);
+      dbf.setNamespaceAware(true);
+
       DocumentBuilder db = dbf.newDocumentBuilder();
 
       InputStream is  = null;

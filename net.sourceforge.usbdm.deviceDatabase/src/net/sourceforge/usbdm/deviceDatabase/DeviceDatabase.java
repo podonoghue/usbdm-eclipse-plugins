@@ -511,6 +511,10 @@ public class DeviceDatabase {
 
       try {
          //  Using factory get an instance of document builder
+         
+         dbf.setXIncludeAware(true);
+         dbf.setNamespaceAware(true);
+
          DocumentBuilder db = dbf.newDocumentBuilder();
 
          //  Parse using builder to get DOM representation of the XML file

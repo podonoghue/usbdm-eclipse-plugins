@@ -145,6 +145,10 @@ public class PackageParser {
       }
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      
+      dbf.setXIncludeAware(true);
+      dbf.setNamespaceAware(true);
+
       DocumentBuilder        db  = dbf.newDocumentBuilder();
 
       //  Parse using builder to get DOM representation of the XML file
