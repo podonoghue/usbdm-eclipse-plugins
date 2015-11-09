@@ -132,7 +132,7 @@ public abstract class MyValidator {
             try {
 //               System.err.println(String.format("MyValidator.Update(%s,%d)", node.getName(), value));
                node.setErrorMessage(null);
-               if (node.getValueAsLong() != limitedValue) {
+               if (node.safeGetValueAsLong() != limitedValue) {
                   node.setValue(limitedValue);
                }
                refresh(viewer);

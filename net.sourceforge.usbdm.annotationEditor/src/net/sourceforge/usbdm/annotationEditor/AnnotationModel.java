@@ -1435,7 +1435,7 @@ public class AnnotationModel {
       
       @Override
       public String getValueAsString() throws Exception {
-         long value = (Long)getValue();
+         long value = safeGetValueAsLong();
          if ((bitField != null) && (bitField.getStart() == bitField.getEnd())) {
             return String.format("%d", value);
          }
@@ -1452,14 +1452,17 @@ public class AnnotationModel {
       }
 
       public long safeGetValueAsLong() {
-         long value = 0;
          try {
-            value = (Long)getValue();
+            Object value = getValue();
+            if (value instanceof Boolean) {
+               return ((Boolean)value)?1:0;
+            }
+            return (Long)value;
          }
          catch (Exception e) {
             e.printStackTrace();
          }
-         return value;
+         return 0;
       }
 
       /**
