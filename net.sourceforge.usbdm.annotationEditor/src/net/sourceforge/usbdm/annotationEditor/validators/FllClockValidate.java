@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Severity;
+import net.sourceforge.usbdm.annotationEditor.Message;
 import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -47,7 +49,27 @@ public class FllClockValidate extends MyValidator {
       BinaryOptionModelNode  mcg_c2_erefsNode               =  getBinaryModelNode("mcg_c2_erefs0");
       BinaryOptionModelNode  mcg_c4_dmx32Node               =  getBinaryModelNode("mcg_c4_dmx32");
       NumericOptionModelNode mcg_c4_drst_drsNode            =  getNumericModelNode("mcg_c4_drst_drs");
-      
+
+      // For reference on only!
+      NumericOptionModelNode mcg_c7_oscselNode              =  safeGetNumericModelNode("mcg_c7_oscsel");
+
+      // Name of External Reference Clock
+      String system_erc_clock_name = "External clock or crystal";
+      if (mcg_c7_oscselNode != null) {
+         switch ((int)mcg_c7_oscselNode.getValueAsLong()) {
+         case 0: // ERC = OSCCLK
+            break;
+         case 1: // ERC = OSC32KCLK
+            system_erc_clock_name = "RTC External clock or crystal";
+            break;
+         case 2: // ERC = IRC48M
+            system_erc_clock_name = "Internal 48MHz clock";
+            break;
+         default:
+            throw new Exception("Illegal Clock source (mcg_c7_oscsel)");
+         }
+      }
+
       // Main clock used by FLL
       long system_erc_clock = system_erc_clockNode.getValueAsLong();
 
@@ -56,8 +78,8 @@ public class FllClockValidate extends MyValidator {
       //    - Clock range of oscillator
       //    - Affects FLL prescale
       //
-      long   mcg_c2_range         = -1;
-      String mcg_c2_erefs_message = null;
+      long    mcg_c2_range         = -1;
+      Message mcg_c2_erefs_message = null;
 
       if ((system_erc_clock >= FLL_CLOCK_RANGE1_MIN) && (system_erc_clock <= FLL_CLOCK_RANGE1_MAX)) {
          mcg_c2_range = 0;
@@ -69,12 +91,13 @@ public class FllClockValidate extends MyValidator {
          mcg_c2_range = 2;
       }
       if (mcg_c2_range < 0) {
-         if (mcg_c2_erefsNode.safeGetValue()) {
-            // External crystal selected but not suitable frequency
-            mcg_c2_erefs_message = "Frequency of the External Crystal is not suitable for use with the Oscillator\n";
-            mcg_c2_erefs_message += String.format("Permitted ranges [%d-%d], [%d-%d] or [%d-%d]", 
-                  FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX, FLL_CLOCK_RANGE3_MIN, FLL_CLOCK_RANGE3_MAX);
-         }
+         String msgText;
+         // Not suitable frequency fpr FLL
+         msgText = String.format("Frequency of %s (%d) is not suitable for use as FLL input\n", 
+               system_erc_clock_name, system_erc_clock);
+         msgText += String.format("Permitted ranges [%d-%d], [%d-%d] or [%d-%d]", 
+               FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX, FLL_CLOCK_RANGE3_MIN, FLL_CLOCK_RANGE3_MAX);
+         mcg_c2_erefs_message = new Message(msgText, mcg_c2_erefsNode.safeGetValue()?Severity.ERROR:Severity.WARNING);
          // Set compromise value
          if (system_erc_clock <= FLL_CLOCK_RANGE2_MIN) {
             mcg_c2_range = 0;

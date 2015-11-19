@@ -152,6 +152,40 @@ public abstract class MyValidator {
     * @note The node is set valid
     * @note Done delayed on the display thread
     */
+   protected void update(final TreeViewer viewer, final NumericOptionModelNode node, long value, final Message message) {
+      final long limitedValue = node.limitedValue(value);
+      if ((node.safeGetValueAsLong() == limitedValue) && 
+          (((node.getErrorMessage() == null) && (message == null)) || 
+           ((message != null) && (message.message.compareTo(node.getErrorMessage())) == 0))) {
+         // No update needed (after constricting to target range)
+         return;
+      }
+      Display.getDefault().asyncExec(new Runnable () {
+         @Override
+         public void run () {
+            try {
+//               System.err.println(String.format("MyValidator.Update(%s,%d)", node.getName(), value));
+               node.setErrorMessage(message);
+               if (node.safeGetValueAsLong() != limitedValue) {
+                  node.setValue(limitedValue);
+               }
+               refresh(viewer);
+            } catch (Exception e) {
+            }
+         }
+      });
+   }
+
+   /**
+    * Sets the node value & refreshes the viewer
+    * 
+    * @param viewer        Viewer containing the node
+    * @param node          Node to set error message foe
+    * @param value         Node value
+    * 
+    * @note The node is set valid
+    * @note Done delayed on the display thread
+    */
    protected void update(final TreeViewer viewer, final BinaryOptionModelNode node, final boolean value) {
       if (node.safeGetValue() == value) {
          // No update needed
