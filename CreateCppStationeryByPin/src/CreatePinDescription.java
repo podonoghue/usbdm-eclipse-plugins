@@ -201,21 +201,16 @@ public class CreatePinDescription extends DocumentUtilities {
    }
 
    /**
-    * Parses alias information
+    * Parses aliases information and adds to given pin
     * 
-    * @param pinInformation2    Name of pin
-    * @param aliases    Aliases (names separated by '/')
-    * 
-    * @throws Exception
+    * @param pinInformation   Pin to add to
+    * @param aliases          Aliases (names separated by '/')
     */
    private void parseAlias(PinInformation pinInformation, String aliases) throws Exception {
       if ((aliases == null) || (aliases.length() == 0)) {
          return;
       }
       for (String aliasName:aliases.split("/")) {
-         if (pinInformation == null) {
-            throw new Exception("Illegal alias, Pin not found: " + pinInformation);
-         }
          Aliases.addAlias(pinInformation, aliasName);
       }
    }
@@ -312,28 +307,6 @@ public class CreatePinDescription extends DocumentUtilities {
 //      }
    }
 
-//   /**
-//    * Parse line containing Alias value
-//    * 
-//    * @param line
-//    * @throws Exception 
-//    */
-//   private void parseAliasLine(String[] line) throws Exception {
-//      if (!line[0].equals("Alias")) {
-//         return;
-//      }
-//      if (line.length < 3) {
-//         throw new Exception("Illegal Alias Mapping line");
-//      }
-//      String aliasName = line[1];
-//      String pinName   = line[2];
-//      PinInformation pinInformation = PinInformation.find(pinName);
-//      if (pinInformation == null) {
-//         throw new Exception("Illegal alias, Pin not found: " + pinName);
-//      }
-//      Aliases.addAlias(pinInformation, aliasName);
-//   }
-   
    /**
     * Parse line containing ClockReg value
     * 
@@ -393,18 +366,6 @@ public class CreatePinDescription extends DocumentUtilities {
          }
          parsePinLine(line);
       }
-//      for(String[] line:grid) {
-//         if (line.length < 2) {
-//            continue;
-//         }
-//         parseAliasLine(line);
-//      }
-//      for(String[] line:grid) {
-//         if (line.length < 2) {
-//            continue;
-//         }
-//         parseDefaultLine(line);
-//      }
       for(String[] line:grid) {
          if (line.length < 2) {
             continue;
@@ -446,7 +407,6 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
 
-   
    /**
     * Writes code to select which peripheral signal is mapped to a pin
     * e.g.<pre>
@@ -641,11 +601,13 @@ public class CreatePinDescription extends DocumentUtilities {
       
    };
    
+   /** A constant attribute for convenience */
    static final ConstantAttribute   constantAttribute      = new ConstantAttribute();
-   static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
+//   static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
    
    /**
     * Gets pin name with appended list of aliases
+    * 
     * @param pinInformation
     * @return name with aliases e.g. <b><i>PTE0 (Alias:D14)</b></i>
     */
@@ -765,15 +727,6 @@ public class CreatePinDescription extends DocumentUtilities {
                pinName += " (reset default)";
                //            continue;
             }
-
-//       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
-//         String aliases = Aliases.getAliasList(mappingInfo.pin);
-//         if (aliases != null) {
-//            aliases = " (Alias:"+aliases+") ";
-//         }
-//         else {
-//            aliases = "";
-//         }
             String seletionTag = mappingInfo.getFunctionList();
             if (mappingInfo.mux == MuxSelection.Reset) {
                seletionTag += " (reset default)";
@@ -1221,7 +1174,7 @@ public class CreatePinDescription extends DocumentUtilities {
    @SuppressWarnings("unused")
    private boolean deviceIsMKM;
 
-   String makeAndExpression(String value, boolean[] values) {
+   private String makeOrExpression(String value, boolean[] values) {
       StringBuffer sb = new StringBuffer();
       boolean firstValue = true;
       for (int index=0; index<values.length; index++) {
