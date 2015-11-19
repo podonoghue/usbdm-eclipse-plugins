@@ -59,7 +59,7 @@ public class AnnotationParser {
    private final static String CLASS_NAME_GROUP      = "(?<className>\\w[\\w|.]+)";
    private final static String NUMBER_PATTERN        = "(?:\\+|\\-)?(?:0x)?[0-9|a-f|A-F]*";
    private final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
-   private final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*([^,]*)\\s*";
+   private final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*(.+?)\\s*";
    
    private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
    private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
@@ -420,7 +420,7 @@ public class AnnotationParser {
                if (selectionBody == null) {
                   throw new Exception("No selection found \'" + m.group("selection") + "\'");
                }
-               // e.g. <selection=i2c0_sda,2>
+               // e.g. <selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>
                //"(?<selectionName>.*))";
                Pattern p = Pattern.compile(SELECTIONNAME_GROUP);
                Matcher nm = p.matcher(selectionBody);
@@ -613,6 +613,7 @@ public class AnnotationParser {
 //            "<i> hello there */",
             "<selection=GPIOA_1_PIN_SEL,PTA1>",
             "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
+            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
 //            "<1=> this is an enumeration",
 //            "<0x1=> this is an enumeration",
 //            "<-1=> this is an enumeration",

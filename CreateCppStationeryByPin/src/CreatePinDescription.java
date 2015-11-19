@@ -312,27 +312,27 @@ public class CreatePinDescription extends DocumentUtilities {
 //      }
    }
 
-   /**
-    * Parse line containing Alias value
-    * 
-    * @param line
-    * @throws Exception 
-    */
-   private void parseAliasLine(String[] line) throws Exception {
-      if (!line[0].equals("Alias")) {
-         return;
-      }
-      if (line.length < 3) {
-         throw new Exception("Illegal Alias Mapping line");
-      }
-      String aliasName = line[1];
-      String pinName   = line[2];
-      PinInformation pinInformation = PinInformation.find(pinName);
-      if (pinInformation == null) {
-         throw new Exception("Illegal alias, Pin not found: " + pinName);
-      }
-      Aliases.addAlias(pinInformation, aliasName);
-   }
+//   /**
+//    * Parse line containing Alias value
+//    * 
+//    * @param line
+//    * @throws Exception 
+//    */
+//   private void parseAliasLine(String[] line) throws Exception {
+//      if (!line[0].equals("Alias")) {
+//         return;
+//      }
+//      if (line.length < 3) {
+//         throw new Exception("Illegal Alias Mapping line");
+//      }
+//      String aliasName = line[1];
+//      String pinName   = line[2];
+//      PinInformation pinInformation = PinInformation.find(pinName);
+//      if (pinInformation == null) {
+//         throw new Exception("Illegal alias, Pin not found: " + pinName);
+//      }
+//      Aliases.addAlias(pinInformation, aliasName);
+//   }
    
    /**
     * Parse line containing ClockReg value
@@ -393,12 +393,12 @@ public class CreatePinDescription extends DocumentUtilities {
          }
          parsePinLine(line);
       }
-      for(String[] line:grid) {
-         if (line.length < 2) {
-            continue;
-         }
-         parseAliasLine(line);
-      }
+//      for(String[] line:grid) {
+//         if (line.length < 2) {
+//            continue;
+//         }
+//         parseAliasLine(line);
+//      }
 //      for(String[] line:grid) {
 //         if (line.length < 2) {
 //            continue;
@@ -495,7 +495,7 @@ public class CreatePinDescription extends DocumentUtilities {
          }
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
-         ArrayList<SelectionAttribute> selectionAttribute = new ArrayList<SelectionAttribute>();
+//         ArrayList<SelectionAttribute> selectionAttribute = new ArrayList<SelectionAttribute>();
          name.append(mInfo.getFunctionList());
 //         if (debug) {
 //            System.err.println("Checking " + mInfo.functions);
@@ -504,9 +504,9 @@ public class CreatePinDescription extends DocumentUtilities {
             defaultSelection = selection;
 //            System.err.println("Found " + mInfo.functions);
          }
-         for (PeripheralFunction function:mInfo.functions) {
-            selectionAttribute.add(new SelectionAttribute(function.getName()+"_PIN_SEL", pinInformation.getName()));
-         }
+//         for (PeripheralFunction function:mInfo.functions) {
+//            selectionAttribute.add(new SelectionAttribute(function.getName()+"_PIN_SEL", getPinNameWithAlias(pinInformation)));
+//         }
          if (alternativeHint.length() != 0) {
             alternativeHint.append(", ");
          }
@@ -539,7 +539,7 @@ public class CreatePinDescription extends DocumentUtilities {
          ArrayList<SelectionAttribute> selectionAttribute = new ArrayList<SelectionAttribute>();
          name.append(mInfo.getFunctionList());
          for (PeripheralFunction fn:mInfo.functions) {
-            String targetName = pinInformation.getName();
+            String targetName = getPinNameWithAlias(pinInformation);
             if (selection == MuxSelection.Reset) {
                targetName += " (reset default)";
             }
@@ -645,6 +645,20 @@ public class CreatePinDescription extends DocumentUtilities {
    static final ConstantAttribute[] constantAttributeArray = {constantAttribute};
    
    /**
+    * Gets pin name with appended list of aliases
+    * @param pinInformation
+    * @return name with aliases e.g. <b><i>PTE0 (Alias:D14)</b></i>
+    */
+   private String getPinNameWithAlias(PinInformation pinInformation) {
+      String pinName = pinInformation.getName();
+      String aliases = Aliases.getAliasList(pinInformation);
+      if (aliases != null) {
+         pinName += " (Alias:"+aliases+")";
+      }
+      return pinName;
+   }
+   
+   /**
     * Writes code to select which pin a peripheral function is mapped to
     *  
     * @param writer     Header file to write result
@@ -743,14 +757,15 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       else {
          for (MappingInfo mappingInfo:mappingInfos) {
-            String pinName = mappingInfo.pin.getName();
             if (mappingInfo.mux == MuxSelection.Disabled) {
                continue;
             }
+            String pinName = getPinNameWithAlias(mappingInfo.pin);
             if (mappingInfo.mux == MuxSelection.Reset) {
                pinName += " (reset default)";
-//               continue;
+               //            continue;
             }
+
 //       String name = mappedPeripheral.function.getName() + " (" + Integer.toString(selection) + ")";
 //         String aliases = Aliases.getAliasList(mappingInfo.pin);
 //         if (aliases != null) {
