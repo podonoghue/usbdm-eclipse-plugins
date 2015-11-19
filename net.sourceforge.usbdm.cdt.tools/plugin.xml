@@ -563,7 +563,7 @@
                category="net.sourceforge.usbdm.cdt.toolchain.cppAssembler.preprocess.Category"
                command="-U"
                resourceFilter="all"
-               valueType="definedSymbols">
+               valueType="undefDefinedSymbols">
             </option>
             <optionCategory
                name="Includes"
