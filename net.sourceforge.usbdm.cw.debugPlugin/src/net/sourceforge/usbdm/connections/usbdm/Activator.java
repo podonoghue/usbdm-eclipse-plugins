@@ -45,7 +45,7 @@ public class Activator extends AbstractUIPlugin {
 	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
-		System.err.println("USBDM-Activator::stop()");
+      System.err.println("net.sourceforge.usbdm.connections.usbdm.Activator.stop()");
 		plugin = null;
 		super.stop(context);
 	}

@@ -108,6 +108,8 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
 		Activator.context = null;
+      System.err.println("net.sourceforge.usbdm.constants.Activator.stop()");
+		super.stop(bundleContext);
 	}
 
 	/**

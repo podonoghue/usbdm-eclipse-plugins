@@ -28,5 +28,6 @@ public class Activator implements BundleActivator {
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
 		context = null;
+      System.err.println("net.sourceforge.usbdm.jni.Activator.stop()");
 	}
 }

@@ -35,6 +35,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
+		System.err.println("net.sourceforge.usbdm.cdt.ui.Activator.stop()");
 		super.stop(context);
 	}
 

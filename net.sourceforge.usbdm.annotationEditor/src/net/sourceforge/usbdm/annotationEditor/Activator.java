@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.annotationEditor;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -14,7 +15,7 @@ import org.osgi.framework.BundleContext;
  */
 public class Activator extends AbstractUIPlugin {
 
-	// The plug-in ID
+   // The plug-in ID
 	public static final String PLUGIN_ID = "net.sourceforge.usbdm.annotationEditor"; //$NON-NLS-1$
 
 	// The shared instance
@@ -41,6 +42,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
+		System.err.println("net.sourceforge.usbdm.annotationEditor.Activator.stop()");
 		super.stop(context);
 	}
 
