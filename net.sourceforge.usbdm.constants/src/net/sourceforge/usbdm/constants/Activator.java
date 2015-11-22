@@ -32,6 +32,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
 		Activator.context = bundleContext;
+      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
 		try {
          loadUsbdmPaths();
       } catch (Exception e) {
@@ -108,7 +109,7 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
 		Activator.context = null;
-      System.err.println("net.sourceforge.usbdm.constants.Activator.stop()");
+      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
 		super.stop(bundleContext);
 	}
 

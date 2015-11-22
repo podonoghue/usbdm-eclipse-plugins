@@ -1,5 +1,10 @@
 import java.util.ArrayList;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.CustomReg;
 import net.sourceforge.usbdm.jni.Usbdm.ExtendedOptions;
@@ -10,11 +15,6 @@ import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 import net.sourceforge.usbdm.jni.UsbdmException;
-
-import org.eclipse.swt.*;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 
 public class UsbdmJniPluginTest {
 
@@ -252,14 +252,20 @@ public class UsbdmJniPluginTest {
       try {
          listEnvironment();
 
+//         CustomClassLoader ccl = new CustomClassLoader();
+//         
+//         Class<?> ca = ccl.findClass("net.sourceforge.usbdm.jni.Usbdm");
+//         Object a = ca.newInstance();
+//         ccl = null;
+//         System.gc();
 
          // Print USBDM paths
          System.err.println("Application Path : " + Usbdm.getApplicationPath().toOSString());
          System.err.println("Resource Path    : " + Usbdm.getResourcePath().toOSString());
          System.err.println("Data Path        : " + Usbdm.getDataPath().toOSString());
 
-         //         listDevices();
-
+//         listDevices();
+         
          // Get count of devices (creates internal list)
          int deviceCount = Usbdm.findDevices();
          if (deviceCount == 0) {
@@ -274,6 +280,7 @@ public class UsbdmJniPluginTest {
 
          //         testCFV1();
          testKinetis();
+         Usbdm.close();
 
       } catch (Exception e) {
          e.printStackTrace();
@@ -286,7 +293,7 @@ public class UsbdmJniPluginTest {
          }
       }
       finally {
-         Usbdm.close();
+         Usbdm.exit();
          if (errorMessage != null) {
             Shell shell;
             // Find the default display and get the active shell

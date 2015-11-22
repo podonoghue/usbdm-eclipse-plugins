@@ -22,9 +22,6 @@ public class Usbdm {
       Usbdm.open(deviceNum);
    }
    
-   // Manually set to use debug version of DLLs
-   private static Boolean debug = true;
-   
    /**
     *  Class describing the USBDM interface version & capabilities
     */
@@ -1283,6 +1280,13 @@ public class Usbdm {
      }
   }
   
+  /**
+   * Close down the USBDM JNI interface
+   */
+  public static void exit() {
+     usbdmExit();
+  }
+  
    /**
     * Get error string for given erro number
     * 
@@ -1436,21 +1440,21 @@ public class Usbdm {
       public String toString() {
          return "  Description   = "+deviceDescription+";\n" +
          	    "  Serial Number = "+deviceSerialNumber+";\n" +
-         		"  Information   = \n"+bdmInfo.toString();
+         		 "  Information   = \n"+bdmInfo.toString();
       }
    };
 
-   final static String win_x86_libraries_debug[] = {
-      "x86/libgcc_s_dw2-1",
-      "x86/libstdc++-6",
-      "x86/usbdm-debug.4",
-      "x86/usbdm-jni-debug.4",
+   final static String win_i386_libraries_debug[] = {
+      "i386/libgcc_s_dw2-1",
+      "i386/libstdc++-6",
+      "i386/usbdm-debug.4",
+      "i386/usbdm-jni-debug.4",
    };
-   final static String win_x86_libraries[] = {
-      "x86/libgcc_s_dw2-1",
-      "x86/libstdc++-6",
-      "x86/usbdm.4",
-      "x86/usbdm-jni.4",
+   final static String win_i386_libraries[] = {
+      "i386/libgcc_s_dw2-1",
+      "i386/libstdc++-6",
+      "i386/usbdm.4",
+      "i386/usbdm-jni.4",
    };
    final static String win_x86_64_libraries_debug[] = {
       "x86_64/libwinpthread-1",
@@ -1467,10 +1471,10 @@ public class Usbdm {
       "x86_64/usbdm-jni.4",
    };
    // Note: linux name should not have 'lib' prefix or '.so' suffix
-   final static String linux_x86_libraries_debug[] = {
+   final static String linux_i386_libraries_debug[] = {
       "usbdm-jni-debug",
    };
-   final static String linux_x86_libraries[] = {
+   final static String linux_i386_libraries[] = {
       "usbdm-jni",
    };
    final static String linux_x86_64_libraries_debug[] = {
@@ -1480,121 +1484,130 @@ public class Usbdm {
       "usbdm-jni",
    };
    
-   final static class LibraryLoader {
-      public LibraryLoader() {
-         if (libraryLoaded) {
-            return;
-            }
-         try {
-        	 
-        	 //String property = System.getProperty("java.library.path");
-        	 //StringTokenizer parser = new StringTokenizer(property, ":");
-        	 //while (parser.hasMoreTokens()) {
-        	 //    System.err.println(parser.nextToken());
-        	 //    }
-        	 
-            String os    = System.getProperty("os.name");            
-            String arch  = System.getProperty("os.arch");            
-            String jvm   = System.getProperty("java.vm.name");
-            System.err.println("os.name      => "+os );
-            System.err.println("java.vm.name => "+jvm );
-            System.err.println("os.arch      => "+arch );
-            String libraryList[];
-            if ((os != null) && os.toUpperCase().contains("LINUX")) {
-               if (arch.toLowerCase().contains("amd64")) {
-                  if (debug) {
-                     libraryList = linux_x86_64_libraries_debug;
-                  }
-                  else {
-                     libraryList = linux_x86_64_libraries;
-                  }
+   /**
+    * Load the USBDM JNI library
+    * 
+    * @param debug True to load debug version of DLLs
+    */
+   public static void loadUsbdmLibraries(final Boolean debug) {
+      if (libraryLoaded) {
+         return;
+      }
+      try {
+
+         //String property = System.getProperty("java.library.path");
+         //StringTokenizer parser = new StringTokenizer(property, ":");
+         //while (parser.hasMoreTokens()) {
+         //    System.err.println(parser.nextToken());
+         //    }
+
+         String os    = System.getProperty("os.name");            
+         String arch  = System.getProperty("os.arch");            
+         String jvm   = System.getProperty("java.vm.name");
+         System.err.println("os.name      => "+os );
+         System.err.println("java.vm.name => "+jvm );
+         System.err.println("os.arch      => "+arch );
+         String libraryList[];
+         if ((os != null) && os.toUpperCase().contains("LINUX")) {
+            if (arch.toLowerCase().contains("amd64")) {
+               if (debug) {
+                  libraryList = linux_x86_64_libraries_debug;
                }
                else {
-                  // Running 32-bit VM
-                  if (debug) {
-                     libraryList = linux_x86_libraries_debug;
-                  }
-                  else {
-                     libraryList = linux_x86_libraries;
-                  }
+                  libraryList = linux_x86_64_libraries;
                }
             }
             else {
-               if (arch.toLowerCase().contains("amd64")) {
-                  if (debug) {
-                     libraryList = win_x86_64_libraries_debug;
-                  }
-                  else {
-                     libraryList = win_x86_64_libraries;
-                  }
-               }
-               else { // amd64
-                  // Running 32-bit VM
-                  if (debug) {
-                     libraryList = win_x86_libraries_debug;
-                  }
-                  else {
-                     libraryList = win_x86_libraries;
-                  }
-               }
-            }
-            for (String libraryName : libraryList) {
-               System.err.println("Loading library name = " + libraryName);
-               System.loadLibrary(libraryName);
-            }
-            usbdmInit();
-            libraryLoaded = true;
-//            System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-
-//            System.err.println("Libraries successfully loaded");
-//            Shell shell;
-//            // Find the default display and get the active shell
-//            final Display disp = Display.getDefault();
-//            if (disp == null) {
-//               shell = new Shell(new Display());
-//            }
-//            else {
-//               shell = new Shell(disp);
-//            }
-//            MessageBox msgbox = new MessageBox(shell, SWT.OK);
-//            msgbox.setText("USBDM Notice");
-//            msgbox.setMessage("Loading of USBDM native library OK.");
-//            msgbox.open();
-
-         } catch (Error e) {
-             e.printStackTrace();
-             String reason = e.getMessage();
-            // Report fist failure only
-            if (!libraryLoadFailed) {
-               Shell shell;
-               // Find the default display and get the active shell
-               final Display disp = Display.getDefault();
-               if (disp == null) {
-                  shell = new Shell(new Display());
+               // Assume running 32-bit VM
+               if (debug) {
+                  libraryList = linux_i386_libraries_debug;
                }
                else {
-                  shell = new Shell(disp);
-               }
-               libraryLoadFailed = true;
-               MessageBox msgbox = new MessageBox(shell, SWT.OK);
-               msgbox.setText("USBDM Error");
-               msgbox.setMessage("Loading of USBDM native library failed.\n" + reason);
-               msgbox.open();
-               e.printStackTrace();
-               try {
-                  throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
-               } catch (UsbdmException e1) {
-                  e1.printStackTrace();
+                  libraryList = linux_i386_libraries;
                }
             }
-            System.err.println("USBDM Libraries failed to load");
-            return;
          }
+         else {
+            if (arch.toLowerCase().contains("amd64")) {
+               if (debug) {
+                  libraryList = win_x86_64_libraries_debug;
+               }
+               else {
+                  libraryList = win_x86_64_libraries;
+               }
+            }
+            else { // amd64
+               // Assume running 32-bit VM
+               if (debug) {
+                  libraryList = win_i386_libraries_debug;
+               }
+               else {
+                  libraryList = win_i386_libraries;
+               }
+            }
+         }
+         for (String libraryName : libraryList) {
+            System.err.println("Loading library name = " + libraryName);
+            System.loadLibrary(libraryName);
+         }
+         usbdmInit();
+         libraryLoaded = true;
+         //            System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+
+         //            System.err.println("Libraries successfully loaded");
+         //            Shell shell;
+         //            // Find the default display and get the active shell
+         //            final Display disp = Display.getDefault();
+         //            if (disp == null) {
+         //               shell = new Shell(new Display());
+         //            }
+         //            else {
+         //               shell = new Shell(disp);
+         //            }
+         //            MessageBox msgbox = new MessageBox(shell, SWT.OK);
+         //            msgbox.setText("USBDM Notice");
+         //            msgbox.setMessage("Loading of USBDM native library OK.");
+         //            msgbox.open();
+
+      } catch (Error e) {
+         e.printStackTrace();
+         String reason = e.getMessage();
+         // Report first failure only
+         if (!libraryLoadFailed) {
+            Shell shell;
+            // Find the default display and get the active shell
+            final Display disp = Display.getDefault();
+            if (disp == null) {
+               shell = new Shell(new Display());
+            }
+            else {
+               shell = new Shell(disp);
+            }
+            libraryLoadFailed = true;
+            MessageBox msgbox = new MessageBox(shell, SWT.OK);
+            msgbox.setText("USBDM Error");
+            msgbox.setMessage("Loading of USBDM native library failed.\n" + reason);
+            msgbox.open();
+            e.printStackTrace();
+            try {
+               throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
+            } catch (UsbdmException e1) {
+               e1.printStackTrace();
+            }
+         }
+         System.err.println("USBDM Libraries failed to load");
+         return;
       }
    }
    
-   private static LibraryLoader  library = new LibraryLoader();
-
+   /*
+    * Load USBDM DLLs 
+    */
+   static {
+      // TO DO - change to non-debug version
+      loadUsbdmLibraries(false);
+   }
+   
    /**
     * Get list of devices
     * 

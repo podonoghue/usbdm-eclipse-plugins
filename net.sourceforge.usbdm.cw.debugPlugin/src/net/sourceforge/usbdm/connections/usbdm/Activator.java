@@ -19,7 +19,6 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
-		System.err.println("Activator::Activator()");
 	}
 
 	/*
@@ -32,9 +31,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		System.err.println("USBDM-Activator::start() - "
-				+ getDefault().getBundle().getSymbolicName() + " : "
-				+ getDefault().getBundle().getVersion());
+      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
 	}
 
 	/*
@@ -45,7 +42,7 @@ public class Activator extends AbstractUIPlugin {
 	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
-      System.err.println("net.sourceforge.usbdm.connections.usbdm.Activator.stop()");
+      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
 		plugin = null;
 		super.stop(context);
 	}
@@ -56,7 +53,6 @@ public class Activator extends AbstractUIPlugin {
 	 * @return the shared instance
 	 */
 	public static Activator getDefault() {
-//		System.err.println("USBDM-Activator::getDefault()");
 		return plugin;
 	}
 

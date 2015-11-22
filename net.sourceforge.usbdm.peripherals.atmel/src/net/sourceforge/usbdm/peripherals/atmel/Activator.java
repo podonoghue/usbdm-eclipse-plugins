@@ -22,6 +22,7 @@ public class Activator implements BundleActivator {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
 		context = bundleContext;
+      System.err.println(String.format("[%s].start()", "net.sourceforge.usbdm.peripherals.atmel.Activator"));
 	}
 
 	/*
@@ -30,6 +31,7 @@ public class Activator implements BundleActivator {
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
 		context = null;
+      System.err.println(String.format("[%s].stop()", "net.sourceforge.usbdm.peripherals.atmel.Activator"));
 	}
 
 }

@@ -40,6 +40,7 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
+      System.err.println("net.sourceforge.usbdm.gdb.UsbdmGdbServer.start()");
 //      System.err.println("USBDM::Activator::start() - "
 //            + getDefault().getBundle().getSymbolicName() + " : "
 //            + getDefault().getBundle().getVersion());
@@ -53,6 +54,7 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
     * )
     */
    public void stop(BundleContext context) throws Exception {
+      System.err.println("net.sourceforge.usbdm.gdb.UsbdmGdbServer.stop()");
 //      System.err.println("USBDM::Activator::stop()");
       plugin = null;
       super.stop(context);

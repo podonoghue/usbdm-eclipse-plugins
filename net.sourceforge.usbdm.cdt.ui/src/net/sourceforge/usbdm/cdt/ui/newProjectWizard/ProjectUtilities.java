@@ -6,23 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.CreateFolderAction;
-import net.sourceforge.usbdm.packageParser.ExcludeAction;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.CModelException;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.model.IPathEntry;
-import org.eclipse.cdt.core.settings.model.CIncludePathEntry;
 import org.eclipse.cdt.core.settings.model.CSourceEntry;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
-import org.eclipse.cdt.core.settings.model.ICFolderDescription;
-import org.eclipse.cdt.core.settings.model.ICLanguageSetting;
-import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
-import org.eclipse.cdt.core.settings.model.ICSettingEntry;
 import org.eclipse.cdt.core.settings.model.ICSourceEntry;
 import org.eclipse.cdt.core.settings.model.WriteAccessException;
 import org.eclipse.cdt.core.settings.model.util.CDataUtil;
@@ -40,6 +31,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.packageParser.CreateFolderAction;
+import net.sourceforge.usbdm.packageParser.ExcludeAction;
 
 public class ProjectUtilities {
    

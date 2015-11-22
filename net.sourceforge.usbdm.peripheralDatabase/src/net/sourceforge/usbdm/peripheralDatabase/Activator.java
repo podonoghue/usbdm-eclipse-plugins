@@ -22,6 +22,7 @@ public class Activator implements BundleActivator {
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
 		Activator.context = bundleContext;
+      System.err.println(String.format("[%s].start()", "net.sourceforge.usbdm.peripheralDatabase.Activator"));
 	}
 
 	/*
@@ -30,7 +31,7 @@ public class Activator implements BundleActivator {
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
 		Activator.context = null;
-      System.err.println("net.sourceforge.usbdm.peripheralDatabase.Activator.stop()");
+      System.err.println(String.format("[%s].stop()", "net.sourceforge.usbdm.peripheralDatabase.Activator"));
 	}
 
 }

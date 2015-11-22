@@ -1,33 +1,39 @@
 package net.sourceforge.usbdm.jni;
 
-import org.osgi.framework.BundleActivator;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
  * @since 4.12
  */
-public class Activator implements BundleActivator {
+public class Activator extends AbstractUIPlugin {
 
-	private static BundleContext context;
+   private static BundleContext context;
 
-	static BundleContext getContext() {
-		return context;
-	}
+   static BundleContext getContext() {
+      return context;
+   }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		context = bundleContext;
-	}
+   /*
+    * (non-Javadoc)
+    * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+    */
+   @Override
+   public void start(BundleContext bundleContext) throws Exception {
+      super.start(bundleContext);
+      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      context = bundleContext;
+   }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	public void stop(BundleContext bundleContext) throws Exception {
-		context = null;
-      System.err.println("net.sourceforge.usbdm.jni.Activator.stop()");
-	}
+   /*
+    * (non-Javadoc)
+    * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+    */
+   @Override
+   public void stop(BundleContext bundleContext) throws Exception {
+      context = null;
+      Usbdm.exit();
+      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      super.stop(bundleContext);
+   }
 }

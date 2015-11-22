@@ -1174,6 +1174,7 @@ public class CreatePinDescription extends DocumentUtilities {
    @SuppressWarnings("unused")
    private boolean deviceIsMKM;
 
+   @SuppressWarnings("unused")
    private String makeOrExpression(String value, boolean[] values) {
       StringBuffer sb = new StringBuffer();
       boolean firstValue = true;

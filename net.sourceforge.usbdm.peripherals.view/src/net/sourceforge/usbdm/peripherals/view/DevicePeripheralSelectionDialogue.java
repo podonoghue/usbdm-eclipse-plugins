@@ -359,7 +359,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
     */
    @Override
    protected Point getInitialSize() {
-     return new Point(650, 400);
+     return new Point(800, 400);
    }
    
    /**

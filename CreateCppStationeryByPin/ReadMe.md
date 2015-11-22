@@ -1,2 +1,2 @@
 # CreateCppStationeryByPin 
-The code produces CPP stationery for various microcontroller peripherals
+The code produces pin mapping and peripheral controls for various microcontrollers
