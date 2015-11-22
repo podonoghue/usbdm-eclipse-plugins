@@ -50,8 +50,8 @@ class WriterForDigitalIO extends InstanceWriter {
    @Override
    public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
 
-      String instance         = mappingInfo.functions.get(0).fPeripheral.fInstance;
-      String signal           = mappingInfo.functions.get(0).fSignal;
+      String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+      String signal           = mappingInfo.functions.get(fnIndex).fSignal;
       String instanceName     = getInstanceName(mappingInfo, fnIndex); // e.g. digitalIO_PTA0
       String gpioInstance     = String.format("GPIO%s,", instance);                       // GPIOx,
       String gpioInstanceMKE  = String.format("(volatile GPIO_Type*)GPIO%s,", instance);  // (volatile GPIO_Type*)GPIOx,

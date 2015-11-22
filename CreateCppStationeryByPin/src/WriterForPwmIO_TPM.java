@@ -42,8 +42,8 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    @Override
    public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
 
-      String instance         = mappingInfo.functions.get(0).fPeripheral.fInstance;
-      String signal           = mappingInfo.functions.get(0).fSignal;
+      String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+      String signal           = mappingInfo.functions.get(fnIndex).fSignal;
       String muxValue         = Integer.toString(mappingInfo.mux.value);
 
       String instanceName     = getInstanceName(mappingInfo, fnIndex);                  // pwmIO_PTA0
