@@ -1016,13 +1016,13 @@
                <enumeratedOptionValue
                      command="-std=c99"
                      id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c99"
-                     isDefault="true"
                      name="ISO C99 (-std=c99)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="ISO C11, the 2011 revision of the ISO C standard (-std=c11)"
-                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c11"
-                  command="-std=c11">
+                     command="-std=c11"
+                     id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.c11"
+                     isDefault="true"
+                     name="ISO C11, the 2011 revision of the ISO C standard (-std=c11)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="GNU dialect of ISO C90 (-std=gnu90)"
@@ -1450,7 +1450,6 @@
                <enumeratedOptionValue
                      command="-std=c++98"
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp98"
-                     isDefault="true"
                      name="1998 ISO C++ standard plus amendments (-std=c++98)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
@@ -1459,9 +1458,10 @@
                   command="-std=gnu++98">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="2011 ISO C++ standard plus amendments (-std=c++11)"
-                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp11"
-                  command="-std=c++11">
+                     command="-std=c++11"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp11"
+                     isDefault="true"
+                     name="2011 ISO C++ standard plus amendments (-std=c++11)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
                   name="GNU dialect of C++11 (-std=gnu++11)"
