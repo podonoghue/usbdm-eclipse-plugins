@@ -29,11 +29,7 @@ class WriterForDigitalIO extends InstanceWriter {
    /** 
     * Write DigitalIO template instantiation e.g. 
     * <pre>
-    * const DigitalIO&lt;PORT<b><i>A</b></i>_CLOCK_MASK, PORT<b><i>A</b></i>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</b></i>]), GPIO<b><i>A</b></i>_BasePtr, (1<<<b><i>0</b></i>)> digitalIO_<b><i>PTA0</i></b>; 
-    * </pre>
-    * or for MKE devices
-    * <pre>
-    * const DigitalIO digitalIO_<b><i>PTA17</i></b> = {(volatile GPIO_Type*)GPIO<b><i>A</i></b>),(1UL<<<b><i>17</i></b>)};
+    * extern const Port<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
@@ -42,21 +38,29 @@ class WriterForDigitalIO extends InstanceWriter {
     */
    @Override
    public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      cppFile.write("extern ");
+      writeDefinition(mappingInfo, fnIndex, cppFile);
+   }
+
+   /** 
+    * Write DigitalIO template instantiation e.g. 
+    * <pre>
+    * const Port<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param cppFile        Where to write
+    * 
+    * @throws IOException
+    */
+   @Override
+   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
 
       String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal           = mappingInfo.functions.get(fnIndex).fSignal;
-      String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. digitalIO_PTA0
-      String gpioBitMask      = String.format("(1UL<<%s)", signal);                       // (1UL<<n)
+      String classRef         = CreatePinDescription.NAME_SPACE + "::" + "Port" + instance +"_T<"+signal+">";
+      String classDef         = "digitalIO_PT" + instance + signal + ";";
+      String comment          = "//!< See @ref DigitalIO";
+      cppFile.write(String.format("const %-19s %-20s %s\n", classRef, classDef, comment));
       
-      String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
-      
-      cppFile.write(String.format("const DigitalIO<%s ", pcrInit));
-      cppFile.write(String.format("GPIO%s_BasePtr, ", instance));
-      cppFile.write(String.format("%-9s", gpioBitMask));
-      cppFile.write(String.format("> %s;\n", instanceName));
-   }
-
-   @Override
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
    }
 }

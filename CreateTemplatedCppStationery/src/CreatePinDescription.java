@@ -55,6 +55,9 @@ public class CreatePinDescription extends DocumentUtilities {
    /** PORT clock enable register varies with port */
    private boolean  portClockRegisterChanged      = false;
 
+   /** Name for namespace to use */
+   public static final String NAME_SPACE = "USBDM";
+   
    public static class NameAttribute implements WizardAttribute {
       private String fName;
       
@@ -397,22 +400,22 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writePinDefines(BufferedWriter headerFile) throws Exception {
       if (adcFunctionMuxValueChanged) {
-         writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", "Indicates ADC Multiplexing varies with pin");
+         writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), "Fixed ADC Multiplexing value");
+         writeMacroDefinition(headerFile, "FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
       }
       if (gpioFunctionMuxValueChanged) {
-         writeMacroDefinition(headerFile, "GPIO_FN_CHANGES", "", "Indicates GPIO Multiplexing varies with pin");
+         writeMacroDefinition(headerFile, "GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), "Fixed GPIO Multiplexing value");
+         writeMacroDefinition(headerFile, "FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
       }
       if (portClockRegisterChanged) {
-         writeMacroDefinition(headerFile, "PORT_CLOCK_REG_CHANGES", "", "Indicates PORT Clock varies with pin");
+         writeMacroDefinition(headerFile, "PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, "Fixed PORT Clock");
+         writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
       }
    }
 
@@ -1227,7 +1230,7 @@ public class CreatePinDescription extends DocumentUtilities {
       if (aliasList != null) {
          String instanceName = template.instanceWriter.getInstanceName(mappedFunction, fnIndex);
          for (String alias:aliasList.aliasList) {
-            writeMacroDefinition(gpioHeaderFile, template.instanceWriter.getAliasName(alias), instanceName);
+            writeMacroDefinition(gpioHeaderFile, template.instanceWriter.getAliasName(alias), instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
          }
       }
       if (guardWritten) {
@@ -1277,11 +1280,12 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writeGpioHeaderFile(BufferedWriter gpioHeaderFile) throws Exception {
       writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", gpioHeaderFileName, VERSION, "Pin declarations for "+deviceName);
+      writeSystemHeaderFileInclude(gpioHeaderFile, "stddef.h");
       writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
       writeHeaderFileInclude(gpioHeaderFile, "pin_mapping.h");
       writeHeaderFileInclude(gpioHeaderFile, "gpio_defs.h");
       gpioHeaderFile.write("\n");
-      writeOpenNamespace(gpioHeaderFile, "USBDM");
+      writeOpenNamespace(gpioHeaderFile, NAME_SPACE);
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          boolean groupDone = false;
          for (String pinName:PinInformation.getPinNames()) {
@@ -1342,7 +1346,7 @@ public class CreatePinDescription extends DocumentUtilities {
          gpioHeaderFile.write(String.format("%-10s %-12s %-10s\n", peripheral.fName,  peripheral.fClockReg, peripheral.fClockMask));
       }
       gpioHeaderFile.write("*/\n\n");
-      writeCloseNamespace(gpioHeaderFile, "USBDM");
+      writeCloseNamespace(gpioHeaderFile, NAME_SPACE);
       writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
    }
 
@@ -1372,7 +1376,7 @@ public class CreatePinDescription extends DocumentUtilities {
             String instance = m.replaceAll("$1");
             String signal   = m.replaceAll("$2");
             cppFile.write(String.format("#if defined(%s_SIG_SEL) && (%s_SIG_SEL>=0)\n", pinName, pinName));
-            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, instance, signal));
+            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|%s::DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, NAME_SPACE, instance, signal));
             cppFile.write(String.format("#endif\n"));
          }
       }
@@ -1396,7 +1400,7 @@ public class CreatePinDescription extends DocumentUtilities {
             String basename = m.replaceAll("$1");
             if (!basename.equals(currentBasename)) {
                if (!firstExpression) {
-                  cppFile.write(String.format("\n\n   FIXED_PORT_CLOCK_REG |= SIM_SCGC5_PORT%s_MASK;\n", instance));
+                  cppFile.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
                   cppFile.write("#endif\n\n");
                }
                currentBasename = basename;
@@ -1411,7 +1415,7 @@ public class CreatePinDescription extends DocumentUtilities {
          }
       }
       if (!firstExpression) {
-         cppFile.write(String.format("\n\n   FIXED_PORT_CLOCK_REG |= SIM_SCGC5_PORT%s_MASK;\n", instance));
+         cppFile.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
          cppFile.write("\n#endif\n");
       }
   
@@ -1468,7 +1472,6 @@ public class CreatePinDescription extends DocumentUtilities {
    private void writeGpioCppFile(BufferedWriter cppFile) throws Exception {
       String description = "Pin declarations for " + deviceName;
       writeCppFilePreable(cppFile, gpioBaseFileName+".cpp", gpioCppFileName, description);
-      writeHeaderFileInclude(cppFile, "utilities.h");
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");

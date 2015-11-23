@@ -25,11 +25,11 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    /** 
     * Write AnalogueIO template instantiation e.g. 
     * <pre>
-    * AnalogueIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * extern const AnalogueIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
     * </pre>
     * or, if no PCR
     * <pre>
-    * AnalogueIOT&lt;0, 0, ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * extern const AnalogueIOT&lt;0, 0, ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param suffix         Used to create a unique name when multiple ADC are mappable to the same pin
@@ -39,13 +39,34 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     */
    @Override
    public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      cppFile.write("extern ");
+      writeDefinition(mappingInfo, fnIndex, cppFile);
+   }
+   
+   /** 
+    * Write AnalogueIO template instantiation e.g. 
+    * <pre>
+    * const AnalogueIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * or, if no PCR
+    * <pre>
+    * const AnalogueIOT&lt;0, 0, ADC<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, ADC<b><i>1</i></b>_CLOCK_REG), ADC<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> analogueIO_ADC<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param suffix         Used to create a unique name when multiple ADC are mappable to the same pin
+    * @param cppFile        Where to write
+    * 
+    * @throws IOException
+    */
+   @Override
+   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
 
       String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal           = mappingInfo.functions.get(fnIndex).fSignal;
       String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. analogueIO_PTE1
       String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      cppFile.write(String.format("const AnalogueIOT<"));
+      cppFile.write(String.format("const %s::AnalogueIOT<", CreatePinDescription.NAME_SPACE));
       cppFile.write(String.format("%-44s ", pcrInit));
       cppFile.write(String.format("ADC%s_BasePtr, ", instance));
       cppFile.write(String.format("SIM_BasePtr+offsetof(SIM_Type, ADC%s_CLOCK_REG),", instance));

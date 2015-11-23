@@ -15,7 +15,7 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
 //      return CLASS_NAME+mappingInfo.pin.getName(); // e.g. pwmIO_PTA0;
-      return CLASS_NAME+mappingInfo.functions.get(fnIndex).getName(); // e.g. pwmIO_FTM0_CH1
+      return CLASS_NAME+mappingInfo.functions.get(fnIndex).getName(); // e.g. pwmIO_TPM0_CH1
    }
 
    @Override
@@ -23,14 +23,50 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
       return CLASS_NAME+alias;
    }
 
+   /** 
+    * Write PwmIOT template instantiation e.g. 
+    * <pre>
+    * extern const PwmIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), TPM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, TPM<b><i>1</i></b>_CLOCK_REG), TPM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * or, if no PCR
+    * <pre>
+    * extern const PwmIOT&lt;0, 0, TPM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, TPM<b><i>1</i></b>_CLOCK_REG), TPM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param suffix         Used to create a unique name when multiple TPM are mappable to the same pin
+    * @param cppFile        Where to write
+    * 
+    * @throws IOException
+    */
    @Override
    public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      cppFile.write("extern ");
+      writeDefinition(mappingInfo, fnIndex, cppFile);
+   }
+   
+   /** 
+    * Write PwmIOT template instantiation e.g. 
+    * <pre>
+    * const PwmIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), TPM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, TPM<b><i>1</i></b>_CLOCK_REG), TPM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * or, if no PCR
+    * <pre>
+    * const PwmIOT&lt;0, 0, TPM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, TPM<b><i>1</i></b>_CLOCK_REG), TPM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param suffix         Used to create a unique name when multiple TPM are mappable to the same pin
+    * @param cppFile        Where to write
+    * 
+    * @throws IOException
+    */
+   @Override
+   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
       String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal           = mappingInfo.functions.get(fnIndex).fSignal;
       String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. analogueIO_PTE1
       String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      cppFile.write(String.format("const PwmIOT<"));
+      cppFile.write(String.format("const %s::PwmIOT<", CreatePinDescription.NAME_SPACE));
       cppFile.write(String.format("%-44s ", pcrInit));
       cppFile.write(String.format("TPM%s_BasePtr, ", instance));
       cppFile.write(String.format("SIM_BasePtr+offsetof(SIM_Type, TPM%s_CLOCK_REG), ", instance));
