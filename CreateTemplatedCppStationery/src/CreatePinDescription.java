@@ -57,6 +57,11 @@ public class CreatePinDescription extends DocumentUtilities {
 
    /** Name for namespace to use */
    public static final String NAME_SPACE = "USBDM";
+
+   /** Name used to protect Namespace usage */
+   public static final String NAMESPACES_GUARD_STRING = "USBDM_USE_NAMESPACES";
+
+   HashSet<String> macroAliases;
    
    public static class NameAttribute implements WizardAttribute {
       private String fName;
@@ -1042,16 +1047,25 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writeGpioWizard(BufferedWriter headerFile) throws IOException {
 //      writeWizardSectionOpen(headerFile, "GPIO Options");
+//      writeWizardBinaryOptionSelectionPreamble(headerFile, 
+//            String.format("Inline port functions\n//"), 
+//            0,
+//            false,
+//            String.format("Force inline port functions"),
+//            String.format("Forces some small GPIO functions to be inlined\n"+
+//                          "This increases speed but may also increase code size"));
+//      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
+//      writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
+//      writeMacroDefinition(headerFile, "DO_INLINE_GPIO", "0");
       writeWizardBinaryOptionSelectionPreamble(headerFile, 
-            String.format("Inline port functions\n//"), 
+            String.format("Use USBDM namespace\n//"), 
             0,
             false,
-            String.format("Force inline port functions"),
-            String.format("Forces some small GPIO functions to be inlined\n"+
-                          "This increases speed but may also increase code size"));
+            String.format("Place CPP objects in the USBDM namespace"),
+            String.format("This will require us of \"using namespace USBDM\" directive"));
       writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
       writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
-      writeMacroDefinition(headerFile, "DO_INLINE_GPIO", "0");
+      writeMacroDefinition(headerFile, NAMESPACES_GUARD_STRING, "0");
       headerFile.write("\n");
 //      writeWizardSectionClose(headerFile);
    }
@@ -1230,7 +1244,11 @@ public class CreatePinDescription extends DocumentUtilities {
       if (aliasList != null) {
          String instanceName = template.instanceWriter.getInstanceName(mappedFunction, fnIndex);
          for (String alias:aliasList.aliasList) {
-            writeMacroDefinition(gpioHeaderFile, template.instanceWriter.getAliasName(alias), instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
+            String aliasName = template.instanceWriter.getAliasName(alias);
+            if (!macroAliases.add(aliasName)) {
+               gpioHeaderFile.write("//");
+            }
+            writeMacroDefinition(gpioHeaderFile, aliasName, instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
          }
       }
       if (guardWritten) {
@@ -1475,8 +1493,38 @@ public class CreatePinDescription extends DocumentUtilities {
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
+
+      writeOpenNamespace(cppFile, NAME_SPACE);
+      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
+         for (String pinName:PinInformation.getPinNames()) {
+            PinInformation                     pinInfo         = PinInformation.find(pinName);
+            HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
+            if (mappedFunctions == null) {
+               continue;
+            }
+            for (MuxSelection muxSelection:mappedFunctions.keySet()) {
+               if (muxSelection == MuxSelection.Reset) {
+                  continue;
+               }
+               MappingInfo mappedFunction = mappedFunctions.get(muxSelection);
+               for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
+                  PeripheralFunction function = mappedFunction.functions.get(fnIndex);
+                  if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
+                     boolean guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, mappedFunction, cppFile);
+                     pinTemplate.instanceWriter.writeDefinition(mappedFunction, fnIndex, cppFile);
+                     if (guardWritten) {
+                        writeConditionalEnd(cppFile);
+                     }
+//                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
+//                     System.err.println("Matches");
+                  }
+               }
+            }
+         }
+      }
       writePinMappingFunction(cppFile);
       writeCppFilePostAmple();
+      writeCloseNamespace(cppFile, NAME_SPACE);
    }
 
    /**
@@ -1492,6 +1540,7 @@ public class CreatePinDescription extends DocumentUtilities {
       Aliases.reset();
       Peripheral.reset();
       
+      macroAliases = new HashSet<String>();
       deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");
       deviceIsMKL = deviceName.startsWith("MKL");

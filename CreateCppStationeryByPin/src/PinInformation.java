@@ -137,6 +137,18 @@ public class PinInformation {
    }
    
    /**
+    * Get PCR register e.g. PORTA->PCR[3]
+    * 
+    * @return
+    */
+   public String getPCRasInt() {
+      if (fPortInstance == null) {
+         return "0";
+      }
+      return String.format("PORT%s_BasePtr+offsetof(PORT_Type,PCR[%s])", fPortInstance, fPortPin);
+   }
+   
+   /**
     * Get clock mask e.g. PORTA_CLOCK_MASK
     * 
     * @return

@@ -242,7 +242,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeOpenNamespace(BufferedWriter writer, String namespace) throws IOException {
-      writeConditionalStart(writer, "defined(USE_USBDM_NAMESPACE) && USE_USBDM_NAMESPACE");
+      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
       writer.write(String.format("namespace %s {\n", namespace));
       writeConditionalEnd(writer);
    }
@@ -259,7 +259,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeCloseNamespace(BufferedWriter writer, String namespace) throws IOException {
-      writeConditionalStart(writer, "defined(USE_USBDM_NAMESPACE) && USE_USBDM_NAMESPACE");
+      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
       writer.write(String.format("} // End namespace %s\n", namespace));
       writeConditionalEnd(writer);
    }

@@ -41,7 +41,7 @@ class FunctionTemplateInformation {
    }
 
    /**
-    * Get PCR initialisation string for given pin e.g.
+    * Get PCR initialisation string for given pin e.g. for <b><i>PTB4</b></i>
     * <pre>
     * {&PORT<b><i>A</b></i>->PCR[<b><i>0</b></i>], PORT<b><i>A</b></i>_CLOCK_MASK}
     * </pre>

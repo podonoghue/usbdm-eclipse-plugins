@@ -203,6 +203,21 @@ public class DocumentUtilities {
    /**
     * Write header file include e.g.
     * <pre><code>
+    *  #include &lt;<i><b>fileName</i></b>&gt;
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param fileName   Filename to use in #include directive
+    * 
+    * @throws IOException
+    */
+   void writeSystemHeaderFileInclude(BufferedWriter writer, String fileName) throws IOException {
+      writer.write(String.format("#include <%s>\n", fileName));
+   }
+
+   /**
+    * Write header file include e.g.
+    * <pre><code>
     *  #include "<i><b>fileName</i></b>"
     * </code></pre>
     * 
@@ -213,6 +228,40 @@ public class DocumentUtilities {
     */
    void writeHeaderFileInclude(BufferedWriter writer, String fileName) throws IOException {
       writer.write(String.format("#include \"%s\"\n", fileName));
+   }
+
+   /**
+    * Write namespace open
+    * <pre><code>
+    *  namespace "<i><b>USBDM</i></b>" {
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param namespace  Namespace to use
+    * 
+    * @throws IOException
+    */
+   void writeOpenNamespace(BufferedWriter writer, String namespace) throws IOException {
+      writeConditionalStart(writer, "defined(USE_USBDM_NAMESPACE) && USE_USBDM_NAMESPACE");
+      writer.write(String.format("namespace %s {\n", namespace));
+      writeConditionalEnd(writer);
+   }
+
+   /**
+    * Write namespace close
+    * <pre><code>
+    *  } // End "<i><b>USBDM</i></b>"
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param namespace  Namespace to use
+    * 
+    * @throws IOException
+    */
+   void writeCloseNamespace(BufferedWriter writer, String namespace) throws IOException {
+      writeConditionalStart(writer, "defined(USE_USBDM_NAMESPACE) && USE_USBDM_NAMESPACE");
+      writer.write(String.format("} // End namespace %s\n", namespace));
+      writeConditionalEnd(writer);
    }
 
    /**
@@ -546,7 +595,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeMacroDefinition(BufferedWriter writer, String name, String value, String comment) throws IOException {
-      final String defineTemplate = "#define %-20s %-20s // %s\n";
+      final String defineTemplate = "#define %-24s %-20s //%s\n";
       writer.write(String.format(defineTemplate, name, value, comment));
    }
    

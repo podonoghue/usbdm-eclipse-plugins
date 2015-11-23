@@ -55,6 +55,9 @@ public class CreatePinDescription extends DocumentUtilities {
    /** PORT clock enable register varies with port */
    private boolean  portClockRegisterChanged      = false;
 
+   /** Name for namespace to use */
+   public static final String NAME_SPACE = "USBDM";
+   
    public static class NameAttribute implements WizardAttribute {
       private String fName;
       
@@ -322,6 +325,7 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       String peripheralName       = line[1];
       String peripheralClockReg   = line[2];
+      
       String peripheralClockMask;
       if (line.length < 4) {
          peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
@@ -388,22 +392,22 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writePinDefines(BufferedWriter headerFile) throws Exception {
       if (adcFunctionMuxValueChanged) {
-         writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", "Indicates ADC Multiplexing varies with pin");
+         writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), "Fixed ADC Multiplexing value");
+         writeMacroDefinition(headerFile, "FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
       }
       if (gpioFunctionMuxValueChanged) {
-         writeMacroDefinition(headerFile, "GPIO_FN_CHANGES", "", "Indicates GPIO Multiplexing varies with pin");
+         writeMacroDefinition(headerFile, "GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), "Fixed GPIO Multiplexing value");
+         writeMacroDefinition(headerFile, "FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
       }
       if (portClockRegisterChanged) {
-         writeMacroDefinition(headerFile, "PORT_CLOCK_REG_CHANGES", "", "Indicates PORT Clock varies with pin");
+         writeMacroDefinition(headerFile, "PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
       }
       else {
-         writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, "Fixed PORT Clock");
+         writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
       }
    }
 
