@@ -14,8 +14,9 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-//      return CLASS_NAME+mappingInfo.pin.getName(); // e.g. pwmIO_PTA0;
-      return CLASS_NAME+mappingInfo.functions.get(fnIndex).getName(); // e.g. pwmIO_FTM0_CH1
+      String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+
+      return "ftm"+instance+"_ch"+mappingInfo.functions.get(fnIndex).fSignal; // e.g. ftm3_ch2
    }
 
    @Override
@@ -67,13 +68,10 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
       String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. analogueIO_PTE1
       String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      cppFile.write(String.format("const %s::PwmIOT<", CreatePinDescription.NAME_SPACE));
+      cppFile.write(String.format("const %s::Ftm%s<", CreatePinDescription.NAME_SPACE, instance));
       cppFile.write(String.format("%-44s ", pcrInit));
-      cppFile.write(String.format("FTM%s_BasePtr, ", instance));
-      cppFile.write(String.format("SIM_BasePtr+offsetof(SIM_Type, FTM%s_CLOCK_REG), ", instance));
-      cppFile.write(String.format("FTM%s_CLOCK_MASK, ", instance));
-      cppFile.write(String.format("%-3s", signal+","));
-      cppFile.write(String.format("%3s", mappingInfo.mux.value+">"));
+      cppFile.write(String.format("%3s  ", mappingInfo.mux.value+","));
+      cppFile.write(String.format("%-4s", signal+">"));
       cppFile.write(String.format(" %s;\n", instanceName));
    }
 }

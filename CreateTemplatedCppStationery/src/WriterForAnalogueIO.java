@@ -14,8 +14,10 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
+      String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+
       //         return CLASS_NAME+mappingInfo.pin.getName(); // e.g. analogueIO_PTA0;
-      return CLASS_NAME+mappingInfo.functions.get(fnIndex).getName(); // e.g. analogueIO_PTA0
+      return "adc"+instance+"_se"+mappingInfo.functions.get(fnIndex).fSignal; // e.g. analogueIO_PTA0
    }
 
    @Override
@@ -66,11 +68,8 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
       String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. analogueIO_PTE1
       String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      cppFile.write(String.format("const %s::AnalogueIOT<", CreatePinDescription.NAME_SPACE));
+      cppFile.write(String.format("const %s::Adc%s<", CreatePinDescription.NAME_SPACE, instance));
       cppFile.write(String.format("%-44s ", pcrInit));
-      cppFile.write(String.format("ADC%s_BasePtr, ", instance));
-      cppFile.write(String.format("SIM_BasePtr+offsetof(SIM_Type, ADC%s_CLOCK_REG),", instance));
-      cppFile.write(String.format("ADC%s_CLOCK_MASK,", instance));
       cppFile.write(String.format("%3s", signal+">"));
       cppFile.write(String.format(" %s;\n", instanceName));
    }

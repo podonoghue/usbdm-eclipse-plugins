@@ -18,7 +18,9 @@ class WriterForDigitalIO extends InstanceWriter {
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      return CLASS_NAME+mappingInfo.pin.getName(); // e.g. digitalIO_PTA0;
+      String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+
+      return "gpio"+instance+"_"+mappingInfo.functions.get(fnIndex).fSignal; // e.g. ftm3_ch2
    }
 
    @Override
@@ -29,7 +31,7 @@ class WriterForDigitalIO extends InstanceWriter {
    /** 
     * Write DigitalIO template instantiation e.g. 
     * <pre>
-    * extern const Port<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
+    * extern const Gpio<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
@@ -45,7 +47,7 @@ class WriterForDigitalIO extends InstanceWriter {
    /** 
     * Write DigitalIO template instantiation e.g. 
     * <pre>
-    * const Port<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
+    * const Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
@@ -57,9 +59,9 @@ class WriterForDigitalIO extends InstanceWriter {
 
       String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal           = mappingInfo.functions.get(fnIndex).fSignal;
-      String classRef         = CreatePinDescription.NAME_SPACE + "::" + "Port" + instance +"_T<"+signal+">";
-      String classDef         = "digitalIO_PT" + instance + signal + ";";
-      String comment          = "//!< See @ref DigitalIO";
+      String classRef         = CreatePinDescription.NAME_SPACE + "::" + "Gpio" + instance +"<"+signal+">";
+      String classDef         = "gpio" + instance + "_" + signal + ";";
+      String comment          = "//!< See @ref " + CreatePinDescription.NAME_SPACE + "::DigitalIOT";
       cppFile.write(String.format("const %-19s %-20s %s\n", classRef, classDef, comment));
       
    }
