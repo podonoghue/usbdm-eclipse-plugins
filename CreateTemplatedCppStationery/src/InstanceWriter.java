@@ -38,20 +38,20 @@ abstract class InstanceWriter {
    }
 
    /**
-    * Get instance name e.g. digitalIO_<b><i>PTA0</b></i>
+    * Get instance name e.g. <b><i>gpioA_0</b></i>
     * 
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
     * 
-    * @return  String e.g. digitalIO_<b><i>PTA0</b></i>
+    * @return  String 
     */
    public abstract String getInstanceName(MappingInfo mappingInfo, int fnIndex);
    
    /** 
-    * Write component definition e.g. 
+    * Write alias definition e.g. 
     * <pre>
-    * const DigitalIO digitalIO_<b><i>PTA0</b></i>  = {{&PORT<b><i>A</b></i>->PCR[<b><i>0</b></i>],   PORT<b><i>A</b></i>_CLOCK_MASK}, GPIO<b><i>A</b></i>,  (1UL<<<b><i>0</b></i>)};
+    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>     <b><i>alias</b></i>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
@@ -59,12 +59,49 @@ abstract class InstanceWriter {
     * 
     * @throws IOException
     */
-   public abstract void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException;
+   public void writeAlias(String alias, MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      cppFile.write(String.format("%-25s %s\n", getDeclaration(mappingInfo, fnIndex), alias+";"));
+   }
+
+   /** 
+    * Get declaration as string e.g. 
+    * <pre>
+    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> 
+    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>
+    * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>>
+    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param cppFile        Where to write
+    * @throws IOException 
+    */
+   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException;
+
+   /** 
+    * Write component definition e.g. 
+    * <pre>
+    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> gpio<b><i>A</b></i>_<b><i>0</b></i>;
+    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>> adc<b><i>0</i></b>_se<b><i>19</i></b>;
+    * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> adc<b><i>1</i></b>_se<b><i>17</i></b>;
+    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
+    * </pre>
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param fnIndex        Index into list of functions mapped to pin
+    * @param cppFile        Where to write
+    * 
+    * @throws IOException
+    */
+   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      writeAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex, cppFile);
+   }
    
    /** 
     * Write component declaration e.g. 
     * <pre>
-    * extern const DigitalIO digitalIO_<b><i>PTA0</b></i>;
+    * extern const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> gpio<b><i>A</b></i>_<b><i>0</b></i>;
+    * extern const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>> adc<b><i>0</i></b>_se<b><i>19</i></b>
+    * extern const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> adc<b><i>1</i></b>_se<b><i>17</i></b>;
+    * extern const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
     * </pre>
     * @param mappingInfo   Mapping information (pin and peripheral function)
     * @param fnIndex       Index into list of functions mapped to pin
@@ -72,14 +109,17 @@ abstract class InstanceWriter {
     * 
     * @throws IOException
     */
-   public abstract void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException;
+   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+      cppFile.write("extern ");
+      writeDefinition(mappingInfo, fnIndex, cppFile);
+   }
 
    /**
     * Get alias name based on the given alias
     * 
-    * @param alias   Alias name e.g. <b><i>A5</b></i>
+    * @param alias   Base for alias name e.g. <b><i>A5</b></i>
     * 
-    * @return Alias name e.g. digitalIO_<b><i>A5</b></i>
+    * @return Alias name e.g. gpio_<b><i>A5</b></i>
     */
    public abstract String getAliasName(String alias);
 }

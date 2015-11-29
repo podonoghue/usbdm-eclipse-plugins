@@ -1,4 +1,3 @@
-import java.io.BufferedWriter;
 import java.io.IOException;
 
 /**
@@ -6,72 +5,52 @@ import java.io.IOException;
  */
 class WriterForPwmIO_FTM extends WriterForDigitalIO {
 
-   static final String CLASS_NAME = "pwmIO_";
+   static final String ALIAS_BASE_NAME       = "ftm_";
+   static final String CLASS_BASE_NAME       = "Ftm";
+   static final String INSTANCE_BASE_NAME    = "ftm";
    
    public WriterForPwmIO_FTM(boolean deviceIsMKE) {
       super(deviceIsMKE, true);
    }
+   
+   /* (non-Javadoc)
+    * @see WriterForDigitalIO#getAliasName(java.lang.String)
+    */
+   @Override
+   public String getAliasName(String alias) {
+      return ALIAS_BASE_NAME+alias;
+   }
 
+   /* (non-Javadoc)
+    * @see WriterForDigitalIO#getInstanceName(MappingInfo, int)
+    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-
-      return "ftm"+instance+"_ch"+mappingInfo.functions.get(fnIndex).fSignal; // e.g. ftm3_ch2
-   }
-
-   @Override
-   public String getAliasName(String alias) {
-      return CLASS_NAME+alias;
+      String signal   = mappingInfo.functions.get(fnIndex).fSignal;
+      return INSTANCE_BASE_NAME+instance+"_ch"+signal;
    }
 
    /** 
-    * Write PwmIOT template instantiation e.g. 
+    * Get declaration as string e.g. 
     * <pre>
-    * extern const PwmIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), FTM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, FTM<b><i>1</i></b>_CLOCK_REG), FTM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
-    * </pre>
-    * or, if no PCR
-    * <pre>
-    * extern const PwmIOT&lt;0, 0, FTM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, FTM<b><i>1</i></b>_CLOCK_REG), FTM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
+    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param suffix         Used to create a unique name when multiple FTM are mappable to the same pin
-    * @param cppFile        Where to write
+    * @param fnIndex        Index into list of functions mapped to pin
     * 
     * @throws IOException
     */
-   @Override
-   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-      cppFile.write("extern ");
-      writeDefinition(mappingInfo, fnIndex, cppFile);
-   }
-   
-   /** 
-    * Write PwmIOT template instantiation e.g. 
-    * <pre>
-    * const PwmIOT&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type, PCR[<b><i>0</i></b>]), FTM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, FTM<b><i>1</i></b>_CLOCK_REG), FTM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
-    * </pre>
-    * or, if no PCR
-    * <pre>
-    * const PwmIOT&lt;0, 0, FTM<b><i>1</i></b>_BasePtr, SIM_BasePtr+offsetof(SIM_Type, FTM<b><i>1</i></b>_CLOCK_REG), FTM<b><i>1</i></b>_CLOCK_MASK, <i><b>17</i></b>> PwmIOT<b><i>1</i></b>_SE<b><i>17</i></b>;
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param suffix         Used to create a unique name when multiple FTM are mappable to the same pin
-    * @param cppFile        Where to write
-    * 
-    * @throws IOException
-    */
-   @Override
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-
-      String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal           = mappingInfo.functions.get(fnIndex).fSignal;
-      String instanceName     = getInstanceName(mappingInfo, fnIndex);                    // e.g. analogueIO_PTE1
-      String pcrInit          = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
+      String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+      String signal    = mappingInfo.functions.get(fnIndex).fSignal;
+      String pcrInit   = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      cppFile.write(String.format("const %s::Ftm%s<", CreatePinDescription.NAME_SPACE, instance));
-      cppFile.write(String.format("%-44s ", pcrInit));
-      cppFile.write(String.format("%3s  ", mappingInfo.mux.value+","));
-      cppFile.write(String.format("%-4s", signal+">"));
-      cppFile.write(String.format(" %s;\n", instanceName));
+      StringBuffer sb = new StringBuffer();
+      sb.append(String.format("const %s::%s%s<", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance));
+      sb.append(String.format("%-44s ", pcrInit));
+      sb.append(String.format("%3s  ", mappingInfo.mux.value+","));
+      sb.append(String.format("%-4s", signal+">"));
+      return sb.toString();
    }
 }

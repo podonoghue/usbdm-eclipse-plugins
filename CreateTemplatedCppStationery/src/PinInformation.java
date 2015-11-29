@@ -137,6 +137,15 @@ public class PinInformation {
    }
    
    /**
+    * Get Gpio class declaration e.g. GpioA<3>
+    * 
+    * @return
+    */
+   public String getGpioClass() {
+      return String.format("Gpio%s<%s>", fPortInstance, fPortPin);
+   }
+   
+   /**
     * Get PCR register e.g. PORTA->PCR[3]
     * 
     * @return

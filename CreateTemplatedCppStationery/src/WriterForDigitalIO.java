@@ -1,4 +1,3 @@
-import java.io.BufferedWriter;
 import java.io.IOException;
 
 /**
@@ -6,7 +5,9 @@ import java.io.IOException;
  */
 class WriterForDigitalIO extends InstanceWriter {
 
-   static final String CLASS_NAME = "digitalIO_";
+   static final String ALIAS_BASE_NAME       = "gpio_";
+   static final String CLASS_BASE_NAME       = "Gpio";
+   static final String INSTANCE_BASE_NAME    = "gpio";
    
    public WriterForDigitalIO(boolean deviceIsMKE) {
       super(deviceIsMKE, false);
@@ -15,54 +16,38 @@ class WriterForDigitalIO extends InstanceWriter {
    public WriterForDigitalIO(boolean deviceIsMKE, boolean useGuard) {
       super(deviceIsMKE, useGuard);
    }
+   
+   /* (non-Javadoc)
+    * @see InstanceWriter#getAliasName(java.lang.String)
+    */
+   @Override
+   public String getAliasName(String alias) {
+      return ALIAS_BASE_NAME+alias;
+   }
 
+   /* (non-Javadoc)
+    * @see InstanceWriter#getInstanceName(MappingInfo, int)
+    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-
-      return "gpio"+instance+"_"+mappingInfo.functions.get(fnIndex).fSignal; // e.g. ftm3_ch2
-   }
-
-   @Override
-   public String getAliasName(String alias) {
-      return CLASS_NAME+alias;
+      String signal   = mappingInfo.functions.get(fnIndex).fSignal;
+      return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
    /** 
-    * Write DigitalIO template instantiation e.g. 
+    * Get declaration as string e.g. 
     * <pre>
-    * extern const Gpio<b><i>A</b></i>_T&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
+    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
     * 
     * @throws IOException
     */
-   @Override
-   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-      cppFile.write("extern ");
-      writeDefinition(mappingInfo, fnIndex, cppFile);
-   }
-
-   /** 
-    * Write DigitalIO template instantiation e.g. 
-    * <pre>
-    * const Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;  digitalIO_PT<b><i>A0</b></i>;
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    * 
-    * @throws IOException
-    */
-   @Override
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-
-      String instance         = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal           = mappingInfo.functions.get(fnIndex).fSignal;
-      String classRef         = CreatePinDescription.NAME_SPACE + "::" + "Gpio" + instance +"<"+signal+">";
-      String classDef         = "gpio" + instance + "_" + signal + ";";
-      String comment          = "//!< See @ref " + CreatePinDescription.NAME_SPACE + "::DigitalIOT";
-      cppFile.write(String.format("const %-19s %-20s %s\n", classRef, classDef, comment));
-      
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
+      String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+      String signal    = mappingInfo.functions.get(fnIndex).fSignal;
+      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"<"+signal+">";
    }
 }

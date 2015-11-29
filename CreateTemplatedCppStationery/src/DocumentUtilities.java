@@ -242,9 +242,9 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeOpenNamespace(BufferedWriter writer, String namespace) throws IOException {
-      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
+//      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
       writer.write(String.format("namespace %s {\n", namespace));
-      writeConditionalEnd(writer);
+//      writeConditionalEnd(writer);
    }
 
    /**
@@ -259,9 +259,9 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeCloseNamespace(BufferedWriter writer, String namespace) throws IOException {
-      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
+//      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
       writer.write(String.format("} // End namespace %s\n", namespace));
-      writeConditionalEnd(writer);
+//      writeConditionalEnd(writer);
    }
 
    /**

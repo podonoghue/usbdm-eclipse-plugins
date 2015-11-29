@@ -782,7 +782,8 @@ public class CreatePinDescription extends DocumentUtilities {
                writeMacroDefinition(writer, function.getName()+"_FN",   "0");
             }
             else {
-               writeMacroDefinition(writer, function.getName()+"_GPIO", "digitalIO_"+mappingInfo.pin.getName());
+//               writeMacroDefinition(writer, function.getName()+"_GPIO", String.format("Gpio%s<%s>", mappingInfo.pin.getName(), 0));
+               writeMacroDefinition(writer, function.getName()+"_GPIO", NAME_SPACE+"::"+mappingInfo.pin.getGpioClass());
                writeMacroDefinition(writer, function.getName()+"_FN", Integer.toString(mappingInfo.mux.value));
             }
             selection++;
@@ -1057,16 +1058,17 @@ public class CreatePinDescription extends DocumentUtilities {
 //      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
 //      writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
 //      writeMacroDefinition(headerFile, "DO_INLINE_GPIO", "0");
-      writeWizardBinaryOptionSelectionPreamble(headerFile, 
-            String.format("Use USBDM namespace\n//"), 
-            0,
-            false,
-            String.format("Place CPP objects in the USBDM namespace"),
-            String.format("This will require us of \"using namespace USBDM\" directive"));
-      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-      writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
-      writeMacroDefinition(headerFile, NAMESPACES_GUARD_STRING, "0");
-      headerFile.write("\n");
+      
+//      writeWizardBinaryOptionSelectionPreamble(headerFile, 
+//            String.format("Use USBDM namespace\n//"), 
+//            0,
+//            false,
+//            String.format("Place CPP objects in the USBDM namespace"),
+//            String.format("This will require us of \"using namespace USBDM\" directive"));
+//      writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
+//      writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
+//      writeMacroDefinition(headerFile, NAMESPACES_GUARD_STRING, "0");
+//      headerFile.write("\n");
 //      writeWizardSectionClose(headerFile);
    }
 
@@ -1238,17 +1240,17 @@ public class CreatePinDescription extends DocumentUtilities {
 
       boolean guardWritten = writeFunctionSelectionGuardMacro(template, mappedFunction, gpioHeaderFile);
 
-      template.instanceWriter.writeDeclaration(mappedFunction, fnIndex, gpioHeaderFile);
+      template.instanceWriter.writeDefinition(mappedFunction, fnIndex, gpioHeaderFile);
       
       Aliases aliasList = Aliases.getAlias(mappedFunction.pin);
       if (aliasList != null) {
-         String instanceName = template.instanceWriter.getInstanceName(mappedFunction, fnIndex);
          for (String alias:aliasList.aliasList) {
             String aliasName = template.instanceWriter.getAliasName(alias);
             if (!macroAliases.add(aliasName)) {
                gpioHeaderFile.write("//");
             }
-            writeMacroDefinition(gpioHeaderFile, aliasName, instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
+            template.instanceWriter.writeAlias(aliasName, mappedFunction, fnIndex, gpioHeaderFile);
+//            writeMacroDefinition(gpioHeaderFile, aliasName, NAME_SPACE+"::"+instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
          }
       }
       if (guardWritten) {
@@ -1495,33 +1497,33 @@ public class CreatePinDescription extends DocumentUtilities {
       cppFile.write("\n");
 
       writeOpenNamespace(cppFile, NAME_SPACE);
-      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
-         for (String pinName:PinInformation.getPinNames()) {
-            PinInformation                     pinInfo         = PinInformation.find(pinName);
-            HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
-            if (mappedFunctions == null) {
-               continue;
-            }
-            for (MuxSelection muxSelection:mappedFunctions.keySet()) {
-               if (muxSelection == MuxSelection.Reset) {
-                  continue;
-               }
-               MappingInfo mappedFunction = mappedFunctions.get(muxSelection);
-               for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
-                  PeripheralFunction function = mappedFunction.functions.get(fnIndex);
-                  if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
-                     boolean guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, mappedFunction, cppFile);
-                     pinTemplate.instanceWriter.writeDefinition(mappedFunction, fnIndex, cppFile);
-                     if (guardWritten) {
-                        writeConditionalEnd(cppFile);
-                     }
-//                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
-//                     System.err.println("Matches");
-                  }
-               }
-            }
-         }
-      }
+//      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
+//         for (String pinName:PinInformation.getPinNames()) {
+//            PinInformation                     pinInfo         = PinInformation.find(pinName);
+//            HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
+//            if (mappedFunctions == null) {
+//               continue;
+//            }
+//            for (MuxSelection muxSelection:mappedFunctions.keySet()) {
+//               if (muxSelection == MuxSelection.Reset) {
+//                  continue;
+//               }
+//               MappingInfo mappedFunction = mappedFunctions.get(muxSelection);
+//               for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
+//                  PeripheralFunction function = mappedFunction.functions.get(fnIndex);
+//                  if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
+//                     boolean guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, mappedFunction, cppFile);
+//                     pinTemplate.instanceWriter.writeDefinition(mappedFunction, fnIndex, cppFile);
+//                     if (guardWritten) {
+//                        writeConditionalEnd(cppFile);
+//                     }
+////                     System.err.println(String.format("N:%s, P:%s", x.getName(), pinTemplate.matchPattern.toString()));
+////                     System.err.println("Matches");
+//                  }
+//               }
+//            }
+//         }
+//      }
       writePinMappingFunction(cppFile);
       writeCppFilePostAmple();
       writeCloseNamespace(cppFile, NAME_SPACE);
