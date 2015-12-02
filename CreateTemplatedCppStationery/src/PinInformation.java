@@ -152,7 +152,7 @@ public class PinInformation {
     */
    public String getPCRasInt() {
       if (fPortInstance == null) {
-         return "0";
+         return null;
       }
       return String.format("PORT%s_BasePtr+offsetof(PORT_Type,PCR[%s])", fPortInstance, fPortPin);
    }
@@ -164,7 +164,7 @@ public class PinInformation {
     */
    public String getClockMask() {
       if (fPortInstance == null) {
-         return "0";
+         return null;
       }
       return String.format("PORT%s_CLOCK_MASK", fPortInstance);
    }

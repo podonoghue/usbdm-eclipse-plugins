@@ -1,7 +1,13 @@
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
+ */
+/**
+ * @author podonoghue
+ *
  */
 class WriterForAnalogueIO extends WriterForDigitalIO {      
 
@@ -34,26 +40,74 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    /** 
     * Get declaration as string e.g. 
     * <pre>
-    * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>>          
-    * </pre>
-    * or, if no PCR
-    * <pre>
-    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>
+    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>19</i></b>>
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * 
     * @throws IOException
     */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = mappingInfo.functions.get(fnIndex).fSignal;
-      String pcrInit   = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
+//      String pcrInit   = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
+      String suffix    = null;
       
+      Pattern p = Pattern.compile("(\\d+)((a)|b)");
+      Matcher m = p.matcher(signal);
+      if (m.matches()) {
+         signal = m.group(1);
+         suffix = m.group(3);
+      }
+      if (suffix == null) {
+         suffix = "";
+      }
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s%s<", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance));
-      sb.append(String.format("%-44s ", pcrInit));
+      sb.append(String.format("const %s::%s%s<", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance+suffix));
+//      sb.append(String.format("%-44s ", pcrInit));
       sb.append(String.format("%3s", signal+">"));
       return sb.toString();
+   }
+   
+   /* (non-Javadoc)
+    * @see WriterForDigitalIO#needPcrTable()
+    */
+   @Override
+   public boolean needPcrTable() {
+      return true;
+   };
+
+   static final String TEMPLATE_DOCUMENTATION = 
+         "/**\n"+
+         " * Convenience templated class representing an ADC\n"+
+         " *\n"+
+         " * Example\n"+
+         " * @code\n"+
+         " *  // Instantiate ADC0 single-ended channel #8\n"+
+         " *  const adc0<8> adc0_se8;\n"+
+         " *\n"+
+         " *  // Initialise ADC\n"+
+         " *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);\n"+
+         " *\n"+
+         " *  // Set as analogue input\n"+
+         " *  adc0_se8.setAnalogueInput();\n"+
+         " *\n"+
+         " *  // Read input\n"+
+         " *  uint16_t value = adc0_se8.readAnalogue();\n"+
+         " *  @endcode\n"+
+         " *\n"+
+         " * @tparam adcChannel    ADC channel\n"+
+         " */\n";
+   
+   /* (non-Javadoc)
+    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
+    */
+   @Override
+   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
+      return TEMPLATE_DOCUMENTATION+String.format(
+         "template<uint8_t adcChannel> using %s =\n" +
+         "   AnalogueIOT<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
+         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
    }
 }

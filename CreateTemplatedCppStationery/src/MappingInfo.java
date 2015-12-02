@@ -140,6 +140,11 @@ public class MappingInfo {
       return name.toString();
    }
 
+   /**
+    * 
+    * @param baseName
+    * @return
+    */
    public static HashSet<PinInformation> getFunctionType(String baseName) {
       return functionsByBaseName.get(baseName);
    }

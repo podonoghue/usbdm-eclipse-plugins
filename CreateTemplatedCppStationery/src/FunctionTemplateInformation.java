@@ -42,6 +42,24 @@ class FunctionTemplateInformation {
 
    /**
     * Get PCR initialisation string for given pin e.g. for <b><i>PTB4</b></i>
+    * 
+    * @param pin The pin being configured
+    * 
+    * @return
+    */
+   static PinInformation getPCRInformation(PinInformation pin) throws IOException {
+      
+      HashSet<PinInformation> set = MappingInfo.getFunctionType("GPIO");
+      boolean noDigitalIO = (set != null) && set.contains(pin);
+      if (noDigitalIO) {
+         // No PCR register - Only analogue function on pin
+         return null;
+      }
+      return pin;
+   }
+
+   /**
+    * Get PCR initialisation string for given pin e.g. for <b><i>PTB4</b></i>
     * <pre>
     * "PORT<b><i>B</b></i>_CLOCK_MASK,  PORT<b><i>B</b></i>_BasePtr+offsetof(PCR[<b><i>4</b></i>]),  "
     * </pre>
@@ -51,19 +69,21 @@ class FunctionTemplateInformation {
     * @return
     */
    static String getPCRInitString(PinInformation pin) throws IOException {
-      
-      HashSet<PinInformation> set = MappingInfo.getFunctionType("GPIO");
-      boolean noDigitalIO = (set != null) && set.contains(pin);
-      if (noDigitalIO) {
-         // No PCR register - Only analogue function on pin
+      pin = getPCRInformation(pin);
+
+      if (pin == null) {
          return "0, 0";
       }
-      String portClockMask    = pin.getClockMask()+","; // PORTA_CLOCK_MASK
-      String pcrRegister      = pin.getPCRasInt()+",";
-      return String.format("%-17s %-42s", portClockMask, pcrRegister);
+      String portClockMask    = pin.getClockMask(); // PORTA_CLOCK_MASK
+      String pcrRegister      = pin.getPCRasInt();
+      if (portClockMask == null) {
+         return "0, 0, ";
+      }
+      return String.format("%-17s %-42s", portClockMask+",", pcrRegister+",");
    }
 
    final String baseName;
+   final String peripheralName;
    final String groupName;
    final String groupTitle;
    final String groupBriefDescription;
@@ -80,11 +100,13 @@ class FunctionTemplateInformation {
     * @param instanceWriter         Detailed instanceWriter to use
     */
    public FunctionTemplateInformation(
-         String baseName, String groupName, String groupTitle, 
+         String baseName, String peripheralName, 
+         String groupName, String groupTitle, 
          String groupBriefDescription, 
          String matchTemplate, 
          InstanceWriter instanceWriter) {
       this.baseName              = baseName;
+      this.peripheralName        = peripheralName;
       this.groupName             = groupName;
       this.groupTitle            = groupTitle;
       this.groupBriefDescription = groupBriefDescription;

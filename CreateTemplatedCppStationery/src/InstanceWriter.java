@@ -51,8 +51,9 @@ abstract class InstanceWriter {
    /** 
     * Write alias definition e.g. 
     * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>     <b><i>alias</b></i>;
+    * using <b><i>alias</b></i> = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
     * </pre>
+    * @param alias          Name of alias
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
@@ -60,7 +61,8 @@ abstract class InstanceWriter {
     * @throws IOException
     */
    public void writeAlias(String alias, MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-      cppFile.write(String.format("%-25s %s\n", getDeclaration(mappingInfo, fnIndex), alias+";"));
+//      cppFile.write(String.format("%-25s %s\n", getDeclaration(mappingInfo, fnIndex), alias+";"));
+      cppFile.write(String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";"));
    }
 
    /** 
@@ -80,10 +82,10 @@ abstract class InstanceWriter {
    /** 
     * Write component definition e.g. 
     * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> gpio<b><i>A</b></i>_<b><i>0</b></i>;
-    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>> adc<b><i>0</i></b>_se<b><i>19</i></b>;
-    * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> adc<b><i>1</i></b>_se<b><i>17</i></b>;
-    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
+    * using gpio<b><i>A</b></i>_<b><i>0</b></i>   = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
+    * using adc<b><i>0</i></b>_se<b><i>19</i></b> = const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>;
+    * using adc<b><i>1</i></b>_se<b><i>17</i></b> = const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> ;
+    * using ftm<b><i>1</i></b>_ch<b><i>17</i></b> = const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>;
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
@@ -99,9 +101,8 @@ abstract class InstanceWriter {
     * Write component declaration e.g. 
     * <pre>
     * extern const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> gpio<b><i>A</b></i>_<b><i>0</b></i>;
-    * extern const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>> adc<b><i>0</i></b>_se<b><i>19</i></b>
-    * extern const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> adc<b><i>1</i></b>_se<b><i>17</i></b>;
-    * extern const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
+    * extern const USBDM::Adc<b><i>0</i></b>&lt;<b><i>19</i></b>&gt adc<b><i>A</b></i>_ch<b><i>0</b></i>;
+    * extern const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
     * </pre>
     * @param mappingInfo   Mapping information (pin and peripheral function)
     * @param fnIndex       Index into list of functions mapped to pin
@@ -122,4 +123,21 @@ abstract class InstanceWriter {
     * @return Alias name e.g. gpio_<b><i>A5</b></i>
     */
    public abstract String getAliasName(String alias);
+   
+   /**
+    * Indicates if a PCR table is required
+    * 
+    * @return
+    */
+   public abstract boolean needPcrTable();
+   
+   /**
+    * Provides C template
+    * 
+    * @param pinTemplate   Pin template for information
+    * @param instance      
+    * 
+    * @return Template
+    */
+   public abstract String getTemplate(FunctionTemplateInformation pinTemplate);
 }

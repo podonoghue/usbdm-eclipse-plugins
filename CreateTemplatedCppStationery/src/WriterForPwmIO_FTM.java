@@ -34,7 +34,7 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
    /** 
     * Get declaration as string e.g. 
     * <pre>
-    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
+    * const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>>
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
@@ -44,13 +44,41 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = mappingInfo.functions.get(fnIndex).fSignal;
-      String pcrInit   = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
       
-      StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s%s<", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance));
-      sb.append(String.format("%-44s ", pcrInit));
-      sb.append(String.format("%3s  ", mappingInfo.mux.value+","));
-      sb.append(String.format("%-4s", signal+">"));
-      return sb.toString();
+      return String.format("const %s::%s%s<%s>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
+   }
+   @Override
+   public boolean needPcrTable() {
+      return true;
+   };
+
+   static final String TEMPLATE_DOCUMENTATION = 
+   "/**\n"+
+   " * Convenience templated class representing a FTM\n"+
+   " *\n"+
+   " * Example\n"+
+   " * @code\n"+
+   " * // Instantiate the ftm channel (for FTM0 CH6)\n"+
+   " * const USBDM::Ftm0<6>   ftm0_ch6;\n"+
+   " *\n"+
+   " * // Initialise PWM with initial period and alignment\n"+
+   " * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);\n"+
+   " *\n"+
+   " * // Change period (in ticks)\n"+
+   " * ftm0_ch6.setPeriod(500);\n"+
+   " *\n"+
+   " * // Change duty cycle (in percent)\n"+
+   " * ftm0_ch6.setDutyCycle(45);\n"+
+   " * @endcode\n"+
+   " *\n"+
+   " * @tparam ftmChannel    FTM channel\n"+
+   " */\n";
+   @Override
+   public String getTemplate(FunctionTemplateInformation pinTemplate) {               
+      return TEMPLATE_DOCUMENTATION + String.format(
+         "template<uint8_t ftmChannel> using %s =\n" +
+         "   PwmIOT<getPortClockMask(ftmChannel,%sInfo), getPcrReg(ftmChannel,%sInfo), getPcrMux(ftmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, ftmChannel>;\n\n",
+         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
+
    }
 }

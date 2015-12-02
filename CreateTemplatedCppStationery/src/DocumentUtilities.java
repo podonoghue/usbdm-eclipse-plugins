@@ -290,8 +290,23 @@ public class DocumentUtilities {
     * @param condition
     * @throws IOException
     */
-   void writeConditionalElse(BufferedWriter writer, String condition) throws IOException {
+   void writeConditionalElif(BufferedWriter writer, String condition) throws IOException {
       writer.write(String.format("#elif %s\n", condition));
+   }
+   
+   /**
+    * Write #elif directive
+    * 
+    * <pre><code>
+    *  #elif <i><b>condition</i></b>
+    * </code></pre>
+    * 
+    * @param writer
+    * @param condition
+    * @throws IOException
+    */
+   void writeConditionalElse(BufferedWriter writer) throws IOException {
+      writer.write(String.format("#else\n"));
    }
    
    /**

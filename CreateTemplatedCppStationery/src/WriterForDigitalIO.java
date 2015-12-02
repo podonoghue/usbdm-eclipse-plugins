@@ -3,12 +3,16 @@ import java.io.IOException;
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
+/**
+ * @author podonoghue
+ *
+ */
 class WriterForDigitalIO extends InstanceWriter {
 
    static final String ALIAS_BASE_NAME       = "gpio_";
    static final String CLASS_BASE_NAME       = "Gpio";
    static final String INSTANCE_BASE_NAME    = "gpio";
-   
+
    public WriterForDigitalIO(boolean deviceIsMKE) {
       super(deviceIsMKE, false);
    }
@@ -16,7 +20,7 @@ class WriterForDigitalIO extends InstanceWriter {
    public WriterForDigitalIO(boolean deviceIsMKE, boolean useGuard) {
       super(deviceIsMKE, useGuard);
    }
-   
+
    /* (non-Javadoc)
     * @see InstanceWriter#getAliasName(java.lang.String)
     */
@@ -49,5 +53,21 @@ class WriterForDigitalIO extends InstanceWriter {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = mappingInfo.functions.get(fnIndex).fSignal;
       return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"<"+signal+">";
+   }
+
+   /* (non-Javadoc)
+    * @see InstanceWriter#needPcrTable()
+    */
+   @Override
+   public boolean needPcrTable() {
+      return false;
+   }
+
+   /* (non-Javadoc)
+    * @see InstanceWriter#getTemplate(FunctionTemplateInformation)
+    */
+   @Override
+   public String getTemplate(FunctionTemplateInformation pinTemplatee) {
+      throw new RuntimeException("Should never be asked for\n");
    }
 }

@@ -12,8 +12,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.w3c.dom.Element;
 
 public class CreatePinDescription extends DocumentUtilities {
 
@@ -774,7 +777,7 @@ public class CreatePinDescription extends DocumentUtilities {
                   firstIf = false;
                }
                else {
-                  writeConditionalElse(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+                  writeConditionalElif(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
                }
             }
             if (mappingInfo.mux.value < 0) {
@@ -1223,10 +1226,10 @@ public class CreatePinDescription extends DocumentUtilities {
     * Write an external declaration for a simple peripheral (GPIO,ADC,PWM) e.g.
     * 
     * <pre>
-    * #if <b><i>PTD0</b></i>_SEL == 1
-    * extern const DigitalIO digitalIO_<b><i>PTD0</b></i> //!< DigitalIO on <b><i>PTD0</b></i>
-    * #define digitalIO_D5 digitalIO_<b><i>PTD0</b></i>
-    * #endif
+    * <b>#if</b> <i>PTC18_SEL</i> == 1
+    * using <i>gpioC_18</i> = const USBDM::<i>GpioC&lt;18&gt;</i>;
+    * using <i>gpio_A5</i>  = const USBDM::<i>GpioC&lt;18&gt;</i>;
+    * <b>#endif</b>
     * </pre>
     * 
     * @param template         Template information
@@ -1247,6 +1250,7 @@ public class CreatePinDescription extends DocumentUtilities {
          for (String alias:aliasList.aliasList) {
             String aliasName = template.instanceWriter.getAliasName(alias);
             if (!macroAliases.add(aliasName)) {
+               // Comment out repeated aliases
                gpioHeaderFile.write("//");
             }
             template.instanceWriter.writeAlias(aliasName, mappedFunction, fnIndex, gpioHeaderFile);
@@ -1290,15 +1294,16 @@ public class CreatePinDescription extends DocumentUtilities {
     * This mostly contains the extern declarations for peripherals
     * 
     * <pre>
-    * #if <b><i>PTA1</b></i>_SEL == 1
-    * extern const DigitalIO digitalIO_<b><i>PTA1</b></i>;  //!< DigitalIO on <b><i>PTA1</b></i>
-    * #define digitalIO_D5 digitalIO_<b><i>PTA1</b></i>
-    * #endif
+    * <b>#if</b> <i>PTC18_SEL</i> == 1
+    * using <i>gpioC_18</i> = const USBDM::<i>GpioC&lt;18&gt;</i>;
+    * <b>#endif</b>
     * </pre>
     * @param gpioHeaderFile
+    * 
     * @throws Exception 
     */
    private void writeGpioHeaderFile(BufferedWriter gpioHeaderFile) throws Exception {
+      
       writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", gpioHeaderFileName, VERSION, "Pin declarations for "+deviceName);
       writeSystemHeaderFileInclude(gpioHeaderFile, "stddef.h");
       writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
@@ -1307,6 +1312,74 @@ public class CreatePinDescription extends DocumentUtilities {
       gpioHeaderFile.write("\n");
       writeOpenNamespace(gpioHeaderFile, NAME_SPACE);
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
+         Vector<ArrayList<MappingInfo>> collectedInformation = new Vector<ArrayList<MappingInfo>>(32);
+         boolean infoCollected = false;
+         if (pinTemplate.instanceWriter.needPcrTable()) {
+            for (String pinName:PinInformation.getPinNames()) {
+               PinInformation pinInfo = PinInformation.find(pinName);
+               HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
+               if (mappedFunctions == null) {
+                  continue;
+               }
+               for (MuxSelection index:mappedFunctions.keySet()) {
+                  if (index == MuxSelection.Reset) {
+                     continue;
+                  }
+                  MappingInfo mappedFunction = mappedFunctions.get(index);
+                  for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
+                     PeripheralFunction function = mappedFunction.functions.get(fnIndex);
+                     if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
+                        Pattern p = Pattern.compile("(\\d+).*");
+                        Matcher m = p.matcher(function.fSignal);
+                        if (!m.matches()) {
+                           System.err.println("Illegal Element " + function.fSignal);
+                           System.err.println(pinTemplate.instanceWriter.getInstanceName(mappedFunction, fnIndex)+"\n");
+                           continue;
+                        }
+                        int signalIndex = Integer.parseInt(m.group(1));
+                        if (signalIndex>=collectedInformation.size()) {
+                           collectedInformation.setSize(signalIndex+1);
+                        }
+                        ArrayList<MappingInfo> element = collectedInformation.elementAt(signalIndex);
+                        if (element == null) {
+                           element = new ArrayList<MappingInfo>();
+                           collectedInformation.setElementAt(element, signalIndex);
+                        }
+                        element.add(mappedFunction);
+                        infoCollected = true;
+                     }
+                  }
+               }
+            }
+            if (infoCollected) {
+               gpioHeaderFile.write(String.format("constexpr PcrInfo %sInfo[32] = {\n", pinTemplate.baseName));
+               for (int index=0; index<collectedInformation.size(); index++) {
+                  ArrayList<MappingInfo> list = collectedInformation.elementAt(index);
+                  if (list == null) {
+                     gpioHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", index));
+                     continue;
+                  }
+                  boolean guardWritten = false;
+                  for (MappingInfo element:list) {
+                     guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, element, gpioHeaderFile, guardWritten);
+                     String pcrInitString = FunctionTemplateInformation.getPCRInitString(element.pin);
+                     int muxValue = element.mux.value;
+                     if (muxValue<0) {
+                        // Negative value indicates no mapping - replace with zero for consistency (not actually used)
+                        muxValue = 0;
+                     }
+                     gpioHeaderFile.write(String.format(" /* %2d */  { %s %d},\n", index, pcrInitString, muxValue));
+                  }
+                  if (guardWritten) {
+                     writeConditionalElse(gpioHeaderFile);
+                     gpioHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", index));
+                     writeConditionalEnd(gpioHeaderFile);
+                  }
+               }
+               gpioHeaderFile.write(String.format("};\n\n"));
+               gpioHeaderFile.write(pinTemplate.instanceWriter.getTemplate(pinTemplate));
+            }
+         }
          boolean groupDone = false;
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation pinInfo = PinInformation.find(pinName);
@@ -1461,13 +1534,13 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param pinTemplate
     * @param mappedFunction
     * @param file
+    * @param guardWritten     Indicates that an elif clause should be written
     * 
     * @return Indicates if guard was written (and hence closing macro needs to be written)
     * 
     * @throws IOException
     */
-   private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file) throws IOException {
-//      final String format = "(DO_MAP_PINS_ON_RESET==0) || (%s == %s)";
+   private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file, boolean guardWritten) throws IOException {
       final String format = "(%s == %s)";
       String pinName = mappedFunction.pin.getName();
 
@@ -1479,10 +1552,32 @@ public class CreatePinDescription extends DocumentUtilities {
          // Don't use guard
          return false;
       }
-      writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+      if (!guardWritten) {
+         writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+      }
+      else {
+         writeConditionalElif(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
+      }
       return true;
    }
    
+   /**
+    * Write conditional macro guard for function declaration or definition
+    * <pre>
+    * e.g. #if (PTD5_SIG_SEL == 0)
+    * </pre>
+    * 
+    * @param pinTemplate
+    * @param mappedFunction
+    * @param file
+    * 
+    * @return Indicates if guard was written (and hence closing macro needs to be written)
+    * 
+    * @throws IOException
+    */
+   private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file) throws IOException {
+      return writeFunctionSelectionGuardMacro(pinTemplate, mappedFunction, file, false);
+   }
    /**                    
     * Write CPP file      
     *                     
@@ -1549,25 +1644,50 @@ public class CreatePinDescription extends DocumentUtilities {
       deviceIsMKM = deviceName.startsWith("MKL");
       FunctionTemplateInformation.reset();
       new FunctionTemplateInformation(
-            "GPIO", "DigitalIO_Group",  "Digital Input/Output",               
+            "GPIO", "ADC0", "DigitalIO_Group",  "Digital Input/Output",               
             "Allows use of port pins as simple digital inputs or outputs", 
             "GPIO.*",
             new WriterForDigitalIO(deviceIsMKE));
       if (!deviceIsMKE) {
          new FunctionTemplateInformation(
-               "ADC",  "AnalogueIO_Group", "Analogue Input",
+               "Adc0", "ADC0", "AnalogueIO_Group", "Analogue Input",
                "Allows use of port pins as analogue inputs",
-               "ADC[0-9]+_(SE).*",
+               "ADC0_SE\\d+b?",
                new WriterForAnalogueIO(deviceIsMKE));
          new FunctionTemplateInformation(
-               "FTM",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Adc0a", "ADC0",  "AnalogueIO_Group", "Analogue Input",
+               "Allows use of port pins as analogue inputs",
+               "ADC0_SE\\d+a",
+               new WriterForAnalogueIO(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Adc1", "ADC1",  "AnalogueIO_Group", "Analogue Input",
+               "Allows use of port pins as analogue inputs",
+               "ADC1_SE\\d+b?",
+               new WriterForAnalogueIO(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Adc1a", "ADC1",  "AnalogueIO_Group", "Analogue Input",
+               "Allows use of port pins as analogue inputs",
+               "ADC1_SE\\d+a",
+               new WriterForAnalogueIO(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Ftm0", "FTM0",  "PwmIO_Group",      "PWM, Input capture, Output compare",
                "Allows use of port pins as PWM outputs",
-               "FTM\\d+_CH\\d+",
+               "FTM0_CH\\d+",
                new WriterForPwmIO_FTM(deviceIsMKE));
          new FunctionTemplateInformation(
-               "TPM",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Ftm1", "FTM1",  "PwmIO_Group",      "PWM, Input capture, Output compare",
                "Allows use of port pins as PWM outputs",
-               "TPM\\d+_CH\\d+",
+               "FTM1_CH\\d+",
+               new WriterForPwmIO_FTM(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Tpm0", "TPM0",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Allows use of port pins as PWM outputs",
+               "TPM0_CH\\d+",
+               new WriterForPwmIO_TPM(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Tpm1", "TPM1",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Allows use of port pins as PWM outputs",
+               "TPM1_CH\\d+",
                new WriterForPwmIO_TPM(deviceIsMKE));
       }
       pinFunctionDescriptions.add(new PinFunctionDescription("LPTMR", "", ""));

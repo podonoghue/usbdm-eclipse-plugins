@@ -256,7 +256,7 @@ class PeripheralFunction {
             new PinDescription("^\\s*(Disabled)()()\\s*$", true),
             new PinDescription("^\\s*(PT)([A-Z])(\\d+)\\s*$", true),
             new PinDescription("^\\s*(GPIO)([A-Z])_(\\d+)\\s*$", true),
-            new PinDescription("^\\s*(ADC)(\\d+)_(?:SE|DM|DP)(\\d+)[ab]?\\s*$", true),
+            new PinDescription("^\\s*(ADC)(\\d+)_(?:SE|DM|DP)(\\d+[ab]?)\\s*$", true),
             new PinDescription("^\\s*(FTM)(\\d+)_CH(\\d+)\\s*$", true),
             new PinDescription("^\\s*(TPM)(\\d+)_CH(\\d+)\\s*$", true),
             new PinDescription("^\\s*(TPM)(\\d+)_(CLKIN\\d+)\\s*$", true),
