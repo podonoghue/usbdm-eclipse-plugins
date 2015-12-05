@@ -1284,7 +1284,6 @@ public class CreatePinDescription extends DocumentUtilities {
       if (guardWritten || macroAliases.add(signalName)) {
          template.instanceWriter.writeDefinition(mappedFunction, fnIndex, gpioHeaderFile);
       }
-
       if (template.useAliases()) {
          Aliases aliasList = Aliases.getAlias(mappedFunction.pin);
          if (aliasList != null) {
@@ -1360,11 +1359,12 @@ public class CreatePinDescription extends DocumentUtilities {
             "struct PcrInfo {\n"+
                   "   uint32_t clockMask;   //!< Clock mask for PORT\n"+
                   "   uint32_t pcrAddress;  //!< PCR[x] register address\n"+
-                  "   int      muxValue;    //!< PCR mux value to select this function\n"+
+                  "   uint32_t gpioAddress; //!< Address of GPIO hardware associated with pin\n"+
+                  "   uint8_t  gpioBit;     //!< Bit number of pin in GPIO\n"+
+                  "   uint8_t  muxValue;    //!< PCR mux value to select this function\n"+
                   "};\n"
             );
-
-
+      final String DUMMY_TEMPLATE = " /* %2d */  { 0 },\n";
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          if (!pinTemplate.instanceWriter.needPcrTable()) {
             continue;
@@ -1396,10 +1396,11 @@ public class CreatePinDescription extends DocumentUtilities {
          }
          writeDocBanner(pinMappingHeaderFile, "Peripheral pin mapping information for "+pinTemplate.groupTitle);
          pinMappingHeaderFile.write(String.format("constexpr PcrInfo %sInfo[32] = {\n", pinTemplate.baseName));
+         pinMappingHeaderFile.write(" //          clockMask pcrAddress gpioAddress gpioBit muxValue\n");
          for(int signalIndex=0; signalIndex<collectedInformation.size(); signalIndex++) {
             PeripheralFunction peripheralFunction = collectedInformation.get(signalIndex);
             if (peripheralFunction == null) {
-               pinMappingHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", signalIndex));
+               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
                continue;
             }
             ArrayList<MappingInfo> mappedPins = MappingInfo.getPins(peripheralFunction);
@@ -1426,13 +1427,14 @@ public class CreatePinDescription extends DocumentUtilities {
                }
                String pcrInitString = FunctionTemplateInformation.getPCRInitString(mappedPin.pin);
                pinMappingHeaderFile.write(String.format(" /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.mux.value));
+               
                valueWritten = true;
                choice++;
             }
             if (valueWritten) {
                writeConditionalElse(pinMappingHeaderFile);
             }
-            pinMappingHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", signalIndex));
+            pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
             if (valueWritten) {
                writeConditionalEnd(pinMappingHeaderFile);
             }
@@ -1482,10 +1484,10 @@ public class CreatePinDescription extends DocumentUtilities {
                   PeripheralFunction function = mappedFunction.functions.get(fnIndex);
                   if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
                      if (!groupDone) {
+                        writeStartGroup(gpioHeaderFile, pinTemplate);
                         if (pinTemplate.instanceWriter.needPcrTable()) {
                            gpioHeaderFile.write(pinTemplate.instanceWriter.getTemplate(pinTemplate));
                         }
-                        writeStartGroup(gpioHeaderFile, pinTemplate);
                         groupDone = true;
                      }
                      writeExternDeclaration(pinTemplate, mappedFunction, fnIndex, gpioHeaderFile);
@@ -1778,6 +1780,21 @@ public class CreatePinDescription extends DocumentUtilities {
                "Pins used for SPI functions",
                "SPI2_(SCK|SIN|SOUT|PCS\\d+)",
                new WriterForSpi(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "I2c0", "I2C0",  "I2CIO_Group",      "I2C, Inter-Integrated-Circuit Interface",
+               "Pins used for I2C functions",
+               "I2C0_(SCL|SDA)",
+               new WriterForI2c(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "I2c1", "I2C1",  "I2CIO_Group",      "I2C, Inter-Integrated-Circuit Interface",
+               "Pins used for I2C functions",
+               "I2C1_(SCL|SDA)",
+               new WriterForI2c(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "I2c2", "I2C2",  "I2CIO_Group",      "I2C, Inter-Integrated-Circuit Interface",
+               "Pins used for I2C functions",
+               "I2C2_(SCL|SDA)",
+               new WriterForI2c(deviceIsMKE));
       }
       pinFunctionDescriptions.add(new PinFunctionDescription("LPTMR", "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SPI",   "", ""));

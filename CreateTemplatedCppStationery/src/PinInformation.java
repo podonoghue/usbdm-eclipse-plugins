@@ -169,6 +169,30 @@ public class PinInformation {
       return String.format("PORT%s_CLOCK_MASK", fPortInstance);
    }
    
+   /**
+    * Get clock mask e.g. PORTA_CLOCK_MASK
+    * 
+    * @return
+    */
+   public String getGpioReg() {
+      if (fPortInstance == null) {
+         return null;
+      }
+      return String.format("GPIO%s_BasePtr", fPortInstance);
+   }
+   
+   /**
+    * Get clock mask e.g. PORTA_CLOCK_MASK
+    * 
+    * @return
+    */
+   public String getGpioBitNum() {
+      if (fPortInstance == null) {
+         return null;
+      }
+      return fPortPin;
+   }
+   
    /** Name of the pin, usually the port name e.g. PTA1 */
    private String fName;
    

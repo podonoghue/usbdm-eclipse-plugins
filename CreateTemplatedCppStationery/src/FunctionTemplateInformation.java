@@ -76,11 +76,14 @@ class FunctionTemplateInformation {
          return "0, 0";
       }
       String portClockMask    = pin.getClockMask(); // PORTA_CLOCK_MASK
-      String pcrRegister      = pin.getPCRasInt();
       if (portClockMask == null) {
          return "0, 0, ";
       }
-      return String.format("%-17s %-42s", portClockMask+",", pcrRegister+",");
+      String pcrRegister      = pin.getPCRasInt();
+      String gpioRegister     = pin.getGpioReg();
+      String gpioBitNum       = pin.getGpioBitNum();
+      
+      return String.format("%-17s %-42s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");
    }
 
    final String baseName;
