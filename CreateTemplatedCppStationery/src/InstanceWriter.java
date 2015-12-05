@@ -9,8 +9,6 @@ abstract class InstanceWriter {
    /** Indicates the device is MKE family */
    private final boolean fDeviceIsMKE;
    
-   /** Indicates that <b><i>#if</b></i> ... <b><i>#endif</b></i> guards should be written */
-   private final boolean fUseGuard;
    
    /**
     * Create InstanceWriter
@@ -18,9 +16,8 @@ abstract class InstanceWriter {
     * @param deviceIsMKE   Indicates the device is MKE family
     * @param useGuard      Indicates that <b><i>#if</b></i> ... <b><i>#endif</b></i> guards should be written
     */
-   InstanceWriter(boolean deviceIsMKE, boolean useGuard) {
+   InstanceWriter(boolean deviceIsMKE) {
       this.fDeviceIsMKE = deviceIsMKE;
-      this.fUseGuard    = useGuard;
    }
    
    /** 
@@ -34,7 +31,7 @@ abstract class InstanceWriter {
     * Indicates that <b><i>#if</b></i> ... <b><i>#endif</b></i> guards should be written 
     */
    public boolean useGuard() {
-      return fUseGuard;
+      return false;
    }
 
    /**
@@ -57,12 +54,10 @@ abstract class InstanceWriter {
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   public void writeAlias(String alias, MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-//      cppFile.write(String.format("%-25s %s\n", getDeclaration(mappingInfo, fnIndex), alias+";"));
-      cppFile.write(String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";"));
+   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) throws Exception {
+     return String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";");
    }
 
    /** 
@@ -76,8 +71,9 @@ abstract class InstanceWriter {
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
     * @throws IOException 
+    * @throws Exception 
     */
-   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException;
+   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException, Exception;
 
    /** 
     * Write component definition e.g. 
@@ -90,11 +86,10 @@ abstract class InstanceWriter {
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
-      writeAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex, cppFile);
+   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
+      cppFile.write(getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex));
    }
    
    /** 
@@ -107,10 +102,9 @@ abstract class InstanceWriter {
     * @param mappingInfo   Mapping information (pin and peripheral function)
     * @param fnIndex       Index into list of functions mapped to pin
     * @param cppFile       Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws IOException {
+   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
       cppFile.write("extern ");
       writeDefinition(mappingInfo, fnIndex, cppFile);
    }
@@ -140,4 +134,25 @@ abstract class InstanceWriter {
     * @return Template
     */
    public abstract String getTemplate(FunctionTemplateInformation pinTemplate);
+   
+   /**
+    * Gets the numeric index of the function for use in PCR tables\n
+    * e.g. FTM3_Ch2 => 2 etc.
+    * 
+    * @param function   Function to look up
+    * @return  Index, -1 is returned if template doesn't match
+    * 
+    * @throws Exception If template matches peripheral but unexpected function 
+    */
+   public abstract int getFunctionIndex(PeripheralFunction function) throws Exception;
+
+   /**
+    * Indicates if pin aliases should be written
+    * 
+    * @return true => write aliases
+    */
+   public boolean useAliases() {
+      return true;
+   }
+
 }

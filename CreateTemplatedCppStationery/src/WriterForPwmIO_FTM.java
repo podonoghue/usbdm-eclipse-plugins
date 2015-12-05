@@ -1,5 +1,3 @@
-import java.io.IOException;
-
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
  */
@@ -10,7 +8,7 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
    static final String INSTANCE_BASE_NAME    = "ftm";
    
    public WriterForPwmIO_FTM(boolean deviceIsMKE) {
-      super(deviceIsMKE, true);
+      super(deviceIsMKE);
    }
    
    /* (non-Javadoc)
@@ -38,19 +36,22 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal    = mappingInfo.functions.get(fnIndex).fSignal;
-      
-      return String.format("const %s::%s%s<%s>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
+      int    signal    = getFunctionIndex(mappingInfo.functions.get(fnIndex));
+      return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
    }
    @Override
    public boolean needPcrTable() {
       return true;
    };
+
+   @Override
+   public boolean useGuard() {
+      return true;
+   }
 
    static final String TEMPLATE_DOCUMENTATION = 
    "/**\n"+
@@ -77,8 +78,8 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
    public String getTemplate(FunctionTemplateInformation pinTemplate) {               
       return TEMPLATE_DOCUMENTATION + String.format(
          "template<uint8_t ftmChannel> using %s =\n" +
-         "   PwmIOT<getPortClockMask(ftmChannel,%sInfo), getPcrReg(ftmChannel,%sInfo), getPcrMux(ftmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, ftmChannel>;\n\n",
-         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
+         "   Ftm_T<getPortClockMask(ftmChannel,%sInfo), getPcrReg(ftmChannel,%sInfo), getPcrMux(ftmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, %s_SC, ftmChannel>;\n\n",
+         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
 
    }
 }

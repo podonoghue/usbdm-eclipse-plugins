@@ -80,7 +80,7 @@ public class DocumentUtilities {
       final String endGroup = 
             "/**\n"+
             " * @}\n"+
-            " ** %s */\n";
+            " ** %s\n */\n";
       writer.write(String.format(endGroup, groupName));
    }
    /**
@@ -243,7 +243,7 @@ public class DocumentUtilities {
     */
    void writeOpenNamespace(BufferedWriter writer, String namespace) throws IOException {
 //      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
-      writer.write(String.format("namespace %s {\n", namespace));
+      writer.write(String.format("namespace %s {\n\n", namespace));
 //      writeConditionalEnd(writer);
    }
 
@@ -259,16 +259,29 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeCloseNamespace(BufferedWriter writer, String namespace) throws IOException {
-//      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
-      writer.write(String.format("} // End namespace %s\n", namespace));
-//      writeConditionalEnd(writer);
+      writer.write(String.format("\n} // End namespace %s\n", namespace));
+   }
+
+   /**
+    * Write namespace close
+    * <pre><code>
+    *  } // End "<i><b>USBDM</i></b>"
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param namespace  Namespace to use
+    * 
+    * @throws IOException
+    */
+   void writeCloseNamespace(BufferedWriter writer) throws IOException {
+      writer.write(String.format("\n}\n"));
    }
 
    /**
     * Write #if directive
     * 
     * <pre><code>
-    *  #if <i><b>condition</i></b>
+    *  #if (<i><b>condition</i></b>)
     * </code></pre>
     * 
     * @param writer
@@ -276,14 +289,14 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeConditionalStart(BufferedWriter writer, String condition) throws IOException {
-      writer.write(String.format("#if %s\n", condition));
+      writer.write(String.format("#if (%s)\n", condition));
    }
    
    /**
     * Write #elif directive
     * 
     * <pre><code>
-    *  #elif <i><b>condition</i></b>
+    *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
     * @param writer
@@ -291,7 +304,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeConditionalElif(BufferedWriter writer, String condition) throws IOException {
-      writer.write(String.format("#elif %s\n", condition));
+      writer.write(String.format("#elif (%s)\n", condition));
    }
    
    /**
@@ -648,6 +661,44 @@ public class DocumentUtilities {
       briefDescription, paramDescription, name, value
       ));
       
+   }
+
+   /**
+    * Writes a simple banner
+    * <pre><code>
+    * /*
+    *  * <b><i>banner...</b></i>
+    *  * <b><i>banner...</b></i>
+    *  *&#47;
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param fileName   Filename to use in #include directive
+    * 
+    * @throws IOException
+    */
+   void writeBanner(BufferedWriter writer, String banner) throws IOException {
+      banner = "/*\n * " + banner.replaceAll("\n", "\n * ") + "\n */\n";
+      writer.write(banner);
+   }
+
+   /**
+    * Writes a simple banner
+    * <pre><code>
+    * /**
+    *  * <b><i>banner...</b></i>
+    *  * <b><i>banner...</b></i>
+    *  *&#47;
+    * </code></pre>
+    * 
+    * @param writer     Where to write
+    * @param fileName   Filename to use in #include directive
+    * 
+    * @throws IOException
+    */
+   void writeDocBanner(BufferedWriter writer, String banner) throws IOException {
+      banner = "/**\n * " + banner.replaceAll("\n", "\n * ") + "\n */\n";
+      writer.write(banner);
    }
 
 }

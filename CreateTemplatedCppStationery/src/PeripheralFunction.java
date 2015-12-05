@@ -175,7 +175,7 @@ class PeripheralFunction {
     * e.g. FTM0_CH6 = <b>new</b> PeripheralFunction(FTM, 0, 6)
     * 
     * @param baseName   Base name of the peripheral e.g. FTM0_CH6 = FTM, PTA3 = PT
-    * @param fInstance   Number/name of the peripheral e.g. FTM0_CH6 = 0, PTA3 = A
+    * @param fInstance  Number/name of the peripheral e.g. FTM0_CH6 = 0, PTA3 = A
     * @param signal     Channel/pin number/operation e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK
     * @throws Exception 
     */

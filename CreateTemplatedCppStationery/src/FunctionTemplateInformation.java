@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -113,5 +114,41 @@ class FunctionTemplateInformation {
       this.instanceWriter        = instanceWriter;
       this.matchPattern          = Pattern.compile(matchTemplate);
       list.add(this);
+   }
+
+   /**
+    * Gets the numeric index of the function\n
+    * e.g. FTM3_Ch2 => 2 etc.
+    * 
+    * @param function   Function to look up
+    * @return  Index, -1 is returned if template doesn't match
+    * 
+    * @throws Exception If template matches peripheral but unexpected function 
+    */
+   public int getFunctionIndex(PeripheralFunction function) throws Exception {
+      if (!matchPattern.matcher(function.getName()).matches()) {
+         return -1;
+      }
+      return instanceWriter.getFunctionIndex(function);
+   }
+   
+   /**
+    * Gets template that matches this function
+    * 
+    * @param function   Function to match
+    * 
+    * @return Matching template or null on none
+    */
+   public static FunctionTemplateInformation getTemplate(PeripheralFunction function) {
+      for (FunctionTemplateInformation functionTemplateInformation:list) {
+         if (functionTemplateInformation.matchPattern.matcher(function.getName()).matches()) {
+            return functionTemplateInformation;
+         }
+      }
+      return null;
+   }
+
+   public boolean useAliases() {
+      return instanceWriter.useAliases();
    }
 }

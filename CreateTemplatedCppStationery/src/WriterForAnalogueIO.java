@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +15,7 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    static final String INSTANCE_BASE_NAME    = "adc";
    
    public WriterForAnalogueIO(boolean deviceIsMKE) {
-      super(deviceIsMKE, true);
+      super(deviceIsMKE);
    }
    
    /* (non-Javadoc)
@@ -44,29 +43,24 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
    @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal    = mappingInfo.functions.get(fnIndex).fSignal;
-//      String pcrInit   = FunctionTemplateInformation.getPCRInitString(mappingInfo.pin);
+      int signal       = getFunctionIndex(mappingInfo.functions.get(fnIndex));
       String suffix    = null;
       
       Pattern p = Pattern.compile("(\\d+)((a)|b)");
-      Matcher m = p.matcher(signal);
+      Matcher m = p.matcher(mappingInfo.functions.get(fnIndex).fSignal);
       if (m.matches()) {
-         signal = m.group(1);
          suffix = m.group(3);
       }
       if (suffix == null) {
          suffix = "";
       }
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s%s<", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance+suffix));
-//      sb.append(String.format("%-44s ", pcrInit));
-      sb.append(String.format("%3s", signal+">"));
+      sb.append(String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance+suffix, signal));
       return sb.toString();
    }
    
@@ -77,6 +71,11 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    public boolean needPcrTable() {
       return true;
    };
+
+   @Override
+   public boolean useGuard() {
+      return true;
+   }
 
    static final String TEMPLATE_DOCUMENTATION = 
          "/**\n"+
@@ -107,7 +106,7 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    public String getTemplate(FunctionTemplateInformation pinTemplate) {   
       return TEMPLATE_DOCUMENTATION+String.format(
          "template<uint8_t adcChannel> using %s =\n" +
-         "   AnalogueIOT<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
+         "   Analogue_T<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
          pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
    }
 }

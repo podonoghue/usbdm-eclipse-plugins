@@ -16,8 +16,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.w3c.dom.Element;
-
 public class CreatePinDescription extends DocumentUtilities {
 
    public static final String VERSION = "1.1.0";
@@ -407,6 +405,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception 
     */
    private void writePinDefines(BufferedWriter headerFile) throws Exception {
+      writeBanner(headerFile, "Common Mux settings for PCR");
       if (adcFunctionMuxValueChanged) {
          writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
       }
@@ -425,6 +424,7 @@ public class CreatePinDescription extends DocumentUtilities {
       else {
          writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
       }
+      headerFile.write("\n");
    }
 
    /**
@@ -649,11 +649,9 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    private void writePeripheralSignalMapping(BufferedWriter writer, PeripheralFunction function) throws Exception {
-
       if (!function.isIncluded()) {
          return;
       }
-      
       ArrayList<MappingInfo> mappingInfos = MappingInfo.getPins(function);
       Collections.sort(mappingInfos, new Comparator<MappingInfo>() {
 
@@ -665,22 +663,22 @@ public class CreatePinDescription extends DocumentUtilities {
       boolean noChoices =  ((mappingInfos == null) || (mappingInfos.size() == 0) ||
             ((mappingInfos.size() == 1) && (mappingInfos.get(0).mux == MuxSelection.Fixed)));
 
-//      boolean debug = false;
-//      if (function.getName().startsWith("JTAG_TDI")) {
-//         System.err.println("writePeripheralSignalMapping(): " + function.getName());
-//         debug = true;
-//      }
+      //      boolean debug = false;
+      //      if (function.getName().startsWith("JTAG_TDI")) {
+      //         System.err.println("writePeripheralSignalMapping(): " + function.getName());
+      //         debug = true;
+      //      }
       // Create list of choices as string and determine default selection (if any)
       int defaultSelection = 0;
-//      int resetSelection = -1;
+      //      int resetSelection = -1;
       String choices = null;
       if (mappingInfos != null) {
-//         Collections.sort(mappingInfos, new Comparator<MappingInfo>() {
-//            @Override
-//            public int compare(MappingInfo o1, MappingInfo o2) {
-//               return PinInformation.portNameComparator.compare(o1.pin.getName(), o2.pin.getName());
-//            }
-//         });
+         //         Collections.sort(mappingInfos, new Comparator<MappingInfo>() {
+         //            @Override
+         //            public int compare(MappingInfo o1, MappingInfo o2) {
+         //               return PinInformation.portNameComparator.compare(o1.pin.getName(), o2.pin.getName());
+         //            }
+         //         });
          int selection = 0;
          if (!noChoices) {
             selection++;
@@ -693,7 +691,7 @@ public class CreatePinDescription extends DocumentUtilities {
                if (defaultSelection == 0) {
                   defaultSelection = selection;
                }
-//               continue;
+               //               continue;
             }
             if (mappingInfo.mux == MuxSelection.Fixed) {
                defaultSelection = selection;
@@ -757,42 +755,45 @@ public class CreatePinDescription extends DocumentUtilities {
 
          writeWizardOptionSelectionEnty(writer, Integer.toString(defaultSelection), "Default", null);
          writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(defaultSelection));
-         
-         boolean firstIf = true;
-         selection = 0;
-         if (!noChoices) {
-            selection++;         
-         }
-         for (MappingInfo mappingInfo:mappingInfos) {
-            if (mappingInfo.mux == MuxSelection.Disabled) {
-               continue;
-            }
-            if (mappingInfo.mux == MuxSelection.Reset) {
-               selection++;
-               continue;
-            }
+
+         FunctionTemplateInformation functionTemplateInformation = FunctionTemplateInformation.getTemplate(function);
+         if ((functionTemplateInformation == null) || !functionTemplateInformation.instanceWriter.needPcrTable()) {
+            boolean firstIf = true;
+            selection = 0;
             if (!noChoices) {
-               if (firstIf) {
-                  writeConditionalStart(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
-                  firstIf = false;
+               selection++;         
+            }
+            for (MappingInfo mappingInfo:mappingInfos) {
+               if (mappingInfo.mux == MuxSelection.Disabled) {
+                  continue;
+               }
+               if (mappingInfo.mux == MuxSelection.Reset) {
+                  selection++;
+                  continue;
+               }
+               if (!noChoices) {
+                  if (firstIf) {
+                     writeConditionalStart(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+                     firstIf = false;
+                  }
+                  else {
+                     writeConditionalElif(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+                  }
+               }
+               if (mappingInfo.mux.value < 0) {
+                  writeMacroDefinition(writer, function.getName()+"_GPIO", "0");
+                  writeMacroDefinition(writer, function.getName()+"_FN",   "0");
                }
                else {
-                  writeConditionalElif(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
+                  //               writeMacroDefinition(writer, function.getName()+"_GPIO", String.format("Gpio%s<%s>", mappingInfo.pin.getName(), 0));
+                  writeMacroDefinition(writer, function.getName()+"_GPIO", NAME_SPACE+"::"+mappingInfo.pin.getGpioClass());
+                  writeMacroDefinition(writer, function.getName()+"_FN", Integer.toString(mappingInfo.mux.value));
                }
+               selection++;
             }
-            if (mappingInfo.mux.value < 0) {
-               writeMacroDefinition(writer, function.getName()+"_GPIO", "0");
-               writeMacroDefinition(writer, function.getName()+"_FN",   "0");
+            if (!firstIf) {
+               writeConditionalEnd(writer);
             }
-            else {
-//               writeMacroDefinition(writer, function.getName()+"_GPIO", String.format("Gpio%s<%s>", mappingInfo.pin.getName(), 0));
-               writeMacroDefinition(writer, function.getName()+"_GPIO", NAME_SPACE+"::"+mappingInfo.pin.getGpioClass());
-               writeMacroDefinition(writer, function.getName()+"_FN", Integer.toString(mappingInfo.mux.value));
-            }
-            selection++;
-         }
-         if (!firstIf) {
-            writeConditionalEnd(writer);
          }
       }
       writer.write("\n");
@@ -937,7 +938,9 @@ public class CreatePinDescription extends DocumentUtilities {
     * //     &lt;6=> Divide by 64
     * //     &lt;7=> Divide by 128
     * //     &lt;0=> Default
-    * #define FTM0_SC (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))
+    * namespace USBDM {
+    * constexpr uint32_t FTM0_SC = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x6));
+    * }
     * </pre>
     * @param headerFile    Where to write
     * 
@@ -954,6 +957,9 @@ public class CreatePinDescription extends DocumentUtilities {
          String[] sortedInstances = instances.toArray(new String[instances.size()]);
          Arrays.sort(sortedInstances);
          for (String ftm:sortedInstances) {
+            if (!ftm.matches("\\d+")) {
+               continue;
+            }
             writeWizardSectionOpen(headerFile, "Clock settings for FTM" + ftm);
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("FTM%s_SC.CLKS ================================\n//", ftm), 
@@ -981,7 +987,9 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
             writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
             writeWizardDefaultSelectionEnty(headerFile, "0");
-            writeMacroDefinition(headerFile, "FTM"+ftm+"_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
+            writeOpenNamespace(headerFile, NAME_SPACE);
+            headerFile.write(String.format("constexpr uint16_t FTM"+ftm+"_SC = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));"));
+            writeCloseNamespace(headerFile);
             headerFile.write("\n");
             writeWizardSectionClose(headerFile);
             //      headerFile.write( String.format(optionSectionClose));
@@ -996,6 +1004,9 @@ public class CreatePinDescription extends DocumentUtilities {
          String[] sortedInstances = instances.toArray(new String[instances.size()]);
          Arrays.sort(sortedInstances);
          for (String ftm:sortedInstances) {
+            if (!ftm.matches("\\d+")) {
+               continue;
+            }
             writeWizardSectionOpen(headerFile, "Clock settings for TPM" + ftm);
             writeWizardOptionSelectionPreamble(headerFile, 
                   String.format("TPM%s_SC.CMOD ================================\n//", ftm),
@@ -1101,10 +1112,9 @@ public class CreatePinDescription extends DocumentUtilities {
             false,
             String.format("Map pins"),
             String.format("Selects whether pin mappings are done when individual\n" +
-                          "peripherals are configured or during reset initialisation.\n" +
-                          "This will also cause unselected peripherals to be unavailable."));
+                          "peripherals are configured or during reset initialisation." ));
       writeWizardOptionSelectionEnty(headerFile, "0", "Pins mapped on demand");
-      writeWizardOptionSelectionEnty(headerFile, "1", "Pin mapping on reset  - unselected peripherals unavailable");
+      writeWizardOptionSelectionEnty(headerFile, "1", "Pin mapping on reset");
       writeMacroDefinition(headerFile, "DO_MAP_PINS_ON_RESET", "0");
       headerFile.write("\n");
    }
@@ -1121,6 +1131,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    private void writeClockMacros(BufferedWriter writer) throws Exception {
+      writeBanner(writer, "Peripheral clock macros");
       ArrayList<String> peripheralNames = Peripheral.getList();
       for (String name:peripheralNames) {
          Peripheral peripheral = Peripheral.getPeripheral(name);
@@ -1141,6 +1152,29 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       writeMacroDefinition(writer, "PORT_CLOCK_REG", portClockRegisterValue);
       writer.write("\n");
+      
+      /* 
+       * XXX - Write debug information
+       */
+      writer.write("/*\nClock Information Summary\n");
+      for (String name:Peripheral.getList()) {
+         Peripheral peripheral = Peripheral.getPeripheral(name);
+         if (peripheral.fClockReg == null) {
+            continue;
+         }
+         if (peripheral.fName.matches("PORT[A-Z]")) {
+            if (portClockRegisterValue == null) {
+               portClockRegisterValue = peripheral.fClockReg;
+            }
+            else if (!portClockRegisterValue.equals(peripheral.fClockReg)) {
+               throw new Exception(
+                     String.format("Multiple port clock registers existing=%s, new=%s", portClockRegisterValue, peripheral.fClockReg));
+            }
+         }
+         writer.write(String.format("%-10s %-12s %-10s\n", peripheral.fName,  peripheral.fClockReg, peripheral.fClockMask));
+      }
+      writer.write("*/\n\n");
+
    }
 
    /**
@@ -1152,6 +1186,7 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writePinMappingHeaderFile(BufferedWriter headerFile) throws Exception {
       writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", pinMappingHeaderFileName, VERSION, "Pin declarations for "+deviceName);
+      writeSystemHeaderFileInclude(headerFile, "stddef.h");
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
       writeWizardMarker(headerFile);
@@ -1164,8 +1199,11 @@ public class CreatePinDescription extends DocumentUtilities {
       writePinMappings(headerFile);
       writePeripheralSignalMappings(headerFile);
       writeEndWizardMarker(headerFile);
+      
       writePinDefines(headerFile);
       writeClockMacros(headerFile);
+      writePeripheralInformationTables(headerFile);
+      
       writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
    }
 
@@ -1236,25 +1274,28 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param mappedFunction   Information about the pin and function being declared
     * @param fnIndex    Instance number e.g. PTD0 => 0
     * @param gpioHeaderFile   Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   void writeExternDeclaration(FunctionTemplateInformation template, MappingInfo mappedFunction, int fnIndex, BufferedWriter gpioHeaderFile) throws IOException {
+   void writeExternDeclaration(FunctionTemplateInformation template, MappingInfo mappedFunction, int fnIndex, BufferedWriter gpioHeaderFile) throws Exception {
 
       boolean guardWritten = writeFunctionSelectionGuardMacro(template, mappedFunction, gpioHeaderFile);
 
-      template.instanceWriter.writeDefinition(mappedFunction, fnIndex, gpioHeaderFile);
-      
-      Aliases aliasList = Aliases.getAlias(mappedFunction.pin);
-      if (aliasList != null) {
-         for (String alias:aliasList.aliasList) {
-            String aliasName = template.instanceWriter.getAliasName(alias);
-            if (!macroAliases.add(aliasName)) {
-               // Comment out repeated aliases
-               gpioHeaderFile.write("//");
+      String signalName = template.instanceWriter.getInstanceName(mappedFunction, fnIndex);
+      if (guardWritten || macroAliases.add(signalName)) {
+         template.instanceWriter.writeDefinition(mappedFunction, fnIndex, gpioHeaderFile);
+      }
+
+      if (template.useAliases()) {
+         Aliases aliasList = Aliases.getAlias(mappedFunction.pin);
+         if (aliasList != null) {
+            for (String alias:aliasList.aliasList) {
+               String aliasName = template.instanceWriter.getAliasName(alias);
+               if (!macroAliases.add(aliasName)) {
+                  // Comment out repeated aliases
+                  gpioHeaderFile.write("//");
+               }
+               gpioHeaderFile.write(template.instanceWriter.getAlias(aliasName, mappedFunction, fnIndex));
             }
-            template.instanceWriter.writeAlias(aliasName, mappedFunction, fnIndex, gpioHeaderFile);
-//            writeMacroDefinition(gpioHeaderFile, aliasName, NAME_SPACE+"::"+instanceName, "!< Alias for @ref "+NAME_SPACE+"::"+instanceName);
          }
       }
       if (guardWritten) {
@@ -1279,7 +1320,6 @@ public class CreatePinDescription extends DocumentUtilities {
                }
                MappingInfo mappedFunction = mappedFunctions.get(index);
                for (PeripheralFunction function:mappedFunction.functions) {
-//                  System.err.println(String.format("processPins() - N:%s, P:%s", function.getName(), pinTemplate.matchPattern.toString()));
                   if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
                      MappingInfo.addFunctionType(pinTemplate.baseName, pinInfo);
                   }
@@ -1289,6 +1329,120 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
    
+   /**
+    * Write Peripheral Pin Tables.<br>
+    * 
+    * <pre>
+    * /**
+    *  * Peripheral pin mapping information for PWM, Input capture, Output compare
+    *  *&#47;
+    * constexpr PcrInfo Ftm1Info[32] = {
+    * #if (FTM1_CH0_PIN_SEL == 1)
+    *  /*  0 *&#47;  { PORTA_CLOCK_MASK, PORTA_BasePtr+offsetof(PORT_Type,PCR[12]),3 },
+    * #elif (FTM1_CH0_PIN_SEL == 2)
+    *  /*  0 *&#47;  { PORTB_CLOCK_MASK, PORTB_BasePtr+offsetof(PORT_Type,PCR[0]), 3 },
+    * #else
+    *  /*  0 *&#47;  { 0, 0, 0 },
+    * #endif
+    * </pre>
+    * @param pinMappingHeaderFile
+    * 
+    * @throws Exception 
+    */
+   private void writePeripheralInformationTables(BufferedWriter pinMappingHeaderFile) throws Exception {
+      writeOpenNamespace(pinMappingHeaderFile, NAME_SPACE);
+      writeBanner(pinMappingHeaderFile, "Peripheral Pin Tables");
+
+      writeStartGroup(pinMappingHeaderFile, "PeripheralPinTables", "Peripheral Pin Tables", "Provides information about pins used by a peripheral");
+
+      writeDocBanner(pinMappingHeaderFile, "Struct for pin information");
+      pinMappingHeaderFile.write(
+            "struct PcrInfo {\n"+
+                  "   uint32_t clockMask;   //!< Clock mask for PORT\n"+
+                  "   uint32_t pcrAddress;  //!< PCR[x] register address\n"+
+                  "   int      muxValue;    //!< PCR mux value to select this function\n"+
+                  "};\n"
+            );
+
+
+      for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
+         if (!pinTemplate.instanceWriter.needPcrTable()) {
+            continue;
+         }
+         /*
+          * Collect functions that match template into a vector ordered by signal 
+          */
+         Vector<PeripheralFunction> collectedInformation = new Vector<PeripheralFunction>();
+         boolean infoCollected = false;
+         for (String functionName:PeripheralFunction.getPeripheralFunctionsAsList()) {
+            PeripheralFunction function = PeripheralFunction.getFunctions().get(functionName);
+            int signalIndex = pinTemplate.getFunctionIndex(function);
+            if (signalIndex<0) {
+               // Template doesn't match this function
+               continue;
+            }
+            if (signalIndex>=collectedInformation.size()) {
+               collectedInformation.setSize(signalIndex+1);
+            }
+            if(collectedInformation.get(signalIndex) != null) {
+               System.err.println("Repeated Element " + function);
+            }
+            collectedInformation.setElementAt(function, signalIndex);
+            infoCollected = true;
+         }         
+         if (!infoCollected) {
+            // Nothing matches template
+            continue;
+         }
+         writeDocBanner(pinMappingHeaderFile, "Peripheral pin mapping information for "+pinTemplate.groupTitle);
+         pinMappingHeaderFile.write(String.format("constexpr PcrInfo %sInfo[32] = {\n", pinTemplate.baseName));
+         for(int signalIndex=0; signalIndex<collectedInformation.size(); signalIndex++) {
+            PeripheralFunction peripheralFunction = collectedInformation.get(signalIndex);
+            if (peripheralFunction == null) {
+               pinMappingHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", signalIndex));
+               continue;
+            }
+            ArrayList<MappingInfo> mappedPins = MappingInfo.getPins(peripheralFunction);
+            boolean valueWritten = false;
+            int choice = 1;
+            for (MappingInfo mappedPin:mappedPins) {
+               if (mappedPin.mux == MuxSelection.Disabled) {
+                  // Disabled selection - ignore
+                  continue;
+               }
+               if (mappedPin.mux == MuxSelection.Reset) {
+                  // Reset selection - ignore
+                  continue;
+               }
+               if (mappedPin.mux == MuxSelection.Fixed) {
+                  // Fixed pin mapping - handled by default following
+                  continue;
+               }
+               if (valueWritten) {
+                  writeConditionalElif(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice));
+               }
+               else {
+                  writeConditionalStart(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice));
+               }
+               String pcrInitString = FunctionTemplateInformation.getPCRInitString(mappedPin.pin);
+               pinMappingHeaderFile.write(String.format(" /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.mux.value));
+               valueWritten = true;
+               choice++;
+            }
+            if (valueWritten) {
+               writeConditionalElse(pinMappingHeaderFile);
+            }
+            pinMappingHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", signalIndex));
+            if (valueWritten) {
+               writeConditionalEnd(pinMappingHeaderFile);
+            }
+         }
+         pinMappingHeaderFile.write(String.format("};\n\n"));
+      }
+      writeCloseGroup(pinMappingHeaderFile, "PeripheralPinTables");
+      writeCloseNamespace(pinMappingHeaderFile, NAME_SPACE);
+   }   
+
    /**
     * Write GPIO Header file.<br>
     * This mostly contains the extern declarations for peripherals
@@ -1312,74 +1466,6 @@ public class CreatePinDescription extends DocumentUtilities {
       gpioHeaderFile.write("\n");
       writeOpenNamespace(gpioHeaderFile, NAME_SPACE);
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
-         Vector<ArrayList<MappingInfo>> collectedInformation = new Vector<ArrayList<MappingInfo>>(32);
-         boolean infoCollected = false;
-         if (pinTemplate.instanceWriter.needPcrTable()) {
-            for (String pinName:PinInformation.getPinNames()) {
-               PinInformation pinInfo = PinInformation.find(pinName);
-               HashMap<MuxSelection, MappingInfo> mappedFunctions = MappingInfo.getFunctions(pinInfo);
-               if (mappedFunctions == null) {
-                  continue;
-               }
-               for (MuxSelection index:mappedFunctions.keySet()) {
-                  if (index == MuxSelection.Reset) {
-                     continue;
-                  }
-                  MappingInfo mappedFunction = mappedFunctions.get(index);
-                  for (int fnIndex=0; fnIndex<mappedFunction.functions.size(); fnIndex++) {
-                     PeripheralFunction function = mappedFunction.functions.get(fnIndex);
-                     if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
-                        Pattern p = Pattern.compile("(\\d+).*");
-                        Matcher m = p.matcher(function.fSignal);
-                        if (!m.matches()) {
-                           System.err.println("Illegal Element " + function.fSignal);
-                           System.err.println(pinTemplate.instanceWriter.getInstanceName(mappedFunction, fnIndex)+"\n");
-                           continue;
-                        }
-                        int signalIndex = Integer.parseInt(m.group(1));
-                        if (signalIndex>=collectedInformation.size()) {
-                           collectedInformation.setSize(signalIndex+1);
-                        }
-                        ArrayList<MappingInfo> element = collectedInformation.elementAt(signalIndex);
-                        if (element == null) {
-                           element = new ArrayList<MappingInfo>();
-                           collectedInformation.setElementAt(element, signalIndex);
-                        }
-                        element.add(mappedFunction);
-                        infoCollected = true;
-                     }
-                  }
-               }
-            }
-            if (infoCollected) {
-               gpioHeaderFile.write(String.format("constexpr PcrInfo %sInfo[32] = {\n", pinTemplate.baseName));
-               for (int index=0; index<collectedInformation.size(); index++) {
-                  ArrayList<MappingInfo> list = collectedInformation.elementAt(index);
-                  if (list == null) {
-                     gpioHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", index));
-                     continue;
-                  }
-                  boolean guardWritten = false;
-                  for (MappingInfo element:list) {
-                     guardWritten = writeFunctionSelectionGuardMacro(pinTemplate, element, gpioHeaderFile, guardWritten);
-                     String pcrInitString = FunctionTemplateInformation.getPCRInitString(element.pin);
-                     int muxValue = element.mux.value;
-                     if (muxValue<0) {
-                        // Negative value indicates no mapping - replace with zero for consistency (not actually used)
-                        muxValue = 0;
-                     }
-                     gpioHeaderFile.write(String.format(" /* %2d */  { %s %d},\n", index, pcrInitString, muxValue));
-                  }
-                  if (guardWritten) {
-                     writeConditionalElse(gpioHeaderFile);
-                     gpioHeaderFile.write(String.format(" /* %2d */  { 0, 0, 0 },\n", index));
-                     writeConditionalEnd(gpioHeaderFile);
-                  }
-               }
-               gpioHeaderFile.write(String.format("};\n\n"));
-               gpioHeaderFile.write(pinTemplate.instanceWriter.getTemplate(pinTemplate));
-            }
-         }
          boolean groupDone = false;
          for (String pinName:PinInformation.getPinNames()) {
             PinInformation pinInfo = PinInformation.find(pinName);
@@ -1396,6 +1482,9 @@ public class CreatePinDescription extends DocumentUtilities {
                   PeripheralFunction function = mappedFunction.functions.get(fnIndex);
                   if (pinTemplate.matchPattern.matcher(function.getName()).matches()) {
                      if (!groupDone) {
+                        if (pinTemplate.instanceWriter.needPcrTable()) {
+                           gpioHeaderFile.write(pinTemplate.instanceWriter.getTemplate(pinTemplate));
+                        }
                         writeStartGroup(gpioHeaderFile, pinTemplate);
                         groupDone = true;
                      }
@@ -1409,36 +1498,10 @@ public class CreatePinDescription extends DocumentUtilities {
          }
       }
 
-      gpioHeaderFile.write(
-            "#if defined(DO_MAP_PINS_ON_RESET) && (DO_MAP_PINS_ON_RESET>0)\n" +
-            "/**\n" + 
-            " * Used to configure pin-mapping before 1st use of peripherals\n" + 
-            " */\n" + 
-            "extern void usbdm_PinMapping();\n" +
-            "#endif\n\n"
-         );
-
-      /* 
-       * XXX - Write debug information
-       */
-      gpioHeaderFile.write("/*\nClock Information \n");
-      for (String name:Peripheral.getList()) {
-         Peripheral peripheral = Peripheral.getPeripheral(name);
-         if (peripheral.fClockReg == null) {
-            continue;
-         }
-         if (peripheral.fName.matches("PORT[A-Z]")) {
-            if (portClockRegisterValue == null) {
-               portClockRegisterValue = peripheral.fClockReg;
-            }
-            else if (!portClockRegisterValue.equals(peripheral.fClockReg)) {
-               throw new Exception(
-                     String.format("Multiple port clock registers existing=%s, new=%s", portClockRegisterValue, peripheral.fClockReg));
-            }
-         }
-         gpioHeaderFile.write(String.format("%-10s %-12s %-10s\n", peripheral.fName,  peripheral.fClockReg, peripheral.fClockMask));
-      }
-      gpioHeaderFile.write("*/\n\n");
+      writeConditionalStart(gpioHeaderFile, "DO_MAP_PINS_ON_RESET>0");
+      writeDocBanner(gpioHeaderFile, "Used to configure pin-mapping before 1st use of peripherals");
+      gpioHeaderFile.write("extern void usbdm_PinMapping();\n");
+      writeConditionalEnd(gpioHeaderFile);
       writeCloseNamespace(gpioHeaderFile, NAME_SPACE);
       writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
    }
@@ -1452,14 +1515,13 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writePinMappingFunction(BufferedWriter cppFile) throws IOException {
       
+      writeConditionalStart(cppFile, "DO_MAP_PINS_ON_RESET>0");
       cppFile.write(
-         "\n" +
-         "#if defined(DO_MAP_PINS_ON_RESET) && (DO_MAP_PINS_ON_RESET>0)\n" +
          "struct PinInit {\n"+
          "   uint32_t pcrValue;\n"+
          "   uint32_t volatile *pcr;\n"+
          "};\n\n"+
-         "static const PinInit pinInit[] = {\n"
+         "static constexpr PinInit pinInit[] = {\n"
       );
 
       for (String pinName:PinInformation.getPinNames()) {
@@ -1468,9 +1530,9 @@ public class CreatePinDescription extends DocumentUtilities {
          if (m.matches()) {
             String instance = m.replaceAll("$1");
             String signal   = m.replaceAll("$2");
-            cppFile.write(String.format("#if defined(%s_SIG_SEL) && (%s_SIG_SEL>=0)\n", pinName, pinName));
-            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|%s::DigitalIO::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, NAME_SPACE, instance, signal));
-            cppFile.write(String.format("#endif\n"));
+            writeConditionalStart(cppFile, String.format("%s_SIG_SEL>=0", pinName, pinName));
+            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|%s::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, NAME_SPACE, instance, signal));
+            writeConditionalEnd(cppFile);
          }
       }
       cppFile.write("};\n\n");
@@ -1486,6 +1548,7 @@ public class CreatePinDescription extends DocumentUtilities {
       boolean firstExpression = true;
       String currentBasename = null;
       String  instance = "X";
+      int conditionCounter = 0;
       for (String pinName:PinInformation.getPinNames()) {
          Pattern p = Pattern.compile("(PT([A-Z]))[0-9]+");
          Matcher m = p.matcher(pinName);
@@ -1502,13 +1565,17 @@ public class CreatePinDescription extends DocumentUtilities {
                instance = m.replaceAll("$2");
             }
             else {
-               cppFile.write(" || \\\n    ");
+               cppFile.write(" || ");
+               if (++conditionCounter>=4) {
+                  cppFile.write("\\\n    ");
+                  conditionCounter = 0;
+               }
             }
-            cppFile.write(String.format("(defined(%s_SIG_SEL) && (%s_SIG_SEL>=0))", pinName, pinName));
+            cppFile.write(String.format("(%s_SIG_SEL>=0)", pinName));
          }
       }
       if (!firstExpression) {
-         cppFile.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
+         cppFile.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
          cppFile.write("\n#endif\n");
       }
   
@@ -1518,11 +1585,8 @@ public class CreatePinDescription extends DocumentUtilities {
          "      *(p->pcr) = p->pcrValue;\n"+ 
          "   }\n"
       );
-      
-      cppFile.write(
-         "}\n" +
-         "#endif\n\n"
-      );
+      cppFile.write("}\n");
+      writeConditionalEnd(cppFile);
    }
    
    /**
@@ -1541,7 +1605,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws IOException
     */
    private boolean writeFunctionSelectionGuardMacro(FunctionTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file, boolean guardWritten) throws IOException {
-      final String format = "(%s == %s)";
+      final String format = "%s == %s";
       String pinName = mappedFunction.pin.getName();
 
       if (mappedFunction.mux == MuxSelection.Fixed) {
@@ -1680,6 +1744,11 @@ public class CreatePinDescription extends DocumentUtilities {
                "FTM1_CH\\d+",
                new WriterForPwmIO_FTM(deviceIsMKE));
          new FunctionTemplateInformation(
+               "Ftm2", "FTM2",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Allows use of port pins as PWM outputs",
+               "FTM2_CH\\d+",
+               new WriterForPwmIO_FTM(deviceIsMKE));
+         new FunctionTemplateInformation(
                "Tpm0", "TPM0",  "PwmIO_Group",      "PWM, Input capture, Output compare",
                "Allows use of port pins as PWM outputs",
                "TPM0_CH\\d+",
@@ -1689,6 +1758,26 @@ public class CreatePinDescription extends DocumentUtilities {
                "Allows use of port pins as PWM outputs",
                "TPM1_CH\\d+",
                new WriterForPwmIO_TPM(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Tpm2", "TPM2",  "PwmIO_Group",      "PWM, Input capture, Output compare",
+               "Allows use of port pins as PWM outputs",
+               "TPM2_CH\\d+",
+               new WriterForPwmIO_TPM(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Spi0", "SPI0",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
+               "Pins used for SPI functions",
+               "SPI0_(SCK|SIN|SOUT|PCS\\d+)",
+               new WriterForSpi(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Spi1", "SPI1",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
+               "Pins used for SPI functions",
+               "SPI1_(SCK|SIN|SOUT|PCS\\d+)",
+               new WriterForSpi(deviceIsMKE));
+         new FunctionTemplateInformation(
+               "Spi2", "SPI2",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
+               "Pins used for SPI functions",
+               "SPI2_(SCK|SIN|SOUT|PCS\\d+)",
+               new WriterForSpi(deviceIsMKE));
       }
       pinFunctionDescriptions.add(new PinFunctionDescription("LPTMR", "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SPI",   "", ""));

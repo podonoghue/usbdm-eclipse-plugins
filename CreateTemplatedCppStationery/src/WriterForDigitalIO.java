@@ -1,4 +1,5 @@
-import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -14,11 +15,7 @@ class WriterForDigitalIO extends InstanceWriter {
    static final String INSTANCE_BASE_NAME    = "gpio";
 
    public WriterForDigitalIO(boolean deviceIsMKE) {
-      super(deviceIsMKE, false);
-   }
-
-   public WriterForDigitalIO(boolean deviceIsMKE, boolean useGuard) {
-      super(deviceIsMKE, useGuard);
+      super(deviceIsMKE);
    }
 
    /* (non-Javadoc)
@@ -46,13 +43,12 @@ class WriterForDigitalIO extends InstanceWriter {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException {
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal    = mappingInfo.functions.get(fnIndex).fSignal;
-      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"<"+signal+">";
+      int    signal    = getFunctionIndex(mappingInfo.functions.get(fnIndex));
+      return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
    }
 
    /* (non-Javadoc)
@@ -70,4 +66,16 @@ class WriterForDigitalIO extends InstanceWriter {
    public String getTemplate(FunctionTemplateInformation pinTemplatee) {
       throw new RuntimeException("Should never be asked for\n");
    }
+
+   @Override
+   public int getFunctionIndex(PeripheralFunction function) throws Exception {
+      Pattern p = Pattern.compile("(\\d+).*");
+      Matcher m = p.matcher(function.fSignal);
+      if (!m.matches()) {
+         throw new Exception("Signal does not match expected pattern");
+      }
+      int signalIndex = Integer.parseInt(m.group(1));
+      return signalIndex;
+   }
+
 }
