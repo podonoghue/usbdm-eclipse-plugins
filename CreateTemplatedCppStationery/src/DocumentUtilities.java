@@ -250,7 +250,7 @@ public class DocumentUtilities {
    /**
     * Write namespace close
     * <pre><code>
-    *  } // End "<i><b>USBDM</i></b>"
+    *  } // End "<i><b>namespace</i></b>"
     * </code></pre>
     * 
     * @param writer     Where to write
@@ -265,7 +265,7 @@ public class DocumentUtilities {
    /**
     * Write namespace close
     * <pre><code>
-    *  } // End "<i><b>USBDM</i></b>"
+    *  }  // Close namespace
     * </code></pre>
     * 
     * @param writer     Where to write
@@ -274,7 +274,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    void writeCloseNamespace(BufferedWriter writer) throws IOException {
-      writer.write(String.format("\n}\n"));
+      writer.write(String.format("\n} // End namespace\n"));
    }
 
    /**
@@ -284,8 +284,9 @@ public class DocumentUtilities {
     *  #if (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param writer
-    * @param condition
+    * @param writer        Where to write
+    * @param condition     Condition to use
+    * 
     * @throws IOException
     */
    void writeConditionalStart(BufferedWriter writer, String condition) throws IOException {
@@ -299,8 +300,9 @@ public class DocumentUtilities {
     *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param writer
-    * @param condition
+    * @param writer        Where to write
+    * @param condition     Condition to use
+    * 
     * @throws IOException
     */
    void writeConditionalElif(BufferedWriter writer, String condition) throws IOException {
@@ -308,14 +310,14 @@ public class DocumentUtilities {
    }
    
    /**
-    * Write #elif directive
+    * Write #else directive
     * 
     * <pre><code>
-    *  #elif <i><b>condition</i></b>
+    *  #else <i><b>condition</i></b>
     * </code></pre>
     * 
-    * @param writer
-    * @param condition
+    * @param writer        Write to write to
+    * 
     * @throws IOException
     */
    void writeConditionalElse(BufferedWriter writer) throws IOException {
@@ -329,12 +331,72 @@ public class DocumentUtilities {
     *  #endif
     * </code></pre>
     * 
-    * @param writer
-    * @param condition
+    * @param writer        Write to write to
+    * 
     * @throws IOException
     */
    void writeConditionalEnd(BufferedWriter writer) throws IOException {
       writer.write(String.format("#endif\n"));
+   }
+   
+   /**
+    * Write #if directive or #elif
+    * 
+    * <pre><code>
+    *  #if (<i><b>condition</i></b>)
+    *  OR
+    *  #elif (<i><b>condition</i></b>)
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param condition     Condition to use
+    * @param guardWritten  Indicates a prior condition has been written so a <b>#elif</b> is used
+    * 
+    * @throws IOException
+    */
+   void writeConditional(BufferedWriter writer, String condition, Boolean guardWritten) throws IOException {
+      if (guardWritten) {
+         writeConditionalElif(writer, condition);
+      }
+      else {
+         writeConditionalStart(writer, condition);
+      }
+   }
+   
+   /**
+    * Conditionally write #else directive
+    * 
+    * <pre><code>
+    *  #elif <i><b>condition</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Write to write to
+    * @param guardWritten  If false nothing is written (implies a prior #if was written)
+    * 
+    * @throws IOException
+    */
+   void writeConditionalElse(BufferedWriter writer, boolean guardWritten) throws IOException {
+      if (guardWritten) {
+         writer.write(String.format("#else\n"));
+      }
+   }
+   
+   /**
+    * Conditionally write #endif directive
+    * 
+    * <pre><code>
+    *  #endif
+    * </code></pre>
+    * 
+    * @param writer        Write to write to
+    * @param guardWritten  If false nothing is written (implies a prior #if was written)
+    * 
+    * @throws IOException
+    */
+   void writeConditionalEnd(BufferedWriter writer, boolean guardWritten) throws IOException {
+      if (guardWritten) {
+         writeConditionalEnd(writer);
+      }
    }
    
    /**

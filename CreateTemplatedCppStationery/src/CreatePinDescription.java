@@ -758,11 +758,11 @@ public class CreatePinDescription extends DocumentUtilities {
 
          FunctionTemplateInformation functionTemplateInformation = FunctionTemplateInformation.getTemplate(function);
          if ((functionTemplateInformation == null) || !functionTemplateInformation.instanceWriter.needPcrTable()) {
-            boolean firstIf = true;
             selection = 0;
             if (!noChoices) {
                selection++;         
             }
+            boolean conditionWritten = false;
             for (MappingInfo mappingInfo:mappingInfos) {
                if (mappingInfo.mux == MuxSelection.Disabled) {
                   continue;
@@ -772,13 +772,8 @@ public class CreatePinDescription extends DocumentUtilities {
                   continue;
                }
                if (!noChoices) {
-                  if (firstIf) {
-                     writeConditionalStart(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
-                     firstIf = false;
-                  }
-                  else {
-                     writeConditionalElif(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection));
-                  }
+                  writeConditional(writer, String.format("%s == %d", function.getName()+"_PIN_SEL", selection), conditionWritten);
+                  conditionWritten = true;
                }
                if (mappingInfo.mux.value < 0) {
                   writeMacroDefinition(writer, function.getName()+"_GPIO", "0");
@@ -791,9 +786,7 @@ public class CreatePinDescription extends DocumentUtilities {
                }
                selection++;
             }
-            if (!firstIf) {
-               writeConditionalEnd(writer);
-            }
+            writeConditionalEnd(writer, conditionWritten);
          }
       }
       writer.write("\n");
@@ -1297,9 +1290,7 @@ public class CreatePinDescription extends DocumentUtilities {
             }
          }
       }
-      if (guardWritten) {
-         writeConditionalEnd(gpioHeaderFile);
-      }
+      writeConditionalEnd(gpioHeaderFile, guardWritten);
    }
    
    /**
@@ -1419,12 +1410,7 @@ public class CreatePinDescription extends DocumentUtilities {
                   // Fixed pin mapping - handled by default following
                   continue;
                }
-               if (valueWritten) {
-                  writeConditionalElif(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice));
-               }
-               else {
-                  writeConditionalStart(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice));
-               }
+               writeConditional(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice), valueWritten);
                String pcrInitString = FunctionTemplateInformation.getPCRInitString(mappedPin.pin);
                pinMappingHeaderFile.write(String.format(" /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.mux.value));
                
@@ -1435,9 +1421,7 @@ public class CreatePinDescription extends DocumentUtilities {
                writeConditionalElse(pinMappingHeaderFile);
             }
             pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
-            if (valueWritten) {
-               writeConditionalEnd(pinMappingHeaderFile);
-            }
+            writeConditionalEnd(pinMappingHeaderFile, valueWritten);
          }
          pinMappingHeaderFile.write(String.format("};\n\n"));
       }
@@ -1538,7 +1522,6 @@ public class CreatePinDescription extends DocumentUtilities {
          }
       }
       cppFile.write("};\n\n");
-
       
       cppFile.write(
          "/**\n" + 
@@ -1559,7 +1542,7 @@ public class CreatePinDescription extends DocumentUtilities {
             if (!basename.equals(currentBasename)) {
                if (!firstExpression) {
                   cppFile.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
-                  cppFile.write("#endif\n\n");
+                  writeConditionalEnd(cppFile);
                }
                currentBasename = basename;
                cppFile.write("#if ");
@@ -1578,7 +1561,7 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       if (!firstExpression) {
          cppFile.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
-         cppFile.write("\n#endif\n");
+         writeConditionalEnd(cppFile);
       }
   
       cppFile.write(
@@ -1594,13 +1577,14 @@ public class CreatePinDescription extends DocumentUtilities {
    /**
     * Write conditional macro guard for function declaration or definition
     * <pre>
-    * e.g. #if (PTD5_SIG_SEL == 0)
+    * e.g. #<b>if</b> (PTD5_SIG_SEL == 0)
+    * or   #<b>elif</b> (PTD5_SIG_SEL == 0)
     * </pre>
     * 
     * @param pinTemplate
     * @param mappedFunction
     * @param file
-    * @param guardWritten     Indicates that an elif clause should be written
+    * @param guardWritten     If true, indicates that an elif clause should be written
     * 
     * @return Indicates if guard was written (and hence closing macro needs to be written)
     * 
@@ -1618,19 +1602,14 @@ public class CreatePinDescription extends DocumentUtilities {
          // Don't use guard
          return false;
       }
-      if (!guardWritten) {
-         writeConditionalStart(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
-      }
-      else {
-         writeConditionalElif(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)));
-      }
+      writeConditional(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.mux.value)), guardWritten);
       return true;
    }
    
    /**
     * Write conditional macro guard for function declaration or definition
     * <pre>
-    * e.g. #if (PTD5_SIG_SEL == 0)
+    * e.g. #<b>if</b> (PTD5_SIG_SEL == 0)
     * </pre>
     * 
     * @param pinTemplate
