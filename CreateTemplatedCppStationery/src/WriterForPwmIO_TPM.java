@@ -3,9 +3,9 @@
  */
 class WriterForPwmIO_TPM extends WriterForDigitalIO {
 
-   static final String ALIAS_BASE_NAME       = "tmr_";
-   static final String CLASS_BASE_NAME       = "Tmr";
-   static final String INSTANCE_BASE_NAME    = "tmr";
+   static final String ALIAS_BASE_NAME       = "tpm_";
+   static final String CLASS_BASE_NAME       = "Tpm";
+   static final String INSTANCE_BASE_NAME    = "tpm";
    
    public WriterForPwmIO_TPM(boolean deviceIsMKE) {
       super(deviceIsMKE);
@@ -41,7 +41,6 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       int    signal    = getFunctionIndex(mappingInfo.functions.get(fnIndex));
-      
       return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
    }
    @Override
@@ -79,8 +78,8 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    public String getTemplate(FunctionTemplateInformation pinTemplate) {               
       return TEMPLATE_DOCUMENTATION + String.format(
          "template<uint8_t tpmChannel> using %s =\n" +
-         "   Tmr_T<getPortClockMask(tpmChannel,%sInfo), getPcrReg(tpmChannel,%sInfo), getPcrMux(tpmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, tpmChannel>;\n\n",
-         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
+         "   %s_T<getPortClockMask(tpmChannel,%sInfo), getPcrReg(tpmChannel,%sInfo), getPcrMux(tpmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, TPM0_SC, tpmChannel>;\n\n",
+         pinTemplate.baseName, CLASS_BASE_NAME, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
 
    }
 }

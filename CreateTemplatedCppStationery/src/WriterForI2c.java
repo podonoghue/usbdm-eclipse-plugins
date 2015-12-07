@@ -134,7 +134,7 @@ class WriterForI2c extends InstanceWriter {
       sb.append(GPIO_TEMPLATE_DOCUMENTATION);
       sb.append(String.format(
             "template<uint8_t i2cPinIndex> using %s =\n" +
-            "   Digital_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), PORT_PCR_MUX(FIXED_GPIO_FN)|I2C_DEFAULT_PCR,\n"+
+            "   Gpio_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), PORT_PCR_MUX(FIXED_GPIO_FN)|I2C_DEFAULT_PCR,\n"+
             "             getGpioAddress(i2cPinIndex,%sInfo),   getGpioBit(i2cPinIndex,%sInfo)>;\n",
             pinTemplate.baseName+"Gpio", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
       return sb.toString();

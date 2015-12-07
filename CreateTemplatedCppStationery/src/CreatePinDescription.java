@@ -981,7 +981,7 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
             writeWizardDefaultSelectionEnty(headerFile, "0");
             writeOpenNamespace(headerFile, NAME_SPACE);
-            headerFile.write(String.format("constexpr uint16_t FTM"+ftm+"_SC = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));"));
+            writeConstexpr(headerFile, 16, "FTM"+ftm+"_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
             writeCloseNamespace(headerFile);
             headerFile.write("\n");
             writeWizardSectionClose(headerFile);
@@ -1027,7 +1027,7 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
             writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
             writeWizardDefaultSelectionEnty(headerFile, "0");
-            writeMacroDefinition(headerFile, "TPM"+ftm+"_SC", "(TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0))");
+            writeConstexpr(headerFile, 16, "TPM"+ftm+"_SC", "(TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0))");
             headerFile.write("\n");
             writeWizardSectionClose(headerFile);
          }

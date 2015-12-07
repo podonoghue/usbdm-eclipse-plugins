@@ -106,7 +106,7 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
    public String getTemplate(FunctionTemplateInformation pinTemplate) {   
       return TEMPLATE_DOCUMENTATION+String.format(
          "template<uint8_t adcChannel> using %s =\n" +
-         "   Analogue_T<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
+         "   Adc_T<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
          pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
    }
 }

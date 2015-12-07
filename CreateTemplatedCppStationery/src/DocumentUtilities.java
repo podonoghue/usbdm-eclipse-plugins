@@ -657,6 +657,31 @@ public class DocumentUtilities {
    /**
     * Write simple macro definition e.g.
     * <pre><code>
+    * constexpr uint32_t <i><b>name value</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param size          Constant size (8, 16 or 32 bits)
+    * @param name          Constant name
+    * @param value         Constant value
+    * 
+    * @throws IOException
+    */
+   void writeConstexpr(BufferedWriter writer, int size, String name, String value) throws IOException {
+      String type;
+      switch(size) {
+      case 8:  type = "uint8_t";    break;
+      case 16: type = "uint16_t";   break;
+      case 32: type = "uint32_t";   break;
+      default: type = null;         break;
+      }
+      final String defineTemplate = "constexpr %8s %-20s = %s;\n";
+      writer.write(String.format(defineTemplate, type, name, value));
+   }
+
+   /**
+    * Write simple macro definition e.g.
+    * <pre><code>
     * #define <i><b>name value</i></b>
     * </code></pre>
     * 
