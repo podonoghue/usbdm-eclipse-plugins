@@ -483,6 +483,17 @@
                   valueType="boolean">
             </option>
             <option
+                  category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
+                  command="-fno-rtti"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI"
+                  isAbstract="false"
+                  name="Discard run-time-type-information RTTI (-fno-rtti)"
+                  resourceFilter="all"
+                  tip="Only applicable to C++"
+                  valueType="boolean">
+            </option>
+            <option
                name="Other flags (compiler)"
                id="net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther"
                category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
@@ -1320,6 +1331,24 @@
                         holderId="net.sourceforge.usbdm.cdt.baseToolchain"
                         isRegex="false"
                         optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections"
+                        value="false">
+                  </checkOption>
+               </enablement>
+            </option>
+            <option
+                  category="net.sourceforge.usbdm.gnu.cpp.compiler.optimization"
+                  command="-fno-rtti"
+                  defaultValue="true"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.optimization.noRTTI"
+                  name="Discard run-time-type-information (-fno-rtti)"
+                  valueType="boolean">
+               <enablement
+                     extensionAdjustment="true"
+                     type="UI_ENABLEMENT|CMD_USAGE">
+                  <checkOption
+                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
+                        isRegex="false"
+                        optionId="net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI"
                         value="false">
                   </checkOption>
                </enablement>

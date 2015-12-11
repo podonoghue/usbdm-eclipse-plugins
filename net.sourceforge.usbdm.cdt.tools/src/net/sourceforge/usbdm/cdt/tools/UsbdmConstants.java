@@ -92,6 +92,7 @@ public class UsbdmConstants {
    public static final String USBDM_GCC_OPTIMIZATION_SHORTENUMS_OPTION_KEY     = "net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations";
    public static final String USBDM_GCC_OPTIMIZATION_FUNCTION_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections";
    public static final String USBDM_GCC_OPTIMIZATION_DATA_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections";
+   public static final String USBDM_GCC_OPTIMIZATION_NORTTI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI";
    public static final String USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.deadCodeElimination";
    public static final String USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY  = "net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther";
    public static final String USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther";
