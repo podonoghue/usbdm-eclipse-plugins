@@ -60,10 +60,12 @@ class WriterForSpi extends InstanceWriter {
 
    @Override
    public int getFunctionIndex(PeripheralFunction function) throws Exception {
-      String signalNames[] = {"SCK", "SIN", "SOUT", "PCS0", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
+      String signalNames[] = {"SCK", "SIN,MISO", "SOUT,MOSI", "PCS0,PCS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (signalNames[signal].equalsIgnoreCase(function.fSignal)) {
-            return signal;
+         for (String s:signalNames[signal].split(",")) {
+            if (s.equalsIgnoreCase(function.fSignal)) {
+               return signal;
+            }
          }
       }
       throw new Exception("Signal does not match expected pattern " + function.fSignal);

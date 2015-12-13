@@ -1747,17 +1747,17 @@ public class CreatePinDescription extends DocumentUtilities {
          new FunctionTemplateInformation(
                "Spi0", "SPI0",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
                "Pins used for SPI functions",
-               "SPI0_(SCK|SIN|SOUT|PCS\\d+)",
+               "SPI0_(SCK|SIN|SOUT|MISO|MOSI|PCS\\d+)",
                new WriterForSpi(deviceIsMKE));
          new FunctionTemplateInformation(
                "Spi1", "SPI1",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
                "Pins used for SPI functions",
-               "SPI1_(SCK|SIN|SOUT|PCS\\d+)",
+               "SPI1_(SCK|SIN|SOUT|MISO|MOSI|PCS\\d+)",
                new WriterForSpi(deviceIsMKE));
          new FunctionTemplateInformation(
                "Spi2", "SPI2",  "SpiIO_Group",      "SPI, Serial Peripheral Interface",
                "Pins used for SPI functions",
-               "SPI2_(SCK|SIN|SOUT|PCS\\d+)",
+               "SPI2_(SCK|SIN|SOUT|MISO|MOSI|PCS\\d+)",
                new WriterForSpi(deviceIsMKE));
          new FunctionTemplateInformation(
                "I2c0", "I2C0",  "I2CIO_Group",      "I2C, Inter-Integrated-Circuit Interface",
