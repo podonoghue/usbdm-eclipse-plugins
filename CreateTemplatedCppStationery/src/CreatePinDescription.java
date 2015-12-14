@@ -16,6 +16,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
+
 public class CreatePinDescription extends DocumentUtilities {
 
    public static final String VERSION = "1.1.0";
@@ -63,6 +65,7 @@ public class CreatePinDescription extends DocumentUtilities {
    public static final String NAMESPACES_GUARD_STRING = "USBDM_USE_NAMESPACES";
 
    HashSet<String> macroAliases;
+   ArrayList<DmaInfo> dmaInfoList;
    
    public static class NameAttribute implements WizardAttribute {
       private String fName;
@@ -390,8 +393,74 @@ public class CreatePinDescription extends DocumentUtilities {
          }
          parseClockInfoLine(line);
       }
+      for(String[] line:grid) {
+         if (line.length < 2) {
+            continue;
+         }
+         parseDmaMuxInfoLine(line);
+      }
    }
 
+   class DmaInfo {
+      public final int    dmaInstance;
+      public final int    dmaChannelNumber;
+      public final String dmaSource;
+      public DmaInfo(int dmaInstance, int dmaChannelNumber, String dmaSource) {
+         this.dmaInstance      = dmaInstance;
+         this.dmaChannelNumber = dmaChannelNumber;
+         this.dmaSource        = dmaSource;
+      }
+   };
+   
+   /**
+    * Parse DMA info line
+    * 
+    * @param line
+    * @throws Exception
+    */
+   private void parseDmaMuxInfoLine(String[] line) throws Exception {
+      if (!line[0].equals("DmaMux")) {
+         return;
+      }
+      if (line.length < 4) {
+         throw new Exception("Illegal DmaMux Mapping line");
+      }
+      DmaInfo dmaInfo = new DmaInfo(Integer.parseInt(line[1]), Integer.parseInt(line[2]), line[3]);
+      dmaInfoList.add(dmaInfo);
+   }
+
+   /**
+    * Writes enumeration describing DMA slot use
+    * 
+    * e.g.<pre>
+    * 
+    * </pre>
+    * @param writer
+    * @throws IOException
+    */
+   private void writeDmaMuxInfo(BufferedWriter writer) throws IOException {
+      if (dmaInfoList.size() == 0) {
+         return;
+      }
+      writeStartGroup(writer, "DMA_Group", "Direct Memory Access (DMA)", "Support for DMA operations");
+      for (int instance=0; instance<4; instance++) {
+         boolean noneWritten = true;
+         for (DmaInfo item:dmaInfoList) {
+            if (item.dmaInstance == instance) {
+               if (noneWritten) {
+                  writer.write("enum {\n");
+                  noneWritten = false;
+               }
+               writer.write(String.format("%-35s  = %d,\n", "DMA"+item.dmaInstance+"_SLOT_"+item.dmaSource, item.dmaChannelNumber));
+            }
+         }
+         if (!noneWritten) {
+            writer.write("};\n");
+         }
+      }
+      writeCloseGroup(writer);
+   }
+   
    /**
     * Writes macros describing common pin functions for all pins
     * e.g.<pre>
@@ -1483,7 +1552,8 @@ public class CreatePinDescription extends DocumentUtilities {
             writeCloseGroup(gpioHeaderFile);
          }
       }
-
+      writeDmaMuxInfo(gpioHeaderFile);
+      
       writeConditionalStart(gpioHeaderFile, "DO_MAP_PINS_ON_RESET>0");
       writeDocBanner(gpioHeaderFile, "Used to configure pin-mapping before 1st use of peripherals");
       gpioHeaderFile.write("extern void usbdm_PinMapping();\n");
@@ -1681,7 +1751,8 @@ public class CreatePinDescription extends DocumentUtilities {
       MappingInfo.reset();
       Aliases.reset();
       Peripheral.reset();
-      
+      dmaInfoList = new ArrayList<DmaInfo>();
+
       macroAliases = new HashSet<String>();
       deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");
