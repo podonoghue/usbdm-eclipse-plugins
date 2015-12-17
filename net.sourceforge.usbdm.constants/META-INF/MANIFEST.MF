@@ -7,9 +7,13 @@ Bundle-Activator: net.sourceforge.usbdm.constants.Activator
 Require-Bundle: net.sourceforge.usbdm.jni,
  org.eclipse.core.runtime,
  org.eclipse.jface,
- org.eclipse.ui.workbench
+ org.eclipse.ui.workbench,
+ org.eclipse.ui
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
-Import-Package: org.eclipse.core.resources
+Import-Package: org.eclipse.core.resources,
+ org.eclipse.debug.internal.ui,
+ org.eclipse.debug.ui,
+ org.eclipse.jface.preference
