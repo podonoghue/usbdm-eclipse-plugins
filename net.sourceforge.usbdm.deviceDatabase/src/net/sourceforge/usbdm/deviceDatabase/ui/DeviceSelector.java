@@ -114,7 +114,7 @@ public class DeviceSelector extends TitleAreaDialog  {
     */
    @Override
    protected Point getInitialSize() {
-     return new Point(350, 500);
+     return new Point(500, 600);
    }
    
    /*
@@ -151,7 +151,7 @@ public class DeviceSelector extends TitleAreaDialog  {
       
       DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, null);//"MK20DX128M5");
       deviceSelector.open();
-      
+      deviceSelector.getInitialSize();
       System.out.println("Device = " + deviceSelector.getDevice().getName());
       
       display.dispose();

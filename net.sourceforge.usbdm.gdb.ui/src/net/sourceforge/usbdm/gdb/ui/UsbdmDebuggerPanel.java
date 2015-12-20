@@ -49,6 +49,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -268,7 +269,8 @@ public class UsbdmDebuggerPanel {
       //
       label = new Label(group, SWT.NONE);
       label.setText("Target Device:");
-      txtTargetDeviceName   = new Text(group, SWT.BORDER|SWT.READ_ONLY);
+      txtTargetDeviceName   = new Text(group, SWT.BORDER|SWT.READ_ONLY|SWT.CENTER);
+      txtTargetDeviceName.setLayoutData(new RowData(200, SWT.DEFAULT));
       btnTargetDeviceSelect = new Button(group, SWT.NONE);
       btnTargetDeviceSelect.setText("Device...");
       btnTargetDeviceSelect.addSelectionListener(new SelectionListener() {

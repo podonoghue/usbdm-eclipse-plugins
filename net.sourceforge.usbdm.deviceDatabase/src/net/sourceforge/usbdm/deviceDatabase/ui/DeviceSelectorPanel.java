@@ -61,8 +61,8 @@ public class DeviceSelectorPanel extends Composite {
 
    private String getFamilyNamePrefix(String name) {
       Pair[] armPatterns = {
-            new Pair("^(SKEA).*$",        "Kinetis E (MKE/SKEA)"),
-            new Pair("^(MKE).*$",         "Kinetis E (MKE/SKEA)"),
+            new Pair("^(S9KEA).*$",       "Kinetis E (MKE/S9KEA)"),
+            new Pair("^(MKE).*$",         "Kinetis E (MKE/S9KEA)"),
             new Pair("^(MKL).*$",         "Kinetis L (MKL)"),
             new Pair("^(MKM).*$",         "Kinetis M (MKM)"),
             new Pair("^(MKV).*$",         "Kinetis V (MKV)"),
@@ -109,7 +109,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("(TWR[-_].*)$",                                    "$1"),
             new Pair("^(STM32F[0-9]*).*$",                              "$1"),
             new Pair("^(PK[0-9]*).*$",                                  "$1"),
-            new Pair("^(SKEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",                "$1xxx$2"),
+            new Pair("^(S9KEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",               "$1xxx$2"),
             new Pair("^(MKE02)Z.*(M2)$",                                "$1xxx$2 (20MHz)"),
             new Pair("^(MKE02)Z.*(M4)$",                                "$1xxx$2 (40MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M4)$",      "$1xxx$2 (48MHz)"),
@@ -266,7 +266,7 @@ public class DeviceSelectorPanel extends Composite {
    public void setDevice(String targetName) {
       fDeviceName = null;
       if (targetName == null) {
-         fTree.select(null);
+         fTree.deselectAll();
          return;
       }
       TreeItem item = findLeafNode(fTree, targetName);
