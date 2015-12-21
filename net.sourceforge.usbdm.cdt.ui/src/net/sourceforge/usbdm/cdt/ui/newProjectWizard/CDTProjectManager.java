@@ -8,6 +8,7 @@ import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 
+import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvidersKeeper;
@@ -42,7 +43,7 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 @SuppressWarnings({ "restriction", "unused" })
 public class CDTProjectManager {
 
-   final String ccNature = "org.eclipse.cdt.core.ccnature";
+   static final String ccNature     = org.eclipse.cdt.core.CCProjectNature.CC_NATURE_ID;
 
    /**
     * Create basic CDT project
@@ -80,19 +81,22 @@ public class CDTProjectManager {
             IPath path = new Path(directoryPath).append(projectName);
             projectDescription.setLocation(path);
          }
-         if (hasCCNature) {
-            // Add CC nature
-            String[] natures = projectDescription.getNatureIds();
-            String[] newNatures = new String[natures.length + 1];
-            System.arraycopy(natures, 0, newNatures, 0, natures.length);
-            newNatures[natures.length] = ccNature;
-            projectDescription.setNatureIds(newNatures);
-         }
+//         if (hasCCNature) {
+//            // Add CC nature
+//            String[] natures = projectDescription.getNatureIds();
+//            String[] newNatures = new String[natures.length + 1];
+//            System.arraycopy(natures, 0, newNatures, 0, natures.length);
+//            newNatures[natures.length] = ccNature;
+//            projectDescription.setNatureIds(newNatures);
+//         }
          project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, new SubProgressMonitor(monitor, WORK_SCALE*30));     
          Assert.isNotNull(project, "Project not created");
-
-         if (project.hasNature(ccNature)) {
-            System.err.println("C++ Nature is present");
+         if (hasCCNature) {
+            CCProjectNature.addCCNature(project, monitor);
+         }
+         UsbdmProjectNature.addNature(project, monitor);
+         if (hasCCNature && !project.hasNature(ccNature)) {
+            System.err.println("C++ Nature is missing!");
          }
          // Open the project if we have to
          if (!project.isOpen()) {

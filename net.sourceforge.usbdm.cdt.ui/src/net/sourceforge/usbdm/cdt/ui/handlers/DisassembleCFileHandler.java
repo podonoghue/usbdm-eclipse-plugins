@@ -92,7 +92,7 @@ public class DisassembleCFileHandler implements IHandler {
          if ((!isLinux) && name.equals("PATH")) {
             name = "Path";
          }
-         System.err.println("Adding Environment variable: "+name+" => "+ev.getValue());
+//         System.err.println("Adding Environment variable: "+name+" => "+ev.getValue());
          environmentMap.put(name, ev.getValue());
       }
 
@@ -155,14 +155,14 @@ public class DisassembleCFileHandler implements IHandler {
             commandArray = (String[])command.toArray(new String[command.size()]);
          }
          // Run command
-         System.err.println("Running...");
+//         System.err.println("Running...");
          ProcessBuilder pb = new ProcessBuilder(commandArray);
          pb.environment().putAll(environmentMap);
 
          File commandFile = findExecutableOnPath(pb.environment().get("PATH"), commandLineInfo.getCommandName());
          if (commandFile != null) {
-            System.err.println("commandFile.toPath() = "+ commandFile.toPath());
-            System.err.println("pwd = "+ resourcePath.removeLastSegments(1).toFile());
+//            System.err.println("commandFile.toPath() = "+ commandFile.toPath());
+//            System.err.println("pwd = "+ resourcePath.removeLastSegments(1).toFile());
          }
 //            System.err.println("=================== Environment variables ===================");
 //            for (String envName : pb.environment().keySet()) {

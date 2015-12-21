@@ -10,7 +10,8 @@ set KEYTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\keytool.exe"
 set SIGNTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\jarsigner.exe"
 set STORE="C:\Apps\Certificates\cacerts"
 set ALIAS=mykey
-set TIMESTAMP_URL=http://www.startssl.com/timestamp
+rem set TIMESTAMP_URL=http://www.startssl.com/timestamp
+set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
 
 for %%f in (plugins\*.jar features\*.jar) do %SIGNTOOL% %%f  "%ALIAS%" -tsa %TIMESTAMP_URL% -keystore %STORE% -storepass %PASS% -keypass %PASS%
 goto done

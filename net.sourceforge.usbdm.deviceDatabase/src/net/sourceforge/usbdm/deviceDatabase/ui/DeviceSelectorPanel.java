@@ -50,6 +50,8 @@ public class DeviceSelectorPanel extends Composite {
    private DeviceDatabase  fDeviceDatabase = null;
    private String          fDeviceName     = null;
 
+   private static final String NO_DEVICE_STRING = "<No device selected>";
+
    private class Pair {
       String pattern;
       String substitution;
@@ -298,7 +300,7 @@ public class DeviceSelectorPanel extends Composite {
             fTree.setFocus();
          }
       });
-      fDeviceText.setText("<No device selected>");
+      fDeviceText.setText(NO_DEVICE_STRING);
       
       fTree = new Tree(this, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
       fTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -357,7 +359,7 @@ public class DeviceSelectorPanel extends Composite {
       if ((fDeviceDatabase == null) || (!fDeviceDatabase.isValid())) {
          return "Device database is invalid";
       }
-      if (fDeviceText.getText().length() == 0) {
+      if (fDeviceText.getText().equals(NO_DEVICE_STRING) || (fDeviceText.getText().length() == 0)) {
          return "Select device";
       }
       return null;

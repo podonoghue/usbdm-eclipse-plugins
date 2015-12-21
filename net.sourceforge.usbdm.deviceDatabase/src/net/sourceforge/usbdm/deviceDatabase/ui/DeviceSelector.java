@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
@@ -81,8 +82,9 @@ public class DeviceSelector extends TitleAreaDialog  {
     */
    void validate() {
       if (deviceSelectorPanel != null) {
-         setMessage(deviceSelectorPanel.validate());
-         getButton(IDialogConstants.OK_ID).setEnabled(deviceSelectorPanel.validate() == null);
+         String msg = deviceSelectorPanel.validate();
+         setErrorMessage(msg);
+         getButton(IDialogConstants.OK_ID).setEnabled(msg == null);
          fTargetName   = deviceSelectorPanel.getDeviceName();
          fTargetDevice = deviceSelectorPanel.getDevice();
       }
@@ -150,10 +152,11 @@ public class DeviceSelector extends TitleAreaDialog  {
       shell.setBackground(new Color(display, 255,0,0));
       
       DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, null);//"MK20DX128M5");
-      deviceSelector.open();
-      deviceSelector.getInitialSize();
-      System.out.println("Device = " + deviceSelector.getDevice().getName());
-      
+      int rc = deviceSelector.open();
+      System.out.println("rc = " + rc);
+      if (rc == Window.OK) {
+         System.out.println("Device = " + deviceSelector.getDevice().getName());
+      }
       display.dispose();
    }
 }

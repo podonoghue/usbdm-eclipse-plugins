@@ -16,8 +16,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
-
 public class CreatePinDescription extends DocumentUtilities {
 
    public static final String VERSION = "1.1.0";

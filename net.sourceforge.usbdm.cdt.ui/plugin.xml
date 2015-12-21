@@ -72,6 +72,11 @@
             id="net.sourceforge.usbdm.cdt.ui.disassembleCFile"
             name="Disassemble">
       </command>
+      <command
+            description="Create USBDM Launch configuration"
+            id="net.sourceforge.usbdm.cdt.ui.createLauchConfiguration"
+            name="Create USBDM Launch configuration">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -130,6 +135,10 @@
       <handler
             class="net.sourceforge.usbdm.cdt.ui.handlers.DisassembleCFileHandler"
             commandId="net.sourceforge.usbdm.cdt.ui.disassembleCFile">
+      </handler>
+      <handler
+            class="net.sourceforge.usbdm.cdt.ui.handlers.CreateLaunchConfigurationHandler"
+            commandId="net.sourceforge.usbdm.cdt.ui.createLauchConfiguration">
       </handler>
    </extension>
    <extension
@@ -249,21 +258,49 @@
          label="Disassemble"
          style="push"
          tooltip="Disassemble file (refer Disassembler settings)">
-		      <visibleWhen
-		            checkEnabled="false">
-		         <with
-				      variable="activeMenuSelection">
-				   <iterate
-				         ifEmpty="false"
-				         operator="or">
-          <adapt
-                type="org.eclipse.cdt.core.model.IBinary">
-          </adapt>
-				   </iterate>
-				</with>
+		      <visibleWhen checkEnabled="false">
+		         <and>
+   		         <with variable="activeMenuSelection">
+      				   <iterate ifEmpty="false" operator="or">
+                        <adapt type="org.eclipse.cdt.core.model.IBinary"/>
+      				   </iterate>
+                  </with>
+                  <iterate operator="and">
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <test property="org.eclipse.core.resources.projectNature" value="net.sourceforge.usbdm.cdt.usbdmNature" />
+                     </adapt>
+                  </iterate>
+               </and>
 		      </visibleWhen>
 			</command>
 		</menuContribution>
+      <menuContribution 
+            locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+         <command
+            commandId="net.sourceforge.usbdm.cdt.ui.createLauchConfiguration"
+            icon="icons/cog.png"
+            label="Create USBDM Launch configuration"
+            style="push"
+            tooltip="Create USBDM Launch configuration">
+            <visibleWhen>
+               <and>
+                  <with variable="org.eclipse.core.runtime.Platform">
+                     <test
+                        property="org.eclipse.core.runtime.isBundleInstalled"
+                        args="com.freescale.s32ds.cdt"/>
+                  </with>
+                  <iterate operator="and">
+                     <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature" />
+                  </iterate>
+                  <not>
+                     <iterate operator="and">
+                        <test property="org.eclipse.core.resources.projectNature" value="net.sourceforge.usbdm.cdt.usbdmNature" />
+                     </iterate>
+                  </not>
+               </and>
+            </visibleWhen>
+         </command>
+      </menuContribution>
 	</extension>
    <extension
          point="org.eclipse.ui.newWizards">
@@ -378,5 +415,14 @@
             </iterate>
          </with>
       </definition>
+   </extension>
+   <extension
+         point="org.eclipse.core.resources.natures"
+         id="net.sourceforge.usbdm.cdt.usbdmNature"
+         name="USBDM Project Nature">
+      <runtime>
+         <run class="net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmProjectNature" />
+      </runtime>
+      <requires-nature id="org.eclipse.cdt.core.cnature"/>
    </extension>
 </plugin>
