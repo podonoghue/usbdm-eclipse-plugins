@@ -1559,7 +1559,7 @@ public class UsbdmDebuggerPanel {
 
       configuration.setAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, getInterfaceType().name());
 
-      configuration.setAttribute(IGDBJtagConstants.ATTR_CONNECTION,  "<not used>");
+      configuration.setAttribute(IGDBJtagConstants.ATTR_CONNECTION,  "not used");
       configuration.setAttribute(USBDM_BUILD_TOOL_KEY,               getBuildToolId());
       configuration.setAttribute(USBDM_GDB_COMMAND_KEY,              txtGdbCommand.getText().trim());
       configuration.setAttribute(USBDM_GDB_BIN_PATH_KEY,             txtGdbBinPath.getText().trim());
