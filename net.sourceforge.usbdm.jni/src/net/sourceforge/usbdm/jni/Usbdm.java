@@ -1444,15 +1444,12 @@ public class Usbdm {
       }
    };
 
+   // Note - Changed to static linked usbdm DLLs because of trap when MINGW C++ DLLs unloaded
    final static String win_i386_libraries_debug[] = {
-      "i386/libgcc_s_dw2-1",
-      "i386/libstdc++-6",
       "i386/usbdm-debug.4",
       "i386/usbdm-jni-debug.4",
    };
    final static String win_i386_libraries[] = {
-      "i386/libgcc_s_dw2-1",
-      "i386/libstdc++-6",
       "i386/usbdm.4",
       "i386/usbdm-jni.4",
    };
@@ -1494,13 +1491,11 @@ public class Usbdm {
          return;
       }
       try {
-
          //String property = System.getProperty("java.library.path");
          //StringTokenizer parser = new StringTokenizer(property, ":");
          //while (parser.hasMoreTokens()) {
          //    System.err.println(parser.nextToken());
          //    }
-
          String os    = System.getProperty("os.name");            
          String arch  = System.getProperty("os.arch");            
          String jvm   = System.getProperty("java.vm.name");
