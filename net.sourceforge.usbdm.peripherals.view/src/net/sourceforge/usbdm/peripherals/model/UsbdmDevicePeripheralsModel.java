@@ -208,7 +208,10 @@ public class UsbdmDevicePeripheralsModel {
     */
    public static void loadDeviceModel(DeviceModel deviceModel, DevicePeripherals devicePeripherals, GdbCommonInterface gdbInterface) throws IllegalArgumentException, RegisterException {
 
+      deviceModel.fChildren.clear();
+
       if (devicePeripherals == null) {
+         deviceModel.setName("No device loaded");
          throw new IllegalArgumentException("devicePeripherals may not be null");
       }
       deviceModel.setName(devicePeripherals.getName());
@@ -229,8 +232,6 @@ public class UsbdmDevicePeripheralsModel {
          throw new IllegalArgumentException("unexpected value from devicePeripherals.getCpu().getName()");
       }
 
-      deviceModel.fChildren.clear();
-      
       // Add the peripherals
       for (Peripheral peripheral : devicePeripherals.getPeripherals()) {
          if (isExcludedPeripheral(peripheral.getName())) {

@@ -385,6 +385,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
 
 //      SVDIdentifier svdIdentifier = new SVDIdentifier(Paths.get("C:/Program Files (x86)/pgo/USBDM 4.11.1.70/DeviceData/Device.SVD/Freescale/MK10D7.svd.xml"));
       SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:FRDM_K64F]");
+//      SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:S9KEAZN8]");
       svdIdentifier = new SVDIdentifier(svdIdentifier.toString());
       DevicePeripheralSelectionDialogue dialogue = new DevicePeripheralSelectionDialogue(shell, svdIdentifier);
 //      DeviceSelectDialogue dialogue = new DeviceSelectDialogue(shell, "C:/Users/podonoghue/Development/USBDM/ARM_Devices/Generated/STMicro/STM32F40x.svd.xml");

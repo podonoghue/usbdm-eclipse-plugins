@@ -126,22 +126,26 @@ public class DevicePeripheralsProviderInterface {
     * @return
     */
    public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) {
-//      System.err.println("DevicePeripherals.getDevice() looking for device = " + svdIdentifier);
       if (svdIdentifier == null) {
+         System.err.println("DevicePeripherals.getDevice() null svdIdentifier");
          return null;
       }
+      DevicePeripherals devicePeripherals = null;
       if (svdIdentifier.getPath() != null) {
          // External file - Create default factory
          DevicePeripheralsFactory devicePeripheralsFactory = new DevicePeripheralsFactory();
-         return devicePeripheralsFactory.getDevicePeripherals(svdIdentifier.getPath());
+         devicePeripherals = devicePeripheralsFactory.getDevicePeripherals(svdIdentifier.getPath());
       }
       else {
          IPeripheralDescriptionProvider provider = getProvider(svdIdentifier.getproviderId());
-         if (provider == null) {
-            return null;
+         if (provider != null) {
+            devicePeripherals = provider.getDevicePeripherals(svdIdentifier.getDeviceName());
          }
-         return provider.getDevicePeripherals(svdIdentifier.getDeviceName());
       }
+      if (devicePeripherals == null) {
+         System.err.println("DevicePeripherals.getDevice() failed for device = " + svdIdentifier);
+      }
+      return devicePeripherals;
    }
    /**
     * Get provider from ID
@@ -154,6 +158,7 @@ public class DevicePeripheralsProviderInterface {
 
       IExtensionRegistry registry = Platform.getExtensionRegistry();
       if (registry == null) {
+         System.err.println("DevicePeripherals.getProvider() failed to get registry");
          return null;
       }
       IConfigurationElement[] config = registry.getConfigurationElementsFor(PeripheralDescriptionProvider_ID);
@@ -161,6 +166,7 @@ public class DevicePeripheralsProviderInterface {
       // Get provider
       final ArrayList<IPeripheralDescriptionProvider> peripheralDescriptionProvider = 
             new ArrayList<IPeripheralDescriptionProvider>();
+
       IApplyTo listProviderNames = new IApplyTo(config) {
          @Override
          public void run(IPeripheralDescriptionProvider provider) {
@@ -173,6 +179,7 @@ public class DevicePeripheralsProviderInterface {
       if (peripheralDescriptionProvider.size() > 0) {
          return peripheralDescriptionProvider.get(0);
       }
+      System.err.println("DevicePeripherals.getProvider() failed to get provider for " + providerId);
       return null;
    }
    /**
