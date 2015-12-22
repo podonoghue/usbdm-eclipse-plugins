@@ -1,6 +1,8 @@
 @echo off
 rem if "%1"=="" goto usage
 
+set HOME_DIR=%~dp0
+
 set PASS=
 set /p PASS=Enter Certificate Password:
 cls
@@ -13,7 +15,7 @@ set ALIAS=mykey
 rem set TIMESTAMP_URL=http://www.startssl.com/timestamp
 set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
 
-for %%f in (plugins\*.jar features\*.jar) do %SIGNTOOL% %%f  "%ALIAS%" -tsa %TIMESTAMP_URL% -keystore %STORE% -storepass %PASS% -keypass %PASS%
+for %%f in (%HOME_DIR%\plugins\*.jar %HOME_DIR%\features\*.jar) do %SIGNTOOL% %%f  "%ALIAS%" -tsa %TIMESTAMP_URL% -keystore %STORE% -storepass %PASS% -keypass %PASS%
 goto done
 
 :usage
