@@ -137,108 +137,6 @@
             </toolChain>
          </configuration>
       </projectType>
-      <projectType
-            buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe"
-            id="net.sourceforge.usbdm.cdt.projectType.exe"
-            isAbstract="true"
-            name="Executable-old">
-         <configuration
-            id="net.sourceforge.usbdm.cdt.arm.windows.debug.configuration"
-            name="Debug"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.arm.windows.debug.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.arm.windows.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.arm.windows.release.configuration"
-            name="Release"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.arm.windows.release.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.arm.windows.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.arm.linux.debug.configuration"
-            name="Debug"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.arm.linux.debug.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.arm.linux.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.arm.linux.release.configuration"
-            name="Release"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.arm.linux.release.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.arm.linux.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.debug.configuration"
-            name="Debug"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.coldfire.windows.debug.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.release.configuration"
-            name="Release"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.coldfire.windows.release.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.debug.configuration"
-            name="Debug"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.coldfire.linux.debug.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain">
-            </toolChain>
-         </configuration>
-         <configuration
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.release.configuration"
-            name="Release"
-            artifactExtension="elf"
-            buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release"
-            cleanCommand="${usbdm_rm_command} -rf"
-            parent="cdt.managedbuild.config.gnu.base">
-            <toolChain
-                  id="net.sourceforge.usbdm.cdt.coldfire.linux.release.toolchain"
-                  superClass="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain">
-            </toolChain>
-         </configuration>
-      </projectType>
       <toolChain
             id="net.sourceforge.usbdm.cdt.baseToolchain"
             name="Base Toolchain"
@@ -2390,7 +2288,7 @@
             </inputType>
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ArmGppCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler"
                name="ARM C++ Compiler"
                superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.compiler">
@@ -2511,7 +2409,7 @@
             </inputType>
          </tool>
          <tool
-               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGccCommandLineGenerator"
+               commandLineGenerator="net.sourceforge.usbdm.cdt.tools.ColdfireGppCommandLineGenerator"
                id="net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.compiler"
                name="Coldfire C++ Compiler"
                superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.compiler">
@@ -2557,34 +2455,6 @@
                name="Coldfire Symbol Table"
                superClass="net.sourceforge.usbdm.cdt.toolchain.sym">
          </tool>
-      </toolChain>
-      <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.windows.toolchain"
-            isAbstract="true"
-            name="ARM-USBDM (Windows) Obsolete"
-            osList="win32"
-            superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
-      </toolChain>
-      <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.windows.toolchain"
-            isAbstract="true"
-            name="Coldfire-USBDM (Windows) Obsolete"
-            osList="win32"
-            superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
-      </toolChain>
-      <toolChain
-            id="net.sourceforge.usbdm.cdt.arm.linux.toolchain"
-            isAbstract="true"
-            name="ARM-USBDM (Linux) Obsolete"
-            osList="linux"
-            superClass="net.sourceforge.usbdm.cdt.arm.toolchain">
-      </toolChain>
-      <toolChain
-            id="net.sourceforge.usbdm.cdt.coldfire.linux.toolchain"
-            isAbstract="true"
-            name="Coldfire-USBDM (Linux) Obsolete"
-            osList="linux"
-            superClass="net.sourceforge.usbdm.cdt.coldfire.toolchain">
       </toolChain>
    </extension>
    <extension
