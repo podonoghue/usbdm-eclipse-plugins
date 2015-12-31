@@ -1467,18 +1467,18 @@ public class Usbdm {
       "x86_64/usbdm.4",
       "x86_64/usbdm-jni.4",
    };
-   // Note: linux name should not have 'lib' prefix or '.so' suffix
+   // Note: Linux name used below should not have 'lib' prefix or '.so' suffix
    final static String linux_i386_libraries_debug[] = {
-      "usbdm-jni-debug",
+      "usbdm-jni-debug", // Note - loads libusbdm-jni-debug
    };
    final static String linux_i386_libraries[] = {
-      "usbdm-jni",
+      "usbdm-jni", // Note - loads libusbdm-jni
    };
    final static String linux_x86_64_libraries_debug[] = {
-      "usbdm-jni-debug",
+      "usbdm-jni-debug", // Note - loads libusbdm-jni-debug
    };
    final static String linux_x86_64_libraries[] = {
-      "usbdm-jni",
+      "usbdm-jni", // Note - loads libusbdm-jni
    };
    
    /**
