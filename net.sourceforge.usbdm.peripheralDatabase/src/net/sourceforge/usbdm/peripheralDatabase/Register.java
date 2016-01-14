@@ -286,6 +286,19 @@ public class Register extends Cluster implements Cloneable {
 
    /**
     * Returns the description of the register with %s substitution
+    * 
+    * @param index   Used for %s index
+    * 
+    * @return        String description
+    * 
+    * @throws Exception
+    */
+   public String getCName(int registerIndex) {
+      return SVD_XML_BaseParser.unEscapeString(format(getName(), registerIndex));
+   }
+
+   /**
+    * Returns the description of the register with %s substitution
     * Sanitised for use in C code
     * 
     * @param index   Used for %s index
@@ -513,6 +526,25 @@ public class Register extends Cluster implements Cloneable {
     *  
     *  @throws Exception 
     */
+   public void writeFlattenedSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
+      // TODO complete this
+      for (int index=0; index<getDimension(); index++) {
+         final String indenter = RegisterUnion.getIndent(indent);
+         writer.write(                 indenter+"<register>\n");
+         writeBaseRegisterSVD(writer, standardFormat, owner, indent, this.getCName(index), this.getAddressOffset(index));
+         writer.write(                 indenter+"</register>\n");
+      }
+   }
+   /**
+    *   Writes the Register description to file in a SVF format
+    *   
+    *  @param writer          The destination for the XML
+    *  @param standardFormat  Suppresses some non-standard size optimisations 
+    *  @param level           Level of indenting
+    *  @param owner           The owner - This is used to reduce the size by inheriting default values
+    *  
+    *  @throws Exception 
+    */
    @Override
    public void writeSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       
@@ -520,20 +552,39 @@ public class Register extends Cluster implements Cloneable {
          writederivedfromSVD(writer, standardFormat, owner, indent);
          return;
       }
-//      final String indenter = RegisterUnion.getIndent(indent);
-      final String indenter = RegisterUnion.getIndent(indent);
-      writer.write(                 indenter+"<register>\n");
-      
-      writeDimensionList(writer, indenter+"   ");
+      if (ModeControl.isFlattenArrays() && (getDimension()>0)) {
+         writeFlattenedSVD(writer, standardFormat, owner, indent);
+      }
+      else {
+         final String indenter = RegisterUnion.getIndent(indent);
+         writer.write(                 indenter+"<register>\n");
+         writeDimensionList(writer, indenter+"   ");
+         writeBaseRegisterSVD(writer, standardFormat, owner, indent, getName(), getAddressOffset());
+         writer.write(                 indenter+"</register>\n");
+      }
+   }
 
-      writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
+   /**
+    *   Writes the Register description to file in a SVF format
+    *   
+    *  @param writer          The destination for the XML
+    *  @param standardFormat  Suppresses some non-standard size optimisations 
+    *  @param level           Level of indenting
+    *  @param owner           The owner - This is used to reduce the size by inheriting default values
+    *  
+    *  @throws Exception 
+    */
+   public void writeBaseRegisterSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent, String name, long offset) throws Exception {
+      
+      final String indenter = RegisterUnion.getIndent(indent);
+      writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(name)));
       if (isHidden()) {
          writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
       }
       if ((getDescription() != null) && (getDescription().length() > 0)) {
          writer.write(String.format(indenter+"   <description>%s</description>\n",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      writer.write(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", getAddressOffset()));
+      writer.write(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", offset));
       if ((owner == null) || (owner.getWidth() != getWidth()) || (fields.size() == 0)) {
          writer.write(String.format(indenter+"   <size>%d</size>\n",                     getWidth()));
       }
@@ -555,7 +606,6 @@ public class Register extends Cluster implements Cloneable {
          }
          writer.write(              indenter+"   </fields>\n");
       }
-      writer.write(                 indenter+"</register>\n");
    }
 
 //   static final String RegisterStructFormat = "%-4s %-9s %-30s";

@@ -522,7 +522,7 @@ public class Cluster extends ModeControl implements Cloneable {
       final String indenter = RegisterUnion.getIndent(indent);
 
       sortRegisters();
-      
+
       writer.write(                 indenter+"<cluster>\n");
       if ((dimensionIndexes!= null) && (dimensionIndexes.size()>0)) {
          writer.write(String.format(indenter+"   <dim>%d</dim>\n",                       dimensionIndexes.size()));

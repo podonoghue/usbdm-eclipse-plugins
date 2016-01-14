@@ -272,7 +272,9 @@ public class RegisterUnion {
     * @return
     */
    public static String getIndent(int indent) {
-      final String indentString = "                                                              ";
+      final String indentString = 
+            "                                                                       " +
+            "                                                                       ";
       if (indent>indentString.length()) {
          throw new StringIndexOutOfBoundsException("");
       }

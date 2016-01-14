@@ -123,7 +123,7 @@ class AddressBlocksMerger {
    private void processBlock(long startAddress, long sizeInBytes, long widths, AccessType accessType) throws Exception {
       //         System.err.println(String.format("addBlock()        :   [0x%04X..0x%04X]", startAddress, startAddress+sizInBytes-1));
       if (startAddress < bStartAddress) {
-         throw new Exception("Address is going backwards");
+         throw new Exception(String.format("Address is going backwards 0x%08X<0x%08X", startAddress, bStartAddress));
       }
       if (forcedBlockMultiple != 0) {
          // Align block boundaries according to forced access width

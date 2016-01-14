@@ -91,10 +91,14 @@ public class ModeControl {
    
    /**
     * Whether to strip spaces from descriptions when writing SVD files
-    * 
     */
    private static boolean stripWhiteSpace = false;
    
+   /**
+    * Whether to flatten arrays to simple registers
+    */
+   private static boolean flattenArrays;
+
    // Bit dodgy - assumes you only write the Macros once!
    private static HashMap<String, Integer> fieldMacros = null;
 
@@ -249,6 +253,24 @@ public class ModeControl {
     */
    public static void setRegenerateAddressBlocks(boolean regenerateAddressBlocks) {
       ModeControl.regenerateAddressBlocks = regenerateAddressBlocks;
+   }
+
+   /**
+    * Indicates whether to whether to flatten arrays to simple registers
+    * 
+    * @return value
+    */
+   public static boolean isFlattenArrays() {
+      return flattenArrays;
+   }
+
+   /**
+    * Sets whether to flatten arrays to simple registers
+    * 
+    * @param regenerateAddressBlocks
+    */
+   public static void setFlattenArrays(boolean flattenArrays) {
+      ModeControl.flattenArrays = flattenArrays;
    }
 
    /**

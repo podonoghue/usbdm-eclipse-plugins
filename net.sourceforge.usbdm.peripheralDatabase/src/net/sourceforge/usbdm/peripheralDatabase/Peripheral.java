@@ -356,14 +356,21 @@ public class Peripheral extends ModeControl implements Cloneable {
          // derived from so they should always agree.
          return;
       }
-//      System.err.println("Creating address blocks for ============= " + getName());
+      //      System.err.println("Creating address blocks for ============= " + getName());
       sortRegisters();
-      clearAddressBlocks();
-      AddressBlocksMerger addressBlocksMerger = new AddressBlocksMerger(this);
-      for (Cluster cluster : registers) {
-         cluster.addAddressBlocks(addressBlocksMerger);
+      try {
+         clearAddressBlocks();
+         AddressBlocksMerger addressBlocksMerger = new AddressBlocksMerger(this);
+         for (Cluster cluster : registers) {
+//            System.err.println("Peripheral = " + cluster.getName());
+            cluster.addAddressBlocks(addressBlocksMerger);
+         }
+         addressBlocksMerger.finalise();
+      } catch (Exception e) {
+         System.err.println("Peripheral = " + getName());
+         e.printStackTrace();
+         throw e;
       }
-      addressBlocksMerger.finalise();
    }
    
    /**
@@ -1510,6 +1517,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.DESCRIPTION_TAG,  SVD_XML_BaseParser.escapeString(getDescription()), SVD_XML_Parser.DESCRIPTION_TAG));
       }
       if (!getGroupName().equals(derived.getGroupName())) {
+         //XXXX Check this
          System.err.println(String.format("writeDerivedFromSVD() d=%s, i=%s", derived.getGroupName(), getGroupName()));
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.GROUPNAME_TAG,  SVD_XML_BaseParser.escapeString(getGroupName()), SVD_XML_Parser.GROUPNAME_TAG));
       }
