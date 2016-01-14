@@ -354,12 +354,12 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>No cancelled transfers</description>
+                           <description>No canceled transfers</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>The last recorded entry was a cancelled transfer by the error cancel transfer input</description>
+                           <description>The last recorded entry was a canceled transfer by the error cancel transfer input</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>

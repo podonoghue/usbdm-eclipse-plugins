@@ -404,12 +404,12 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>V is selected as resistor ladder network supply reference V. in1 in</description>
+                           <description>Vin1 is selected as resistor ladder network supply reference</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>V is selected as resistor ladder network supply reference V. in2 in</description>
+                           <description>Vin2 is selected as resistor ladder network supply reference</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>

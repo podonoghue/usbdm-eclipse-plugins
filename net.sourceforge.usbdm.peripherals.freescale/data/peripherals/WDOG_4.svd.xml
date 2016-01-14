@@ -62,7 +62,7 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>Dedicated clock source selected as WDOG clock (LPO Oscillator)</description>
+                           <description>WDOG clock sourced from LPO</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
@@ -116,12 +116,12 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>No further updates allowed to WDOG write once</description>
+                           <description>No further updates allowed to WDOG write-once</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>WDOG write once registers can be unlocked for updating</description>
+                           <description>WDOG write-once registers can be unlocked for updating</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>

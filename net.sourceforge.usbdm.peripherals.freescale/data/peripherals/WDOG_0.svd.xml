@@ -126,7 +126,7 @@ Devices using this peripheral:
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>WDOG time-out initially generates an interrupt. After WCT, it generates a reset</description>
+                           <description>WDOG time-out initially generates an interrupt. After WCT time, it generates a reset</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>
@@ -193,12 +193,12 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>WDOG is disabled in CPU Stop mode</description>
+                           <description>WDOG is disabled in CPU stop mode</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>WDOG is enabled in CPU Stop mode</description>
+                           <description>WDOG is enabled in CPU stop mode</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>
@@ -211,12 +211,12 @@ Devices using this peripheral:
                      <enumeratedValues>
                         <enumeratedValue>
                            <name>0</name>
-                           <description>WDOG is disabled in CPU Wait mode</description>
+                           <description>WDOG is disabled in CPU wait mode</description>
                            <value>0b0</value>
                         </enumeratedValue>
                         <enumeratedValue>
                            <name>1</name>
-                           <description>WDOG is enabled in CPU Wait mode</description>
+                           <description>WDOG is enabled in CPU wait mode</description>
                            <value>0b1</value>
                         </enumeratedValue>
                      </enumeratedValues>
@@ -370,7 +370,7 @@ Devices using this peripheral:
             </register>
             <register>
                <name>REFRESH</name>
-               <description>Watchdog Refresh register</description>
+               <description>Watchdog Refresh Register</description>
                <addressOffset>0xC</addressOffset>
                <size>16</size>
                <resetValue>0xB480</resetValue>
@@ -385,7 +385,7 @@ Devices using this peripheral:
             </register>
             <register>
                <name>UNLOCK</name>
-               <description>Watchdog Unlock register</description>
+               <description>Watchdog Unlock Register</description>
                <addressOffset>0xE</addressOffset>
                <size>16</size>
                <resetValue>0xD928</resetValue>
@@ -428,7 +428,7 @@ Devices using this peripheral:
             </register>
             <register>
                <name>RSTCNT</name>
-               <description>Watchdog Reset Count register</description>
+               <description>Watchdog Reset Count Register</description>
                <addressOffset>0x14</addressOffset>
                <size>16</size>
                <resetMask>0xFFFF</resetMask>
@@ -442,7 +442,7 @@ Devices using this peripheral:
             </register>
             <register>
                <name>PRESC</name>
-               <description>Watchdog Prescaler register</description>
+               <description>Watchdog Prescaler Register</description>
                <addressOffset>0x16</addressOffset>
                <size>16</size>
                <resetValue>0x400</resetValue>
