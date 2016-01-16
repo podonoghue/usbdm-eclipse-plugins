@@ -25,7 +25,10 @@ public class CreatePinDescription extends DocumentUtilities {
    
    /** Base name for gpio files */
    private final static String gpioBaseFileName         = "gpio";
-
+   
+   /** Name of the source file e.g. MKL25Z4.csv */
+   private String sourceName;
+   
    /** Name of the device e.g. MKL25Z4 */
    private String deviceName;
    
@@ -34,9 +37,12 @@ public class CreatePinDescription extends DocumentUtilities {
    
    /** Name of gpio-XX.cpp source file */
    private String gpioCppFileName;
+
+   /** Path to 'Source' output directory */
+   private Path sourceDirectory;
    
-   /** Name of gpio-XX.h header file */
-   private String gpioHeaderFileName;
+   /** Path to 'Project_Headers' output directory */
+   private Path headerDirectory;
 
    /** Fixed GPIO mux function */
    private int      gpioFunctionMuxValue          = 1; 
@@ -225,6 +231,95 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
    
+   class AliasInfo {
+      final public String  name;
+      final public int     index;
+      final public boolean isBaseDevice;
+      
+      public AliasInfo(String name, int index, boolean isBaseDevice) {
+         this.name         = name;
+         this.index        = index;
+         this.isBaseDevice = isBaseDevice;
+      }
+   }
+   /** Index of Pin name column in CSV file */
+   int pinIndex       = 1;
+   /** List of all indices of alias columns in CSV file */
+   ArrayList<AliasInfo> aliasIndexes = new ArrayList<AliasInfo>();
+   /** Index of current alias column in CSV file */
+   int aliasIndex     = 2;
+   /** Index of reset function column in CSV file */
+   int resetIndex     = 3;
+   /** Index of default function column in CSV file */
+   int defaultIndex   = 4;
+   /** Start index of multiplexor function columns in CSV file */
+   int altStartIndex  = 5;
+   /** Last index of multiplexor function columns in CSV file */
+   int altEndIndex    = altStartIndex+7;
+
+   /**
+    * Parse line containing Pin information
+    *  
+    * @param line
+    * 
+    * @return true - line is valid
+    * 
+    * @throws Exception
+    */
+   private boolean parseKeyLine(String[] line, String deviceName) throws Exception {
+      
+      // Set default values for column indices
+      pinIndex       = 1;
+      aliasIndex     = 2;
+      resetIndex     = 3;
+      defaultIndex   = 4;
+      altStartIndex  = 5;
+      altEndIndex    = altStartIndex+7;
+      aliasIndexes = new ArrayList<AliasInfo>();
+
+      if (!line[0].equalsIgnoreCase("Key")) {
+         // For compatibility
+         aliasIndexes.add(new AliasInfo(deviceName, 2, true));
+         return false;
+      }
+      // Add base device without aliases
+      aliasIndexes.add(new AliasInfo(deviceName, -1, true));
+
+      final Pattern p = Pattern.compile("Alias\\s*(.*)\\s*");
+
+      for (int col=0; col<line.length; col++) {
+         if (line[col].equalsIgnoreCase("Pin")) {
+            pinIndex = col;
+//            System.err.println("pinIndex index = " + pinIndex);
+         }
+         Matcher m = p.matcher(line[col]);
+         if (m.matches()) {
+            aliasIndexes.add(new AliasInfo(m.group(1), col, false));
+//            System.err.println("Found Alias: \'" + m.group(1) + "\'" + ", Col: " + col);
+         }
+         if (line[col].equalsIgnoreCase("Reset")) {
+            resetIndex = col;
+//            System.err.println("resetIndex index = " + resetIndex);
+         }
+         if (line[col].equalsIgnoreCase("Default")) {
+            defaultIndex = col;
+//            System.err.println("defaultIndex index = " + defaultIndex);
+         }
+         if (line[col].equalsIgnoreCase("ALT0")) {
+            altStartIndex = col;
+            altEndIndex = col;
+//            System.err.println("altStartIndex index = " + altStartIndex);
+         }
+         if (line[col].toUpperCase().startsWith("ALT")) {
+            if (altEndIndex<col) {
+               altEndIndex = col;
+//               System.err.println("altEndIndex index = " + altEndIndex);
+            }
+         }
+      }
+      return true;
+   }
+   
    /**
     * Parse line containing Pin information
     *  
@@ -232,25 +327,13 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    private void parsePinLine(String[] line) throws Exception {
-      /** Index of Pin name in CSV file */
-      final int PIN_INDEX       = 1;
-      /** Index of aliases in CSV file */
-      final int ALIAS_INDEX     = 2;
-      /** Index of reset functions in CSV file */
-      final int RESET_INDEX     = 3;
-      /** Index of default functions in CSV file */
-      final int DEFAULT_INDEX   = 4;
-      /** Start index of multiplexor functions in CSV file */
-      final int ALT_START_INDEX = 5;
-      /** Last index of multiplexor functions in CSV file */
-      final int ALT_END_INDEX   = ALT_START_INDEX+7;
 
       StringBuffer sb = new StringBuffer();
       
       if (!line[0].equals("Pin")) {
          return;
       }
-      String pinName  = line[PIN_INDEX];
+      String pinName  = line[pinIndex];
       if ((pinName == null) || (pinName.isEmpty())) {
          System.err.println("Line discarded");
          return;
@@ -265,7 +348,7 @@ public class CreatePinDescription extends DocumentUtilities {
 //         debug = true;
 //      }
       boolean pinIsMapped = false;
-      for (int col=ALT_START_INDEX; col<=ALT_END_INDEX; col++) {
+      for (int col=altStartIndex; col<=altEndIndex; col++) {
          if (col>=line.length) {
             break;
          }
@@ -273,19 +356,19 @@ public class CreatePinDescription extends DocumentUtilities {
          for (PeripheralFunction peripheralFunction:peripheralFunctions) {
             sb.append(peripheralFunction.getName()+", ");
             if ((peripheralFunction != null) && (peripheralFunction != PeripheralFunction.DISABLED)) {
-               MuxSelection functionSelector = MuxSelection.valueOf(col-ALT_START_INDEX);
+               MuxSelection functionSelector = MuxSelection.valueOf(col-altStartIndex);
                MappingInfo.createMapping(peripheralFunction, pinInformation, functionSelector);
 //               System.err.println(mappingInfo.toString());
                pinIsMapped = true;
             }
          }
       }
-      if (line.length>ALIAS_INDEX) {
-         String aliases  = line[ALIAS_INDEX];
+      if ((aliasIndex>=0) && (line.length>aliasIndex)) {
+         String aliases  = line[aliasIndex];
          parseAlias(pinInformation, aliases);
       }
-      if ((line.length>RESET_INDEX) && (line[RESET_INDEX] != null) && (!line[RESET_INDEX].isEmpty())) {
-         String resetName  = line[RESET_INDEX];
+      if ((line.length>resetIndex) && (line[resetIndex] != null) && (!line[resetIndex].isEmpty())) {
+         String resetName  = line[resetIndex];
 //       if (!pinIsMapped) {
          // Must be a unmapped pin - add as only mapping
          ArrayList<PeripheralFunction> resetFunctions = createFunctionsFromString(resetName);
@@ -303,8 +386,8 @@ public class CreatePinDescription extends DocumentUtilities {
          MappingInfo.createMapping(PeripheralFunction.DISABLED, pinInformation, MuxSelection.Reset);
          pinInformation.setResetPeripheralFunctions(PeripheralFunction.DISABLED.getName());
       }
-      if (line.length>DEFAULT_INDEX) {
-         String defaultName  = line[DEFAULT_INDEX];
+      if (line.length>defaultIndex) {
+         String defaultName  = line[defaultIndex];
          if ((defaultName != null) && (!defaultName.isEmpty())) {
             pinInformation.setDefaultPeripheralFunctions(defaultName);
             for (PeripheralFunction fn:pinInformation.getDefaultValue()) {
@@ -368,8 +451,6 @@ public class CreatePinDescription extends DocumentUtilities {
    private void parseFile(BufferedReader reader) throws Exception {
       
       ArrayList<String[]> grid = new ArrayList<String[]>();
-      // Discard title line
-      reader.readLine();
       do {
          String line = reader.readLine();
          if (line == null) {
@@ -378,7 +459,9 @@ public class CreatePinDescription extends DocumentUtilities {
          grid.add(line.split(","));
          //         System.err.println(line);
       } while (true);
+      
       Collections.sort(grid, LineComparitor);
+      
       for(String[] line:grid) {
          if (line.length < 2) {
             continue;
@@ -1245,13 +1328,19 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception
     */
    private void writePinMappingHeaderFile(BufferedWriter headerFile) throws Exception {
-      writeHeaderFilePreamble(headerFile, pinMappingBaseFileName+".h", pinMappingHeaderFileName, VERSION, "Pin declarations for "+deviceName);
+      writeHeaderFilePreamble(
+            headerFile, 
+            pinMappingBaseFileName+".h", pinMappingHeaderFileName, 
+            VERSION, 
+            "Pin declarations for "+deviceName+", generated from "+sourceName);
       writeSystemHeaderFileInclude(headerFile, "stddef.h");
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
+
       writeWizardMarker(headerFile);
-      ValidatorAttribute[] attributes = 
-         {new ValidatorAttribute("net.sourceforge.usbdm.annotationEditor.validators.PinMappingValidator")};
+      ValidatorAttribute[] attributes = {
+            new ValidatorAttribute("net.sourceforge.usbdm.annotationEditor.validators.PinMappingValidator")
+      };
       writeValidators(headerFile, attributes);
       writeTimerWizard(headerFile);
       writeGpioWizard(headerFile);
@@ -1259,11 +1348,15 @@ public class CreatePinDescription extends DocumentUtilities {
       writePinMappings(headerFile);
       writePeripheralSignalMappings(headerFile);
       writeEndWizardMarker(headerFile);
-      
+
       writePinDefines(headerFile);
       writeClockMacros(headerFile);
       writePeripheralInformationTables(headerFile);
+
+      writeHeaderFileInclude(headerFile, "gpio_defs.h");
       
+      writeDeclarations(headerFile);
+
       writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
    }
 
@@ -1494,6 +1587,7 @@ public class CreatePinDescription extends DocumentUtilities {
       }
       writeCloseGroup(pinMappingHeaderFile, "PeripheralPinTables");
       writeCloseNamespace(pinMappingHeaderFile, NAME_SPACE);
+      pinMappingHeaderFile.write("\n");
    }   
 
    /**
@@ -1509,13 +1603,13 @@ public class CreatePinDescription extends DocumentUtilities {
     * 
     * @throws Exception 
     */
-   private void writeGpioHeaderFile(BufferedWriter gpioHeaderFile) throws Exception {
+   private void writeDeclarations(BufferedWriter gpioHeaderFile) throws Exception {
       
-      writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", gpioHeaderFileName, VERSION, "Pin declarations for "+deviceName);
-      writeSystemHeaderFileInclude(gpioHeaderFile, "stddef.h");
-      writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
-      writeHeaderFileInclude(gpioHeaderFile, "pin_mapping.h");
-      writeHeaderFileInclude(gpioHeaderFile, "gpio_defs.h");
+//      writeHeaderFilePreamble(gpioHeaderFile, "gpio.h", gpioHeaderFileName, VERSION, "Pin declarations for "+deviceName);
+//      writeSystemHeaderFileInclude(gpioHeaderFile, "stddef.h");
+//      writeHeaderFileInclude(gpioHeaderFile, "derivative.h");
+//      writeHeaderFileInclude(gpioHeaderFile, "pin_mapping.h");
+//      writeHeaderFileInclude(gpioHeaderFile, "gpio_defs.h");
       gpioHeaderFile.write("\n");
       writeOpenNamespace(gpioHeaderFile, NAME_SPACE);
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
@@ -1557,7 +1651,7 @@ public class CreatePinDescription extends DocumentUtilities {
       gpioHeaderFile.write("extern void usbdm_PinMapping();\n");
       writeConditionalEnd(gpioHeaderFile);
       writeCloseNamespace(gpioHeaderFile, NAME_SPACE);
-      writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
+//      writeHeaderFilePostamble(gpioHeaderFile, gpioBaseFileName+".h");
    }
 
    /**
@@ -1698,8 +1792,11 @@ public class CreatePinDescription extends DocumentUtilities {
     * @throws Exception 
     */                    
    private void writeGpioCppFile(BufferedWriter cppFile) throws Exception {
-      String description = "Pin declarations for " + deviceName;
-      writeCppFilePreable(cppFile, gpioBaseFileName+".cpp", gpioCppFileName, description);
+    writeCppFilePreamble(
+            cppFile, 
+            gpioBaseFileName+".cpp", 
+            gpioCppFileName, 
+            "Pin declarations for "+deviceName+", generated from "+sourceName);
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
@@ -1743,7 +1840,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param filePath
     * @throws Exception
     */
-   private void processFile(Path filePath) throws Exception {
+   private void processFile(BufferedReader sourceFile) throws Exception {
       PinInformation.reset();
       PeripheralFunction.reset();
       MappingInfo.reset();
@@ -1752,7 +1849,6 @@ public class CreatePinDescription extends DocumentUtilities {
       dmaInfoList = new ArrayList<DmaInfo>();
 
       macroAliases = new HashSet<String>();
-      deviceName = filePath.getFileName().toString().replace(".csv", "");
       deviceIsMKE = deviceName.startsWith("MKE");
       deviceIsMKL = deviceName.startsWith("MKL");
       deviceIsMKM = deviceName.startsWith("MKL");
@@ -1849,45 +1945,78 @@ public class CreatePinDescription extends DocumentUtilities {
       pinFunctionDescriptions.add(new PinFunctionDescription("I2C",   "", ""));
       pinFunctionDescriptions.add(new PinFunctionDescription("SDHC",   "", ""));
       
-      Path sourceDirectory = filePath.getParent().resolve("Sources");
-      Path headerDirectory = filePath.getParent().resolve("Project_Headers");
-      pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
-      gpioCppFileName          = gpioBaseFileName+"-"+deviceName+".cpp";
-      gpioHeaderFileName       = gpioBaseFileName+"-"+deviceName+".h";
 
-      System.err.println("deviceName = " + deviceName);
+      Path pinMappingHeaderPath = headerDirectory.resolve(pinMappingHeaderFileName);
+      BufferedWriter pinMappingHeaderFile = Files.newBufferedWriter(pinMappingHeaderPath, StandardCharsets.UTF_8);
 
-      BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
+      parseFile(sourceFile);
+      
+      processPins();
 
+      writePinMappingHeaderFile(pinMappingHeaderFile);
+      if (gpioCppFileName != null) {
+         // Not an alias so write .cpp file
+         Path gpioCppPath = sourceDirectory.resolve(gpioCppFileName);
+         BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath, StandardCharsets.UTF_8);
+         writeGpioCppFile(gpioCppFile);
+         gpioCppFile.close();
+      }
+      pinMappingHeaderFile.close();
+   }
+
+   /**
+    * Process file
+    * Rather crude - it processes the file multiple times to process each alias
+    * 
+    * @param filePath
+    * @throws Exception
+    */
+   void processFile(Path filePath) throws Exception {
+      
+      sourceName = filePath.getFileName().toString();
+
+      // Locate output directories  
+      sourceDirectory = filePath.getParent().resolve("Sources");
+      headerDirectory = filePath.getParent().resolve("Project_Headers");
+      
+      // Create output directories if needed  
       if (!sourceDirectory.toFile().exists()) {
          Files.createDirectory(sourceDirectory);
       }
       if (!headerDirectory.toFile().exists()) {
          Files.createDirectory(headerDirectory);
       }
-      Path pinMappingHeaderPath = headerDirectory.resolve(pinMappingHeaderFileName);
-      BufferedWriter pinMappingHeaderFile = Files.newBufferedWriter(pinMappingHeaderPath, StandardCharsets.UTF_8);
 
-      Path gpioCppPath = sourceDirectory.resolve(gpioCppFileName);
-      BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath, StandardCharsets.UTF_8);
+      // Open source file
+      BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
 
-      Path gpioHeaderPath = headerDirectory.resolve(gpioHeaderFileName);
-      BufferedWriter gpioHeaderFile    = Files.newBufferedWriter(gpioHeaderPath, StandardCharsets.UTF_8);
+      // First line of file must be index (other wise default is used)
+      String line = sourceFile.readLine();
       
-      parseFile(sourceFile);
-      writePinMappingHeaderFile(pinMappingHeaderFile);
-      
-      processPins();
-      
-      writeGpioHeaderFile(gpioHeaderFile);
-      writeGpioCppFile(gpioCppFile);
-
       sourceFile.close();
-      pinMappingHeaderFile.close();
-      gpioCppFile.close();
-      gpioHeaderFile.close();
-   }
+      
+      // Process title line
+      parseKeyLine(line.split(","), filePath.getFileName().toString().replace(".csv", ""));
 
+      for (AliasInfo aliasInfo:aliasIndexes) {
+         
+         deviceName = aliasInfo.name;
+         aliasIndex = aliasInfo.index;
+         gpioCppFileName = null;
+         
+         pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
+         if (aliasInfo.isBaseDevice) {
+            gpioCppFileName          = gpioBaseFileName+"-"+deviceName+".cpp";
+         }
+         System.err.println("deviceName = " + deviceName +(aliasInfo.isBaseDevice?"":" (Alias)"));
+
+         // Re-open source file
+         sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
+         processFile(sourceFile);
+         sourceFile.close();
+      }
+   }
+   
    public static void main(String[] args) throws Exception {
       DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
          @Override

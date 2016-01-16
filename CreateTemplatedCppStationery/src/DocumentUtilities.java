@@ -133,7 +133,7 @@ public class DocumentUtilities {
             "#ifndef %s\n"+
             "#define %s\n"+
             "\n";
-      String macroName = fileName.toUpperCase().replaceAll("(\\.|-)", "_")+"_";
+      String macroName = "PROJECT_HEADERS_"+fileName.toUpperCase().replaceAll("(\\.|-)", "_")+"_";
       if ((trueFileName == null) || trueFileName.isEmpty()) {
          trueFileName = "";
       }
@@ -160,7 +160,7 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   void writeCppFilePreable(BufferedWriter writer, String fileName, String trueFileName, String description) throws IOException {
+   void writeCppFilePreamble(BufferedWriter writer, String fileName, String trueFileName, String description) throws IOException {
       final String cppFilePreambleTemplate = 
             " /**\n"+
             "  * @file     %s %s\n"+

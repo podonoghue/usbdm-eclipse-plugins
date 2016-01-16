@@ -601,10 +601,10 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
 
       try {
          // Generate merged version of SVD files for testing (should be unchanging eventually)
-         ModeControl.setExpandDerivedRegisters(false);
+//         ModeControl.setExpandDerivedRegisters(false);
 //         ModeControl.setFlattenArrays(true);
-//         mergeFiles(usbdmFolder,     usbdmCheckFolder, true, true);
-//         mergeFiles(freescaleFolder, freescaleCheckFolder, true, false);
+         mergeFiles(usbdmFolder,     usbdmCheckFolder, true, true);
+         mergeFiles(freescaleFolder, freescaleCheckFolder, true, false);
          // Create Header files from SVD
          createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
       } catch (Exception e) {

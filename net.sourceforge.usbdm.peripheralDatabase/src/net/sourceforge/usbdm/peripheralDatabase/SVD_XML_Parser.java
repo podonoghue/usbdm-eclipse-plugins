@@ -250,7 +250,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-            field.setName(element.getTextContent());
+            field.setName(element.getTextContent().trim());
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
             field.setDescription(element.getTextContent().trim());
