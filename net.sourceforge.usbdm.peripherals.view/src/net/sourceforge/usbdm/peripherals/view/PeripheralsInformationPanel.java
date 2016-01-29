@@ -98,7 +98,6 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
       //         return;
       //      }
       //      fCurrentModel = (BaseModel) uModel;
-      //XXX
 //      System.err.println("PeripheralsInformationPanel.updateContent()");
 
       setText("");

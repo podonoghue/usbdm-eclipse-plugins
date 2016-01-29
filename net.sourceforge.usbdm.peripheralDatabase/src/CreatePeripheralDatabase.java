@@ -699,13 +699,14 @@ public class CreatePeripheralDatabase {
 
          ModeControl.setExtractSimilarFields(true);
          ModeControl.setFreescaleFieldNames(true);
-         if (false) {
-            mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
-            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
-         }
+//         if (false) {
+//            mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
+//            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
+//         }
          if (true) {
-            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
-            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
+//            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
+//            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
+            createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, false, true);
          }
       } catch (Exception e) {
          e.printStackTrace();

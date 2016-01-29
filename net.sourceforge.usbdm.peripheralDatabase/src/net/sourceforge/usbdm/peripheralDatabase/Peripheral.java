@@ -1570,7 +1570,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    public void addTypedefsTable(String name) throws Exception {
       if (typedefsTable.contains(name)) {
-         //XXX restore
+         //XXX Restore this check
          throw new Exception("Peripheral Typedef clash - " + this.getName() + ", " + name);
       }
       typedefsTable.add(name);

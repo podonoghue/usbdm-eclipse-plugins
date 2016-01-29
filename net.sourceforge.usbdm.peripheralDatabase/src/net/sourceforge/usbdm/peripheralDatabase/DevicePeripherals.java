@@ -695,7 +695,8 @@ public class DevicePeripherals extends ModeControl {
     * @return
     */
    boolean isPeripheralExcludedFromHeaderFile(String name) {
-      //TODO Where peripherals are excluded
+      //TODO Where peripherals are excluded when generating header files
+      // Some of these are in the CMSIS headers
       if (excludedPeripherals == null) {
          excludedPeripherals = new HashSet<String>();
          excludedPeripherals.add("AIPS");
@@ -706,7 +707,7 @@ public class DevicePeripherals extends ModeControl {
          excludedPeripherals.add("AIPS1");
          excludedPeripherals.add("DWT");
          excludedPeripherals.add("ITM");
-//         excludedPeripherals.add("NVIC");
+         excludedPeripherals.add("NVIC");
          excludedPeripherals.add("SCB");
          excludedPeripherals.add("SysTick");
          excludedPeripherals.add("CoreDebug");
