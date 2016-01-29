@@ -5,6 +5,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -854,5 +856,103 @@ public class Register extends Cluster implements Cloneable {
          }
       }
       return null;
+   }
+   
+   /**
+    * Checks if two strings are similar
+    * 
+    * @param p    Pattern used to compare strings
+    * @param enumeration1   First string
+    * @param enumeration2   Second string
+    * 
+    * @return true if the strings are similar
+    */
+   boolean similarTo(Pattern p, Enumeration enumeration1, Enumeration enumeration2) {
+      if (!enumeration1.equivalent(enumeration2)) {
+         return false;
+      }
+//      Matcher m1 = p.matcher(enumeration1.getDescription());
+//      if (!m1.matches()) {
+//         return false;
+//      }
+//      Matcher m2 = p.matcher(enumeration2.getDescription());
+//      if (!m2.matches()) {
+//         return false;
+//      }
+//      if (!m1.group(1).equalsIgnoreCase(m2.group(1))) {
+//         return false;
+//      }
+//      if (!m1.group(3).equalsIgnoreCase(m2.group(3))) {
+//         return false;
+//      }
+////      System.err.println(String.format("Found match %s.(%s:%s) ~= (%s:%s)", getName(), m1.group(1), m1.group(2), m2.group(1), m2.group(2)));
+      return true;
+   }
+   
+   /**
+    * 
+    * Checks if two fields are similar
+    * 
+    * @param p    Pattern used to compare strings
+    * @param f1   First field
+    * @param f2   Second field
+    * 
+    * @return true if the fields are similar
+    */
+   boolean similarTo(Pattern p, Field f1, Field f2) {
+      if (f1.getEnumerations().size() != f2.getEnumerations().size()) {
+         return false;
+      }
+      if (f1.getEnumerations().size() == 0) {
+         return false;
+      }
+      if (f1.getBitwidth() != f2.getBitwidth()) {
+         return false;
+      }
+      Iterator<Enumeration>e1 = f1.getEnumerations().iterator();
+      Iterator<Enumeration>e2 = f2.getEnumerations().iterator();
+      while (e1.hasNext()) {
+         if (!similarTo(p, e1.next(), e2.next())) {
+            return false;
+         }
+      }
+      return true;
+   }
+   
+   /**
+    * Examines the bit fields and attempts to extract similar fields that may
+    * be described by a &lt;derivedFrom&gt; relation
+    */
+   void extractSimilarFields() {
+      sortFields();
+      Pattern pattern = Pattern.compile("^(.+)(\\d*)(.*)$");
+      // Compare each field to every other field
+      for (int outer = 0; outer<getFields().size()-1; outer++) {
+         Field oField = fields.get(outer);
+         if (oField.getDerivedFrom() != null) {
+            continue;
+         }
+         for (int inner = outer+1; inner<getFields().size(); inner++) {
+            Field iField = fields.get(inner);
+            if (iField.getDerivedFrom() != null) {
+               continue;
+            }
+            if (similarTo(pattern, oField, iField)) {
+               // Make fields derived
+//               System.err.println(String.format("Found match: %s (%s ~= %s)", getName(), oField.getName(), iField.getName()));
+               iField.setDerivedFrom(oField);
+            }
+         }
+      }
+   }
+   /**
+    * Apply some optimisations to the bit fields
+    * 
+    */
+   public void optimise() {
+      if (isExtractSimilarFields()) {
+         extractSimilarFields();
+      }
+      
    }
 }

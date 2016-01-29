@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -27,21 +28,28 @@ import org.eclipse.core.runtime.IPath;
 public class CreatePeripheralDatabase {
    private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
    private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
-//   @SuppressWarnings("unused")
+   //   @SuppressWarnings("unused")
    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
-   @SuppressWarnings("unused")
-private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
+
    private static final  Path usbdmFolder            = MAIN_FOLDER.resolve("Internal");
-//   @SuppressWarnings("unused")
-   private static final  Path usbdmCheckFolder       = MAIN_FOLDER.resolve("Internal.Check");
+   //   @SuppressWarnings("unused")
+   private static final  Path usbdmFolder_Check      = MAIN_FOLDER.resolve("Internal.Check");
+
+   private static final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+
    @SuppressWarnings("unused")
-private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freescale.Check");
-   
+   private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
+   private static final  Path freescaleHeaderFolder  = MAIN_FOLDER.resolve("Freescale_header");
+   @SuppressWarnings("unused")
+   private static final  Path freescaleFolder_Check   = MAIN_FOLDER.resolve("Freescale.Check");
+   private static final  Path freescaleHeaderFolder_Check   = MAIN_FOLDER.resolve("Freescale_header.Check");
+
    private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";
    private static final  String CMSIS_SCHEMA_FILENAME       = "CMSIS-SVD_Schema_1_1.xsd";
    private static final  String DEVICE_LIST_SCHEMA_FILENAME = "DeviceListSchema.dtd";
 
-   private static String onlyFileToProcess = null;
+   private static String firstFileToProcess = null;
+   private static String firstFileToReject = null;
 
    static void copyFile(IPath source, IPath destination) throws IOException {
       System.err.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
@@ -54,7 +62,62 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     * *************************************************************************************************************************************
     */
 
+   /**
+    * Class to keep track of files to process
+    */
+   static class FileFilter {
+      private Pattern startPattern;
+      private Pattern endPattern;
+      private boolean include;
+
+      /**
+       * Constructor
+       * 
+       * @param startPattern Regex matching first file to process 
+       * @param endPattern   Regex matching first file not to process
+       * 
+       * NOTES: 
+       *    if startPattern == null files are processed from first.
+       *    if endPattern   == null then files are processed until end
+       */
+      public FileFilter(String startPattern, String endPattern) {
+         if (startPattern == null) {
+            this.startPattern = null;
+            include = true;
+         }
+         else {
+            this.startPattern = Pattern.compile(startPattern);
+            include = false;
+         }
+         if (endPattern == null) {
+            this.endPattern   = null;
+         }
+         else {
+            this.endPattern   = Pattern.compile(endPattern);
+         }
+      }
+      public boolean skipFile(String filename) {
+         if (include) {
+            if ((endPattern != null) && endPattern.matcher(filename).matches()) {
+               include = false;
+               endPattern = null;
+            }
+         }
+         else {
+            if ((startPattern != null) && startPattern.matcher(filename).matches()) {
+               include = true;
+               startPattern = null;
+            }
+         }
+//         if (!include) {
+//            System.err.println("Skipping " + filename);
+//         }
+         return !include;
+      }
+   }
    static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger, boolean optimise) throws Exception {
+      FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
+
       int deviceCount = 500;
       DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath.toAbsolutePath(), directoryFilter);
       for (Path filePath : svdSourceFolderStream) {
@@ -63,8 +126,8 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
          }
          if (Files.isRegularFile(filePath)) {
             String fileName = filePath.getFileName().toString();
-            if ((onlyFileToProcess != null) && (!fileName.matches(onlyFileToProcess))) {
-               return;
+            if (fileFilter.skipFile(fileName)) {
+               continue;
             }
             if (fileName.endsWith(".svd.xml")) {
                System.err.println("Merging SVD file : \""+filePath.toString()+"\"");
@@ -108,7 +171,9 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
          System.err.println("Source doesn't exist " + svdSourceFolderPath.toString());
          return;
       }
-      svdOutputFolderPath.toFile().mkdir();
+      if (!Files.exists(svdOutputFolderPath)) {
+         Files.createDirectory(svdOutputFolderPath);
+      }
 
       PeripheralDatabaseMerger merger = new PeripheralDatabaseMerger();
 
@@ -119,10 +184,9 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
-      ModeControl.setRegenerateAddressBlocks(optimise);
+      //      ModeControl.setRegenerateAddressBlocks(optimise);
       ModeControl.setFoldRegisters(optimise);
 
       System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
@@ -149,9 +213,11 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       } catch (Exception e) {
          e.printStackTrace();
       }
-      Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_FILENAME),        svdOutputFolderPath.resolve(DEVICE_LIST_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), svdOutputFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(svdSourceFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       svdOutputFolderPath.resolve(CMSIS_SCHEMA_FILENAME),      StandardCopyOption.REPLACE_EXISTING);
+      if (Files.exists(svdSourceFolderPath.resolve(DEVICE_LIST_FILENAME), LinkOption.NOFOLLOW_LINKS)) {
+         Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_FILENAME),        svdOutputFolderPath.resolve(DEVICE_LIST_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
+         Files.copy(svdSourceFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), svdOutputFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
+         Files.copy(svdSourceFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       svdOutputFolderPath.resolve(CMSIS_SCHEMA_FILENAME),      StandardCopyOption.REPLACE_EXISTING);
+      }
    }
 
    /*
@@ -168,25 +234,33 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     *    
     *  @param sourceFolderPath       - Folder containing SVD files (must have .svd.xml extension, otherwise ignored)
     *  @param destinationFolderPath  - Folder to write created header file to
-    * @throws IOException 
+    *  @param optimise
+    *  @param removeFolder
+    * @throws Exception 
     */
-   public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean optimise) throws IOException {
+   public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean optimise, boolean removeFolder) throws Exception {
+      FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
-         System.err.flush();
-         System.err.println("Destination already exists " + destinationFolderPath);
-         return;
+         if (!removeFolder) {
+            System.err.println("Destination already exists " + destinationFolderPath.toString());
+         }
+         else {
+            System.err.println("Destination already exists -  deleting " + destinationFolderPath.toString());
+            removeDirectoryTree(destinationFolderPath);
+         }
       }
       // Set optimisations
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(false);
 
-      Files.createDirectory(destinationFolderPath);
+      if (!Files.exists(destinationFolderPath)) {
+         Files.createDirectory(destinationFolderPath);
+      }
 
       DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
 
@@ -198,30 +272,24 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
          }
          if (Files.isRegularFile(svdSourceFile)) {
             String fileName = svdSourceFile.getFileName().toString();
-            if ((onlyFileToProcess != null) && !fileName.matches(onlyFileToProcess)) {
-               System.err.println(String.format("\'%s\' <> \'%s\'", fileName, onlyFileToProcess));
+            if (fileFilter.skipFile(fileName)) {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
                System.err.println("Processing File : \""+fileName+"\"");
-               try {
-                  // Read device description
-                  DevicePeripherals devicePeripherals = new DevicePeripherals(svdSourceFile);
+               // Read device description
+               DevicePeripherals devicePeripherals = new DevicePeripherals(svdSourceFile);
 
-                  if (optimise) {
-                     // Optimise peripheral database
-                     devicePeripherals.optimise();
-                  }
-                  devicePeripherals.sortPeripherals();
-
-                  // Create header file
-                  Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
-                  System.err.println("Creating : \""+headerFilePath+"\"");
-                  devicePeripherals.writeHeaderFile(headerFilePath);
-
-               } catch (Exception e) {
-                  e.printStackTrace();
+               if (optimise) {
+                  // Optimise peripheral database
+                  devicePeripherals.optimise();
                }
+               devicePeripherals.sortPeripherals();
+
+               // Create header file
+               Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
+               System.err.println("Creating : \""+headerFilePath+"\"");
+               devicePeripherals.writeHeaderFile(headerFilePath);
             }
          }
       }
@@ -298,6 +366,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     * @throws Exception 
     */
    public static void createReducedDeviceList(Path sourceFolderPath, Path destinationFolderPath) throws Exception {
+      FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
          System.err.flush();
@@ -311,7 +380,6 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       ModeControl.setExtractComplexStructures(false);
       ModeControl.setExtractDerivedPeripherals(false);
       ModeControl.setExtractSimpleRegisterArrays(false);
-      ModeControl.setFreescaleFieldNames(false);
       ModeControl.setMapFreescaleCommonNames(false);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
       ModeControl.setRegenerateAddressBlocks(false);
@@ -328,8 +396,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
          // Create database of all devices
          if (Files.isRegularFile(svdSourceFile)) {
             String fileName = svdSourceFile.getFileName().toString();
-            if ((onlyFileToProcess != null) && !fileName.matches(onlyFileToProcess)) {
-               System.err.println(String.format("\'%s\' <> \'%s\'", fileName, onlyFileToProcess));
+            if (fileFilter.skipFile(fileName)) {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
@@ -427,6 +494,11 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       System.err.println(String.format("Test : %-20s => \"%s\"", "MK10DN64",    deviceFileList.getSvdFilename("MK10DN64")));
    }
 
+   /**
+    * Delete directory
+    * 
+    * @param directoryPath
+    */
    static void removeDirectoryTree(Path directoryPath) {
       try {
          Files.walkFileTree(directoryPath, new SimpleFileVisitor<Path>() {
@@ -454,6 +526,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     * @throws Exception
     */
    static void createHeaderFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean removeFolder) throws Exception {
+      FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
          if (!removeFolder) {
@@ -469,7 +542,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       ModeControl.setMapFreescaleCommonNames(true);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
       ModeControl.setUseShiftsInFieldMacros(true);
-      
+
       // Don't optimise
       ModeControl.setExtractComplexStructures(false);
       ModeControl.setExtractDerivedPeripherals(false);
@@ -479,7 +552,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       destinationFolderPath.toFile().mkdir();
 
       DeviceFileList deviceFileList = new DeviceFileList(sourceFolderPath.resolve(DEVICE_LIST_FILENAME));
-      
+
       // Get full list of devices
       ArrayList<Pair> list = deviceFileList.getArrayList();
 
@@ -488,7 +561,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
 
       for (int index = 0; index < list.size(); index++) {
          Pair pair = list.get(index);
-         if ((onlyFileToProcess != null) && !pair.deviceName.matches(onlyFileToProcess)) {
+         if (fileFilter.skipFile(pair.deviceName)) {
             continue;
          }
          System.err.println("Processing File : \""+pair.deviceName+"\"");
@@ -532,6 +605,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     * @throws Exception
     */
    static void createExpandedSvdFilesFromList(Path sourceFolderPath, Path destinationFolderPath, boolean optimise) throws Exception {
+      FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
          System.err.flush();
@@ -542,11 +616,10 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setFreescaleFieldNames(optimise);
       ModeControl.setMapFreescaleCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(optimise);
-//      ModeControl.setExtractCommonPrefix(optimise);
+      //      ModeControl.setExtractCommonPrefix(optimise);
 
       destinationFolderPath.toFile().mkdir();
 
@@ -554,7 +627,7 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
       ArrayList<Pair> list = deviceFileList.getArrayList();
 
       for (Pair pair : list) {
-         if ((onlyFileToProcess != null) && !pair.deviceName.matches(onlyFileToProcess)) {
+         if (fileFilter.skipFile(pair.deviceName)) {
             continue;
          }
          System.err.println("Processing File : \""+pair.mappedDeviceName+"\"");
@@ -588,25 +661,52 @@ private static final  Path freescaleCheckFolder   = MAIN_FOLDER.resolve("Freesca
     */
    public static void main(String[] args) {
       System.err.println("Starting");
-//    onlyFileToProcess = "^MCF51.*";
-//       onlyFileToProcess = "^MK2.*";
-//       onlyFileToProcess = "^MKL.*";
-//       onlyFileToProcess = "^MK10DX128M7*";
-//       onlyFileToProcess = "^MK20DX128M5*";
-//       onlyFileToProcess = "^MCF51J.*";
-//       onlyFileToProcess = "^MK10DX128M5$";
-//       onlyFileToProcess = "^(MKM).*";
-//       onlyFileToProcess = "^MKE.*";
-//      onlyFileToProcess = "^MK.*";
+      
+//      firstFileToProcess = ("^MK22F12810.*");
+//      firstFileToReject  = ("^MKE15D7.*");
+
+      //    firstFileToProcess = ("^MK.*");
+//    firstFileToProcess = ("^MK10D7.*");
+//    firstFileToProcess = ("^MK10D5.*");
+//      firstFileToProcess = ("^MKE.*");
+//    firstFileToProcess = ("^MKL.*");
+//      firstFileToProcess = ("^MKL04.*");
+//      firstFileToProcess = ("^MKM.*");
+//      firstFileToProcess = ("^MKV.*");
+//      firstFileToProcess = ("^MKW.*");
+//      firstFileToProcess = ("^SKEA.*");
+      
+  //  firstFileToReject = ("^MK.*");
+//    firstFileToReject = ("^MK10DZ.*");
+//      firstFileToReject = ("^MKE.*");
+//    firstFileToReject = ("^MKL.*");
+//    firstFileToReject = ("^MKL15.*");
+//      firstFileToReject = ("^MKM.*");
+//      firstFileToReject = ("^MKV.*");
+//      firstFileToReject = ("^MKW.*");
+//      firstFileToReject = ("^SKEA*");
 
       try {
-         // Generate merged version of SVD files for testing (should be unchanging eventually)
+// Generate merged version of SVD files for testing (should be unchanging eventually)
 //         ModeControl.setExpandDerivedRegisters(false);
 //         ModeControl.setFlattenArrays(true);
-         mergeFiles(usbdmFolder,     usbdmCheckFolder, true, true);
-         mergeFiles(freescaleFolder, freescaleCheckFolder, true, false);
-         // Create Header files from SVD
-         createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
+//         ModeControl.setRenameSimSources(true);
+//         mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
+// Create Header files from SVD
+//         createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
+//         createHeaderFiles(freescaleFolder,       freescaleHeaderFolder,       false, true);
+//         createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
+
+         ModeControl.setExtractSimilarFields(true);
+         ModeControl.setFreescaleFieldNames(true);
+         if (false) {
+            mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
+            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
+         }
+         if (true) {
+            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
+            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
+         }
       } catch (Exception e) {
          e.printStackTrace();
       }

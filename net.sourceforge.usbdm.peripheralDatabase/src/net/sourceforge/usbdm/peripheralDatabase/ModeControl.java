@@ -23,7 +23,7 @@ public class ModeControl {
     * * Field bit offsets use      _SHIFT           _Pos
     * 
     */
-   private static boolean freescaleMode = false;
+   private static boolean freescaleModeFieldNames = false;
 
    /**
     * Whether to generate Freescale style MACROs to access fields in registers
@@ -99,10 +99,36 @@ public class ModeControl {
     */
    private static boolean flattenArrays;
 
+   /**
+    * Whether to rename SIM peripherals source file  based on the device name
+    */
+   private static boolean renameSimSource = false;
+
    // Bit dodgy - assumes you only write the Macros once!
    private static HashMap<String, Integer> fieldMacros = null;
 
+   /**
+    * Whether to similar extract fields that can be expressed as <derivedFrom> 
+    */
+   private static boolean extractSimilarFields = false;
+
    public ModeControl() {
+   }
+
+   /**
+    * @return Whether to rename SIM peripherals source file  based on the device name
+    */
+   public static boolean isRenameSimSource() {
+      return renameSimSource;
+   }
+
+   /**
+    * Cause SIM peripherals source file to be renamed based on the device name
+    * 
+    * @param foldRegisters the foldRegisters to set
+    */
+   public static void setRenameSimSources(boolean renameSimSource) {
+      ModeControl.renameSimSource = renameSimSource;
    }
 
    /**
@@ -117,6 +143,22 @@ public class ModeControl {
     * 
     * @param foldRegisters the foldRegisters to set
     */
+   public static void setExtractSimilarFields(boolean extractSimilarFields) {
+      ModeControl.extractSimilarFields = extractSimilarFields;
+   }
+
+   /**
+    * @return the foldRegisters
+    */
+   public static boolean isExtractSimilarFields() {
+      return extractSimilarFields;
+   }
+
+   /**
+    * Cause some register names that appears twice to be folded (i.e. 2nd occurrence deleted)
+    * 
+    * @param foldRegisters the foldRegisters to set
+    */
    public static void setFoldRegisters(boolean foldRegisters) {
       ModeControl.foldRegisters = foldRegisters;
    }
@@ -124,13 +166,13 @@ public class ModeControl {
    /**
     * Sets some standard differences between ARM header files and Freescale typical<br>
     * <pre>
-    *                             Freescale         ARM
+    *                            Freescale         ARM
     * Field bit masks use        _MASK            _Msk
     * Field bit offsets use      _SHIFT           _Pos
     * </pre>
     */
-   public static boolean isFreescaleMode() {
-      return freescaleMode;
+   public static boolean useFreescaleFieldNames() {
+      return freescaleModeFieldNames;
    }
 
    /**
@@ -142,7 +184,7 @@ public class ModeControl {
     * </pre>
     */
    public static void setFreescaleFieldNames(boolean freescaleMode) {
-      ModeControl.freescaleMode = freescaleMode;
+      ModeControl.freescaleModeFieldNames = freescaleMode;
    }
 
    /**
@@ -151,7 +193,7 @@ public class ModeControl {
     * @return the fieldOffsetSuffixName
     */
    public static String getFieldOffsetSuffixName() {
-      return freescaleMode?"_SHIFT":"_Pos";
+      return useFreescaleFieldNames()?"_SHIFT":"_Pos";
    }
 
    /**
@@ -160,7 +202,7 @@ public class ModeControl {
     * @return the fieldMaskSuffixName
     */
    public static String getFieldMaskSuffixName() {
-      return freescaleMode?"_MASK":"_Msk";
+      return useFreescaleFieldNames()?"_MASK":"_Msk";
    }
 
    /**
@@ -417,7 +459,7 @@ public class ModeControl {
             if (num1>num2) {
                return 1;
             }
-            return 1;
+            return (((Cluster)reg1).getName().compareTo(((Cluster)reg2).getName()));
          }
       });
    }

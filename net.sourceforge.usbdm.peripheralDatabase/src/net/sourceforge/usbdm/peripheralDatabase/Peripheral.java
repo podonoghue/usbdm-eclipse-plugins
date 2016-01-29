@@ -963,15 +963,21 @@ public class Peripheral extends ModeControl implements Cloneable {
          freescaleComplexStructures.put("PIT",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
-         entry.add(new ComplexStructuresInformation("^(TCD)(\\d+)_(.*)$",            "$1","$2","$3", "TCD,@p@a@i_@f"));
+         entry.add(new ComplexStructuresInformation("^(?:DMA_)?(TCD)(\\d+)_(.*)$",     "$1","$2","$3", "TCD,@p@a@i_@f"));
+         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR.*|DCR)(\\d+)$",     "$1","$2","$1", "DMA,@p@f@i"));
+         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$", "$1","$2","$1", "CH,@p@f@i"));
          freescaleComplexStructures.put("DMA",   entry);
          freescaleComplexStructures.put("DMA0",  entry);
          freescaleComplexStructures.put("DMA1",  entry);
          
-         entry = new ArrayList<ComplexStructuresInformation>();
-         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR.*|DCR)(\\d+)$",  "$1","$2","$1", "DMA,@p@f@i"));
-         freescaleComplexStructures.put("DMA",   entry);
+//         entry = new ArrayList<ComplexStructuresInformation>();
+//         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR.*|DCR)(\\d+)$",  "$1","$2","$1", "DMA,@p@f@i"));
+//         freescaleComplexStructures.put("DMA",   entry);
          
+//         entry = new ArrayList<ComplexStructuresInformation>();
+//         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$", "$1","$2","$1", "CH,@p@f@i"));
+//         freescaleComplexStructures.put("DMA",  entry);
+
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(C)(\\d+)(.*)$",               "$1","$2","Cn$3", "CONTROLS,@pC@i@f"));
          freescaleComplexStructures.put("FTM0",  entry);
@@ -990,7 +996,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(.RS)(\\d+)$",                 "$1","$2","$1",   "SLAVE,@p@f@i"));
-         entry.add(new ComplexStructuresInformation("^(MGPCR)(\\d+)$",               "$1","$2","$1",   "MASTER,@p@f@i"));
+//         entry.add(new ComplexStructuresInformation("^(MGPCR)(\\d+)$",               "$1","$2","$1",   "MASTER,@p@f@i"));
          freescaleComplexStructures.put("AXBS",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
@@ -1010,11 +1016,6 @@ public class Peripheral extends ModeControl implements Cloneable {
          entry.add(new ComplexStructuresInformation("^(CODE|CTRL|TIME|ID|DATA_WORD_1|DATA_WORD_2|DATA_WORD_3|DATA_WORD_4)_?(\\d+)$",
                "$1","$2","$1", "MB,@p@f@i"));
          freescaleComplexStructures.put("CANMB",  entry);
-
-         entry = new ArrayList<ComplexStructuresInformation>();
-         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$",
-               "$1","$2","$1", "CH,@p@f@i"));
-         freescaleComplexStructures.put("DMA",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(DTMR|DTXMR|DTER|DTRR|DTCR|DTCN)_?(\\d+)$",
@@ -1136,7 +1137,7 @@ public class Peripheral extends ModeControl implements Cloneable {
                // Check stride matches
                if ((victimReg.getAddressOffset()-mergeReg.getAddressOffset()) != (index*stride)) {
                   System.err.println(
-                        String.format("   %s <=> %s, Expected offset %d, found %s ",
+                        String.format("extractComplexStructures():   %s <=> %s, Expected offset(stride) %d, found %s ",
                               victimReg.getName(),
                               mergeReg.getName(),
                               (index*stride), 
@@ -1398,6 +1399,9 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (isFoldRegisters()) {
          foldRegisters();
       }
+      for (Cluster r:getRegisters()) {
+         r.optimise();
+      }
    }
 
    private static final String deviceListPreamble = 
@@ -1518,7 +1522,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
       if (!getGroupName().equals(derived.getGroupName())) {
          //XXXX Check this
-         System.err.println(String.format("writeDerivedFromSVD() d=%s, i=%s", derived.getGroupName(), getGroupName()));
+//         System.err.println(String.format("writeDerivedFromSVD() d=%s, i=%s", derived.getGroupName(), getGroupName()));
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.GROUPNAME_TAG,  SVD_XML_BaseParser.escapeString(getGroupName()), SVD_XML_Parser.GROUPNAME_TAG));
       }
       if (!getPrependToName().equals(derived.getPrependToName())) {
@@ -1566,6 +1570,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    public void addTypedefsTable(String name) throws Exception {
       if (typedefsTable.contains(name)) {
+         //XXX restore
          throw new Exception("Peripheral Typedef clash - " + this.getName() + ", " + name);
       }
       typedefsTable.add(name);
@@ -1587,7 +1592,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, peripheral, 0L);
       
       writer.print(indenter+String.format(DEVICE_OPEN_STRUCT, getName()+" Structure"));
-      
+
       for(Cluster cluster : registers) {
          unionRegisters.add(cluster);
       }

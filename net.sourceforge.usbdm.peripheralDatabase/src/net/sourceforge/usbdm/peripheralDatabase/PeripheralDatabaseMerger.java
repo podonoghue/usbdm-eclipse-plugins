@@ -59,12 +59,17 @@ public class PeripheralDatabaseMerger {
       else {
          name = peripheral.getName();
       }
+      if (ModeControl.isRenameSimSource() && (peripheral.getName().equals("SIM") && peripheral.getUsedBy().size() == 1)) {
+         peripheral.setSourceFilename("SIM_" + peripheral.getUsedBy().get(0));
+      }
       String uniqueId = peripheral.getSourceFilename();
-      assert ((uniqueId != null) || (uniqueIds != null)) : "Peripheral should have unique ID set";
       if ((uniqueId == null) && (uniqueIds == null)) {
          throw new Exception("Peripheral should have unique ID set");
       }
       int index = 0;
+      if (uniqueId == null) {
+         uniqueId = name + "_" + peripheral.getUsedBy().get(0);
+      }
       if (uniqueIds != null) {
          // Generate new uniqueId as needed
          while ((uniqueId == null) || uniqueIds.contains(uniqueId)) {

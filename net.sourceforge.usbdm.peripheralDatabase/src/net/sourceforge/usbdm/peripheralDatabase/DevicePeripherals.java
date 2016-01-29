@@ -312,10 +312,10 @@ public class DevicePeripherals extends ModeControl {
          // Check if a compatible peripheral has already been created in this device
          for (int index2=index1+1; index2<peripherals.size(); index2++) {
             Peripheral checkPeripheral = peripherals.get(index2);
-            boolean debug2 = debug1 && checkPeripheral.getName().matches("CAU");
-            if (debug2) {
-               System.out.println("DevicePeripherals.extractDerivedPeripherals() checking \""+checkPeripheral.getName()+"\" ?= \""+peripheral.getName()+"\"");
-            }
+//            boolean debug2 = debug1 && checkPeripheral.getName().matches("CAU");
+//            if (debug2) {
+//               System.out.println("DevicePeripherals.extractDerivedPeripherals() checking \""+checkPeripheral.getName()+"\" ?= \""+peripheral.getName()+"\"");
+//            }
             if (checkPeripheral.getDerivedFrom() != null) {
                continue;
             }
@@ -629,9 +629,6 @@ public class DevicePeripherals extends ModeControl {
       try {
          writer = new PrintWriter(headerFile);
          writeHeaderFile(writer);
-      } catch (Exception e) {
-         e.printStackTrace();
-         throw e;
       }
       finally {
          if (writer != null) {
@@ -692,18 +689,24 @@ public class DevicePeripherals extends ModeControl {
 
    HashSet<String> excludedPeripherals = null;
 
+   /**
+    * Indicates id a peripheral is excluded from the generated header files
+    * @param name
+    * @return
+    */
    boolean isPeripheralExcludedFromHeaderFile(String name) {
+      //TODO Where peripherals are excluded
       if (excludedPeripherals == null) {
          excludedPeripherals = new HashSet<String>();
          excludedPeripherals.add("AIPS");
-         excludedPeripherals.add("AXBS");
+//       excludedPeripherals.add("AXBS");
+//       excludedPeripherals.add("AXBS0");
+//       excludedPeripherals.add("AXBS1");
          excludedPeripherals.add("AIPS0");
-         excludedPeripherals.add("AXBS0");
          excludedPeripherals.add("AIPS1");
-         excludedPeripherals.add("AXBS1");
          excludedPeripherals.add("DWT");
          excludedPeripherals.add("ITM");
-         excludedPeripherals.add("NVIC");
+//         excludedPeripherals.add("NVIC");
          excludedPeripherals.add("SCB");
          excludedPeripherals.add("SysTick");
          excludedPeripherals.add("CoreDebug");
@@ -747,7 +750,7 @@ public class DevicePeripherals extends ModeControl {
       sortPeripheralsByName();
       writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
       writeGroupPreamble(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
-      if (isFreescaleMode()) {
+      if (useFreescaleFieldNames()) {
          // Structs for each peripheral
          for (Peripheral peripheral : peripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {

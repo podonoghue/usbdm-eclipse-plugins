@@ -950,4 +950,10 @@ public class Cluster extends ModeControl implements Cloneable {
       this.hidden = hidden;
    }
 
+   public void optimise() {
+      for (Register r:getRegisters()) {
+         r.optimise();
+      }
+   }
+
 }

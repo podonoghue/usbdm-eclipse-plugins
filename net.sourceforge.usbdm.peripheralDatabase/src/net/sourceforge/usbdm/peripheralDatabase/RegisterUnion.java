@@ -25,10 +25,11 @@ public class RegisterUnion {
    private final String       indenter;
    private final long         baseAddress;        
    
-   private final String nestedStructOpening  = "struct {";
-   private final String nestedStructClosing  = "};\n";
-   private final String unionOpening        = "union {";
-   private final String unionClosing        = "};\n";
+   private final String  nestedStructOpening  = "struct {";
+   private final String  nestedStructClosing  = "};\n";
+   private final String  unionOpening        = "union {";
+   private final String  unionClosing        = "};\n";
+   private       boolean sorted = false;
   
    /**
     * Creates a structure to hold a collection of registers being written to a header file.<br>
@@ -52,6 +53,9 @@ public class RegisterUnion {
     * Sort the register in the required order for creating struct
     */
    private void sort() {
+      if (sorted ) {
+         return;
+      }
       Collections.sort(union, new Comparator<Cluster>() {
 
          @Override
@@ -71,6 +75,7 @@ public class RegisterUnion {
             return 0;
          }
       });
+      sorted = true;
    }
    
    /** 
@@ -81,9 +86,6 @@ public class RegisterUnion {
     * @throws Exception
     */
    public void add(Cluster cluster) throws Exception {
-      if (cluster.getName().matches("CNTH")) {
-         System.err.println("");
-      }
       if (cluster.getAddressOffset()<lastWrittenOffset) {
          throw new Exception(String.format("Register addresses not monotonic, p=%s, c=%s",
                peripheral.getName(), cluster.getName()));
@@ -102,6 +104,7 @@ public class RegisterUnion {
          size = (cluster.getTotalSizeInBytes()+cluster.getAddressOffset()) - offset;
       }
       union.add(cluster);
+//      System.err.println(String.format("RegisterUnion.add(), adding %s @0x%08X", cluster.getName(), cluster.getAddressOffset()));
    }
    
    /**

@@ -519,4 +519,9 @@ public class Field extends ModeControl implements Cloneable {
       }
    }
 
+   public void setDerivedFrom(Field oField) {
+      fDerivedFrom = oField;
+      fEnumerations.clear();
+   }
+
 }
