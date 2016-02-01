@@ -60,7 +60,8 @@ class WriterForI2c extends InstanceWriter {
    protected String getPcrDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
-      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Pcr<"+signal+">";
+//      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Pcr<"+signal+">";
+      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
    }
 
    /** 
@@ -75,7 +76,8 @@ class WriterForI2c extends InstanceWriter {
    protected String getGpioDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
-      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Gpio<"+signal+">";
+//      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Gpio<"+signal+">";
+      return "const " + CreatePinDescription.NAME_SPACE + "::GpioTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
    }
 
    /* (non-Javadoc)
@@ -120,25 +122,26 @@ class WriterForI2c extends InstanceWriter {
          " * @tparam i2cPinIndex    I2C pin number (index into I2cInfo[])\n"+
          " */\n";
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
-    */
-   @Override
-   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
-      StringBuffer sb = new StringBuffer();
-      sb.append(PCR_TEMPLATE_DOCUMENTATION);
-      sb.append(String.format(
-         "template<uint8_t i2cPinIndex> using %s =\n" +
-         "   Pcr_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), PORT_PCR_MUX(getPcrMux(i2cPinIndex, %sInfo))|I2C_DEFAULT_PCR>;\n\n",
-         pinTemplate.baseName+"Pcr", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
-      sb.append(GPIO_TEMPLATE_DOCUMENTATION);
-      sb.append(String.format(
-            "template<uint8_t i2cPinIndex> using %s =\n" +
-            "   Gpio_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), PORT_PCR_MUX(FIXED_GPIO_FN)|I2C_DEFAULT_PCR,\n"+
-            "             getGpioAddress(i2cPinIndex,%sInfo),   getGpioBit(i2cPinIndex,%sInfo)>;\n",
-            pinTemplate.baseName+"Gpio", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
-      return sb.toString();
-   }
+//   /* (non-Javadoc)
+//    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
+//    */
+//   @Override
+//   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
+//      StringBuffer sb = new StringBuffer();
+//      sb.append(PCR_TEMPLATE_DOCUMENTATION);
+//      sb.append(String.format(
+//         "template<uint8_t i2cPinIndex> using %s =\n" +
+//         "   Pcr_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), getGpioBit(i2cPinIndex,%sInfo),\n" +
+//         "      PORT_PCR_MUX(getPcrMux(i2cPinIndex, %sInfo))|I2C_DEFAULT_PCR>;\n\n",
+//         pinTemplate.baseName+"Pcr", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
+//      sb.append(GPIO_TEMPLATE_DOCUMENTATION);
+//      sb.append(String.format(
+//            "template<uint8_t i2cPinIndex> using %s =\n" +
+//            "   Gpio_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), getGpioBit(i2cPinIndex,%sInfo),\n" +
+//            "      getGpioAddress(i2cPinIndex,%sInfo), PORT_PCR_MUX(FIXED_GPIO_FN)|I2C_DEFAULT_PCR>;\n",
+//            pinTemplate.baseName+"Gpio", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
+//      return sb.toString();
+//   }
 
    @Override
    public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) throws Exception {

@@ -72,14 +72,13 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    " * tpm0_ch6.setDutyCycle(45);\n"+
    " * @endcode\n"+
    " *\n"+
-   " * @tparam tpmChannel    TPM channel\n"+
+   " * @tparam channel    TPM channel\n"+
    " */\n";
    @Override
    public String getTemplate(FunctionTemplateInformation pinTemplate) {               
       return TEMPLATE_DOCUMENTATION + String.format(
-         "template<uint8_t tpmChannel> using %s =\n" +
-         "   %s_T<getPortClockMask(tpmChannel,%sInfo), getPcrReg(tpmChannel,%sInfo), getPcrMux(tpmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, TPM0_SC, tpmChannel>;\n\n",
-         pinTemplate.baseName, CLASS_BASE_NAME, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
-
+            "template<uint8_t channel> using %s =\n" +
+            "      Tmr_T<%sInfo, %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, %s_SC, channel>;\n\n",
+            pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
    }
 }

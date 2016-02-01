@@ -61,7 +61,7 @@ class FunctionTemplateInformation {
    /**
     * Get PCR initialisation string for given pin e.g. for <b><i>PTB4</b></i>
     * <pre>
-    * "PORT<b><i>B</b></i>_CLOCK_MASK,  PORT<b><i>B</b></i>_BasePtr+offsetof(PCR[<b><i>4</b></i>]),  "
+    * "PORT<b><i>B</b></i>_CLOCK_MASK,  PORT<b><i>B</b></i>_BasePtr,  "
     * </pre>
     * 
     * @param pin The pin being configured
@@ -78,11 +78,11 @@ class FunctionTemplateInformation {
       if (portClockMask == null) {
          return "0, 0, ";
       }
-      String pcrRegister      = pin.getPCRasInt();
+      String pcrRegister      = pin.getPORTBasePtr();
       String gpioRegister     = pin.getGpioReg();
       String gpioBitNum       = pin.getGpioBitNum();
       
-      return String.format("%-17s %-42s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");
+      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");
    }
 
    final String baseName;
@@ -95,7 +95,8 @@ class FunctionTemplateInformation {
 
    /**
     * 
-    * @param baseName               Name to use as basename of these functions e.g. GPIO
+    * @param baseName               Name to use as base-name of these functions e.g. GPIO
+    * @param peripheralName         Name of peripheral e.g. FTM2
     * @param groupName              e.g. "DigitalIO_Group"
     * @param groupTitle             e.g. "Digital Input/Output"
     * @param groupBriefDescription  e.g. "Allows use of port pins as simple digital inputs or outputs"

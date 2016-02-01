@@ -146,7 +146,19 @@ public class PinInformation {
    }
    
    /**
-    * Get PCR register e.g. PORTA->PCR[3]
+    * Get Base pointer for Port e.g. PORTC_BasePtr
+    * 
+    * @return
+    */
+   public String getPORTBasePtr() {
+      if (fPortInstance == null) {
+         return null;
+      }
+      return String.format("PORT%s_BasePtr", fPortInstance);
+   }
+   
+   /**
+    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
     * 
     * @return
     */
@@ -154,7 +166,7 @@ public class PinInformation {
       if (fPortInstance == null) {
          return null;
       }
-      return String.format("PORT%s_BasePtr+offsetof(PORT_Type,PCR[%s])", fPortInstance, fPortPin);
+      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
    }
    
    /**

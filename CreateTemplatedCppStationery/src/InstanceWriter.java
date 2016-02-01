@@ -133,7 +133,9 @@ abstract class InstanceWriter {
     * 
     * @return Template
     */
-   public abstract String getTemplate(FunctionTemplateInformation pinTemplate);
+   public String getTemplate(FunctionTemplateInformation pinTemplate) {
+      return null;
+   }
    
    /**
     * Gets the numeric index of the function for use in PCR tables\n

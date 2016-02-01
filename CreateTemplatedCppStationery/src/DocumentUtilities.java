@@ -140,6 +140,7 @@ public class DocumentUtilities {
       else {
          trueFileName = "(derived from "+trueFileName+")";
       }
+      description = description.replaceAll("\n", "\n *            ");
       writer.write( String.format(headerfilePreambleTemplate, 
             fileName, trueFileName, version, description, macroName, macroName ));
    }
@@ -162,11 +163,11 @@ public class DocumentUtilities {
     */
    void writeCppFilePreamble(BufferedWriter writer, String fileName, String trueFileName, String description) throws IOException {
       final String cppFilePreambleTemplate = 
-            " /**\n"+
-            "  * @file     %s %s\n"+
-            "  *\n"+
-            "  * @brief   %s\n"+ 
-            "  */\n"+
+            "/**\n"+
+            " * @file      %s %s\n"+
+            " *\n"+
+            " * @brief     %s\n"+ 
+            " */\n"+
             "\n";
       if ((trueFileName == null) || trueFileName.isEmpty()) {
          trueFileName = "";
@@ -174,6 +175,7 @@ public class DocumentUtilities {
       else {
          trueFileName = "(from "+trueFileName+")";
       }
+      description = description.replaceAll("\n", "\n *            ");
       writer.write( String.format(cppFilePreambleTemplate, fileName, trueFileName, description ));
    }
    
@@ -713,7 +715,6 @@ public class DocumentUtilities {
       final String defineTemplate = "#define %-24s %-20s //%s\n";
       writer.write(String.format(defineTemplate, name, value, comment));
    }
-   
    /**
     * Write parametised macro with comment block
     * 
@@ -748,6 +749,35 @@ public class DocumentUtilities {
       briefDescription, paramDescription, name, value
       ));
       
+   }
+   /**
+    * Write Undef for macro
+    * <pre><code>
+    * #undef <i><b>name</i></b> // <i><b>comment</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param name          Macro name
+    * @param comment       Comment
+    * @throws IOException 
+    */
+   void writeMacroUnDefinition(BufferedWriter writer, String name, String comment) throws IOException {
+      final String defineTemplate = "#undef %-24s //%s\n";
+      writer.write(String.format(defineTemplate, name, comment));
+   }
+   /**
+    * Write Undef for macro
+    * <pre><code>
+    * #undef <i><b>name</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param name          Macro name
+    * @throws IOException 
+    */
+   void writeMacroUnDefinition(BufferedWriter writer, String name) throws IOException {
+      final String defineTemplate = "#undef %-24s\n";
+      writer.write(String.format(defineTemplate, name, ""));
    }
 
    /**

@@ -72,14 +72,13 @@ class WriterForPwmIO_FTM extends WriterForDigitalIO {
    " * ftm0_ch6.setDutyCycle(45);\n"+
    " * @endcode\n"+
    " *\n"+
-   " * @tparam ftmChannel    FTM channel\n"+
+   " * @tparam channel    Timer channel\n"+
    " */\n";
    @Override
    public String getTemplate(FunctionTemplateInformation pinTemplate) {               
       return TEMPLATE_DOCUMENTATION + String.format(
-         "template<uint8_t ftmChannel> using %s =\n" +
-         "   Ftm_T<getPortClockMask(ftmChannel,%sInfo), getPcrReg(ftmChannel,%sInfo), getPcrMux(ftmChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, %s_SC, ftmChannel>;\n\n",
-         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
-
+            "template<uint8_t channel> using %s =\n" +
+            "      Tmr_T<%sInfo, %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, %s_SC, channel>;\n\n",
+            pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
    }
 }

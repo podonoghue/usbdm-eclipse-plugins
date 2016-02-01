@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 public class CreatePinDescription extends DocumentUtilities {
 
-   public static final String VERSION = "1.1.0";
+   public static final String VERSION = "1.2.0";
 
    /** Base name for pin mapping file */
    private final static String pinMappingBaseFileName   = "pin_mapping";
@@ -187,6 +187,15 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    };
 
+   String convertName(String pinText) {
+      pinText = pinText.replaceAll("PTA", "GPIOA_");
+      pinText = pinText.replaceAll("PTB", "GPIOB_");
+      pinText = pinText.replaceAll("PTC", "GPIOC_");
+      pinText = pinText.replaceAll("PTD", "GPIOD_");
+      pinText = pinText.replaceAll("PTE", "GPIOE_");
+      return pinText;
+   }
+   
    /**
     * Create a list of peripheral functions described by a string
     * 
@@ -196,11 +205,14 @@ public class CreatePinDescription extends DocumentUtilities {
     * 
     * @throws Exception
     */
-   ArrayList<PeripheralFunction> createFunctionsFromString(String pinText) throws Exception {
+   ArrayList<PeripheralFunction> createFunctionsFromString(String pinText, Boolean convert) throws Exception {
       ArrayList<PeripheralFunction> peripheralFunctionList = new ArrayList<PeripheralFunction>();
       pinText = pinText.trim();
       if (pinText.isEmpty()) {
          return peripheralFunctionList;
+      }
+      if (convert) {
+         pinText = convertName(pinText);
       }
       String[] functions = pinText.split("\\s*/\\s*");
       for (String function:functions) {
@@ -256,7 +268,11 @@ public class CreatePinDescription extends DocumentUtilities {
    int altStartIndex  = 5;
    /** Last index of multiplexor function columns in CSV file */
    int altEndIndex    = altStartIndex+7;
-
+   /** Names of reference manual for the device(s) */
+   ArrayList<String> referenceManual;
+   /** Names of device(s) */
+   ArrayList<String> deviceNames;
+   
    /**
     * Parse line containing Pin information
     *  
@@ -277,11 +293,6 @@ public class CreatePinDescription extends DocumentUtilities {
       altEndIndex    = altStartIndex+7;
       aliasIndexes = new ArrayList<AliasInfo>();
 
-      if (!line[0].equalsIgnoreCase("Key")) {
-         // For compatibility
-         aliasIndexes.add(new AliasInfo(deviceName, 2, true));
-         return false;
-      }
       // Add base device without aliases
       aliasIndexes.add(new AliasInfo(deviceName, -1, true));
 
@@ -352,7 +363,7 @@ public class CreatePinDescription extends DocumentUtilities {
          if (col>=line.length) {
             break;
          }
-         ArrayList<PeripheralFunction> peripheralFunctions = createFunctionsFromString(line[col]);
+         ArrayList<PeripheralFunction> peripheralFunctions = createFunctionsFromString(line[col], true);
          for (PeripheralFunction peripheralFunction:peripheralFunctions) {
             sb.append(peripheralFunction.getName()+", ");
             if ((peripheralFunction != null) && (peripheralFunction != PeripheralFunction.DISABLED)) {
@@ -371,7 +382,7 @@ public class CreatePinDescription extends DocumentUtilities {
          String resetName  = line[resetIndex];
 //       if (!pinIsMapped) {
          // Must be a unmapped pin - add as only mapping
-         ArrayList<PeripheralFunction> resetFunctions = createFunctionsFromString(resetName);
+         ArrayList<PeripheralFunction> resetFunctions = createFunctionsFromString(resetName, true);
          for (PeripheralFunction peripheralFunction:resetFunctions) {
             sb.append("R:" + peripheralFunction.getName() + ", ");
             // Pin is not mapped to this function in the ALT columns - must be a non-mappable pin
@@ -387,7 +398,8 @@ public class CreatePinDescription extends DocumentUtilities {
          pinInformation.setResetPeripheralFunctions(PeripheralFunction.DISABLED.getName());
       }
       if (line.length>defaultIndex) {
-         String defaultName  = line[defaultIndex];
+         String defaultName  = convertName(line[defaultIndex]);
+         
          if ((defaultName != null) && (!defaultName.isEmpty())) {
             pinInformation.setDefaultPeripheralFunctions(defaultName);
             for (PeripheralFunction fn:pinInformation.getDefaultValue()) {
@@ -482,6 +494,66 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
 
+   /**
+    * Parse file
+    * 
+    * @param reader
+    * 
+    * @throws Exception
+    */
+   private void parsePreliminaryInformation(BufferedReader reader) throws Exception {
+      
+      // Set default values for column indices
+      pinIndex        = 1;
+      aliasIndex      = 2;
+      resetIndex      = 3;
+      defaultIndex    = 4;
+      altStartIndex   = 5;
+      altEndIndex     = altStartIndex+7;
+      aliasIndexes    = new ArrayList<AliasInfo>();
+      referenceManual = new ArrayList<String>();
+      deviceNames     = new ArrayList<String>();
+            
+      ArrayList<String[]> grid = new ArrayList<String[]>();
+      do {
+         String line = reader.readLine();
+         if (line == null) {
+            break;
+         }
+         grid.add(line.split(","));
+//         System.err.println(line);
+      } while (true);
+      for(String[] line:grid) {
+         if (line.length<1) {
+            continue;
+         }
+         if (line[0].equalsIgnoreCase("Key")) {
+            // Process title line
+            parseKeyLine(line, sourceName.replace(".csv", ""));
+         }
+         if (line[0].equalsIgnoreCase("Manual")) {
+            for (int sub=1; sub<line.length; sub++) {
+               referenceManual.add(line[sub]);
+            }
+         }
+         if (line[0].equalsIgnoreCase("Devices")) {
+            for (int sub=1; sub<line.length; sub++) {
+               deviceNames.add(line[sub]);
+            }
+         }
+      }
+      if (aliasIndexes.size() == 0) {
+         // For compatibility assume column 2 is a single device pinout
+         aliasIndexes.add(new AliasInfo(sourceName.replace(".csv", ""), 2, true));
+      }
+      if (deviceNames.size() == 0) {
+         deviceNames.add(sourceName.replace(".csv", ""));
+      }
+      if (referenceManual.size() == 0) {
+         referenceManual.add(sourceName.replace(".csv", ""));
+      }
+   }
+
    class DmaInfo {
       public final int    dmaInstance;
       public final int    dmaChannelNumber;
@@ -545,6 +617,10 @@ public class CreatePinDescription extends DocumentUtilities {
    /**
     * Writes macros describing common pin functions for all pins
     * e.g.<pre>
+    * #undef FIXED_ADC_FN
+    * #undef FIXED_GPIO_FN
+    * #undef FIXED_PORT_CLOCK_REG
+    * 
     * #define FIXED_ADC_FN         0                    // Fixed ADC Multiplexing value
     * #define FIXED_GPIO_FN        1                    // Fixed GPIO Multiplexing value
     * #define FIXED_PORT_CLOCK_REG SIM->SCGC5           // Fixed PORT Clock
@@ -556,6 +632,9 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    private void writePinDefines(BufferedWriter headerFile) throws Exception {
       writeBanner(headerFile, "Common Mux settings for PCR");
+      writeMacroUnDefinition(headerFile, "FIXED_ADC_FN");
+      writeMacroUnDefinition(headerFile, "FIXED_GPIO_FN");
+      writeMacroUnDefinition(headerFile, "FIXED_PORT_CLOCK_REG");
       if (adcFunctionMuxValueChanged) {
          writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
       }
@@ -1177,7 +1256,9 @@ public class CreatePinDescription extends DocumentUtilities {
             writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
             writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
             writeWizardDefaultSelectionEnty(headerFile, "0");
+            writeOpenNamespace(headerFile, NAME_SPACE);
             writeConstexpr(headerFile, 16, "TPM"+ftm+"_SC", "(TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0))");
+            writeCloseNamespace(headerFile);
             headerFile.write("\n");
             writeWizardSectionClose(headerFile);
          }
@@ -1332,7 +1413,9 @@ public class CreatePinDescription extends DocumentUtilities {
             headerFile, 
             pinMappingBaseFileName+".h", pinMappingHeaderFileName, 
             VERSION, 
-            "Pin declarations for "+deviceName+", generated from "+sourceName);
+            "Pin declarations for "+deviceName+", generated from "+sourceName+"\n" +
+            "Devices   " + deviceNames.toString() + "\n" +
+            "Reference " + referenceManual.toString());
       writeSystemHeaderFileInclude(headerFile, "stddef.h");
       writeHeaderFileInclude(headerFile, "derivative.h");
       headerFile.write("\n");
@@ -1479,6 +1562,47 @@ public class CreatePinDescription extends DocumentUtilities {
       }
    }
    
+//   /**
+//    * Write Peripheral Pin Tables.<br>
+//    * 
+//    * <pre>
+//    * /**
+//    *  * Peripheral pin mapping information for PWM, Input capture, Output compare
+//    *  *&#47;
+//    * constexpr PcrInfo Ftm1Info[32] = {
+//    * #if (FTM1_CH0_PIN_SEL == 1)
+//    *  /*  0 *&#47;  { PORTA_CLOCK_MASK, PORTA_BasePtr+offsetof(PORT_Type,PCR[12]),3 },
+//    * #elif (FTM1_CH0_PIN_SEL == 2)
+//    *  /*  0 *&#47;  { PORTB_CLOCK_MASK, PORTB_BasePtr+offsetof(PORT_Type,PCR[0]), 3 },
+//    * #else
+//    *  /*  0 *&#47;  { 0, 0, 0 },
+//    * #endif
+//    * </pre>
+//    * @param pinMappingHeaderFile
+//    * 
+//    * @throws Exception 
+//    */
+//   private void writePeripheralInformationTypdef(BufferedWriter pinMappingHeaderFile) throws Exception {
+//      writeOpenNamespace(pinMappingHeaderFile, NAME_SPACE);
+//      writeBanner(pinMappingHeaderFile, "Peripheral Pin Tables");
+//
+//      writeStartGroup(pinMappingHeaderFile, "PeripheralPinTables", "Peripheral Pin Tables", "Provides information about pins used by a peripheral");
+//
+//      writeDocBanner(pinMappingHeaderFile, "Struct for pin information");
+//      pinMappingHeaderFile.write(
+//            "struct PcrInfo {\n"+
+//                  "   uint32_t clockMask;   //!< Clock mask for PORT\n"+
+//                  "   uint32_t pcrAddress;  //!< PCR[x] register address\n"+
+//                  "   uint32_t gpioAddress; //!< Address of GPIO hardware associated with pin\n"+
+//                  "   uint8_t  gpioBit;     //!< Bit number of pin in GPIO\n"+
+//                  "   uint8_t  muxValue;    //!< PCR mux value to select this function\n"+
+//                  "};\n"
+//            );
+//      writeCloseGroup(pinMappingHeaderFile, "PeripheralPinTables");
+//      writeCloseNamespace(pinMappingHeaderFile, NAME_SPACE);
+//      pinMappingHeaderFile.write("\n");
+//   }
+   
    /**
     * Write Peripheral Pin Tables.<br>
     * 
@@ -1505,16 +1629,6 @@ public class CreatePinDescription extends DocumentUtilities {
 
       writeStartGroup(pinMappingHeaderFile, "PeripheralPinTables", "Peripheral Pin Tables", "Provides information about pins used by a peripheral");
 
-      writeDocBanner(pinMappingHeaderFile, "Struct for pin information");
-      pinMappingHeaderFile.write(
-            "struct PcrInfo {\n"+
-                  "   uint32_t clockMask;   //!< Clock mask for PORT\n"+
-                  "   uint32_t pcrAddress;  //!< PCR[x] register address\n"+
-                  "   uint32_t gpioAddress; //!< Address of GPIO hardware associated with pin\n"+
-                  "   uint8_t  gpioBit;     //!< Bit number of pin in GPIO\n"+
-                  "   uint8_t  muxValue;    //!< PCR mux value to select this function\n"+
-                  "};\n"
-            );
       final String DUMMY_TEMPLATE = " /* %2d */  { 0 },\n";
       for (FunctionTemplateInformation pinTemplate:FunctionTemplateInformation.getList()) {
          if (!pinTemplate.instanceWriter.needPcrTable()) {
@@ -1631,7 +1745,10 @@ public class CreatePinDescription extends DocumentUtilities {
                      if (!groupDone) {
                         writeStartGroup(gpioHeaderFile, pinTemplate);
                         if (pinTemplate.instanceWriter.needPcrTable()) {
-                           gpioHeaderFile.write(pinTemplate.instanceWriter.getTemplate(pinTemplate));
+                           String t = pinTemplate.instanceWriter.getTemplate(pinTemplate);
+                           if (t != null) {
+                              gpioHeaderFile.write(t);
+                           }
                         }
                         groupDone = true;
                      }
@@ -1796,7 +1913,9 @@ public class CreatePinDescription extends DocumentUtilities {
             cppFile, 
             gpioBaseFileName+".cpp", 
             gpioCppFileName, 
-            "Pin declarations for "+deviceName+", generated from "+sourceName);
+            "Pin declarations for "+deviceName+", generated from "+sourceName+"\n" +
+            "Devices   " + deviceNames.toString() + "\n" +
+            "Reference " + referenceManual.toString());
       writeHeaderFileInclude(cppFile, "gpio.h");
       writeHeaderFileInclude(cppFile, "pin_mapping.h");
       cppFile.write("\n");
@@ -1990,16 +2109,11 @@ public class CreatePinDescription extends DocumentUtilities {
       // Open source file
       BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
 
-      // First line of file must be index (other wise default is used)
-      String line = sourceFile.readLine();
+      parsePreliminaryInformation(sourceFile);
       
       sourceFile.close();
       
-      // Process title line
-      parseKeyLine(line.split(","), filePath.getFileName().toString().replace(".csv", ""));
-
       for (AliasInfo aliasInfo:aliasIndexes) {
-         
          deviceName = aliasInfo.name;
          aliasIndex = aliasInfo.index;
          gpioCppFileName = null;

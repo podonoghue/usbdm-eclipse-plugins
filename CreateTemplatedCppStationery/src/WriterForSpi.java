@@ -47,9 +47,8 @@ class WriterForSpi extends InstanceWriter {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
-      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Pin<"+signal+">";
+      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
    }
-
    /* (non-Javadoc)
     * @see InstanceWriter#needPcrTable()
     */
@@ -83,16 +82,16 @@ class WriterForSpi extends InstanceWriter {
          " * @tparam spiPinNum    SPI pin number (index into SpiInfo[])\n"+
          " */\n";
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
-    */
-   @Override
-   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
-      return TEMPLATE_DOCUMENTATION+String.format(
-         "template<uint8_t spiPinNum> using %s =\n" +
-         "   Pcr_T<getPortClockMask(spiPinNum,%sInfo), getPcrReg(spiPinNum,%sInfo), PORT_PCR_MUX(getPcrMux(spiPinNum, %sInfo))|DEFAULT_PCR>;\n\n",
-         pinTemplate.baseName+"Pin", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName);
-   }
+//   /* (non-Javadoc)
+//    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
+//    */
+//   @Override
+//   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
+//      return TEMPLATE_DOCUMENTATION+String.format(
+//         "template<uint8_t spiPinNum> using %s =\n" +
+//         "   Pcr_T<getPortClockMask(spiPinNum,%sInfo), getPcrReg(spiPinNum,%sInfo), getGpioBit(spiPinNum,%sInfo), PORT_PCR_MUX(getPcrMux(spiPinNum, %sInfo))|DEFAULT_PCR>;\n\n",
+//         pinTemplate.baseName+"Pin", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName);
+//   }
 
    @Override
    public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) throws Exception {
