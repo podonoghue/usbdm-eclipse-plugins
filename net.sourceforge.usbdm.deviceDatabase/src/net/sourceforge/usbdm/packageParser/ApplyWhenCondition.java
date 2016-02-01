@@ -191,7 +191,7 @@ public class ApplyWhenCondition {
          return (device!= null) && (device.getHardware() != null) && device.getHardware().matches(fValue);
       case variableRef: {
          if (variableMap == null) {
-            throw new RuntimeException("Evaluation of 'variableIs' without variable map - " + fVariableName);
+            throw new RuntimeException("Evaluation of 'variableRef' without variable map - " + fVariableName);
          }
          String variableValue = variableMap.get(fVariableName);
          if (fCondition == Condition.isDefined) {
@@ -307,7 +307,7 @@ public class ApplyWhenCondition {
       case hardwareMatches:
          return ("hw~="+fValue);
       case variableRef:
-         return ("ref("+fCondition+","+fVariableName+","+fValue+")");
+         return ("ref("+fCondition+"|"+fVariableName+"|"+fValue+")");
       case emptyTrue:
          return "TRUE";
       case preclusion:

@@ -38,7 +38,7 @@ public class PackageParser {
     * @return Applicable actions
     */
    static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) {
-//      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
+      //      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();
@@ -47,7 +47,7 @@ public class PackageParser {
          System.err.println("No packages found at " + packagesDirectoryPath.toOSString());
          return projectActionList;
       }
-      HashMap<String, ProjectVariable> projectVariables = new HashMap<String, ProjectVariable>();
+      final HashMap<String, ProjectVariable> projectVariables = new HashMap<String, ProjectVariable>();
       for (File packageDirectory : packageDirectories) {
          if (packageDirectory.isDirectory()) {
             // Get all XML files
@@ -65,12 +65,18 @@ public class PackageParser {
                      Document       document   = packParser.parseXmlFile(f.toString());
                      ProjectActionList newProjectActionList = packParser.parseDocument(document);
                      if (newProjectActionList.appliesTo(device, variableMap)) {
-//                         System.err.println("projectAction ID = " + projectActions.getId());
-//                         System.err.println("projectAction applyWhen = " + projectActions.getApplyWhenCondition());
-//                         for (ProjectAction projectAction : projectActions) {
-//                            System.err.println("projectAction = " + projectAction.toString());
-//                         }
-//                         System.err.println("===============================================");
+//                        System.err.println("projectAction ID = " + newProjectActionList.getId());
+//                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition());
+//                        for (ProjectAction projectAction : projectActionList.getProjectActionList()) {
+//                           System.err.println("projectAction = " + projectAction.toString());
+//                        }
+//                        System.err.println("===============================================");
+                        /*
+                         * Add new project variables
+                         */
+                        for (String key:packParser.getCurrentVariables().keySet()) {
+                           projectVariables.put(key, packParser.getCurrentVariables().get(key));
+                        }
                         /*
                          * Collect constants for action-list
                          */
@@ -78,16 +84,16 @@ public class PackageParser {
                            @Override
                            public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
                               try {
-//                                 System.err.println(String.format("PackageParser.getDevicePackageList(): applyTo(), %s",  action.toString()));
+                                 //                                 System.err.println(String.format("PackageParser.getDevicePackageList(): applyTo(), %s",  action.toString()));
                                  if (action instanceof ProjectActionList) {
                                     ProjectActionList projectActionList = (ProjectActionList) action;
                                     Result rc = projectActionList.appliesTo(device, variableMap)?CONTINUE:PRUNE;
-//                                  System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
+                                    //                                  System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
                                     return rc;
                                  }
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
-//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                                    //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doReplace()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
@@ -113,10 +119,10 @@ public class PackageParser {
             }
          }
       }
-//      listOfProjectLists.setfVariableMap(projectVariables);
+      //      listOfProjectLists.setfVariableMap(projectVariables);
       return projectActionList;
    }
-   
+
    /**
     * Locates all package lists
     * 
@@ -152,11 +158,11 @@ public class PackageParser {
                      Document       document   = packParser.parseXmlFile(f.toString());
                      ProjectActionList newProjectActionList = packParser.parseDocument(document);
                      if (newProjectActionList.applies(variableMap)) {
-//                        System.err.println("===============================================");
-//                        System.err.println("projectAction = " + newProjectActionList.toString());
-//                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition().toString());
+                        //                        System.err.println("===============================================");
+                        //                        System.err.println("projectAction = " + newProjectActionList.toString());
+                        //                        System.err.println("projectAction applyWhen = " + newProjectActionList.getApplyWhenCondition().toString());
 
-                        
+
                         /*
                          * Collect constants for action-list
                          */
@@ -164,16 +170,16 @@ public class PackageParser {
                            @Override
                            public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
                               try {
-//                                 System.err.println(String.format("PackageParser.getKDSPackageList(): applyTo(), %s",  action.toString()));
+                                 //                                 System.err.println(String.format("PackageParser.getKDSPackageList(): applyTo(), %s",  action.toString()));
                                  if (action instanceof ProjectActionList) {
                                     ProjectActionList projectActionList = (ProjectActionList) action;
                                     Result rc = projectActionList.applies(variableMap)?CONTINUE:PRUNE;
-//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
+                                    //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Found ProjectActionList, %d, \'%s\'",  depth++, rc.toString()));
                                     return rc;
                                  }
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
-//                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                                    //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                                     if (!projectConstant.doReplace()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
@@ -190,7 +196,7 @@ public class PackageParser {
                         };
                         newProjectActionList.visit(visitor, null);
 
-                        
+
                         // Add applicable actions
                         projectActionList.addProjectAction(newProjectActionList);
                      }
@@ -204,9 +210,10 @@ public class PackageParser {
       //      listOfProjectLists.setfVariableMap(projectVariables);
       return projectActionList;
    }
-   
-   private IPath                            fPath             = null;
-   private HashMap<String, ProjectVariable> fProjectVariables = null;
+
+   private IPath                            fPath                    = null;
+   private HashMap<String, ProjectVariable> fProjectVariables        = null;
+   private HashMap<String, ProjectVariable> fCurrentProjectVariables = null;
 
    /**
     * Create package parser
@@ -215,21 +222,35 @@ public class PackageParser {
     * @param projectVariables  Project variables used for conditions etc. 
     */
    protected PackageParser(IPath path, HashMap<String, ProjectVariable> projectVariables) {
-      fPath             = path;
-      fProjectVariables = projectVariables;
+      fPath                      = path;
+      fProjectVariables          = projectVariables;
+      fCurrentProjectVariables   = new HashMap<String, ProjectVariable>();
    }
-   
+
    /**
-    * Returns the variable variable list
+    * Get project variables added while parsing the current package
+    * 
+    * @return Project variables added
+    */
+   protected HashMap<String, ProjectVariable> getCurrentVariables() {
+      return fCurrentProjectVariables;
+   }
+
+   /**
+    * Find a variable
     * 
     * @param variableName
     * 
     * @return variable found or null if non-existent
     */
    private ProjectVariable findVariable(String variableName) {
-      return fProjectVariables.get(variableName);
+      ProjectVariable rv = fCurrentProjectVariables.get(variableName);
+      if (rv == null) {
+         rv = fProjectVariables.get(variableName);
+      }
+      return rv;
    }
-   
+
    /**
     * Parse the XML file into the XML internal DOM representation
     * 
@@ -243,7 +264,7 @@ public class PackageParser {
       // Try deviceName as full path
       IPath databasePath = new Path(path);
 
-//      System.err.println("PackParser.parseXmlFile() \'" + path + "\'");
+      //      System.err.println("PackParser.parseXmlFile() \'" + path + "\'");
       File file = databasePath.toFile();
       if (!file.exists()) {
          System.err.println("PackParser.parseXmlFile() \'" + file.toPath().toAbsolutePath().toString() + "\' not found");
@@ -251,7 +272,7 @@ public class PackageParser {
       }
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      
+
       dbf.setXIncludeAware(true);
       dbf.setNamespaceAware(true);
 
@@ -260,7 +281,7 @@ public class PackageParser {
       //  Parse using builder to get DOM representation of the XML file
       return db.parse(databasePath.toOSString());
    }
-   
+
    /**
     * @param projectActionList2 
     * @return ArrayList of ProjectActionLists (may be empty but never null)
@@ -306,7 +327,7 @@ public class PackageParser {
     * @throws Exception 
     */
    private ProjectActionList parseProjectActionListElement(Element projectActionListElement, boolean isTop) throws Exception {
-      
+
       String id = null;
       if (projectActionListElement.hasAttribute("id")) {
          id = projectActionListElement.getAttribute("id");
@@ -320,13 +341,13 @@ public class PackageParser {
          id = lastProjectActionId + "-" + projectActionId++;
       }
       ProjectActionList projectActionList = new ProjectActionList(id);
-//    System.err.println("parseProjectActionListElement(): " +  id);
+      //    System.err.println("parseProjectActionListElement(): " +  id);
 
       IPath root = fPath;
       if (projectActionListElement.hasAttribute("root")) {
          root = root.append(projectActionListElement.getAttribute("root"));
       }
-      
+
       for (Node node = projectActionListElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -343,9 +364,9 @@ public class PackageParser {
                ProjectVariable newVariable = parseVariableElement(element);
                ProjectVariable variable    = findVariable(newVariable.getId());
                if (variable == null) {
-                  fProjectVariables.put(newVariable.getId(), newVariable);
+                  fCurrentProjectVariables.put(newVariable.getId(), newVariable);
                   variable = newVariable;
-//                  System.err.println("parseProjectActionListElement(): Adding variable " + newVariable.getId() + " from " + id);
+                  //                  System.err.println("parseProjectActionListElement(): Adding variable " + newVariable.getId() + " from " + id);
                }
                projectActionList.add(variable);
             }
@@ -408,7 +429,7 @@ public class PackageParser {
    private ProjectActionList parseProjectActionListTopElement(Element projectActionListElement) throws Exception {
       return parseProjectActionListElement(projectActionListElement, true);
    }
-   
+
    /**
     * Parse a <applyWhen> element
     * @param    <applyWhen> element
@@ -436,7 +457,7 @@ public class PackageParser {
       }
       return applyWhenCondition;
    }
- 
+
    /**
     * Parses:
     *  <deviceNameIs>, <deviceFamilyIs>, <deviceSubfamilyIs>, 
@@ -509,8 +530,8 @@ public class PackageParser {
          return new ApplyWhenCondition(ApplyWhenCondition.Type.not, list);
       } 
       throw new Exception("Unexpected element in <applyWhen> \'" + element.getTagName() + "\'");
-  }
-   
+   }
+
    /**
     * Parse a <and> or <or> or <not> element
     * @param    applyWhenElement <and> or <or> or <not> element
@@ -538,7 +559,7 @@ public class PackageParser {
       }
       return list;
    }
-   
+
    /**
     * Parse a &lt;group&gt; element <br>
     * 
@@ -561,7 +582,7 @@ public class PackageParser {
          throw new Exception("Top <group> must have an 'id', 'name' and 'description'");
       } 
       WizardPageInformation wizardPage = new WizardPageInformation(id, name, description);
-      
+
       for (Node node = pageElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -759,7 +780,7 @@ public class PackageParser {
       // <copy>
       String source          = element.getAttribute("source");
       String target          = element.getAttribute("target");
-      
+
       if (source.isEmpty() || target.isEmpty()) {
          throw new Exception("Missing attribute in <file ...>");
       }

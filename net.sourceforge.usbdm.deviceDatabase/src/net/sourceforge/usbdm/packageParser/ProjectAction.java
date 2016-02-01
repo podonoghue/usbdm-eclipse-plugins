@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.packageParser;
 
-
-
 public class ProjectAction {
    protected final String fId;
 
