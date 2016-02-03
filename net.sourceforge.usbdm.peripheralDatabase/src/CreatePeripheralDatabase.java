@@ -705,9 +705,9 @@ public class CreatePeripheralDatabase {
 //            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
 //         }
          if (true) {
-            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
+//            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
 //            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
-//            createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, false, true);
+            createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, false, true);
          }
       } catch (Exception e) {
          e.printStackTrace();
