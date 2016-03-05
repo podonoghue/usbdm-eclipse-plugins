@@ -279,6 +279,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          Pattern p        = null;
          switch(attempt++) {
          case 0: 
+            // While name
             p = Pattern.compile("^(.*)()$");
             break;
          case 1:
@@ -309,13 +310,13 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          }
          fileName = m.replaceAll("$1$2");
          filePath = resourceFolder.append(fileName);
-//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && filePath.toFile().isDirectory()) {
             success = true;
             continue;
          }
          filePath = filePath.addFileExtension(preferredExtension);
-//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && !filePath.toFile().isDirectory()) {
             success = true;
             continue;
@@ -338,16 +339,16 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
     */
    private String getExternalProjectHeaderFile(Device device) {
       
-      // Try under device name
-      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+      // Try using subFamily header file
+      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
+      if (externalHeaderFile == null) { 
+         // Try under device name
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+      }
       if (externalHeaderFile == null) {
          // Try under alias name
          externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getAlias(), "h");
       }      
-      if (externalHeaderFile == null) { 
-         // Try to get subFamily header file
-         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
-      }
       if (externalHeaderFile == null) {
          externalHeaderFile = "";
       }
