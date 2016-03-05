@@ -102,13 +102,17 @@ class PeripheralFunction {
    /** Peripheral that signal belongs to */
    public Peripheral fPeripheral;
    
-   /** Peripheral signal name number e.g. FTM0_CH6 = 6, PTA3 = 3, SPI0_SCK = SCK */
+   /** Peripheral signal name number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK */
    public   String fSignal;
 
    /** Name of peripheral function e.g. FTM0_CH3 */
    private String fName;
 
-   private boolean fIncluded;     
+   /** Indicates whether to include this function in output */
+   private boolean fIncluded;
+
+   /** Function template applicable to this function (if any) */
+   private PeripheralTemplateInformation fTemplate;     
 
    /**
     * Get map of all peripheral functions
@@ -184,7 +188,8 @@ class PeripheralFunction {
       fName       = name;
       fPeripheral = Peripheral.addPeripheral(baseName, instance);
       fSignal     = signal;
-
+      fTemplate   = null;
+      
 //      mappablePins.add(PinInformation.DISABLED_PIN);
       
       // Add to basename map
@@ -203,7 +208,7 @@ class PeripheralFunction {
     * 
     * @param function   Name of peripheral function to process e.g. FTM0_CH6
     *                      
-    * @return Created function if matches an expected pattern and is not marked as useful
+    * @return Created function if matches an expected pattern and is marked as useful
     * 
     * @throws Exception if function does fit expected form
     * 
@@ -257,33 +262,35 @@ class PeripheralFunction {
             new PinDescription("^\\s*(PT)([A-Z])(\\d+)\\s*$", true),
             new PinDescription("^\\s*(GPIO)([A-Z])_(\\d+)\\s*$", true),
             new PinDescription("^\\s*(ADC)(\\d+)_(?:SE|DM|DP)(\\d+[ab]?)\\s*$", true),
-            new PinDescription("^\\s*(FTM)(\\d+)_CH(\\d+)\\s*$", true),
-            new PinDescription("^\\s*(TPM)(\\d+)_CH(\\d+)\\s*$", true),
-            new PinDescription("^\\s*(TPM)(\\d+)_(CLKIN\\d+)\\s*$", true),
+
+            new PinDescription("^\\s*(FTM|TPM)(\\d+)_(CH\\d+)\\s*$", true),
+            new PinDescription("^\\s*(FTM|TPM)()_(CLKIN\\d+)\\s*$", true),
+            new PinDescription("^\\s*(FTM)(\\d+)_(QD_PH[A|B]|FLT2|CLKIN[0-1]|FLT[0-9])\\s*$", true),
+            
             new PinDescription("^\\s*(SDHC)(\\d+)_((CLKIN)|(D\\d)|(CMD)|(DCLK))\\s*$", true),
             new PinDescription("^\\s*(SPI)(\\d+)_(SOUT|SIN|SCK|SS|(PCS(\\d+)?)|MOSI|MISO|SS_B)\\s*$", true),
             new PinDescription("^\\s*(I2C)(\\d+)_((SDA)|(SCL|4WSCLOUT|4WSDAOUT))\\s*$", true),
             new PinDescription("^\\s*(I2S)(\\d+)_(TX_BCLK|TXD[0-1]|RXD[0-1]|TX_FS|RX_BCLK|MCLK|RX_FS|TXD1)\\s*$", true),
             new PinDescription("^\\s*(LPTMR)(\\d+)_ALT(\\d+)\\s*$", true),
             new PinDescription("^\\s*(LPTMR)()(_ALT\\d+)\\s*$", true),
-            
-            new PinDescription("^\\s*(TSI)(\\d+)_CH(\\d+)\\s*$", true),
+
             new PinDescription("^\\s*(UART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", true),
             new PinDescription("^\\s*(LPUART)(\\d+)_(CTS_b|RTS_b|COL_b|RX|TX)\\s*$", true),
+            
+            new PinDescription("^\\s*(TSI)(\\d+)_(CH\\d+)\\s*$", true),
             new PinDescription("^\\s*(A?CMP)(\\d+)_((IN\\d*)|(OUT\\d*))\\s*$", true),
             new PinDescription("^\\s*(JTAG)()_(TCLK|TDI|TDO|TMS|TRST_b)\\s*$", true),
             new PinDescription("^\\s*(SWD)()_(CLK|DIO|IO)\\s*$", true),
             new PinDescription("^\\s*(EZP)()_(CLK|DI|DO|CS_b)\\s*$", true),
             new PinDescription("^\\s*(TRACE)()_(SWO)\\s*$", true),
-            new PinDescription("^\\s*(LLWU)()_P(\\d+)\\s*$", true),
+            new PinDescription("^\\s*(LLWU)()_(P\\d+)\\s*$", true),
             new PinDescription("^\\s*(NMI)()_[bB]()\\s*$", true),
             new PinDescription("^\\s*(USB\\d*)(\\d*)_(CLKIN|SOF_OUT|DP|DM)\\s*$", true),
-            new PinDescription("^\\s*(FTM)(\\d+)_(QD_PHA|QD_PHB|FLT2|CLKIN[0-1]|FLT[0-9])\\s*$", true),
             new PinDescription("^\\s*(E?XTAL(?:32K?)?)(\\d*)()\\s*$", true),
             new PinDescription("^\\s*(EWM)()_(IN|OUT_b|OUT)\\s*$", true),
             new PinDescription("^\\s*(PDB)(\\d+)_(EXTRG)\\s*$", true),
             new PinDescription("^\\s*(CMT)(\\d*)_(IRO)\\s*$", true),
-            new PinDescription("^\\s*(RTC)(\\d*)_(CLKOUT|CLKIN)\\s*$", true),
+            new PinDescription("^\\s*(RTC)(\\d*)_(CLKOUT|CLKIN|WAKEUP_B)\\s*$", true),
             new PinDescription("^\\s*(DAC)(\\d+)_(OUT)\\s*$", true),
             new PinDescription("^\\s*(VREF)(\\d*)_(OUT)\\s*$", true),
             new PinDescription("^\\s*(CLKOUT)()()\\s*$", true),
@@ -311,7 +318,6 @@ class PeripheralFunction {
             new PinDescription("^\\s*(SCI)(\\d+)_(RTS|CTS|TxD|RxD)\\s*$", true),
             new PinDescription("^\\s*(LGPIOI)()_(M\\d+)\\s*$", true),
             new PinDescription("^\\s*(SDAD)()((M|P)[0-3])\\s*$", true),
-            new PinDescription("^\\s*(FTM|TPM)()_(CLKIN\\d+)\\s*$", true),
             new PinDescription("^\\s*(FXIO)(\\d+)_(D\\d+)\\s*$", true),
             new PinDescription("^\\s*(VOUT33|VREGIN)()()\\s*$", true),
       };
@@ -321,14 +327,25 @@ class PeripheralFunction {
          return DISABLED;
       }
       boolean patternMatched = false;
-      for (PinDescription pinNamePattern:pinNamePatterns) {
-         Matcher matcher = pinNamePattern.pattern.matcher(name);
-         if (!matcher.matches()) {
+      for(PeripheralTemplateInformation functionTemplateInformation:PeripheralTemplateInformation.getList()) {
+         Matcher matcher = functionTemplateInformation.matcher(name);
+         if ((matcher == null) || !matcher.matches()) {
             continue;
          }
          patternMatched = true;
          peripheralFunction = findPeripheralFunction(name, matcher.group(1), matcher.group(2), matcher.group(3), true);
-         if (peripheralFunction != null) {
+         peripheralFunction.setIncluded(true);
+         peripheralFunction.setTemplate(functionTemplateInformation);
+         functionTemplateInformation.addFunction(peripheralFunction);
+      }
+      if (!patternMatched) {
+         for (PinDescription pinNamePattern:pinNamePatterns) {
+            Matcher matcher = pinNamePattern.pattern.matcher(name);
+            if (!matcher.matches()) {
+               continue;
+            }
+            patternMatched = true;
+            peripheralFunction = findPeripheralFunction(name, matcher.group(1), matcher.group(2), matcher.group(3), true);
             peripheralFunction.setIncluded(pinNamePattern.include);
          }
       }
@@ -338,8 +355,16 @@ class PeripheralFunction {
       return peripheralFunction;
    }
    
+   private void setTemplate(PeripheralTemplateInformation functionTemplateInformation) {
+      fTemplate = functionTemplateInformation;
+   }
+
+   public PeripheralTemplateInformation getTemplate() {
+      return fTemplate;
+   }
+
    private void setIncluded(boolean include) {
-      this.fIncluded = include;
+      fIncluded = include;
    }
 
    public boolean isIncluded() {
@@ -369,7 +394,7 @@ class PeripheralFunction {
             sorted = new HashMap<String, PeripheralFunction>();
          }
          sorted.put(name, peripheralFunction);
-         Peripheral.addPeripheral(baseName+instanceNum);
+         Peripheral.addPeripheral(baseName, instanceNum);
       }
 //      System.err.println(peripheralFunction.toString());
       return peripheralFunction;

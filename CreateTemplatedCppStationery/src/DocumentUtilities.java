@@ -3,18 +3,6 @@ import java.io.IOException;
 
 public class DocumentUtilities {
    
-   class PinFunctionDescription {
-      String baseName;
-      String outputTemplate;
-      String className;
-      
-      public PinFunctionDescription(String baseName, String className, String outputTemplate) {
-         this.baseName              = baseName;
-         this.outputTemplate        = outputTemplate;
-         this.className             = className;
-      }
-   }
-
    /**
     * Write open group comment
     * <pre><code>
@@ -24,15 +12,36 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param writer        Where to write 
-    * @param description   Description of group to use
+    * @param writer     Where to write 
+    * @param template   Template used to describe the group
     * 
     * @throws IOException
     */
-   static void writeStartGroup(BufferedWriter writer, FunctionTemplateInformation description) throws IOException {
-      writeStartGroup(writer, description.groupName, description.groupTitle, description.groupBriefDescription);
+   static void writeStartGroup(BufferedWriter writer, PeripheralTemplateInformation template) throws IOException {
+      writeStartGroup(writer, template.getGroupName(), template.getGroupTitle(), template.getGroupBriefDescription());
    }
 
+   /**
+    * Conditionally write open group comment
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <i><b>groupName groupTitle</i></b>                   
+    *  * @brief       <i><b>groupBrief</i></b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param writer     Where to write 
+    * @param template   Template used to describe the group
+    * @param groupDone  Indicates if group has already been done
+    * 
+    * @throws IOException
+    */
+   void conditionallyWriteGroup(BufferedWriter gpioHeaderFile, PeripheralTemplateInformation pinTemplate, boolean groupDone) throws IOException {
+      if (groupDone) {
+         return;
+      }
+      writeStartGroup(gpioHeaderFile, pinTemplate);
+   }
    /**
     * Write open group comment
     * <pre><code>
@@ -52,12 +61,12 @@ public class DocumentUtilities {
    static void writeStartGroup(BufferedWriter writer, String groupName, String groupTitle, String groupBrief) throws IOException {
       final String startGroup1 = 
             "/**\n"+
-            "* @addtogroup %s %s\n";
+            " * @addtogroup %s %s\n";
       final String startGroup2 = 
-            "* @brief %s\n";
+            " * @brief %s\n";
       final String startGroup3 = 
-            "* @{\n"+
-            "*/\n";
+            " * @{\n"+
+            " */\n";
       writer.write(String.format(startGroup1, groupName, (groupTitle==null)?"":groupTitle));
       if (groupBrief != null) {
          writer.write(String.format(startGroup2, groupBrief));

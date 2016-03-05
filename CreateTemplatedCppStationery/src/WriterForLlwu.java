@@ -1,3 +1,6 @@
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
@@ -5,13 +8,13 @@
  * @author podonoghue
  *
  */
-class WriterForSpi extends InstanceWriter {
+class WriterForLlwu extends InstanceWriter {
 
-   static final String ALIAS_BASE_NAME       = "spi_";
-   static final String CLASS_BASE_NAME       = "Spi";
-   static final String INSTANCE_BASE_NAME    = "spi";
+   static final String ALIAS_BASE_NAME       = "llwu_";
+   static final String CLASS_BASE_NAME       = "Llwu";
+   static final String INSTANCE_BASE_NAME    = "llwu";
 
-   public WriterForSpi(boolean deviceIsMKE) {
+   public WriterForLlwu(boolean deviceIsMKE) {
       super(deviceIsMKE);
    }
 
@@ -46,41 +49,35 @@ class WriterForSpi extends InstanceWriter {
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
       return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
    }
-//   /* (non-Javadoc)
-//    * @see InstanceWriter#needPcrTable()
-//    */
-//   @Override
-//   public boolean needPeripheralInformationClass() throws Exception {
-//      boolean required = fOwner.getFunctions().size() > 0;
-//      if (!required) {
-//         if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
-//            throw new Exception("Unexpected clock information for non-present peripheral " + fOwner.peripheralName);
-//         }
-//      }
-//      return required;
-//   }
+   /* (non-Javadoc)
+    * @see InstanceWriter#needPcrTable()
+    */
+   @Override
+   public boolean needPeripheralInformationClass() {
+      return true;
+   }
 
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
-      final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
-      for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.fSignal.matches(signalNames[signal])) {
-            return signal;
-         }
-      }
-      throw new RuntimeException("Signal does not match expected pattern " + function.fSignal);
-   }
+//    System.err.println("function.fSignal = "+function.fSignal);
+    Pattern p = Pattern.compile("P(\\d+)");
+    Matcher m = p.matcher(function.fSignal);
+    if (m.matches()) {
+       return Integer.parseInt(m.group(1));
+    }
+    throw new RuntimeException("function '" + function.fSignal + "' does not match expected pattern");
+ }
    
    static final String TEMPLATE_DOCUMENTATION = 
          "/**\n"+
-         " * Convenience templated class representing an SPI pin\n"+
+         " * Convenience templated class representing an LLWU pin\n"+
          " *\n"+
          " * Example\n"+
          " * @code\n"+
-         " * using spi0_PCS0 = const USBDM::Spi0Pin<3>;\n"+
+         " * using llwu0_P3 = const USBDM::Llwu0Pin<3>;\n"+
          " * @endcode\n"+
          " *\n"+
-         " * @tparam spiPinNum    SPI pin number (index into SpiInfo[])\n"+
+         " * @tparam llwuPinNum    LLWU pin number (index into LlwuInfo[])\n"+
          " */\n";
 
    @Override
@@ -102,28 +99,20 @@ class WriterForSpi extends InstanceWriter {
    public boolean useAliases(PinInformation pinInfo) {
       return false;
    }
-   @Override
-   public String getExtraDefinitions() {
-      String name = fOwner.fBaseName;
-      StringBuffer buff = new StringBuffer();
-      for (int index=0; index<=5; index++) {
-         buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index, name, index+3));
-      }
-      return buff.toString();
-   }
 
    @Override
    String getGroupName() {
-      return "SpiIO_Group";
+      return "LLWU_Group";
    }
 
    @Override
    String getGroupTitle() {
-      return "SPI, Serial Peripheral Interface";
+      return "LLWU, Low-leakage Wake-up Unit";
    }
 
    @Override
    String getGroupBriefDescription() {
-      return "Pins used for SPI functions";
+      return "Pins used for Low-leakage Wake-up Unit";
    }
+
 }

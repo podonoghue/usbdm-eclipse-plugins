@@ -1,7 +1,10 @@
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
- * Class encapsulating the code for writing an instance of PwmIO (T)
+ * Class encapsulating the code for writing an instance of PwmIO (TPM)
  */
-class WriterForPwmIO_TPM extends WriterForDigitalIO {
+class WriterForPwmIO_TPM extends InstanceWriter {
 
    static final String ALIAS_BASE_NAME       = "tpm_";
    static final String CLASS_BASE_NAME       = "Tpm";
@@ -15,8 +18,12 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
     * @see WriterForDigitalIO#getAliasName(java.lang.String)
     */
    @Override
-   public String getAliasName(String alias) {
-      return ALIAS_BASE_NAME+alias;
+   public String getAliasName(String signalName, String alias) {
+//      System.err.println(String.format("getAliasName(%s,%s)", signalName, alias));
+      if (signalName.matches(".*ch\\d+")) {
+         return ALIAS_BASE_NAME+alias;
+      }
+      return null;
    }
 
    /* (non-Javadoc)
@@ -25,8 +32,8 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
-      String signal   = mappingInfo.functions.get(fnIndex).fSignal;
-      return INSTANCE_BASE_NAME+instance+"_ch"+signal;
+      String signal   = mappingInfo.functions.get(fnIndex).fSignal.replaceAll("CH", "ch");
+      return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
    /** 
@@ -36,21 +43,36 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
-    * @throws Exception 
     */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       int    signal    = getFunctionIndex(mappingInfo.functions.get(fnIndex));
       return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
    }
    @Override
-   public boolean needPcrTable() {
+   public boolean needPeripheralInformationClass() {
       return true;
    };
 
    @Override
    public boolean useGuard() {
       return true;
+   }
+
+   @Override
+   public int getFunctionIndex(PeripheralFunction function) {
+      Pattern p = Pattern.compile("CH(\\d+)");
+      Matcher m = p.matcher(function.fSignal);
+      if (m.matches()) {
+         return Integer.parseInt(m.group(1));
+      }
+      final String signalNames[] = {"QD_PHA", "QD_PHB", "CLKIN0", "CLKIN1", "FLT0", "FLT1", "FLT2", "FLT3"};
+      for (int signal=0; signal<signalNames.length; signal++) {
+         if (function.fSignal.matches(signalNames[signal])) {
+            return 8+signal;
+         }
+      }
+      throw new RuntimeException("function '" + function.fSignal + "' does not match expected pattern");
    }
 
    static final String TEMPLATE_DOCUMENTATION = 
@@ -72,13 +94,36 @@ class WriterForPwmIO_TPM extends WriterForDigitalIO {
    " * tpm0_ch6.setDutyCycle(45);\n"+
    " * @endcode\n"+
    " *\n"+
-   " * @tparam channel    TPM channel\n"+
+   " * @tparam channel    Timer channel\n"+
    " */\n";
    @Override
-   public String getTemplate(FunctionTemplateInformation pinTemplate) {               
+   public String getTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
-            "template<uint8_t channel> using %s =\n" +
-            "      Tmr_T<%sInfo, %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, %s_SC, channel>;\n\n",
-            pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
+            "template<uint8_t channel> using %s = TmrBase_T<%sInfo, channel>;\n\n",
+            fOwner.fBaseName, fOwner.fBaseName, fOwner.fPeripheralName);
+   }
+
+   @Override
+   public String getInfoConstants() {
+      return super.getInfoConstants()+
+         String.format(
+         "   //! Base value for tmr->SC register\n"+
+         "   static constexpr uint32_t scValue  = %s;\n\n",
+         fOwner.fPeripheralName+"_SC");
+   }
+
+   @Override
+   String getGroupName() {
+      return "PwmIO_Group";
+   }
+
+   @Override
+   String getGroupTitle() {
+      return "PWM, Input capture, Output compare";
+   }
+
+   @Override
+   String getGroupBriefDescription() {
+      return "Allows use of port pins as PWM outputs";
    }
 }

@@ -29,24 +29,24 @@ public class Peripheral {
       return ar;
    }
 
-   /**
-    * Add peripheral
-    * 
-    * @param name Name of peripheral e.g. FTM0
-    * 
-    * @return Peripheral
-    * 
-    * @throws Exception
-    */
-   public static Peripheral addPeripheral(String name) throws Exception {
-//      System.err.println(String.format("addPeripheral(%s)", name));
-      Peripheral p = map.get(name);
-      if (p == null) {
-         p = new Peripheral(name);
-         map.put(name, p);
-      }
-      return p;
-   }
+//   /**
+//    * Add peripheral
+//    * 
+//    * @param name Name of peripheral e.g. FTM0
+//    * 
+//    * @return Peripheral
+//    * 
+//    * @throws Exception
+//    */
+//   public static Peripheral addPeripheral(String name) throws Exception {
+////      System.err.println(String.format("addPeripheral(%s)", name));
+//      Peripheral p = map.get(name);
+//      if (p == null) {
+//         p = new Peripheral(name);
+//         map.put(name, p);
+//      }
+//      return p;
+//   }
 
    /**
     * Add peripheral
@@ -106,29 +106,29 @@ public class Peripheral {
    /** Clock register mask e.g. ADC0_CLOCK_REG */
    String fClockMask = null;
 
-   /**
-    * Create peripheral
-    * 
-    * @param name
-    * @throws Exception
-    */
-   private Peripheral(String name) throws Exception {
-//      System.err.println(String.format("Peripheral(%s)", name));
-      Matcher matcher = null;
-      for (Pattern pattern:patterns) {
-         matcher = pattern.matcher(name);
-         if (matcher.matches()) {
-            break;
-         }
-         matcher = null;
-      }
-      if (matcher == null) {
-         throw new Exception("Failed to match Peripheral name \'" + name + "\'");
-      }
-      this.fName = name;
-      fBaseName  = matcher.group(1);
-      fInstance  = matcher.group(2);
-   }
+//   /**
+//    * Create peripheral
+//    * 
+//    * @param name
+//    * @throws Exception
+//    */
+//   private Peripheral(String name) throws Exception {
+////      System.err.println(String.format("Peripheral(%s)", name));
+//      Matcher matcher = null;
+//      for (Pattern pattern:patterns) {
+//         matcher = pattern.matcher(name);
+//         if (matcher.matches()) {
+//            break;
+//         }
+//         matcher = null;
+//      }
+//      if (matcher == null) {
+//         throw new Exception("Failed to match Peripheral name \'" + name + "\'");
+//      }
+//      this.fName = name;
+//      fBaseName  = matcher.group(1);
+//      fInstance  = matcher.group(2);
+//   }
 
    /**
     * Create peripheral

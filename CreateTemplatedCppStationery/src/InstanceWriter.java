@@ -1,4 +1,3 @@
-import java.io.BufferedWriter;
 import java.io.IOException;
 
 /**
@@ -7,9 +6,28 @@ import java.io.IOException;
 abstract class InstanceWriter {
    
    /** Indicates the device is MKE family */
-   private final boolean fDeviceIsMKE;
+   protected final boolean fDeviceIsMKE;
+   protected PeripheralTemplateInformation fOwner;
    
-   
+   /**
+    * Get name of documentation group e.g. "DigitalIO_Group"
+    * 
+    * @return name
+    */
+   abstract String getGroupName();
+   /**
+    * Get documentation group title e.g. "Digital Input/Output"
+    * 
+    * @return name
+    */
+   abstract String getGroupTitle();
+   /**
+    * Get Documentation group brief description <br>e.g. "Allows use of port pins as simple digital inputs or outputs"
+    * 
+    * @return name
+    */
+   abstract String getGroupBriefDescription();
+
    /**
     * Create InstanceWriter
     * 
@@ -50,14 +68,20 @@ abstract class InstanceWriter {
     * <pre>
     * using <b><i>alias</b></i> = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
     * </pre>
-    * @param alias          Name of alias
+    * @param alias          Name of alias e.g. ftm_D8
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
+    * @throws IOException 
+    * 
     * @throws Exception 
     */
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) throws Exception {
-     return String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";");
+   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+     String declaration = getDeclaration(mappingInfo, fnIndex);
+     if (declaration == null) {
+        return null;
+     }
+     return String.format("using %-20s = %s\n", alias, declaration+";");
    }
 
    /** 
@@ -71,12 +95,11 @@ abstract class InstanceWriter {
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
     * @throws IOException 
-    * @throws Exception 
     */
-   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws IOException, Exception;
+   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex);
 
    /** 
-    * Write component definition e.g. 
+    * Get a definition for a simple single-pin device 
     * <pre>
     * using gpio<b><i>A</b></i>_<b><i>0</b></i>   = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
     * using adc<b><i>0</i></b>_se<b><i>19</i></b> = const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>;
@@ -86,10 +109,10 @@ abstract class InstanceWriter {
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
     * @param cppFile        Where to write
-    * @throws Exception 
+    * @throws IOException 
     */
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
-      cppFile.write(getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex));
+   public String getDefinition(MappingInfo mappingInfo, int fnIndex) throws IOException {
+      return getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
    
    /** 
@@ -104,36 +127,46 @@ abstract class InstanceWriter {
     * @param cppFile       Where to write
     * @throws Exception 
     */
-   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
-      cppFile.write("extern ");
-      writeDefinition(mappingInfo, fnIndex, cppFile);
+   public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
+      return "extern " +  getDefinition(mappingInfo, fnIndex);
    }
 
    /**
     * Get alias name based on the given alias
+    * @param signalName 
     * 
-    * @param alias   Base for alias name e.g. <b><i>A5</b></i>
+    * @param signalName   Function being mapped to alias e.g. 
+    * @param alias        Base for alias name e.g. <b><i>A5</b></i>
     * 
     * @return Alias name e.g. gpio_<b><i>A5</b></i>
     */
-   public abstract String getAliasName(String alias);
+   public abstract String getAliasName(String signalName, String alias);
    
    /**
-    * Indicates if a PCR table is required
-    * 
+    * Indicates if a Peripheral Information class is required<br>
+    * The default implementation does some sanity checks and returns true if functions are present 
+    *
     * @return
+    * @throws Exception 
     */
-   public abstract boolean needPcrTable();
+   public boolean needPeripheralInformationClass() {
+      // Assume required if functions are present
+      boolean required = fOwner.getFunctions().size() > 0;
+      if (!required) {
+         // Shouldn't have clock information for non-existent peripheral 
+         if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
+            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
+         }
+      }
+      return required;
+   }
    
    /**
     * Provides C template
     * 
-    * @param pinTemplate   Pin template for information
-    * @param instance      
-    * 
     * @return Template
     */
-   public String getTemplate(FunctionTemplateInformation pinTemplate) {
+   public String getTemplate() {
       return null;
    }
    
@@ -146,15 +179,86 @@ abstract class InstanceWriter {
     * 
     * @throws Exception If template matches peripheral but unexpected function 
     */
-   public abstract int getFunctionIndex(PeripheralFunction function) throws Exception;
+   public abstract int getFunctionIndex(PeripheralFunction function);
 
    /**
     * Indicates if pin aliases should be written
+    * @param pinInfo 
     * 
     * @return true => write aliases
     */
-   public boolean useAliases() {
+   public boolean useAliases(PinInformation pinInfo) {
       return true;
    }
 
+   /**
+    * Returns the PCR constant to use with pins from this peripheral
+    * e.g. <b>DEFAULT_PCR</b>
+    * 
+    * @return
+    */
+   public String getPcrValue() {
+      return String.format(
+            "   //! Base value for PCR (excluding MUX value)\n"+
+            "   static constexpr uint32_t pcrValue  = DEFAULT_PCR;\n\n"
+            );
+      }
+
+   /**
+    * Returns a string containing definitions to be included in the information class describing the peripheral
+    * 
+    * <pre>
+    * //! Clock mask for peripheral
+    * static constexpr uint32_t clockMask = ADC1_CLOCK_MASK;
+    * 
+    * //! Address of clock register for peripheral
+    * static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,ADC1_CLOCK_REG);
+    * </pre>
+    * 
+    * @return Definitions string
+    */
+   public String getInfoConstants() {
+      StringBuffer buff = new StringBuffer();
+      
+      // Base address
+      buff.append(String.format(
+            "   //! Hardware base pointer\n"+
+            "   static constexpr uint32_t basePtr   = %s\n\n",
+            fOwner.fPeripheralName+"_BasePtr;"
+            ));
+
+      buff.append(getPcrValue());
+      
+      if (fOwner.getClockMask() != null) {
+         buff.append(String.format(
+               "   //! Clock mask for peripheral\n"+
+               "   static constexpr uint32_t clockMask = %s;\n\n",
+               fOwner.getClockMask()));
+      }
+      if (fOwner.getClockReg() != null) {
+         buff.append(String.format(
+               "   //! Address of clock register for peripheral\n"+
+               "   static constexpr uint32_t clockReg  = %s;\n\n",
+               "SIM_BasePtr+offsetof(SIM_Type,"+fOwner.getClockReg()+")"));
+      }
+      buff.append(String.format(
+            "   //! Number of IRQs for hardware\n"+
+            "   static constexpr uint32_t irqCount  = %s;\n\n",
+            fOwner.getIrqCount()));
+      if (fOwner.getIrqNumsAsInitialiser() != null) {
+         buff.append(String.format(
+               "   //! IRQ numbers for hardware\n"+
+               "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
+               fOwner.getIrqNumsAsInitialiser()));
+      }
+      return buff.toString();
+   }
+
+   public void setOwner(PeripheralTemplateInformation owner) {
+      this.fOwner = owner;
+   }
+
+   public String getExtraDefinitions() {
+      return "";
+   }
 }

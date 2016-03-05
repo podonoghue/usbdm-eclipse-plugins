@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * @author podonoghue
  *
  */
-class WriterForAnalogueIO extends WriterForDigitalIO {      
+class WriterForAnalogueIO extends InstanceWriter {      
 
    static final String ALIAS_BASE_NAME       = "adc_";
    static final String CLASS_BASE_NAME       = "Adc";
@@ -22,7 +22,7 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     * @see WriterForDigitalIO#getAliasName(java.lang.String)
     */
    @Override
-   public String getAliasName(String alias) {
+   public String getAliasName(String signalName, String alias) {
       return ALIAS_BASE_NAME+alias;
    }
 
@@ -43,24 +43,12 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param fnIndex        Index into list of functions mapped to pin
-    * @throws Exception 
     */
    @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
-      String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.functions.get(fnIndex));
-      String suffix    = null;
-      
-      Pattern p = Pattern.compile("(\\d+)((a)|b)");
-      Matcher m = p.matcher(mappingInfo.functions.get(fnIndex).fSignal);
-      if (m.matches()) {
-         suffix = m.group(3);
-      }
-      if (suffix == null) {
-         suffix = "";
-      }
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance+suffix, signal));
+      sb.append(String.format("const %s::%s<%d>", CreatePinDescription.NAME_SPACE, fOwner.fBaseName, signal));
       return sb.toString();
    }
    
@@ -68,7 +56,7 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     * @see WriterForDigitalIO#needPcrTable()
     */
    @Override
-   public boolean needPcrTable() {
+   public boolean needPeripheralInformationClass() {
       return true;
    };
 
@@ -103,10 +91,35 @@ class WriterForAnalogueIO extends WriterForDigitalIO {
     * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
     */
    @Override
-   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
+   public String getTemplate() {   
       return TEMPLATE_DOCUMENTATION+String.format(
-         "template<uint8_t adcChannel> using %s =\n" +
-         "   Adc_T<getPortClockMask(adcChannel,%sInfo), getPcrReg(adcChannel,%sInfo), getGpioBit(adcChannel,%sInfo), %s_BasePtr, SIM_BasePtr+offsetof(SIM_Type, %s_CLOCK_REG), %s_CLOCK_MASK, adcChannel>;\n\n",
-         pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.peripheralName, pinTemplate.peripheralName, pinTemplate.peripheralName);
+            "template<uint8_t channel> using %s = Adc_T<%sInfo, channel>;\n\n",
+            fOwner.fBaseName, fOwner.fBaseName);
+   }
+
+   @Override
+   public int getFunctionIndex(PeripheralFunction function) {
+      Pattern p = Pattern.compile("(SE)?(\\d+)(a|b)?");
+      Matcher m = p.matcher(function.fSignal);
+      if (!m.matches()) {
+         throw new RuntimeException("Function "+function+", Signal " + function.fSignal + " does not match expected pattern");
+      }
+      int signalIndex = Integer.parseInt(m.group(2));
+      return signalIndex;
+   }
+
+   @Override
+   String getGroupName() {
+      return "AnalogueIO_Group";
+   }
+
+   @Override
+   String getGroupTitle() {
+      return "Analogue Input";
+   }
+
+   @Override
+   String getGroupBriefDescription() {
+      return "Allows use of port pins as analogue inputs";
    }
 }

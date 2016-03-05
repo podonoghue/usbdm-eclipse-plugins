@@ -661,7 +661,10 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) {
       System.err.println("Starting");
-      
+
+//      firstFileToProcess = ("^MK20.*");
+//      firstFileToReject  = ("^MK22.*");
+//      
 //      firstFileToProcess = ("^MK22F12810.*");
 //      firstFileToReject  = ("^MKE15D7.*");
 
@@ -705,7 +708,7 @@ public class CreatePeripheralDatabase {
 //            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
 //         }
          if (true) {
-//            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
+            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
 //            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
             createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, false, true);
          }

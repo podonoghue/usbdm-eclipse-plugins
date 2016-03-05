@@ -1,5 +1,3 @@
-import java.io.BufferedWriter;
-
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
@@ -21,7 +19,7 @@ class WriterForI2c extends InstanceWriter {
     * @see InstanceWriter#getAliasName(java.lang.String)
     */
    @Override
-   public String getAliasName(String alias) {
+   public String getAliasName(String signalName, String alias) {
       return ALIAS_BASE_NAME+alias;
    }
 
@@ -42,10 +40,9 @@ class WriterForI2c extends InstanceWriter {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
-    * @throws Exception 
     */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
-      throw new Exception("Should not be called");
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
+      throw new RuntimeException("Should not be called");
    }
 
    /** 
@@ -61,7 +58,8 @@ class WriterForI2c extends InstanceWriter {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
 //      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Pcr<"+signal+">";
-      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
+      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
+//      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
    }
 
    /** 
@@ -77,92 +75,72 @@ class WriterForI2c extends InstanceWriter {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.functions.get(fnIndex)));
 //      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Gpio<"+signal+">";
-      return "const " + CreatePinDescription.NAME_SPACE + "::GpioTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
+//      return "const " + CreatePinDescription.NAME_SPACE + "::GpioTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
+      return "const " + CreatePinDescription.NAME_SPACE + "::GpioTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
    }
 
    /* (non-Javadoc)
     * @see InstanceWriter#needPcrTable()
     */
    @Override
-   public boolean needPcrTable() {
+   public boolean needPeripheralInformationClass() {
       return true;
    }
 
    @Override
-   public int getFunctionIndex(PeripheralFunction function) throws Exception {
+   public int getFunctionIndex(PeripheralFunction function) {
       String signalNames[] = {"SCL", "SDA"};
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (signalNames[signal].equalsIgnoreCase(function.fSignal)) {
+         if (function.fSignal.matches(signalNames[signal])) {
             return signal;
          }
       }
-      throw new Exception("Signal does not match expected pattern " + function.fSignal);
+      throw new RuntimeException("Signal does not match expected pattern " + function.fSignal);
    }
    
-   static final String PCR_TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-         " * Convenience templated class representing PCR associated with a I2C pin\n"+
-         " *\n"+
-         " * Example\n"+
-         " * @code\n"+
-         " * using i2c0_SCLPin = const USBDM::I2c0Pin<3>;\n"+
-         " * @endcode\n"+
-         " *\n"+
-         " * @tparam i2cPinIndex    I2C pin number (index into I2cInfo[])\n"+
-         " */\n";
-   static final String GPIO_TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-         " * Convenience templated class representing a GPIO used as I2C pin\n"+
-         " *\n"+
-         " * Example\n"+
-         " * @code\n"+
-         " * using i2c0_SCLGpio = const USBDM::I2c0Gpio<3>;\n"+
-         " * @endcode\n"+
-         " *\n"+
-         " * @tparam i2cPinIndex    I2C pin number (index into I2cInfo[])\n"+
-         " */\n";
-
-//   /* (non-Javadoc)
-//    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
-//    */
-//   @Override
-//   public String getTemplate(FunctionTemplateInformation pinTemplate) {   
-//      StringBuffer sb = new StringBuffer();
-//      sb.append(PCR_TEMPLATE_DOCUMENTATION);
-//      sb.append(String.format(
-//         "template<uint8_t i2cPinIndex> using %s =\n" +
-//         "   Pcr_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), getGpioBit(i2cPinIndex,%sInfo),\n" +
-//         "      PORT_PCR_MUX(getPcrMux(i2cPinIndex, %sInfo))|I2C_DEFAULT_PCR>;\n\n",
-//         pinTemplate.baseName+"Pcr", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
-//      sb.append(GPIO_TEMPLATE_DOCUMENTATION);
-//      sb.append(String.format(
-//            "template<uint8_t i2cPinIndex> using %s =\n" +
-//            "   Gpio_T<getPortClockMask(i2cPinIndex,%sInfo), getPcrReg(i2cPinIndex,%sInfo), getGpioBit(i2cPinIndex,%sInfo),\n" +
-//            "      getGpioAddress(i2cPinIndex,%sInfo), PORT_PCR_MUX(FIXED_GPIO_FN)|I2C_DEFAULT_PCR>;\n",
-//            pinTemplate.baseName+"Gpio", pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName, pinTemplate.baseName));
-//      return sb.toString();
-//   }
-
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) throws Exception {
+   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
       return String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";");
    }
 
    @Override
-   public void writeDefinition(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
-      cppFile.write(String.format("using %-14s = %s\n", getInstanceName(mappingInfo, fnIndex)+"Pcr",  getPcrDeclaration(mappingInfo, fnIndex)+";"));
-      cppFile.write(String.format("using %-14s = %s\n", getInstanceName(mappingInfo, fnIndex)+"Gpio", getGpioDeclaration(mappingInfo, fnIndex)+";"));
+   public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
+      return null;
+//      return String.format("using %-14s = %s\n", getInstanceName(mappingInfo, fnIndex)+"Pcr",  getPcrDeclaration(mappingInfo, fnIndex)+";") +
+//             String.format("using %-14s = %s\n", getInstanceName(mappingInfo, fnIndex)+"Gpio", getGpioDeclaration(mappingInfo, fnIndex)+";");
    }
 
    @Override
-   public void writeDeclaration(MappingInfo mappingInfo, int fnIndex, BufferedWriter cppFile) throws Exception {
-      cppFile.write("extern ");
-      writeDefinition(mappingInfo, fnIndex, cppFile);
+   public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
+      return "extern " + getDefinition(mappingInfo, fnIndex);
    }
 
    @Override
-   public boolean useAliases() {
+   public boolean useAliases(PinInformation pinInfo) {
       return false;
+   }
+
+   @Override
+   public String getPcrValue() {
+      return String.format(
+            "   //! Base value for PCR (excluding MUX value)\n"+
+            "   static constexpr uint32_t pcrValue  = I2C_DEFAULT_PCR;\n\n"
+            );
+   }
+
+   @Override
+   String getGroupName() {
+      return "I2cIO_Group";
+   }
+
+   @Override
+   String getGroupTitle() {
+      return "I2C, Inter-Integrated-Circuit Interface";
+   }
+
+   @Override
+   String getGroupBriefDescription() {
+      return "Pins used for I2C functions";
    }
 
 }

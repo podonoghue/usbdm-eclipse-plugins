@@ -8,13 +8,13 @@ import java.util.regex.Pattern;
  * @author podonoghue
  *
  */
-class WriterForDigitalIO extends InstanceWriter {
+class WriterForPort extends InstanceWriter {
 
-   static final String ALIAS_BASE_NAME       = "gpio_";
-   static final String CLASS_BASE_NAME       = "Gpio";
-   static final String INSTANCE_BASE_NAME    = "gpio";
+   static final String ALIAS_BASE_NAME       = "port_";
+   static final String CLASS_BASE_NAME       = "Port";
+   static final String INSTANCE_BASE_NAME    = "port";
 
-   public WriterForDigitalIO(boolean deviceIsMKE) {
+   public WriterForPort(boolean deviceIsMKE) {
       super(deviceIsMKE);
    }
 
@@ -43,7 +43,6 @@ class WriterForDigitalIO extends InstanceWriter {
     * </pre>
     * @param mappingInfo    Mapping information (pin and peripheral function)
     * @param cppFile        Where to write
-    * @throws Exception 
     */
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.functions.get(fnIndex));
@@ -62,98 +61,56 @@ class WriterForDigitalIO extends InstanceWriter {
    @Override
    public String getPcrValue() {
       return String.format(
-            "   //! Value for PCR (including MUX value)\n"+
+            "   //! Base value for PCR (including MUX value)\n"+
             "   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;\n\n"
             );
    }
 
-   static final String TEMPLATE_DOCUMENTATION_1 = 
-     "/**\n"+
-     " * @brief Convenience template for %s. See @ref Gpio_T\n"+
-     " *\n"+
-     " * <b>Usage</b>\n"+
-     " * @code\n"+
-     " * // Instantiate for bit 3 of %s\n"+
-     " * %s<3> %s3\n"+
-     " *\n"+
-     " * // Set as digital output\n"+
-     " * %s3.setOutput();\n"+
-     " *\n"+
-     " * // Set pin high\n"+
-     " * %s3.set();\n"+
-     " *\n"+
-     " * // Set pin low\n"+
-     " * %s3.clear();\n"+
-     " *\n"+
-     " * // Toggle pin\n"+
-     " * %s3.toggle();\n"+
-     " *\n"+
-     " * // Set pin to boolean value\n"+
-     " * %s3.write(true);\n"+
-     " *\n"+
-     " * // Set pin to boolean value\n"+
-     " * %s3.write(false);\n"+
-     " *\n"+
-     " * // Set as digital input\n"+
-     " * %s3.setInput();\n"+
-     " *\n"+
-     " * // Read pin as boolean value\n"+
-     " * bool x = %s3.read();\n"+
-     " * @endcode\n"+
-     " *\n"+
-     " * @tparam bitNum        Bit number in the port\n"+
-     " */\n";
-   static final String TEMPLATE_DOCUMENTATION_2 = 
-     "/**\n"+
-     " * @brief Convenience template for %s fields. See @ref Field_T\n"+
-     " *\n"+
-     " * <b>Usage</b>\n"+
-     " * @code\n"+
-     " * // Instantiate for bit 6 down to 3 of %s\n"+
-     " * %sField<6,3> %s6_3\n"+
-     " *\n"+
-     " * // Set as digital output\n"+
-     " * %s6_3.setOutput();\n"+
-     " *\n"+
-     " * // Write value to field\n"+
-     " * %s6_3.write(0x53);\n"+
-     " *\n"+
-     " * // Clear all of field\n"+
-     " * %s6_3.bitClear();\n"+
-     " *\n"+
-     " * // Clear lower two bits of field\n"+
-     " * %s6_3.bitClear(0x3);\n"+
-     " *\n"+
-     " * // Set lower two bits of field\n"+
-     " * %s6_3.bitSet(0x3);\n"+
-     " *\n"+
-     " * // Set as digital input\n"+
-     " * %s6_3.setInput();\n"+
-     " *\n"+
-     " * // Read pin as int value\n"+
-     " * int x = %s6_3.read();\n"+
-     " * @endcode\n"+
-     " *\n"+
-     " * @tparam left          Bit number of leftmost bit in port (inclusive)\n"+
-     " * @tparam right         Bit number of rightmost bit in port (inclusive)\n"+
-     " */\n";
-//   template<int left, int right, uint32_t defPcrValue=GPIO_DEFAULT_PCR> using GpioAField = Field_T<GpioAInfo, left, right, defPcrValue>;
-
+   static final String TEMPLATE_DOCUMENTATION = 
+     "/**                                                             \n"+
+     " * @brief Convenience template for GPIOA. See @ref Gpio_T  \n"+
+     " *                                                              \n"+
+     " * <b>Usage</b>                                                 \n"+
+     " * @code                                                        \n"+
+     " * // Instantiate for bit 3 of port                             \n"+
+     " * GpioA<3> Gpio3                                               \n"+
+     " *                                                              \n"+
+     " * // Set as digital output                                     \n"+
+     " * Gpio3.setOutput();                                           \n"+
+     " *                                                              \n"+
+     " * // Set pin high                                              \n"+
+     " * Gpio3.set();                                                 \n"+
+     " *                                                              \n"+
+     " * // Set pin low                                               \n"+
+     " * Gpio3.clear();                                               \n"+
+     " *                                                              \n"+
+     " * // Toggle pin                                                \n"+
+     " * Gpio3.toggle();                                              \n"+
+     " *                                                              \n"+
+     " * // Set pin to boolean value                                  \n"+
+     " * Gpio3.write(true);                                           \n"+
+     " *                                                              \n"+
+     " * // Set pin to boolean value                                  \n"+
+     " * Gpio3.write(false);                                          \n"+
+     " *                                                              \n"+
+     " * // Set as digital input                                      \n"+
+     " * Gpio3.setInput();                                            \n"+
+     " *                                                              \n"+
+     " * // Read pin as boolean value                                 \n"+
+     " * bool x = Gpio3.read();                                       \n"+
+     " * @endcode                                                     \n"+
+     " *                                                              \n"+
+     " * @tparam bitNum        Bit number in the port                 \n"+
+     " */                                                             \n";
+   
    /* (non-Javadoc)
     * @see InstanceWriter#getTemplate(FunctionTemplateInformation)
     */
    @Override
-   public String getTemplate() {  
-      StringBuffer buff = new StringBuffer();
-      buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", fOwner.fBaseName));
-      buff.append(String.format(
+   public String getTemplate() {   
+      return TEMPLATE_DOCUMENTATION+String.format(
             "template<uint8_t bitNum> using %s = Gpio_T<%sInfo, bitNum>;\n\n",
-            fOwner.fBaseName, fOwner.fBaseName));
-      buff.append(TEMPLATE_DOCUMENTATION_2.replaceAll("%s", fOwner.fBaseName));
-      buff.append(String.format(
-            "template<int left, int right> using %sField = Field_T<%sInfo, left, right>;\n\n",
-            fOwner.fBaseName, fOwner.fBaseName));
-      return buff.toString();
+            fOwner.fBaseName, fOwner.fBaseName);
    }
 
    @Override
@@ -214,17 +171,17 @@ class WriterForDigitalIO extends InstanceWriter {
 
    @Override
    String getGroupName() {
-      return "DigitalIO_Group";
+      throw new RuntimeException("Unexpected call to empty function");
    }
 
    @Override
    String getGroupTitle() {
-      return"Digital Input/Output";
+      throw new RuntimeException("Unexpected call to empty function");
    }
 
    @Override
    String getGroupBriefDescription() {
-      return "Allows use of port pins as simple digital inputs or outputs";
+      throw new RuntimeException("Unexpected call to empty function");
    }
    
 }
