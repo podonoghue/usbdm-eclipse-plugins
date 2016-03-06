@@ -1,0 +1,26 @@
+<!-- Root fileElement -->
+<!ELEMENT root (device*) >
+   <!ATTLIST root version CDATA #REQUIRED >
+
+<!ELEMENT device (pin*, peripheral*) >
+   <!ATTLIST device name CDATA #REQUIRED >
+   <!ATTLIST device title CDATA #REQUIRED >
+
+<!ELEMENT pin (mux*, package*) >
+   <!ATTLIST pin name   CDATA #REQUIRED >
+
+<!ELEMENT mux EMPTY>
+   <!ATTLIST mux signal CDATA #REQUIRED >
+   <!ATTLIST mux mux    CDATA #REQUIRED >
+
+<!ELEMENT package EMPTY>
+   <!ATTLIST package pkgd   CDATA #REQUIRED >
+   <!ATTLIST package pin   CDATA #REQUIRED >
+
+<!ELEMENT peripheral (signal*) >
+   <!ATTLIST peripheral name   CDATA #REQUIRED >
+
+<!ELEMENT signal EMPTY >
+   <!ATTLIST signal name   CDATA #REQUIRED >
+
+

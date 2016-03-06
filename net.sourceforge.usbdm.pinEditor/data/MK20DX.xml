@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root SYSTEM "Pins.dtd">
+
+<root version="1.0">
+   <device name="MK20DX128" title="MK20DX128 Kinetis MCU">
+      <pin name="PTE0">
+         <mux signal="GPIOE_0"      mux="1" />
+         <mux signal="UART1_TX"     mux="3" />
+         <mux signal="RTC_CLKOUT"   mux="7" />
+         <package pkgd="LQFP-64"    pin="1" />
+         <package pkgd="MAPBGA-64"  pin="1" />
+      </pin>
+      <pin name="PTE1">
+         <mux signal="GPIOE_1"      mux="1" />
+         <mux signal="LLWU_P0"      mux="1" />
+         <mux signal="UART1_RX"     mux="3" />
+         <mux signal="RTC_CLKOUT"   mux="7" />
+         <package pkgd="LQFP-64"    pin="2" />
+         <package pkgd="MAPBGA-64"  pin="2" />
+      </pin>
+      <peripheral name="GPIOE">
+         <signal name="GPIOE_0" />
+         <signal name="GPIOE_1" />
+         <signal name="GPIOE_2" />
+         <signal name="GPIOE_3" />
+         <signal name="GPIOE_4" />
+         <signal name="GPIOE_5" />
+      </peripheral>
+   </device>
+</root>
