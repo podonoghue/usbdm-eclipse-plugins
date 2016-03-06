@@ -267,8 +267,20 @@ public abstract class VectorTable extends ModeControl {
       if ((getName() != null) && (name.length() > 0)) {
          writer.print(String.format(      indenter+"   <name>%s</name>\n", getName()));
       }
+      else {
+         ArrayList<String> usedBy = getUsedBy();
+         if (usedBy.size()>0) {
+            writer.print(String.format(      indenter+"   <name>%s</name>\n", usedBy.get(0)+"_VectorTable"));
+         }
+      }
       if ((getDescription() != null) && (getDescription().length()>0)) {
          writer.print(String.format(      indenter+"   <description>%s</description>\n", getDescription()));
+      }
+      else {
+         ArrayList<String> usedBy = getUsedBy();
+         if (usedBy.size()>0) {
+            writer.print(String.format(      indenter+"   <description>%s</description>\n", usedBy.get(0)+" VectorTable"));
+         }
       }
       for (InterruptEntry entry : getEntries()) {
          if (entry != null) {

@@ -305,7 +305,7 @@ public class DevicePeripherals extends ModeControl {
       //      sortPeripheralsByName();
       for (int index1=0; index1<peripherals.size(); index1++) {
          Peripheral peripheral = peripherals.get(index1);
-         boolean debug1 = false; //peripheral.getName().matches("ADC0");
+//         boolean debug1 = false; //peripheral.getName().matches("ADC0");
 //         if (debug1) {
 //            System.out.println("DevicePeripherals.extractDerivedPeripherals() checking \""+peripheral.getName()+"\"");
 //         }
@@ -519,7 +519,7 @@ public class DevicePeripherals extends ModeControl {
 
    static final String HEADER_FILE_INTRO =
          "/****************************************************************************************************//**\n"
-               + " * @file     $(targetDevice).h\n"
+               + " * @file     %s.h\n"
                + " *\n"
                + " * @brief    CMSIS Cortex-M Peripheral Access Layer Header File for %s.\n"
                + " *           Equivalent: %s\n"
@@ -735,6 +735,7 @@ public class DevicePeripherals extends ModeControl {
       Date date = new Date();
 
       writer.print(String.format(HEADER_FILE_INTRO, 
+            getName(), 
             getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), 
             getName().toUpperCase(), getName().toUpperCase()));
       writer.print(String.format(COMMON_INCLUDES));

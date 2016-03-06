@@ -663,7 +663,7 @@ public class CreatePeripheralDatabase {
       System.err.println("Starting");
 
 //      firstFileToProcess = ("^MK20.*");
-//      firstFileToReject  = ("^MK22.*");
+//      firstFileToReject  = ("^MK21.*");
 //      
 //      firstFileToProcess = ("^MK22F12810.*");
 //      firstFileToReject  = ("^MKE15D7.*");
