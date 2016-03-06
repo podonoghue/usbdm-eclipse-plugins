@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root SYSTEM "Dialogue.dtd">
+
+<dialogue version="1.0">
+   <page name="" title="FTM">
+      <group title="Clock settings for FTM">
+         <layout type="grid" columns="2" />
+            <label title="SC.CLKS Clock source" />
+            <combo name="clockSource" >System clock,Fixed frequency clock,External Clock</combo>
+            <label title="SC.PS Clock prescaler" />
+            <combo name="clockPrescaler" >Divide by 1,Divide by 2,Divide by 4,Divide by 8,Divide by 16,Divide by 32,Divide by 64,Divide by 128,</combo>
+      </group>
+   </page>
+</dialogue>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root SYSTEM "Dialogue.dtd">
+
+<dialogue version="1.0">
+   <page name="" title="Page 1">
+      <group >
+         <layout type="row" direction="vertical" />
+         <group border="etched">
+            <layout type="grid" columns="3" />
+            <label      name="" title="Frequency"/>
+            <combo      name="" title="combo" selection="2" >5,6,7</combo>
+            <label      name="" title="" />
+            <label      name="" title="Oscillator" />
+            <radio      name="" title="Enable" />
+            <radio      name="" title="Disable" />
+            <checkbox   name="" title="High Speed" />
+            <label      name="" title="" />
+            <label      name="" title="" />
+         </group>
+         <group title="Hello there" border="none" >
+            <layout type="grid" columns="2" />
+            <radio   name="" title="radio 1" />
+            <radio   name="" title="radio 2" />
+            <radio   name="" title="radio 3" />
+            <radio   name="" title="radio 4" />
+         </group>
+         <group>
+            <layout type="row" />
+            <radio   name="" title="radio 1" />
+            <radio   name="" title="radio 2" />
+            <radio   name="" title="radio 3" />
+            <radio   name="" title="radio 4" />
+         </group>
+         <group>
+            <layout type="fill" />
+            <button  name="" title="button" />
+            <label   name="" title="label" />
+            <combo   name="" title="combo">1,2,3,4,5,6</combo>
+         </group>
+      </group>
+   </page>
+</dialogue>

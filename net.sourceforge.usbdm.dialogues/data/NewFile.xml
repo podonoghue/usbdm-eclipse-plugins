@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dialogue name="">
+   <page name="Page 1">
+      <composite name="">
+         <layout type="column" />
+         <control name="button 1">
+         </control>
+         <control name="label  1">
+         </control>
+         <control name="button 2">
+         </control>
+         <control name="label  2">
+         </control>
+         <composite name="">
+            <layout type="row" />
+            <control name="button 1">
+            </control>
+            <control name="label  1">
+            </control>
+            <control name="button 2">
+            </control>
+            <control name="label  2">
+            </control>
+         </composite>
+      </composite>
+   </page>
+</dialogue>

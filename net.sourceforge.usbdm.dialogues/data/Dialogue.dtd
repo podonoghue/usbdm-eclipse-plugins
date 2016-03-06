@@ -1,0 +1,40 @@
+<!-- Root fileElement -->
+<!ELEMENT dialogue (page*) >
+   <!ATTLIST dialogue version CDATA #REQUIRED >
+
+<!ELEMENT page (group*) >
+   <!ATTLIST page name CDATA #REQUIRED >
+   <!ATTLIST page title CDATA #REQUIRED >
+
+<!ELEMENT group (layout?,(label|button|radio|combo|checkbox|group)*) >
+   <!ATTLIST group border (none|etched) "none" >
+   <!ATTLIST group title CDATA #IMPLIED >
+
+<!ELEMENT layout EMPTY>
+   <!ATTLIST layout type (fill|grid|row) #REQUIRED >
+   <!ATTLIST layout columns CDATA #IMPLIED >
+   <!ATTLIST layout rows CDATA #IMPLIED >
+   <!ATTLIST layout direction CDATA "horizontal" >
+
+<!ELEMENT label EMPTY>
+   <!ATTLIST label name CDATA "" >
+   <!ATTLIST label title CDATA #REQUIRED >
+
+<!ELEMENT button EMPTY>
+   <!ATTLIST button name CDATA #REQUIRED >
+   <!ATTLIST button title CDATA #REQUIRED >
+
+<!ELEMENT radio EMPTY>
+   <!ATTLIST radio name CDATA #REQUIRED >
+   <!ATTLIST radio title CDATA #REQUIRED >
+
+<!ELEMENT combo (#PCDATA)>
+   <!ATTLIST combo name CDATA #REQUIRED >
+   <!ATTLIST combo value (true|false) "false">
+   <!ATTLIST combo title CDATA "" >
+   <!ATTLIST combo selection CDATA "0" >
+
+<!ELEMENT checkbox EMPTY>
+   <!ATTLIST checkbox name CDATA #REQUIRED >
+   <!ATTLIST checkbox title CDATA #REQUIRED >
+
