@@ -620,10 +620,11 @@ public class AnnotationModel {
    public class AnnotationModelNode {
       private String                            description    = null;
       private String                            toolTip        = null;
+      private String                            choiceTip      = null;
       private AnnotationModelNode               parent         = null;
       private ArrayList<AnnotationModelNode>    children       = new ArrayList<AnnotationModelNode>();
-      private boolean                           enabled        = false;
-      private boolean                           modifiable     = true;
+      private boolean                           enabled        = true;
+      private boolean                           modifiable     = false;
       private String                            name           = null;
       private Message                           errorMessage   = null;
       
@@ -635,10 +636,6 @@ public class AnnotationModel {
        */
       public AnnotationModelNode(String description) {
          this.setDescription(description);
-         this.toolTip    = null;
-         this.parent     = null;
-         this.enabled    = true;
-         this.modifiable = false;
       }
 
       /**
@@ -647,13 +644,15 @@ public class AnnotationModel {
        * @param other
        */
       public AnnotationModelNode(AnnotationModelNode other) {
-         this.description = other.description;
-         this.toolTip     = other.toolTip;
-         this.parent      = other.parent;
-         this.children    = other.children;
-         this.enabled     = other.enabled;
-         this.modifiable  = other.modifiable;
-         this.name        = other.name;
+         this.description  = other.description;
+         this.toolTip      = other.toolTip;
+         this.choiceTip    = other.choiceTip;
+         this.parent       = other.parent;
+         this.children     = other.children;
+         this.enabled      = other.enabled;
+         this.modifiable   = other.modifiable;
+         this.name         = other.name;
+         this.errorMessage = other.errorMessage;
       }
 
       /**
@@ -669,6 +668,7 @@ public class AnnotationModel {
          }
          this.description = ((AnnotationModelNode)other).description;
          this.toolTip     = ((AnnotationModelNode)other).toolTip;
+         this.choiceTip   = ((AnnotationModelNode)other).choiceTip;
          this.enabled     = ((AnnotationModelNode)other).enabled;
          this.modifiable  = ((AnnotationModelNode)other).modifiable;
          this.name        = ((AnnotationModelNode)other).name;
@@ -684,6 +684,7 @@ public class AnnotationModel {
                (other instanceof AnnotationModelNode) &&
                ((description == otherNode.description) || ((description != null) && (description.equals(otherNode.description)))) &&
                ((toolTip == otherNode.toolTip)         || ((toolTip != null)     && (toolTip.equals(otherNode.toolTip)))) &&
+               ((choiceTip == otherNode.choiceTip)     || ((choiceTip != null)   && (choiceTip.equals(otherNode.choiceTip)))) &&
                ((name == otherNode.name)               || ((name != null)        && name.equals(otherNode.name))) &&
                (enabled == otherNode.enabled) &&
                (modifiable == otherNode.modifiable);
@@ -803,6 +804,29 @@ public class AnnotationModel {
          }
          else {
             this.toolTip = this.toolTip + "\n" + toolTip;
+         }
+      }
+
+      /**
+       * Get choice tip 
+       * 
+       * @return Choice tip as string
+       */
+      public String getChoiceTip() {
+         return choiceTip;
+      }
+
+      /**
+       * Set choice tip
+       * 
+       * @param choiceTip Choice tip as string
+       */
+      public void addChoiceTip(String choiceTip) {
+         if (this.choiceTip == null) {
+            this.choiceTip = choiceTip;
+         }
+         else {
+            this.choiceTip = this.choiceTip + "\n" + choiceTip;
          }
       }
 

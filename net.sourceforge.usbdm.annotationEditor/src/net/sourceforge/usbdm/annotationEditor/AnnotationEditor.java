@@ -205,6 +205,32 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       }
    }
    
+   class MyInformationColumnLabelProvider extends ColumnLabelProvider {
+
+      @Override
+      public String getText(Object element) {
+         return ((AnnotationModelNode) element).getChoiceTip();
+      }
+      
+      @Override
+      public Color getForeground(Object element) {
+         if (!((AnnotationModelNode) element).isEnabled()) {
+            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW);
+         }
+         return super.getForeground(element);
+      }
+
+      @Override
+      public String getToolTipText(Object element) {
+         return ((AnnotationModelNode) element).getToolTip();
+      }
+      
+      @Override
+      public Font getFont(Object element) {
+         return super.getFont(element);
+      }
+   }
+   
    public void createControls(Composite parent) {
       viewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
       
@@ -256,17 +282,23 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
        */
       TreeViewerColumn column;
       column = new TreeViewerColumn(viewer, SWT.NONE);
-      column.getColumn().setWidth(400);
+      column.getColumn().setWidth(300);
       column.getColumn().setText("Option Name");
       column.getColumn().setResizable(true);
       column.setLabelProvider(new MyNameColumnLabelProvider());
 
       column = new TreeViewerColumn(viewer, SWT.NONE);
-      column.getColumn().setWidth(300);
+      column.getColumn().setWidth(450);
       column.getColumn().setText("Option Value");
       column.getColumn().setResizable(true);
       column.setEditingSupport(new AnnotationEditingSupport(viewer));
       column.setLabelProvider(new MyValueColumnLabelProvider());
+
+      column = new TreeViewerColumn(viewer, SWT.NONE);
+      column.getColumn().setWidth(450);
+      column.getColumn().setText("Information");
+      column.getColumn().setResizable(true);
+      column.setLabelProvider(new MyInformationColumnLabelProvider());
    }
 
    class ViewContentProvider implements ITreeContentProvider {

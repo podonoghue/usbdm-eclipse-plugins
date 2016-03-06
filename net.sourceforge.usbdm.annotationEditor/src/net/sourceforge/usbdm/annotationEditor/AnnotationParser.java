@@ -67,7 +67,7 @@ public class AnnotationParser {
    private final static String  wizardStartString           = "<<<\\s*Use\\s*Configuration\\s*Wizard\\s*in\\s*Context\\s*Menu\\s*>>>";
    private final static String  wizardEndString             = "<<<\\s*end\\s*of\\s*configuration\\s*section\\s*>>>";
     
-   private final static String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>\\s*(?<text>[^<]*)";
+   private final static String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h|info|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>\\s*(?<text>[^<]*)";
    private final static String  nameString                  = "<\\s*name\\s*=\\s*(?<nameBody>.*?)\\s*>";
    private final static String  selectionString             = "<\\s*selection\\s*=\\s*(?<selectionBody>.*?)\\s*>";
    
@@ -225,6 +225,15 @@ public class AnnotationParser {
          currentOption = annotationModel.new StringOptionModelNode(text, offset, length);
          currentNode.addChild(currentOption);
          currentEnumValue  = null;
+      }
+      else if (control.equals("info")) {
+         // Tool-tip applied to current option
+         if (currentOption == null) {
+            throw new Exception("<info> without previous item");
+         }
+         else {
+            currentOption.addChoiceTip(text);
+         }
       }
       else if (control.equals("i")) {
          // Tool-tip applied to current option
@@ -611,9 +620,11 @@ public class AnnotationParser {
 //            "<name=oscclk_clock  >", 
 //            "<0-50000000>",
 //            "<i> hello there */",
-            "<selection=GPIOA_1_PIN_SEL,PTA1>",
-            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
-            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
+            "<o> VOUT33 [VOUT33]",
+            "<info> VOUT33 [VOUT33]",
+//            "<selection=GPIOA_1_PIN_SEL,PTA1>",
+//            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
+//            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
 //            "<1=> this is an enumeration",
 //            "<0x1=> this is an enumeration",
 //            "<-1=> this is an enumeration",
@@ -668,6 +679,9 @@ public class AnnotationParser {
             String text = wizardMatcher.group("text");
             System.out.println("text = \'"+text+"\'");
 
+            String control = wizardMatcher.group("control").trim();
+            System.out.println("control = \'"+control+"\'");
+
             Pattern p = Pattern.compile("(.*?)\\s*\\*/");
             Matcher m = p.matcher(text);
             if (m.matches()) {
@@ -675,7 +689,7 @@ public class AnnotationParser {
             }
             System.out.println("text = \'"+text+"\'");
 
-            //            Pattern p = Pattern.compile(VARIABLENAME_GROUP);
+//            Pattern p = Pattern.compile(VARIABLENAME_GROUP);
 //            Matcher m = p.matcher(nameBody);
 //            if (!m.matches()) {
 //               System.out.println("No match to \'nameBody\'");

@@ -768,8 +768,9 @@ public class CreatePinDescription extends DocumentUtilities {
             "Signal mapping for " + pinInformation.getName() + " pin",
             0,
             attributes,
-            String.format("%s%s [%s]", pinInformation.getName(), aliases, alternativeHint),
-            hint );
+            String.format("%s%s", pinInformation.getName(), aliases),
+            hint,
+            alternativeHint.toString());
       for (MuxSelection selection:sortedSelectionIndexes) {
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
@@ -969,10 +970,7 @@ public class CreatePinDescription extends DocumentUtilities {
             selection++;
          }
       }
-      if (choices == null) {
-         choices = "";
-      }
-      else {
+      if (choices != null) {
          choices = " [" + choices + "]";
       }
 
@@ -981,8 +979,9 @@ public class CreatePinDescription extends DocumentUtilities {
             "Pin Mapping for " + function.getName() + " signal",
             0,
             attributes,
-            String.format("%s", function.getName() + choices),
-            String.format("Shows which pin %s is mapped to", function.getName()));
+            String.format("%s", function.getName()),
+            String.format("Shows which pin %s is mapped to", function.getName()),
+            choices);
 
       int selection = 0;
       if (!noChoices) {
@@ -1262,7 +1261,8 @@ public class CreatePinDescription extends DocumentUtilities {
                   0,
                   null,
                   String.format("TPM%s_SC.CMOD Clock source",ftm),
-                  String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", ftm, ftm));
+                  String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", ftm, ftm),
+                  "xxx");
             writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
             writeWizardOptionSelectionEnty(headerFile, "1", "Internal clock");
             writeWizardOptionSelectionEnty(headerFile, "2", "External clock");

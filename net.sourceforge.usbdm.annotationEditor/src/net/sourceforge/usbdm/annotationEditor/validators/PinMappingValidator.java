@@ -203,38 +203,39 @@ public class PinMappingValidator extends MyValidator {
             }
             else {
                boolean      clash;
-               SelectionTag gpioTag;
-               do {
+//               SelectionTag gpioTag;
+//               do {
                   clash   = false;
-                  gpioTag = null;
+//                  gpioTag = null;
                   for (SelectionTag tag:nodeToUpdate.forcingNodes) {
                      if (!nodeToUpdate.forcingNodes.get(0).signalValue.equals(tag.signalValue)) {
                         System.err.println(String.format("Conflict f=%s => t=%s", tag, targetNode.getName()));
                         System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
                         clash = true;
                      }
-                     if (tag.controllingNode.getName().matches("GPIO[A-Z]+_[0-9]+.*")) {
-                        gpioTag = tag;
-                     }
+//                     if (tag.controllingNode.getName().matches("GPIO[A-Z]+_[0-9]+.*")) {
+//                        gpioTag = tag;
+//                     }
                   }
-                  if (clash && (gpioTag != null)) {
-                     final String name = nodeToUpdate.getForcingNodeNames(); 
-                     //gpioTag.controllingNode.getDescription();
-                     PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
-                        public void run() {
-                           Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                           MessageBox messageBox = new MessageBox(activeShell, SWT.ICON_WARNING | SWT.OK);
-                           messageBox.setText("Warning");
-                           messageBox.setMessage("Conflict with GPIO\n" + name + "\n GPIO will be unmapped");
-                           messageBox.open();
-                        }
-                     });
-                     // Remove GPIO as forcing node
-                     System.err.println(String.format("Removing %s", gpioTag.controllingNode.getName()));
-                     update(viewer, gpioTag.controllingNode, "Disabled");
-                     nodeToUpdate.forcingNodes.remove(gpioTag);
-                  }
-               } while (clash && (gpioTag != null));
+                  // Problem with changing a GPIO - it gets reset if there is a conflict!
+//                  if (clash && (gpioTag != null)) {
+//                     final String name = nodeToUpdate.getForcingNodeNames(); 
+//                     //gpioTag.controllingNode.getDescription();
+//                     PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
+//                        public void run() {
+//                           Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+//                           MessageBox messageBox = new MessageBox(activeShell, SWT.ICON_WARNING | SWT.OK);
+//                           messageBox.setText("Warning");
+//                           messageBox.setMessage("Conflict with GPIO\n" + name + "\n GPIO will be unmapped");
+//                           messageBox.open();
+//                        }
+//                     });
+//                     // Remove GPIO as forcing node
+//                     System.err.println(String.format("Removing %s", gpioTag.controllingNode.getName()));
+//                     update(viewer, gpioTag.controllingNode, "Disabled");
+//                     nodeToUpdate.forcingNodes.remove(gpioTag);
+//                  }
+//               } while (clash && (gpioTag != null));
                if (clash) {
                   update(viewer, targetNode, "Default");
                   setValid(viewer, targetNode, new Message("Pin has been mapped to multiple signals: \n" + nodeToUpdate.getForcingNodeNames()));

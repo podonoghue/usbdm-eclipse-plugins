@@ -536,34 +536,32 @@ public class DocumentUtilities {
     * <pre><code>
     * //  comment
     * //  &lt;o<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;constant&gt;]</i></b>
-    * //  &lt;i&gt;   <i><b>hint</i></b>
+    * //  &lt;i&gt;       <i><b>hint</i></b>
+    * //  &lt;info&gt;    <i><b>information</i></b>
     * </code></pre>
     * 
-    * @param writer     Where to write
-    * @param comment    Comment written above (may be null)
-    * @param offset     Offset to argument
-    * @param attributes Attributes to apply e.g. <constant>
-    * @param title      Title to use in selection
-    * @param hint       Hint to use with title
+    * @param writer        Where to write
+    * @param comment       Comment written above (may be null)
+    * @param offset        Offset to argument
+    * @param attributes    Attributes to apply e.g. <constant>
+    * @param title         Title to use in selection
+    * @param hint          Hint to use with title
+    * @param information   Additional information for option
     * 
     * @throws IOException
     */
-   /**
-    * 
-    * @param writer
-    * @param comment
-    * @param offset
-    * @param attributes
-    * @param title
-    * @param hint
-    * @throws IOException
-    */
-   void writeWizardOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
-         throws IOException {
+   void writeWizardOptionSelectionPreamble(
+         BufferedWriter writer, 
+         String comment, 
+         int offset, 
+         WizardAttribute[] attributes, 
+         String title, 
+         String hint, 
+         String information) throws IOException {
       if (comment != null) {
          writer.write(String.format("// %s\n", comment));
       }
-      final String oTemplate = "//   <o%s> %s";
+      final String oTemplate = "//   <o%s>    %s";
       writer.write(String.format(oTemplate, (offset==0)?"":Integer.toString(offset), title));
       if (attributes != null) {
          for (WizardAttribute attribute:attributes) {
@@ -573,11 +571,45 @@ public class DocumentUtilities {
          }
       }
       writer.write("\n");
-      final String iTemplate = "//   <i> %s\n";
-      hint = hint.replaceAll("\n", "\n//   <i> ");
+      final String iTemplate = "//   <i>    %s\n";
+      hint = hint.replaceAll("\n", "\n//   <i>   ");
       writer.write(String.format(iTemplate, hint));
+
+      if ((information != null) && (information.length()>0)) {
+         final String infoTemplate = "//   <info> %s\n";
+         information = information.replaceAll("\n", "\n//   <info> ");
+         writer.write(String.format(infoTemplate, information));
+      }
    }
 
+   /**
+    * Write wizard selection preamble e.g.
+    * <pre><code>
+    * //  comment
+    * //  &lt;o<i><b>offset</i></b>&gt; <i><b>title</i></b> <i><b>[&lt;constant&gt;]</i></b>
+    * //  &lt;i&gt;       <i><b>hint</i></b>
+    * //  &lt;info&gt;    <i><b>information</i></b>
+    * </code></pre>
+    * 
+    * @param writer        Where to write
+    * @param comment       Comment written above (may be null)
+    * @param offset        Offset to argument
+    * @param attributes    Attributes to apply e.g. <constant>
+    * @param title         Title to use in selection
+    * @param hint          Hint to use with title
+    * @param information   Additional information for option
+    * 
+    * @throws IOException
+    */
+   void writeWizardOptionSelectionPreamble(
+         BufferedWriter writer, 
+         String comment, 
+         int offset, 
+         WizardAttribute[] attributes, 
+         String title, 
+         String hint) throws IOException {
+      writeWizardOptionSelectionPreamble(writer, comment, offset, attributes, title, hint, null);
+   }
    /**
     * Write wizard selection preamble e.g.
     * <pre><code>
