@@ -50,7 +50,9 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    private ArrayList<UsbdmDynamicOptionPage_N>  fDynamicWizardPages  = null;
    private ArrayList<WizardPageInformation>     fWizardPageInformation = new ArrayList<WizardPageInformation>();
    private ProjectActionList                    fProjectActionList = null;
+   /** Base parameters from pages 1 & 2 */
    private Map<String, String>                  fBaseParamMap = null;
+   /** Parameters from all Pages */
    private Map<String, String>                  fParamMap = null;
    private Device                               fDevice = null;
 
