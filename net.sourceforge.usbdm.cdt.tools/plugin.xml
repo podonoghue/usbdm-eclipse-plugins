@@ -2085,6 +2085,7 @@
             configurationEnvironmentSupplier="net.sourceforge.usbdm.cdt.tools.ArmConfigurationEnvironmentVariableSupplier"
             id="net.sourceforge.usbdm.cdt.arm.toolchain"
             isAbstract="true"
+            languageSettingsProviders="net.sourceforge.usbdm.cdt.wizard.CS_ARM_BuiltinSpecsDetector"
             name="ARM-USBDM ToolChain"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
             targetTool="net.sourceforge.usbdm.cdt.arm.toolchain.c.linker;net.sourceforge.usbdm.cdt.arm.toolchain.cpp.linker">
@@ -2339,6 +2340,7 @@
             configurationEnvironmentSupplier="net.sourceforge.usbdm.cdt.tools.ColdfireConfigurationEnvironmentVariableSupplier"
             id="net.sourceforge.usbdm.cdt.coldfire.toolchain"
             isAbstract="true"
+            languageSettingsProviders="net.sourceforge.usbdm.cdt.wizard.CS_Coldfire_BuiltinSpecsDetector"
             name="Coldfire-USBDM Toolchain"
             superClass="net.sourceforge.usbdm.cdt.baseToolchain"
             targetTool="net.sourceforge.usbdm.cdt.coldfire.toolchain.c.linker;net.sourceforge.usbdm.cdt.coldfire.toolchain.cpp.linker">
@@ -2543,123 +2545,6 @@
       <!-- Coldfire -->
    </extension>
    <!-- Configuration discovery profiles -->
-   <extension
-      id="UsbdmManagedMakePerProjectProfileC"
-      name="USBDM C managed make per project SCD profile"
-      point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
-      <scannerInfoCollector
-         class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCScannerInfoCollector"
-         scope="project">
-      </scannerInfoCollector>
-      <buildOutputProvider>
-         <scannerInfoConsoleParser
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmManagedGCCScannerInfoConsoleParser">
-         </scannerInfoConsoleParser>
-      </buildOutputProvider>
-      <scannerInfoProvider
-         providerId="specsFile">
-         <run
-            arguments="-E -P -v -dD ${plugin_state_location}/specs.c"
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsRunSIProvider"
-            command="gcc">
-         </run>
-         <scannerInfoConsoleParser
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsConsoleParser">
-         </scannerInfoConsoleParser>
-      </scannerInfoProvider>
-   </extension>
-   <extension
-      id="UsbdmManagedMakePerProjectProfileCPP"
-      name="USBDM C++ managed make per project SCD profile"
-      point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
-      <scannerInfoCollector
-         class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCScannerInfoCollector"
-         scope="project">
-      </scannerInfoCollector>
-      <buildOutputProvider>
-         <scannerInfoConsoleParser
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmManagedGCCScannerInfoConsoleParser">
-         </scannerInfoConsoleParser>
-      </buildOutputProvider>
-      <scannerInfoProvider
-         providerId="specsFile">
-         <run
-            arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp"
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsRunSIProvider"
-            command="g++">
-         </run>
-         <scannerInfoConsoleParser
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsConsoleParser">
-         </scannerInfoConsoleParser>
-      </scannerInfoProvider>
-   </extension>
-   <extension
-      id="UsbdmStandardMakePerProjectProfile"
-      name="USBDM C/C++ Scanner Info per project profile"
-      point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
-      <scannerInfoCollector
-         class="org.eclipse.cdt.make.internal.core.scannerconfig2.PerProjectSICollector"
-         scope="project" />
-      <buildOutputProvider>
-         <scannerInfoConsoleParser
-            class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCScannerInfoConsoleParser" />
-      </buildOutputProvider>
-      <scannerInfoProvider
-         providerId="specsFile">
-         <run
-            command="gcc"
-            arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}"
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsRunSIProvider">
-         </run>
-         <scannerInfoConsoleParser
-            class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmGCCSpecsConsoleParser">
-         </scannerInfoConsoleParser>
-      </scannerInfoProvider>
-   </extension>
-   <extension
-      id="UsbdmGccStandardMakePerFileProfile"
-      name="Codesourcery C/C++ Scanner Info per file profile"
-      point="org.eclipse.cdt.make.core.ScannerConfigurationDiscoveryProfile">
-      <scannerInfoCollector
-         class="org.eclipse.cdt.make.internal.core.scannerconfig2.PerFileSICollector"
-         scope="file" />
-      <buildOutputProvider>
-         <scannerInfoConsoleParser
-            class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCPerFileBOPConsoleParser" />
-      </buildOutputProvider>
-      <scannerInfoProvider
-         providerId="makefileGenerator">
-         <run
-            arguments="-f ${project_name}_scd.mk"
-            command="make"
-            class="org.eclipse.cdt.make.internal.core.scannerconfig2.SCDMakefileGenerator" />
-         <scannerInfoConsoleParser
-            class="org.eclipse.cdt.make.internal.core.scannerconfig.gnu.GCCPerFileSIPConsoleParser" />
-      </scannerInfoProvider>
-   </extension>
-   <extension
-      point="org.eclipse.cdt.make.ui.DiscoveryProfilePage">
-      <profilePage
-         class="org.eclipse.cdt.make.ui.dialogs.GCCPerProjectSCDProfilePage"
-         name="Managed Build System - per project scanner (USBDM C)"
-         profileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileC">
-      </profilePage>
-      <profilePage
-         class="org.eclipse.cdt.make.ui.dialogs.GCCPerProjectSCDProfilePage"
-         name="Managed Build System - per project scanner (USBDM C++)"
-         profileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileCPP">
-      </profilePage>
-      <profilePage
-         class="org.eclipse.cdt.make.ui.dialogs.GCCPerProjectSCDProfilePage"
-         name="GCC per project scanner (USBDM C/C++)"
-         profileId="net.sourceforge.usbdm.cdt.wizard.UsbdmStandardMakePerProjectProfile">
-      </profilePage>
-      <profilePage
-         class="org.eclipse.cdt.make.ui.dialogs.GCCPerFileSCDProfilePage"
-         name="GCC per file scanner (USBDM)"
-         profileId="net.sourceforge.usbdm.cdt.wizard.UsbdmGccStandardMakePerFileProfile">
-      </profilePage>
-   </extension>
    <extension
          point="org.eclipse.cdt.core.LanguageSettingsProvider">
       <provider
