@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;

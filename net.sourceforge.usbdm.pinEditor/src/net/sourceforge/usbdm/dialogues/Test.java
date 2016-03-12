@@ -3,11 +3,6 @@ package net.sourceforge.usbdm.dialogues;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.internal.decorators.DecorationBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
