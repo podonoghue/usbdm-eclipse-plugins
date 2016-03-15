@@ -155,7 +155,9 @@ abstract class InstanceWriter {
       if (!required) {
          // Shouldn't have clock information for non-existent peripheral 
          if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
-            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
+            System.err.println("WARNING - Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
+            return false;
+//            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
          }
       }
       return required;

@@ -33,7 +33,10 @@ public class CreatePinDescription extends DocumentUtilities {
    
    /** Name of pin-mapping-XX.h header file */
    private String pinMappingHeaderFileName;
-   
+
+   /** Package choice XML file*/
+   private String packageChoiceFileName;
+
    /** Name of gpio-XX.cpp source file */
    private String gpioCppFileName;
 
@@ -455,7 +458,7 @@ public class CreatePinDescription extends DocumentUtilities {
       Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
       Matcher matcher = pattern.matcher(peripheralClockReg);
       if (!matcher.matches()) {
-         throw new Exception("Unexpected Peripheral Clock Register " + peripheralClockReg);
+         throw new Exception("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
       }
       peripheralClockReg = matcher.group(1);
       if (!peripheralClockMask.contains(peripheralClockReg)) {
@@ -493,7 +496,11 @@ public class CreatePinDescription extends DocumentUtilities {
       } while (true);
       
       Collections.sort(grid, LineComparitor);
-      
+      for(String[] line:grid) {
+         for (int index=0; index<line.length; index++) {
+            line[index] = line[index].trim();
+         }
+      }
       for(String[] line:grid) {
          if (line.length < 2) {
             continue;
@@ -551,6 +558,9 @@ public class CreatePinDescription extends DocumentUtilities {
       for(String[] line:grid) {
          if (line.length<1) {
             continue;
+         }
+         for (int index=0; index<line.length; index++) {
+            line[index] = line[index].trim();
          }
          if (line[0].equalsIgnoreCase("Key")) {
             // Process title line
@@ -1261,8 +1271,7 @@ public class CreatePinDescription extends DocumentUtilities {
                   0,
                   null,
                   String.format("TPM%s_SC.CMOD Clock source",ftm),
-                  String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", ftm, ftm),
-                  "xxx");
+                  String.format("Selects the clock source for the TPM%s module. [TPM%s_SC.CMOD]", ftm, ftm));
             writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
             writeWizardOptionSelectionEnty(headerFile, "1", "Internal clock");
             writeWizardOptionSelectionEnty(headerFile, "2", "External clock");
@@ -1938,7 +1947,7 @@ public class CreatePinDescription extends DocumentUtilities {
     * @param filePath
     * @throws Exception
     */
-   private void processFile(BufferedReader sourceFile, boolean writeCppFile) throws Exception {
+   private void processFile(BufferedReader sourceFile) throws Exception {
       PinInformation.reset();
       PeripheralFunction.reset();
       MappingInfo.reset();
@@ -2049,18 +2058,15 @@ public class CreatePinDescription extends DocumentUtilities {
       BufferedWriter pinMappingHeaderFile = Files.newBufferedWriter(pinMappingHeaderPath, StandardCharsets.UTF_8);
 
       parseFile(sourceFile);
-      
       processPins();
-
       writePinMappingHeaderFile(pinMappingHeaderFile);
-      if (writeCppFile) {
-         // Write single gpio-xxxx.cpp file
-         Path gpioCppPath = sourceDirectory.resolve(gpioCppFileName);
-         BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath, StandardCharsets.UTF_8);
-         writeGpioCppFile(gpioCppFile);
-         gpioCppFile.close();
-      }
       pinMappingHeaderFile.close();
+
+      // Write single gpio-xxxx.cpp file
+      Path gpioCppPath = sourceDirectory.resolve(gpioCppFileName);
+      BufferedWriter gpioCppFile    = Files.newBufferedWriter(gpioCppPath, StandardCharsets.UTF_8);
+      writeGpioCppFile(gpioCppFile);
+      gpioCppFile.close();
    }
 
    /**
@@ -2072,6 +2078,7 @@ public class CreatePinDescription extends DocumentUtilities {
     */
    void processFile(Path filePath) throws Exception {
       
+      System.err.println("Processing ============= " + filePath.getFileName());
       sourceName = filePath.getFileName().toString();
 
       // Locate output directories  
@@ -2093,22 +2100,21 @@ public class CreatePinDescription extends DocumentUtilities {
       
       sourceFile.close();
       
-      boolean writeCppFile = true;
-      
       for (AliasInfo aliasInfo:aliasIndexes) {
          deviceName        = aliasInfo.name;
          aliasIndex        = aliasInfo.index;
          gpioCppFileName   = gpioBaseFileName+"-"+deviceName+".cpp";
          
          pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
+         packageChoiceFileName    = pinMappingBaseFileName+"-"+deviceName+".xml";
+         
          System.err.println("deviceName = " + deviceName);
 
          // Re-open source file
          sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
-         processFile(sourceFile, writeCppFile);
+         processFile(sourceFile);
          sourceFile.close();
          // Only write CPP file once for first alias
-         writeCppFile = false;
       }
    }
    

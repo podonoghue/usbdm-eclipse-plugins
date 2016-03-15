@@ -1,7 +1,7 @@
 Manual,KL27P64M48SF2RM,,,,,,,,,,,,,,,,,,
 Devices,MKL27Z32xxx4,MKL27Z64xxx4,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,
-Key,Pin,Alias MKL27Z644,Alias FRDM_KL27Z,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,"64
+Key,Pin,Alias MKL27Z644-LQFP64,Alias MKL27Z644-FRDM,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,"64
 LQFP","36
 GA","32
 QFN","48

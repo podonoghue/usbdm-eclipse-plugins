@@ -1,7 +1,7 @@
 Manual,KL27P64M48SF6RM,,,,,,,,,,,,,,,,
 Devices,MKL27Z128xxx4,MKL27Z256xxx4,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,
-Key,Pin,Alias MKL27Z4,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,"32
+Key,Pin,Alias MKL27Z4-LQFP64,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,"32
 QFN","48
 QFN","64
 BGA","64

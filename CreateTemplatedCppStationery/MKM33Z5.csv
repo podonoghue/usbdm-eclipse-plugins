@@ -1,7 +1,7 @@
 Manual,MKMxxZxxCxx5RM,,,,,,,,,,,,,
 Devices,MKM33Z64xxx5,MKM33Z128xxx5,,,,,,,,,,,,
 ,,,,,,,,,,,,,,
-Key,Name,Alias MKM33Z5,Alias Demo_KM33,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,LQFP-100
+Key,Name,Alias MKM33Z5-LQFP100,Alias MKM33Z5-Demo,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,LQFP-100
 Pin,PTA0,p1,LED_RED,Disabled,GPIOA_0,LCD23,GPIOA_0,,,,,,,1
 Pin,PTA1,p2,LED_GREEN,Disabled,GPIOA_1,LCD24,GPIOA_1,,,,,,,2
 Pin,PTA2,p3,,Disabled,,LCD25,GPIOA_2,,,,,,,3
