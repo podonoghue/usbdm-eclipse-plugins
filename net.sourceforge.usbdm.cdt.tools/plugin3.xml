@@ -2284,6 +2284,7 @@
                superClass="net.sourceforge.usbdm.cdt.toolchain.c.compiler">
             <inputType
                   id="net.sourceforge.usbdm.cdt.arm.toolchain.c.compiler.input"
+                  scannerConfigDiscoveryProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileC"
                   superClass="cdt.managedbuild.tool.gnu.c.compiler.input">
             </inputType>
          </tool>
@@ -2294,6 +2295,7 @@
                superClass="net.sourceforge.usbdm.cdt.toolchain.cpp.compiler">
             <inputType
                   id="net.sourceforge.usbdm.cdt.arm.toolchain.cpp.compiler.input"
+                  scannerConfigDiscoveryProfileId="net.sourceforge.usbdm.cdt.tools.UsbdmManagedMakePerProjectProfileCPP"
                   superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input">
             </inputType>
          </tool>
