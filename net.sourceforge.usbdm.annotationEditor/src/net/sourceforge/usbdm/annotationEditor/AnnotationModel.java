@@ -821,7 +821,7 @@ public class AnnotationModel {
        * 
        * @param choiceTip Choice tip as string
        */
-      public void addChoiceTip(String choiceTip) {
+      public void addInformation(String choiceTip) {
          if (this.choiceTip == null) {
             this.choiceTip = choiceTip;
          }

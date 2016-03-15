@@ -33,25 +33,25 @@ public class AnnotationParser {
 
    /** The associated document */
    private IDocument            document           = null;
-   
+
    /** The associated model */
    private AnnotationModel      annotationModel    = null;
-   
+
    /** Current node being processed */
    private AnnotationModelNode  currentNode        = null;
-   
+
    /** Current option within the current node */
    private OptionModelNode      currentOption      = null;
-   
+
    /** Current enumeration within the current node */
    private EnumValue            currentEnumValue   = null;
 
    /** Indicates start of wizard mark-up has been found */
    private boolean              wizardFound        = false;
-   
+
    /** Indicates end of wizard mark-up has been found */
    private boolean              wizardEndFound     = false;
-   
+
    /** Current line number */
    private int                  lineNumber         = 0;
 
@@ -60,20 +60,20 @@ public class AnnotationParser {
    private final static String NUMBER_PATTERN        = "(?:\\+|\\-)?(?:0x)?[0-9|a-f|A-F]*";
    private final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
    private final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*(.+?)\\s*";
-   
+
    private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
    private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
-   
+
    private final static String  wizardStartString           = "<<<\\s*Use\\s*Configuration\\s*Wizard\\s*in\\s*Context\\s*Menu\\s*>>>";
    private final static String  wizardEndString             = "<<<\\s*end\\s*of\\s*configuration\\s*section\\s*>>>";
-    
+
    private final static String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h|info|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>\\s*(?<text>[^<]*)";
    private final static String  nameString                  = "<\\s*name\\s*=\\s*(?<nameBody>.*?)\\s*>";
    private final static String  selectionString             = "<\\s*selection\\s*=\\s*(?<selectionBody>.*?)\\s*>";
-   
+
    private final static String  validateString              = "<\\s*validate\\s*=\\s*(?<validateBody>.*?)\\s*>";
    private final static String  constString                 = "<\\s*constant\\s*>";
-   
+
    private final static String rangePatternString          = "<\\s*(?<rStart>(0x[0-9a-fA-F]*)|(\\d+))(\\s*\\-\\s*(?<rEnd>(0x[0-9a-fA-F]*)|(\\d+))(\\s*:\\s*(?<rStep>(0x[0-9a-fA-F]*)|(\\d+)))?)?\\s*>";
    private final static String enumerationPatternString    = "<\\s*(?<enumValue>"+NUMBER_PATTERN+")\\s*=\\s*>(?<enumName>[^<]*)";
    private final static String modifierPatternString       = "<\\s*#\\s*(?<operation>.)\\s*(?<factor>(0x[0-9a-fA-F]*)|(\\d+))\\s*>";
@@ -81,33 +81,33 @@ public class AnnotationParser {
    private final static int     matchFlags         = Pattern.DOTALL;
    private final static String  wizardPatternString = 
          "(?<wizardStart>"+wizardStartString+")|"+
-         "(?<wizardEnd>"+wizardEndString+")|"+
-         "(?<annotation>"+wizardAnnotationString+")|"+
-         "(?<range>"+rangePatternString+")|"+
-         "(?<modifier>"+modifierPatternString+")|"+
-         "(?<enumeration>"+enumerationPatternString+")|"+
-         "(?<name>"+nameString+")|"+
-         "(?<selection>"+selectionString+")|"+
-         "(?<validate>"+validateString+")|"+
-         "(?<constant>"+constString+")|"+
-//         "(?<pllConfigure>"+pllConfigureString+")|"+
-         "(<[^>]*>[^<]*)"
-         ;
+               "(?<wizardEnd>"+wizardEndString+")|"+
+               "(?<annotation>"+wizardAnnotationString+")|"+
+               "(?<range>"+rangePatternString+")|"+
+               "(?<modifier>"+modifierPatternString+")|"+
+               "(?<enumeration>"+enumerationPatternString+")|"+
+               "(?<name>"+nameString+")|"+
+               "(?<selection>"+selectionString+")|"+
+               "(?<validate>"+validateString+")|"+
+               "(?<constant>"+constString+")|"+
+               //         "(?<pllConfigure>"+pllConfigureString+")|"+
+               "(<[^>]*>[^<]*)"
+               ;
    private final static Pattern wizardPattern     = Pattern.compile(wizardPatternString, matchFlags);
 
    private ArrayList<ErrorMarker> errorMarkers;
-   
+
    private final String markerId = "net.sourceforge.usbm.annotationEditor.errorMarker";
 
    public class ErrorMarker {
       private int lineNumber;
       private String message;
-      
+
       ErrorMarker(int lineNumber, String message) {
          this.lineNumber = lineNumber;
          this.message    = message;
       }
-      
+
       private IMarker createMarker(IResource resource) throws CoreException {
          IMarker marker = resource.createMarker(markerId);
          marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
@@ -116,7 +116,7 @@ public class AnnotationParser {
          return marker;
       }
    }
-   
+
    public void attachErrorMarkers(IResource resource) throws CoreException {
       int depth = IResource.DEPTH_INFINITE;
       resource.deleteMarkers(markerId, true, depth);
@@ -132,7 +132,7 @@ public class AnnotationParser {
    private void clearErrorMarkers() {
       errorMarkers = new ArrayList<AnnotationParser.ErrorMarker>();
    }
-   
+
    private void addErrorMarker(ErrorMarker errorMarker) {
       this.errorMarkers.add(errorMarker);
    }
@@ -147,7 +147,7 @@ public class AnnotationParser {
    }
 
    private void createAnnotation(String control, int offset, BitField bitField, String text) throws Exception {
-//      System.err.println(String.format("createAnnotation(<%s%d> %s) 1", control, offset, text));
+      //      System.err.println(String.format("createAnnotation(<%s%d> %s) 1", control, offset, text));
       Pattern p = Pattern.compile("(.*?)\\s*\\*/");
       Matcher m = p.matcher(text);
       if (m.matches()) {
@@ -227,21 +227,25 @@ public class AnnotationParser {
          currentEnumValue  = null;
       }
       else if (control.equals("info")) {
-         // Tool-tip applied to current option
-         if (currentOption == null) {
-            throw new Exception("<info> without previous item");
+         if (currentOption != null) {
+            currentOption.addInformation(text);
+         }
+         else if (currentNode != null) {
+            currentNode.addInformation(text);
          }
          else {
-            currentOption.addChoiceTip(text);
+            throw new Exception("<info> without previous item");
          }
       }
       else if (control.equals("i")) {
-         // Tool-tip applied to current option
-         if (currentOption == null) {
-            throw new Exception("<i> without previous item");
+         if (currentOption != null) {
+            currentOption.addToolTip(text);
+         }
+         else if (currentNode != null) {
+            currentNode.addToolTip(text);
          }
          else {
-            currentOption.addToolTip(text);
+            throw new Exception("<i> without previous item");
          }
       }
    }
@@ -255,9 +259,9 @@ public class AnnotationParser {
          ((NumericOptionModelNode)currentOption).setUseHex(true); 
       }
    }
-   
+
    private void createEnumerationValue(String name, int value) throws Exception {
-//      System.err.println(String.format("createEnumerationValue(%s, 0x%X)", name, value));
+      //      System.err.println(String.format("createEnumerationValue(%s, 0x%X)", name, value));
       if (currentOption instanceof BinaryOptionModelNode) {
          // A binary annotation but someone decided to name the options!
          ((BinaryOptionModelNode)currentOption).addEnumerationValue(new EnumValue(name, value));
@@ -277,15 +281,15 @@ public class AnnotationParser {
       currentEnumValue = new EnumValue(name, value);
       ((EnumeratedOptionModelNode)currentOption).addEnumerationValue(currentEnumValue);
    }
-   
+
    private void createModifier(String operation, long factor) throws Exception {
-//      System.err.println(String.format("createModifier(%s, %d)", operation, factor));
+      //      System.err.println(String.format("createModifier(%s, %d)", operation, factor));
       if (!(currentOption instanceof NumericOptionModelNode)) {
          throw new Exception("Modifier applied to non-numeric option");
       }
       ((NumericOptionModelNode)currentOption).addModifier(new Modifier(operation, factor));
    }
-   
+
    private void createName(String variableName) throws Exception {
       currentOption.setName(variableName);
    }
@@ -315,17 +319,17 @@ public class AnnotationParser {
          collectScannedInformationFromNodes(child);
       }
    }
-   
+
    public void collectScannedInformation() {
       annotationModel.clearScannedInformation();
       collectScannedInformationFromNodes(annotationModel.getModelRoot());
-//      annotationModel.getNameMap().entrySet();
-//      System.err.println("collectNamedNodes()");
-//      for (Entry<String, AnnotationModelNode> name : annotationModel.getNameMap().entrySet()) {
-//         System.err.println(name.getKey() + " => " + name.getValue().getDescription());
-//      }
+      //      annotationModel.getNameMap().entrySet();
+      //      System.err.println("collectNamedNodes()");
+      //      for (Entry<String, AnnotationModelNode> name : annotationModel.getNameMap().entrySet()) {
+      //         System.err.println(name.getKey() + " => " + name.getValue().getDescription());
+      //      }
    }
-   
+
    private void parseComment(String buff) throws Exception {
       if (buff.startsWith("//!") || buff.startsWith("/*!")) {
          // Ignore these as may contain markup
@@ -337,13 +341,13 @@ public class AnnotationParser {
       }
       try {
          do {
-//            System.err.println("Found:"+buff.substring(m.start(), m.end()));
+            //            System.err.println("Found:"+buff.substring(m.start(), m.end()));
             if (m.group("wizardStart") != null) {
-//               System.err.println("======== Wizard Start found ========");
+               //               System.err.println("======== Wizard Start found ========");
                wizardFound = true;
             }
             else if (m.group("wizardEnd") != null) {
-//               System.err.println("======== Wizard End found ========");
+               //               System.err.println("======== Wizard End found ========");
                wizardEndFound = true;
                break;
             }
@@ -352,13 +356,13 @@ public class AnnotationParser {
                continue;
             }
             else if (m.group("annotation") != null) {
-               
+
                String  control     = null;
                int     offset      = 0;
                int     fieldStart  = -1;
                int     fieldEnd    = -1;
                String text         = "";
-               
+
                control = m.group("control").trim();
                if (m.group("offset") != null) {
                   offset = Integer.decode(m.group("offset").trim());
@@ -387,14 +391,14 @@ public class AnnotationParser {
                startValue = Long.decode(m.group("rStart"));
                endValue   = Long.decode(m.group("rEnd"));
                if (m.group("rStart").trim().startsWith("0x") ||
-                   m.group("rEnd").trim().startsWith("0x")) {
+                     m.group("rEnd").trim().startsWith("0x")) {
                   useHex = true;
                }
                if (m.group("rStep") != null) {
                   stepSize = Long.decode(m.group("rStep"));
                }
-//               System.err.println(String.format("Range[%s,%s,-]", m.group("rStart"), m.group("rEnd")));
-//               System.err.println(String.format("Range[0x%X,0x%X,x%X]", startValue, endValue, stepSize));
+               //               System.err.println(String.format("Range[%s,%s,-]", m.group("rStart"), m.group("rEnd")));
+               //               System.err.println(String.format("Range[0x%X,0x%X,x%X]", startValue, endValue, stepSize));
                createRange(useHex, startValue, endValue, stepSize);
             }
             else if (m.group("enumeration") != null) {
@@ -408,7 +412,7 @@ public class AnnotationParser {
                createModifier(operation, factor);
             }
             else if (m.group("constant") != null) {
-              currentOption.setModifiable(false);
+               currentOption.setModifiable(false);
             }
             else if (m.group("name") != null) {
                String nameBody = m.group("nameBody");
@@ -422,7 +426,7 @@ public class AnnotationParser {
                }
                String variableName = nm.group("variableName");
                createName(variableName);
-//               System.err.println("Adding name = "+variableName);
+               //               System.err.println("Adding name = "+variableName);
             }
             else if (m.group("selection") != null) {
                String selectionBody = m.group("selectionBody");
@@ -455,7 +459,7 @@ public class AnnotationParser {
                createValidator(className, arguments);
             }
             else {
-//               System.err.println("Other:"+m.group().trim());
+               //               System.err.println("Other:"+m.group().trim());
                throw new Exception("Unrecognized option");
             }
          } while (m.find());
@@ -472,7 +476,7 @@ public class AnnotationParser {
          addErrorMarker(new ErrorMarker(lineNumber, message));
       }
    }
- 
+
    private void createValidator(String className, String arguments) throws Exception {
       MyValidator validatorClass = null;
       String sArgs[] = null;
@@ -484,7 +488,7 @@ public class AnnotationParser {
          Class<?> clazz = Class.forName(className);
          if (sArgs == null) {
             // Use default constructor
-//            System.err.println(String.format("Creating function: %s()", className));
+            //            System.err.println(String.format("Creating function: %s()", className));
             validatorClass = (MyValidator) clazz.newInstance();         
          }
          else {
@@ -494,19 +498,19 @@ public class AnnotationParser {
             }
             switch (sArgs.length) {
             case 1: 
-//               System.err.println(String.format("Creating function: %s(%d)", className, args[0]));
+               //               System.err.println(String.format("Creating function: %s(%d)", className, args[0]));
                validatorClass = (MyValidator) clazz.getConstructor(long.class).newInstance(args[0]);
                break;
             case 2: 
-//               System.err.println(String.format("Creating function: %s(%d,%d)", className, args[0], args[1]));
+               //               System.err.println(String.format("Creating function: %s(%d,%d)", className, args[0], args[1]));
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class).newInstance(args[0],args[1]);
                break;
             case 3: 
-//               System.err.println(String.format("Creating function: %s(%d,%d,%d)", className, args[0], args[1], args[2]));
+               //               System.err.println(String.format("Creating function: %s(%d,%d,%d)", className, args[0], args[1], args[2]));
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class).newInstance(args[0],args[1],args[2]);
                break;
             case 4: 
-//               System.err.println(String.format("Creating function: %s(%d,%d,%d,%d)", className, args[0], args[1], args[2], args[3]));
+               //               System.err.println(String.format("Creating function: %s(%d,%d,%d,%d)", className, args[0], args[1], args[2], args[3]));
                validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class).newInstance(args[0],args[1],args[2],args[3]);
                break;
             } 
@@ -522,7 +526,7 @@ public class AnnotationParser {
       this.document        = document;
       this.annotationModel = new AnnotationModel(document);
    }
-   
+
    /**
     * Parses the document and creates a model
     * 
@@ -535,44 +539,44 @@ public class AnnotationParser {
       currentNode = rootNode;
       currentNode.removeAllChildren();
       newValidators.clear();
-      
+
       currentOption   = null;
       wizardEndFound  = false;
-      
+
       annotationModel.getReferences().clearReferences();
 
       clearErrorMarkers();
-      
+
       ITypedRegion[] partitions = document.getDocumentPartitioner().computePartitioning(0, document.getLength());
       for (ITypedRegion partition : partitions) {
-//         System.err.print(
-//               String.format("Partition type: [%d..%d] %s\n",
-//               partition.getOffset(), partition.getLength(), partition.getType()));
+         //         System.err.print(
+         //               String.format("Partition type: [%d..%d] %s\n",
+         //               partition.getOffset(), partition.getLength(), partition.getType()));
          if (wizardEndFound) {
             break;
          }
          lineNumber = document.getLineOfOffset(partition.getOffset()) + 1;
          if (partition.getType() == PartitionScanner.C_COMMENT) {
-//            System.err.println("C_COMMENT");
+            //            System.err.println("C_COMMENT");
             parseComment(document.get(partition.getOffset(), partition.getLength()));
          }
          else if (partition.getType() == PartitionScanner.C_NUMBER) {
-//            System.err.print(String.format("C_NUMBER [%d..%d]\n", partition.getOffset(), partition.getLength()));
+            //            System.err.print(String.format("C_NUMBER [%d..%d]\n", partition.getOffset(), partition.getLength()));
             annotationModel.getReferences().addReference(annotationModel.new DocumentReference(partition.getOffset(), partition.getLength()));
          }
          else if (partition.getType() == PartitionScanner.C_STRING) {
-//            System.err.print(String.format("C_STRING [%d..%d]\n", partition.getOffset(), partition.getLength()));
+            //            System.err.print(String.format("C_STRING [%d..%d]\n", partition.getOffset(), partition.getLength()));
             annotationModel.getReferences().addReference(annotationModel.new DocumentReference(partition.getOffset(), partition.getLength()));
          }
       }
       if (validators.size() != newValidators.size()) {
-//         System.err.println("****************Replacing all validators");
+         //         System.err.println("****************Replacing all validators");
          validators = newValidators;
       }
       else {
          for (int index=0; index<validators.size(); index++) {
             if (validators.get(index).getClass() != newValidators.get(index).getClass()) {
-//               System.err.println("****************Replacing validator");
+               //               System.err.println("****************Replacing validator");
                validators.set(index, newValidators.get(index));
             }
          }
@@ -596,11 +600,11 @@ public class AnnotationParser {
       }
       annotationModel.setModelRoot(newRoot);
    }
-   
+
    public AnnotationModel getModel() {
       return annotationModel;
    }
-   
+
    public void listNodes() throws Exception {
       getModelRoot().listNodes(0);
    }
@@ -611,24 +615,24 @@ public class AnnotationParser {
          validator.validate(viewer);
       }
    }
-   
+
    public static void main(String[] args) {
       String test[] = new String[] {
-//            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12  >",
-//            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12 (0x1234)  >",
-//            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12(1,2,3,4)  >",
-//            "<name=oscclk_clock  >", 
-//            "<0-50000000>",
-//            "<i> hello there */",
+            //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12  >",
+            //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12 (0x1234)  >",
+            //            "<validate=net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MK64M12(1,2,3,4)  >",
+            //            "<name=oscclk_clock  >", 
+            //            "<0-50000000>",
+            //            "<i> hello there */",
             "<o> VOUT33 [VOUT33]",
             "<info> VOUT33 [VOUT33]",
-//            "<selection=GPIOA_1_PIN_SEL,PTA1>",
-//            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
-//            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
-//            "<1=> this is an enumeration",
-//            "<0x1=> this is an enumeration",
-//            "<-1=> this is an enumeration",
-//            "<-0x12=> this is an enumeration",
+            //            "<selection=GPIOA_1_PIN_SEL,PTA1>",
+            //            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
+            //            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
+            //            "<1=> this is an enumeration",
+            //            "<0x1=> this is an enumeration",
+            //            "<-1=> this is an enumeration",
+            //            "<-0x12=> this is an enumeration",
       };
       Pattern wizardPattern = Pattern.compile(wizardPatternString);
       for (String s:test) {
@@ -643,7 +647,7 @@ public class AnnotationParser {
          String annotationGroup  = wizardMatcher.group("annotation");
          String selectionGroup   = wizardMatcher.group("selection");
          String enumerationGroup = wizardMatcher.group("enumeration");
-         
+
          if (validateGroup != null) {
             System.out.println("validateGroup = \'"+validateGroup+"\'");
             String validateBody = wizardMatcher.group("validateBody");
@@ -689,15 +693,15 @@ public class AnnotationParser {
             }
             System.out.println("text = \'"+text+"\'");
 
-//            Pattern p = Pattern.compile(VARIABLENAME_GROUP);
-//            Matcher m = p.matcher(nameBody);
-//            if (!m.matches()) {
-//               System.out.println("No match to \'nameBody\'");
-//               continue;
-//            }
-//            String variableName = m.group("variableName");
-//            System.out.println(String.format("variableName = \"%s\"", variableName));
-//            System.out.println("\n");
+            //            Pattern p = Pattern.compile(VARIABLENAME_GROUP);
+            //            Matcher m = p.matcher(nameBody);
+            //            if (!m.matches()) {
+            //               System.out.println("No match to \'nameBody\'");
+            //               continue;
+            //            }
+            //            String variableName = m.group("variableName");
+            //            System.out.println(String.format("variableName = \"%s\"", variableName));
+            //            System.out.println("\n");
          }
          else if (enumerationGroup != null) {
             // "<\\s*(?<enumValue>\\d+)\\s*=\\s*>(?<enumName>[^<]*)"
@@ -713,7 +717,7 @@ public class AnnotationParser {
             String selectionBody = wizardMatcher.group("selectionBody");
             System.out.println("selectionBody = \'"+selectionBody+"\'");
             System.out.println("SELECTIONNAME_GROUP = \'"+SELECTIONNAME_GROUP+"\'");
-            
+
             // e.g. <selection=i2c0_sda,2>
             //"(?<selectionName>.*))";
             Pattern p = Pattern.compile(SELECTIONNAME_GROUP);
@@ -733,4 +737,4 @@ public class AnnotationParser {
          }
       }
    }
- }
+}
