@@ -97,6 +97,11 @@ public class UsbdmConstants {
    public static final String USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY  = "net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther";
    public static final String USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther";
 
+   public static final String USBDM_GCC_WARNING_PEDANTIC_OPTION_KEY            = "net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic";
+   public static final String USBDM_GCC_WARNING_ALLWARN_OPTION_KEY             = "net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"; 
+   public static final String USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"; 
+   public static final String USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"; 
+
    // These keys are used as keys to CDT Variables                 
    public static final String ARM_BUILDTOOLS_OPTIONS               = "net.sourceforge.usbdm.cdt.arm.toolchain.buildtools";
    public static final String COLDFIRE_BUILDTOOLS_OPTIONS          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools";

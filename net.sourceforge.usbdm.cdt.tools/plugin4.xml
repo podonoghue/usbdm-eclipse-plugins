@@ -403,44 +403,6 @@
                category="net.sourceforge.usbdm.cdt.toolchain.optimization.category"
                valueType="string">
             </option>
-<!-- -->
-            <optionCategory
-                  id="net.sourceforge.usbdm.cdt.toolchain.warnings.category"
-                  name="Warnings">
-            </optionCategory>
-            <option
-               name="Pedantic warnings (-pedantic)"
-               id="net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic"
-               defaultValue="false"
-               category="net.sourceforge.usbdm.cdt.toolchain.warnings.category"
-               command="-pedantic"
-               valueType="boolean">
-            </option>
-            <option
-               name="All warnings (-Wall)"
-               id="net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"
-               defaultValue="true"
-               category="net.sourceforge.usbdm.cdt.toolchain.warnings.category"
-               command="-Wall"
-               valueType="boolean">
-            </option>
-            <option
-               name="Extra warnings (-Wextra)"
-               id="net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"
-               defaultValue="true"
-               category="net.sourceforge.usbdm.cdt.toolchain.warnings.category"
-               command="-Wextra"
-               valueType="boolean">
-            </option>
-            <option
-               name="Implicit conversion warnings (-Wconversion)"
-               id="net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"
-               defaultValue="false"
-               category="net.sourceforge.usbdm.cdt.toolchain.warnings.category"
-               command="-Wconversion"
-               valueType="boolean">
-            </option>
-<!-- -->
       </toolChain>
       <toolChain
          id="net.sourceforge.usbdm.cdt.holder"
@@ -863,16 +825,6 @@
                category="net.sourceforge.usbdm.gnu.c.compiler.warnings"
                command="-pedantic"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Pedantic warnings as errors (-pedantic-errors)"
@@ -897,34 +849,14 @@
                category="net.sourceforge.usbdm.gnu.c.compiler.warnings"
                command="-Wall"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Extra warnings (-Wextra)"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.warnings.extrawarn"
-               defaultValue="true"
+               defaultValue="false"
                category="net.sourceforge.usbdm.gnu.c.compiler.warnings"
                command="-Wextra"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Treat warnings as errors (-Werror)"
@@ -941,16 +873,6 @@
                category="net.sourceforge.usbdm.gnu.c.compiler.warnings"
                command="-Wconversion"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <optionCategory
                name="Miscellaneous"
@@ -1355,16 +1277,6 @@
                category="net.sourceforge.usbdm.gnu.cpp.compiler.warnings"
                command="-pedantic"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Pedantic warnings as errors (-pedantic-errors)"
@@ -1389,34 +1301,14 @@
                category="net.sourceforge.usbdm.gnu.cpp.compiler.warnings"
                command="-Wall"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Extra warnings (-Wextra)"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.warnings.extrawarn"
-               defaultValue="true"
+               defaultValue="false"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.warnings"
                command="-Wextra"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <option
                name="Treat warnings as errors (-Werror)"
@@ -1433,16 +1325,6 @@
                category="net.sourceforge.usbdm.gnu.cpp.compiler.warnings"
                command="-Wconversion"
                valueType="boolean">
-               <enablement
-                     extensionAdjustment="true"
-                     type="UI_ENABLEMENT|CMD_USAGE">
-                  <checkOption
-                        holderId="net.sourceforge.usbdm.cdt.baseToolchain"
-                        isRegex="false"
-                        optionId="net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"
-                        value="false">
-                  </checkOption>
-               </enablement>
             </option>
             <optionCategory
                name="Miscellaneous"

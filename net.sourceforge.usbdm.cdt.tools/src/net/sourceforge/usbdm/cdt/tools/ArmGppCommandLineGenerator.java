@@ -23,6 +23,12 @@ public class ArmGppCommandLineGenerator extends GccCommandLineGenerator {
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_DATA_OPTION_KEY,     
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_NORTTI_OPTION_KEY,
       UsbdmConstants.USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY, 
+      
+      UsbdmConstants.USBDM_GCC_WARNING_PEDANTIC_OPTION_KEY, 
+      UsbdmConstants.USBDM_GCC_WARNING_ALLWARN_OPTION_KEY, 
+      UsbdmConstants.USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY, 
+      UsbdmConstants.USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY, 
+      
    };
    public ArmGppCommandLineGenerator() {
       super(UsbdmConstants.ARM_BUILDTOOLS_OPTIONS, optionKeys);
