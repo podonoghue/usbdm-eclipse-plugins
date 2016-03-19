@@ -1,3 +1,4 @@
+import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -111,8 +112,8 @@ class PeripheralTemplateInformation {
       }
       this.fInstanceWriter        = instanceWriter;
       this.fPeripheralFunctions   = new Vector<PeripheralFunction>();
-      this.fClockMask            = null;
-      this.fClockReg             = null;
+      this.fClockMask             = null;
+      this.fClockReg              = null;
       this.fIrqNums               = new ArrayList<String>();
 
       instanceWriter.setOwner(this);
@@ -283,5 +284,101 @@ class PeripheralTemplateInformation {
    public String getGroupBriefDescription() {
       return fInstanceWriter.getGroupBriefDescription();
       }
+
+   /**
+    * Write Peripheral Information Class<br>
+    * 
+    * <pre>
+    *  class Adc0Info {
+    *     public:
+    *        //! Hardware base pointer
+    *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
+    * 
+    *        //! Base value for PCR (excluding MUX value)
+    *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+    * 
+    *        //! Information for each pin of peripheral
+    *        static constexpr PcrInfo  info[32] = {
+    * 
+    *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
+    *   /*  0 * /  { 0 },
+    *   ...
+    *   #if (ADC0_SE4b_PIN_SEL == 1)
+    *    /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
+    *   #else
+    *    /*  4 * /  { 0 },
+    *   #endif
+    *   ...
+    *   };
+    *   };
+    * </pre>
+    * @param pinMappingHeaderFile Where to write
+    * 
+    * @throws Exception 
+    */
+   public void writeInfoClass(BufferedWriter pinMappingHeaderFile) throws Exception {
+      final String DUMMY_TEMPLATE = "         /* %2d */  { 0, 0, 0, 0, 0 },\n";
+      
+      if (!classIsUsed()) {
+         return;
+      }
+      DocumentUtilities.writeDocBanner(pinMappingHeaderFile, "Peripheral information for "+getGroupTitle());
+      
+      // Open class
+      pinMappingHeaderFile.write(String.format(
+            "class %s {\n"+
+            "public:\n",
+            fBaseName+"Info"
+            ));
+      // Additional, peripheral specific, information
+      pinMappingHeaderFile.write(fInstanceWriter.getInfoConstants());
+      if (needPcrInfoTable()) {
+         // Signal information table
+         pinMappingHeaderFile.write(String.format(
+               "   //! Information for each pin of peripheral\n"+
+                     "   static constexpr PcrInfo  info[32] = {\n"+
+                     "\n"
+               ));
+         pinMappingHeaderFile.write("         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue\n");
+         for (int signalIndex = 0; signalIndex<getFunctions().size(); signalIndex++) {
+            PeripheralFunction peripheralFunction = getFunctions().get(signalIndex);
+            if (peripheralFunction == null) {
+               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
+               continue;
+            }
+            ArrayList<MappingInfo> mappedPins = MappingInfo.getPins(peripheralFunction);
+            boolean valueWritten = false;
+            int choice = 1;
+            for (MappingInfo mappedPin:mappedPins) {
+               if (mappedPin.mux == MuxSelection.Disabled) {
+                  // Disabled selection - ignore
+                  continue;
+               }
+               if (mappedPin.mux == MuxSelection.Reset) {
+                  // Reset selection - ignore
+                  continue;
+               }
+               if (mappedPin.mux == MuxSelection.Fixed) {
+                  // Fixed pin mapping - handled by default following
+                  continue;
+               }
+               DocumentUtilities.writeConditional(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice), valueWritten);
+               String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.pin);
+               pinMappingHeaderFile.write(String.format("         /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.mux.value));
+
+               valueWritten = true;
+               choice++;
+            }
+            if (valueWritten) {
+               DocumentUtilities.writeConditionalElse(pinMappingHeaderFile);
+            }
+            pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
+            DocumentUtilities.writeConditionalEnd(pinMappingHeaderFile, valueWritten);
+         }
+         pinMappingHeaderFile.write(String.format("   };\n"));
+      }
+      pinMappingHeaderFile.write(String.format("};\n\n"));
+      pinMappingHeaderFile.write(fInstanceWriter.getExtraDefinitions());
+   }
 
 }

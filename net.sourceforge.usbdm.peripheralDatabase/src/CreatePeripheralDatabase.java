@@ -660,10 +660,10 @@ public class CreatePeripheralDatabase {
     * @param args
     */
    public static void main(String[] args) {
-      System.err.println("Starting");
+//      System.err.println("Starting");
 
-//      firstFileToProcess = ("^MK20.*");
-//      firstFileToReject  = ("^MK21.*");
+//      firstFileToProcess = ("^MK21.*");
+//      firstFileToReject  = ("^MK24.*");
 //      
 //      firstFileToProcess = ("^MK22F12810.*");
 //      firstFileToReject  = ("^MKE15D7.*");

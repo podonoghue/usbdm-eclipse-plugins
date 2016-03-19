@@ -1,3 +1,4 @@
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,23 +42,13 @@ class WriterForPwmIO_FTM extends InstanceWriter {
     * <pre>
     * const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>>
     * </pre>
-    * @param  mappingInfo    Mapping information (pin and peripheral function)
-    * @param  fnIndex        Index into list of functions mapped to pin
-    * @throws Exception 
+    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param fnIndex        Index into list of functions mapped to pin
     */
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       String instance  = mappingInfo.functions.get(fnIndex).fPeripheral.fInstance;
       int    signal    = getFunctionIndex(mappingInfo.functions.get(fnIndex));
-//      System.err.println(String.format("getDeclaration(i=%s,s=%s)", instance, signal));
-      if (signal<8) {
-         // FTM channel
-         return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
-      }
-      if (signal==8) {
-      // FTM channel
       return String.format("const %s::%s%s<%d>", CreatePinDescription.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
-      }
-      return null;
    }
    @Override
    public boolean needPeripheralInformationClass() {
@@ -69,6 +60,10 @@ class WriterForPwmIO_FTM extends InstanceWriter {
       return true;
    }
 
+   static final int QUAD_INDEX  = 8;
+   static final int CLOCK_INDEX = 10;
+   static final int FAULT_INDEX = 12;
+   
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
       Pattern p = Pattern.compile("CH(\\d+)");
@@ -76,10 +71,22 @@ class WriterForPwmIO_FTM extends InstanceWriter {
       if (m.matches()) {
          return Integer.parseInt(m.group(1));
       }
-      final String signalNames[] = {"QD_PHA", "QD_PHB", "CLKIN0", "CLKIN1", "FLT0", "FLT1", "FLT2", "FLT3"};
-      for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.fSignal.matches(signalNames[signal])) {
-            return 8+signal;
+      final String quadNames[] = {"QD_PHA", "QD_PHB"};
+      for (int signal=0; signal<quadNames.length; signal++) {
+         if (function.fSignal.matches(quadNames[signal])) {
+            return QUAD_INDEX+signal;
+         }
+      }
+      final String clockNames[] = {"CLKIN0", "CLKIN1"};
+      for (int signal=0; signal<clockNames.length; signal++) {
+         if (function.fSignal.matches(clockNames[signal])) {
+            return CLOCK_INDEX+signal;
+         }
+      }
+      final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
+      for (int signal=0; signal<faultNames.length; signal++) {
+         if (function.fSignal.matches(faultNames[signal])) {
+            return FAULT_INDEX+signal;
          }
       }
       throw new RuntimeException("function '" + function.fSignal + "' does not match expected pattern");
@@ -115,11 +122,34 @@ class WriterForPwmIO_FTM extends InstanceWriter {
 
    @Override
    public String getInfoConstants() {
-      return super.getInfoConstants()+
-         String.format(
-         "   //! Base value for tmr->SC register\n"+
-         "   static constexpr uint32_t scValue  = %s;\n\n",
-         fOwner.fPeripheralName+"_SC");
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getInfoConstants());
+      sb.append(String.format(
+            "   //! Base value for tmr->SC register\n"+
+            "   static constexpr uint32_t scValue  = %s;\n\n",
+            fOwner.fPeripheralName+"_SC"));
+      sb.append(String.format(
+            "   //! Indexes of special functions in PcrInfo[] table\n"+
+            "   static constexpr int QUAD_INDEX  = %d;\n" +
+            "   static constexpr int CLOCK_INDEX = %d;\n" +
+            "   static constexpr int FAULT_INDEX = %d;\n" +
+            "\n",
+            QUAD_INDEX, CLOCK_INDEX, FAULT_INDEX));
+      Vector<PeripheralFunction> functions = fOwner.getFunctions();
+      int lastChannel = -1;
+      for (int index=0; index<functions.size(); index++) {
+         if (index >= QUAD_INDEX) {
+            break;
+         }
+         if (functions.get(index) != null) {
+            lastChannel = index;
+         }
+      }
+      sb.append(String.format(
+            "   static constexpr int NUM_CHANNELS  = %d;\n" +
+            "\n",
+            lastChannel+1));
+      return sb.toString();
    }
 
    @Override

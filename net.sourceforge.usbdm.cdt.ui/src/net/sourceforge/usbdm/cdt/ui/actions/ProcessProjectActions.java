@@ -92,7 +92,7 @@ public class ProcessProjectActions {
                   throw new Exception("Unexpected action class: " + action.getClass());
                }
             } catch (Exception e) {
-               e.printStackTrace();
+//               e.printStackTrace();
                StringBuffer sb = new StringBuffer();
                sb.append("Unable to process Action "+action.toString() + "\n");
                sb.append("Action id = " + action.getId() + "\n");

@@ -1613,7 +1613,7 @@ public class CreatePinDescription extends DocumentUtilities {
    }
       
    /**
-    * Write Peripheral Information Class<br>
+    * Write alls Peripheral Information Classes<br>
     * 
     * <pre>
     *  class Adc0Info {
@@ -1639,7 +1639,7 @@ public class CreatePinDescription extends DocumentUtilities {
     *   };
     *   };
     * </pre>
-    * @param pinMappingHeaderFile
+    * @param pinMappingHeaderFile Where to write
     * 
     * @throws Exception 
     */
@@ -1652,70 +1652,8 @@ public class CreatePinDescription extends DocumentUtilities {
             "Peripheral Information Classes", 
             "Provides instance specific information about a peripheral");
 
-      final String DUMMY_TEMPLATE = "         /* %2d */  { 0 },\n";
-      
       for (PeripheralTemplateInformation pinTemplate:PeripheralTemplateInformation.getList()) {
-         if (!pinTemplate.classIsUsed()) {
-            continue;
-         }
-         writeDocBanner(pinMappingHeaderFile, "Peripheral information for "+pinTemplate.getGroupTitle());
-         
-         // Open class
-         pinMappingHeaderFile.write(String.format(
-               "class %s {\n"+
-               "public:\n",
-               pinTemplate.fBaseName+"Info"
-               ));
-         // Additional, peripheral specific, information
-         pinMappingHeaderFile.write(pinTemplate.fInstanceWriter.getInfoConstants());
-         
-         if (pinTemplate.needPcrInfoTable()) {
-            // Signal information table
-            pinMappingHeaderFile.write(String.format(
-                  "   //! Information for each pin of peripheral\n"+
-                        "   static constexpr PcrInfo  info[32] = {\n"+
-                        "\n"
-                  ));
-            pinMappingHeaderFile.write("         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue\n");
-            for (int signalIndex = 0; signalIndex<pinTemplate.getFunctions().size(); signalIndex++) {
-               PeripheralFunction peripheralFunction = pinTemplate.getFunctions().get(signalIndex);
-               if (peripheralFunction == null) {
-                  pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
-                  continue;
-               }
-               ArrayList<MappingInfo> mappedPins = MappingInfo.getPins(peripheralFunction);
-               boolean valueWritten = false;
-               int choice = 1;
-               for (MappingInfo mappedPin:mappedPins) {
-                  if (mappedPin.mux == MuxSelection.Disabled) {
-                     // Disabled selection - ignore
-                     continue;
-                  }
-                  if (mappedPin.mux == MuxSelection.Reset) {
-                     // Reset selection - ignore
-                     continue;
-                  }
-                  if (mappedPin.mux == MuxSelection.Fixed) {
-                     // Fixed pin mapping - handled by default following
-                     continue;
-                  }
-                  writeConditional(pinMappingHeaderFile, String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice), valueWritten);
-                  String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.pin);
-                  pinMappingHeaderFile.write(String.format("         /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.mux.value));
-
-                  valueWritten = true;
-                  choice++;
-               }
-               if (valueWritten) {
-                  writeConditionalElse(pinMappingHeaderFile);
-               }
-               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
-               writeConditionalEnd(pinMappingHeaderFile, valueWritten);
-            }
-            pinMappingHeaderFile.write(String.format("   };\n"));
-         }
-         pinMappingHeaderFile.write(String.format("};\n\n"));
-         pinMappingHeaderFile.write(pinTemplate.fInstanceWriter.getExtraDefinitions());
+         pinTemplate.writeInfoClass(pinMappingHeaderFile);
       }
       writeCloseGroup(pinMappingHeaderFile, "PeripheralPinTables");
       writeCloseNamespace(pinMappingHeaderFile, NAME_SPACE);
