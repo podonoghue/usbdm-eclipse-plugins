@@ -113,7 +113,7 @@ public abstract class MyValidator {
     * Sets the node value & refreshes the viewer
     * 
     * @param viewer        Viewer containing the node
-    * @param node          Node to set error message foe
+    * @param node          Node to set value for
     * @param value         Node value
     * 
     * @note The node is set valid
@@ -146,8 +146,9 @@ public abstract class MyValidator {
     * Sets the node value & refreshes the viewer
     * 
     * @param viewer        Viewer containing the node
-    * @param node          Node to set value for
+    * @param node          Node to set value and message for
     * @param value         Node value
+    * @param mesage        Message to set
     * 
     * @note The node is set valid
     * @note Done delayed on the display thread
@@ -156,7 +157,7 @@ public abstract class MyValidator {
       final long limitedValue = node.limitedValue(value);
       if ((node.safeGetValueAsLong() == limitedValue) && 
           (((node.getErrorMessage() == null) && (message == null)) || 
-           ((message != null) && (message.message == node.getErrorMessage())))) {
+           ((message != null) && (message.equals(node.getMessage()))))) {
          // No update needed (after constricting to target range)
          return;
       }

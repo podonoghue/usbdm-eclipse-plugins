@@ -14,7 +14,32 @@ import org.eclipse.jface.text.IDocument;
  */
 public class AnnotationModel {
 
-   public enum Severity {OK, INFORMATION, WARNING, ERROR};
+   public enum Severity {
+      OK, INFORMATION, WARNING, ERROR;
+
+      /**
+       * Checks if the level is less than the given level
+       * 
+       * @param other
+       * 
+       * @return this&lt;other?
+       */
+      boolean lessThan(Severity other) {
+         return this.ordinal() < other.ordinal();
+      }
+
+      /**
+       * Checks if the level is greater than the given level
+       * 
+       * @param other
+       * 
+       * @return this&gt;other?
+       */
+      boolean greaterThan(Severity other) {
+         return this.ordinal() > other.ordinal();
+      }
+
+   };
 
    /** The root of the model */
    private AnnotationModelNode                   modelRoot  = null;
@@ -787,10 +812,15 @@ public class AnnotationModel {
        * @note May return error message if it exists instead
        */
       public String getToolTip() {
-         if (errorMessage != null) {
-            return errorMessage.message;
+         if (errorMessage == null) {
+            return toolTip;
+         }         
+         if (errorMessage.greaterThan(Severity.WARNING)) {
+            // Just return the error message
+            return errorMessage.getMessage();
          }
-         return toolTip;
+         // Append the error message
+         return toolTip + "\n" + errorMessage.getMessage();
       }
 
       /**
@@ -1005,13 +1035,13 @@ public class AnnotationModel {
 
       /**
        * Checks if node is valid (not in error state)
-       * Note: This will recurse through child nodes and propagate error severity
+       * Note: This will recurse through child nodes and propagate <b>error</b> severity
        * 
        * @return Severity level.
        */
       public Severity getErrorState() {
          if (errorMessage != null) {
-            return errorMessage.severity;
+            return errorMessage.getSeverity();
          }
          for (AnnotationModelNode child:children) {
             if (child.getErrorState() == Severity.ERROR) {
@@ -1032,13 +1062,22 @@ public class AnnotationModel {
       }
       
       /**
-       * Get error message<br>
+       * Get error message as string.<br>
        * May be null
        * 
        * @return
        */
       public String getErrorMessage() {
-         return (errorMessage==null)?null:errorMessage.message;
+         return (errorMessage==null)?null:errorMessage.getMessage();
+      }
+      /**
+       * Get message<br>
+       * May be null
+       * 
+       * @return
+       */
+      public Message getMessage() {
+         return errorMessage;
       }
    }
 
