@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Peripheral {
@@ -81,16 +80,6 @@ public class Peripheral {
       return p;
    }
    
-   /**
-    * List of patterns for peripherals
-    */
-   private static final Pattern patterns[] = {
-         Pattern.compile("^\\s*(PORT)([A-Z])\\s*$"),
-         Pattern.compile("^\\s*(I2C)(\\d*)\\s*$"),
-         Pattern.compile("^\\s*(I2S)(\\d*)\\s*$"),
-         Pattern.compile("^\\s*([^\\d]*)(\\d*)\\s*$")
-   };
-
    /** Base name of the peripheral e.g. FTM0_CH6 = FTM, PTA3 = PT */
    String fBaseName;
    
@@ -105,30 +94,6 @@ public class Peripheral {
 
    /** Clock register mask e.g. ADC0_CLOCK_REG */
    String fClockMask = null;
-
-//   /**
-//    * Create peripheral
-//    * 
-//    * @param name
-//    * @throws Exception
-//    */
-//   private Peripheral(String name) throws Exception {
-////      System.err.println(String.format("Peripheral(%s)", name));
-//      Matcher matcher = null;
-//      for (Pattern pattern:patterns) {
-//         matcher = pattern.matcher(name);
-//         if (matcher.matches()) {
-//            break;
-//         }
-//         matcher = null;
-//      }
-//      if (matcher == null) {
-//         throw new Exception("Failed to match Peripheral name \'" + name + "\'");
-//      }
-//      this.fName = name;
-//      fBaseName  = matcher.group(1);
-//      fInstance  = matcher.group(2);
-//   }
 
    /**
     * Create peripheral

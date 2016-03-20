@@ -34,9 +34,6 @@ public class CreatePinDescription extends DocumentUtilities {
    /** Name of pin-mapping-XX.h header file */
    private String pinMappingHeaderFileName;
 
-   /** Package choice XML file*/
-   private String packageChoiceFileName;
-
    /** Name of gpio-XX.cpp source file */
    private String gpioCppFileName;
 
@@ -2044,7 +2041,7 @@ public class CreatePinDescription extends DocumentUtilities {
          gpioCppFileName   = gpioBaseFileName+"-"+deviceName+".cpp";
          
          pinMappingHeaderFileName = pinMappingBaseFileName+"-"+deviceName+".h";
-         packageChoiceFileName    = pinMappingBaseFileName+"-"+deviceName+".xml";
+//         packageChoiceFileName    = pinMappingBaseFileName+"-"+deviceName+".xml";
          
          System.err.println("deviceName = " + deviceName);
 
