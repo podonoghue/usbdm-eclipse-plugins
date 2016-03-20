@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.annotationEditor.validators;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Severity;
+import net.sourceforge.usbdm.annotationEditor.Message;
 import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -108,19 +110,23 @@ public class ClockValidate_MKE02 extends MyValidator {
       // Core Clock
       //===========================================
       long system_core_clock = system_icsout_clock;
-      String system_core_clockMessage = null;
+      Message system_core_clockMessage = 
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_CORE_CLOCK_FREQ/1000000.0), Severity.INFORMATION);
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0);
+         system_core_clockMessage = 
+               new Message(String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0));
       }
       setValid(viewer, system_core_clockNode, system_core_clockMessage);
 
-      // Bus Clock
+      // Bus/Flash Clock
       //===========================================
       long sim_busdiv_busdiv = sim_busdiv_busdivNode.getValueAsLong();
       long system_bus_clock = system_core_clock / sim_busdiv_busdiv;
-      String system_bus_clockMessage = null;
+      Message system_bus_clockMessage = 
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_FLASH_BUS_CLOCK_FREQ/1000000.0), Severity.INFORMATION);
       if (system_bus_clock > MAX_FLASH_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_BUS_CLOCK_FREQ/1000000.0);
+         system_bus_clockMessage = 
+               new Message(String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_BUS_CLOCK_FREQ/1000000.0));
       }
       setValid(viewer, system_bus_clockNode, system_bus_clockMessage);
       

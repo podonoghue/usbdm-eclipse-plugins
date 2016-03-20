@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Severity;
+import net.sourceforge.usbdm.annotationEditor.Message;
 import net.sourceforge.usbdm.annotationEditor.MyValidator;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -189,9 +191,11 @@ public class ClockValidate_MKMxx extends MyValidator {
       //===========================================
       long sim_clkdiv1_sysdiv = sim_clkdiv1_sysdivNode.getValueAsLong();
       long system_core_clock   = system_mcgout_clock / sim_clkdiv1_sysdiv;
-      String system_core_clockMessage = null;
+      Message system_core_clockMessage = 
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_CORE_CLOCK_FREQ/1000000.0), Severity.INFORMATION);
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0);
+         system_core_clockMessage = 
+               new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0));
 //         System.err.println("ClockValidate_MKMxx.validate() Core clock frequency is too high = " + system_core_clock);
       }
 //      System.err.println("ClockValidate_MKMxx.validate() Core clock frequency = " + system_core_clock + 
@@ -212,9 +216,11 @@ public class ClockValidate_MKMxx extends MyValidator {
       default:
          break;
       }
-      String system_bus_clockMessage = null;
+      Message system_bus_clockMessage = 
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_BUS_CLOCK_FREQ/1000000.0), Severity.INFORMATION);
       if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_BUS_CLOCK_FREQ/1000000.0);
+         system_bus_clockMessage = 
+               new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_BUS_CLOCK_FREQ/1000000.0));
 //         System.err.println("ClockValidate_MKMxx.validate() Bus clock frequency is too high = " + system_bus_clock);
       }
 //      System.err.println("ClockValidate_MKMxx.validate() Bus clock = " + system_bus_clock + 
