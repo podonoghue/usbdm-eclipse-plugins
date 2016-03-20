@@ -153,6 +153,8 @@ public class AnnotationParser {
       if (m.matches()) {
          text = m.group(1);
       }
+      text = text.replaceAll("&lt;", "<");
+      text = text.replaceAll("&gt;", ">");
       if (control.equals("h")) {
          // Start of Heading
          AnnotationModelNode heading = annotationModel.new HeadingModelNode(text);
