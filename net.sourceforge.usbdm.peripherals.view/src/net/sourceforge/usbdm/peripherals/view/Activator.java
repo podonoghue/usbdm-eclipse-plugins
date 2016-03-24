@@ -55,6 +55,10 @@ public class Activator extends AbstractUIPlugin {
 		return plugin;
 	}
 
+   public static BundleContext getBundleContext() {
+      return getDefault().getBundle().getBundleContext();
+   }
+
    @Override
    protected void initializeImageRegistry(ImageRegistry registry) {
        super.initializeImageRegistry(registry);
@@ -116,8 +120,4 @@ public class Activator extends AbstractUIPlugin {
 	   return getImageRegistry().getDescriptor(key);
 	}
    
-   public static BundleContext getBundleContext() {
-      return getDefault().getBundle().getBundleContext();
-   }
-
 }
