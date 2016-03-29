@@ -17,7 +17,7 @@ import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
 
-public class MultiPageAnnotationEditor extends MultiPageEditorPart implements IResourceChangeListener{
+public class MultiPageAnnotationEditor extends MultiPageEditorPart implements IResourceChangeListener {
 
 	private BasicCEditor     editor;
 	private AnnotationEditor annotationEditor;

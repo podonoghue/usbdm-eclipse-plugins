@@ -55,6 +55,17 @@ public class Activator extends AbstractUIPlugin {
       return plugin;
    }
 
+   /**
+    * Returns an image descriptor based on an key
+    *
+    * @param key Key to lookup image 
+    * 
+    * @return The image descriptor
+    */
+   public ImageDescriptor getImageDescriptor(String key) {
+      return getImageRegistry().getDescriptor(key);
+   }
+
    @Override
    protected void initializeImageRegistry(ImageRegistry registry) {
       super.initializeImageRegistry(registry);
@@ -78,9 +89,4 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_INVALID_NODE_IMAGE        = "error";
    public final static String ID_WARNING_NODE_IMAGE        = "warning";
    public final static String ID_LOCKED_NODE_IMAGE         = "locked";
-
-   public ImageDescriptor getImageDescriptor(String key) {
-      return getImageRegistry().getDescriptor(key);
-   }
-
 }
