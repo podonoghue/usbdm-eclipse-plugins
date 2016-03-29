@@ -179,26 +179,18 @@ public class PeripheralConfigurationEditor extends EditorPart implements IDocume
 
    @Override
    public void documentAboutToBeChanged(DocumentEvent arg0) {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
    public void documentChanged(DocumentEvent arg0) {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
    public void doSave(IProgressMonitor arg0) {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
    public void doSaveAs() {
-      // TODO Auto-generated method stub
-      
    }
 
    @Override
