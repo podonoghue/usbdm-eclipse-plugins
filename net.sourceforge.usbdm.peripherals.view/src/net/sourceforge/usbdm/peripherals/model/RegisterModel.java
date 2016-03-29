@@ -288,7 +288,6 @@ import net.sourceforge.usbdm.peripheralDatabase.RegisterException;
       public void notifyMemoryChanged(MemoryBlockCache memoryBlockCache) {
 
          ((RegisterHolder)(fParent)).registerChanged(this);
-         //XXX
          notifyListeners();
 
 //         if (memoryBlockCache.isChanged(fAddress, (fSizeInBits+7)/8)) {
