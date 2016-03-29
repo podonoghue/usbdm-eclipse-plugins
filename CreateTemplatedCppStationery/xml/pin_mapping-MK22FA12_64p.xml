@@ -16,50 +16,76 @@
       <pin name="ADC0_DM0"     isFixed="true">
          <mux sel="fixed"         function="ADC0_DM0" />
          <mux sel="fixed"         function="ADC1_DM3" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC0_DP0"     isFixed="true">
          <mux sel="fixed"         function="ADC0_DP0" />
          <mux sel="fixed"         function="ADC1_DP3" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC1_DM0"     isFixed="true">
          <mux sel="fixed"         function="ADC1_DM0" />
          <mux sel="fixed"         function="ADC0_DM3" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC1_DP0"     isFixed="true">
          <mux sel="fixed"         function="ADC1_DP0" />
          <mux sel="fixed"         function="ADC0_DP3" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="DAC0_OUT"     isFixed="true">
          <mux sel="fixed"         function="DAC0_OUT" />
          <mux sel="fixed"         function="CMP1_IN3" />
          <mux sel="fixed"         function="ADC0_SE23" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="EXTAL32"      isFixed="true">
          <mux sel="fixed"         function="EXTAL32" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="RESET_b"      isFixed="true">
          <mux sel="fixed"         function="RESET_b" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="USB0_DM"      isFixed="true">
          <mux sel="fixed"         function="USB0_DM" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="USB0_DP"      isFixed="true">
          <mux sel="fixed"         function="USB0_DP" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="VOUT33"       isFixed="true">
          <mux sel="fixed"         function="VOUT33" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="VREF_OUT"     isFixed="true">
          <mux sel="fixed"         function="VREF_OUT" />
          <mux sel="fixed"         function="CMP1_IN5" />
          <mux sel="fixed"         function="CMP0_IN5" />
          <mux sel="fixed"         function="ADC1_SE18" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="VREGIN"       isFixed="true">
          <mux sel="fixed"         function="VREGIN" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="XTAL32"       isFixed="true">
          <mux sel="fixed"         function="XTAL32" />
+         <reset sel="fixed" />
+         <default sel="fixed" />
       </pin>
       <pin name="PTA0">
          <mux sel="mux1"          function="GPIOA_0" />
@@ -116,7 +142,7 @@
          <mux sel="mux5"          function="CMP2_OUT" />
          <mux sel="mux6"          function="I2S0_TX_BCLK" />
          <mux sel="mux7"          function="JTAG_TRST_b" />
-         <reset sel="disabled" />
+         <reset sel="mux7" />
          <default sel="mux1" />
       </pin>
       <pin name="PTA12">
@@ -200,42 +226,46 @@
          <default sel="mux1" />
       </pin>
       <pin name="PTB16">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOB_16" />
          <mux sel="mux3"          function="UART0_RX" />
          <mux sel="mux4"          function="FTM_CLKIN0" />
          <mux sel="mux5"          function="FB_AD17" />
          <mux sel="mux6"          function="EWM_IN" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux3" />
       </pin>
       <pin name="PTB17">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOB_17" />
          <mux sel="mux3"          function="UART0_TX" />
          <mux sel="mux4"          function="FTM_CLKIN1" />
          <mux sel="mux5"          function="FB_AD16" />
          <mux sel="mux6"          function="EWM_OUT_b" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux3" />
       </pin>
       <pin name="PTB18">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOB_18" />
          <mux sel="mux2"          function="CAN0_TX" />
          <mux sel="mux3"          function="FTM2_CH0" />
          <mux sel="mux4"          function="I2S0_TX_BCLK" />
          <mux sel="mux5"          function="FB_AD15" />
          <mux sel="mux6"          function="FTM2_QD_PHA" />
-         <reset sel="disabled" />
-         <default sel="disabled" />
+         <reset sel="mux0" />
+         <default sel="mux0" />
       </pin>
       <pin name="PTB19">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOB_19" />
          <mux sel="mux2"          function="CAN0_RX" />
          <mux sel="mux3"          function="FTM2_CH1" />
          <mux sel="mux4"          function="I2S0_TX_FS" />
          <mux sel="mux5"          function="FB_OE_b" />
          <mux sel="mux6"          function="FTM2_QD_PHB" />
-         <reset sel="disabled" />
-         <default sel="disabled" />
+         <reset sel="mux0" />
+         <default sel="mux0" />
       </pin>
       <pin name="PTC0">
          <mux sel="mux0"          function="ADC0_SE14" />
@@ -284,6 +314,7 @@
          <default sel="mux1" />
       </pin>
       <pin name="PTC4">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOC_4" />
          <mux sel="mux1"          function="LLWU_P8" />
          <mux sel="mux2"          function="SPI0_PCS0" />
@@ -291,10 +322,11 @@
          <mux sel="mux4"          function="FTM0_CH3" />
          <mux sel="mux5"          function="FB_AD11" />
          <mux sel="mux6"          function="CMP1_OUT" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTC5">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOC_5" />
          <mux sel="mux1"          function="LLWU_P9" />
          <mux sel="mux2"          function="SPI0_SCK" />
@@ -303,7 +335,7 @@
          <mux sel="mux5"          function="FB_AD10" />
          <mux sel="mux6"          function="CMP0_OUT" />
          <mux sel="mux7"          function="FTM0_CH2" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTC6">
@@ -371,6 +403,7 @@
          <default sel="mux1" />
       </pin>
       <pin name="PTD0">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOD_0" />
          <mux sel="mux1"          function="LLWU_P12" />
          <mux sel="mux2"          function="SPI0_PCS0" />
@@ -379,7 +412,7 @@
          <mux sel="mux5"          function="FB_ALE" />
          <mux sel="mux5"          function="FB_CS1_b" />
          <mux sel="mux5"          function="FB_TS_b" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTD1">
@@ -393,6 +426,7 @@
          <default sel="mux1" />
       </pin>
       <pin name="PTD2">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOD_2" />
          <mux sel="mux1"          function="LLWU_P13" />
          <mux sel="mux2"          function="SPI0_SOUT" />
@@ -400,20 +434,22 @@
          <mux sel="mux4"          function="FTM3_CH2" />
          <mux sel="mux5"          function="FB_AD4" />
          <mux sel="mux7"          function="I2C0_SCL" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTD3">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOD_3" />
          <mux sel="mux2"          function="SPI0_SIN" />
          <mux sel="mux3"          function="UART2_TX" />
          <mux sel="mux4"          function="FTM3_CH3" />
          <mux sel="mux5"          function="FB_AD3" />
          <mux sel="mux7"          function="I2C0_SDA" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTD4">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOD_4" />
          <mux sel="mux1"          function="LLWU_P14" />
          <mux sel="mux2"          function="SPI0_PCS1" />
@@ -421,7 +457,7 @@
          <mux sel="mux4"          function="FTM0_CH4" />
          <mux sel="mux5"          function="FB_AD2" />
          <mux sel="mux6"          function="EWM_IN" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTD5">
@@ -449,12 +485,13 @@
          <default sel="mux0" />
       </pin>
       <pin name="PTD7">
+         <mux sel="mux0"          function="Disabled" />
          <mux sel="mux1"          function="GPIOD_7" />
          <mux sel="mux2"          function="CMT_IRO" />
          <mux sel="mux3"          function="UART0_TX" />
          <mux sel="mux4"          function="FTM0_CH7" />
          <mux sel="mux6"          function="FTM0_FLT1" />
-         <reset sel="disabled" />
+         <reset sel="mux0" />
          <default sel="mux1" />
       </pin>
       <pin name="PTE0">
@@ -591,11 +628,66 @@
       </package>
    </packages>
    <peripherals>
-      <peripheral name="GpioA" />
-      <peripheral name="GpioB" />
-      <peripheral name="GpioC" />
-      <peripheral name="GpioD" />
-      <peripheral name="GpioE" />
+      <peripheral name="GpioA">
+         <pcrs>
+            <pcr index="0"           function="GPIOA_0" />
+            <pcr index="1"           function="GPIOA_1" />
+            <pcr index="2"           function="GPIOA_2" />
+            <pcr index="3"           function="GPIOA_3" />
+            <pcr index="4"           function="GPIOA_4" />
+            <pcr index="5"           function="GPIOA_5" />
+            <pcr index="12"          function="GPIOA_12" />
+            <pcr index="13"          function="GPIOA_13" />
+            <pcr index="18"          function="GPIOA_18" />
+            <pcr index="19"          function="GPIOA_19" />
+         </pcrs>
+      </peripheral>
+      <peripheral name="GpioB">
+         <pcrs>
+            <pcr index="0"           function="GPIOB_0" />
+            <pcr index="1"           function="GPIOB_1" />
+            <pcr index="2"           function="GPIOB_2" />
+            <pcr index="3"           function="GPIOB_3" />
+            <pcr index="16"          function="GPIOB_16" />
+            <pcr index="17"          function="GPIOB_17" />
+            <pcr index="18"          function="GPIOB_18" />
+            <pcr index="19"          function="GPIOB_19" />
+         </pcrs>
+      </peripheral>
+      <peripheral name="GpioC">
+         <pcrs>
+            <pcr index="0"           function="GPIOC_0" />
+            <pcr index="1"           function="GPIOC_1" />
+            <pcr index="2"           function="GPIOC_2" />
+            <pcr index="3"           function="GPIOC_3" />
+            <pcr index="4"           function="GPIOC_4" />
+            <pcr index="5"           function="GPIOC_5" />
+            <pcr index="6"           function="GPIOC_6" />
+            <pcr index="7"           function="GPIOC_7" />
+            <pcr index="8"           function="GPIOC_8" />
+            <pcr index="9"           function="GPIOC_9" />
+            <pcr index="10"          function="GPIOC_10" />
+            <pcr index="11"          function="GPIOC_11" />
+         </pcrs>
+      </peripheral>
+      <peripheral name="GpioD">
+         <pcrs>
+            <pcr index="0"           function="GPIOD_0" />
+            <pcr index="1"           function="GPIOD_1" />
+            <pcr index="2"           function="GPIOD_2" />
+            <pcr index="3"           function="GPIOD_3" />
+            <pcr index="4"           function="GPIOD_4" />
+            <pcr index="5"           function="GPIOD_5" />
+            <pcr index="6"           function="GPIOD_6" />
+            <pcr index="7"           function="GPIOD_7" />
+         </pcrs>
+      </peripheral>
+      <peripheral name="GpioE">
+         <pcrs>
+            <pcr index="0"           function="GPIOE_0" />
+            <pcr index="1"           function="GPIOE_1" />
+         </pcrs>
+      </peripheral>
       <peripheral name="Adc0">
          <pcrs>
             <pcr index="4"           function="ADC0_SE4b" />
@@ -609,9 +701,12 @@
             <pcr index="14"          function="ADC0_SE14" />
             <pcr index="15"          function="ADC0_SE15" />
             <pcr index="23"          function="ADC0_SE23" />
+            <pcr index="0"           function="ADC0_DP0" />
+            <pcr index="3"           function="ADC0_DP3" />
+            <pcr index="0"           function="ADC0_DM0" />
+            <pcr index="3"           function="ADC0_DM3" />
          </pcrs>
       </peripheral>
-      <peripheral name="Adc0a" />
       <peripheral name="Adc1">
          <pcrs>
             <pcr index="4"           function="ADC1_SE4b" />
@@ -621,12 +716,12 @@
             <pcr index="8"           function="ADC1_SE8" />
             <pcr index="9"           function="ADC1_SE9" />
             <pcr index="18"          function="ADC1_SE18" />
-         </pcrs>
-      </peripheral>
-      <peripheral name="Adc1a">
-         <pcrs>
-            <pcr index="4"           function="ADC1_SE4a" />
-            <pcr index="5"           function="ADC1_SE5a" />
+            <pcr index="36"          function="ADC1_SE4a" />
+            <pcr index="37"          function="ADC1_SE5a" />
+            <pcr index="0"           function="ADC1_DP0" />
+            <pcr index="3"           function="ADC1_DP3" />
+            <pcr index="0"           function="ADC1_DM0" />
+            <pcr index="3"           function="ADC1_DM3" />
          </pcrs>
       </peripheral>
       <peripheral name="Cmp0">
@@ -636,6 +731,7 @@
             <pcr index="2"           function="CMP0_IN2" />
             <pcr index="3"           function="CMP0_IN3" />
             <pcr index="5"           function="CMP0_IN5" />
+            <pcr index="8"           function="CMP0_OUT" />
          </pcrs>
       </peripheral>
       <peripheral name="Cmp1">
@@ -644,12 +740,14 @@
             <pcr index="1"           function="CMP1_IN1" />
             <pcr index="3"           function="CMP1_IN3" />
             <pcr index="5"           function="CMP1_IN5" />
+            <pcr index="8"           function="CMP1_OUT" />
          </pcrs>
       </peripheral>
       <peripheral name="Cmp2">
          <pcrs>
             <pcr index="0"           function="CMP2_IN0" />
             <pcr index="1"           function="CMP2_IN1" />
+            <pcr index="8"           function="CMP2_OUT" />
          </pcrs>
       </peripheral>
       <peripheral name="DmaMux0" />
@@ -784,5 +882,8 @@
             <pcr index="0"           function="VREF_OUT" />
          </pcrs>
       </peripheral>
+      <peripheral name="I2s0" />
+      <peripheral name="Ewm" />
+      <peripheral name="Cmt" />
    </peripherals>
 </root>
