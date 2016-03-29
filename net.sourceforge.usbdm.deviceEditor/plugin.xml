@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="USBDM Device Configuration Editor"
+            extensions="csv,xml"
+            icon="icons/cog.png"
+            contributorClass="net.sourceforge.usbdm.deviceEditor.editor.DeviceEditorContributor"
+            class="net.sourceforge.usbdm.deviceEditor.editor.DeviceEditor"
+            id="net.sourceforge.usbdm.deviceEditor.editor.DeviceEditor">
+      </editor>
+   </extension>
+</plugin>
