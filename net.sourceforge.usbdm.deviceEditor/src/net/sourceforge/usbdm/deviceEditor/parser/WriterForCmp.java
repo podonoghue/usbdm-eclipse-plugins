@@ -2,9 +2,10 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -16,8 +17,8 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  */
 public class WriterForCmp extends WriterBase {
 
-   public WriterForCmp(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForCmp(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
 
    /* (non-Javadoc)
@@ -25,7 +26,7 @@ public class WriterForCmp extends WriterBase {
     */
    @Override
    public String getAliasName(String signalName, String alias) {
-      return fOwner.getAliasBaseName()+alias;
+      return getClassName()+alias;
    }
 
    /* (non-Javadoc)
@@ -35,22 +36,9 @@ public class WriterForCmp extends WriterBase {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return fOwner.getInstanceBaseName()+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
-
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
-    */
-   @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-   
+ 
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
     Pattern p = Pattern.compile("IN(\\d+)");
@@ -68,11 +56,6 @@ public class WriterForCmp extends WriterBase {
  }
    
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   @Override
    public boolean useAliases(PinInformation pinInfo) {
       return false;
    }
@@ -85,5 +68,11 @@ public class WriterForCmp extends WriterBase {
    @Override
    public String getGroupBriefDescription() {
       return "Pins used for Analogue Comparator";
+   }
+
+   @Override
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
+      // TODO Auto-generated method stub
+      return null;
    }
 }

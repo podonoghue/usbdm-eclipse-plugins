@@ -19,14 +19,14 @@
    <!ATTLIST pin isFixed     (true|false) "false">
    
  <!ELEMENT mux EMPTY >
-   <!ATTLIST mux sel         (fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
+   <!ATTLIST mux sel         (reset|fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
    <!ATTLIST mux function    CDATA #REQUIRED>
    
  <!ELEMENT reset EMPTY >
-   <!ATTLIST reset sel         (fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
+   <!ATTLIST reset sel         (reset|fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
    
  <!ELEMENT default EMPTY >
-   <!ATTLIST default sel         (fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
+   <!ATTLIST default sel         (reset|fixed|mux0|mux1|mux2|mux3|mux4|mux5|mux6|mux7|disabled) #REQUIRED>
    
  <!ELEMENT packages (package*) >
    
@@ -39,11 +39,18 @@
    
  <!ELEMENT peripherals (peripheral*) >
    
- <!ELEMENT peripheral (pcrs*) >
+ <!ELEMENT peripheral (clock*,irq*) >
    <!ATTLIST peripheral name        CDATA #REQUIRED>
  
  <!ELEMENT pcrs (pcr*) >
- 
+
+ <!ELEMENT clock EMPTY >
+   <!ATTLIST clock clockReg        CDATA #REQUIRED>
+   <!ATTLIST clock clockMask       CDATA #REQUIRED>
+
+ <!ELEMENT irq EMPTY >
+   <!ATTLIST irq num        CDATA #REQUIRED>
+    
  <!ELEMENT pcr EMPTY >
    <!ATTLIST pcr index        CDATA #REQUIRED>
    <!ATTLIST pcr function     CDATA #REQUIRED>

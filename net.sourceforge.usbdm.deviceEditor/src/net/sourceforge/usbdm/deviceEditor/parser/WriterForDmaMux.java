@@ -1,9 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 
+import java.io.IOException;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -15,13 +18,13 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  */
 public class WriterForDmaMux extends WriterBase {
 
+   public WriterForDmaMux(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
+   }
+
    static final String ALIAS_BASE_NAME       = "vref_";
    static final String CLASS_BASE_NAME       = "Vref";
    static final String INSTANCE_BASE_NAME    = "vref";
-
-   public WriterForDmaMux(PeripheralTemplateInformation owner) {
-      super(owner);
-   }
 
    /* (non-Javadoc)
     * @see InstanceWriter#getAliasName(java.lang.String)
@@ -53,15 +56,12 @@ public class WriterForDmaMux extends WriterBase {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, fOwner.getClassName(), signal));
+      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
-   /* (non-Javadoc)
-    * @see InstanceWriter#needPcrTable()
-    */
+   
    @Override
-   public boolean needPeripheralInformationClass() {
-      return false;
+   public void writeInfoClass(DeviceInformation deviceInformation, DocumentUtilities writer) throws IOException {
    }
 
    @Override
@@ -90,7 +90,7 @@ public class WriterForDmaMux extends WriterBase {
    public String getTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
             "template<uint8_t channel> using %s = Vref<%sInfo>;\n\n",
-            fOwner.getClassName(), fOwner.getClassName());
+            getClassName(), getClassName());
    }
 
    @Override

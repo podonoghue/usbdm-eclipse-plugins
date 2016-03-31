@@ -62,12 +62,12 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          fSelection = fDefaultSelection;
       }
       MappingInfo  mappedFunction  = fMappingInfos.get(fSelection);
-      MuxSelection muxValue = MuxSelection.disabled;         
-      if (fMappingInfos.get(fSelection) != null) {
-         muxValue = fMappingInfos.get(fSelection).getMux();
-      }
-      System.err.println("===================================================================");
-      System.err.println("Pin("+fName+")::setValue("+fSelection+") => "+muxValue+", "+mappedFunction);
+//      MuxSelection muxValue = MuxSelection.disabled;         
+//      if (fMappingInfos.get(fSelection) != null) {
+//         muxValue = fMappingInfos.get(fSelection).getMux();
+//      }
+//      System.err.println("===================================================================");
+//      System.err.println("Pin("+fName+")::setValue("+fSelection+") => "+muxValue+", "+mappedFunction);
       for (MappingInfo mappingInfo:fMappingInfos) {
          if ((mappingInfo != null) && (mappingInfo != mappedFunction)) {
             mappingInfo.select(MappingInfo.Origin.pin, false);
@@ -101,7 +101,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          if (selected) {
             // A function has been mapped to this pin - do update if needed
             if (fSelection != changedSelection) {
-               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
                fSelection = changedSelection;
                //               notifyMuxChange();
                for (TreeViewer viewer:getViewers()) {
@@ -112,7 +112,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          else {
             if (fSelection == changedSelection) {
                // The current function has been unmapped from this pin 
-               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
                fSelection = 0;
                //               notifyMuxChange();
                for (TreeViewer viewer:getViewers()) {

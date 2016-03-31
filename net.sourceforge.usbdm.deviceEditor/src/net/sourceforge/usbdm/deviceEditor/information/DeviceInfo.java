@@ -2,19 +2,22 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.sourceforge.usbdm.deviceEditor.parser.WriterBase;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForAnalogueIO;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForDigitalIO;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForDmaMux;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForI2c;
+import net.sourceforge.usbdm.deviceEditor.parser.WriterForI2s;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForMisc;
+import net.sourceforge.usbdm.deviceEditor.parser.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForPwmIO_FTM;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForPwmIO_TPM;
@@ -27,27 +30,24 @@ public class DeviceInfo {
 
    /** Version number */
    public static final String VERSION           = "1.2.0";
-   
+
    /** DTD file to reference in XML */
    public static final String DTD_FILE          = "Pins.dtd";
-   
+
    /** Name space for C files */
    public static final String NAME_SPACE        = "USBDM";
-   
-   /** MACRO guard for name space */
-   public static final String NAMESPACES_GUARD  = "USE_USBDM_NAMESPACE";
-   
+
    /** How to handle existing files etc */
    enum Mode {newInstance, anyInstance, allowNullInstance};
    /** Device families */
    public enum DeviceFamily {mk, mke, mkl, mkm};
-   
+
    /** Name of the device e.g. MKL25Z4 */
    private final String       fDeviceName;
-   
+
    /** Source file containing device description */
    private final String       fSourceFilename;
-   
+
    /** Device family for this device */
    private final DeviceFamily fDeviceFamily;
 
@@ -111,23 +111,23 @@ public class DeviceInfo {
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
     * @param instance   Instance of peripheral e.g. FTM2 => 2     
-    * @param description 
+    * @param writerBase 
     * 
     * @return
     */
-   public Peripheral createPeripheral(String baseName, String instance, String description) {  
+   public Peripheral createPeripheral(String baseName, String instance, WriterBase writerBase, PeripheralTemplateInformation template) {  
       String name = baseName+instance;
       Peripheral p = fPeripheralsMap.get(name);
       if (p!= null) {
          throw new RuntimeException("Attempting to re-create peripheral instance " + name);
       }
-      p = new Peripheral(baseName, instance, description);
+      p = new Peripheral(baseName, instance, template);
       fPeripheralsMap.put(name, p);
       return p;
    }
 
    /**
-    * Get existing peripheral
+    * Find or create a peripheral
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
     * @param instance   Instance of peripheral e.g. FTM2 => 2 
@@ -135,16 +135,16 @@ public class DeviceInfo {
     * 
     * @return
     */
-   public Peripheral findOrCreatePeripheral(String baseName, String instance, String description) {  
+   public Peripheral findOrCreatePeripheral(String baseName, String instance, WriterBase writerBase, PeripheralTemplateInformation template) {  
       Peripheral p = fPeripheralsMap.get(baseName+instance);
       if (p == null) {
-         p = createPeripheral(baseName, instance, description);
+         p = createPeripheral(baseName, instance, writerBase, template);
       }
       return p;
    }
 
    /**
-    * Get existing peripheral
+    * Find an existing peripheral
     * 
     * @param name   Name e.g. FTM3
     * 
@@ -159,9 +159,10 @@ public class DeviceInfo {
    }
 
    /**
-    * Get existing peripheral
+    * Find an existing peripheral
     * 
-    * @param name   Name e.g. FTM3
+    * @param baseName   Base name e.g. FTM3 => FTM
+    * @param instance   Name e.g. FTM3 => 3
     * 
     * @return
     */
@@ -263,7 +264,7 @@ public class DeviceInfo {
       // Add to map
       fPeripheralFunctions.put(name, peripheralFunction);
       peripheral.addFunction(peripheralFunction);
-      
+
       return peripheralFunction;
    }
 
@@ -285,8 +286,8 @@ public class DeviceInfo {
       if (peripheralFunction != null) {
          return peripheralFunction;
       }
-      for(PeripheralTemplateInformation functionTemplateInformation:getTemplateList()) {
-         peripheralFunction = functionTemplateInformation.appliesTo(this, name);
+      for(PeripheralTemplateInformation functionTemplateInformation:getFunctionTemplateList()) {
+         peripheralFunction = functionTemplateInformation.createFunction(this, name);
          if (peripheralFunction != null) {
             peripheralFunction.setIncluded(true);
             peripheralFunction.setTemplate(functionTemplateInformation);
@@ -297,13 +298,36 @@ public class DeviceInfo {
    }
 
    /**
+    * Find or Create a peripheral<br>
+    * e.g. findPeripheralFunction("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
+    * Checks against all templates.
+    * 
+    * @return Peripheral if found or name matches an expected pattern
+    * 
+    * @throws Exception if name does fit expected form
+    */
+   public Peripheral findOrCreatePeripheral(String name) {
+      Peripheral peripheral = fPeripheralsMap.get(name);
+      if (peripheral != null) {
+         return peripheral;
+      }
+      for(PeripheralTemplateInformation functionTemplateInformation:getFunctionTemplateList()) {
+         peripheral = functionTemplateInformation.createPeripheral(this, name);
+         if (peripheral != null) {
+            return peripheral;
+         }         
+      }
+      throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
+   }
+
+   /**
     * Find or Create peripheral function<br>
     * e.g. findPeripheralFunction("FTM0_CH6") => <i>PeripheralFunction</i>(FTM, 0, 6)<br>
     * Checks against all templates.
     * 
-    * @return Function if found or matches an expected pattern
+    * @return Function if found or name matches an expected pattern
     * 
-    * @throws Exception if function does fit expected form
+    * @throws Exception if name does fit expected form
     */
    public PeripheralFunction findPeripheralFunction(String name) {
       PeripheralFunction peripheralFunction = null;
@@ -383,11 +407,6 @@ public class DeviceInfo {
     */
    private Map<PeripheralFunction, ArrayList<MappingInfo>> fPeripheralFunctionMap = new TreeMap<PeripheralFunction, ArrayList<MappingInfo>>();
 
-   /** 
-    * Map from base names to Map of pins having that facility 
-    */
-   private Map<String, HashSet<PinInformation>> fFunctionsByBaseName = new TreeMap<String, HashSet<PinInformation>>();
-
    /**
     * Add info to map by function
     * 
@@ -435,37 +454,8 @@ public class DeviceInfo {
       }
       mapInfo.getFunctions().add(function);
       addToFunctionMap(function, mapInfo);
-      if (function.getName().startsWith("ADC0_SE4b")) {
-         // XXX Delete me
-         System.err.println("Stop here");
-      }
       function.addMapping(mapInfo);
       return mapInfo;
-   }
-
-   /**
-    * Get map of functions for given base name
-    * 
-    * @param baseName
-    * @return
-    */
-   public HashSet<PinInformation> getFunctionType(String baseName) {
-      return fFunctionsByBaseName.get(baseName);
-   }
-
-   /**
-    * Add pin to 
-    * 
-    * @param baseName
-    * @param pinInfo
-    */
-   public void addFunctionType(String baseName, PinInformation pinInfo) {
-      // Record pin as having this function
-      HashSet<PinInformation> set = fFunctionsByBaseName.get(baseName);
-      if (set == null) {
-         set = new HashSet<PinInformation>();
-      }
-      set.add(pinInfo);
    }
 
    /*
@@ -535,7 +525,7 @@ public class DeviceInfo {
     * 
     * @return
     */
-   public ArrayList<PeripheralTemplateInformation> getTemplateList() {
+   public ArrayList<PeripheralTemplateInformation> getFunctionTemplateList() {
       return fTemplateList;
    }
 
@@ -557,15 +547,33 @@ public class DeviceInfo {
 
    /**
     * 
-    * @param className              Base name of C peripheral class e.g. FTM2 => Ftm
-    * @param instance               Instance e.g. FTM2 => "2"
+    * @param namePattern            Pattern to extract peripheral base name e.g. FTM2 => Ftm
+    * @param instancePattern        Pattern to extract instance e.g. FTM2 => "2"
     * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
     * @param deviceFamily           Device family
     * @param instanceWriter         InstanceWriter to use
     */
    private PeripheralTemplateInformation createPeripheralTemplateInformation(
-         String        classBasename,   
-         String        instance, 
+         String        namePattern,   
+         String        instancePattern, 
+         String        matchTemplate, 
+         DeviceFamily  deviceFamily, 
+         Class<?>      instanceWriterClass) {
+      return createPeripheralTemplateInformation(namePattern, instancePattern, "$3", matchTemplate, deviceFamily, instanceWriterClass);
+   }
+
+   /**
+    * 
+    * @param namePattern            Pattern to extract peripheral base name e.g. FTM2 => Ftm
+    * @param instancePattern        Pattern to extract instance e.g. FTM2 => "2"
+    * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
+    * @param deviceFamily           Device family
+    * @param instanceWriter         InstanceWriter to use
+    */
+   private PeripheralTemplateInformation createPeripheralTemplateInformation(
+         String        namePattern,   
+         String        instancePattern, 
+         String        signalPattern, 
          String        matchTemplate, 
          DeviceFamily  deviceFamily, 
          Class<?>      instanceWriterClass) {
@@ -573,8 +581,7 @@ public class DeviceInfo {
       PeripheralTemplateInformation template = null; 
 
       try {
-         template = new PeripheralTemplateInformation(
-               this, deviceFamily, classBasename, classBasename.toUpperCase(), instance, matchTemplate, instanceWriterClass);
+         template = new PeripheralTemplateInformation(this, deviceFamily, namePattern, signalPattern, instancePattern, matchTemplate, instanceWriterClass);
          fTemplateList.add(template);
       }
       catch (Exception e) {
@@ -583,215 +590,255 @@ public class DeviceInfo {
       return template;
    }
 
-   /**
-    * 
-    * @param classBasename          Base name of C peripheral class e.g. FTM2 => Ftm
-    * @param peripheralBasename     Base name of peripheral e.g. FTM2 => FTM
-    * @param instance               Instance e.g. FTM2 => "2"
-    * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
-    * @param deviceFamily           Device family
-    * @param instanceWriter         InstanceWriter to use
-    */
-   public PeripheralTemplateInformation createPeripheralTemplateInformation(
-         String         classBasename,   
-         String         peripheralBasename,   
-         String         instance, 
-         String         matchTemplate, 
-         DeviceFamily   deviceFamily, 
-         Class<?>       instanceWriterClass) throws Exception {
-
-      PeripheralTemplateInformation template = null;
-      try {
-         template = 
-               new PeripheralTemplateInformation(
-                     this, deviceFamily, classBasename, peripheralBasename, instance, matchTemplate, instanceWriterClass);
-         fTemplateList.add(template);
-      }
-      catch (Exception e) {
-         throw new RuntimeException(e);
-      }
-      return template;
-   }
+   //   /**
+   //    * 
+   //    * @param namePattern          Base name of C peripheral class e.g. FTM2 => Ftm
+   //    * @param peripheralBasename     Base name of peripheral e.g. FTM2 => FTM
+   //    * @param instancePattern               Instance e.g. FTM2 => "2"
+   //    * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
+   //    * @param deviceFamily           Device family
+   //    * @param instanceWriter         InstanceWriter to use
+   //    */
+   //   public PeripheralTemplateInformation createPeripheralTemplateInformation(
+   //         String         namePattern,   
+   //         String         peripheralBasename,   
+   //         String         instancePattern, 
+   //         String         matchTemplate, 
+   //         DeviceFamily   deviceFamily, 
+   //         Class<?>       instanceWriterClass) throws Exception {
+   //
+   //      PeripheralTemplateInformation template = null;
+   //      try {
+   //         template = 
+   //               new PeripheralTemplateInformation(
+   //                     this, deviceFamily, namePattern, peripheralBasename, instancePattern, matchTemplate, instanceWriterClass);
+   //         fTemplateList.add(template);
+   //      }
+   //      catch (Exception e) {
+   //         throw new RuntimeException(e);
+   //      }
+   //      return template;
+   //   }
 
    /**
     * Set up templates
     */
    public void initialiseTemplates() throws Exception {
-      for (char instance='A'; instance<='I'; instance++) {
-         createPeripheralTemplateInformation(
-               "Gpio", "PORT", Character.toString(instance),
-               "^\\s*(GPIO)("+instance+")_(\\d+)\\s*$",
-               getDeviceFamily(),
-               WriterForDigitalIO.class);
-      }
-      //          for (char suffix='A'; suffix<='I'; suffix++) {
-      //             new createPeripheralTemplateInformation(
-      //                   "Gpio", "PORT", "Port_Group",  "Port Definitions",               
-      //                   "Information required to manipulate PORT PCRs & associated GPIOs", 
-      //                   null,
-      //                   new WriterForPort(deviceIsMKE));
-      //          }
-
+      createPeripheralTemplateInformation(
+            "GPIO", "$2", "$4",
+            "^(GPIO|PORT)([A-I])(_(\\d+))?$",
+            getDeviceFamily(),
+            WriterForDigitalIO.class);
       if (getDeviceFamily() != DeviceFamily.mkm) {
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Adc", Character.toString(instance),
-                  "(ADC)("+instance+")_((SE|DM|DP)\\d+(a|b)?)",
-                  getDeviceFamily(),
-                  WriterForAnalogueIO.class);
-         }
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Cmp", Character.toString(instance),
-                  "(CMP)("+instance+")_((IN\\d)|(OUT))",
-                  getDeviceFamily(),
-                  WriterForCmp.class);
-         }
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(ADC)([0-3])_((SE|DM|DP)\\d+(a|b)?)",
+               getDeviceFamily(),
+               WriterForAnalogueIO.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(CMP)([0-3])?_(.*)",
+               getDeviceFamily(),
+               WriterForCmp.class);
          createPeripheralTemplateInformation(
                "DmaMux", "0",  
                null,
                getDeviceFamily(),
                WriterForDmaMux.class);
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Ftm", Character.toString(instance),
-                  "(FTM)("+instance+")_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
-                  getDeviceFamily(),
-                  WriterForPwmIO_FTM.class);
-         }
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "I2c", Character.toString(instance),
-                  "(I2C)("+instance+")_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
-                  getDeviceFamily(),
-                  WriterForI2c.class);
-         }
          createPeripheralTemplateInformation(
-               "Lptmr", "0",
+               "$1", "$2",
+               "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
+               getDeviceFamily(),
+               WriterForPwmIO_FTM.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(I2C)([0-3])_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
+               getDeviceFamily(),
+               WriterForI2c.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(I2S)([0-3])_(MCLK|(RXD(\\d+))|RX_BCLK|RX_FS|(TXD(\\d+))|TX_BCLK|TX_FS|xxx|(RW(_b)?)|(TS(_b)?)|(AD\\d+))",
+               getDeviceFamily(),
+               WriterForI2s.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
                "(LPTMR)(0)_(ALT\\d+)",
                getDeviceFamily(),
                WriterForLptmr.class);
          createPeripheralTemplateInformation(
-               "Pit", "",
+               "$1", "$2",
                "(PIT)()(\\d+)",
                getDeviceFamily(),
                WriterForPit.class);
          createPeripheralTemplateInformation(
-               "Llwu", "",
+               "$1", "$2",
                "(LLWU)()_(P\\d+)",
                getDeviceFamily(),
                WriterForLlwu.class);
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Spi", Character.toString(instance),
-                  "(SPI)("+instance+")_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
-                  getDeviceFamily(),
-                  WriterForSpi.class);
-         }
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Tpm", Character.toString(instance),
-                  "(TPM)("+instance+")_(CH\\d+|QD_PH[A|B])",
-                  getDeviceFamily(),
-                  WriterForPwmIO_TPM.class);
-         }
-         for (char instance='0'; instance<='3'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Tsi", Character.toString(instance),
-                  "(TSI)("+instance+")_(CH\\d+)",
-                  getDeviceFamily(),
-                  WriterForTsi.class);
-         }
-         for (char instance='0'; instance<='5'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Uart", Character.toString(instance),
-                  "(UART)("+instance+")_(TX|RX|CTS_b|RTS_b|COL_b)",
-                  getDeviceFamily(),
-                  WriterForUart.class);
-         }
-         for (char instance='0'; instance<='5'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Lpuart", Character.toString(instance),
-                  "(LPUART)("+instance+")_(TX|RX|CTS_b|RTS_b)",
-                  getDeviceFamily(),
-                  WriterForLpuart.class);
-         }
          createPeripheralTemplateInformation(
-               "Vref", "",
+               "$1", "$2",
+               "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
+               getDeviceFamily(),
+               WriterForSpi.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
+               getDeviceFamily(),
+               WriterForPwmIO_TPM.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(TSI)([0-3])_(CH\\d+)",
+               getDeviceFamily(),
+               WriterForTsi.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(UART)(\\d+)_(TX|RX|CTS_b|RTS_b|COL_b)",
+               getDeviceFamily(),
+               WriterForUart.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(LPUART)([0-6])_(TX|RX|CTS_b|RTS_b)",
+               getDeviceFamily(),
+               WriterForLpuart.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
                "(VREF)()_(OUT)",
                getDeviceFamily(),
                WriterForVref.class);
          createPeripheralTemplateInformation(
-               "Fb", "",
-               "(FB)_()(ALE|(CS(\\d+)(_b)?)|(OE(_b)?)|(RW(_b)?)|(TS(_b)?)|(AD\\d+))",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         for (char instance='0'; instance<='2'; instance++) {
-            createPeripheralTemplateInformation(
-                  "I2s", Character.toString(instance),
-                  "(I2S)("+Character.toString(instance)+")_(MCLK|(RXD(\\d+))|RX_BCLK|RX_FS||(TXD(\\d+))|TX_BCLK|TX_FS|xxx|(RW(_b)?)|(TS(_b)?)|(AD\\d+))",
-                  getDeviceFamily(),
-                  WriterForMisc.class);
-         }
-         for (char instance='0'; instance<='2'; instance++) {
-            createPeripheralTemplateInformation(
-                  "Can", Character.toString(instance),
-                  "(CAN)("+Character.toString(instance)+")_(RX|TX)",
-                  getDeviceFamily(),
-                  WriterForMisc.class);
-         }
-         createPeripheralTemplateInformation(
-               "System", "",
-               "(JTAG|EZP|SWD|CLKOUT|NMI_b|RESET_b|TRACE|VOUT33|VREGIN|RTC)_?()(TCLK|TDI|TDO|TMS|TRST_b|CLK|CS_b|DI|DO|DIO|CLKOUT|D3|SWO)?",
+               "FB", "", "",
+               "(FB|FLEXBUS|FXIO|FLEXIO).*",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Ewm", "",
+               "$1", "$2",
+               "(CAN)([0-3])_(RX|TX)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(CAN)([0-5])_(RX|TX)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "$3",
+               "(RTC)_?()(CLKOUT|CLKIN|WAKEUP_b)?",
+               getDeviceFamily(),
+               WriterForNull.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(JTAG|EZP|SWD|CLKOUT|NMI_b|RESET_b|TRACE|VOUT33|VREGIN|EXTRG)_?()(.*)",
+               getDeviceFamily(),
+               WriterForNull.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2",
                "(EWM)_()(IN|OUT_b)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Xtal", "",
-               "(E?XTAL)()(0|32)",
+               "OSC$2", "", "$1",
+               "(E?XTAL)(0|32)()",
+               getDeviceFamily(),
+               WriterForNull.class);
+         // Note USBOTG is used for clock name
+         createPeripheralTemplateInformation(
+               "USBDCD", "",
+               "(USBDCD)_?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         // Note USBOTG is used for clock name
+         createPeripheralTemplateInformation(
+               "USB", "",
+               "((audio)?(USB)(OTG)?0?)_?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Usb", "",
-               "(USB0?)_()(DM|DP|CLKIN|SOF_OUT)",
+               "$1", "$2", "$3",
+               "(DAC)(\\d+)?_(OUT)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Dac", "",
-               "(DAC0?)_()(OUT)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "Cmt", "",
+               "$1", "$2",
                "(CMT0?)_()(IRO)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Pdb", "",
-               "(PDB0?)_()(EXTRG)",
+               "$1", "$2",
+               "(PDB)(0?)_(EXTRG)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "Ftm", "",
+               "$1", "$2",
                "(FTM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(ENET)(0_)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "",
+               "(SDHC)(\\d+)_(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "R?(MII)([0-3])_(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "$3",
+               "S?(LCD)(\\d)?_?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "$3",
+               "(PIT)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "$3",
+               "(CRC)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(DMAMUX)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(DMA)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(MPU)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(FTF)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(RNGA)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
       }
       createPeripheralTemplateInformation(
-            "Misc", "",
+            "$1", "$2",
             "(.*)()()",
             getDeviceFamily(),
-            WriterForMisc.class);
+            WriterForNull.class);
    }
 
    /*
     * DeviceInformation =============================================================================================
     */
-   
+
    /** Devices */
    private Map<String, DeviceInformation> fDevices = new TreeMap<String, DeviceInformation>();
 
@@ -831,7 +878,7 @@ public class DeviceInfo {
    /*
     * DmaInfo =============================================================================================
     */
-   
+
    /** List of DMA channels */
    private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
@@ -858,6 +905,32 @@ public class DeviceInfo {
       return fDmaInfoList;
    }
 
+   private final static HashMap<String, MuxSelection> exceptions = new  HashMap<String, MuxSelection>();
+
+   private static boolean checkOkException(PinInformation pin) {
+      if (pin.getResetValue() == MuxSelection.mux0) {
+         return true;
+      }
+      if (pin.getResetValue() == MuxSelection.fixed) {
+         return true;
+      }
+      if (exceptions.size() == 0) {
+         exceptions.put("PTA0",  MuxSelection.mux7);  // JTAG_TCLK/SWD_CLK
+         exceptions.put("PTA1",  MuxSelection.mux7);  // JTAG_TDI
+         exceptions.put("PTA2",  MuxSelection.mux7);  // JTAG_TDO/TRACE_SWO
+         exceptions.put("PTA3",  MuxSelection.mux7);  // JTAG_TMS/SWD_DIO
+         exceptions.put("PTA4",  MuxSelection.mux7);  // NMI_b
+         exceptions.put("PTA5",  MuxSelection.mux7);  // JTAG_TRST_b
+         // MKL
+         exceptions.put("PTA20", MuxSelection.mux7);  // RESET_b
+         // MKM
+         exceptions.put("PTE6",  MuxSelection.mux7);  // SWD_DIO
+         exceptions.put("PTE7",  MuxSelection.mux7);  // SWD_CLK
+         exceptions.put("PTE1",  MuxSelection.mux7);  // RESET_b
+      }
+      MuxSelection exception = exceptions.get(pin.getName());
+      return (exceptions != null) && (pin.getResetValue() == exception);
+   }
    /**
     * Does some basic consistency checks on the data
     */
@@ -865,7 +938,7 @@ public class DeviceInfo {
       // Every pin should have a reset entry
       for (String pName:getPins().keySet()) {
          PinInformation pin = getPins().get(pName);
-         if ((pin.getResetValue() != MuxSelection.mux0)) {//) && (pin.getResetValue() != MuxSelection.fixed)) {
+         if (!checkOkException(pin)) {
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
@@ -875,7 +948,7 @@ public class DeviceInfo {
       for (String pName:getPeripheralFunctions().keySet()) {
          PeripheralFunction function = getPeripheralFunctions().get(pName);
          if ((function.getResetMapping() == null) &&
-             (function.getPinMapping().first().getMux() != MuxSelection.fixed)) {
+               (function.getPinMapping().first().getMux() != MuxSelection.fixed)) {
             throw new RuntimeException("No reset value for function " + function);
          }
       }

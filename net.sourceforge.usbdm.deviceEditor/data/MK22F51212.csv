@@ -79,7 +79,7 @@ Pin,ADC1_DM1/ADC0_DM2,,*,ADC1_DM1/ADC0_DM2,,,,,,,,,,18,J2,17,*,*
 Pin,ADC1_SE16/ADC0_SE22,,*,ADC1_SE16/ADC0_SE22,,,,,,,,,,27,J3,*,*,*
 Pin,ADC0_SE16/CMP1_IN2/ADC0_SE21,,*,ADC0_SE16/CMP1_IN2/ADC0_SE21,,,,,,,,,,28,H3,*,*,*
 Pin,DAC1_OUT/CMP0_IN4/ADC1_SE23,,*,DAC1_OUT/CMP0_IN4/ADC1_SE23,,,,,,,,,,31,K4,*,*,*
-Pin,RTC_WAKEUP_B,,*,RTC_WAKEUP_B,,,,,,,,,,32,L7,*,*,*
+Pin,RTC_WAKEUP_b,,*,RTC_WAKEUP_b,,,,,,,,,,32,L7,*,*,*
 Pin,PTE24,,*,ADC0_SE17,,ADC0_SE17,PTE24,,,,I2C0_SCL,EWM_OUT_b,,36,H5,31,*,*
 Pin,PTE25,,*,ADC0_SE18,,ADC0_SE18,PTE25,,,,I2C0_SDA,EWM_IN,,37,J5,32,*,*
 Pin,PTE26/CLKOUT32K,,*,DISABLED,,,PTE26/CLKOUT32K,,,,,RTC_CLKOUT,USB_CLKIN,38,H6,33,*,*
@@ -146,7 +146,6 @@ Peripheral,PORTE,SIM->SCGC5,,PORTE_IRQn,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 Peripheral,DMAMUX0,SIM->SCGC6,,,,,,,,,,,,,,,,
 Peripheral,ADC1,SIM->SCGC6,,ADC1_IRQn,,,,,,,,,,,,,,
-Peripheral,ADC1a,SIM->SCGC6,SIM_SCGC6_ADC1_MASK,ADC1_IRQn,,,,,,,,,,,,,,
 Peripheral,RNGA,SIM->SCGC6,,RNG_IRQn,,,,,,,,,,,,,,
 Peripheral,LPUART0,SIM->SCGC6,,LPUART0_RX_TX_IRQn,,,,,,,,,,,,,,
 Peripheral,SPI0,SIM->SCGC6,,SPI0_IRQn,,,,,,,,,,,,,,

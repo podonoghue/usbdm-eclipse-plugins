@@ -8,7 +8,6 @@ import net.sourceforge.usbdm.configEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.configEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.configEditor.information.DevicePackage;
 import net.sourceforge.usbdm.configEditor.information.PinInformation;
-import net.sourceforge.usbdm.configEditor.parser.WriteFamilyXML;
 import net.sourceforge.usbdm.configEditor.xmlParser.XmlParser;
 
 public class TestParseXML {
@@ -45,7 +44,7 @@ public class TestParseXML {
          XmlParser parser = new XmlParser();
          DeviceInfo deviceInfo = parser.parseDocument(filePath);
          
-//         report(deviceInfo);
+         report(deviceInfo);
          
 //         WriteFamilyXML writer = new WriteFamilyXML();
 //         Path xmlFilePath = outputDirectory.resolve(filePath.getFileName());

@@ -3250,7 +3250,7 @@ namespace USBDM {
  * @{
  */
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioAInfo {
 public:
@@ -3272,7 +3272,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioBInfo {
 public:
@@ -3294,7 +3294,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioCInfo {
 public:
@@ -3316,7 +3316,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioDInfo {
 public:
@@ -3338,7 +3338,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioEInfo {
 public:
@@ -3360,7 +3360,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioFInfo {
 public:
@@ -3382,7 +3382,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioGInfo {
 public:
@@ -3404,7 +3404,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioHInfo {
 public:
@@ -3426,7 +3426,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioIInfo {
 public:
@@ -3459,7 +3459,7 @@ public:
 namespace USBDM {
 
 /**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
+ * @addtogroup DigitalIO_Group GPIO, Digital Input/Output
  * @brief Allows use of port pins as simple digital inputs or outputs
  * @{
  */
@@ -3538,14 +3538,6 @@ template<int left, int right> using GpioAField = Field_T<GpioAInfo, left, right>
 using gpio_LED_RED         = const USBDM::GpioA<0>;
 using gpio_LED_GREEN       = const USBDM::GpioA<1>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioB. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3618,14 +3610,6 @@ template<uint8_t bitNum> using GpioB = Gpio_T<GpioBInfo, bitNum>;
 template<int left, int right> using GpioBField = Field_T<GpioBInfo, left, right>;
 
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioC. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3697,14 +3681,6 @@ template<uint8_t bitNum> using GpioC = Gpio_T<GpioCInfo, bitNum>;
  */
 template<int left, int right> using GpioCField = Field_T<GpioCInfo, left, right>;
 
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioD. See @ref Gpio_T
  *
@@ -3779,14 +3755,6 @@ template<int left, int right> using GpioDField = Field_T<GpioDInfo, left, right>
 
 using gpio_LED_BLUE        = const USBDM::GpioD<1>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioE. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3858,14 +3826,6 @@ template<uint8_t bitNum> using GpioE = Gpio_T<GpioEInfo, bitNum>;
  */
 template<int left, int right> using GpioEField = Field_T<GpioEInfo, left, right>;
 
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioF. See @ref Gpio_T
  *
@@ -3939,14 +3899,6 @@ template<uint8_t bitNum> using GpioF = Gpio_T<GpioFInfo, bitNum>;
 template<int left, int right> using GpioFField = Field_T<GpioFInfo, left, right>;
 
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioG. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4019,14 +3971,6 @@ template<uint8_t bitNum> using GpioG = Gpio_T<GpioGInfo, bitNum>;
 template<int left, int right> using GpioGField = Field_T<GpioGInfo, left, right>;
 
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioH. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4098,14 +4042,6 @@ template<uint8_t bitNum> using GpioH = Gpio_T<GpioHInfo, bitNum>;
  */
 template<int left, int right> using GpioHField = Field_T<GpioHInfo, left, right>;
 
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioI. See @ref Gpio_T
  *
@@ -4180,6 +4116,7 @@ template<int left, int right> using GpioIField = Field_T<GpioIInfo, left, right>
 
 /**
  * @}
+ ** DigitalIO_Group
  */
 #if (DO_MAP_PINS_ON_RESET>0)
 /**

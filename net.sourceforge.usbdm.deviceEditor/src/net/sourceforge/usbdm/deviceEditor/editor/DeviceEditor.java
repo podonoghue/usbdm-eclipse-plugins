@@ -14,7 +14,9 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -49,6 +51,27 @@ public class DeviceEditor extends EditorPart {
       fTabFolder.setFocus();
    }
 
+   ModelFactory createModels(Path path) throws Exception {
+      DeviceInfo deviceInfo = null;
+      if (path.getFileName().toString().endsWith("csv")) {
+         System.err.println("DeviceEditor(), Opening as CSV" + path);
+         ParseFamilyCSV parser = new ParseFamilyCSV();
+         deviceInfo = parser.parseFile(path);
+      }
+      else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
+         System.err.println("DeviceEditor(), Opening as XML = " + path);
+         ParseFamilyXML parser = new ParseFamilyXML();
+         deviceInfo = parser.parseFile(path);
+      }
+      else {
+         throw new Exception("Unknown file type");
+      }
+      if (deviceInfo != null) {
+         factory  = new ModelFactory(deviceInfo);
+      }
+      return factory;
+   }
+   
    /**
     * Creates the editor pages.
     */
@@ -57,31 +80,25 @@ public class DeviceEditor extends EditorPart {
 
       IEditorInput editorInput = getEditorInput();
 
+      factory = null;
+      System.err.println("DeviceEditor()");
+      IResource input = (IResource)editorInput.getAdapter(IResource.class);
+      
       try {
-         System.err.println("DeviceEditor()");
-         IResource input = (IResource)editorInput.getAdapter(IResource.class);
-         if (input != null) {
-            System.err.println("DeviceEditor(), Input = " + input.getLocation().toPortableString());
-            Path path = Paths.get(input.getLocation().toPortableString());
-            DeviceInfo deviceInfo = null;
-            if (path.getFileName().toString().endsWith("csv")) {
-               System.err.println("DeviceEditor(), Opening as CSV = " + input.getLocation().toPortableString());
-               ParseFamilyCSV parser = new ParseFamilyCSV();
-               deviceInfo = parser.parseFile(path);
-            }
-            else if (path.getFileName().toString().endsWith("xml")) {
-               System.err.println("DeviceEditor(), Opening as XML = " + input.getLocation().toPortableString());
-               ParseFamilyXML parser = new ParseFamilyXML();
-               deviceInfo = parser.parseFile(path);
-            }
-            if (deviceInfo != null) {
-               factory  = new ModelFactory(deviceInfo);
-            }
-         }
+         Path path = Paths.get(input.getLocation().toPortableString());
+         System.err.println("DeviceEditor(), Input = " + path.toAbsolutePath());
+         factory = ModelFactory.createModel(path);
       } catch (Exception e) {
          e.printStackTrace();
       }
 
+      if (factory == null) {
+         Label label = new Label(parent, SWT.NONE);
+         label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+         label.setText("Failed to open/parse source file " + input.getLocation().toPortableString());
+         return;
+         
+      }
       // Create the containing tab folder
       fTabFolder = new TabFolder(parent, SWT.NONE);
 

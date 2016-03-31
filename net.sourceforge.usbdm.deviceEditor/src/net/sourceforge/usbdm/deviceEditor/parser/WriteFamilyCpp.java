@@ -56,9 +56,6 @@ public class WriteFamilyCpp {
    /** Current device */
    private DeviceInformation fDeviceInformation;
 
-   /** Name for name space to use */
-   public static final String NAME_SPACE = "USBDM";
-
    /*
     * Macros =============================================================================================
     */
@@ -134,13 +131,13 @@ public class WriteFamilyCpp {
     * @param writer
     * @throws IOException
     */
-   private void writeDmaMuxInfo(BufferedWriter writer) throws IOException {
+   private void writeDmaMuxInfo(DocumentUtilities writer) throws IOException {
       if (fDeviceInfo.getDmaList().size() == 0) {
          return;
       }
       writer.write("\n");
-      DocumentUtilities.writeOpenNamespace(writer, NAME_SPACE);
-      DocumentUtilities.writeStartGroup(writer, "DMA_Group", "Direct Memory Access (DMA)", "Support for DMA operations");
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeStartGroup("DMA_Group", "Direct Memory Access (DMA)", "Support for DMA operations");
       for (int instance=0; instance<4; instance++) {
          boolean noneWritten = true;
          for (DmaInfo item:fDeviceInfo.getDmaList()) {
@@ -156,8 +153,8 @@ public class WriteFamilyCpp {
             writer.write("};\n");
          }
       }
-      DocumentUtilities.writeCloseGroup(writer);
-      DocumentUtilities.writeCloseNamespace(writer, NAME_SPACE);
+      writer.writeCloseGroup();
+      writer.writeCloseNamespace();
    }
 
    /**
@@ -177,30 +174,30 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception 
     */
-   private void writePinDefines(BufferedWriter headerFile) throws IOException {
-      DocumentUtilities.writeBanner(headerFile, "Common Mux settings for PCR");
-      DocumentUtilities.writeMacroUnDefinition(headerFile, "FIXED_ADC_FN");
-      DocumentUtilities.writeMacroUnDefinition(headerFile, "FIXED_GPIO_FN");
-      DocumentUtilities.writeMacroUnDefinition(headerFile, "FIXED_PORT_CLOCK_REG");
+   private void writePinDefines(DocumentUtilities writer) throws IOException {
+      writer.writeBanner("Common Mux settings for PCR");
+      writer.writeMacroUnDefinition("FIXED_ADC_FN");
+      writer.writeMacroUnDefinition("FIXED_GPIO_FN");
+      writer.writeMacroUnDefinition("FIXED_PORT_CLOCK_REG");
       if (adcFunctionMuxValueChanged) {
-         DocumentUtilities.writeMacroDefinition(headerFile, "ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
+         writer.writeMacroDefinition("ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
       }
       else {
-         DocumentUtilities.writeMacroDefinition(headerFile, "FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
+         writer.writeMacroDefinition("FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
       }
       if (gpioFunctionMuxValueChanged) {
-         DocumentUtilities.writeMacroDefinition(headerFile, "GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
+         writer.writeMacroDefinition("GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
       }
       else {
-         DocumentUtilities.writeMacroDefinition(headerFile, "FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
+         writer.writeMacroDefinition("FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
       }
       if (portClockRegisterChanged) {
-         DocumentUtilities.writeMacroDefinition(headerFile, "PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
+         writer.writeMacroDefinition("PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
       }
       else {
-         DocumentUtilities.writeMacroDefinition(headerFile, "FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
+         writer.writeMacroDefinition("FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
       }
-      headerFile.write("\n");
+      writer.write("\n");
    }
 
    /**
@@ -221,7 +218,7 @@ public class WriteFamilyCpp {
     * @param categoryTitle 
     * @throws IOException 
     */
-   private void writePinMapping(PinInformation pinInformation, BufferedWriter writer, String categoryTitle) throws IOException {
+   private void writePinMapping(PinInformation pinInformation, DocumentUtilities writer, String categoryTitle) throws IOException {
 
       String pinName = getPinNameWithLocation(pinInformation);
       if (pinName == null) {
@@ -267,7 +264,7 @@ public class WriteFamilyCpp {
       else {
          hint = String.format("Selects which peripheral signal is mapped to %s pin", pinInformation.getName());
       }
-      DocumentUtilities.writeWizardOptionSelectionPreamble(writer, 
+      writer.writeWizardOptionSelectionPreamble(
             "Signal mapping for " + pinInformation.getName() + " pin",
             0,
             attributes,
@@ -295,16 +292,16 @@ public class WriteFamilyCpp {
          else if (selection == MuxSelection.reset) {
             name.append(" (reset default)");
          }
-         DocumentUtilities.writeWizardOptionSelectionEnty(
-               writer, 
+         writer.writeWizardOptionSelectionEnty(
+               
                Integer.toString(selection.value), 
                name.toString(), 
                selectionAttribute.toArray(new SelectionAttribute[selectionAttribute.size()]));
       }
       if (sortedSelectionIndexes.length >= 2) {
-         DocumentUtilities.writeWizardDefaultSelectionEnty(writer, Integer.toString(defaultSelection.value));
+         writer.writeWizardDefaultSelectionEnty(Integer.toString(defaultSelection.value));
       }
-      DocumentUtilities.writeMacroDefinition(writer, pinInformation.getName()+"_SIG_SEL", Integer.toString(defaultSelection.value));
+      writer.writeMacroDefinition(pinInformation.getName()+"_SIG_SEL", Integer.toString(defaultSelection.value));
       writer.write("\n");
    }
 
@@ -316,20 +313,20 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception 
     */
-   private void writePinMappings(BufferedWriter headerFile) throws IOException  {
+   private void writePinMappings(DocumentUtilities writer) throws IOException  {
       WizardAttribute[] attributes = {new NameAttribute("MAP_BY_PIN")};
 
-      DocumentUtilities.writeWizardConditionalSectionOpen(headerFile, 
+      writer.writeWizardConditionalSectionOpen(
             "Pin peripheral signal mapping", 
             0, 
             attributes, 
             "Mapping by Pin", 
             "This allows the mapping of peripheral functions to pins\n"+
             "to be controlled by individual pin");
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
-      DocumentUtilities.writeMacroDefinition(headerFile, "MAP_BY_PIN_ENABLED", "1");
-      headerFile.write("\n");
+      writer.writeWizardOptionSelectionEnty("0", "Disabled");
+      writer.writeWizardOptionSelectionEnty("1", "Enabled");
+      writer.writeMacroDefinition("MAP_BY_PIN_ENABLED", "1");
+      writer.write("\n");
       HashMap<String,ArrayList<PinInformation>> categories = new HashMap<String,ArrayList<PinInformation>>();
       class Pair {
          public final String namePattern;
@@ -368,14 +365,14 @@ public class WriteFamilyCpp {
       for (String categoryTitle:categoryTitles) {
          ArrayList<PinInformation> category = categories.get(categoryTitle);
          if (category != null) {
-            DocumentUtilities.writeWizardSectionOpen(headerFile, categoryTitle);
+            writer.writeWizardSectionOpen(categoryTitle);
             for (PinInformation pinInformation:category) {
-               writePinMapping(pinInformation, headerFile, categoryTitle);
+               writePinMapping(pinInformation, writer, categoryTitle);
             }
-            DocumentUtilities.writeWizardSectionClose(headerFile);
+            writer.writeWizardSectionClose();
          }
       }
-      DocumentUtilities.writeWizardConditionalSectionClose(headerFile);
+      writer.writeWizardConditionalSectionClose();
    }
 
    private static class ConstantAttribute implements WizardAttribute {
@@ -422,7 +419,7 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception
     */
-   private void writePeripheralSignalMapping(BufferedWriter writer, PeripheralFunction function) throws IOException {
+   private void writePeripheralSignalMapping(DocumentUtilities writer, PeripheralFunction function) throws IOException {
       if (!function.isIncluded()) {
          return;
       }
@@ -492,7 +489,7 @@ public class WriteFamilyCpp {
       }
 
       WizardAttribute[] attributes = {new NameAttribute(function.getName()+"_PIN_SEL"), noChoices?constantAttribute:null};
-      DocumentUtilities.writeWizardOptionSelectionPreamble(writer, 
+      writer.writeWizardOptionSelectionPreamble(
             "Pin Mapping for " + function.getName() + " signal",
             0,
             attributes,
@@ -502,11 +499,11 @@ public class WriteFamilyCpp {
 
       int selection = 0;
       if (!noChoices) {
-         DocumentUtilities.writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), "Disabled");
+         writer.writeWizardOptionSelectionEnty(Integer.toString(selection++), "Disabled");
       }
       if ((mappingInfos == null) || (mappingInfos.size() == 0)) {
-         DocumentUtilities.writeWizardOptionSelectionEnty(writer, Integer.toString(-1), function.getName());
-         DocumentUtilities.writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(-1));
+         writer.writeWizardOptionSelectionEnty(Integer.toString(-1), function.getName());
+         writer.writeMacroDefinition(function.getName()+"_PIN_SEL", Integer.toString(-1));
       }
       else {
          for (MappingInfo mappingInfo:mappingInfos) {
@@ -526,11 +523,11 @@ public class WriteFamilyCpp {
                seletionTag += " (reset default)";
             }
             WizardAttribute[] functionAttributes = {new SelectionAttribute(mappingInfo.getPin().getName()+"_SIG_SEL", seletionTag)};
-            DocumentUtilities.writeWizardOptionSelectionEnty(writer, Integer.toString(selection++), pinName, functionAttributes);
+            writer.writeWizardOptionSelectionEnty(Integer.toString(selection++), pinName, functionAttributes);
          }
 
-         DocumentUtilities.writeWizardOptionSelectionEnty(writer, Integer.toString(defaultSelection), "Default", null);
-         DocumentUtilities.writeMacroDefinition(writer, function.getName()+"_PIN_SEL", Integer.toString(defaultSelection));
+         writer.writeWizardOptionSelectionEnty(Integer.toString(defaultSelection), "Default", null);
+         writer.writeMacroDefinition(function.getName()+"_PIN_SEL", Integer.toString(defaultSelection));
       }
       writer.write("\n");
    }
@@ -543,10 +540,10 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception 
     */
-   private void writePeripheralSignalMappings(BufferedWriter headerFile) throws IOException {
+   private void writePeripheralSignalMappings(DocumentUtilities writer) throws IOException {
       WizardAttribute[] attributes = {new NameAttribute("MAP_BY_FUNCTION"), new ConstantAttribute()};
 
-      DocumentUtilities.writeWizardConditionalSectionOpen(headerFile, 
+      writer.writeWizardConditionalSectionOpen(
             "Pin peripheral signal mapping", 
             0, 
             attributes, 
@@ -554,10 +551,10 @@ public class WriteFamilyCpp {
             "This allows the mapping of peripheral functions to pins\n"+
                   "to be controlled by peripheral function.\n" +
             "This option is active when Mapping by Pin is disabled");
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "1", "Enabled");
-      DocumentUtilities.writeMacroDefinition(headerFile, "MAP_BY_FUNCTION_ENABLED", "0");
-      headerFile.write("\n");
+      writer.writeWizardOptionSelectionEnty("0", "Disabled");
+      writer.writeWizardOptionSelectionEnty("1", "Enabled");
+      writer.writeMacroDefinition("MAP_BY_FUNCTION_ENABLED", "0");
+      writer.write("\n");
 
       HashMap<String,ArrayList<PeripheralFunction>> categories = new HashMap<String,ArrayList<PeripheralFunction>>();
       class Pair {
@@ -638,14 +635,14 @@ public class WriteFamilyCpp {
       for (String categoryTitle:categoryTitles) {
          ArrayList<PeripheralFunction> category = categories.get(categoryTitle);
          if (category.size()>0) {
-            DocumentUtilities.writeWizardSectionOpen(headerFile, categoryTitle);
+            writer.writeWizardSectionOpen(categoryTitle);
             for (PeripheralFunction peripheralFunction:category) {
-               writePeripheralSignalMapping(headerFile, peripheralFunction);
+               writePeripheralSignalMapping(writer, peripheralFunction);
             }
-            DocumentUtilities.writeWizardSectionClose(headerFile);
+            writer.writeWizardSectionClose();
          }
       }
-      DocumentUtilities.writeWizardConditionalSectionClose(headerFile);
+      writer.writeWizardConditionalSectionClose();
    }
 
    /**
@@ -682,10 +679,10 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private void writeDeviceWizards(BufferedWriter headerFile) throws IOException {
-
-      for (PeripheralTemplateInformation template:fDeviceInfo.getTemplateList()) {
-         template.writeWizard(headerFile);
+   private void writeDeviceWizards(DocumentUtilities writer) throws IOException {
+      for (String key:fDeviceInfo.getPeripheralNames()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         peripheral.writeWizard(writer);
       }
    }
 
@@ -707,18 +704,18 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private void writePinMappingOptions(BufferedWriter headerFile) throws IOException {
-      DocumentUtilities.writeWizardBinaryOptionSelectionPreamble(headerFile, 
+   private void writePinMappingOptions(DocumentUtilities writer) throws IOException {
+      writer.writeWizardBinaryOptionSelectionPreamble(
             String.format("Pin mapping Options\n//"), 
             0,
             false,
             String.format("Map pins"),
             String.format("Selects whether pin mappings are done when individual\n" +
                   "peripherals are configured or during reset initialisation." ));
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "0", "Pins mapped on demand");
-      DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "1", "Pin mapping on reset");
-      DocumentUtilities.writeMacroDefinition(headerFile, "DO_MAP_PINS_ON_RESET", "0");
-      headerFile.write("\n");
+      writer.writeWizardOptionSelectionEnty("0", "Pins mapped on demand");
+      writer.writeWizardOptionSelectionEnty("1", "Pin mapping on reset");
+      writer.writeMacroDefinition("DO_MAP_PINS_ON_RESET", "0");
+      writer.write("\n");
    }
 
    /**
@@ -732,26 +729,26 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException 
     */
-   private void writeClockMacros(BufferedWriter writer) throws IOException {
-      DocumentUtilities.writeBanner(writer, "Peripheral clock macros");
-      for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral peripheral = fDeviceInfo.findPeripheral(peripheralName);
-         if (peripheral.getClockReg() == null) {
-            continue;
-         }
-         if (peripheral.getName().matches("PORT[A-Z]")) {
-            if (portClockRegisterValue == null) {
-               portClockRegisterValue = peripheral.getClockReg();
-            }
-            else if (!portClockRegisterValue.equals(peripheral.getClockReg())) {
-               throw new RuntimeException(
-                     String.format("Multiple port clock registers existing=%s, new=%s", portClockRegisterValue, peripheral.getClockReg()));
-            }
-         }
-         DocumentUtilities.writeMacroDefinition(writer, peripheral.getName()+"_CLOCK_REG",  peripheral.getClockReg());
-         DocumentUtilities.writeMacroDefinition(writer, peripheral.getName()+"_CLOCK_MASK", peripheral.getClockMask());
-      }
-      DocumentUtilities.writeMacroDefinition(writer, "PORT_CLOCK_REG", portClockRegisterValue);
+   private void writeClockMacros(DocumentUtilities writer) throws IOException {
+      writer.writeBanner("Peripheral clock macros");
+//      for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
+//         Peripheral peripheral = fDeviceInfo.findPeripheral(peripheralName);
+//         if (peripheral.getClockReg() == null) {
+//            continue;
+//         }
+//         if (peripheral.getName().matches("PORT[A-Z]")) {
+//            if (portClockRegisterValue == null) {
+//               portClockRegisterValue = peripheral.getClockReg();
+//            }
+//            else if (!portClockRegisterValue.equals(peripheral.getClockReg())) {
+//               throw new RuntimeException(
+//                     String.format("Multiple port clock registers existing=%s, new=%s", portClockRegisterValue, peripheral.getClockReg()));
+//            }
+//         }
+//         writer.writeMacroDefinition(peripheral.getName()+"_CLOCK_REG",  peripheral.getClockReg());
+//         writer.writeMacroDefinition(peripheral.getName()+"_CLOCK_MASK", peripheral.getClockMask());
+//      }
+      writer.writeMacroDefinition("PORT_CLOCK_REG", portClockRegisterValue);
       writer.write("\n");
    }
 
@@ -769,7 +766,7 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private void writeValidators(BufferedWriter writer, ValidatorAttribute[] validators) throws IOException {
+   private void writeValidators(DocumentUtilities writer, ValidatorAttribute[] validators) throws IOException {
       final String format = 
             "//================================\n"
                   + "// Validators\n";
@@ -810,45 +807,45 @@ public class WriteFamilyCpp {
     * <b>#endif</b>
     * </pre>
     * 
-    * @param template         Template information
+    * @param writer         Template information
     * @param mappedFunction   Information about the pin and function being declared
     * @param fnIndex          Index into list of functions mapped to pin
-    * @param gpioHeaderFile   Where to write
+    * @param pWriter   Where to write
     * 
     * @throws Exception 
     */
-   private void writeExternDeclaration(PeripheralTemplateInformation template, MappingInfo mappedFunction, int fnIndex, BufferedWriter gpioHeaderFile) throws IOException {
-      String definition = template.getInstanceWriter().getDefinition(mappedFunction, fnIndex);
+   private void writeExternDeclaration(WriterBase writer, MappingInfo mappedFunction, int fnIndex, DocumentUtilities pWriter) throws IOException {
+      String definition = writer.getDefinition(mappedFunction, fnIndex);
       if (definition == null) {
          return;
       }
       boolean guardWritten = false;
 
-      String signalName = template.getInstanceWriter().getInstanceName(mappedFunction, fnIndex);
-      if (template.useAliases(mappedFunction.getPin())) {
+      String signalName = writer.getInstanceName(mappedFunction, fnIndex);
+      if (writer.useAliases(mappedFunction.getPin())) {
          String locations = fDeviceInformation.getPackage().getLocation(mappedFunction.getPin());
          if (locations != null) {
             for (String location:locations.split("/")) {
                if (!location.equalsIgnoreCase(mappedFunction.getPin().getName())) {
-                  String aliasName = template.getInstanceWriter().getAliasName(signalName, location);
+                  String aliasName = writer.getAliasName(signalName, location);
                   if (aliasName!= null) {
-                     String declaration = template.getInstanceWriter().getAlias(aliasName, mappedFunction, fnIndex);
+                     String declaration = writer.getAlias(aliasName, mappedFunction, fnIndex);
                      if (declaration != null) {
-                        if (!guardWritten) {
-                           guardWritten = writeFunctionSelectionGuardMacro(template, mappedFunction, gpioHeaderFile, guardWritten);
+                        if (writer.useGuard() && !guardWritten) {
+                           guardWritten = writeFunctionSelectionGuardMacro(writer, mappedFunction, pWriter, guardWritten);
                         }
                         if (!addMacroAlias(aliasName)) {
                            // Comment out repeated aliases
-                           gpioHeaderFile.write("//");
+                           pWriter.write("//");
                         }
-                        gpioHeaderFile.write(declaration);
+                        pWriter.write(declaration);
                      }
                   }
                }
             }
          }
       }
-      DocumentUtilities.writeConditionalEnd(gpioHeaderFile, guardWritten);
+      pWriter.writeConditionalEnd(guardWritten);
    }
 
    /**
@@ -882,21 +879,22 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException 
     */
-   private void writePeripheralInformationClasses(BufferedWriter pinMappingHeaderFile) throws IOException {
-      DocumentUtilities.writeOpenNamespace(pinMappingHeaderFile, NAME_SPACE);
-      DocumentUtilities.writeBanner(pinMappingHeaderFile, "Peripheral Pin Tables");
+   private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeBanner("Peripheral Pin Tables");
 
-      DocumentUtilities.writeStartGroup(pinMappingHeaderFile, 
+      writer.writeStartGroup( 
             "PeripheralPinTables", 
             "Peripheral Information Classes", 
             "Provides instance specific information about a peripheral");
 
-      for (PeripheralTemplateInformation pinTemplate:fDeviceInfo.getTemplateList()) {
-         pinTemplate.writeInfoClass(fDeviceInformation, pinMappingHeaderFile);
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         peripheral.writeInfoClass(fDeviceInformation, writer);
       }
-      DocumentUtilities.writeCloseGroup(pinMappingHeaderFile, "PeripheralPinTables");
-      DocumentUtilities.writeCloseNamespace(pinMappingHeaderFile, NAME_SPACE);
-      pinMappingHeaderFile.write("\n");
+      writer.writeCloseGroup();
+      writer.writeCloseNamespace();
+      writer.write("\n");
    }
 
    /**
@@ -913,22 +911,33 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception 
     */
-   private void writeDeclarations(BufferedWriter gpioHeaderFile) throws IOException {
+   private void writeDeclarations(DocumentUtilities writer) throws IOException {
 
-      gpioHeaderFile.write("\n");
-      DocumentUtilities.writeOpenNamespace(gpioHeaderFile, NAME_SPACE);
-      for (PeripheralTemplateInformation pinTemplate:fDeviceInfo.getTemplateList()) {
-         if (!pinTemplate.classIsUsed()) {
-            continue;
-         }
-         boolean groupDone = false;
-         for (String pinName:fDeviceInfo.getPins().keySet()) {
-            PinInformation pinInfo = fDeviceInfo.findPin(pinName);
-            Map<MuxSelection, MappingInfo> mappedFunctions = pinInfo.getMappedFunctions();
-            if (mappedFunctions == null) {
-               continue;
+      writer.write("\n");
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+
+      PeripheralTemplateInformation peripheralTemplateInformation = null;
+      boolean groupDone = false;
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         if (peripheralTemplateInformation != peripheral.getPeripheralTemplate()) {
+            peripheralTemplateInformation = peripheral.getPeripheralTemplate();
+            if (groupDone) {
+               // Terminate previous group
+               writer.writeCloseGroup();
             }
-            if (!pinTemplate.useAliases(pinInfo)) {
+            groupDone = false;
+         }
+         String declaration = peripheral.getDeclarations();
+         if (declaration != null) {
+            writer.writeStartGroup(peripheral.getWriter());
+            groupDone = true;
+            writer.write(declaration);
+         }
+         for (String pinName:fDeviceInfo.getPins().keySet()) {
+            PinInformation pin = fDeviceInfo.getPins().get(pinName);
+            Map<MuxSelection, MappingInfo> mappedFunctions = pin.getMappedFunctions();
+            if (mappedFunctions == null) {
                continue;
             }
             for (MuxSelection index:mappedFunctions.keySet()) {
@@ -938,29 +947,67 @@ public class WriteFamilyCpp {
                MappingInfo mappedFunction = mappedFunctions.get(index);
                for (int fnIndex=0; fnIndex<mappedFunction.getFunctions().size(); fnIndex++) {
                   PeripheralFunction function = mappedFunction.getFunctions().get(fnIndex);
-                  if (pinTemplate.matches(function)) {
-                     if (!groupDone) {
-                        DocumentUtilities.writeStartGroup(gpioHeaderFile, pinTemplate);
-                        groupDone = true;
-                        String t = pinTemplate.getInstanceWriter().getTemplate();
-                        if (t != null) {
-                           gpioHeaderFile.write(t);
-                        }
-                     }
-                     writeExternDeclaration(pinTemplate, mappedFunction, fnIndex, gpioHeaderFile);
+                  if (function.getPeripheral() == peripheral) {
+                  //                     if (!groupDone) {
+                  //                        writer.writeStartGroup(gpioHeaderFile, peripheralTemplateInformation);
+                  //                        groupDone = true;
+                  //                        String t = peripheralTemplateInformation.getInstanceWriter().getTemplate();
+                  //                        if (t != null) {
+                  //                           writer.write(t);
+                  //                        }
+                     writeExternDeclaration(peripheral.getWriter(), mappedFunction, fnIndex, writer);
                   }
                }
             }
          }
-         if (groupDone) {
-            DocumentUtilities.writeCloseGroup(gpioHeaderFile);
-         }
       }
-      DocumentUtilities.writeConditionalStart(gpioHeaderFile, "DO_MAP_PINS_ON_RESET>0");
-      DocumentUtilities.writeDocBanner(gpioHeaderFile, "Used to configure pin-mapping before 1st use of peripherals");
-      gpioHeaderFile.write("extern void usbdm_PinMapping();\n");
-      DocumentUtilities.writeConditionalEnd(gpioHeaderFile);
-      DocumentUtilities.writeCloseNamespace(gpioHeaderFile, NAME_SPACE);
+      if (groupDone) {
+         // Terminate last group
+         writer.writeCloseGroup();
+      }
+
+      writer.writeConditionalStart("DO_MAP_PINS_ON_RESET>0");
+      writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
+      writer.write("extern void usbdm_PinMapping();\n");
+      writer.writeConditionalEnd();
+      writer.writeCloseNamespace();
+
+      //      for (PeripheralTemplateInformation pinTemplate:fDeviceInfo.getFunctionTemplateList()) {
+      //         boolean groupDone = false;
+      //         for (String pinName:fDeviceInfo.getPins().keySet()) {
+      //            PinInformation pinInfo = fDeviceInfo.findPin(pinName);
+      //            Map<MuxSelection, MappingInfo> mappedFunctions = pinInfo.getMappedFunctions();
+      //            if (mappedFunctions == null) {
+      //               continue;
+      //            }
+      //            if (!pinTemplate.useAliases(pinInfo)) {
+      //               continue;
+      //            }
+      //            for (MuxSelection index:mappedFunctions.keySet()) {
+      //               if (index == MuxSelection.reset) {
+      //                  continue;
+      //               }
+      //               MappingInfo mappedFunction = mappedFunctions.get(index);
+      //               for (int fnIndex=0; fnIndex<mappedFunction.getFunctions().size(); fnIndex++) {
+      //                  PeripheralFunction function = mappedFunction.getFunctions().get(fnIndex);
+      //                  if (pinTemplate.matches(function)) {
+      //                     if (!groupDone) {
+      //                        writer.writeStartGroup(gpioHeaderFile, pinTemplate);
+      //                        groupDone = true;
+      //                        String t = pinTemplate.getInstanceWriter().getTemplate();
+      //                        if (t != null) {
+      //                           writer.write(t);
+      //                        }
+      //                     }
+      //                     writeExternDeclaration(pinTemplate, mappedFunction, fnIndex, gpioHeaderFile);
+      //                  }
+      //               }
+      //            }
+      //         }
+      //         if (groupDone) {
+      //            writer.writeCloseGroup(gpioHeaderFile);
+      //         }
+      //      }
    }
 
    /**
@@ -970,10 +1017,10 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private void writePinMappingFunction(BufferedWriter cppFile) throws IOException {
+   private void writePinMappingFunction(DocumentUtilities writer) throws IOException {
 
-      DocumentUtilities.writeConditionalStart(cppFile, "DO_MAP_PINS_ON_RESET>0");
-      cppFile.write(
+      writer.writeConditionalStart("DO_MAP_PINS_ON_RESET>0");
+      writer.write(
             "struct PinInit {\n"+
                   "   uint32_t pcrValue;\n"+
                   "   uint32_t volatile *pcr;\n"+
@@ -991,14 +1038,14 @@ public class WriteFamilyCpp {
          if (m.matches()) {
             String instance = m.replaceAll("$1");
             String signal   = m.replaceAll("$2");
-            DocumentUtilities.writeConditionalStart(cppFile, String.format("%s_SIG_SEL>=0", pinName, pinName));
-            cppFile.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|%s::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, NAME_SPACE, instance, signal));
-            DocumentUtilities.writeConditionalEnd(cppFile);
+            writer.writeConditionalStart(String.format("%s_SIG_SEL>=0", pinName, pinName));
+            writer.write(String.format("   { PORT_PCR_MUX(%s_SIG_SEL)|%s::DEFAULT_PCR, &PORT%s->PCR[%s]},\n", pinName, DeviceInfo.NAME_SPACE, instance, signal));
+            writer.writeConditionalEnd();
          }
       }
-      cppFile.write("};\n\n");
+      writer.write("};\n\n");
 
-      cppFile.write(
+      writer.write(
             "/**\n" + 
                   " * Used to configure pin-mapping before 1st use of peripherals\n" + 
                   " */\n" + 
@@ -1020,37 +1067,37 @@ public class WriteFamilyCpp {
             String basename = m.replaceAll("$1");
             if (!basename.equals(currentBasename)) {
                if (!firstExpression) {
-                  cppFile.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
-                  DocumentUtilities.writeConditionalEnd(cppFile);
+                  writer.write(String.format("\n\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
+                  writer.writeConditionalEnd();
                }
                currentBasename = basename;
-               cppFile.write("#if ");
+               writer.write("#if ");
                firstExpression = false;
                instance = m.replaceAll("$2");
             }
             else {
-               cppFile.write(" || ");
+               writer.write(" || ");
                if (++conditionCounter>=4) {
-                  cppFile.write("\\\n    ");
+                  writer.write("\\\n    ");
                   conditionCounter = 0;
                }
             }
-            cppFile.write(String.format("(%s_SIG_SEL>=0)", pinName));
+            writer.write(String.format("(%s_SIG_SEL>=0)", pinName));
          }
       }
       if (!firstExpression) {
-         cppFile.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
-         DocumentUtilities.writeConditionalEnd(cppFile);
+         writer.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK;\n", instance));
+         writer.writeConditionalEnd();
       }
 
-      cppFile.write(
+      writer.write(
             "\n"+
                   "   for (const PinInit *p=pinInit; p<(pinInit+(sizeof(pinInit)/sizeof(pinInit[0]))); p++) {\n"+   
                   "      *(p->pcr) = p->pcrValue;\n"+ 
                   "   }\n"
             );
-      cppFile.write("}\n");
-      DocumentUtilities.writeConditionalEnd(cppFile);
+      writer.write("}\n");
+      writer.writeConditionalEnd();
    }
 
    /**
@@ -1060,7 +1107,7 @@ public class WriteFamilyCpp {
     * or   #<b>elif</b> (PTD5_SIG_SEL == 0)
     * </pre>
     * 
-    * @param pinTemplate
+    * @param writer
     * @param mappedFunction
     * @param file
     * @param guardWritten     If true, indicates that an elif clause should be written
@@ -1069,7 +1116,7 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private boolean writeFunctionSelectionGuardMacro(PeripheralTemplateInformation pinTemplate, MappingInfo mappedFunction, BufferedWriter file, boolean guardWritten) throws IOException {
+   private boolean writeFunctionSelectionGuardMacro(WriterBase writer, MappingInfo mappedFunction, DocumentUtilities pWriter, boolean guardWritten) throws IOException {
       final String format = "%s == %s";
       String pinName = mappedFunction.getPin().getName();
 
@@ -1077,11 +1124,11 @@ public class WriteFamilyCpp {
          // Don't guard fixed selections
          return false;
       }
-      if (!pinTemplate.getInstanceWriter().useGuard()) {
-         // Don't use guard
-         return false;
-      }
-      DocumentUtilities.writeConditional(file, String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.getMux().value)), guardWritten);
+//      if (!pinTemplate.getInstanceWriter().useGuard()) {
+//         // Don't use guard
+//         return false;
+//      }
+      pWriter.writeConditional(String.format(format, pinName+"_SIG_SEL", Integer.toString(mappedFunction.getMux().value)), guardWritten);
       return true;
    }
 
@@ -1100,42 +1147,42 @@ public class WriteFamilyCpp {
 
       Path cppFilePath = filePath.resolve("Project_Headers").resolve(headerFilename);
       BufferedWriter headerFile = Files.newBufferedWriter(cppFilePath, StandardCharsets.UTF_8);
-
-      DocumentUtilities.writeHeaderFilePreamble(
-            headerFile, 
+      DocumentUtilities writer = new DocumentUtilities(headerFile);
+      
+      writer.writeHeaderFilePreamble(
             pinMappingBaseFileName+".h", headerFilename, 
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceName()+", generated from "+fDeviceInfo.getSourceFilename());
 
-      DocumentUtilities.writeSystemHeaderFileInclude(headerFile, "stddef.h");
-      DocumentUtilities.writeHeaderFileInclude(headerFile, "derivative.h");
+      writer.writeSystemHeaderFileInclude("stddef.h");
+      writer.writeHeaderFileInclude("derivative.h");
       headerFile.write("\n");
 
-      DocumentUtilities.writeWizardMarker(headerFile);
+      writer.writeWizardMarker(headerFile);
       ValidatorAttribute[] attributes = {
             new ValidatorAttribute("net.sourceforge.usbdm.annotationEditor.validators.PinMappingValidator")
       };
-      writeValidators(headerFile, attributes);
+      writeValidators(writer, attributes);
 
-      writeDeviceWizards(headerFile);
-      writePinMappingOptions(headerFile);
-      writePinMappings(headerFile);
-      writePeripheralSignalMappings(headerFile);
-      DocumentUtilities.writeEndWizardMarker(headerFile);
+      writeDeviceWizards(writer);
+      writePinMappingOptions(writer);
+      writePinMappings(writer);
+      writePeripheralSignalMappings(writer);
+      writer.writeEndWizardMarker();
 
-      writePinDefines(headerFile);
-      writeClockMacros(headerFile);
-      writePeripheralInformationClasses(headerFile);
+      writePinDefines(writer);
+      writeClockMacros(writer);
+      writePeripheralInformationClasses(writer);
 
-      DocumentUtilities.writeHeaderFileInclude(headerFile, "gpio_defs.h");
+      writer.writeHeaderFileInclude("gpio_defs.h");
 
-      writeDeclarations(headerFile);
+      writeDeclarations(writer);
 
-      writeDmaMuxInfo(headerFile);
+      writeDmaMuxInfo(writer);
 
-      DocumentUtilities.writeHeaderFilePostamble(headerFile, pinMappingBaseFileName+".h");
+      writer.writeHeaderFilePostamble(pinMappingBaseFileName+".h");
 
-      headerFile.close();
+      writer.close();
    }
 
    /**                    
@@ -1150,22 +1197,22 @@ public class WriteFamilyCpp {
 
       Path cppFilePath = filePath.resolve("Sources").resolve(fCppFilename);
       BufferedWriter cppFile = Files.newBufferedWriter(cppFilePath, StandardCharsets.UTF_8);
-
-      DocumentUtilities.writeCppFilePreamble(
-            cppFile, 
+      DocumentUtilities writer = new DocumentUtilities(cppFile);
+      
+      writer.writeCppFilePreamble(
             gpioBaseFileName+".cpp", fCppFilename, 
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceName()+", generated from "+fDeviceInfo.getSourceFilename());
 
 
-      DocumentUtilities.writeHeaderFileInclude(cppFile, "gpio.h");
-      cppFile.write("\n");
+      writer.writeHeaderFileInclude("gpio.h");
+      writer.write("\n");
 
-      DocumentUtilities.writeOpenNamespace(cppFile, NAME_SPACE);
-      writePinMappingFunction(cppFile);
-      DocumentUtilities.writeCppFilePostAmble();
-      DocumentUtilities.writeCloseNamespace(cppFile, NAME_SPACE);
-      cppFile.close();
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writePinMappingFunction(writer);
+      writer.writeCppFilePostAmble();
+      writer.writeCloseNamespace();
+      writer.close();
    }
 
    /**

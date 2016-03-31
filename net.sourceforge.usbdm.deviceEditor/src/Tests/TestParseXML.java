@@ -9,6 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
+import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
 public class TestParseXML {
@@ -16,7 +17,7 @@ public class TestParseXML {
    private static final DirectoryStream.Filter<Path>xmlFilter = new DirectoryStream.Filter<Path>() {
       @Override
       public boolean accept(Path path) throws IOException {
-         return path.getFileName().toString().matches(".*\\.xml$");
+         return path.getFileName().toString().matches(".*\\.hardware$");
       }
    };
 
@@ -45,13 +46,12 @@ public class TestParseXML {
          ParseFamilyXML parser = new ParseFamilyXML();
          deviceInfo = parser.parseFile(filePath);
          
-//         report(deviceInfo);
+         report(deviceInfo);
          
-//         WriteFamilyXML writer = new WriteFamilyXML();
-//         Path xmlFilePath = outputDirectory.resolve(filePath.getFileName());
-//         writer.writeXMLFile(xmlFilePath, deviceInfo);
+         WriteFamilyXML writer = new WriteFamilyXML();
+         Path xmlFilePath = outputDirectory.resolve(filePath.getFileName());
+         writer.writeXmlFile(xmlFilePath, deviceInfo);
       }
-      report(deviceInfo);
    }
 
    static void report(DeviceInfo deviceInfo) {
@@ -64,19 +64,23 @@ public class TestParseXML {
          System.err.println("Package = " + devicePackage);
          for (String pinName:devicePackage.getPins().keySet()) {
             String location = devicePackage.getLocation(pinName);
-            System.err.println(pinName + " => " + location);
+            System.err.print(pinName + " => " + location+", ");
          }
+         System.err.println();
       }
       for(String pinName:deviceInfo.getPins().keySet()) {
          PinInformation pin = deviceInfo.findPin(pinName);
-         System.err.println("Pin = " + pin.getName());
+         System.err.print("Pin = " + pin.getName() + ", ");
       };
+      System.err.println();
       for(String peripheralName:deviceInfo.getPeripheralNames()) {
-         System.err.println("Peripheral = " + peripheralName);
+         System.err.print("Peripheral = " + peripheralName+", ");
       };
+      System.err.println();
       for(String peripheralFunction:deviceInfo.getPeripheralFunctions().keySet()) {
-         System.err.println("PeripheralFunction = " + peripheralFunction);
+         System.err.print("PeripheralFunction = " + peripheralFunction + ", ");
       };
+      System.err.println();
 
    }
 

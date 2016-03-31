@@ -1,11 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 
 public class WriterForLpuart extends WriterForUart {
 
-   public WriterForLpuart(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForLpuart(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
 
    @Override

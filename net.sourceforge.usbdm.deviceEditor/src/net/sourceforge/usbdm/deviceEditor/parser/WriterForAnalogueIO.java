@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
@@ -17,6 +17,8 @@ import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformat
  */
 public class WriterForAnalogueIO extends WriterBase {      
 
+   static private final String ALIAS_PREFIX = "adc_";
+   
    /** Functions that use this writer */
    protected InfoTable fSeFunctions = new InfoTable("infoSE");
          
@@ -26,9 +28,9 @@ public class WriterForAnalogueIO extends WriterBase {
    /** Functions that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("infoDP");
          
-
-   public WriterForAnalogueIO(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForAnalogueIO(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
+      // TODO Auto-generated constructor stub
    }
 
    /* (non-Javadoc)
@@ -43,11 +45,7 @@ public class WriterForAnalogueIO extends WriterBase {
       }
       String signalType = m.group(1);
       if (signalType.equalsIgnoreCase("SE")) {
-//         String suffix     = m.group(3);
-//         if ((suffix != null) && suffix.equals("a")) {
-//            return null;
-//         }
-         return fOwner.getAliasBaseName()+alias;
+         return ALIAS_PREFIX+alias;
       }
       else if (signalType.equalsIgnoreCase("DM")) {
          return null;
@@ -65,7 +63,7 @@ public class WriterForAnalogueIO extends WriterBase {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return fOwner.getInstanceBaseName()+instance+"_se"+signal;
+      return getClassName()+instance+"_se"+signal;
    }
 
    /** 
@@ -80,7 +78,7 @@ public class WriterForAnalogueIO extends WriterBase {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, fOwner.getClassName(), signal));
+      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
    
@@ -98,23 +96,23 @@ public class WriterForAnalogueIO extends WriterBase {
       return index;
    }
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#needPcrTable()
-    */
-   @Override
-   public boolean needPeripheralInformationClass() {
-      // Assume required if functions are present
-      boolean required = needPCRTable();
-      if (!required) {
-         // Shouldn't have clock information for non-existent peripheral 
-         if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
-            System.err.println("WARNING - Unexpected clock information for peripheral without signal" + fOwner.getPeripheralName());
-            return false;
-//            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
-         }
-      }
-      return required;
-   };
+//   /* (non-Javadoc)
+//    * @see WriterForDigitalIO#needPcrTable()
+//    */
+//   @Override
+//   public boolean needPeripheralInformationClass() {
+//      // Assume required if functions are present
+//      boolean required = needPCRTable();
+//      if (!required) {
+//         // Shouldn't have clock information for non-existent peripheral 
+//         if ((getClockReg() != null) || (getClockMask() != null)) {
+//            System.err.println("WARNING - Unexpected clock information for peripheral without signal" + getPeripheralName());
+//            return false;
+////            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
+//         }
+//      }
+//      return required;
+//   };
 
    @Override
    public boolean needPCRTable() {
@@ -160,7 +158,7 @@ public class WriterForAnalogueIO extends WriterBase {
    public String getTemplate() {   
       return TEMPLATE_DOCUMENTATION+String.format(
             "template<uint8_t channel> using %s = Adc_T<%sInfo, channel>;\n\n",
-            fOwner.getClassName(), fOwner.getClassName());
+            getClassName(), getClassName());
    }
 
    @Override

@@ -17,8 +17,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
@@ -100,12 +100,8 @@ public class WriteFamilyXML {
       documentUtilities.closeTag();
 
       documentUtilities.openTag("default");
-//      if (defaultSelection == MuxSelection.reset) {
-//         defaultSelection = resetSelection;
-//      }
       documentUtilities.writeAttribute("sel", pinInformation.getDefaultValue().name());
       documentUtilities.closeTag();
-      //      }
       documentUtilities.closeTag();
    }
 
@@ -173,6 +169,14 @@ public class WriteFamilyXML {
       documentUtilities.closeTag();
    }
 
+   void writePeripherals(XmlDocumentUtilities documentUtilities) throws IOException {
+      documentUtilities.openTag("peripherals");
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         peripheral.writeXmlInformation(documentUtilities);
+      }
+      documentUtilities.closeTag();
+   }
    /**
     * Writes XML describing how pins are mapped to package locations
     * 
@@ -209,81 +213,19 @@ public class WriteFamilyXML {
 
       documentUtilities.closeTag();
    }
-   //   /**
-   //    * Process pins
-   //    */
-   //   static void processPins() {
-   //      for (PeripheralTemplateInformation pinTemplate:fDeviceInfo.getTemplateList()) {
-   //         for (String pinName:fDeviceInfo.getPins().keySet()) {
-   //            PinInformation pinInfo = fDeviceInfo.findPin(pinName);
-   //            Map<MuxSelection, MappingInfo> mappedFunctions = fDeviceInfo.getFunctions(pinInfo);
-   //            if (mappedFunctions == null) {
-   //               continue;
-   //            }
-   //            for (MuxSelection index:mappedFunctions.keySet()) {
-   //               if (index == MuxSelection.reset) {
-   //                  continue;
-   //               }
-   //               MappingInfo mappedFunction = mappedFunctions.get(index);
-   //               for (PeripheralFunction function:mappedFunction.functions) {
-   //                  if (pinTemplate.matches(function)) {
-   //                     fDeviceInfo.addFunctionType(pinTemplate.getPeripheralName(), pinInfo);
-   //                  }
-   //               }
-   //            }
-   //         }
-   //      }
-   //   }
 
-   /**
-    * Write alls Peripheral Information Classes<br>
-    * 
-    * <pre>
-    *  class Adc0Info {
-    *     public:
-    *        //! Hardware base pointer
-    *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
-    * 
-    *        //! Base value for PCR (excluding MUX value)
-    *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-    * 
-    *        //! Information for each pin of peripheral
-    *        static constexpr PcrInfo  info[32] = {
-    * 
-    *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
-    *   /*  0 * /  { 0 },
-    *   ...
-    *   #if (ADC0_SE4b_PIN_SEL == 1)
-    *    /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
-    *   #else
-    *    /*  4 * /  { 0 },
-    *   #endif
-    *   ...
-    *   };
-    *   };
-    * </pre>
-    * @param documentUtilities Where to write
-    * @throws IOException 
-    * 
-    * @throws Exception 
-    */
-   private void writePeripheralInformationTables(XmlDocumentUtilities documentUtilities) throws IOException {
-      documentUtilities.openTag("peripherals");
-      for (PeripheralTemplateInformation pinTemplate:fDeviceInfo.getTemplateList()) {
-         pinTemplate.writePeripheralInformation(documentUtilities);
-      }
-      documentUtilities.closeTag();
-   }
 
    /**
     * Writes XML file
     * 
-    * @param writer Header file to write to
-    * @throws IOException 
+    * @param xmlFilePath      Path to write XML to
+    * @param deviceInfomation Data to write
     * 
-    * @throws Exception
+    * @throws IOException
     */
    public void writeXmlFile(Path xmlFilePath, DeviceInfo deviceInfomation) throws IOException {
+      fDeviceInfo = deviceInfomation;
+
       String fXmlFilename = xmlFilePath.getFileName().toString();
       BufferedWriter writer = Files.newBufferedWriter(xmlFilePath, StandardCharsets.UTF_8);
       XmlDocumentUtilities documentUtilities = new XmlDocumentUtilities(writer);
@@ -309,24 +251,10 @@ public class WriteFamilyXML {
 
       writePins(documentUtilities);
       writePackages(documentUtilities);
-      writePeripheralInformationTables(documentUtilities);
-
+      writePeripherals(documentUtilities);
+      
       documentUtilities.closeTag();
       writer.close();
-   }
-
-   /**
-    * Process file
-    * 
-    * @param filePath
-    * @throws IOException 
-    * @throws Exception
-    */
-   public void writeXMLFile(Path xmlFilePath, DeviceInfo deviceInfo) throws IOException {
-
-      fDeviceInfo = deviceInfo;
-
-      writeXmlFile(xmlFilePath, deviceInfo);
    }
 
 }

@@ -1,13 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
@@ -18,8 +17,9 @@ public class WriterForPwmIO_FTM extends WriterBase {
    static final String CLASS_BASE_NAME       = "Ftm";
    static final String INSTANCE_BASE_NAME    = "ftm";
    
-   public WriterForPwmIO_FTM(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForPwmIO_FTM(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
+      // TODO Auto-generated constructor stub
    }
 
    /* (non-Javadoc)
@@ -120,7 +120,7 @@ public class WriterForPwmIO_FTM extends WriterBase {
    public String getTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
             "template<uint8_t channel> using %s = TmrBase_T<%sInfo, channel>;\n\n",
-            fOwner.getClassName(), fOwner.getClassName(), fOwner.getPeripheralName());
+            getClassName(), getClassName(), getPeripheralName());
    }
 
    @Override
@@ -130,7 +130,7 @@ public class WriterForPwmIO_FTM extends WriterBase {
       sb.append(String.format(
             "   //! Base value for tmr->SC register\n"+
             "   static constexpr uint32_t scValue  = %s;\n\n",
-            fOwner.getPeripheralName()+"_SC"));
+            getPeripheralName()+"_SC"));
       sb.append(String.format(
             "   //! Indexes of special functions in PcrInfo[] table\n"+
             "   static constexpr int QUAD_INDEX  = %d;\n" +
@@ -171,40 +171,40 @@ public class WriterForPwmIO_FTM extends WriterBase {
    }
 
    @Override
-   public void writeWizard(BufferedWriter headerFile) throws IOException {
-         DocumentUtilities.writeWizardSectionOpen(headerFile, "Clock settings for " + fOwner.getPeripheralName());
-         DocumentUtilities.writeWizardOptionSelectionPreamble(headerFile, 
-               String.format("%s_SC.CLKS ================================\n//", fOwner.getPeripheralName()), 
-               0,
-               null,
-               String.format("%s_SC.CLKS Clock source", fOwner.getPeripheralName()),
-               String.format("Selects the clock source for the %s module. [%s_SC.CLKS]", fOwner.getPeripheralName(), fOwner.getPeripheralName()));
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "0", "Disabled");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "1", "System clock");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "2", "Fixed frequency clock");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "3", "External clock");
-         DocumentUtilities.writeWizardDefaultSelectionEnty(headerFile, "1");
-         DocumentUtilities.writeWizardOptionSelectionPreamble(headerFile, 
-               String.format("%s_SC.PS ================================\n//",fOwner.getPeripheralName()),
-               1,
-               null,
-               String.format("%s_SC.PS Clock prescaler", fOwner.getPeripheralName()),
-               String.format("Selects the prescaler for the %s module. [%s_SC.PS]", fOwner.getPeripheralName(), fOwner.getPeripheralName()));
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "0", "Divide by 1");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "1", "Divide by 2");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "2", "Divide by 4");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "3", "Divide by 8");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "4", "Divide by 16");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "5", "Divide by 32");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "6", "Divide by 64");
-         DocumentUtilities.writeWizardOptionSelectionEnty(headerFile, "7", "Divide by 128");
-         DocumentUtilities.writeWizardDefaultSelectionEnty(headerFile, "0");
-         DocumentUtilities.writeOpenNamespace(headerFile, DeviceInfo.NAME_SPACE);
-         DocumentUtilities.writeConstexpr(headerFile, 16, fOwner.getPeripheralName()+"_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
-         DocumentUtilities.writeCloseNamespace(headerFile);
-         headerFile.write("\n");
-         DocumentUtilities.writeWizardSectionClose(headerFile);
-         //      headerFile.write( String.format(optionSectionClose));
+   public void writeWizard(DocumentUtilities headerFile) throws IOException {
+      headerFile.writeWizardSectionOpen("Clock settings for " + getPeripheralName());
+      headerFile.writeWizardOptionSelectionPreamble(
+            String.format("%s_SC.CLKS ================================\n//", getPeripheralName()), 
+            0,
+            null,
+            String.format("%s_SC.CLKS Clock source", getPeripheralName()),
+            String.format("Selects the clock source for the %s module. [%s_SC.CLKS]", getPeripheralName(), getPeripheralName()));
+      headerFile.writeWizardOptionSelectionEnty("0", "Disabled");
+      headerFile.writeWizardOptionSelectionEnty("1", "System clock");
+      headerFile.writeWizardOptionSelectionEnty("2", "Fixed frequency clock");
+      headerFile.writeWizardOptionSelectionEnty("3", "External clock");
+      headerFile.writeWizardDefaultSelectionEnty("1");
+      headerFile.writeWizardOptionSelectionPreamble(
+            String.format("%s_SC.PS ================================\n//",getPeripheralName()),
+            1,
+            null,
+            String.format("%s_SC.PS Clock prescaler", getPeripheralName()),
+            String.format("Selects the prescaler for the %s module. [%s_SC.PS]", getPeripheralName(), getPeripheralName()));
+      headerFile.writeWizardOptionSelectionEnty("0", "Divide by 1");
+      headerFile.writeWizardOptionSelectionEnty("1", "Divide by 2");
+      headerFile.writeWizardOptionSelectionEnty("2", "Divide by 4");
+      headerFile.writeWizardOptionSelectionEnty("3", "Divide by 8");
+      headerFile.writeWizardOptionSelectionEnty("4", "Divide by 16");
+      headerFile.writeWizardOptionSelectionEnty("5", "Divide by 32");
+      headerFile.writeWizardOptionSelectionEnty("6", "Divide by 64");
+      headerFile.writeWizardOptionSelectionEnty("7", "Divide by 128");
+      headerFile.writeWizardDefaultSelectionEnty("0");
+      headerFile.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      headerFile.writeConstexpr(16, getPeripheralName()+"_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
+      headerFile.writeCloseNamespace();
+      headerFile.write("\n");
+      headerFile.writeWizardSectionClose();
+      //      headerFile.write( String.format(optionSectionClose));
    }
    
    

@@ -116,12 +116,12 @@ public class MappingInfo extends ObservableModel {
       if (fSelected != selected) {
          setRefreshPending(true);
          fSelected = selected;
-         System.err.println(String.format("%-60s => Changed   => %s", toString(), (selected?"selected":"unselected")));
+//         System.err.println(String.format("%-60s => Changed   => %s", toString(), (selected?"selected":"unselected")));
          notifyListeners();
       }
-      else {
-         System.err.println(String.format("%-60s => No change == %s", toString(), (selected?"selected":"unselected")));
-      }
+//      else {
+//         System.err.println(String.format("%-60s => No change == %s", toString(), (selected?"selected":"unselected")));
+//      }
       fBusy = false;   
    }
 
@@ -162,7 +162,7 @@ public class MappingInfo extends ObservableModel {
          fMessage = new Message(msg, Message.Severity.ERROR);
       }
       if (fMessage != oldMsg) {
-         System.err.println("setMessage() Changed: "+this+"==>"+msg);
+//         System.err.println("setMessage() Changed: "+this+"==>"+msg);
          setRefreshPending(true);
       }
    }

@@ -16,43 +16,36 @@ public class WriterForMiscellaneous extends WriterBase {
 
       @Override
       public String getGroupName() {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       public String getGroupTitle() {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       public String getGroupBriefDescription() {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       public String getAliasName(String signalName, String alias) {
-         // TODO Auto-generated method stub
          return null;
       }
 
       @Override
       public int getFunctionIndex(PeripheralFunction function) {
-         // TODO Auto-generated method stub
          return 0;
       } 
       

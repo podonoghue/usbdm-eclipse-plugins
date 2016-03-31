@@ -1,14 +1,16 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
@@ -16,9 +18,13 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  */
 public abstract class WriterBase {
    
-   /** Owner of this writer */
-   protected PeripheralTemplateInformation fOwner;
+   /** Peripheral associated with this this writer */
+   protected final Peripheral fPeripheral;
    
+   /** Device information */
+   private final DeviceInfo fDeviceInfo;
+   
+   /** Class used to hold different classes of peripheral functions */
    public class InfoTable {
       /** Functions that use this writer */
       public  Vector<PeripheralFunction> table = new Vector<PeripheralFunction>();
@@ -41,8 +47,9 @@ public abstract class WriterBase {
     * @param deviceType    Indicates the device family
     * @param useGuard      Indicates that <b><i>#if</b></i> ... <b><i>#endif</b></i> guards should be written
     */
-   public WriterBase(PeripheralTemplateInformation owner) {
-      this.fOwner = owner;
+   public WriterBase(DeviceInfo deviceInfo, Peripheral peripheral) {
+      fPeripheral        = peripheral;
+      fDeviceInfo        = deviceInfo;
    }
 
    /**
@@ -51,7 +58,7 @@ public abstract class WriterBase {
     * @return name
     */
    public String getGroupName() {
-      return fOwner.getClassName().toUpperCase()+"_Group";
+      return fPeripheral.getClassName().toUpperCase()+"_Group";
       
    }
    /**
@@ -67,21 +74,15 @@ public abstract class WriterBase {
     * @return name
     */
    public String getGroupTitle() {
-      return fOwner.getPeripheralBasename() + ", " + getTitle();
+      return getPeripheralBasename() + ", " + getTitle();
    }
+
    /**
     * Get Documentation group brief description <br>e.g. "Allows use of port pins as simple digital inputs or outputs"
     * 
     * @return name
     */
    public abstract String getGroupBriefDescription();
-
-   /** 
-    * Indicates the device is in the MKE family 
-    */
-   protected DeviceFamily getDeviceFamily() {
-      return fOwner.getDeviceFamily();
-   }
 
    /** 
     * Indicates that <b><i>#if</b></i> ... <b><i>#endif</b></i> guards should be written 
@@ -180,26 +181,26 @@ public abstract class WriterBase {
     */
    public abstract String getAliasName(String signalName, String alias);
    
-   /**
-    * Indicates if a Peripheral Information class is required<br>
-    * The default implementation does some sanity checks and returns true if functions are present 
-    *
-    * @return
-    * @throws Exception 
-    */
-   public boolean needPeripheralInformationClass() {
-      // Assume required if functions are present
-      boolean required = fPeripheralFunctions.table.size() > 0;
-      if (!required) {
-         // Shouldn't have clock information for non-existent peripheral 
-         if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
-            System.err.println("WARNING - Unexpected clock information for peripheral without signal" + fOwner.getPeripheralName());
-            return false;
-//            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
-         }
-      }
-      return required;
-   }
+//   /**
+//    * Indicates if a Peripheral Information class is required<br>
+//    * The default implementation does some sanity checks and returns true if functions are present 
+//    *
+//    * @return
+//    * @throws Exception 
+//    */
+//   public boolean needPeripheralInformationClass() {
+//      // Assume required if functions are present
+//      boolean required = fPeripheralFunctions.table.size() > 0;
+//      if (!required) {
+//         // Shouldn't have clock information for non-existent peripheral 
+//         if ((fPeripheral.getClockReg() != null) || (fPeripheral.getClockMask() != null)) {
+//            System.err.println("WARNING - Unexpected clock information for peripheral without signal" + getPeripheralName());
+//            return false;
+////            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
+//         }
+//      }
+//      return required;
+//   }
    
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
@@ -276,32 +277,32 @@ public abstract class WriterBase {
       buff.append(String.format(
             "   //! Hardware base pointer\n"+
             "   static constexpr uint32_t basePtr   = %s\n\n",
-            fOwner.getPeripheralName()+"_BasePtr;"
+            getPeripheralName()+"_BasePtr;"
             ));
 
       buff.append(getPcrValue());
       
-      if (fOwner.getClockMask() != null) {
+      if (fPeripheral.getClockMask() != null) {
          buff.append(String.format(
                "   //! Clock mask for peripheral\n"+
                "   static constexpr uint32_t clockMask = %s;\n\n",
-               fOwner.getClockMask()));
+               fPeripheral.getClockMask()));
       }
-      if (fOwner.getClockReg() != null) {
+      if (fPeripheral.getClockReg() != null) {
          buff.append(String.format(
                "   //! Address of clock register for peripheral\n"+
                "   static constexpr uint32_t clockReg  = %s;\n\n",
-               "SIM_BasePtr+offsetof(SIM_Type,"+fOwner.getClockReg()+")"));
+               "SIM_BasePtr+offsetof(SIM_Type,"+fPeripheral.getClockReg()+")"));
       }
       buff.append(String.format(
             "   //! Number of IRQs for hardware\n"+
             "   static constexpr uint32_t irqCount  = %s;\n\n",
-            fOwner.getIrqCount()));
-      if (fOwner.getIrqNumsAsInitialiser() != null) {
+            fPeripheral.getIrqCount()));
+      if (fPeripheral.getIrqNumsAsInitialiser() != null) {
          buff.append(String.format(
                "   //! IRQ numbers for hardware\n"+
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-               fOwner.getIrqNumsAsInitialiser()));
+               fPeripheral.getIrqNumsAsInitialiser()));
       }
       return buff.toString();
    }
@@ -314,13 +315,18 @@ public abstract class WriterBase {
    }
    public void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) {
    }
-   public void writeWizard(BufferedWriter headerFile) throws IOException {
+   public void writeWizard(DocumentUtilities writer) throws IOException {
    }
 
    public String getPcrInfoTableName(PeripheralFunction function) {
       return "info";
    }
    
+   /**
+    * Add to map of functions on this peripheral to write
+    * 
+    * @param peripheralFunction
+    */
    public void addFunction(PeripheralFunction function) {
       int signalIndex = getFunctionIndex(function);
       if (signalIndex<0) {
@@ -342,5 +348,201 @@ public abstract class WriterBase {
       rv.add(fPeripheralFunctions);
       return rv;
    }
+   
+   /**
+    * Write Peripheral Information Class<br>
+    * 
+    * <pre>
+    *  class Adc0Info {
+    *     public:
+    *        //! Hardware base pointer
+    *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
+    * 
+    *        //! Base value for PCR (excluding MUX value)
+    *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+    * 
+    *        //! Information for each pin of peripheral
+    *        static constexpr PcrInfo  info[32] = {
+    * 
+    *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
+    *   /*  0 * /  { 0 },
+    *   ...
+    *   #if (ADC0_SE4b_PIN_SEL == 1)
+    *    /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
+    *   #else
+    *    /*  4 * /  { 0 },
+    *   #endif
+    *   ...
+    *   };
+    *   };
+    * </pre>
+    * @param  deviceInformation 
+    * @param  pinMappingHeaderFile Where to write
+    * 
+    * @throws IOException 
+    */
+   public void writeInfoClass(DeviceInformation deviceInformation, DocumentUtilities pinMappingHeaderFile) throws IOException {
+      final String DUMMY_TEMPLATE = "         /* %2d */  { 0, 0, 0, 0, 0 },\n";
+
+      pinMappingHeaderFile.writeDocBanner("Peripheral information for " + getGroupTitle());
+
+      // Open class
+      pinMappingHeaderFile.write(String.format(
+            "class %s {\n"+
+                  "public:\n",
+                  fPeripheral.getClassName()+"Info"
+            ));
+      // Additional, peripheral specific, information
+      pinMappingHeaderFile.write(getInfoConstants());
+      if (needPCRTable()) {
+
+         ArrayList<InfoTable> functionTables = getFunctionTables();
+         for (InfoTable functionTable:functionTables) {
+            if (functionTable.table.size() == 0) {
+               continue;
+            }
+            pinMappingHeaderFile.write(String.format(
+                  "   //! Information for each pin of peripheral\n"+
+                        "   static constexpr PcrInfo  %s[32] = {\n"+
+                        "\n",
+                  functionTable.getName()
+                  ));
+            pinMappingHeaderFile.write("         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue\n");
+            // Signal information table
+            for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
+               PeripheralFunction peripheralFunction = functionTable.table.get(signalIndex);
+               if (peripheralFunction == null) {
+                  pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
+                  continue;
+               }
+               ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
+               boolean valueWritten = false;
+               int choice = 1;
+               for (MappingInfo mappedPin:mappedPins) {
+                  if (mappedPin.getMux() == MuxSelection.disabled) {
+                     // Disabled selection - ignore
+                     continue;
+                  }
+                  if (mappedPin.getMux() == MuxSelection.reset) {
+                     // Reset selection - ignore
+                     continue;
+                  }
+                  if (mappedPin.getMux() == MuxSelection.fixed) {
+                     // Fixed pin mapping - handled by default following
+                     continue;
+                  }
+                  if (deviceInformation.getPackage().getLocation(mappedPin.getPin()) == null) {
+                     continue;
+                  }
+                  pinMappingHeaderFile.writeConditional(String.format("%s_PIN_SEL == %d", peripheralFunction.getName(), choice), valueWritten);
+                  String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.getPin());
+                  pinMappingHeaderFile.write(String.format("         /* %2d */  { %s%d },\n", signalIndex, pcrInitString, mappedPin.getMux().value));
+
+                  valueWritten = true;
+                  choice++;
+               }
+               if (valueWritten) {
+                  pinMappingHeaderFile.writeConditionalElse();
+               }
+               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, signalIndex));
+               pinMappingHeaderFile.writeConditionalEnd(valueWritten);
+            }
+            pinMappingHeaderFile.write(String.format("   };\n"));
+         }
+      }
+      pinMappingHeaderFile.write(String.format("};\n\n"));
+      pinMappingHeaderFile.write(getExtraDefinitions());
+   }
+
+   /**
+    * Write an external declaration for a simple peripheral (GPIO,ADC,PWM) e.g.
+    * 
+    * <pre>
+    * <b>#if</b> <i>PTC18_SEL</i> == 1
+    * using <i>gpio_A5</i>  = const USBDM::<i>GpioC&lt;18&gt;</i>;
+    * <b>#endif</b>
+    * </pre>
+    * 
+    * @param template         Template information
+    * @param mappedFunction   Information about the pin and function being declared
+    * @param fnIndex          Index into list of functions mapped to pin
+    * @param gpioHeaderFile   Where to write
+    * 
+    * @throws Exception 
+    */
+   public void writeExternDeclaration(PeripheralTemplateInformation template, MappingInfo mappedFunction, int fnIndex, DocumentUtilities gpioHeaderFile) throws IOException {
+      String definition = getDefinition(mappedFunction, fnIndex);
+      if (definition == null) {
+         return;
+      }
+      boolean guardWritten = false;
+
+      String signalName = getInstanceName(mappedFunction, fnIndex);
+      if (template.useAliases(mappedFunction.getPin())) {
+         String locations = mappedFunction.getFunctionList();
+         if (locations != null) {
+            for (String location:locations.split("/")) {
+               if (!location.equalsIgnoreCase(mappedFunction.getPin().getName())) {
+                  String aliasName = getAliasName(signalName, location);
+                  if (aliasName!= null) {
+                     String declaration = getAlias(aliasName, mappedFunction, fnIndex);
+                     if (declaration != null) {
+//                        if (!guardWritten) {
+//                           guardWritten = writeFunctionSelectionGuardMacro(template, mappedFunction, gpioHeaderFile, guardWritten);
+//                        }
+//                        if (!addMacroAlias(aliasName)) {
+//                           // Comment out repeated aliases
+//                           gpioHeaderFile.write("//");
+//                        }
+                        gpioHeaderFile.write(declaration);
+                     }
+                  }
+               }
+            }
+         }
+      }
+      gpioHeaderFile.writeConditionalEnd(guardWritten);
+   }
+
+   protected String getPeripheralName() {
+      return fPeripheral.getName();
+   }
+
+   /**
+    * Name of C peripheral class e.g. Ftm2 
+    * 
+    * @return
+    */
+   protected String getClassName() {
+      return fPeripheral.getClassName();
+   }
+
+   /**
+    * Get base name of the peripheral e.g. FTM0 = FTM, PTA = PT 
+    * 
+    * @return
+    */
+   protected String getPeripheralBasename() {
+      return fPeripheral.getBaseName();
+   }
+
+   /**
+    * Get clock register e.g. SIM->SCGC6 
+    * 
+    * @return
+    */
+   protected String getClockReg() {
+      return fPeripheral.getClockReg();
+   }
+
+   /**
+    * Get clock register mask e.g. ADC0_CLOCK_REG 
+    * 
+    * @return
+    */
+   protected String getClockMask() {
+      return fPeripheral.getClockMask();
+   }
+
 
 }

@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -21,10 +21,10 @@ public class WriterForDigitalIO extends WriterBase {
    static final String CLASS_BASE_NAME       = "Gpio";
    static final String INSTANCE_BASE_NAME    = "gpio";
 
-   public WriterForDigitalIO(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForDigitalIO(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
-   
+
    /* (non-Javadoc)
     * @see InstanceWriter#getAliasName(java.lang.String)
     */
@@ -55,14 +55,12 @@ public class WriterForDigitalIO extends WriterBase {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, fOwner.getClassName(), signal));
+      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
-   /* (non-Javadoc)
-    * @see InstanceWriter#needPcrTable()
-    */
+
    @Override
-   public boolean needPeripheralInformationClass() {
+   public boolean needPCRTable() {
       return false;
    }
 
@@ -152,14 +150,14 @@ public class WriterForDigitalIO extends WriterBase {
    @Override
    public String getTemplate() {  
       StringBuffer buff = new StringBuffer();
-      buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", fOwner.getClassName()));
+      buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", getClassName()));
       buff.append(String.format(
             "template<uint8_t bitNum> using %s = Gpio_T<%sInfo, bitNum>;\n\n",
-            fOwner.getClassName(), fOwner.getClassName()));
-      buff.append(TEMPLATE_DOCUMENTATION_2.replaceAll("%s", fOwner.getClassName()));
+            getClassName(), getClassName()));
+      buff.append(TEMPLATE_DOCUMENTATION_2.replaceAll("%s", getClassName()));
       buff.append(String.format(
             "template<int left, int right> using %sField = Field_T<%sInfo, left, right>;\n\n",
-            fOwner.getClassName(), fOwner.getClassName()));
+            getClassName(), getClassName()));
       return buff.toString();
    }
 
@@ -182,39 +180,39 @@ public class WriterForDigitalIO extends WriterBase {
       buff.append(String.format(
             "   //! PORT Hardware base pointer\n"+
             "   static constexpr uint32_t pcrAddress   = %s\n\n",
-            fOwner.getPeripheralName()+"_BasePtr;"
+            getPeripheralName().replaceAll("GPIO", "PORT")+"_BasePtr;"
             ));
 
       // Base address
       buff.append(String.format(
             "   //! GPIO Hardware base pointer\n"+
             "   static constexpr uint32_t gpioAddress   = %s\n\n",
-            fOwner.getPeripheralName().replaceAll("PORT", "GPIO")+"_BasePtr;"
+            getPeripheralName().replaceAll("PORT", "GPIO")+"_BasePtr;"
             ));
 
       buff.append(getPcrValue());
       
-      if (fOwner.getClockMask() != null) {
+      if (getClockMask() != null) {
          buff.append(String.format(
                "   //! Clock mask for peripheral\n"+
                "   static constexpr uint32_t clockMask = %s;\n\n",
-               fOwner.getClockMask()));
+               getClockMask()));
       }
-      if (fOwner.getClockReg() != null) {
+      if (getClockReg() != null) {
          buff.append(String.format(
                "   //! Address of clock register for peripheral\n"+
                "   static constexpr uint32_t clockReg  = %s;\n\n",
-               "SIM_BasePtr+offsetof(SIM_Type,"+fOwner.getClockReg()+")"));
+               "SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+")"));
       }
-      if (fOwner.getIrqNumsAsInitialiser() != null) {
+      if (fPeripheral.getIrqNumsAsInitialiser() != null) {
          buff.append(String.format(
                "   //! Number of IRQs for hardware\n"+
                "   static constexpr uint32_t irqCount  = %s;\n\n",
-               fOwner.getIrqCount()));
+               fPeripheral.getIrqCount()));
          buff.append(String.format(
                "   //! IRQ numbers for hardware\n"+
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-               fOwner.getIrqNumsAsInitialiser()));
+               fPeripheral.getIrqNumsAsInitialiser()));
       }
       return buff.toString();
    }
@@ -232,6 +230,14 @@ public class WriterForDigitalIO extends WriterBase {
    @Override
    public String getGroupBriefDescription() {
       return "Allows use of port pins as simple digital inputs or outputs";
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.parser.WriterBase#useGuard()
+    */
+   @Override
+   public boolean useGuard() {
+      return false;
    }
    
 }

@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -9,6 +11,7 @@ import org.w3c.dom.Node;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 public class ParseFamilyXML extends XML_BaseParser {
@@ -26,10 +29,6 @@ public class ParseFamilyXML extends XML_BaseParser {
 
       PinInformation pin = factory.createPin(pinElement.getAttribute("name"));
 
-      if (pin.getName().equalsIgnoreCase("PTA0")) {
-         // XXX Delete me
-         System.err.println("Stop here");
-      }
       for (Node node = pinElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -158,6 +157,54 @@ public class ParseFamilyXML extends XML_BaseParser {
       }
    }
 
+   private void parsePeripherals(Element peripheralsElement) {
+      for (Node node = peripheralsElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "peripheral") {
+            parsePeripheral(element);
+         }
+         else {
+            throw new RuntimeException("Unexpected field in PERIPHERALS, value = \'"+element.getTagName()+"\'");
+         }
+      }
+   }
+
+   // Peripherals not implied by the pins
+   ArrayList<Pattern> predefinedPeripherals = new ArrayList<Pattern>();
+   
+   private void parsePeripheral(Element peripheralElement) {
+      if (predefinedPeripherals.size()==0) {
+         predefinedPeripherals.add(Pattern.compile("(DMAMUX)(\\d*)"));
+         predefinedPeripherals.add(Pattern.compile("(PIT)(\\d*)"));
+      }
+      String peripheralName = peripheralElement.getAttribute("name");
+
+      Peripheral peripheral = factory.findOrCreatePeripheral(peripheralName);
+      
+      for (Node node = peripheralElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "clock") {
+            peripheral.setClockInfo(element.getAttribute("clockReg"), element.getAttribute("clockMask"));
+         }
+         else if (element.getTagName() == "irq") {
+            peripheral.addIrqNum(element.getAttribute("num"));
+         }
+         else {
+            throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
+         }
+      }
+   }
+
    /**
     * Parses document from top element
     * @return 
@@ -190,12 +237,14 @@ public class ParseFamilyXML extends XML_BaseParser {
             parsePackages(element);
          }
          else if (element.getTagName() == "peripherals") {
+            parsePeripherals(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in PIN, value = \'"+element.getTagName()+"\'");
+            throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }      
       factory.consistencyCheck();
       return factory;
    }
+
 }

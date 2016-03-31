@@ -2,8 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -19,8 +19,8 @@ public class WriterForSpi extends WriterBase {
    static final String CLASS_BASE_NAME       = "Spi";
    static final String INSTANCE_BASE_NAME    = "spi";
 
-   public WriterForSpi(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForSpi(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
 
    /* (non-Javadoc)
@@ -112,7 +112,7 @@ public class WriterForSpi extends WriterBase {
    }
    @Override
    public String getExtraDefinitions() {
-      String name = fOwner.getClassName();
+      String name = getClassName();
       StringBuffer buff = new StringBuffer();
       for (int index=0; index<=5; index++) {
          buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index, name, index+3));

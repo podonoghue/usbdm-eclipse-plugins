@@ -2,8 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -14,13 +14,14 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  *
  */
 public class WriterForI2c extends WriterBase {
-
    static final String ALIAS_BASE_NAME       = "i2c_";
    static final String CLASS_BASE_NAME       = "I2c";
    static final String INSTANCE_BASE_NAME    = "i2c";
 
-   public WriterForI2c(PeripheralTemplateInformation owner) {
-      super(owner);
+
+   public WriterForI2c(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
+      // TODO Auto-generated constructor stub
    }
 
    /* (non-Javadoc)

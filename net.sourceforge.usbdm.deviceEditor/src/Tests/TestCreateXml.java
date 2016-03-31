@@ -47,11 +47,11 @@ public class TestCreateXml {
          ParseFamilyCSV reader = new ParseFamilyCSV();
          DeviceInfo deviceInfo = reader.parseFile(filePath);
          
-         String xmlFileName = pinMappingBaseFileName+"-"+deviceName+".xml";
+         String xmlFileName = pinMappingBaseFileName+"-"+deviceName+".hardware";
          
          WriteFamilyXML writer = new WriteFamilyXML();
          Path xmlFilePath = xmlDirectory.resolve(xmlFileName);
-         writer.writeXMLFile(xmlFilePath, deviceInfo);
+         writer.writeXmlFile(xmlFilePath, deviceInfo);
       }
    }
 }

@@ -24,7 +24,6 @@ import net.sourceforge.usbdm.configEditor.information.Peripheral;
 import net.sourceforge.usbdm.configEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.configEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.configEditor.information.PinInformation;
-import sun.misc.FpUtils;
 
 public class WriteFamilyCpp {
 
@@ -639,7 +638,6 @@ public class WriteFamilyCpp {
       for (String categoryTitle:categoryTitles) {
          ArrayList<PeripheralFunction> category = categories.get(categoryTitle);
          if (category.size()>0) {
-            // XXX
             DocumentUtilities.writeWizardSectionOpen(headerFile, categoryTitle);
             for (PeripheralFunction peripheralFunction:category) {
                writePeripheralSignalMapping(headerFile, peripheralFunction);

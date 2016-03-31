@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,8 +15,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 public class ParseFamilyCSV {
@@ -259,9 +258,9 @@ public class ParseFamilyCSV {
          sb.append("(" + pkgIndex.name + ":" + pinNum + ") ");
       }
 //      System.err.println(sb.toString());
-      if (pinName.startsWith("PTA0")) {
-         System.err.println("parsePinLine("+pinInformation+")");
-      }
+//      if (pinName.startsWith("PTA0")) {
+//         System.err.println("parsePinLine("+pinInformation+")");
+//      }
    }
 
    /**
@@ -303,13 +302,19 @@ public class ParseFamilyCSV {
       if (!peripheralClockMask.contains(peripheralClockReg)) {
          throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
       }
-      for(PeripheralTemplateInformation template:deviceInfo.getTemplateList()) {
-         if (template.getPeripheralName().equalsIgnoreCase(peripheralName)) {
-            template.setClockInfo(peripheralClockReg, peripheralClockMask);
-            for (int index=0; index<irqNums.length; index++) {
-               if (irqNums[index] != null) {
-                  template.addIrqNum(irqNums[index]);
-               }
+//      if (peripheralName.startsWith("USBOTG")) {
+//         // XX X Delete me
+//         System.err.println("Stop here");
+//      }
+      Peripheral peripheral = deviceInfo.findOrCreatePeripheral(peripheralName);
+      if (peripheral == null) {
+         throw new RuntimeException("Unable to find peripheral "+peripheralName);
+      }
+      if (peripheral != null) {
+         peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
+         for (int index=0; index<irqNums.length; index++) {
+            if (irqNums[index] != null) {
+               peripheral.addIrqNum(irqNums[index]);
             }
          }
       }
@@ -432,32 +437,6 @@ public class ParseFamilyCSV {
    }
 
    /**
-    * Process pins
-    */
-   private void processPins() {
-      for (PeripheralTemplateInformation pinTemplate:deviceInfo.getTemplateList()) {
-         for (String pinName:deviceInfo.getPins().keySet()) {
-            PinInformation pinInfo = deviceInfo.findPin(pinName);
-            Map<MuxSelection, MappingInfo> mappedFunctions = pinInfo.getMappedFunctions();
-            if (mappedFunctions == null) {
-               continue;
-            }
-            for (MuxSelection index:mappedFunctions.keySet()) {
-               if (index == MuxSelection.reset) {
-                  continue;
-               }
-               MappingInfo mappedFunction = mappedFunctions.get(index);
-               for (PeripheralFunction function:mappedFunction.getFunctions()) {
-                  if (pinTemplate.matches(function)) {
-                     deviceInfo.addFunctionType(pinTemplate.getPeripheralName(), pinInfo);
-                  }
-               }
-            }
-         }
-      }
-   }
-      
-   /**
     * Process file
     * 
     * @param filePath   File to process
@@ -483,7 +462,6 @@ public class ParseFamilyCSV {
       // Re-open source file
       sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
       parseFile(sourceFile);
-      processPins();
       sourceFile.close();
       
       deviceInfo.consistencyCheck();

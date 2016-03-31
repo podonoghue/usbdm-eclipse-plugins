@@ -371,10 +371,6 @@ public class PinInformation implements Comparable<PinInformation>{
       if (getResetValue() != MuxSelection.unused) {
          throw new RuntimeException("Pin "+getName()+" already has reset value "+getDefaultValue());
       }
-      if (fName.equals("PTA18")) {
-         // XXX Delete me
-         System.err.println("Stop here");
-      }
       // Should be one of the mappings given (or disabled which defaults to mux 0)
       Map<MuxSelection, MappingInfo> functionMappings = getMappedFunctions();
       for (MuxSelection functionMappingIndex:functionMappings.keySet()) {

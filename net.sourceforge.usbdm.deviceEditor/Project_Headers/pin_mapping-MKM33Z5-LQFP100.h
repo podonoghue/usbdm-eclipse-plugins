@@ -3250,7 +3250,7 @@ namespace USBDM {
  * @{
  */
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioAInfo {
 public:
@@ -3272,7 +3272,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioBInfo {
 public:
@@ -3294,7 +3294,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioCInfo {
 public:
@@ -3316,7 +3316,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioDInfo {
 public:
@@ -3338,7 +3338,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioEInfo {
 public:
@@ -3360,7 +3360,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioFInfo {
 public:
@@ -3382,7 +3382,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioGInfo {
 public:
@@ -3404,7 +3404,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioHInfo {
 public:
@@ -3426,7 +3426,7 @@ public:
 };
 
 /**
- * Peripheral information for PORT, Digital Input/Output
+ * Peripheral information for GPIO, Digital Input/Output
  */
 class GpioIInfo {
 public:
@@ -3459,7 +3459,7 @@ public:
 namespace USBDM {
 
 /**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
+ * @addtogroup DigitalIO_Group GPIO, Digital Input/Output
  * @brief Allows use of port pins as simple digital inputs or outputs
  * @{
  */
@@ -3544,14 +3544,6 @@ using gpio_p6              = const USBDM::GpioA<5>;
 using gpio_p7              = const USBDM::GpioA<6>;
 using gpio_p8              = const USBDM::GpioA<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioB. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3631,14 +3623,6 @@ using gpio_p15             = const USBDM::GpioB<4>;
 using gpio_p16             = const USBDM::GpioB<5>;
 using gpio_p17             = const USBDM::GpioB<6>;
 using gpio_p18             = const USBDM::GpioB<7>;
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioC. See @ref Gpio_T
  *
@@ -3720,14 +3704,6 @@ using gpio_p44             = const USBDM::GpioC<5>;
 using gpio_p45             = const USBDM::GpioC<6>;
 using gpio_p46             = const USBDM::GpioC<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioD. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3807,14 +3783,6 @@ using gpio_p51             = const USBDM::GpioD<4>;
 using gpio_p52             = const USBDM::GpioD<5>;
 using gpio_p53             = const USBDM::GpioD<6>;
 using gpio_p54             = const USBDM::GpioD<7>;
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioE. See @ref Gpio_T
  *
@@ -3896,14 +3864,6 @@ using gpio_p64             = const USBDM::GpioE<5>;
 using gpio_p65             = const USBDM::GpioE<6>;
 using gpio_p66             = const USBDM::GpioE<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioF. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -3983,14 +3943,6 @@ using gpio_p71             = const USBDM::GpioF<4>;
 using gpio_p72             = const USBDM::GpioF<5>;
 using gpio_p73             = const USBDM::GpioF<6>;
 using gpio_p74             = const USBDM::GpioF<7>;
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioG. See @ref Gpio_T
  *
@@ -4072,14 +4024,6 @@ using gpio_p80             = const USBDM::GpioG<5>;
 using gpio_p81             = const USBDM::GpioG<6>;
 using gpio_p82             = const USBDM::GpioG<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioH. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4160,14 +4104,6 @@ using gpio_p88             = const USBDM::GpioH<5>;
 using gpio_p89             = const USBDM::GpioH<6>;
 using gpio_p90             = const USBDM::GpioH<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioI. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4245,6 +4181,7 @@ using gpio_p93             = const USBDM::GpioI<2>;
 using gpio_p94             = const USBDM::GpioI<3>;
 /**
  * @}
+ ** DigitalIO_Group
  */
 #if (DO_MAP_PINS_ON_RESET>0)
 /**

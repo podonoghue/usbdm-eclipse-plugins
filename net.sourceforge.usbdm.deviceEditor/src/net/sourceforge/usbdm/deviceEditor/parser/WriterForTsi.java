@@ -2,9 +2,10 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -16,8 +17,8 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  */
 public class WriterForTsi extends WriterBase {
 
-   public WriterForTsi(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForTsi(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
 
    /* (non-Javadoc)
@@ -25,7 +26,7 @@ public class WriterForTsi extends WriterBase {
     */
    @Override
    public String getAliasName(String signalName, String alias) {
-      return fOwner.getAliasBaseName()+alias;
+      return getClassName()+alias;
    }
 
    /* (non-Javadoc)
@@ -35,7 +36,7 @@ public class WriterForTsi extends WriterBase {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return fOwner.getInstanceBaseName()+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
    /** 

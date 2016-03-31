@@ -2,10 +2,22 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-
 public class DocumentUtilities {
+
+   /** Writer to use */
+   private final BufferedWriter fWriter;
+
+   /** Name of current group */
+   private String fCurrentGroupName = null;
    
+   public DocumentUtilities(BufferedWriter writer) {
+      this.fWriter = writer;
+   }
+   
+   public void close() throws IOException {
+      fWriter.close();
+   }
+
    /**
     * Write open group comment
     * <pre><code>
@@ -15,13 +27,13 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param writer     Where to write 
+    * @param fWriter     Where to write 
     * @param template   Template used to describe the group
     * 
     * @throws IOException
     */
-   public static void writeStartGroup(BufferedWriter writer, PeripheralTemplateInformation template) throws IOException {
-      writeStartGroup(writer, template.getGroupName(), template.getGroupTitle(), template.getGroupBriefDescription());
+   public void writeStartGroup(WriterBase baseWriter) throws IOException {
+      writeStartGroup(baseWriter.getGroupName(), baseWriter.getGroupTitle(), baseWriter.getGroupBriefDescription());
    }
 
    /**
@@ -33,17 +45,17 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param writer     Where to write 
+    * @param fWriter     Where to write 
     * @param template   Template used to describe the group
     * @param groupDone  Indicates if group has already been done
     * 
     * @throws IOException
     */
-   void conditionallyWriteGroup(BufferedWriter gpioHeaderFile, PeripheralTemplateInformation pinTemplate, boolean groupDone) throws IOException {
+   void conditionallyWriteGroup(WriterBase baseWriter, boolean groupDone) throws IOException {
       if (groupDone) {
          return;
       }
-      writeStartGroup(gpioHeaderFile, pinTemplate);
+      writeStartGroup(baseWriter);
    }
    /**
     * Write open group comment
@@ -54,14 +66,24 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param writer        Where to write 
+    * @param fWriter        Where to write 
     * @param groupName     Name of group
     * @param groupTitle    Title of group (may be null)
     * @param groupBrief    Brief description of group (may be null)
     * 
     * @throws IOException
     */
-   public static void writeStartGroup(BufferedWriter writer, String groupName, String groupTitle, String groupBrief) throws IOException {
+   public void writeStartGroup(String groupName, String groupTitle, String groupBrief) throws IOException {
+      if (fCurrentGroupName != null) {
+         if (fCurrentGroupName.equalsIgnoreCase(groupName)) {
+            // Re-opening same group - ignore
+            return;
+         }
+         // Close current group
+         writeCloseGroup();
+      }
+      fCurrentGroupName = groupName;
+
       final String startGroup1 = 
             "/**\n"+
             " * @addtogroup %s %s\n";
@@ -70,11 +92,11 @@ public class DocumentUtilities {
       final String startGroup3 = 
             " * @{\n"+
             " */\n";
-      writer.write(String.format(startGroup1, groupName, (groupTitle==null)?"":groupTitle));
+      fWriter.write(String.format(startGroup1, groupName, (groupTitle==null)?"":groupTitle));
       if (groupBrief != null) {
-         writer.write(String.format(startGroup2, groupBrief));
+         fWriter.write(String.format(startGroup2, groupBrief));
       }
-      writer.write(String.format(startGroup3));
+      fWriter.write(String.format(startGroup3));
    }   
    /**
     * Write close group comment 
@@ -83,38 +105,23 @@ public class DocumentUtilities {
     *  * @}                                                                   
     *  ** <i><b>groupName</i></b> **&#47;</code></pre>
     * 
-    * @param writer        Where to write 
-    * @param groupName     Name of group
+    * @param fWriter        Where to write 
     * 
     * @throws IOException
     */
-   public static void writeCloseGroup(BufferedWriter writer, String groupName) throws IOException {
+   public void writeCloseGroup() throws IOException {
+      if (fCurrentGroupName == null) {
+         throw new RuntimeException("Closing non-open group");
+      }
       final String endGroup = 
             "/**\n"+
             " * @}\n"+
             " ** %s\n */\n";
-      writer.write(String.format(endGroup, groupName));
-   }
-   /**
-    * Write close group comment 
-    * <pre><code>
-    * /**                                                                    
-    *  * @}                                                                   
-    *  *&#47;</code></pre>
-    * 
-    * @param writer        Where to write 
-    * 
-    * @throws IOException
-    */
-   public static void writeCloseGroup(BufferedWriter writer) throws IOException {
-      final String endGroup = 
-            "/**\n"+
-            " * @}\n"+
-            " */\n";
-      writer.write(endGroup);
+      fWriter.write(String.format(endGroup, fCurrentGroupName));
+      fCurrentGroupName = null;
    }
 
-   static final String HEADER_FILE_PREFIX = "PROJECT_HEADERS_";
+   final String HEADER_FILE_PREFIX = "PROJECT_HEADERS_";
    /**
     * Write header file preamble e.g.
     * <pre><code>
@@ -127,7 +134,7 @@ public class DocumentUtilities {
     * #define <i><b>FILENAME</i></b>
     * </code></pre>
     *
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param fileName      Filename to use in header block
     * @param trueFileName  Filename of actual file being written
     * @param version       Version to use in header block
@@ -135,7 +142,7 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeHeaderFilePreamble(BufferedWriter writer, String fileName, String trueFileName, String version, String description) throws IOException {
+   public void writeHeaderFilePreamble(String fileName, String trueFileName, String version, String description) throws IOException {
       final String headerfilePreambleTemplate = 
             "/**\n"+
             " * @file      %s %s\n"+
@@ -154,7 +161,7 @@ public class DocumentUtilities {
          trueFileName = "(derived from "+trueFileName+")";
       }
       description = description.replaceAll("\n", "\n *            ");
-      writer.write( String.format(headerfilePreambleTemplate, 
+      fWriter.write( String.format(headerfilePreambleTemplate, 
             fileName, trueFileName, version, description, macroName, macroName ));
    }
 
@@ -167,14 +174,14 @@ public class DocumentUtilities {
     *   *&#47;
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param fileName      Filename to use in header block
     * @param trueFileName  Filename of actual file being written
     * @param description   Description to use in header block
     * 
     * @throws IOException
     */
-   public static void writeCppFilePreamble(BufferedWriter writer, String fileName, String trueFileName, String version, String description) throws IOException {
+   public void writeCppFilePreamble(String fileName, String trueFileName, String version, String description) throws IOException {
       final String headerfilePreambleTemplate = 
             "/**\n"+
             " * @file      %s %s\n"+
@@ -189,7 +196,7 @@ public class DocumentUtilities {
          trueFileName = "(derived from "+trueFileName+")";
       }
       description = description.replaceAll("\n", "\n *            ");
-      writer.write( String.format(headerfilePreambleTemplate, 
+      fWriter.write( String.format(headerfilePreambleTemplate, 
             fileName, trueFileName, version, description));
    }
    
@@ -197,7 +204,7 @@ public class DocumentUtilities {
     * Write last lines of CPP file<br>
     * EMPTY
     */
-   public static void writeCppFilePostAmble() {
+   public void writeCppFilePostAmble() {
       
    }
    
@@ -207,17 +214,17 @@ public class DocumentUtilities {
     *  #endif /* <i><b>fileName</i></b> *&#47;
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param fileName   Filename to use in closing block
     * 
     * @throws IOException
     */
-   public static void writeHeaderFilePostamble(BufferedWriter writer, String fileName) throws IOException {
+   public void writeHeaderFilePostamble(String fileName) throws IOException {
       final String headerfilePostambleTemplate = 
             "\n"+
             "#endif /* %s */\n";
       String macroName = HEADER_FILE_PREFIX+fileName.toUpperCase().replaceAll("(\\.|-)", "_");
-      writer.write( String.format(headerfilePostambleTemplate, macroName));
+      fWriter.write( String.format(headerfilePostambleTemplate, macroName));
    }
    
    /**
@@ -226,13 +233,13 @@ public class DocumentUtilities {
     *  #include &lt;<i><b>fileName</i></b>&gt;
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
     */
-   public static void writeSystemHeaderFileInclude(BufferedWriter writer, String fileName) throws IOException {
-      writer.write(String.format("#include <%s>\n", fileName));
+   public void writeSystemHeaderFileInclude(String fileName) throws IOException {
+      fWriter.write(String.format("#include <%s>\n", fileName));
    }
 
    /**
@@ -241,30 +248,38 @@ public class DocumentUtilities {
     *  #include "<i><b>fileName</i></b>"
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
     */
-   public static void writeHeaderFileInclude(BufferedWriter writer, String fileName) throws IOException {
-      writer.write(String.format("#include \"%s\"\n", fileName));
+   public void writeHeaderFileInclude(String fileName) throws IOException {
+      fWriter.write(String.format("#include \"%s\"\n", fileName));
    }
 
+   private String fCurrentNamespace = null;
+   
    /**
     * Write namespace open
     * <pre><code>
     *  namespace "<i><b>USBDM</i></b>" {
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param namespace  Namespace to use
     * 
     * @throws IOException
     */
-   public static void writeOpenNamespace(BufferedWriter writer, String namespace) throws IOException {
-//      writeConditionalStart(writer, CreatePinDescription.NAMESPACES_GUARD_STRING);
-      writer.write(String.format("namespace %s {\n\n", namespace));
-//      writeConditionalEnd(writer);
+   public void writeOpenNamespace(String namespace) throws IOException {
+      if (fCurrentNamespace != null) {
+         if (fCurrentNamespace.equals(namespace)) {
+            // Re-opening current name space - ignore
+            return;
+         }
+         writeCloseNamespace();
+      }
+      fCurrentNamespace = namespace;
+      fWriter.write(String.format("namespace %s {\n\n", fCurrentNamespace));
    }
 
    /**
@@ -273,28 +288,16 @@ public class DocumentUtilities {
     *  } // End "<i><b>namespace</i></b>"
     * </code></pre>
     * 
-    * @param writer     Where to write
-    * @param namespace  Namespace to use
+    * @param fWriter     Where to write
     * 
     * @throws IOException
     */
-   public static void writeCloseNamespace(BufferedWriter writer, String namespace) throws IOException {
-      writer.write(String.format("\n} // End namespace %s\n", namespace));
-   }
-
-   /**
-    * Write namespace close
-    * <pre><code>
-    *  }  // Close namespace
-    * </code></pre>
-    * 
-    * @param writer     Where to write
-    * @param namespace  Namespace to use
-    * 
-    * @throws IOException
-    */
-   public static void writeCloseNamespace(BufferedWriter writer) throws IOException {
-      writer.write(String.format("\n} // End namespace\n"));
+   public void writeCloseNamespace() throws IOException {
+      if (fCurrentNamespace == null) {
+         throw new RuntimeException("Closing non-open namespace");
+      }
+      fWriter.write(String.format("\n} // End namespace %s\n", fCurrentNamespace));
+      fCurrentNamespace = null;
    }
 
    /**
@@ -304,13 +307,13 @@ public class DocumentUtilities {
     *  #if (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param condition     Condition to use
     * 
     * @throws IOException
     */
-   public static void writeConditionalStart(BufferedWriter writer, String condition) throws IOException {
-      writer.write(String.format("#if (%s)\n", condition));
+   public void writeConditionalStart(String condition) throws IOException {
+      fWriter.write(String.format("#if (%s)\n", condition));
    }
    
    /**
@@ -320,13 +323,13 @@ public class DocumentUtilities {
     *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param condition     Condition to use
     * 
     * @throws IOException
     */
-   public static void writeConditionalElif(BufferedWriter writer, String condition) throws IOException {
-      writer.write(String.format("#elif (%s)\n", condition));
+   public void writeConditionalElif(String condition) throws IOException {
+      fWriter.write(String.format("#elif (%s)\n", condition));
    }
    
    /**
@@ -340,8 +343,8 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeConditionalElse(BufferedWriter writer) throws IOException {
-      writer.write(String.format("#else\n"));
+   public void writeConditionalElse() throws IOException {
+      fWriter.write(String.format("#else\n"));
    }
    
    /**
@@ -355,8 +358,8 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeConditionalEnd(BufferedWriter writer) throws IOException {
-      writer.write(String.format("#endif\n"));
+   public void writeConditionalEnd() throws IOException {
+      fWriter.write(String.format("#endif\n"));
    }
    
    /**
@@ -368,18 +371,18 @@ public class DocumentUtilities {
     *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param condition     Condition to use
     * @param guardWritten  Indicates a prior condition has been written so a <b>#elif</b> is used
     * 
     * @throws IOException
     */
-   public static void writeConditional(BufferedWriter writer, String condition, Boolean guardWritten) throws IOException {
+   public void writeConditional(String condition, Boolean guardWritten) throws IOException {
       if (guardWritten) {
-         writeConditionalElif(writer, condition);
+         writeConditionalElif(condition);
       }
       else {
-         writeConditionalStart(writer, condition);
+         writeConditionalStart(condition);
       }
    }
    
@@ -390,14 +393,14 @@ public class DocumentUtilities {
     *  #elif <i><b>condition</i></b>
     * </code></pre>
     * 
-    * @param writer        Write to write to
+    * @param fWriter        Write to write to
     * @param guardWritten  If false nothing is written (implies a prior #if was written)
     * 
     * @throws IOException
     */
-   public static void writeConditionalElse(BufferedWriter writer, boolean guardWritten) throws IOException {
+   public void writeConditionalElse(boolean guardWritten) throws IOException {
       if (guardWritten) {
-         writer.write(String.format("#else\n"));
+         fWriter.write(String.format("#else\n"));
       }
    }
    
@@ -408,14 +411,14 @@ public class DocumentUtilities {
     *  #endif
     * </code></pre>
     * 
-    * @param writer        Write to write to
+    * @param fWriter        Write to write to
     * @param guardWritten  If false nothing is written (implies a prior #if was written)
     * 
     * @throws IOException
     */
-   public static void writeConditionalEnd(BufferedWriter writer, boolean guardWritten) throws IOException {
+   public void writeConditionalEnd(boolean guardWritten) throws IOException {
       if (guardWritten) {
-         writeConditionalEnd(writer);
+         writeConditionalEnd();
       }
    }
    
@@ -428,7 +431,7 @@ public class DocumentUtilities {
     * @param writer Where to write
     * @throws IOException
     */
-   public static void writeWizardMarker(BufferedWriter writer) throws IOException {
+   public void writeWizardMarker(BufferedWriter writer) throws IOException {
       final String wizardMarker =                                                            
             "//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------  \n\n";
       writer.write(wizardMarker);
@@ -443,10 +446,10 @@ public class DocumentUtilities {
     * @param writer Where to write
     * @throws IOException
     */
-   public static void writeEndWizardMarker(BufferedWriter writer) throws IOException {
+   public void writeEndWizardMarker() throws IOException {
       final String wizardMarker =                                                            
             "//-------- <<< end of configuration section >>> -----------------  \n\n";
-      writer.write(wizardMarker);
+      fWriter.write(wizardMarker);
    }
    
    /**
@@ -455,16 +458,16 @@ public class DocumentUtilities {
     * //  &lth&gt; <i><b>title</i></b>
     * </code></pre>
     * 
-    * @param writer Where to write
+    * @param fWriter Where to write
     * @param title  Title to write
     * 
     * @throws IOException
     */
-   public static void writeWizardSectionOpen(BufferedWriter writer, String title) throws IOException {
+   public void writeWizardSectionOpen(String title) throws IOException {
       final String optionSectionOpenTemplate = 
             "// <h> %s\n"+
             "\n";
-      writer.write(String.format(optionSectionOpenTemplate, title));
+      fWriter.write(String.format(optionSectionOpenTemplate, title));
    }
    
    /**
@@ -477,11 +480,11 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardSectionClose(BufferedWriter writer) throws IOException {
+   public void writeWizardSectionClose() throws IOException {
       final String optionSectionClose = 
             "// </h>\n"+
             "\n";
-      writer.write(optionSectionClose);
+      fWriter.write(optionSectionClose);
    }
    
    /**
@@ -492,7 +495,7 @@ public class DocumentUtilities {
     * //  &lt;i&gt;   <i><b>hint</i></b>
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
     * @param attributes Attributes to apply e.g. &lt;constant>
@@ -501,10 +504,10 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardConditionalSectionOpen(BufferedWriter writer, String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
+   public void writeWizardConditionalSectionOpen(String comment, int offset, WizardAttribute[] attributes, String title, String hint) 
          throws IOException {
       if (comment != null) {
-         writer.write(String.format("// %s\n", comment));
+         fWriter.write(String.format("// %s\n", comment));
       }
       final String headerTemplate =                                                            
             "//   <e%s> %s %s\n"+
@@ -519,7 +522,7 @@ public class DocumentUtilities {
             }
          }
       }
-      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, sb.toString(), hint));
+      fWriter.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, sb.toString(), hint));
 
    }
 
@@ -533,11 +536,11 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardConditionalSectionClose(BufferedWriter writer) throws IOException {
+   public void writeWizardConditionalSectionClose() throws IOException {
       final String optionSectionClose = 
             "// </e>\n"+
             "\n";
-      writer.write(optionSectionClose);
+      fWriter.write(optionSectionClose);
    }
    
    /**
@@ -549,7 +552,7 @@ public class DocumentUtilities {
     * //  &lt;info&gt;    <i><b>information</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param comment       Comment written above (may be null)
     * @param offset        Offset to argument
     * @param attributes    Attributes to apply e.g. <constant>
@@ -559,8 +562,8 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardOptionSelectionPreamble(
-         BufferedWriter writer, 
+   public void writeWizardOptionSelectionPreamble(
+         
          String comment, 
          int offset, 
          WizardAttribute[] attributes, 
@@ -568,26 +571,26 @@ public class DocumentUtilities {
          String hint, 
          String information) throws IOException {
       if (comment != null) {
-         writer.write(String.format("// %s\n", comment));
+         fWriter.write(String.format("// %s\n", comment));
       }
       final String oTemplate = "//   <o%s>    %s";
-      writer.write(String.format(oTemplate, (offset==0)?"":Integer.toString(offset), title));
+      fWriter.write(String.format(oTemplate, (offset==0)?"":Integer.toString(offset), title));
       if (attributes != null) {
          for (WizardAttribute attribute:attributes) {
             if (attribute != null) {
-               writer.write(attribute.getAttributeString());
+               fWriter.write(attribute.getAttributeString());
             }
          }
       }
-      writer.write("\n");
+      fWriter.write("\n");
       final String iTemplate = "//   <i>    %s\n";
       hint = hint.replaceAll("\n", "\n//   <i>   ");
-      writer.write(String.format(iTemplate, hint));
+      fWriter.write(String.format(iTemplate, hint));
 
       if ((information != null) && (information.length()>0)) {
          final String infoTemplate = "//   <info> %s\n";
          information = information.replaceAll("\n", "\n//   <info> ");
-         writer.write(String.format(infoTemplate, information));
+         fWriter.write(String.format(infoTemplate, information));
       }
    }
 
@@ -600,7 +603,7 @@ public class DocumentUtilities {
     * //  &lt;info&gt;    <i><b>information</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param comment       Comment written above (may be null)
     * @param offset        Offset to argument
     * @param attributes    Attributes to apply e.g. <constant>
@@ -610,14 +613,14 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardOptionSelectionPreamble(
-         BufferedWriter writer, 
+   public void writeWizardOptionSelectionPreamble(
+         
          String comment, 
          int offset, 
          WizardAttribute[] attributes, 
          String title, 
          String hint) throws IOException {
-      writeWizardOptionSelectionPreamble(writer, comment, offset, attributes, title, hint, null);
+      writeWizardOptionSelectionPreamble(comment, offset, attributes, title, hint, null);
    }
    /**
     * Write wizard selection preamble e.g.
@@ -627,7 +630,7 @@ public class DocumentUtilities {
     * //  &lt;i&gt;   <i><b>hint</i></b>
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
     * @param isConstant Indicates the entry should be marked &lt;constant&gt;
@@ -636,16 +639,16 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeWizardBinaryOptionSelectionPreamble(BufferedWriter writer, String comment, int offset, boolean isConstant, String title, String hint) 
+   public void writeWizardBinaryOptionSelectionPreamble(String comment, int offset, boolean isConstant, String title, String hint) 
          throws IOException {
       if (comment != null) {
-         writer.write(String.format("// %s\n", comment));
+         fWriter.write(String.format("// %s\n", comment));
       }
       final String headerTemplate =                                                            
             "//   <q%s> %s %s\n"+
             "//   <i> %s\n";
       hint = hint.replaceAll("\n", "\n//   <i> ");
-      writer.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
+      fWriter.write(String.format(headerTemplate, (offset==0)?"":Integer.toString(offset), title, isConstant?"<constant>":"", hint));
    }
 
    /**
@@ -654,24 +657,24 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b> <i><b>&lt;attribute ...&gt; ...</i></b>
     * </code></pre>
     * 
-    * @param writer       Where to write
+    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * @param description  Description to use in selection
     * @param attributes   Attributes to add to the options
     * 
     * @throws IOException
     */
-   public static void writeWizardOptionSelectionEnty(BufferedWriter writer, String value, String description, WizardAttribute[] attributes) throws IOException {
+   public void writeWizardOptionSelectionEnty(String value, String description, WizardAttribute[] attributes) throws IOException {
       final String entryTemplate = "//     <%s=> %s";
-      writer.write(String.format(entryTemplate, value, description));
+      fWriter.write(String.format(entryTemplate, value, description));
       if (attributes != null) {
          for (WizardAttribute attribute:attributes) {
             if (attribute != null) {
-               writer.write(attribute.getAttributeString());
+               fWriter.write(attribute.getAttributeString());
             }
          }
       }
-      writer.write("\n");
+      fWriter.write("\n");
    }
 
    /**
@@ -680,14 +683,14 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b>
     * </code></pre>
     * 
-    * @param writer       Where to write
+    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * @param description  Description to use in selection
     * 
     * @throws IOException
     */
-   public static void writeWizardOptionSelectionEnty(BufferedWriter writer, String value, String description) throws IOException {
-      writeWizardOptionSelectionEnty(writer, value, description, null);
+   public void writeWizardOptionSelectionEnty(String value, String description) throws IOException {
+      writeWizardOptionSelectionEnty(value, description, null);
    }
 
    /**
@@ -696,14 +699,14 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; Default
     * </code></pre>
     * 
-    * @param writer       Where to write
+    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * 
     * @throws IOException
     */
-   public static void writeWizardDefaultSelectionEnty(BufferedWriter writer, String value) throws IOException {
+   public void writeWizardDefaultSelectionEnty(String value) throws IOException {
       final String defaultTemplate = "//     <%s=> Default\n";
-      writer.write(String.format(defaultTemplate, value));
+      fWriter.write(String.format(defaultTemplate, value));
    }
    
    /**
@@ -712,14 +715,14 @@ public class DocumentUtilities {
     * constexpr uint32_t <i><b>name value</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param size          Constant size (8, 16 or 32 bits)
     * @param name          Constant name
     * @param value         Constant value
     * 
     * @throws IOException
     */
-   public static void writeConstexpr(BufferedWriter writer, int size, String name, String value) throws IOException {
+   public void writeConstexpr(int size, String name, String value) throws IOException {
       String type;
       switch(size) {
       case 8:  type = "uint8_t";    break;
@@ -728,7 +731,7 @@ public class DocumentUtilities {
       default: type = null;         break;
       }
       final String defineTemplate = "constexpr %8s %-20s = %s;\n";
-      writer.write(String.format(defineTemplate, type, name, value));
+      fWriter.write(String.format(defineTemplate, type, name, value));
    }
 
    /**
@@ -737,15 +740,15 @@ public class DocumentUtilities {
     * #define <i><b>name value</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param name          Macro name
     * @param value         Macro value
     * 
     * @throws IOException
     */
-   public static void writeMacroDefinition(BufferedWriter writer, String name, String value) throws IOException {
+   public void writeMacroDefinition(String name, String value) throws IOException {
       final String defineTemplate = "#define %-20s %s\n";
-      writer.write(String.format(defineTemplate, name, value));
+      fWriter.write(String.format(defineTemplate, name, value));
    }
 
    /**
@@ -754,16 +757,16 @@ public class DocumentUtilities {
     * #define <i><b>name value</i></b> // <i><b>comment</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param name          Macro name
     * @param value         Macro value
     * @param comment       Comment
     * 
     * @throws IOException
     */
-   public static void writeMacroDefinition(BufferedWriter writer, String name, String value, String comment) throws IOException {
+   public void writeMacroDefinition(String name, String value, String comment) throws IOException {
       final String defineTemplate = "#define %-24s %-20s //%s\n";
-      writer.write(String.format(defineTemplate, name, value, comment));
+      fWriter.write(String.format(defineTemplate, name, value, comment));
    }
    /**
     * Write parametised macro with comment block
@@ -778,7 +781,7 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param writer              Where to write
+    * @param fWriter              Where to write
     * @param briefDescription    Brief description
     * @param paramDescription    Parameter with description e.g. <i>value Value to square</i>
     * @param name                Macro name with parameter e.g. <i>sqr(value)</i>
@@ -786,9 +789,9 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public static void writeMacroDefinition(BufferedWriter writer, String briefDescription, String paramDescription, String name, String value) throws IOException {
+   public void writeMacroDefinition(String briefDescription, String paramDescription, String name, String value) throws IOException {
       
-      writer.write( String.format(
+      fWriter.write( String.format(
       "/**\n"+
       " * @brief %s\n"+
       " *\n"+
@@ -806,14 +809,14 @@ public class DocumentUtilities {
     * #undef <i><b>name</i></b> // <i><b>comment</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param name          Macro name
     * @param comment       Comment
     * @throws IOException 
     */
-   public static void writeMacroUnDefinition(BufferedWriter writer, String name, String comment) throws IOException {
+   public void writeMacroUnDefinition(String name, String comment) throws IOException {
       final String defineTemplate = "#undef %-24s //%s\n";
-      writer.write(String.format(defineTemplate, name, comment));
+      fWriter.write(String.format(defineTemplate, name, comment));
    }
    /**
     * Write Undef for macro
@@ -821,13 +824,13 @@ public class DocumentUtilities {
     * #undef <i><b>name</i></b>
     * </code></pre>
     * 
-    * @param writer        Where to write
+    * @param fWriter        Where to write
     * @param name          Macro name
     * @throws IOException 
     */
-   public static void writeMacroUnDefinition(BufferedWriter writer, String name) throws IOException {
+   public void writeMacroUnDefinition(String name) throws IOException {
       final String defineTemplate = "#undef %-24s\n";
-      writer.write(String.format(defineTemplate, name, ""));
+      fWriter.write(String.format(defineTemplate, name, ""));
    }
 
    /**
@@ -839,14 +842,14 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
     */
-   public static void writeBanner(BufferedWriter writer, String banner) throws IOException {
+   public void writeBanner(String banner) throws IOException {
       banner = "/*\n * " + banner.replaceAll("\n", "\n * ") + "\n */\n";
-      writer.write(banner);
+      fWriter.write(banner);
    }
 
    /**
@@ -858,14 +861,18 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param writer     Where to write
+    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
     */
-   public static void writeDocBanner(BufferedWriter writer, String banner) throws IOException {
+   public void writeDocBanner(String banner) throws IOException {
       banner = "/**\n * " + banner.replaceAll("\n", "\n * ") + "\n */\n";
-      writer.write(banner);
+      fWriter.write(banner);
+   }
+
+   public void write(String string) throws IOException {
+      fWriter.write(string);
    }
 
 }

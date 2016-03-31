@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,8 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
+import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
 public class ModelFactory {
 
@@ -118,6 +121,10 @@ public class ModelFactory {
       DeviceModel deviceModel = new DeviceModel(this, PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
+         if (peripheral.getFunctions().size() == 0) {
+            // Ignore peripherals without pins
+            continue;
+         }
          PeripheralModel.createPeripheralModel(deviceModel, peripheral);
       }
       return deviceModel;
@@ -164,7 +171,7 @@ public class ModelFactory {
     * This is done on a delayed thread
     */
    public synchronized void checkConflicts() {
-      System.err.println("checkConflicts() ===================");
+//      System.err.println("checkConflicts() ===================");
       if (!testAndSetCheckPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
@@ -188,7 +195,7 @@ public class ModelFactory {
     * Check for mapping conflicts
     */
    private void checkConflictsJob() {
-      System.err.println("checkConflictsJob() ===================");
+//      System.err.println("checkConflictsJob() ===================");
       testAndSetCheckPending(false);
       Map<String, List<MappingInfo>> mappedNodes = new HashMap<String, List<MappingInfo>>();
       for (MappingInfo mapping:fMappingInfos) {
@@ -248,5 +255,35 @@ public class ModelFactory {
       fPinModel        = createPinModel();
    }
 
+   /**
+    * Construct factory that hold models
+    * 
+    * @param path Path to load model from
+    * 
+    * @return Model created
+    * 
+    * @throws Exception 
+    */
+   public static ModelFactory createModel(Path path) throws Exception {
+      
+      DeviceInfo deviceInfo = null;
+
+      System.err.println("ModelFactory.createModel("+path.toAbsolutePath()+")");
+      
+      if (path.getFileName().toString().endsWith("csv")) {
+//         System.err.println("DeviceEditor(), Opening as CSV" + path);
+         ParseFamilyCSV parser = new ParseFamilyCSV();
+         deviceInfo = parser.parseFile(path);
+      }
+      else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
+//         System.err.println("DeviceEditor(), Opening as XML = " + path);
+         ParseFamilyXML parser = new ParseFamilyXML();
+         deviceInfo = parser.parseFile(path);
+      }
+      else {
+         throw new Exception("Unknown file type");
+      }
+      return new ModelFactory(deviceInfo);
+   }
 
 }

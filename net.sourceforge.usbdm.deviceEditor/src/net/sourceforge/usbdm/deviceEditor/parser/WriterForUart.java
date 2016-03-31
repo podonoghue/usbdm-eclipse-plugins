@@ -2,8 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -19,8 +19,8 @@ public class WriterForUart extends WriterBase {
    static final String CLASS_BASE_NAME       = "Uart";
    static final String INSTANCE_BASE_NAME    = "uart";
 
-   public WriterForUart(PeripheralTemplateInformation owner) {
-      super(owner);
+   public WriterForUart(DeviceInfo deviceInfo, Peripheral peripheral) {
+      super(deviceInfo, peripheral);
    }
 
    /* (non-Javadoc)
@@ -52,7 +52,7 @@ public class WriterForUart extends WriterBase {
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, fOwner.getClassName(), signal));
+      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
 

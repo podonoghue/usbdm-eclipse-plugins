@@ -5,7 +5,7 @@
          point="org.eclipse.ui.editors">
       <editor
             name="USBDM Device Configuration Editor"
-            extensions="csv,xml"
+            extensions="hardware"
             icon="icons/cog.png"
             contributorClass="net.sourceforge.usbdm.deviceEditor.editor.DeviceEditorContributor"
             class="net.sourceforge.usbdm.deviceEditor.editor.DeviceEditor"

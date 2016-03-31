@@ -44,7 +44,7 @@ namespace USBDM {
 
 constexpr uint16_t FTM0_SC              = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -76,7 +76,7 @@ namespace USBDM {
 
 constexpr uint16_t FTM1_SC              = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -108,7 +108,7 @@ namespace USBDM {
 
 constexpr uint16_t FTM2_SC              = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -140,7 +140,7 @@ namespace USBDM {
 
 constexpr uint16_t FTM3_SC              = (FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -3118,146 +3118,6 @@ namespace USBDM {
  * @{
  */
 /**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioAInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTA_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOA_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTA_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTA_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioBInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTB_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOB_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTB_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTB_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioCInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTC_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOC_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTC_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTC_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioDInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTD_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOD_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTD_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTD_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioEInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTE_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOE_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTE_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTE_IRQn};
-
-};
-
-/**
  * Peripheral information for ADC, Analogue Input
  */
 class Adc0Info {
@@ -3488,6 +3348,31 @@ public:
 };
 
 /**
+ * Peripheral information for CAN, CAN0 (Miscellaneous)
+ */
+class Can0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = CAN0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_CAN0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 2;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {CAN0_Tx_IRQn, CAN0_Rx_IRQn};
+
+};
+
+/**
  * Peripheral information for CMP, Analogue Comparator
  */
 class Cmp0Info {
@@ -3649,9 +3534,97 @@ public:
 };
 
 /**
- * Peripheral information for DMAMUX, Direct Memory Access (DMA)
+ * Peripheral information for CMT, CMT (Miscellaneous)
  */
-class DmaMux0Info {
+class CmtInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = CMT_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC4_CMT_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for CRC, CRC (Miscellaneous)
+ */
+class CrcInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = CRC_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_CRC_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for DAC, DAC0 (Miscellaneous)
+ */
+class Dac0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = DAC0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_DAC0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for DMA, DMA (Miscellaneous)
+ */
+class DmaInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = DMA_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC7_DMA_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for DMAMUX, DMAMUX0 (Miscellaneous)
+ */
+class Dmamux0Info {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = DMAMUX0_BasePtr;
@@ -3664,6 +3637,88 @@ public:
 
    //! Address of clock register for peripheral
    static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for EWM, EWM (Miscellaneous)
+ */
+class EwmInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = EWM_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC4_EWM_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for FB, FB (Miscellaneous)
+ */
+class FbInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = FB_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC7_FLEXBUS_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for FTF, FTF (Miscellaneous)
+ */
+class FtfInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = FTF_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_FTF_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for FTM, FTM (Miscellaneous)
+ */
+class FtmInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = FTM_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
@@ -4025,6 +4080,146 @@ public:
 };
 
 /**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioAInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTA_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOA_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTA_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTA_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioBInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTB_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOB_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTB_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTB_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioCInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTC_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOC_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTC_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTC_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioDInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTD_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOD_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTD_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTD_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioEInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTE_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOE_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTE_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTE_IRQn};
+
+};
+
+/**
  * Peripheral information for I2C, Inter-Integrated-Circuit Interface
  */
 class I2c0Info {
@@ -4157,6 +4352,91 @@ public:
 };
 
 /**
+ * Peripheral information for I2S, Inter-Integrated-Circuit Interface
+ */
+class I2s0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = I2S0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_I2S0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 2;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {I2S0_Tx_IRQn, I2S0_Rx_IRQn};
+
+   //! Information for each pin of peripheral
+   static constexpr PcrInfo  info[32] = {
+
+         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue
+#if (I2S0_MCLK_PIN_SEL == 1)
+         /*  0 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  8,  4 },
+#elif (I2S0_MCLK_PIN_SEL == 2)
+         /*  0 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,  6 },
+#else
+         /*  0 */  { 0, 0, 0, 0, 0 },
+#endif
+#if (I2S0_RX_BCLK_PIN_SEL == 1)
+         /*  1 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,  4 },
+#elif (I2S0_RX_BCLK_PIN_SEL == 2)
+         /*  1 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  9,  4 },
+#else
+         /*  1 */  { 0, 0, 0, 0, 0 },
+#endif
+#if (I2S0_RX_FS_PIN_SEL == 1)
+         /*  2 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  7,  4 },
+#elif (I2S0_RX_FS_PIN_SEL == 2)
+         /*  2 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  10, 4 },
+#else
+         /*  2 */  { 0, 0, 0, 0, 0 },
+#endif
+#if (I2S0_TX_BCLK_PIN_SEL == 1)
+         /*  3 */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  18, 4 },
+#elif (I2S0_TX_BCLK_PIN_SEL == 2)
+         /*  3 */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  5,  6 },
+#elif (I2S0_TX_BCLK_PIN_SEL == 3)
+         /*  3 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,  6 },
+#else
+         /*  3 */  { 0, 0, 0, 0, 0 },
+#endif
+#if (I2S0_TX_FS_PIN_SEL == 1)
+         /*  4 */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  19, 4 },
+#elif (I2S0_TX_FS_PIN_SEL == 2)
+         /*  4 */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  13, 6 },
+#elif (I2S0_TX_FS_PIN_SEL == 3)
+         /*  4 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  6 },
+#else
+         /*  4 */  { 0, 0, 0, 0, 0 },
+#endif
+   };
+};
+
+/**
+ * Peripheral information for LLWU, Low-leakage Wake-up Unit
+ */
+class LlwuInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = LLWU_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
  * Peripheral information for LPTMR, Low Power Timer
  */
 class Lptmr0Info {
@@ -4198,7 +4478,54 @@ public:
 };
 
 /**
- * Peripheral information for PIT, Programmable Interrupt Timer
+ * Peripheral information for MPU, MPU (Miscellaneous)
+ */
+class MpuInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = MPU_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC7_MPU_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for PDB, PDB0 (Miscellaneous)
+ */
+class Pdb0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = PDB0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_PDB0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PDB0_IRQn};
+
+};
+
+/**
+ * Peripheral information for PIT, PIT (Miscellaneous)
  */
 class PitInfo {
 public:
@@ -4220,99 +4547,6 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PIT0_IRQn, PIT1_IRQn, PIT2_IRQn, PIT3_IRQn};
 
-};
-
-/**
- * Peripheral information for LLWU, Low-leakage Wake-up Unit
- */
-class LlwuInfo {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = LLWU_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-   //! Information for each pin of peripheral
-   static constexpr PcrInfo  info[32] = {
-
-         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue
-#if (LLWU_P0_PIN_SEL == 1)
-         /*  0 */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  1,  1 },
-#else
-         /*  0 */  { 0, 0, 0, 0, 0 },
-#endif
-         /*  1 */  { 0, 0, 0, 0, 0 },
-         /*  2 */  { 0, 0, 0, 0, 0 },
-#if (LLWU_P3_PIN_SEL == 1)
-         /*  3 */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  4,  1 },
-#else
-         /*  3 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P4_PIN_SEL == 1)
-         /*  4 */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  13, 1 },
-#else
-         /*  4 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P5_PIN_SEL == 1)
-         /*  5 */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  0,  1 },
-#else
-         /*  5 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P6_PIN_SEL == 1)
-         /*  6 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,  1 },
-#else
-         /*  6 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P7_PIN_SEL == 1)
-         /*  7 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,  1 },
-#else
-         /*  7 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P8_PIN_SEL == 1)
-         /*  8 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,  1 },
-#else
-         /*  8 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P9_PIN_SEL == 1)
-         /*  9 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  5,  1 },
-#else
-         /*  9 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P10_PIN_SEL == 1)
-         /* 10 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,  1 },
-#else
-         /* 10 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P11_PIN_SEL == 1)
-         /* 11 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11, 1 },
-#else
-         /* 11 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P12_PIN_SEL == 1)
-         /* 12 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  0,  1 },
-#else
-         /* 12 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P13_PIN_SEL == 1)
-         /* 13 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  2,  1 },
-#else
-         /* 13 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P14_PIN_SEL == 1)
-         /* 14 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,  1 },
-#else
-         /* 14 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P15_PIN_SEL == 1)
-         /* 15 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,  1 },
-#else
-         /* 15 */  { 0, 0, 0, 0, 0 },
-#endif
-   };
 };
 
 /**
@@ -4585,6 +4819,56 @@ public:
 };
 
 /**
+ * Peripheral information for USB, USB (Miscellaneous)
+ */
+class UsbInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = USB_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC4_USBOTG_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {USB0_IRQn};
+
+};
+
+/**
+ * Peripheral information for USBDCD, USBDCD (Miscellaneous)
+ */
+class UsbdcdInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = USBDCD_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_USBDCD_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {USBDCD_IRQn};
+
+};
+
+/**
  * Peripheral information for VREF, Voltage Reference
  */
 class VrefInfo {
@@ -4613,75 +4897,6 @@ public:
 };
 
 /**
- * Peripheral information for I2S, I2S (Miscellaneous)
- */
-class I2s0Info {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = I2S0_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC6_I2S0_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 2;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {I2S0_Tx_IRQn, I2S0_Rx_IRQn};
-
-};
-
-/**
- * Peripheral information for EWM, EWM (Miscellaneous)
- */
-class EwmInfo {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = EWM_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC4_EWM_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-};
-
-/**
- * Peripheral information for CMT, CMT (Miscellaneous)
- */
-class CmtInfo {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = CMT_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC4_CMT_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-};
-
-/**
  * @}
  ** PeripheralPinTables
  */
@@ -4693,7 +4908,297 @@ public:
 namespace USBDM {
 
 /**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
+ * @addtogroup AnalogueIO_Group ADC, Analogue Input
+ * @brief Pins used for analogue inputs
+ * @{
+ */
+/**
+ * Convenience templated class representing an ADC
+ *
+ * Example
+ * @code
+ *  // Instantiate ADC0 single-ended channel #8
+ *  const adc0<8> adc0_se8;
+ *
+ *  // Initialise ADC
+ *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
+ *
+ *  // Set as analogue input
+ *  adc0_se8.setAnalogueInput();
+ *
+ *  // Read input
+ *  uint16_t value = adc0_se8.readAnalogue();
+ *  @endcode
+ *
+ * @tparam adcChannel    ADC channel
+ */
+template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
+
+#if (PTB0_SIG_SEL == 0)
+using adc_A5               = const USBDM::Adc0<8>;
+using adc_ACC_SCL          = const USBDM::Adc0<8>;
+#endif
+#if (PTB1_SIG_SEL == 0)
+using adc_A4               = const USBDM::Adc0<9>;
+using adc_ACC_SDA          = const USBDM::Adc0<9>;
+#endif
+#if (PTB2_SIG_SEL == 0)
+using adc_D15              = const USBDM::Adc0<12>;
+#endif
+#if (PTB3_SIG_SEL == 0)
+using adc_D14              = const USBDM::Adc0<13>;
+#endif
+#if (PTC0_SIG_SEL == 0)
+using adc_A0               = const USBDM::Adc0<14>;
+#endif
+#if (PTC1_SIG_SEL == 0)
+using adc_A1               = const USBDM::Adc0<15>;
+#endif
+#if (PTC2_SIG_SEL == 0)
+using adc_D10              = const USBDM::Adc0<4>;
+#endif
+#if (PTD1_SIG_SEL == 0)
+using adc_D13              = const USBDM::Adc0<5>;
+#endif
+#if (PTD5_SIG_SEL == 0)
+using adc_A3               = const USBDM::Adc0<6>;
+#endif
+#if (PTD6_SIG_SEL == 0)
+using adc_A2               = const USBDM::Adc0<7>;
+#endif
+/**
+ * Convenience templated class representing an ADC
+ *
+ * Example
+ * @code
+ *  // Instantiate ADC0 single-ended channel #8
+ *  const adc0<8> adc0_se8;
+ *
+ *  // Initialise ADC
+ *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
+ *
+ *  // Set as analogue input
+ *  adc0_se8.setAnalogueInput();
+ *
+ *  // Read input
+ *  uint16_t value = adc0_se8.readAnalogue();
+ *  @endcode
+ *
+ * @tparam adcChannel    ADC channel
+ */
+template<uint8_t channel> using Adc1 = Adc_T<Adc1Info, channel>;
+
+#if (PTB0_SIG_SEL == 0)
+//using adc_A5               = const USBDM::Adc1<8>;
+//using adc_ACC_SCL          = const USBDM::Adc1<8>;
+#endif
+#if (PTB1_SIG_SEL == 0)
+//using adc_A4               = const USBDM::Adc1<9>;
+//using adc_ACC_SDA          = const USBDM::Adc1<9>;
+#endif
+#if (PTC8_SIG_SEL == 0)
+using adc_D4               = const USBDM::Adc1<4>;
+#endif
+#if (PTC9_SIG_SEL == 0)
+using adc_D23              = const USBDM::Adc1<5>;
+#endif
+#if (PTC10_SIG_SEL == 0)
+using adc_D25              = const USBDM::Adc1<6>;
+#endif
+#if (PTC11_SIG_SEL == 0)
+using adc_D17              = const USBDM::Adc1<7>;
+using adc_ACC_INT1         = const USBDM::Adc1<7>;
+#endif
+#if (PTE0_SIG_SEL == 0)
+using adc_D1               = const USBDM::Adc1<36>;
+#endif
+#if (PTE1_SIG_SEL == 0)
+using adc_D0               = const USBDM::Adc1<37>;
+#endif
+/**
+ * @}
+ ** AnalogueIO_Group
+ */
+/**
+ * @addtogroup PwmIO_Group FTM, Input capture, Output compare
+ * @brief Allows use of port pins as PWM outputs
+ * @{
+ */
+/**
+ * Convenience templated class representing a FTM
+ *
+ * Example
+ * @code
+ * // Instantiate the ftm channel (for FTM0 CH6)
+ * const USBDM::Ftm0<6>   ftm0_ch6;
+ *
+ * // Initialise PWM with initial period and alignment
+ * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
+ *
+ * // Change period (in ticks)
+ * ftm0_ch6.setPeriod(500);
+ *
+ * // Change duty cycle (in percent)
+ * ftm0_ch6.setDutyCycle(45);
+ * @endcode
+ *
+ * @tparam channel    Timer channel
+ */
+template<uint8_t channel> using Ftm0 = TmrBase_T<Ftm0Info, channel>;
+
+#if (PTA1_SIG_SEL == 3)
+using ftm_D5               = const USBDM::Ftm0<6>;
+#endif
+#if (PTA2_SIG_SEL == 3)
+using ftm_D9               = const USBDM::Ftm0<7>;
+using ftm_LED_BLUE         = const USBDM::Ftm0<7>;
+#endif
+#if (PTA4_SIG_SEL == 3)
+using ftm_D21              = const USBDM::Ftm0<1>;
+#endif
+#if (PTA5_SIG_SEL == 3)
+using ftm_D2               = const USBDM::Ftm0<2>;
+#endif
+#if (PTC1_SIG_SEL == 4)
+using ftm_A1               = const USBDM::Ftm0<0>;
+#endif
+#if (PTC2_SIG_SEL == 4)
+using ftm_D10              = const USBDM::Ftm0<1>;
+#endif
+#if (PTC3_SIG_SEL == 4)
+using ftm_D6               = const USBDM::Ftm0<2>;
+using ftm_LED_RED          = const USBDM::Ftm0<2>;
+#endif
+#if (PTC4_SIG_SEL == 4)
+using ftm_D7               = const USBDM::Ftm0<3>;
+#endif
+#if (PTC5_SIG_SEL == 7)
+using ftm_D18              = const USBDM::Ftm0<2>;
+#endif
+#if (PTD4_SIG_SEL == 4)
+using ftm_D3               = const USBDM::Ftm0<4>;
+using ftm_LED_GREEN        = const USBDM::Ftm0<4>;
+#endif
+#if (PTD5_SIG_SEL == 4)
+using ftm_A3               = const USBDM::Ftm0<5>;
+#endif
+#if (PTD6_SIG_SEL == 4)
+using ftm_A2               = const USBDM::Ftm0<6>;
+#endif
+#if (PTD7_SIG_SEL == 4)
+using ftm_D22              = const USBDM::Ftm0<7>;
+#endif
+/**
+ * Convenience templated class representing a FTM
+ *
+ * Example
+ * @code
+ * // Instantiate the ftm channel (for FTM0 CH6)
+ * const USBDM::Ftm0<6>   ftm0_ch6;
+ *
+ * // Initialise PWM with initial period and alignment
+ * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
+ *
+ * // Change period (in ticks)
+ * ftm0_ch6.setPeriod(500);
+ *
+ * // Change duty cycle (in percent)
+ * ftm0_ch6.setDutyCycle(45);
+ * @endcode
+ *
+ * @tparam channel    Timer channel
+ */
+template<uint8_t channel> using Ftm1 = TmrBase_T<Ftm1Info, channel>;
+
+#if (PTA12_SIG_SEL == 3)
+using ftm_D8               = const USBDM::Ftm1<0>;
+#endif
+#if (PTA13_SIG_SEL == 3)
+using ftm_D24              = const USBDM::Ftm1<1>;
+#endif
+#if (PTB0_SIG_SEL == 3)
+using ftm_A5               = const USBDM::Ftm1<0>;
+using ftm_ACC_SCL          = const USBDM::Ftm1<0>;
+#endif
+#if (PTB1_SIG_SEL == 3)
+using ftm_A4               = const USBDM::Ftm1<1>;
+using ftm_ACC_SDA          = const USBDM::Ftm1<1>;
+#endif
+/**
+ * Convenience templated class representing a FTM
+ *
+ * Example
+ * @code
+ * // Instantiate the ftm channel (for FTM0 CH6)
+ * const USBDM::Ftm0<6>   ftm0_ch6;
+ *
+ * // Initialise PWM with initial period and alignment
+ * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
+ *
+ * // Change period (in ticks)
+ * ftm0_ch6.setPeriod(500);
+ *
+ * // Change duty cycle (in percent)
+ * ftm0_ch6.setDutyCycle(45);
+ * @endcode
+ *
+ * @tparam channel    Timer channel
+ */
+template<uint8_t channel> using Ftm2 = TmrBase_T<Ftm2Info, channel>;
+
+/**
+ * Convenience templated class representing a FTM
+ *
+ * Example
+ * @code
+ * // Instantiate the ftm channel (for FTM0 CH6)
+ * const USBDM::Ftm0<6>   ftm0_ch6;
+ *
+ * // Initialise PWM with initial period and alignment
+ * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
+ *
+ * // Change period (in ticks)
+ * ftm0_ch6.setPeriod(500);
+ *
+ * // Change duty cycle (in percent)
+ * ftm0_ch6.setDutyCycle(45);
+ * @endcode
+ *
+ * @tparam channel    Timer channel
+ */
+template<uint8_t channel> using Ftm3 = TmrBase_T<Ftm3Info, channel>;
+
+#if (PTC8_SIG_SEL == 3)
+using ftm_D4               = const USBDM::Ftm3<4>;
+#endif
+#if (PTC9_SIG_SEL == 3)
+using ftm_D23              = const USBDM::Ftm3<5>;
+#endif
+#if (PTC10_SIG_SEL == 3)
+using ftm_D25              = const USBDM::Ftm3<6>;
+#endif
+#if (PTC11_SIG_SEL == 3)
+using ftm_D17              = const USBDM::Ftm3<7>;
+using ftm_ACC_INT1         = const USBDM::Ftm3<7>;
+#endif
+#if (PTD0_SIG_SEL == 4)
+using ftm_D16              = const USBDM::Ftm3<0>;
+#endif
+#if (PTD1_SIG_SEL == 4)
+using ftm_D13              = const USBDM::Ftm3<1>;
+#endif
+#if (PTD2_SIG_SEL == 4)
+using ftm_D11              = const USBDM::Ftm3<2>;
+#endif
+#if (PTD3_SIG_SEL == 4)
+using ftm_D12              = const USBDM::Ftm3<3>;
+#endif
+/**
+ * @}
+ ** PwmIO_Group
+ */
+/**
+ * @addtogroup DigitalIO_Group GPIO, Digital Input/Output
  * @brief Allows use of port pins as simple digital inputs or outputs
  * @{
  */
@@ -4777,14 +5282,6 @@ using gpio_D2              = const USBDM::GpioA<5>;
 using gpio_D8              = const USBDM::GpioA<12>;
 using gpio_D24             = const USBDM::GpioA<13>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioB. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4864,14 +5361,6 @@ using gpio_D15             = const USBDM::GpioB<2>;
 using gpio_D14             = const USBDM::GpioB<3>;
 using gpio_ConRx           = const USBDM::GpioB<16>;
 using gpio_ConTx           = const USBDM::GpioB<17>;
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioC. See @ref Gpio_T
  *
@@ -4960,14 +5449,6 @@ using gpio_D25             = const USBDM::GpioC<10>;
 using gpio_D17             = const USBDM::GpioC<11>;
 using gpio_ACC_INT1        = const USBDM::GpioC<11>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioD. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -5049,14 +5530,6 @@ using gpio_A3              = const USBDM::GpioD<5>;
 using gpio_A2              = const USBDM::GpioD<6>;
 using gpio_D22             = const USBDM::GpioD<7>;
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioE. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -5132,326 +5605,7 @@ using gpio_D1              = const USBDM::GpioE<0>;
 using gpio_D0              = const USBDM::GpioE<1>;
 /**
  * @}
- */
-/**
- * @addtogroup AnalogueIO_Group ADC, Analogue Input
- * @brief Pins used for analogue inputs
- * @{
- */
-/**
- * Convenience templated class representing an ADC
- *
- * Example
- * @code
- *  // Instantiate ADC0 single-ended channel #8
- *  const adc0<8> adc0_se8;
- *
- *  // Initialise ADC
- *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
- *
- *  // Set as analogue input
- *  adc0_se8.setAnalogueInput();
- *
- *  // Read input
- *  uint16_t value = adc0_se8.readAnalogue();
- *  @endcode
- *
- * @tparam adcChannel    ADC channel
- */
-template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
-
-#if (PTB0_SIG_SEL == 0)
-using Adc0_A5              = const USBDM::Adc0<8>;
-using Adc0_ACC_SCL         = const USBDM::Adc0<8>;
-#endif
-#if (PTB1_SIG_SEL == 0)
-using Adc0_A4              = const USBDM::Adc0<9>;
-using Adc0_ACC_SDA         = const USBDM::Adc0<9>;
-#endif
-#if (PTB2_SIG_SEL == 0)
-using Adc0_D15             = const USBDM::Adc0<12>;
-#endif
-#if (PTB3_SIG_SEL == 0)
-using Adc0_D14             = const USBDM::Adc0<13>;
-#endif
-#if (PTC0_SIG_SEL == 0)
-using Adc0_A0              = const USBDM::Adc0<14>;
-#endif
-#if (PTC1_SIG_SEL == 0)
-using Adc0_A1              = const USBDM::Adc0<15>;
-#endif
-#if (PTC2_SIG_SEL == 0)
-using Adc0_D10             = const USBDM::Adc0<4>;
-#endif
-#if (PTD1_SIG_SEL == 0)
-using Adc0_D13             = const USBDM::Adc0<5>;
-#endif
-#if (PTD5_SIG_SEL == 0)
-using Adc0_A3              = const USBDM::Adc0<6>;
-#endif
-#if (PTD6_SIG_SEL == 0)
-using Adc0_A2              = const USBDM::Adc0<7>;
-#endif
-/**
- * @}
- */
-/**
- * @addtogroup AnalogueIO_Group ADC, Analogue Input
- * @brief Pins used for analogue inputs
- * @{
- */
-/**
- * Convenience templated class representing an ADC
- *
- * Example
- * @code
- *  // Instantiate ADC0 single-ended channel #8
- *  const adc0<8> adc0_se8;
- *
- *  // Initialise ADC
- *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
- *
- *  // Set as analogue input
- *  adc0_se8.setAnalogueInput();
- *
- *  // Read input
- *  uint16_t value = adc0_se8.readAnalogue();
- *  @endcode
- *
- * @tparam adcChannel    ADC channel
- */
-template<uint8_t channel> using Adc1 = Adc_T<Adc1Info, channel>;
-
-#if (PTB0_SIG_SEL == 0)
-using Adc1_A5              = const USBDM::Adc1<8>;
-using Adc1_ACC_SCL         = const USBDM::Adc1<8>;
-#endif
-#if (PTB1_SIG_SEL == 0)
-using Adc1_A4              = const USBDM::Adc1<9>;
-using Adc1_ACC_SDA         = const USBDM::Adc1<9>;
-#endif
-#if (PTC8_SIG_SEL == 0)
-using Adc1_D4              = const USBDM::Adc1<4>;
-#endif
-#if (PTC9_SIG_SEL == 0)
-using Adc1_D23             = const USBDM::Adc1<5>;
-#endif
-#if (PTC10_SIG_SEL == 0)
-using Adc1_D25             = const USBDM::Adc1<6>;
-#endif
-#if (PTC11_SIG_SEL == 0)
-using Adc1_D17             = const USBDM::Adc1<7>;
-using Adc1_ACC_INT1        = const USBDM::Adc1<7>;
-#endif
-#if (PTE0_SIG_SEL == 0)
-using Adc1_D1              = const USBDM::Adc1<36>;
-#endif
-#if (PTE1_SIG_SEL == 0)
-using Adc1_D0              = const USBDM::Adc1<37>;
-#endif
-/**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group FTM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
-/**
- * Convenience templated class representing a FTM
- *
- * Example
- * @code
- * // Instantiate the ftm channel (for FTM0 CH6)
- * const USBDM::Ftm0<6>   ftm0_ch6;
- *
- * // Initialise PWM with initial period and alignment
- * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
- *
- * // Change period (in ticks)
- * ftm0_ch6.setPeriod(500);
- *
- * // Change duty cycle (in percent)
- * ftm0_ch6.setDutyCycle(45);
- * @endcode
- *
- * @tparam channel    Timer channel
- */
-template<uint8_t channel> using Ftm0 = TmrBase_T<Ftm0Info, channel>;
-
-#if (PTA1_SIG_SEL == 3)
-using ftm_D5               = const USBDM::Ftm0<6>;
-#endif
-#if (PTA2_SIG_SEL == 3)
-using ftm_D9               = const USBDM::Ftm0<7>;
-using ftm_LED_BLUE         = const USBDM::Ftm0<7>;
-#endif
-#if (PTA4_SIG_SEL == 3)
-using ftm_D21              = const USBDM::Ftm0<1>;
-#endif
-#if (PTA5_SIG_SEL == 3)
-using ftm_D2               = const USBDM::Ftm0<2>;
-#endif
-#if (PTC1_SIG_SEL == 4)
-using ftm_A1               = const USBDM::Ftm0<0>;
-#endif
-#if (PTC2_SIG_SEL == 4)
-using ftm_D10              = const USBDM::Ftm0<1>;
-#endif
-#if (PTC3_SIG_SEL == 4)
-using ftm_D6               = const USBDM::Ftm0<2>;
-using ftm_LED_RED          = const USBDM::Ftm0<2>;
-#endif
-#if (PTC4_SIG_SEL == 4)
-using ftm_D7               = const USBDM::Ftm0<3>;
-#endif
-#if (PTC5_SIG_SEL == 7)
-using ftm_D18              = const USBDM::Ftm0<2>;
-#endif
-#if (PTD4_SIG_SEL == 4)
-using ftm_D3               = const USBDM::Ftm0<4>;
-using ftm_LED_GREEN        = const USBDM::Ftm0<4>;
-#endif
-#if (PTD5_SIG_SEL == 4)
-using ftm_A3               = const USBDM::Ftm0<5>;
-#endif
-#if (PTD6_SIG_SEL == 4)
-using ftm_A2               = const USBDM::Ftm0<6>;
-#endif
-#if (PTD7_SIG_SEL == 4)
-using ftm_D22              = const USBDM::Ftm0<7>;
-#endif
-/**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group FTM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
-/**
- * Convenience templated class representing a FTM
- *
- * Example
- * @code
- * // Instantiate the ftm channel (for FTM0 CH6)
- * const USBDM::Ftm0<6>   ftm0_ch6;
- *
- * // Initialise PWM with initial period and alignment
- * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
- *
- * // Change period (in ticks)
- * ftm0_ch6.setPeriod(500);
- *
- * // Change duty cycle (in percent)
- * ftm0_ch6.setDutyCycle(45);
- * @endcode
- *
- * @tparam channel    Timer channel
- */
-template<uint8_t channel> using Ftm1 = TmrBase_T<Ftm1Info, channel>;
-
-#if (PTA12_SIG_SEL == 3)
-using ftm_D8               = const USBDM::Ftm1<0>;
-#endif
-#if (PTA13_SIG_SEL == 3)
-using ftm_D24              = const USBDM::Ftm1<1>;
-#endif
-#if (PTB0_SIG_SEL == 3)
-using ftm_A5               = const USBDM::Ftm1<0>;
-using ftm_ACC_SCL          = const USBDM::Ftm1<0>;
-#endif
-#if (PTB1_SIG_SEL == 3)
-using ftm_A4               = const USBDM::Ftm1<1>;
-using ftm_ACC_SDA          = const USBDM::Ftm1<1>;
-#endif
-/**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group FTM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
-/**
- * Convenience templated class representing a FTM
- *
- * Example
- * @code
- * // Instantiate the ftm channel (for FTM0 CH6)
- * const USBDM::Ftm0<6>   ftm0_ch6;
- *
- * // Initialise PWM with initial period and alignment
- * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
- *
- * // Change period (in ticks)
- * ftm0_ch6.setPeriod(500);
- *
- * // Change duty cycle (in percent)
- * ftm0_ch6.setDutyCycle(45);
- * @endcode
- *
- * @tparam channel    Timer channel
- */
-template<uint8_t channel> using Ftm2 = TmrBase_T<Ftm2Info, channel>;
-
-/**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group FTM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
-/**
- * Convenience templated class representing a FTM
- *
- * Example
- * @code
- * // Instantiate the ftm channel (for FTM0 CH6)
- * const USBDM::Ftm0<6>   ftm0_ch6;
- *
- * // Initialise PWM with initial period and alignment
- * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);
- *
- * // Change period (in ticks)
- * ftm0_ch6.setPeriod(500);
- *
- * // Change duty cycle (in percent)
- * ftm0_ch6.setDutyCycle(45);
- * @endcode
- *
- * @tparam channel    Timer channel
- */
-template<uint8_t channel> using Ftm3 = TmrBase_T<Ftm3Info, channel>;
-
-#if (PTC8_SIG_SEL == 3)
-using ftm_D4               = const USBDM::Ftm3<4>;
-#endif
-#if (PTC9_SIG_SEL == 3)
-using ftm_D23              = const USBDM::Ftm3<5>;
-#endif
-#if (PTC10_SIG_SEL == 3)
-using ftm_D25              = const USBDM::Ftm3<6>;
-#endif
-#if (PTC11_SIG_SEL == 3)
-using ftm_D17              = const USBDM::Ftm3<7>;
-using ftm_ACC_INT1         = const USBDM::Ftm3<7>;
-#endif
-#if (PTD0_SIG_SEL == 4)
-using ftm_D16              = const USBDM::Ftm3<0>;
-#endif
-#if (PTD1_SIG_SEL == 4)
-using ftm_D13              = const USBDM::Ftm3<1>;
-#endif
-#if (PTD2_SIG_SEL == 4)
-using ftm_D11              = const USBDM::Ftm3<2>;
-#endif
-#if (PTD3_SIG_SEL == 4)
-using ftm_D12              = const USBDM::Ftm3<3>;
-#endif
-/**
- * @}
+ ** DigitalIO_Group
  */
 #if (DO_MAP_PINS_ON_RESET>0)
 /**
@@ -5516,6 +5670,7 @@ enum {
 };
 /**
  * @}
+ ** DMA_Group
  */
 
 } // End namespace USBDM

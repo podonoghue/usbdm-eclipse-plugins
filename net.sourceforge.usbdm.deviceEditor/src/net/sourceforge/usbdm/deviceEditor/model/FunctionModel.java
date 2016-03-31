@@ -21,11 +21,6 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
    public FunctionModel(PeripheralModel parent, PeripheralFunction peripheralFunction) {
       super(parent, peripheralFunction.getName(), "");
       
-      if (peripheralFunction.getName().startsWith("FTM2_CH0")) {
-         // XXX Delete me
-         System.err.println("Stop here");
-      }
-      
       TreeSet<MappingInfo> mappingInfoSet = peripheralFunction.getPinMapping();
       MappingInfo firstMapping = peripheralFunction.getPinMapping().first();
       if (firstMapping.getMux() == MuxSelection.fixed) {
@@ -90,7 +85,7 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
          MappingInfo mappingInfo = (MappingInfo)model;
          boolean selected = mappingInfo.isSelected();
 
-         System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//         System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
 
          // Get change (either disabled or correct selection)
          int changedSelection = fMappingInfos.indexOf(mappingInfo);
@@ -105,7 +100,7 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
             // A function has been mapped to a pin 
             if (fSelection != changedSelection) {
                // Not already mapped
-               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
                fSelection = changedSelection;
                fCurrentMapping = fMappingInfos.get(fSelection);
                ((DeviceModel)getRoot()).checkConflicts();
@@ -120,7 +115,7 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
             // A function has been unmapped
             if (fSelection == changedSelection) {
                // Currently mapped to this pin - unmap
-               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
                fSelection = 0;
                fCurrentMapping = fMappingInfos.get(fSelection);
                ((DeviceModel)getRoot()).checkConflicts();
@@ -139,55 +134,4 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
       // Not used
    }
 
-//   @Override
-//   protected Message checkConflicts(Map<String, List<MappingInfo>> mappedNodes) {
-////      Message oldMessage = fMessage;
-//      setMessage("");
-//      if (fCurrentMapping != null) {
-//         List<MappingInfo> list = mappedNodes.get(fCurrentMapping.getPin().getName());
-//         if (list == null) {
-//            list = new ArrayList<MappingInfo>();
-//            mappedNodes.put(fCurrentMapping.getPin().getName(), list);
-//            list.add(fCurrentMapping);
-//         }
-//         else {
-//            StringBuffer sb = null;
-//            for (MappingInfo other:list) {
-//               // Check for conflicts
-//               if (!fCurrentMapping.getFunctionList().equals(other.getFunctionList())) {
-//                  if (sb == null) {
-//                     sb = new StringBuffer();
-//                     sb.append("Conflict(");
-//                     sb.append(getName());
-//                  }
-//                  sb.append(", ");
-//                  sb.append(other.getFunctionList());
-//               }
-//            }
-//            if (sb != null) {
-//               // Conflicts - notify all nodes
-//               sb.append(")");
-//               // Multiple functions mapped to pin
-//               System.err.println(sb.toString());
-//               setMessage(sb.toString());
-//               for (MappingInfo other:list) {
-//                  other.setMessage(sb.toString());
-////                  for (TreeViewer viewer:getViewers()) {
-////                     viewer.update(other,  null);
-////                     viewer.update(other.getParent(),  null);
-////                  }
-//               }
-//               fCurrentMapping.setMessage(sb.toString());
-//            }
-//            list.add(fCurrentMapping);
-//         }
-//      }
-////      if (oldMessage != fMessage) {
-////         for (TreeViewer viewer:getViewers()) {
-////            viewer.update(this,  null);
-////            viewer.update(getParent(),  null);
-////         }
-////      }
-//      return fMessage;
-//   }
 }

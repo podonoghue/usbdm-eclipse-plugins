@@ -44,7 +44,7 @@ namespace USBDM {
 
 constexpr uint16_t TPM0_SC              = (TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -76,7 +76,7 @@ namespace USBDM {
 
 constexpr uint16_t TPM1_SC              = (TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -108,7 +108,7 @@ namespace USBDM {
 
 constexpr uint16_t TPM2_SC              = (TPM_SC_CMOD(0x1)|TPM_SC_PS(0x0));
 
-} // End namespace
+} // End namespace USBDM
 
 // </h>
 
@@ -2653,128 +2653,6 @@ namespace USBDM {
  * @{
  */
 /**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioAInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTA_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOA_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTA_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTA_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioBInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTB_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOB_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTB_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioCInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTC_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOC_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTC_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioDInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTD_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOD_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTD_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 1;
-
-   //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {PORTD_IRQn};
-
-};
-
-/**
- * Peripheral information for PORT, Digital Input/Output
- */
-class GpioEInfo {
-public:
-   //! PORT Hardware base pointer
-   static constexpr uint32_t pcrAddress   = PORTE_BasePtr;
-
-   //! GPIO Hardware base pointer
-   static constexpr uint32_t gpioAddress   = GPIOE_BasePtr;
-
-   //! Value for PCR (including MUX value)
-   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC5_PORTE_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
-
-};
-
-/**
  * Peripheral information for ADC, Analogue Input
  */
 class Adc0Info {
@@ -3005,9 +2883,56 @@ public:
 };
 
 /**
- * Peripheral information for DMAMUX, Direct Memory Access (DMA)
+ * Peripheral information for DAC, DAC0 (Miscellaneous)
  */
-class DmaMux0Info {
+class Dac0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = DAC0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_DAC0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {DAC0_IRQn};
+
+};
+
+/**
+ * Peripheral information for DMA, DMA (Miscellaneous)
+ */
+class DmaInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = DMA_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC7_DMA_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for DMAMUX, DMAMUX0 (Miscellaneous)
+ */
+class Dmamux0Info {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = DMAMUX0_BasePtr;
@@ -3023,6 +2948,128 @@ public:
 
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioAInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTA_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOA_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTA_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTA_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioBInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTB_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOB_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTB_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioCInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTC_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOC_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTC_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioDInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTD_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOD_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTD_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {PORTD_IRQn};
+
+};
+
+/**
+ * Peripheral information for GPIO, Digital Input/Output
+ */
+class GpioEInfo {
+public:
+   //! PORT Hardware base pointer
+   static constexpr uint32_t pcrAddress   = PORTE_BasePtr;
+
+   //! GPIO Hardware base pointer
+   static constexpr uint32_t gpioAddress   = GPIOE_BasePtr;
+
+   //! Value for PCR (including MUX value)
+   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_PORTE_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
 
 };
 
@@ -3131,6 +3178,22 @@ public:
 };
 
 /**
+ * Peripheral information for LLWU, Low-leakage Wake-up Unit
+ */
+class LlwuInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = LLWU_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+};
+
+/**
  * Peripheral information for LPTMR, Low Power Timer
  */
 class Lptmr0Info {
@@ -3172,7 +3235,7 @@ public:
 };
 
 /**
- * Peripheral information for PIT, Programmable Interrupt Timer
+ * Peripheral information for PIT, PIT (Miscellaneous)
  */
 class PitInfo {
 public:
@@ -3194,75 +3257,6 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PIT_IRQn};
 
-};
-
-/**
- * Peripheral information for LLWU, Low-leakage Wake-up Unit
- */
-class LlwuInfo {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = LLWU_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-   //! Information for each pin of peripheral
-   static constexpr PcrInfo  info[32] = {
-
-         //          clockMask         pcrAddress      gpioAddress gpioBit muxValue
-         /*  0 */  { 0, 0, 0, 0, 0 },
-         /*  1 */  { 0, 0, 0, 0, 0 },
-         /*  2 */  { 0, 0, 0, 0, 0 },
-         /*  3 */  { 0, 0, 0, 0, 0 },
-         /*  4 */  { 0, 0, 0, 0, 0 },
-#if (LLWU_P5_PIN_SEL == 1)
-         /*  5 */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  0,  1 },
-#else
-         /*  5 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P6_PIN_SEL == 1)
-         /*  6 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,  1 },
-#else
-         /*  6 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P7_PIN_SEL == 1)
-         /*  7 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,  1 },
-#else
-         /*  7 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P8_PIN_SEL == 1)
-         /*  8 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,  1 },
-#else
-         /*  8 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P9_PIN_SEL == 1)
-         /*  9 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  5,  1 },
-#else
-         /*  9 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P10_PIN_SEL == 1)
-         /* 10 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,  1 },
-#else
-         /* 10 */  { 0, 0, 0, 0, 0 },
-#endif
-         /* 11 */  { 0, 0, 0, 0, 0 },
-         /* 12 */  { 0, 0, 0, 0, 0 },
-         /* 13 */  { 0, 0, 0, 0, 0 },
-#if (LLWU_P14_PIN_SEL == 1)
-         /* 14 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,  1 },
-#else
-         /* 14 */  { 0, 0, 0, 0, 0 },
-#endif
-#if (LLWU_P15_PIN_SEL == 1)
-         /* 15 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,  1 },
-#else
-         /* 15 */  { 0, 0, 0, 0, 0 },
-#endif
-   };
 };
 
 /**
@@ -3916,6 +3910,31 @@ public:
 };
 
 /**
+ * Peripheral information for USB, USB (Miscellaneous)
+ */
+class UsbInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = USB_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC4_USBOTG_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {USB0_IRQn};
+
+};
+
+/**
  * @}
  ** PeripheralPinTables
  */
@@ -3927,7 +3946,38 @@ public:
 namespace USBDM {
 
 /**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
+ * @addtogroup AnalogueIO_Group ADC, Analogue Input
+ * @brief Pins used for analogue inputs
+ * @{
+ */
+/**
+ * Convenience templated class representing an ADC
+ *
+ * Example
+ * @code
+ *  // Instantiate ADC0 single-ended channel #8
+ *  const adc0<8> adc0_se8;
+ *
+ *  // Initialise ADC
+ *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
+ *
+ *  // Set as analogue input
+ *  adc0_se8.setAnalogueInput();
+ *
+ *  // Read input
+ *  uint16_t value = adc0_se8.readAnalogue();
+ *  @endcode
+ *
+ * @tparam adcChannel    ADC channel
+ */
+template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
+
+/**
+ * @}
+ ** AnalogueIO_Group
+ */
+/**
+ * @addtogroup DigitalIO_Group GPIO, Digital Input/Output
  * @brief Allows use of port pins as simple digital inputs or outputs
  * @{
  */
@@ -4004,14 +4054,6 @@ template<uint8_t bitNum> using GpioA = Gpio_T<GpioAInfo, bitNum>;
 template<int left, int right> using GpioAField = Field_T<GpioAInfo, left, right>;
 
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioB. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4083,14 +4125,6 @@ template<uint8_t bitNum> using GpioB = Gpio_T<GpioBInfo, bitNum>;
  */
 template<int left, int right> using GpioBField = Field_T<GpioBInfo, left, right>;
 
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioC. See @ref Gpio_T
  *
@@ -4164,14 +4198,6 @@ template<uint8_t bitNum> using GpioC = Gpio_T<GpioCInfo, bitNum>;
 template<int left, int right> using GpioCField = Field_T<GpioCInfo, left, right>;
 
 /**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
-/**
  * @brief Convenience template for GpioD. See @ref Gpio_T
  *
  * <b>Usage</b>
@@ -4243,14 +4269,6 @@ template<uint8_t bitNum> using GpioD = Gpio_T<GpioDInfo, bitNum>;
  */
 template<int left, int right> using GpioDField = Field_T<GpioDInfo, left, right>;
 
-/**
- * @}
- */
-/**
- * @addtogroup DigitalIO_Group PORT, Digital Input/Output
- * @brief Allows use of port pins as simple digital inputs or outputs
- * @{
- */
 /**
  * @brief Convenience template for GpioE. See @ref Gpio_T
  *
@@ -4325,36 +4343,7 @@ template<int left, int right> using GpioEField = Field_T<GpioEInfo, left, right>
 
 /**
  * @}
- */
-/**
- * @addtogroup AnalogueIO_Group ADC, Analogue Input
- * @brief Pins used for analogue inputs
- * @{
- */
-/**
- * Convenience templated class representing an ADC
- *
- * Example
- * @code
- *  // Instantiate ADC0 single-ended channel #8
- *  const adc0<8> adc0_se8;
- *
- *  // Initialise ADC
- *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
- *
- *  // Set as analogue input
- *  adc0_se8.setAnalogueInput();
- *
- *  // Read input
- *  uint16_t value = adc0_se8.readAnalogue();
- *  @endcode
- *
- * @tparam adcChannel    ADC channel
- */
-template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
-
-/**
- * @}
+ ** DigitalIO_Group
  */
 /**
  * @addtogroup PwmIO_Group TPM, Input capture, Output compare
@@ -4384,14 +4373,6 @@ template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
 template<uint8_t channel> using Tpm0 = TmrBase_T<Tpm0Info, channel>;
 
 /**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group TPM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
-/**
  * Convenience templated class representing a TPM
  *
  * Example
@@ -4413,14 +4394,6 @@ template<uint8_t channel> using Tpm0 = TmrBase_T<Tpm0Info, channel>;
  */
 template<uint8_t channel> using Tpm1 = TmrBase_T<Tpm1Info, channel>;
 
-/**
- * @}
- */
-/**
- * @addtogroup PwmIO_Group TPM, Input capture, Output compare
- * @brief Allows use of port pins as PWM outputs
- * @{
- */
 /**
  * Convenience templated class representing a TPM
  *
@@ -4445,6 +4418,7 @@ template<uint8_t channel> using Tpm2 = TmrBase_T<Tpm2Info, channel>;
 
 /**
  * @}
+ ** PwmIO_Group
  */
 #if (DO_MAP_PINS_ON_RESET>0)
 /**
@@ -4502,6 +4476,7 @@ enum {
 };
 /**
  * @}
+ ** DMA_Group
  */
 
 } // End namespace USBDM
