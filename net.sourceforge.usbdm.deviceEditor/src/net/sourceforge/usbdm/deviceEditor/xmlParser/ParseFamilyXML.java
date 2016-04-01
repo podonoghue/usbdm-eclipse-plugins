@@ -82,9 +82,9 @@ public class ParseFamilyXML extends XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private void parseFamily(Element familyElement) throws Exception {
+   private void parseFamily(Path path, Element familyElement) throws Exception {
 
-      factory = new DeviceInfo("Unknown", familyElement.getAttribute("name"));
+      factory = new DeviceInfo(path, familyElement.getAttribute("name"));
       factory.initialiseTemplates();
 
       for (Node node = familyElement.getFirstChild();
@@ -228,7 +228,7 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "family") {
-            parseFamily(element);
+            parseFamily(path, element);
          }
          else if (element.getTagName() == "pins") {
             parsePins(element);

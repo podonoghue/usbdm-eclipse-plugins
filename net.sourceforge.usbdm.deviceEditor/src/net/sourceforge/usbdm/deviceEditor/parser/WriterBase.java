@@ -338,7 +338,7 @@ public abstract class WriterBase {
       if ((fPeripheralFunctions.table.get(signalIndex) != null) && 
             (fPeripheralFunctions.table.get(signalIndex) != function)) {
          throw new RuntimeException(
-               "Multiple functions mapped to index new = " + function + ", old = " + fPeripheralFunctions.table.get(signalIndex));
+               "Multiple functions mapped to index\n new = " + function + ",\n old = " + fPeripheralFunctions.table.get(signalIndex));
       }
       fPeripheralFunctions.table.setElementAt(function, signalIndex);
    }

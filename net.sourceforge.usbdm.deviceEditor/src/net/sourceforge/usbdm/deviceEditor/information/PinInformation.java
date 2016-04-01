@@ -5,12 +5,14 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+
 /**
  * Information about a pin<br>
  * <li>Pin name
  * <li>Peripheral functions mapped to that pin
  */
-public class PinInformation implements Comparable<PinInformation>{
+public class PinInformation extends ObservableModel implements Comparable<PinInformation> {
    /**
     * Pin used to denote a disabled mapping
     */
@@ -61,6 +63,12 @@ public class PinInformation implements Comparable<PinInformation>{
     * Default functions
     */
    private MuxSelection fDefaultFunction = MuxSelection.unused;
+
+   /** Used description of pin use */
+   private String fPinUseDescription = "";
+
+   /** Current pin multiplexor setting */
+   private MuxSelection fMuxSelection = MuxSelection.reset;
 
    /**
     * Get PCR register e.g. PORTA->PCR[3]
@@ -447,5 +455,26 @@ public class PinInformation implements Comparable<PinInformation>{
       return fMappedFunctions;
    }
 
+   /** Set description of pin use */
+   public void setPinUseDescription(String pinUseDescription) {
+      fPinUseDescription = pinUseDescription;
+      notifyListeners();
+   }
+
+   /** Get description of pin use */
+   public String getPinUseDescription() {
+      return fPinUseDescription;
+   }
+
+   /** Set current pin multiplexor setting */
+   public void setMuxSelection(MuxSelection muxValue) {
+      fMuxSelection = muxValue;
+      notifyListeners();
+   }
+
+   /** Get current pin multiplexor setting */
+   public MuxSelection getMuxSelection() {
+      return fMuxSelection;
+   }
 
 }

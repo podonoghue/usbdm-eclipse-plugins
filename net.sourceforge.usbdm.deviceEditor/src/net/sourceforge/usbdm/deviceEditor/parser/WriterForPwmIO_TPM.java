@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -7,17 +8,24 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.parser.WriterBase.InfoTable;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (TPM)
  */
 public class WriterForPwmIO_TPM extends WriterBase {
 
-
-   static final String ALIAS_BASE_NAME       = "tpm_";
-   static final String CLASS_BASE_NAME       = "Tpm";
-   static final String INSTANCE_BASE_NAME    = "tpm";
+   static final String ALIAS_PREFIX          = "tpm_";
    
+   /** Functions that use this writer */
+   protected InfoTable fQuadFunctions = new InfoTable("infoQUAD");
+         
+   /** Functions that use this writer */
+   protected InfoTable fFaultFunctions = new InfoTable("infoFAULT");
+         
+   /** Functions that use this writer */
+   protected InfoTable fClkinFunctions = new InfoTable("infoCLKIN");
+         
    public WriterForPwmIO_TPM(DeviceInfo deviceInfo, Peripheral peripheral) {
       super(deviceInfo, peripheral);
    }
@@ -26,9 +34,8 @@ public class WriterForPwmIO_TPM extends WriterBase {
     */
    @Override
    public String getAliasName(String signalName, String alias) {
-//      System.err.println(String.format("getAliasName(%s,%s)", signalName, alias));
       if (signalName.matches(".*ch\\d+")) {
-         return ALIAS_BASE_NAME+alias;
+         return ALIAS_PREFIX+alias;
       }
       return null;
    }
@@ -40,7 +47,7 @@ public class WriterForPwmIO_TPM extends WriterBase {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal().replaceAll("CH", "ch");
-      return INSTANCE_BASE_NAME+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
    /** 
@@ -52,20 +59,10 @@ public class WriterForPwmIO_TPM extends WriterBase {
     * @param fnIndex        Index into list of functions mapped to pin
     */
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      String instance  = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
-      int    signal    = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
-      return String.format("const %s::%s%s<%d>", DeviceInfo.NAME_SPACE, CLASS_BASE_NAME, instance, signal);
+      int signal = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
    }
 
-   @Override
-   public boolean useGuard() {
-      return true;
-   }
-
-   static final int QUAD_INDEX  = 8;
-   static final int CLOCK_INDEX = 10;
-   static final int FAULT_INDEX = 12;
-   
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
       Pattern p = Pattern.compile("CH(\\d+)");
@@ -76,22 +73,36 @@ public class WriterForPwmIO_TPM extends WriterBase {
       final String quadNames[] = {"QD_PHA", "QD_PHB"};
       for (int signal=0; signal<quadNames.length; signal++) {
          if (function.getSignal().matches(quadNames[signal])) {
-            return QUAD_INDEX+signal;
+            return signal;
          }
       }
       final String clockNames[] = {"CLKIN0", "CLKIN1"};
       for (int signal=0; signal<clockNames.length; signal++) {
          if (function.getSignal().matches(clockNames[signal])) {
-            return CLOCK_INDEX+signal;
+            return signal;
          }
       }
       final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
       for (int signal=0; signal<faultNames.length; signal++) {
          if (function.getSignal().matches(faultNames[signal])) {
-            return FAULT_INDEX+signal;
+            return signal;
          }
       }
       throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+   }
+
+   @Override
+   public boolean needPCRTable() {
+      boolean required = 
+            (fPeripheralFunctions.table.size() +
+                  fQuadFunctions.table.size() + 
+                  fFaultFunctions.table.size()) > 0;
+      return required;
+   }
+
+   @Override
+   public boolean useGuard() {
+      return true;
    }
 
    static final String TEMPLATE_DOCUMENTATION = 
@@ -123,38 +134,6 @@ public class WriterForPwmIO_TPM extends WriterBase {
    }
 
    @Override
-   public String getInfoConstants() {
-      StringBuffer sb = new StringBuffer();
-      sb.append(super.getInfoConstants());
-      sb.append(String.format(
-            "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = %s;\n\n",
-            getPeripheralName()+"_SC"));
-      sb.append(String.format(
-            "   //! Indexes of special functions in PcrInfo[] table\n"+
-            "   static constexpr int QUAD_INDEX  = %d;\n" +
-            "   static constexpr int CLOCK_INDEX = %d;\n" +
-            "   static constexpr int FAULT_INDEX = %d;\n" +
-            "\n",
-            QUAD_INDEX, CLOCK_INDEX, FAULT_INDEX));
-      InfoTable functions = fPeripheralFunctions;
-      int lastChannel = -1;
-      for (int index=0; index<functions.table.size(); index++) {
-         if (index >= QUAD_INDEX) {
-            break;
-         }
-         if (functions.table.get(index) != null) {
-            lastChannel = index;
-         }
-      }
-      sb.append(String.format(
-            "   static constexpr int NUM_CHANNELS  = %d;\n" +
-            "\n",
-            lastChannel+1));
-      return sb.toString();
-   }
-
-   @Override
    public String getGroupName() {
       return "PwmIO_Group";
    }
@@ -167,6 +146,117 @@ public class WriterForPwmIO_TPM extends WriterBase {
    @Override
    public String getGroupBriefDescription() {
       return "Allows use of port pins as PWM outputs";
+   }
+   
+   @Override
+   public String getPcrInfoTableName(PeripheralFunction function) {
+      Pattern p = Pattern.compile("CH(\\d+)");
+      Matcher m = p.matcher(function.getSignal());
+      if (m.matches()) {
+         return fPeripheralFunctions.getName();
+      }
+      final String quadNames[] = {"QD_PHA", "QD_PHB"};
+      for (int signal=0; signal<quadNames.length; signal++) {
+         if (function.getSignal().matches(quadNames[signal])) {
+            return fQuadFunctions.getName();
+         }
+      }
+      final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
+      for (int signal=0; signal<faultNames.length; signal++) {
+         if (function.getSignal().matches(faultNames[signal])) {
+            return fFaultFunctions.getName();
+         }
+      }
+      final String clkinNames[] = {"CLKIN0", "CLKIN1"};
+      for (int signal=0; signal<clkinNames.length; signal++) {
+         if (function.getSignal().matches(clkinNames[signal])) {
+            return fClkinFunctions.getName();
+         }
+      }
+      throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+   }
+
+   @Override
+   public void addFunction(PeripheralFunction function) {
+      InfoTable fFunctions = null;
+
+      int signalIndex = -1;
+
+      Pattern p = Pattern.compile(".*CH(\\d+)");
+      Matcher m = p.matcher(function.getSignal());
+      if (m.matches()) {
+         fFunctions = fPeripheralFunctions;
+         signalIndex = Integer.parseInt(m.group(1));
+      }
+      if (fFunctions == null) {
+         final String quadNames[] = {"QD_PHA", "QD_PHB"};
+         for (signalIndex=0; signalIndex<quadNames.length; signalIndex++) {
+            if (function.getSignal().endsWith(quadNames[signalIndex])) {
+               fFunctions = fQuadFunctions;
+               break;
+            }
+         }
+      }
+      if (fFunctions == null) {
+         final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
+         for (signalIndex=0; signalIndex<faultNames.length; signalIndex++) {
+            if (function.getSignal().endsWith(faultNames[signalIndex])) {
+               fFunctions = fFaultFunctions;
+               break;
+            }
+         }
+      }
+      if (fFunctions == null) {
+         final String clkinNames[] = {"CLKIN0", "CLKIN1"};
+         for (signalIndex=0; signalIndex<clkinNames.length; signalIndex++) {
+            if (function.getSignal().matches(clkinNames[signalIndex])) {
+               fFunctions = fClkinFunctions;
+               break;
+            }
+         }
+      }
+      if (fFunctions == null) {
+         throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+      }
+      if (signalIndex>=fFunctions.table.size()) {
+         fFunctions.table.setSize(signalIndex+1);
+      }
+      if ((fFunctions.table.get(signalIndex) != null) && 
+            (fFunctions.table.get(signalIndex) != function)) {
+         throw new RuntimeException("Multiple functions mapped to index = "+signalIndex+"\n new = " + function + ",\n old = " + fFunctions.table.get(signalIndex));
+      }
+      fFunctions.table.setElementAt(function, signalIndex);
+   }
+
+   @Override
+   public ArrayList<InfoTable> getFunctionTables() {
+      ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
+      rv.add(fPeripheralFunctions);
+      rv.add(fFaultFunctions);
+      rv.add(fQuadFunctions);
+      rv.add(fClkinFunctions);
+      return rv;
+   }
+   @Override
+   public String getInfoConstants() {
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getInfoConstants());
+      sb.append(String.format(
+            "   //! Base value for tmr->SC register\n"+
+            "   static constexpr uint32_t scValue  = %s;\n\n",
+            getPeripheralName()+"_SC"));
+      InfoTable functions = fPeripheralFunctions;
+      int lastChannel = -1;
+      for (int index=0; index<functions.table.size(); index++) {
+         if (functions.table.get(index) != null) {
+            lastChannel = index;
+         }
+      }
+      sb.append(String.format(
+            "   static constexpr int NUM_CHANNELS  = %d;\n" +
+            "\n",
+            lastChannel+1));
+      return sb.toString();
    }
 
    @Override

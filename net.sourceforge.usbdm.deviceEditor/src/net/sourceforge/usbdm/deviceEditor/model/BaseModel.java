@@ -11,7 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 /**
  * Base Model for tree item
  */
-public class BaseModel extends ObservableModel {
+public class BaseModel {
    /** Name of model */
    protected final String            fName;
    

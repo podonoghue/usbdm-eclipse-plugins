@@ -7,6 +7,7 @@ import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -64,7 +65,8 @@ public class TreeEditor {
       parent.setLayoutData(new FillLayout());
       viewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
 //      viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-
+      ColumnViewerToolTipSupport.enableFor(viewer);
+      
       Tree tree = viewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
@@ -81,23 +83,26 @@ public class TreeEditor {
       
       TreeViewerEditor.create(viewer, actSupport, ColumnViewerEditor.DEFAULT);
 
-      columns = new TreeViewerColumn[3];
+      columns = new TreeViewerColumn[4];
       
       columns[0] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[0].getColumn().setText("Name");
       columns[0].getColumn().setWidth(300);
       columns[0].setLabelProvider(new NameColumnLabelProvider());
 
       columns[1] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[1].getColumn().setText("Value");
       columns[1].getColumn().setWidth(300);
-      columns[1].setEditingSupport(new DeviceEditingSupport(viewer));
+      columns[1].setEditingSupport(new PinMappingEditingSupport(viewer));
       columns[1].setLabelProvider(new ValueColumnLabelProvider());
       
       columns[2] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[2].getColumn().setText("Description");
       columns[2].getColumn().setWidth(300);
+      columns[2].setEditingSupport(new PinUseDescriptionEditingSupport(viewer));
       columns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
+
+//      columns[3] = new TreeViewerColumn(viewer, SWT.NONE);
+//      columns[3].getColumn().setText("Description");
+//      columns[3].getColumn().setWidth(300);
+//      columns[3].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
 
       return viewer;
    }

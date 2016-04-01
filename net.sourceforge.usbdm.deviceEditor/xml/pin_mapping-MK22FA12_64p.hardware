@@ -110,7 +110,7 @@
          <mux sel="mux7"          function="JTAG_TDI" />
          <mux sel="mux7"          function="EZP_DI" />
          <reset sel="mux7" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA2">
          <mux sel="reset"         function="JTAG_TDO" />
@@ -123,7 +123,7 @@
          <mux sel="mux7"          function="TRACE_SWO" />
          <mux sel="mux7"          function="EZP_DO" />
          <reset sel="mux7" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA3">
          <mux sel="reset"         function="JTAG_TMS" />
@@ -145,7 +145,7 @@
          <mux sel="mux7"          function="NMI_b" />
          <mux sel="mux7"          function="EZP_CS_b" />
          <reset sel="mux7" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA5">
          <mux sel="reset"         function="JTAG_TRST_b" />
@@ -156,7 +156,7 @@
          <mux sel="mux6"          function="I2S0_TX_BCLK" />
          <mux sel="mux7"          function="JTAG_TRST_b" />
          <reset sel="mux7" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA12">
          <mux sel="reset"         function="CMP2_IN0" />
@@ -168,7 +168,7 @@
          <mux sel="mux6"          function="I2S0_TXD0" />
          <mux sel="mux7"          function="FTM1_QD_PHA" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA13">
          <mux sel="reset"         function="CMP2_IN1" />
@@ -181,7 +181,7 @@
          <mux sel="mux6"          function="I2S0_TX_FS" />
          <mux sel="mux7"          function="FTM1_QD_PHB" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTA18">
          <mux sel="reset"         function="EXTAL0" />
@@ -213,7 +213,7 @@
          <mux sel="mux3"          function="FTM1_CH0" />
          <mux sel="mux6"          function="FTM1_QD_PHA" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB1">
          <mux sel="reset"         function="ADC0_SE9" />
@@ -225,7 +225,7 @@
          <mux sel="mux3"          function="FTM1_CH1" />
          <mux sel="mux6"          function="FTM1_QD_PHB" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB2">
          <mux sel="reset"         function="ADC0_SE12" />
@@ -235,7 +235,7 @@
          <mux sel="mux3"          function="UART0_RTS_b" />
          <mux sel="mux6"          function="FTM0_FLT3" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB3">
          <mux sel="reset"         function="ADC0_SE13" />
@@ -246,7 +246,7 @@
          <mux sel="mux3"          function="UART0_COL_b" />
          <mux sel="mux6"          function="FTM0_FLT0" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB16">
          <mux sel="reset"         function="Disabled" />
@@ -257,7 +257,7 @@
          <mux sel="mux5"          function="FB_AD17" />
          <mux sel="mux6"          function="EWM_IN" />
          <reset sel="mux0" />
-         <default sel="mux3" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB17">
          <mux sel="reset"         function="Disabled" />
@@ -268,7 +268,7 @@
          <mux sel="mux5"          function="FB_AD16" />
          <mux sel="mux6"          function="EWM_OUT_b" />
          <reset sel="mux0" />
-         <default sel="mux3" />
+         <default sel="reset" />
       </pin>
       <pin name="PTB18">
          <mux sel="reset"         function="Disabled" />
@@ -303,7 +303,7 @@
          <mux sel="mux5"          function="FB_AD14" />
          <mux sel="mux6"          function="I2S0_TXD1" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC1">
          <mux sel="reset"         function="ADC0_SE15" />
@@ -316,7 +316,7 @@
          <mux sel="mux5"          function="FB_AD13" />
          <mux sel="mux6"          function="I2S0_TXD0" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC2">
          <mux sel="reset"         function="ADC0_SE4b" />
@@ -330,7 +330,7 @@
          <mux sel="mux5"          function="FB_AD12" />
          <mux sel="mux6"          function="I2S0_TX_FS" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC3">
          <mux sel="reset"         function="CMP1_IN1" />
@@ -343,7 +343,7 @@
          <mux sel="mux5"          function="CLKOUT" />
          <mux sel="mux6"          function="I2S0_TX_BCLK" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC4">
          <mux sel="reset"         function="Disabled" />
@@ -356,7 +356,7 @@
          <mux sel="mux5"          function="FB_AD11" />
          <mux sel="mux6"          function="CMP1_OUT" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC5">
          <mux sel="reset"         function="Disabled" />
@@ -370,7 +370,7 @@
          <mux sel="mux6"          function="CMP0_OUT" />
          <mux sel="mux7"          function="FTM0_CH2" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC6">
          <mux sel="reset"         function="CMP0_IN0" />
@@ -383,7 +383,7 @@
          <mux sel="mux5"          function="FB_AD9" />
          <mux sel="mux6"          function="I2S0_MCLK" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC7">
          <mux sel="reset"         function="CMP0_IN1" />
@@ -394,7 +394,7 @@
          <mux sel="mux4"          function="I2S0_RX_FS" />
          <mux sel="mux5"          function="FB_AD8" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC8">
          <mux sel="reset"         function="ADC1_SE4b" />
@@ -406,7 +406,7 @@
          <mux sel="mux4"          function="I2S0_MCLK" />
          <mux sel="mux5"          function="FB_AD7" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC9">
          <mux sel="reset"         function="ADC1_SE5b" />
@@ -419,7 +419,7 @@
          <mux sel="mux5"          function="FB_AD6" />
          <mux sel="mux6"          function="FTM2_FLT0" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC10">
          <mux sel="reset"         function="ADC1_SE6b" />
@@ -430,7 +430,7 @@
          <mux sel="mux4"          function="I2S0_RX_FS" />
          <mux sel="mux5"          function="FB_AD5" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTC11">
          <mux sel="reset"         function="ADC1_SE7b" />
@@ -442,7 +442,7 @@
          <mux sel="mux4"          function="I2S0_RXD1" />
          <mux sel="mux5"          function="FB_RW_b" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD0">
          <mux sel="reset"         function="Disabled" />
@@ -456,7 +456,7 @@
          <mux sel="mux5"          function="FB_CS1_b" />
          <mux sel="mux5"          function="FB_TS_b" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD1">
          <mux sel="reset"         function="ADC0_SE5b" />
@@ -467,7 +467,7 @@
          <mux sel="mux4"          function="FTM3_CH1" />
          <mux sel="mux5"          function="FB_CS0_b" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD2">
          <mux sel="reset"         function="Disabled" />
@@ -480,7 +480,7 @@
          <mux sel="mux5"          function="FB_AD4" />
          <mux sel="mux7"          function="I2C0_SCL" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD3">
          <mux sel="reset"         function="Disabled" />
@@ -492,7 +492,7 @@
          <mux sel="mux5"          function="FB_AD3" />
          <mux sel="mux7"          function="I2C0_SDA" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD4">
          <mux sel="reset"         function="Disabled" />
@@ -505,7 +505,7 @@
          <mux sel="mux5"          function="FB_AD2" />
          <mux sel="mux6"          function="EWM_IN" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD5">
          <mux sel="reset"         function="ADC0_SE6b" />
@@ -518,7 +518,7 @@
          <mux sel="mux5"          function="FB_AD1" />
          <mux sel="mux6"          function="EWM_OUT_b" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD6">
          <mux sel="reset"         function="ADC0_SE7b" />
@@ -531,7 +531,7 @@
          <mux sel="mux5"          function="FB_AD0" />
          <mux sel="mux6"          function="FTM0_FLT0" />
          <reset sel="mux0" />
-         <default sel="mux0" />
+         <default sel="reset" />
       </pin>
       <pin name="PTD7">
          <mux sel="reset"         function="Disabled" />
@@ -542,7 +542,7 @@
          <mux sel="mux4"          function="FTM0_CH7" />
          <mux sel="mux6"          function="FTM0_FLT1" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTE0">
          <mux sel="reset"         function="ADC1_SE4a" />
@@ -553,7 +553,7 @@
          <mux sel="mux6"          function="I2C1_SDA" />
          <mux sel="mux7"          function="RTC_CLKOUT" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
       <pin name="PTE1">
          <mux sel="reset"         function="ADC1_SE5a" />
@@ -564,7 +564,7 @@
          <mux sel="mux5"          function="TRACE_D3" />
          <mux sel="mux6"          function="I2C1_SCL" />
          <reset sel="mux0" />
-         <default sel="mux1" />
+         <default sel="reset" />
       </pin>
    </pins>
    <packages>

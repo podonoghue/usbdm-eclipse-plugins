@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,20 +31,46 @@ import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
 public class DeviceEditor extends EditorPart {
 
-   private TreeEditor   pinEditor               = null;
-   private TreeEditor   peripheralEditor        = null;
-   private ModelFactory factory                 = null;
-   private TabFolder    fTabFolder              = null;
+   /** Path from which the data was loaded */
+   private Path         fPath                = null;
 
+   /** Factory containing all data */
+   private ModelFactory fFactory             = null;
+
+   /** Pin editor */
+   private TreeEditor   fPinEditor           = null;
+   
+   /** Peripheral editor */
+   private TreeEditor   fPeripheralEditor    = null;
+   
+   /** Folder containing all the tabs */
+   private TabFolder    fTabFolder           = null;
+
+   /** Actions to add to popup menus */
+   ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
 
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
       super.setSite(editorSite);
       super.setInput(editorInput);
+      
+      System.err.println("DeviceEditor.init()");
+
+      fFactory = null;
+      IResource input = (IResource)editorInput.getAdapter(IResource.class);
+      fPath = Paths.get(input.getLocation().toPortableString());
+   }
+   
+   public void init(Path path) {
+      System.err.println("DeviceEditor.init()");
+
+      fFactory = null;
+      fPath = path;
    }
    
    @Override
@@ -52,24 +79,24 @@ public class DeviceEditor extends EditorPart {
    }
 
    ModelFactory createModels(Path path) throws Exception {
-      DeviceInfo deviceInfo = null;
+      DeviceInfo fDeviceInfo = null;
       if (path.getFileName().toString().endsWith("csv")) {
          System.err.println("DeviceEditor(), Opening as CSV" + path);
          ParseFamilyCSV parser = new ParseFamilyCSV();
-         deviceInfo = parser.parseFile(path);
+         fDeviceInfo = parser.parseFile(path);
       }
       else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
          System.err.println("DeviceEditor(), Opening as XML = " + path);
          ParseFamilyXML parser = new ParseFamilyXML();
-         deviceInfo = parser.parseFile(path);
+         fDeviceInfo = parser.parseFile(path);
       }
       else {
          throw new Exception("Unknown file type");
       }
-      if (deviceInfo != null) {
-         factory  = new ModelFactory(deviceInfo);
+      if (fDeviceInfo != null) {
+         fFactory  = new ModelFactory(fDeviceInfo);
       }
-      return factory;
+      return fFactory;
    }
    
    /**
@@ -78,48 +105,48 @@ public class DeviceEditor extends EditorPart {
    @Override
    public void createPartControl(Composite parent) {
 
-      IEditorInput editorInput = getEditorInput();
-
-      factory = null;
+      fFactory = null;
       System.err.println("DeviceEditor()");
-      IResource input = (IResource)editorInput.getAdapter(IResource.class);
       
       try {
-         Path path = Paths.get(input.getLocation().toPortableString());
-         System.err.println("DeviceEditor(), Input = " + path.toAbsolutePath());
-         factory = ModelFactory.createModel(path);
+         System.err.println("DeviceEditor(), Input = " + fPath.toAbsolutePath());
+         fFactory = ModelFactory.createModel(fPath);
       } catch (Exception e) {
          e.printStackTrace();
       }
 
-      if (factory == null) {
+      if (fFactory == null) {
          Label label = new Label(parent, SWT.NONE);
          label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-         label.setText("Failed to open/parse source file " + input.getLocation().toPortableString());
+         label.setText("Failed to open/parse source file " + fPath);
          return;
          
       }
       // Create the containing tab folder
       fTabFolder = new TabFolder(parent, SWT.NONE);
 
-      TabItem one = new TabItem(fTabFolder, SWT.NONE);
-      one.setText(factory.getPinModel().getName());
-      one.setToolTipText(factory.getPinModel().getToolTip());       
-      pinEditor = new TreeEditor();
-      one.setControl(pinEditor.createControls(fTabFolder).getControl());
-      pinEditor.setModel(factory.getPinModel());
+      TabItem tabItem;
 
-      TabItem two = new TabItem(fTabFolder, SWT.NONE);
-      two.setText(factory.getPeripheralModel().getName());
-      two.setToolTipText(factory.getPeripheralModel().getToolTip());       
-      peripheralEditor = new TreeEditor();
-      two.setControl(peripheralEditor.createControls(fTabFolder).getControl());
-      peripheralEditor.setModel(factory.getPeripheralModel());
-      
+      // Peripheral view
+      tabItem = new TabItem(fTabFolder, SWT.NONE);
+      tabItem.setText(fFactory.getPeripheralModel().getName());
+      tabItem.setToolTipText(fFactory.getPeripheralModel().getToolTip());       
+      fPeripheralEditor = new TreeEditor();
+      tabItem.setControl(fPeripheralEditor.createControls(fTabFolder).getControl());
+      fPeripheralEditor.setModel(fFactory.getPeripheralModel());
+
+      // Pin view
+      tabItem = new TabItem(fTabFolder, SWT.NONE);
+      tabItem.setText(fFactory.getPinModel().getName());
+      tabItem.setToolTipText(fFactory.getPinModel().getToolTip());       
+      fPinEditor = new TreeEditor();
+      tabItem.setControl(fPinEditor.createControls(fTabFolder).getControl());
+      fPinEditor.setModel(fFactory.getPinModel());
+
 //      // Create the actions
-//      makeActions();
-//      // Add selected actions to context menu
-//      hookContextMenu();
+      makeActions();
+      // Add selected actions to context menu
+      hookContextMenu();
 //      // Add selected actions to menu bar
 //      contributeToActionBars();
    }
@@ -155,29 +182,58 @@ public class DeviceEditor extends EditorPart {
       }
    }
 
-   class Action1 extends MyAction {
-      Action1() {
-         super("XXX", IAction.AS_CHECK_BOX, Activator.ID_WARNING_NODE_IMAGE);
+   class GenerateCode extends MyAction {
+      GenerateCode() {
+         super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_WARNING_NODE_IMAGE);
       }
 
       @Override
       public void run() {
+         WriteFamilyCpp writer = new WriteFamilyCpp();
+         try {
+            Path folder = fFactory.getDeviceInfo().getSourcePath().getParent().getParent();
+            writer.writeCppFiles(folder, fFactory.getDeviceInfo(), "MK22F12-LQFP64");
+         } catch (IOException e) {
+            e.printStackTrace();
+         }
          super.run();
       }
    }
 
-   Action1 action1 = new Action1();
+   GenerateCode action1 = new GenerateCode();
 
-   /*
-    * Actions to add to all menus
-    */
-   ArrayList<MyAction> myActions = new ArrayList<MyAction>();
-
-   @SuppressWarnings("unused")
    private void makeActions() {
-      System.err.println("makeActions()");
-      // These actions end up on the drop-down and pop-up menus
-      myActions.add(new Action1());
+      
+      // These actions end up on the pop-up menu
+      popupActions.add(new GenerateCode());
+   }
+
+   /**
+    * Add menu manager for right click pop-up menu
+    */
+   private void hookContextMenu() {
+      MenuManager menuMgr = new MenuManager("#PopupMenu");
+      menuMgr.setRemoveAllWhenShown(true);
+      menuMgr.addMenuListener(new IMenuListener() {
+         public void menuAboutToShow(IMenuManager manager) {
+            // Dynamically fill context menu
+            DeviceEditor.this.fillContextMenu(manager);
+         }
+      });
+      Menu menu = menuMgr.createContextMenu(fPinEditor.getViewer().getControl());
+      fPeripheralEditor.getViewer().getControl().setMenu(menu);
+      fPinEditor.getViewer().getControl().setMenu(menu);
+   }
+
+   /**
+    * Dynamically fill context menu
+    * 
+    * @param manager
+    */
+   private void fillContextMenu(IMenuManager manager) {
+      for (MyAction action:popupActions) {
+         manager.add(action);
+      }
    }
 
    @SuppressWarnings("unused")
@@ -190,31 +246,6 @@ public class DeviceEditor extends EditorPart {
       IActionBars bars = site.getActionBars();
       fillLocalPullDown(bars.getMenuManager());
       fillLocalToolBar(bars.getToolBarManager());
-   }
-
-   /**
-    * Add menu manager for right click pop-up menu
-    */
-   @SuppressWarnings("unused")
-   private void hookContextMenu() {
-      MenuManager menuMgr = new MenuManager("#PopupMenu");
-      menuMgr.setRemoveAllWhenShown(true);
-      menuMgr.addMenuListener(new IMenuListener() {
-         public void menuAboutToShow(IMenuManager manager) {
-            DeviceEditor.this.fillContextMenu(manager);
-         }
-      });
-      Menu menu = menuMgr.createContextMenu(pinEditor.getViewer().getControl());
-      pinEditor.getViewer().getControl().setMenu(menu);
-   }
-
-   /**
-    * Fill Context menu
-    * 
-    * @param manager
-    */
-   private void fillContextMenu(IMenuManager manager) {
-      manager.add(action1);
    }
 
    /**

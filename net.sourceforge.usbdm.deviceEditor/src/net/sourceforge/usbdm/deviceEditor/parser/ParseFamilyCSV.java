@@ -450,7 +450,7 @@ public class ParseFamilyCSV {
       String sourceName = filePath.getFileName().toString();
       String deviceName = sourceName.replaceAll("\\.csv", "");
       
-      deviceInfo = new DeviceInfo(sourceName, deviceName);
+      deviceInfo = new DeviceInfo(filePath, deviceName);
       
       // Open source file
       BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);

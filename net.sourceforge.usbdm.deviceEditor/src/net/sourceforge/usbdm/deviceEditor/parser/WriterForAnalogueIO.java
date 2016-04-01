@@ -76,10 +76,8 @@ public class WriterForAnalogueIO extends WriterBase {
     */
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
-      StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
-      return sb.toString();
+      int signal = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
    }
    
    @Override
@@ -95,24 +93,6 @@ public class WriterForAnalogueIO extends WriterBase {
       }
       return index;
    }
-
-//   /* (non-Javadoc)
-//    * @see WriterForDigitalIO#needPcrTable()
-//    */
-//   @Override
-//   public boolean needPeripheralInformationClass() {
-//      // Assume required if functions are present
-//      boolean required = needPCRTable();
-//      if (!required) {
-//         // Shouldn't have clock information for non-existent peripheral 
-//         if ((getClockReg() != null) || (getClockMask() != null)) {
-//            System.err.println("WARNING - Unexpected clock information for peripheral without signal" + getPeripheralName());
-//            return false;
-////            throw new RuntimeException("Unexpected clock information for non-present peripheral " + fOwner.fPeripheralName);
-//         }
-//      }
-//      return required;
-//   };
 
    @Override
    public boolean needPCRTable() {

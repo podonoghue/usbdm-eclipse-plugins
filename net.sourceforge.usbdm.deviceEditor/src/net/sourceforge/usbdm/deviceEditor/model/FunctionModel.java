@@ -10,7 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
-public class FunctionModel extends SelectionModel implements IModelChangeListener {
+public class FunctionModel extends PinMappingModel implements IModelChangeListener {
 
    /** List of possible mappings */
    protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
@@ -91,10 +91,6 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
          int changedSelection = fMappingInfos.indexOf(mappingInfo);
          if (fMessage != mappingInfo.getMessage()) {
             setMessage(mappingInfo.getMessage());
-            for (TreeViewer viewer:getViewers()) {
-               viewer.update(this,  null);
-               viewer.update(this.fParent,  null);
-            }
          }
          if (selected) {
             // A function has been mapped to a pin 
@@ -104,11 +100,6 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
                fSelection = changedSelection;
                fCurrentMapping = fMappingInfos.get(fSelection);
                ((DeviceModel)getRoot()).checkConflicts();
-//             notifyMuxChange();
-               for (TreeViewer viewer:getViewers()) {
-                  viewer.update(this,  null);
-                  viewer.update(this.fParent,  null);
-               }
             }
          }
          else {
@@ -120,18 +111,33 @@ public class FunctionModel extends SelectionModel implements IModelChangeListene
                fCurrentMapping = fMappingInfos.get(fSelection);
                ((DeviceModel)getRoot()).checkConflicts();
 //               notifyMuxChange();
-               for (TreeViewer viewer:getViewers()) {
-                  viewer.update(this,  null);
-                  viewer.update(this.fParent,  null);
-               }
             }
+         }
+         for (TreeViewer viewer:getViewers()) {
+            viewer.update(this,  null);
+            viewer.update(this.fParent,  null);
          }
       }
    }
 
    @Override
+   public String getDescription() {
+      if (fCurrentMapping != null) {
+         return fCurrentMapping.getPin().getPinUseDescription();
+      }
+      return "";
+   }
+
+   @Override
    public void modelStructureChanged(ObservableModel observableModel) {
       // Not used
+   }
+
+   @Override
+   public boolean isReset() {
+      return ((fCurrentMapping == null) || 
+              (fCurrentMapping.getMux() == MuxSelection.reset) ||
+              (fCurrentMapping.getMux() == MuxSelection.disabled));
    }
 
 }

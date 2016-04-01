@@ -1223,14 +1223,27 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException 
     */
+   public void writeCppFiles(Path directory, DeviceInfo deviceInfo, String deviceName) throws IOException {
+
+      fDeviceInfo = deviceInfo;
+      fDeviceInformation = fDeviceInfo.findDevice(deviceName);
+      writePinMappingHeaderFile(directory);
+      writePinMappingCppFile(directory);
+   }
+   /**
+    * Process file
+    * 
+    * @param  directory    Parent director
+    * @param  deviceInfo   Device information to print to CPP files  
+    * 
+    * @throws IOException 
+    */
    public void writeCppFiles(Path directory, DeviceInfo deviceInfo) throws IOException {
 
       fDeviceInfo = deviceInfo;
 
       for (String key:fDeviceInfo.getDevices().keySet()) {
-         fDeviceInformation = fDeviceInfo.findDevice(key);
-         writePinMappingHeaderFile(directory);
-         writePinMappingCppFile(directory);
+         writeCppFiles(directory, deviceInfo, key);
       }
    }
 }

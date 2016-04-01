@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class DeviceInfo {
    private final String       fDeviceName;
 
    /** Source file containing device description */
-   private final String       fSourceFilename;
+   private final Path       fPath;
 
    /** Device family for this device */
    private final DeviceFamily fDeviceFamily;
@@ -59,12 +60,12 @@ public class DeviceInfo {
    /**
     * Create device information
     * 
-    * @param sourceFilename   File name
+    * @param filePath   File name
     * @param deviceName       Device name
     */
-   public DeviceInfo(String sourceFilename, String deviceName) {
+   public DeviceInfo(Path filePath, String deviceName) {
 
-      this.fSourceFilename = sourceFilename;
+      this.fPath = filePath.toAbsolutePath();
       this.fDeviceName     = deviceName;
 
       if (deviceName.startsWith("MKE")) {
@@ -94,8 +95,16 @@ public class DeviceInfo {
     * Get source file name
     * @return
     */
+   public Path getSourcePath() {
+      return fPath;
+   }
+
+   /**
+    * Get source file name
+    * @return
+    */
    public String getSourceFilename() {
-      return fSourceFilename;
+      return fPath.getFileName().toString();
    }
 
    /*

@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.PinMappingModel;
 
 public class ValueColumnLabelProvider extends ColumnLabelProvider{
    private  Image lockedImage    = null;
@@ -47,7 +48,13 @@ public class ValueColumnLabelProvider extends ColumnLabelProvider{
 
    @Override
    public Color getForeground(Object element) {
-      if (!((BaseModel) element).isEnabled()) {
+      if (element instanceof PinMappingModel) {
+         PinMappingModel model = (PinMappingModel) element;
+         if (model.isReset()) {
+            return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW);
+         }
+      }
+      else if (!((BaseModel) element).isEnabled()) {
          return Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW);
       }
       return super.getForeground(element);
