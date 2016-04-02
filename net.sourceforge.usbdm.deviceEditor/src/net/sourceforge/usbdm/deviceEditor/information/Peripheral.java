@@ -2,8 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
-import java.util.Vector;
 
 import net.sourceforge.usbdm.deviceEditor.parser.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterBase;
@@ -36,7 +36,7 @@ public class Peripheral {
    /** The template associated with this peripheral */
    private final PeripheralTemplateInformation fTemplate;
 
-   /** Description of peripheral */
+   /** Writer for this peripheral */
    private final WriterBase fWriter;
 
    /** Clock register e.g. SIM->SCGC6 */
@@ -51,22 +51,8 @@ public class Peripheral {
    /** IRQ handler name */
    private String fIrqHandler;
    
-   /** Class used to hold different classes of peripheral functions */
-   public class InfoTable {
-      /** Functions that use this writer */
-      public  Vector<PeripheralFunction> table = new Vector<PeripheralFunction>();
-      private String fName;
-
-      public InfoTable(String name) {
-         fName = name;
-      }
-      public String getName() {
-         return fName;
-      }
-   }
-
-   /** Functions that use this writer */
-   protected InfoTable fPeripheralFunctions = new InfoTable("info");
+   /** List of DMA channels */
+   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
    /** Map of all functions on this peripheral */
    private TreeMap<String, PeripheralFunction> fFunctions = new TreeMap<String, PeripheralFunction>(PeripheralFunction.comparator);
@@ -156,7 +142,11 @@ public class Peripheral {
    
    @Override
    public String toString() {
-      return fName;
+      StringBuffer sb = new StringBuffer();
+      sb.append("Peripheral(");
+      sb.append("N="+fName+", ");
+      sb.append(")");
+      return sb.toString();
    }
 
    /**
@@ -272,6 +262,7 @@ public class Peripheral {
          documentUtilities.writeAttribute("num", irq);
          documentUtilities.closeTag();
       }
+      fWriter.writeExtraDefinitions(documentUtilities);
       documentUtilities.closeTag();
    }
 
@@ -283,19 +274,42 @@ public class Peripheral {
       fWriter.writeWizard(writer);
    }
 
-   public ArrayList<InfoTable> getFunctionTables() {
-      ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
-      rv.add(fPeripheralFunctions);
-      return rv;
-   }
-
+   /**
+    * Get C template
+    * 
+    * @return
+    */
    public String getDeclarations() {
       return fWriter.getTemplate();
    }
 
+   /** 
+    * Get Writer for this peripheral 
+    */
    public WriterBase getWriter() {
       return fWriter;
    }
+
+   /**
+    * Add dma channel to peripheral
+    * 
+    * @param dmaChannelNumber    Channel number in DMA mux i.e. 0-63
+    * @param dmaSource           DMA source e.g. UART0_Receive
+    * 
+    * @return  Channel created
+    */
+   public DmaInfo addDmaChannel(int dmaChannelNumber, String dmaSource) {
+      DmaInfo dmaInfo = new DmaInfo(this, dmaChannelNumber, dmaSource);
+      fDmaInfoList.add(dmaInfo);
+      return dmaInfo;
+   }
    
+   /**
+    * Get list of DMA channels
+    * @return
+    */
+   public List<DmaInfo> getDmaInfoList() {
+      return fDmaInfoList;
+   }
 
 }

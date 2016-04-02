@@ -21,20 +21,13 @@ public class WriterForI2c extends WriterBase {
 
    public WriterForI2c(DeviceInfo deviceInfo, Peripheral peripheral) {
       super(deviceInfo, peripheral);
-      // TODO Auto-generated constructor stub
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
    public String getAliasName(String signalName, String alias) {
       return ALIAS_BASE_NAME+alias;
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();

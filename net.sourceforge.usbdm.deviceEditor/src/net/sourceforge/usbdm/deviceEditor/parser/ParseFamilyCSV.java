@@ -22,19 +22,25 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 public class ParseFamilyCSV {
    
    /** The parsed information */
-   private DeviceInfo deviceInfo;
+   private DeviceInfo fDeviceInfo;
+   
    /** Index of Pin name column in CSV file */
-   private int pinIndex       = 1;
+   private int fPinIndex       = 1;
+   
    /** List of all indices of package columns in CSV file */
-   private ArrayList<PackageColumnInfo> packageIndexes = new ArrayList<PackageColumnInfo>();
+   private ArrayList<PackageColumnInfo> fPackageIndexes = new ArrayList<PackageColumnInfo>();
+   
    /** Index of reset function column in CSV file */
-   private int resetIndex     = 3;
+   private int fResetIndex     = 3;
+   
    /** Index of default function column in CSV file */
-   private int defaultIndex   = 4;
+   private int fDefaultIndex   = 4;
+   
    /** Start index of multiplexor function columns in CSV file */
-   private int altStartIndex  = 5;
+   private int fAltStartIndex  = 5;
+   
    /** Last index of multiplexor function columns in CSV file */
-   private int altEndIndex    = altStartIndex+7;
+   private int fAltEndIndex    = fAltStartIndex+7;
    
    /**
     * Compares two lines based upon the Port name in line[0]
@@ -91,7 +97,7 @@ public class ParseFamilyCSV {
          if (function.isEmpty()) {
             continue;
          }
-         PeripheralFunction peripheralFunction = deviceInfo.findOrCreatePeripheralFunction(function);
+         PeripheralFunction peripheralFunction = fDeviceInfo.findOrCreatePeripheralFunction(function);
          if (peripheralFunction != null) {
             peripheralFunctionList.add(peripheralFunction);
          }
@@ -125,11 +131,11 @@ public class ParseFamilyCSV {
    private boolean parseKeyLine(String[] line) {
       
       // Set default values for column indices
-      pinIndex       = 1;
-      defaultIndex   = 4;
-      altStartIndex  = 5;
-      altEndIndex    = altStartIndex+7;
-      packageIndexes = new ArrayList<PackageColumnInfo>();
+      fPinIndex       = 1;
+      fDefaultIndex   = 4;
+      fAltStartIndex  = 5;
+      fAltEndIndex    = fAltStartIndex+7;
+      fPackageIndexes = new ArrayList<PackageColumnInfo>();
 
       // Add base device without aliases
 
@@ -137,25 +143,25 @@ public class ParseFamilyCSV {
 
       for (int col=0; col<line.length; col++) {
          if (line[col].equalsIgnoreCase("Pin")) {
-            pinIndex = col;
+            fPinIndex = col;
          }
          Matcher packageMatcher = packagePattern.matcher(line[col]);
          if (packageMatcher.matches()) {
-            packageIndexes.add(new PackageColumnInfo(packageMatcher.group(1), col));
+            fPackageIndexes.add(new PackageColumnInfo(packageMatcher.group(1), col));
          }
          if (line[col].equalsIgnoreCase("Reset")) {
-            resetIndex = col;
+            fResetIndex = col;
          }
          if (line[col].equalsIgnoreCase("Default")) {
-            defaultIndex = col;
+            fDefaultIndex = col;
          }
          if (line[col].equalsIgnoreCase("ALT0")) {
-            altStartIndex = col;
-            altEndIndex = col;
+            fAltStartIndex = col;
+            fAltEndIndex = col;
          }
          if (line[col].toUpperCase().startsWith("ALT")) {
-            if (altEndIndex<col) {
-               altEndIndex = col;
+            if (fAltEndIndex<col) {
+               fAltEndIndex = col;
             }
          }
       }
@@ -175,7 +181,7 @@ public class ParseFamilyCSV {
       if (!line[0].equals("Pin")) {
          return;
       }
-      String pinName  = line[pinIndex];
+      String pinName  = line[fPinIndex];
       if ((pinName == null) || (pinName.isEmpty())) {
          throw new RuntimeException("No pin name");
       }
@@ -186,15 +192,12 @@ public class ParseFamilyCSV {
          pinName = m.group(1);
       }
 
-      final PinInformation pinInformation = deviceInfo.createPin(pinName);
-//      if (pinName.startsWith("PTA18")) {
-//         System.err.println("parsePinLine("+pinInformation+")");
-//      }
+      final PinInformation pinInformation = fDeviceInfo.createPin(pinName);
       
       sb.append(String.format("%-10s => ", pinInformation.getName()));
       
       boolean pinIsMapped = false;
-      for (int col=altStartIndex; col<=altEndIndex; col++) {
+      for (int col=fAltStartIndex; col<=fAltEndIndex; col++) {
          if (col>=line.length) {
             break;
          }
@@ -202,38 +205,35 @@ public class ParseFamilyCSV {
          for (PeripheralFunction peripheralFunction:peripheralFunctions) {
             sb.append(peripheralFunction.getName()+", ");
             if ((peripheralFunction != null)) {
-               MuxSelection functionSelector = MuxSelection.valueOf(col-altStartIndex);
-               deviceInfo.createMapping(peripheralFunction, pinInformation, functionSelector);
+               MuxSelection functionSelector = MuxSelection.valueOf(col-fAltStartIndex);
+               fDeviceInfo.createMapping(peripheralFunction, pinInformation, functionSelector);
                pinIsMapped = true;
             }
          }
       }
 
-//      if (pinName.startsWith("PTA18")) {
-//         System.err.println("parsePinLine("+pinInformation+")");
-//      }
-      if ((line.length>resetIndex) && (line[resetIndex] != null) && (!line[resetIndex].isEmpty())) {
-         String resetName  = line[resetIndex];
+      if ((line.length>fResetIndex) && (line[fResetIndex] != null) && (!line[fResetIndex].isEmpty())) {
+         String resetName  = line[fResetIndex];
          ArrayList<PeripheralFunction> resetFunctions = createFunctionsFromString(resetName, true);
          for (PeripheralFunction peripheralFunction:resetFunctions) {
             sb.append("R:" + peripheralFunction.getName() + ", ");
             // Pin is not mapped to this function in the ALT columns - must be a non-mappable pin
-            MappingInfo mapping = deviceInfo.createMapping(peripheralFunction, pinInformation, pinIsMapped?MuxSelection.reset:MuxSelection.fixed);
+            MappingInfo mapping = fDeviceInfo.createMapping(peripheralFunction, pinInformation, pinIsMapped?MuxSelection.reset:MuxSelection.fixed);
             for (PeripheralFunction function:mapping.getFunctions()) {
                function.setResetPin(mapping);
             }
          }
-         pinInformation.setResetPeripheralFunctions(deviceInfo, resetName);
+         pinInformation.setResetPeripheralFunctions(fDeviceInfo, resetName);
       }
       else {
          sb.append("R:" + PeripheralFunction.DISABLED.getName() + ", ");
-         deviceInfo.createMapping(PeripheralFunction.DISABLED, pinInformation, MuxSelection.reset);
-         pinInformation.setResetPeripheralFunctions(deviceInfo, PeripheralFunction.DISABLED.getName());
+         fDeviceInfo.createMapping(PeripheralFunction.DISABLED, pinInformation, MuxSelection.reset);
+         pinInformation.setResetPeripheralFunctions(fDeviceInfo, PeripheralFunction.DISABLED.getName());
       }
-      if (line.length>defaultIndex) {
-         String defaultName  = convertName(line[defaultIndex]);
+      if (line.length>fDefaultIndex) {
+         String defaultName  = convertName(line[fDefaultIndex]);
          if ((defaultName != null) && (!defaultName.isEmpty())) {
-            pinInformation.setDefaultPeripheralFunctions(deviceInfo, defaultName);
+            pinInformation.setDefaultPeripheralFunctions(fDeviceInfo, defaultName);
             sb.append("D:" + pinInformation.getDefaultValue());
          }
       }
@@ -241,15 +241,12 @@ public class ParseFamilyCSV {
          // If no default set then set the default to reset value
          pinInformation.setDefaultValue(MuxSelection.reset);
       }
-      for (PackageColumnInfo pkgIndex:packageIndexes){
+      for (PackageColumnInfo pkgIndex:fPackageIndexes){
          String pinNum = line[pkgIndex.index];
-         if ((pinNum == null) || pinNum.isEmpty()) {
-            pinNum = pinName;
-         }
          if (pinNum.equals("*")) {
             continue;
          }
-         DevicePackage devicePackage = deviceInfo.findDevicePackage(pkgIndex.name);
+         DevicePackage devicePackage = fDeviceInfo.findDevicePackage(pkgIndex.name);
 
          if (devicePackage == null) {
             throw new RuntimeException("Failed to find package " + pkgIndex.name);
@@ -257,10 +254,6 @@ public class ParseFamilyCSV {
          devicePackage.addPin(pinInformation, pinNum);
          sb.append("(" + pkgIndex.name + ":" + pinNum + ") ");
       }
-//      System.err.println(sb.toString());
-//      if (pinName.startsWith("PTA0")) {
-//         System.err.println("parsePinLine("+pinInformation+")");
-//      }
    }
 
    /**
@@ -302,11 +295,7 @@ public class ParseFamilyCSV {
       if (!peripheralClockMask.contains(peripheralClockReg)) {
          throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
       }
-//      if (peripheralName.startsWith("USBOTG")) {
-//         // XX X Delete me
-//         System.err.println("Stop here");
-//      }
-      Peripheral peripheral = deviceInfo.findOrCreatePeripheral(peripheralName);
+      Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
       if (peripheral == null) {
          throw new RuntimeException("Unable to find peripheral "+peripheralName);
       }
@@ -332,7 +321,7 @@ public class ParseFamilyCSV {
       if (line.length < 4) {
          throw new RuntimeException("Illegal DmaMux Mapping line");
       }
-     deviceInfo.createDmaInfo(Integer.parseInt(line[1]), Integer.parseInt(line[2]), line[3]);
+      fDeviceInfo.createDmaInfo(line[1], Integer.parseInt(line[2]), line[3]);
    }
  
    /**
@@ -397,12 +386,12 @@ public class ParseFamilyCSV {
    private void parsePreliminaryInformation(BufferedReader reader) throws IOException {
       
       // Set default values for column indices
-      pinIndex          = 1;
-      resetIndex        = 3;
-      defaultIndex      = 4;
-      altStartIndex     = 5;
-      altEndIndex       = altStartIndex+7;
-      packageIndexes    = new ArrayList<PackageColumnInfo>();
+      fPinIndex          = 1;
+      fResetIndex        = 3;
+      fDefaultIndex      = 4;
+      fAltStartIndex     = 5;
+      fAltEndIndex       = fAltStartIndex+7;
+      fPackageIndexes    = new ArrayList<PackageColumnInfo>();
             
       ArrayList<String[]> grid = new ArrayList<String[]>();
       do {
@@ -425,13 +414,13 @@ public class ParseFamilyCSV {
             parseKeyLine(line);
          }
          if (line[0].equalsIgnoreCase("Device")) {
-            deviceInfo.createDeviceInformation(line[1], line[2], line[3]);
+            fDeviceInfo.createDeviceInformation(line[1], line[2], line[3]);
          }
       }
-      if (packageIndexes.size() == 0) {
+      if (fPackageIndexes.size() == 0) {
          throw new RuntimeException("No packages provided");
       }
-      if (deviceInfo.getDevices().size() == 0) {
+      if (fDeviceInfo.getDevices().size() == 0) {
          throw new RuntimeException("No Devices found in file");
       }
    }
@@ -447,26 +436,23 @@ public class ParseFamilyCSV {
     */
    public DeviceInfo parseFile(Path filePath) throws Exception {
 
-      String sourceName = filePath.getFileName().toString();
-      String deviceName = sourceName.replaceAll("\\.csv", "");
-      
-      deviceInfo = new DeviceInfo(filePath, deviceName);
+      fDeviceInfo = new DeviceInfo(filePath);
       
       // Open source file
       BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
       parsePreliminaryInformation(sourceFile);
       sourceFile.close();
 
-      deviceInfo.initialiseTemplates();
+      fDeviceInfo.initialiseTemplates();
 
       // Re-open source file
       sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
       parseFile(sourceFile);
       sourceFile.close();
       
-      deviceInfo.consistencyCheck();
+      fDeviceInfo.consistencyCheck();
       
-      return deviceInfo;
+      return fDeviceInfo;
    }
 
 }

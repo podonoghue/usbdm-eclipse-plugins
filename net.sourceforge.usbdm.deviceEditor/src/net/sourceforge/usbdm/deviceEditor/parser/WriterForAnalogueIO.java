@@ -30,12 +30,8 @@ public class WriterForAnalogueIO extends WriterBase {
          
    public WriterForAnalogueIO(DeviceInfo deviceInfo, Peripheral peripheral) {
       super(deviceInfo, peripheral);
-      // TODO Auto-generated constructor stub
    }
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getAliasName(java.lang.String)
-    */
    @Override
    public String getAliasName(String signalName, String alias) {
       Pattern p = Pattern.compile(".*(SE|DM|DP)(\\d+)(a|b)?");
@@ -56,9 +52,6 @@ public class WriterForAnalogueIO extends WriterBase {
       return null;
    }
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -131,9 +124,6 @@ public class WriterForAnalogueIO extends WriterBase {
          " * @tparam adcChannel    ADC channel\n"+
          " */\n";
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getTemplate(FunctionTemplateInformation)
-    */
    @Override
    public String getTemplate() {   
       return TEMPLATE_DOCUMENTATION+String.format(

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="USBDM">
+	<item value="3333" key="PTA4descriptionSetting"/>
+	<item value="mux4" key="PTC4muxSetting"/>
+	<item value="mux3" key="PTA5muxSetting"/>
+	<item value="5555" key="PTA12descriptionSetting"/>
+	<item value="2222" key="PTA3descriptionSetting"/>
+	<item value="mux3" key="PTB16muxSetting"/>
+	<item value="7777" key="PTA18descriptionSetting"/>
+	<item value="6666" key="PTA13descriptionSetting"/>
+	<item value="1111" key="PTA2descriptionSetting"/>
+	<item value="4444" key="PTA5descriptionSetting"/>
+	<item value="mux3" key="PTA2muxSetting"/>
+	<item value="mux3" key="PTB17muxSetting"/>
+	<item value="mux7" key="PTA4muxSetting"/>
+	<item value="mux3" key="PTA3muxSetting"/>
+</section>

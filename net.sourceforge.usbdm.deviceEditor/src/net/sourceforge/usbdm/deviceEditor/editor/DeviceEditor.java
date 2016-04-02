@@ -28,11 +28,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
-import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyCpp;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
 public class DeviceEditor extends EditorPart {
 
@@ -53,6 +50,8 @@ public class DeviceEditor extends EditorPart {
 
    /** Actions to add to popup menus */
    ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
+
+   private TreeEditor fPackageEditor;
 
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
@@ -78,27 +77,28 @@ public class DeviceEditor extends EditorPart {
       fTabFolder.setFocus();
    }
 
-   ModelFactory createModels(Path path) throws Exception {
-      DeviceInfo fDeviceInfo = null;
-      if (path.getFileName().toString().endsWith("csv")) {
-         System.err.println("DeviceEditor(), Opening as CSV" + path);
-         ParseFamilyCSV parser = new ParseFamilyCSV();
-         fDeviceInfo = parser.parseFile(path);
-      }
-      else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
-         System.err.println("DeviceEditor(), Opening as XML = " + path);
-         ParseFamilyXML parser = new ParseFamilyXML();
-         fDeviceInfo = parser.parseFile(path);
-      }
-      else {
-         throw new Exception("Unknown file type");
-      }
-      if (fDeviceInfo != null) {
-         fFactory  = new ModelFactory(fDeviceInfo);
-      }
-      return fFactory;
-   }
-   
+//   ModelFactory createModels(Path path) throws Exception {
+//      DeviceInfo fDeviceInfo = null;
+//      if (path.getFileName().toString().endsWith("csv")) {
+//         System.err.println("DeviceEditor(), Opening as CSV" + path);
+//         ParseFamilyCSV parser = new ParseFamilyCSV();
+//         fDeviceInfo = parser.parseFile(path);
+//      }
+//      else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
+//         System.err.println("DeviceEditor(), Opening as XML = " + path);
+//         ParseFamilyXML parser = new ParseFamilyXML();
+//         fDeviceInfo = parser.parseFile(path);
+//      }
+//      else {
+//         throw new Exception("Unknown file type");
+//      }
+//      if (fDeviceInfo != null) {
+//         fDeviceInfo.loadSettings();
+//         fFactory  = new ModelFactory(fDeviceInfo);
+//      }
+//      return fFactory;
+//   }
+//   
    /**
     * Creates the editor pages.
     */
@@ -110,7 +110,7 @@ public class DeviceEditor extends EditorPart {
       
       try {
          System.err.println("DeviceEditor(), Input = " + fPath.toAbsolutePath());
-         fFactory = ModelFactory.createModel(fPath);
+         fFactory = ModelFactory.createModel(fPath, true);
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -122,10 +122,19 @@ public class DeviceEditor extends EditorPart {
          return;
          
       }
+      
       // Create the containing tab folder
       fTabFolder = new TabFolder(parent, SWT.NONE);
 
       TabItem tabItem;
+
+      // Pin view
+      tabItem = new TabItem(fTabFolder, SWT.NONE);
+      tabItem.setText(fFactory.getPackageModel().getName());
+      tabItem.setToolTipText(fFactory.getPackageModel().getToolTip());       
+      fPackageEditor = new TreeEditor();
+      tabItem.setControl(fPackageEditor.createControls(fTabFolder).getControl());
+      fPackageEditor.setModel(fFactory.getPackageModel());
 
       // Peripheral view
       tabItem = new TabItem(fTabFolder, SWT.NONE);
@@ -268,6 +277,7 @@ public class DeviceEditor extends EditorPart {
 
    @Override
    public void doSave(IProgressMonitor paramIProgressMonitor) {
+      fFactory.getDeviceInfo().saveSettings();
    }
 
    @Override
@@ -276,7 +286,7 @@ public class DeviceEditor extends EditorPart {
 
    @Override
    public boolean isDirty() {
-      return false;
+      return true;
    }
 
    @Override

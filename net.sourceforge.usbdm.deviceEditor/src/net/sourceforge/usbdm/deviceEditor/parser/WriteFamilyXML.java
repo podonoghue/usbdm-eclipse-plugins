@@ -177,6 +177,7 @@ public class WriteFamilyXML {
       }
       documentUtilities.closeTag();
    }
+   
    /**
     * Writes XML describing how pins are mapped to package locations
     * 

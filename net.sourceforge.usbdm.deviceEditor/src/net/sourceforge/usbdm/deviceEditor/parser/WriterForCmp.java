@@ -72,7 +72,6 @@ public class WriterForCmp extends WriterBase {
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      // TODO Auto-generated method stub
       return null;
    }
 }

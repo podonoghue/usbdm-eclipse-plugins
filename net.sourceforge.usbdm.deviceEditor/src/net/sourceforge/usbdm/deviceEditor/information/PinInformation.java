@@ -5,6 +5,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.dialogs.DialogSettings;
+
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
@@ -13,14 +15,11 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
  * <li>Peripheral functions mapped to that pin
  */
 public class PinInformation extends ObservableModel implements Comparable<PinInformation> {
-   /**
-    * Pin used to denote a disabled mapping
-    */
+   
+   /** Pin used to denote a disabled mapping */
    public final static PinInformation DISABLED_PIN = new PinInformation("Disabled");
    
-   /**
-    * Pin comparator
-    */
+   /** Pin comparator */
    public static Comparator<String> comparator = Utils.comparator;
    
    /*
@@ -43,9 +42,7 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
 //    */
 //   private  ArrayList<PeripheralFunction> fMappedPins = new ArrayList<PeripheralFunction>();
 
-   /**
-    * Map of functions mapped to this pin ordered by mux value
-    */
+   /** Map of functions mapped to this pin ordered by mux value */
    private Map<MuxSelection, MappingInfo> fMappedFunctions = new TreeMap<MuxSelection, MappingInfo>();
 
 //   /**
@@ -54,21 +51,17 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
 //    */
 //   private HashMap<String, ArrayList<MappingInfo>> fMappedPinsByFunction = new HashMap<String, ArrayList<MappingInfo>>();
 
-   /**
-    * Function mapped at reset
-    */
+   /** Function mapped at reset */
    private MuxSelection fResetFunction = MuxSelection.unused;
 
-   /**
-    * Default functions
-    */
+   /** Default functions */
    private MuxSelection fDefaultFunction = MuxSelection.unused;
 
    /** Used description of pin use */
    private String fPinUseDescription = "";
 
    /** Current pin multiplexor setting */
-   private MuxSelection fMuxSelection = MuxSelection.reset;
+   private MuxSelection fMuxSelection = MuxSelection.unused;
 
    /**
     * Get PCR register e.g. PORTA->PCR[3]
@@ -183,88 +176,11 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
    public String getDescription() {
       return "";
    }
-   
-//   /**
-//    * Gets list of peripheral functions mapped to this pin
-//    * 
-//    * @param   fBaseName
-//    * 
-//    * @return  List (may be empty, never null)
-//    */
-//   public ArrayList<PeripheralFunction> getMappedPeripheralFunctions() {
-//      return fMappedPins;
-//   }
-   
-//   /**
-//    * Gets sub-list of peripheral functions mapped to this pin
-//    * 
-//    * @param   baseName
-//    * 
-//    * @return  List (may be empty, never null)
-//    */
-//   public ArrayList<MappingInfo> createMappingList(String baseName) {
-//      ArrayList<MappingInfo> list = fMappedPinsByFunction.get(baseName);
-//      if (list == null) {
-//         list = new ArrayList<MappingInfo>();
-//         fMappedPinsByFunction.put(baseName, list);
-//      }
-//      return list;
-//   }
-   
-//   /**
-//    * Adds a mapping of a peripheral function to the pin
-//    * 
-//    * @param mappingInfo        Mapping to add
-//    * 
-//    * @throws Exception 
-//    */
-//   public void addPeripheralFunctionMapping(MappingInfo mappingInfo) {
-//      ArrayList<PeripheralFunction> peripheralFunction = mappingInfo.functions;
-//      ArrayList<MappingInfo> elements = createMappingList(peripheralFunction.fPeripheral.fBaseName);
-//      elements.add(mappingInfo);
-//      mappedPins.add(peripheralFunction);
-//      if (fDescription.length() > 0) {
-//         fDescription.append(",");
-//      }
-//      fDescription.append(peripheralFunction.getName());
-//      fPinNames = null;
-//   }
-
-//   /**
-//    * Gets sub-list of peripheral functions mapped to this pin that have this basename
-//    * 
-//    * @param   baseName
-//    * 
-//    * @return  List (never null)
-//    */
-//   public ArrayList<MappingInfo> getMappingList(String baseName) {
-//      ArrayList<MappingInfo> list = fMappedPinsByFunction.get(baseName);
-//      if (list == null) {
-//         list = new ArrayList<MappingInfo>();
-//      }
-//      return list;
-//   }
-   
-//   /**
-//    * Get index of pin that this peripheral function is mapped to
-//    * 
-//    * @return index of function if mapped, -1 if not mapped to this pin
-//    */
-//   public int getMappedPinIndex(PeripheralFunction peripheralFunction) {
-//      for (int index=0; index<7; index++) {
-//         if (mappedPins[index] == peripheralFunction) {
-//            return index;
-//         }
-//      }
-//      return -1;
-//   }
-   
-   /* (non-Javadoc)
-    * @see java.lang.Object#toString()
-    */
+    
+   @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
-      sb.append("Pin("+fName+",\n   R:"+fResetFunction+",\n   D:"+fDefaultFunction);
+      sb.append("Pin("+fName+",\n   R:"+fResetFunction+",\n   D:"+fDefaultFunction+",\n   C:"+fMuxSelection);
       for (MuxSelection muxSelection:fMappedFunctions.keySet()) {
          sb.append(",\n   "+fMappedFunctions.get(muxSelection).toString());
       }
@@ -280,8 +196,8 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setResetValue(MuxSelection mux) {
-      if (getResetValue() != MuxSelection.unused) {
-         throw new RuntimeException("Pin "+getName()+" already has reset value "+getResetValue());
+      if ((mux !=fResetFunction) && (fResetFunction != MuxSelection.unused)) {
+         throw new RuntimeException("Pin "+getName()+" already has reset value "+fResetFunction);
       }
       fResetFunction = mux;
    }
@@ -303,8 +219,11 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setDefaultValue(MuxSelection mux) {
-      if (getDefaultValue() != MuxSelection.unused) {
-         throw new RuntimeException("Pin "+getName()+" already has default value "+getDefaultValue());
+      if ((mux != fDefaultFunction) && (fDefaultFunction != MuxSelection.unused)) {
+         throw new RuntimeException("Pin "+getName()+" already has default value "+fDefaultFunction);
+      }
+      if (fMuxSelection == MuxSelection.unused) {
+         fMuxSelection = mux;
       }
       fDefaultFunction = mux;
    }
@@ -315,6 +234,9 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     * @return default peripheral function on this pin
     */
    public MuxSelection getDefaultValue() {
+      if (fMuxSelection == MuxSelection.unused) {
+         fMuxSelection = fResetFunction;
+      }
       return fDefaultFunction;
    }
 
@@ -326,8 +248,8 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     * @throws Exception If pin already has default or new default not found as available pin mapping
     */
    public void setDefaultPeripheralFunctions(DeviceInfo factory, final String defaultPeripheralName) {
-      if (getDefaultValue() != MuxSelection.unused) {
-         throw new RuntimeException("Pin "+getName()+" already has default value "+getDefaultValue());
+      if (fDefaultFunction != MuxSelection.unused) {
+         throw new RuntimeException("Pin "+getName()+" already has default value "+fDefaultFunction);
       }
       Map<MuxSelection, MappingInfo> functionMappings = getMappedFunctions();
       
@@ -338,36 +260,11 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
             break;
          }
       }
-//      
-//      if (functionMappings != null) {
-//         functionMappings.forEach(new BiConsumer<MuxSelection, MappingInfo>() {
-//            @Override
-//            public void accept(MuxSelection muxSelection, MappingInfo mappingInfo) {
-//               if (mappingInfo.getFunctionList().equalsIgnoreCase(defaultPeripheralName) && (mappingInfo.mux != MuxSelection.reset)) {
-//                  setDefaultValue(mappingInfo.mux);
-//               }
-//            }
-//         } );
-//      }
-      if (getDefaultValue() == null) {
+      if (fDefaultFunction == null) {
          throw new RuntimeException("Peripheral "+defaultPeripheralName+" not found as option for pin " + getName());
       }
    }
 
-//   /**
-//    * Sets the default peripheral functions for the pin
-//    * 
-//    * @param defaultPeripheralName  Name of peripherals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
-//    * 
-//    * @throws Exception If pin already has default or new default not found as available pin mapping
-//    */
-//   public void setDefaultPeripheralFunctions(MuxSelection sel) {
-//      if (getDefaultValue() != MuxSelection.unused) {
-//         throw new RuntimeException("Pin "+getName()+" already has default value "+getDefaultValue());
-//      }
-//      setDefaultValue(sel);
-//   }
-   
    /**
     * Sets the reset peripheral functions for the pin
     * 
@@ -376,9 +273,6 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     * @throws Exception If pin already has default or new default not found as available pin mapping
     */
    public void setResetPeripheralFunctions(DeviceInfo factory, final String resetFunctionName) {
-      if (getResetValue() != MuxSelection.unused) {
-         throw new RuntimeException("Pin "+getName()+" already has reset value "+getDefaultValue());
-      }
       // Should be one of the mappings given (or disabled which defaults to mux 0)
       Map<MuxSelection, MappingInfo> functionMappings = getMappedFunctions();
       for (MuxSelection functionMappingIndex:functionMappings.keySet()) {
@@ -390,31 +284,17 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
       }
       // Disabled is not necessarily in list of mappings
       // If necessary create mux0=disabled if free
-      if ((getResetValue() == MuxSelection.unused) && resetFunctionName.equalsIgnoreCase(MuxSelection.disabled.name())) {
+      if ((fResetFunction == MuxSelection.unused) && resetFunctionName.equalsIgnoreCase(MuxSelection.disabled.name())) {
          if (functionMappings.get(MuxSelection.mux0) == null) {
             factory.createMapping(PeripheralFunction.DISABLED, this, MuxSelection.mux0);
             setResetValue(MuxSelection.mux0);
          }
       }
-      if (getResetValue() == MuxSelection.unused) {
+      if (fResetFunction == MuxSelection.unused) {
          throw new RuntimeException("Function "+resetFunctionName+" not found as option for pin " + getName());
       }
    }
 
-//   /**
-//    * Sets the reset peripheral functions for the pin
-//    * 
-//    * @param resetPeripheralName  Name of peripherals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
-//    * 
-//    * @throws Exception If pin already has default or new default not found as available pin mapping
-//    */
-//   public void setResetPeripheralFunctions(MuxSelection sel) {
-//      if (getResetValue() != MuxSelection.unused) {
-//         throw new RuntimeException("Pin "+getName()+" already has reset value "+getResetValue());
-//      }
-//      setResetValue(sel);
-//   }
-   
    /**
     * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
     * <pre>
@@ -468,13 +348,77 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
 
    /** Set current pin multiplexor setting */
    public void setMuxSelection(MuxSelection muxValue) {
+      MuxSelection oldValue = fMuxSelection;
       fMuxSelection = muxValue;
-      notifyListeners();
+      if (fMuxSelection != oldValue) {
+         notifyListeners();
+      }
    }
 
    /** Get current pin multiplexor setting */
    public MuxSelection getMuxSelection() {
       return fMuxSelection;
+   }
+
+   /**
+    * Add a function mapping to this pin
+    * 
+    * @param function            Function to add
+    * @param functionSelector    Mux selection to select this function on pin
+    * @return
+    */
+   public MappingInfo addFunction(PeripheralFunction function, MuxSelection functionSelector) {
+      if (functionSelector == MuxSelection.fixed) {
+         fResetFunction    = MuxSelection.fixed;
+         fDefaultFunction  = MuxSelection.fixed;
+      }
+      MappingInfo mapInfo = fMappedFunctions.get(functionSelector);
+      if (mapInfo == null) {
+         // Create new mapping
+         mapInfo = new MappingInfo(this, functionSelector);
+         fMappedFunctions.put(functionSelector, mapInfo);
+      }
+      mapInfo.getFunctions().add(function);
+      function.addMapping(mapInfo);
+      return mapInfo;
+   }
+
+   /** Key for mux selection persistence */
+   public static final String MUX_SETTINGS_KEY = "muxSetting"; 
+   
+   /** Key for description selection persistence */
+   public static final String DESCRIPTION_SETTINGS_KEY = "descriptionSetting"; 
+   
+   /**
+    * Load pin settings from settings object
+    * 
+    * @param settings Settings object
+    */
+   public void loadSettings(DialogSettings settings) {
+      String value = settings.get(fName+MUX_SETTINGS_KEY);
+      if (value != null) {
+         MuxSelection muxValue = MuxSelection.valueOf(value);
+         setMuxSelection(muxValue);
+      }
+      value = settings.get(fName+DESCRIPTION_SETTINGS_KEY);
+      if (value != null) {
+         setPinUseDescription(value);
+      }
+   }
+
+   /**
+    * Save pin settings to settings object
+    * 
+    * @param settings Settings object
+    */
+   public void saveSettings(DialogSettings settings) {
+      if (fMuxSelection != fDefaultFunction) {
+         settings.put(fName+MUX_SETTINGS_KEY, fMuxSelection.name());
+      }
+      String desc = getPinUseDescription();
+      if ((desc != null) && !desc.isEmpty()) {
+         settings.put(fName+DESCRIPTION_SETTINGS_KEY, getPinUseDescription());
+      }
    }
 
 }

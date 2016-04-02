@@ -3,13 +3,11 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.eclipse.jface.viewers.TreeViewer;
-
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
-public class PinModel extends PinMappingModel implements IModelChangeListener {
+public class PinModel extends SelectionModel implements IModelChangeListener {
 
    /** Associated pin */
    protected final PinInformation fPinInformation;
@@ -20,16 +18,22 @@ public class PinModel extends PinMappingModel implements IModelChangeListener {
    /** Mappings corresponding to selections */
    protected final ArrayList<MuxSelection> fMappingInfos = new ArrayList<MuxSelection>();
 
-   public PinModel(BaseModel parent, PinInformation pinInformation) {
-      super(parent, pinInformation.getName(), pinInformation.getDescription());
+   public PinModel(BaseModel parent, PinInformation pinInformation, String name) {
+//      super(parent, pinInformation.getName(), pinInformation.getDescription());
+      super(parent, name, pinInformation.getDescription());
 
       fPinInformation = pinInformation;
       
       pinInformation.addListener(this);
 
       Map<MuxSelection, MappingInfo> mappingInfoMap = pinInformation.getMappedFunctions();
+      
       MuxSelection defaultMuxValue  = pinInformation.getDefaultValue();
+      MuxSelection currentMuxValue  = pinInformation.getMuxSelection();
 
+      fDefaultSelection = 0;
+      fSelection        = 0;
+      
       // List of values to choose from
       ArrayList<String> values = new ArrayList<String>();
       for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
@@ -50,6 +54,9 @@ public class PinModel extends PinMappingModel implements IModelChangeListener {
          if (muxSelection == defaultMuxValue) {
             fDefaultSelection = values.size()-1;
          }
+         if (muxSelection == currentMuxValue) {
+            fSelection = values.size()-1;
+         }
          fMappingInfos.add(muxSelection);
       }
       if (values.size()>1) {
@@ -58,7 +65,6 @@ public class PinModel extends PinMappingModel implements IModelChangeListener {
       }
       
       fValues     = values.toArray(new String[values.size()]);
-      fSelection  = fDefaultSelection;
       MuxSelection mapping = fMappingInfos.get(fSelection);
 
       pinInformation.getMappedFunctions().get(mapping).select(MappingInfo.Origin.pin, true);
@@ -109,42 +115,42 @@ public class PinModel extends PinMappingModel implements IModelChangeListener {
    
    public void pinChanged(PinInformation pinInformation) {
       System.err.println("Changed");
-      for (TreeViewer viewer:getViewers()) {
-         viewer.update(this,  null);
-         viewer.update(this.fParent,  null);
-      }
+      viewerUpdate(this,  null);
    }
 
    public void mappingChanged(MappingInfo mappingInfo) {
       if (fMessage != mappingInfo.getMessage()) {
          setMessage(mappingInfo.getMessage());
-         for (TreeViewer viewer:getViewers()) {
-            viewer.update(this,  null);
-            viewer.update(this.fParent,  null);
-         }
+         viewerUpdate(this,  null);
       }
       boolean selected     = mappingInfo.isSelected();
       int changedSelection = fMappingInfos.indexOf(mappingInfo.getMux());
       if (selected) {
          // A function has been mapped to this pin - do update if needed
          if (fSelection != changedSelection) {
-            //               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
             fSelection = changedSelection;
-            //               notifyMuxChange();
-            for (TreeViewer viewer:getViewers()) {
-               viewer.update(this,  null);
+            MuxSelection  muxValue = fMappingInfos.get(fSelection);
+            if (muxValue == null) {
+               muxValue = MuxSelection.disabled;
             }
+            fPinInformation.setMuxSelection(muxValue);
+            //               notifyMuxChange();
+            viewerUpdate(this,  null);
          }
       }
       else {
          if (fSelection == changedSelection) {
             // The current function has been unmapped from this pin 
-            //               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
+//               System.err.println(String.format("Pin(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
             fSelection = 0;
-            //               notifyMuxChange();
-            for (TreeViewer viewer:getViewers()) {
-               viewer.update(this,  null);
+            MuxSelection  muxValue = fMappingInfos.get(fSelection);
+            if (muxValue == null) {
+               muxValue = MuxSelection.disabled;
             }
+            fPinInformation.setMuxSelection(muxValue);
+            //               notifyMuxChange();
+            viewerUpdate(this,  null);
          }
       }
    }
@@ -174,7 +180,6 @@ public class PinModel extends PinMappingModel implements IModelChangeListener {
    public void modelStructureChanged(ObservableModel model) {
       // Not used
    }
-
 
    @Override
    public boolean isReset() {

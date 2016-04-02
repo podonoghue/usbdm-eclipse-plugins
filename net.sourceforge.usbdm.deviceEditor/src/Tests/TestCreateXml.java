@@ -31,7 +31,6 @@ public class TestCreateXml {
       if (!xmlDirectory.toFile().exists()) {
          Files.createDirectory(xmlDirectory);
       }
-
       DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("data").toAbsolutePath(), csvFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {

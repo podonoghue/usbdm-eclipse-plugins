@@ -84,7 +84,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     */
    private void parseFamily(Path path, Element familyElement) throws Exception {
 
-      factory = new DeviceInfo(path, familyElement.getAttribute("name"));
+      factory = new DeviceInfo(path);
       factory.initialiseTemplates();
 
       for (Node node = familyElement.getFirstChild();
@@ -199,10 +199,35 @@ public class ParseFamilyXML extends XML_BaseParser {
          else if (element.getTagName() == "irq") {
             peripheral.addIrqNum(element.getAttribute("num"));
          }
+         else if (element.getTagName() == "dma") {
+            parseDma(element, peripheral);
+         }
          else {
             throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
          }
       }
+   }
+
+   private void parseDma(Element dmaElement, Peripheral peripheral) {
+      if (predefinedPeripherals.size()==0) {
+         predefinedPeripherals.add(Pattern.compile("(DMAMUX)(\\d*)"));
+         predefinedPeripherals.add(Pattern.compile("(PIT)(\\d*)"));
+      }
+      for (Node node = dmaElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "slot") {
+            peripheral.addDmaChannel(getIntAttribute(element,"num"), element.getAttribute("source"));
+         }
+         else {
+            throw new RuntimeException("Unexpected field in DMA, value = \'"+element.getTagName()+"\'");
+         }
+      }
+   
    }
 
    /**

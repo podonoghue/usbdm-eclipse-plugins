@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class DocumentUtilities {
 
@@ -27,7 +29,6 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param fWriter     Where to write 
     * @param template   Template used to describe the group
     * 
     * @throws IOException
@@ -45,7 +46,6 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param fWriter     Where to write 
     * @param template   Template used to describe the group
     * @param groupDone  Indicates if group has already been done
     * 
@@ -66,7 +66,6 @@ public class DocumentUtilities {
     *  * @{                                                                   
     *  *&#47;</code></pre>
     * 
-    * @param fWriter        Where to write 
     * @param groupName     Name of group
     * @param groupTitle    Title of group (may be null)
     * @param groupBrief    Brief description of group (may be null)
@@ -105,8 +104,6 @@ public class DocumentUtilities {
     *  * @}                                                                   
     *  ** <i><b>groupName</i></b> **&#47;</code></pre>
     * 
-    * @param fWriter        Where to write 
-    * 
     * @throws IOException
     */
    public void writeCloseGroup() throws IOException {
@@ -134,7 +131,6 @@ public class DocumentUtilities {
     * #define <i><b>FILENAME</i></b>
     * </code></pre>
     *
-    * @param fWriter        Where to write
     * @param fileName      Filename to use in header block
     * @param trueFileName  Filename of actual file being written
     * @param version       Version to use in header block
@@ -174,7 +170,6 @@ public class DocumentUtilities {
     *   *&#47;
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param fileName      Filename to use in header block
     * @param trueFileName  Filename of actual file being written
     * @param description   Description to use in header block
@@ -214,7 +209,6 @@ public class DocumentUtilities {
     *  #endif /* <i><b>fileName</i></b> *&#47;
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param fileName   Filename to use in closing block
     * 
     * @throws IOException
@@ -248,7 +242,6 @@ public class DocumentUtilities {
     *  #include "<i><b>fileName</i></b>"
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
@@ -257,29 +250,22 @@ public class DocumentUtilities {
       fWriter.write(String.format("#include \"%s\"\n", fileName));
    }
 
-   private String fCurrentNamespace = null;
-   
+   private Deque<String> nameSpaceStack = new ArrayDeque<>();
+
    /**
     * Write namespace open
     * <pre><code>
     *  namespace "<i><b>USBDM</i></b>" {
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param namespace  Namespace to use
     * 
     * @throws IOException
     */
    public void writeOpenNamespace(String namespace) throws IOException {
-      if (fCurrentNamespace != null) {
-         if (fCurrentNamespace.equals(namespace)) {
-            // Re-opening current name space - ignore
-            return;
-         }
-         writeCloseNamespace();
-      }
-      fCurrentNamespace = namespace;
-      fWriter.write(String.format("namespace %s {\n\n", fCurrentNamespace));
+      fWriter.write(String.format("namespace %s {\n\n", namespace));
+      nameSpaceStack.push(namespace);
+      fWriter.flush();
    }
 
    /**
@@ -288,16 +274,15 @@ public class DocumentUtilities {
     *  } // End "<i><b>namespace</i></b>"
     * </code></pre>
     * 
-    * @param fWriter     Where to write
-    * 
     * @throws IOException
     */
    public void writeCloseNamespace() throws IOException {
-      if (fCurrentNamespace == null) {
+      if (nameSpaceStack.isEmpty()) {
          throw new RuntimeException("Closing non-open namespace");
       }
-      fWriter.write(String.format("\n} // End namespace %s\n", fCurrentNamespace));
-      fCurrentNamespace = null;
+      String currentNamespace = nameSpaceStack.pop();
+      fWriter.write(String.format("\n} // End namespace %s\n", currentNamespace));
+      fWriter.flush();
    }
 
    /**
@@ -307,7 +292,6 @@ public class DocumentUtilities {
     *  #if (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param condition     Condition to use
     * 
     * @throws IOException
@@ -323,7 +307,6 @@ public class DocumentUtilities {
     *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param condition     Condition to use
     * 
     * @throws IOException
@@ -339,8 +322,6 @@ public class DocumentUtilities {
     *  #else <i><b>condition</i></b>
     * </code></pre>
     * 
-    * @param writer        Write to write to
-    * 
     * @throws IOException
     */
    public void writeConditionalElse() throws IOException {
@@ -353,8 +334,6 @@ public class DocumentUtilities {
     * <pre><code>
     *  #endif
     * </code></pre>
-    * 
-    * @param writer        Write to write to
     * 
     * @throws IOException
     */
@@ -371,7 +350,6 @@ public class DocumentUtilities {
     *  #elif (<i><b>condition</i></b>)
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param condition     Condition to use
     * @param guardWritten  Indicates a prior condition has been written so a <b>#elif</b> is used
     * 
@@ -393,7 +371,6 @@ public class DocumentUtilities {
     *  #elif <i><b>condition</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Write to write to
     * @param guardWritten  If false nothing is written (implies a prior #if was written)
     * 
     * @throws IOException
@@ -411,7 +388,6 @@ public class DocumentUtilities {
     *  #endif
     * </code></pre>
     * 
-    * @param fWriter        Write to write to
     * @param guardWritten  If false nothing is written (implies a prior #if was written)
     * 
     * @throws IOException
@@ -428,13 +404,12 @@ public class DocumentUtilities {
     * //-------- <<< Use Configuration Wizard in Context Menu >>> -----------------
     * </code></pre>
     * 
-    * @param writer Where to write
     * @throws IOException
     */
-   public void writeWizardMarker(BufferedWriter writer) throws IOException {
+   public void writeWizardMarker() throws IOException {
       final String wizardMarker =                                                            
             "//-------- <<< Use Configuration Wizard in Context Menu >>> -----------------  \n\n";
-      writer.write(wizardMarker);
+      fWriter.write(wizardMarker);
    }
    
    /**
@@ -443,7 +418,6 @@ public class DocumentUtilities {
     * //-------- <<< end of configuration section >>> -----------------
     * </code></pre>
     * 
-    * @param writer Where to write
     * @throws IOException
     */
    public void writeEndWizardMarker() throws IOException {
@@ -458,7 +432,6 @@ public class DocumentUtilities {
     * //  &lth&gt; <i><b>title</i></b>
     * </code></pre>
     * 
-    * @param fWriter Where to write
     * @param title  Title to write
     * 
     * @throws IOException
@@ -475,8 +448,6 @@ public class DocumentUtilities {
     * <pre><code>
     * //  &lt/h&gt;
     * </code></pre>
-    * 
-    * @param writer Where to write
     * 
     * @throws IOException
     */
@@ -495,7 +466,6 @@ public class DocumentUtilities {
     * //  &lt;i&gt;   <i><b>hint</i></b>
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
     * @param attributes Attributes to apply e.g. &lt;constant>
@@ -532,8 +502,6 @@ public class DocumentUtilities {
     * //  &lt/h&gt;
     * </code></pre>
     * 
-    * @param writer Where to write
-    * 
     * @throws IOException
     */
    public void writeWizardConditionalSectionClose() throws IOException {
@@ -552,7 +520,6 @@ public class DocumentUtilities {
     * //  &lt;info&gt;    <i><b>information</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param comment       Comment written above (may be null)
     * @param offset        Offset to argument
     * @param attributes    Attributes to apply e.g. <constant>
@@ -603,7 +570,6 @@ public class DocumentUtilities {
     * //  &lt;info&gt;    <i><b>information</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param comment       Comment written above (may be null)
     * @param offset        Offset to argument
     * @param attributes    Attributes to apply e.g. <constant>
@@ -630,7 +596,6 @@ public class DocumentUtilities {
     * //  &lt;i&gt;   <i><b>hint</i></b>
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param comment    Comment written above (may be null)
     * @param offset     Offset to argument
     * @param isConstant Indicates the entry should be marked &lt;constant&gt;
@@ -657,7 +622,6 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b> <i><b>&lt;attribute ...&gt; ...</i></b>
     * </code></pre>
     * 
-    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * @param description  Description to use in selection
     * @param attributes   Attributes to add to the options
@@ -683,7 +647,6 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; <i><b>description</i></b>
     * </code></pre>
     * 
-    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * @param description  Description to use in selection
     * 
@@ -699,7 +662,6 @@ public class DocumentUtilities {
     * //  &lt;<i><b>value</i></b>=&gt; Default
     * </code></pre>
     * 
-    * @param fWriter       Where to write
     * @param value        Value to use in selection
     * 
     * @throws IOException
@@ -715,7 +677,6 @@ public class DocumentUtilities {
     * constexpr uint32_t <i><b>name value</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param size          Constant size (8, 16 or 32 bits)
     * @param name          Constant name
     * @param value         Constant value
@@ -740,7 +701,6 @@ public class DocumentUtilities {
     * #define <i><b>name value</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param name          Macro name
     * @param value         Macro value
     * 
@@ -757,7 +717,6 @@ public class DocumentUtilities {
     * #define <i><b>name value</i></b> // <i><b>comment</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param name          Macro name
     * @param value         Macro value
     * @param comment       Comment
@@ -781,7 +740,6 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param fWriter              Where to write
     * @param briefDescription    Brief description
     * @param paramDescription    Parameter with description e.g. <i>value Value to square</i>
     * @param name                Macro name with parameter e.g. <i>sqr(value)</i>
@@ -809,7 +767,6 @@ public class DocumentUtilities {
     * #undef <i><b>name</i></b> // <i><b>comment</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param name          Macro name
     * @param comment       Comment
     * @throws IOException 
@@ -824,7 +781,6 @@ public class DocumentUtilities {
     * #undef <i><b>name</i></b>
     * </code></pre>
     * 
-    * @param fWriter        Where to write
     * @param name          Macro name
     * @throws IOException 
     */
@@ -842,7 +798,6 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
@@ -861,7 +816,6 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param fWriter     Where to write
     * @param fileName   Filename to use in #include directive
     * 
     * @throws IOException
@@ -871,6 +825,13 @@ public class DocumentUtilities {
       fWriter.write(banner);
    }
 
+   /**
+    * Writes a string
+    * 
+    * @param string   String to write
+    * 
+    * @throws IOException
+    */
    public void write(String string) throws IOException {
       fWriter.write(string);
    }

@@ -206,13 +206,11 @@ public class PeripheralConfigurationEditor extends EditorPart implements IDocume
 
    @Override
    public boolean isDirty() {
-      // TODO Auto-generated method stub
       return false;
    }
 
    @Override
    public boolean isSaveAsAllowed() {
-      // TODO Auto-generated method stub
       return false;
    }
 

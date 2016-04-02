@@ -47,18 +47,22 @@ public class ModelFactory {
 
    static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",      "Mux:Signals", "Description"};
    static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal", "Mux:Pin",     "Description"};
+   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name", "Value",     "Description"};
 
    /*
     * =============================================================================================
     */
    /** Peripheral based model */
-   private final DeviceModel fPeripheralModel;
+   private final DeviceModel  fPeripheralModel;
 
    /** Pin based model */
-   private final DeviceModel fPinModel;
+   private final DeviceModel  fPinModel;
+   
+   /** Data use to construct models */
+   private final DeviceInformationModel fPackageModel;
 
    /** Data use to construct models */
-   private final DeviceInfo  fDeviceInfo;
+   private final DeviceInfo   fDeviceInfo;
 
    /** List of pin mapping entries */
    protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
@@ -92,9 +96,9 @@ public class ModelFactory {
          if (pinCategory.getPins().isEmpty()) {
             continue;
          }
-         CategoryModel catergoryModel = new CategoryModel(deviceModel, pinCategory.getName(), "");
+         CategoryModel categoryModel = new CategoryModel(deviceModel, pinCategory.getName(), "");
          for(PinInformation pinInformation:pinCategory.getPins()) {
-            new PinModel(catergoryModel, pinInformation);
+            new PinModel(categoryModel, pinInformation, fDeviceInfo.getPinNameWithAlias(pinInformation));
             for (MappingInfo mappingInfo:pinInformation.getMappedFunctions().values()) {
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   continue;
@@ -129,6 +133,25 @@ public class ModelFactory {
       }
       return deviceModel;
    }
+   
+   /**
+    * Create model for package information
+    * 
+    * @return
+    */
+   private DeviceInformationModel createPackageModel() {
+      DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Device Information", "Device Information");
+      new ConstantModel(packageModel, "Source", fDeviceInfo.getSourceFilename(), "");
+      
+//      Map<String, DevicePackage> deviceFamily = fDeviceInfo.getDevicePackages();
+      new DevicePackageModel(packageModel, fDeviceInfo);
+      
+//      for (String deviceName:deviceFamily.keySet()) {
+//         DevicePackage devicePackage = deviceFamily.get(deviceName);
+//         new BaseModel(packageModel, deviceName, devicePackage.getName());
+//      }
+      return packageModel;
+   }
 
    /**
     * @return the PeripheralModel
@@ -142,6 +165,13 @@ public class ModelFactory {
     */
    public DeviceModel getPinModel() {
       return fPinModel;
+   }
+
+   /**
+    * @return the PackageModel
+    */
+   public DeviceInformationModel getPackageModel() {
+      return fPackageModel;
    }
 
    /**
@@ -253,6 +283,7 @@ public class ModelFactory {
       fDeviceInfo      = deviceInfo;
       fPeripheralModel = createPeripheralModel();
       fPinModel        = createPinModel();
+      fPackageModel    = createPackageModel();
    }
 
    /**
@@ -265,7 +296,20 @@ public class ModelFactory {
     * @throws Exception 
     */
    public static ModelFactory createModel(Path path) throws Exception {
-      
+      return createModel(path, false);
+   }
+   
+   /**
+    * Construct factory that hold models
+    * 
+    * @param path          Path to load model from
+    * @param loadSettings  Controls whether settings are loaded from associated file
+    * 
+    * @return Model created
+    * 
+    * @throws Exception 
+    */
+   public static ModelFactory createModel(Path path, boolean loadSettings) throws Exception {
       DeviceInfo deviceInfo = null;
 
       System.err.println("ModelFactory.createModel("+path.toAbsolutePath()+")");
@@ -282,6 +326,9 @@ public class ModelFactory {
       }
       else {
          throw new Exception("Unknown file type");
+      }
+      if (loadSettings) {
+         deviceInfo.loadSettings();
       }
       return new ModelFactory(deviceInfo);
    }

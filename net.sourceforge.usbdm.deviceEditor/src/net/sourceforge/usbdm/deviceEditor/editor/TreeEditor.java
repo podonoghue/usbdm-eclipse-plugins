@@ -19,33 +19,33 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
-import net.sourceforge.usbdm.deviceEditor.model.DeviceModel;
+import net.sourceforge.usbdm.deviceEditor.model.RootModel;
 
 public class TreeEditor {
 
-   TreeViewer       viewer      = null;
-   DeviceModel      deviceModel = null;
-   TreeViewerColumn columns[];
+   TreeViewer       fViewer      = null;
+   RootModel        fDeviceModel = null;
+   TreeViewerColumn fColumns[];
    
    public TreeViewer getViewer() {
-      return viewer;
+      return fViewer;
    }
    
    public TreeEditor() {
    }
 
-   public void setModel(DeviceModel deviceModel) {
-      this.deviceModel = deviceModel;
-      viewer.setInput(deviceModel);
-      deviceModel.addViewer(viewer);
+   public void setModel(RootModel deviceModel) {
+      fDeviceModel = deviceModel;
+      fViewer.setInput(deviceModel);
+      deviceModel.addViewer(fViewer);
       String[] columnLabels = deviceModel.getColumnLabels();
       for (int index=0; index<columnLabels.length; index++) {
-         columns[index].getColumn().setText(columnLabels[index]);
+         fColumns[index].getColumn().setText(columnLabels[index]);
       }
    }
 
    public void refresh() {
-      viewer.refresh();
+      fViewer.refresh();
    }
    
    private LocalResourceManager     resManager = null;
@@ -63,48 +63,48 @@ public class TreeEditor {
 
    public TreeViewer createControls(Composite parent) {
       parent.setLayoutData(new FillLayout());
-      viewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
+      fViewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
 //      viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-      ColumnViewerToolTipSupport.enableFor(viewer);
+      ColumnViewerToolTipSupport.enableFor(fViewer);
       
-      Tree tree = viewer.getTree();
+      Tree tree = fViewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
 //      ColumnViewerToolTipSupport.enableFor(viewer);
 
-      viewer.setContentProvider(new ViewContentProvider());
+      fViewer.setContentProvider(new ViewContentProvider());
 
-      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(viewer) {
+      ColumnViewerEditorActivationStrategy actSupport = new ColumnViewerEditorActivationStrategy(fViewer) {
          @Override
          protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
             return event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION;
          }
       };
       
-      TreeViewerEditor.create(viewer, actSupport, ColumnViewerEditor.DEFAULT);
+      TreeViewerEditor.create(fViewer, actSupport, ColumnViewerEditor.DEFAULT);
 
-      columns = new TreeViewerColumn[4];
+      fColumns = new TreeViewerColumn[4];
       
-      columns[0] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[0].getColumn().setWidth(300);
-      columns[0].setLabelProvider(new NameColumnLabelProvider());
+      fColumns[0] = new TreeViewerColumn(fViewer, SWT.NONE);
+      fColumns[0].getColumn().setWidth(300);
+      fColumns[0].setLabelProvider(new NameColumnLabelProvider());
 
-      columns[1] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[1].getColumn().setWidth(300);
-      columns[1].setEditingSupport(new PinMappingEditingSupport(viewer));
-      columns[1].setLabelProvider(new ValueColumnLabelProvider());
+      fColumns[1] = new TreeViewerColumn(fViewer, SWT.NONE);
+      fColumns[1].getColumn().setWidth(300);
+      fColumns[1].setEditingSupport(new PinMappingEditingSupport(fViewer));
+      fColumns[1].setLabelProvider(new ValueColumnLabelProvider());
       
-      columns[2] = new TreeViewerColumn(viewer, SWT.NONE);
-      columns[2].getColumn().setWidth(300);
-      columns[2].setEditingSupport(new PinUseDescriptionEditingSupport(viewer));
-      columns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
+      fColumns[2] = new TreeViewerColumn(fViewer, SWT.NONE);
+      fColumns[2].getColumn().setWidth(300);
+      fColumns[2].setEditingSupport(new PinUseDescriptionEditingSupport(fViewer));
+      fColumns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
 
 //      columns[3] = new TreeViewerColumn(viewer, SWT.NONE);
 //      columns[3].getColumn().setText("Description");
 //      columns[3].getColumn().setWidth(300);
 //      columns[3].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
 
-      return viewer;
+      return fViewer;
    }
 
 }

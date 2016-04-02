@@ -7,7 +7,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import net.sourceforge.usbdm.deviceEditor.model.PinMappingModel;
+import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
 public class PinMappingEditingSupport extends EditingSupport {
 
@@ -20,19 +20,19 @@ public class PinMappingEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if (!(element instanceof PinMappingModel)) {
+      if (!(element instanceof SelectionModel)) {
          return false;
       }
-      PinMappingModel selectionModel = (PinMappingModel)element;
+      SelectionModel selectionModel = (SelectionModel)element;
       return selectionModel.canEdit();
    }
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if (!(element instanceof PinMappingModel)) {
+      if (!(element instanceof SelectionModel)) {
          return null;
       }
-      PinMappingModel selectionModel = (PinMappingModel)element;
+      SelectionModel selectionModel = (SelectionModel)element;
 
       String[] choices = selectionModel.getValues();
       return new ChoiceCellEditor(viewer.getTree(), choices);
@@ -40,19 +40,19 @@ public class PinMappingEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (!(element instanceof PinMappingModel)) {
+      if (!(element instanceof SelectionModel)) {
          return null;
       }
-      PinMappingModel selectionModel = (PinMappingModel)element;
+      SelectionModel selectionModel = (SelectionModel)element;
       return selectionModel.getValueAsString();
    }
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (!(element instanceof PinMappingModel)) {
+      if (!(element instanceof SelectionModel)) {
          return;
       }
-      PinMappingModel selectionModel = (PinMappingModel)element;
+      SelectionModel selectionModel = (SelectionModel)element;
       selectionModel.setValue((String) value);
       
       viewer.update(element, null);

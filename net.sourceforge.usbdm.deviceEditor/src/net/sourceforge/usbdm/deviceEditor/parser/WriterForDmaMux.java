@@ -3,11 +3,12 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
+import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -22,26 +23,17 @@ public class WriterForDmaMux extends WriterBase {
       super(deviceInfo, peripheral);
    }
 
-   static final String ALIAS_BASE_NAME       = "vref_";
    static final String CLASS_BASE_NAME       = "Vref";
    static final String INSTANCE_BASE_NAME    = "vref";
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
    public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+      return null;
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return INSTANCE_BASE_NAME+instance+"_"+signal;
+      return null;
    }
 
    /** 
@@ -60,39 +52,6 @@ public class WriterForDmaMux extends WriterBase {
       return sb.toString();
    }
    
-   @Override
-   public void writeInfoClass(DeviceInformation deviceInformation, DocumentUtilities writer) throws IOException {
-   }
-
-   @Override
-   public int getFunctionIndex(PeripheralFunction function) {
-      final String signalNames[] = {"OUT"};
-      for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.getSignal().matches(signalNames[signal])) {
-            return signal;
-         }
-      }
-      throw new RuntimeException("Signal "+function.getSignal()+" does not match expected pattern ");
-   }
-   
-   static final String TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-         " * Convenience class representing a VREF\n"+
-         " *\n"+
-         " * Example\n"+
-         " * @code\n"+
-         " * using Vref = const USBDM::Vref<VrefInfo>;\n"+
-         " * @endcode\n"+
-         " *\n"+
-         " */\n";
-   
-   @Override
-   public String getTemplate() {
-      return TEMPLATE_DOCUMENTATION + String.format(
-            "template<uint8_t channel> using %s = Vref<%sInfo>;\n\n",
-            getClassName(), getClassName());
-   }
-
    @Override
    public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
@@ -121,6 +80,81 @@ public class WriterForDmaMux extends WriterBase {
    @Override
    public String getGroupBriefDescription() {
       return "Pins used Direct Memory Access (DMA)";
+   }
+
+   @Override
+   public void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+      writeDmaXmlInfo(documentUtilities);
+   }
+   
+   /**
+    * Writes enumeration describing DMA slot use
+    * 
+    * e.g.<pre>
+    * enum {
+    *    DMA0_SLOT_Disabled                   = 0,
+    *    DMA0_SLOT_UART0_Receive              = 2,
+    *    DMA0_SLOT_UART0_Transmit             = 3,
+    *    ...
+    * };
+    * </pre>
+    * @param writer
+    * @throws IOException
+    */
+   private void writeDmaXmlInfo(XmlDocumentUtilities documentUtilities) throws IOException {
+      if (fPeripheral.getDmaInfoList().size() == 0) {
+         return;
+      }
+      documentUtilities.openTag("dma");
+      documentUtilities.setAttrWidth(30);
+
+      for (DmaInfo item:fPeripheral.getDmaInfoList()) {
+         documentUtilities.openTag("slot");
+         documentUtilities.writeAttribute("source", item.dmaSource);
+         documentUtilities.writeAttribute("num",    item.dmaChannelNumber);
+         documentUtilities.closeTag();;
+      }
+      documentUtilities.popAttrWidth();
+      documentUtilities.closeTag();;
+   }
+
+   @Override
+   public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
+      getDmaInfo(documentUtilities);
+   }
+
+   /**
+    * Writes enumeration describing DMA slot use
+    * 
+    * e.g.<pre>
+    * enum {
+    *    DMA0_SLOT_Disabled                   = 0,
+    *    DMA0_SLOT_UART0_Receive              = 2,
+    *    DMA0_SLOT_UART0_Transmit             = 3,
+    *    ...
+    * };
+    * </pre>
+    * @param writer
+    * @throws IOException
+    */
+   private void getDmaInfo(DocumentUtilities documentUtilities) throws IOException {
+      if (fPeripheral.getDmaInfoList().size() == 0) {
+         return;
+      }
+      StringBuffer sb = new StringBuffer();
+      sb.append(
+            "   /!* DMA channel numbers */\n"+
+            "   enum DmaChannels = {\n");
+      for (DmaInfo item:fPeripheral.getDmaInfoList()) {
+         sb.append(String.format("      %-25s = %s,\n", item.dmaSource, item.dmaChannelNumber));
+      }
+      sb.append("   };\n");
+      documentUtilities.write(sb.toString());
+   }
+
+   @Override
+   public int getFunctionIndex(PeripheralFunction function) {
+      return 0;
    }
 
 }

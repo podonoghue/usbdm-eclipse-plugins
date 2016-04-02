@@ -11,18 +11,16 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import net.sourceforge.usbdm.deviceEditor.editor.DeviceEditor;
-import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
-import net.sourceforge.usbdm.deviceEditor.model.DeviceModel;
 
 public class TestDeviceEditor {
 
-   static void createEditor(Composite parent, DeviceModel deviceModel) {
-      Composite composite = new Composite(parent, SWT.NONE);
-      composite.setLayout(new FillLayout());
-      TreeEditor view = new TreeEditor();
-      view.createControls(composite);
-      view.setModel(deviceModel);
-   }
+//   private static void createEditor(Composite parent, DeviceModel deviceModel) {
+//      Composite composite = new Composite(parent, SWT.NONE);
+//      composite.setLayout(new FillLayout());
+//      TreeEditor view = new TreeEditor();
+//      view.createControls(composite);
+//      view.setModel(deviceModel);
+//   }
 
    static void testEditor(Path path) {
       Display display = new Display();
@@ -44,6 +42,7 @@ public class TestDeviceEditor {
          if (!display.readAndDispatch())
             display.sleep();
       }
+      editor.doSave(null);
       display.dispose();
    }
 

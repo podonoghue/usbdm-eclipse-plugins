@@ -1,5 +1,4 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,7 +7,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterBase.InfoTable;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
@@ -30,9 +28,6 @@ public class WriterForPwmIO_FTM extends WriterBase {
       super(deviceInfo, peripheral);
    }
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getAliasName(java.lang.String)
-    */
    @Override
    public String getAliasName(String signalName, String alias) {
       if (signalName.matches(".*ch\\d+")) {
@@ -41,9 +36,6 @@ public class WriterForPwmIO_FTM extends WriterBase {
       return null;
    }
 
-   /* (non-Javadoc)
-    * @see WriterForDigitalIO#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -238,14 +230,18 @@ public class WriterForPwmIO_FTM extends WriterBase {
       rv.add(fClkinFunctions);
       return rv;
    }
+
+   int ftm_sc_clks = 0x01;
+   int ftm_sc_ps   = 0x01;
+   
    @Override
    public String getInfoConstants() {
       StringBuffer sb = new StringBuffer();
       sb.append(super.getInfoConstants());
       sb.append(String.format(
             "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = %s;\n\n",
-            getPeripheralName()+"_SC"));
+            "   static constexpr uint32_t scValue  = (FTM_SC_CLKS(0x%02X)|FTM_SC_PS(0x%02X);\n\n",
+            ftm_sc_clks, ftm_sc_ps));
       InfoTable functions = fPeripheralFunctions;
       int lastChannel = -1;
       for (int index=0; index<functions.table.size(); index++) {
@@ -258,43 +254,6 @@ public class WriterForPwmIO_FTM extends WriterBase {
             "\n",
             lastChannel+1));
       return sb.toString();
-   }
-
-   @Override
-   public void writeWizard(DocumentUtilities headerFile) throws IOException {
-      headerFile.writeWizardSectionOpen("Clock settings for " + getPeripheralName());
-      headerFile.writeWizardOptionSelectionPreamble(
-            String.format("%s_SC.CLKS ================================\n//", getPeripheralName()), 
-            0,
-            null,
-            String.format("%s_SC.CLKS Clock source", getPeripheralName()),
-            String.format("Selects the clock source for the %s module. [%s_SC.CLKS]", getPeripheralName(), getPeripheralName()));
-      headerFile.writeWizardOptionSelectionEnty("0", "Disabled");
-      headerFile.writeWizardOptionSelectionEnty("1", "System clock");
-      headerFile.writeWizardOptionSelectionEnty("2", "Fixed frequency clock");
-      headerFile.writeWizardOptionSelectionEnty("3", "External clock");
-      headerFile.writeWizardDefaultSelectionEnty("1");
-      headerFile.writeWizardOptionSelectionPreamble(
-            String.format("%s_SC.PS ================================\n//",getPeripheralName()),
-            1,
-            null,
-            String.format("%s_SC.PS Clock prescaler", getPeripheralName()),
-            String.format("Selects the prescaler for the %s module. [%s_SC.PS]", getPeripheralName(), getPeripheralName()));
-      headerFile.writeWizardOptionSelectionEnty("0", "Divide by 1");
-      headerFile.writeWizardOptionSelectionEnty("1", "Divide by 2");
-      headerFile.writeWizardOptionSelectionEnty("2", "Divide by 4");
-      headerFile.writeWizardOptionSelectionEnty("3", "Divide by 8");
-      headerFile.writeWizardOptionSelectionEnty("4", "Divide by 16");
-      headerFile.writeWizardOptionSelectionEnty("5", "Divide by 32");
-      headerFile.writeWizardOptionSelectionEnty("6", "Divide by 64");
-      headerFile.writeWizardOptionSelectionEnty("7", "Divide by 128");
-      headerFile.writeWizardDefaultSelectionEnty("0");
-      headerFile.writeOpenNamespace(DeviceInfo.NAME_SPACE);
-      headerFile.writeConstexpr(16, getPeripheralName()+"_SC", "(FTM_SC_CLKS(0x1)|FTM_SC_PS(0x0))");
-      headerFile.writeCloseNamespace();
-      headerFile.write("\n");
-      headerFile.writeWizardSectionClose();
-      //      headerFile.write( String.format(optionSectionClose));
    }
 
 }

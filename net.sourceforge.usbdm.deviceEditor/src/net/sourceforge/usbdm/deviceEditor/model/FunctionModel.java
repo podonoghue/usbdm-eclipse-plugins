@@ -3,14 +3,12 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
-import org.eclipse.jface.viewers.TreeViewer;
-
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
-public class FunctionModel extends PinMappingModel implements IModelChangeListener {
+public class FunctionModel extends SelectionModel implements IModelChangeListener {
 
    /** List of possible mappings */
    protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
@@ -113,10 +111,7 @@ public class FunctionModel extends PinMappingModel implements IModelChangeListen
 //               notifyMuxChange();
             }
          }
-         for (TreeViewer viewer:getViewers()) {
-            viewer.update(this,  null);
-            viewer.update(this.fParent,  null);
-         }
+         viewerUpdate(this,  null);
       }
    }
 

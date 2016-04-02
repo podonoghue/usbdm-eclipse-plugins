@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Stack;
 
 /**
@@ -8,7 +10,7 @@ import java.util.Stack;
  */
 public class XmlDocumentUtilities {
    
-   static private final int ATTR_WIDTH = 20;
+   static private int fAttrWidth = 20;
    
    final BufferedWriter  fWriter;
    final Stack<XmlEntry> fXmlStack;
@@ -27,6 +29,19 @@ public class XmlDocumentUtilities {
       padding   = 0;
    }
 
+   Deque<Integer> fWidthStack = new ArrayDeque<Integer>();
+   
+   public void setAttrWidth(int width) {
+      fWidthStack.push(fAttrWidth);
+      fAttrWidth = width;
+   }
+   
+   public void popAttrWidth() {
+      if (!fWidthStack.isEmpty()) {
+         fAttrWidth = fWidthStack.pop();
+      }
+   }
+   
    /**
     * Used to keep track of tags and indenting
     */
@@ -144,7 +159,7 @@ public class XmlDocumentUtilities {
       }
       String attr = attribute+"=\""+value+"\"";
       fWriter.write(getpadding(padding)+attr);
-      padding = max(1,ATTR_WIDTH-attr.length());
+      padding = max(1,fAttrWidth-attr.length());
    }
 
    /**
@@ -181,7 +196,7 @@ public class XmlDocumentUtilities {
     * 
     * @throws  IOException
     */
-   void writeAttribute(String attribute, boolean value) throws IOException {
+   public void writeAttribute(String attribute, boolean value) throws IOException {
       writeAttribute(attribute, Boolean.toString(value));
    }
 
@@ -192,7 +207,7 @@ public class XmlDocumentUtilities {
     * 
     * @throws IOException
     */
-   void writeText(String text) throws IOException {
+   public void writeText(String text) throws IOException {
       closeTagIfOpen();
       fWriter.write(getIndent() + "   " + text + "\n");
    }
@@ -254,7 +269,7 @@ public class XmlDocumentUtilities {
     * 
     * @return Sanitised string
     */
-   static String sanitise(String s) {
+   public static String sanitise(String s) {
       return s.replaceAll("/", "_");
    }
 }

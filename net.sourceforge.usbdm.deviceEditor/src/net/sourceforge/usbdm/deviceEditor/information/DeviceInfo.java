@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.eclipse.jface.dialogs.DialogSettings;
+
 import net.sourceforge.usbdm.deviceEditor.parser.WriterBase;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForAnalogueIO;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForCmp;
@@ -40,22 +42,18 @@ public class DeviceInfo {
 
    /** How to handle existing files etc */
    enum Mode {newInstance, anyInstance, allowNullInstance};
+
    /** Device families */
    public enum DeviceFamily {mk, mke, mkl, mkm};
 
-   /** Name of the device e.g. MKL25Z4 */
-   private final String       fDeviceName;
-
    /** Source file containing device description */
-   private final Path       fPath;
+   private final Path fPath;
 
    /** Device family for this device */
    private final DeviceFamily fDeviceFamily;
 
-   /** Device family for this device */
-   public DeviceFamily getDeviceFamily() {
-      return fDeviceFamily;
-   }
+   /** Name of the device e.g. MKL25Z4 */
+   private String fDeviceName = null;
 
    /**
     * Create device information
@@ -63,23 +61,39 @@ public class DeviceInfo {
     * @param filePath   File name
     * @param deviceName       Device name
     */
-   public DeviceInfo(Path filePath, String deviceName) {
+   public DeviceInfo(Path filePath) {
 
-      this.fPath = filePath.toAbsolutePath();
-      this.fDeviceName     = deviceName;
+      fPath = filePath.toAbsolutePath();
+      String name = fPath.getFileName().toString();
 
-      if (deviceName.startsWith("MKE")) {
+      if (name.startsWith("MKE")) {
          fDeviceFamily = DeviceFamily.mke;
       }
-      else if (deviceName.startsWith("MKL")) {
+      else if (name.startsWith("MKL")) {
          fDeviceFamily = DeviceFamily.mkl;
       }
-      else if (deviceName.startsWith("MKM")) {
+      else if (name.startsWith("MKM")) {
          fDeviceFamily = DeviceFamily.mkm;
       }
       else {
          fDeviceFamily = DeviceFamily.mk;
       }
+   }
+
+   /** Device family for this device */
+   public DeviceFamily getDeviceFamily() {
+      return fDeviceFamily;
+   }
+
+   /**
+    * Set device name
+    * 
+    * @param deviceName
+    * 
+    * @return
+    */
+   public void setDeviceName(String deviceName) {
+      fDeviceName = deviceName;
    }
 
    /**
@@ -368,6 +382,7 @@ public class DeviceInfo {
    /*
     * DevicePackage =============================================================================================
     */
+   /** Map of package names to packages */
    Map<String, DevicePackage> fDevicePackages = new TreeMap<String, DevicePackage>();
 
    /**
@@ -406,7 +421,7 @@ public class DeviceInfo {
    public Map<String, DevicePackage> getDevicePackages() {
       return fDevicePackages;
    }
-
+   
    /*
     * MappingInfo =============================================================================================
     */
@@ -454,16 +469,9 @@ public class DeviceInfo {
     * @return
     */
    public MappingInfo createMapping(PeripheralFunction function, PinInformation pinInformation, MuxSelection functionSelector) {
-      Map<MuxSelection, MappingInfo> mappedFunctions = pinInformation.getMappedFunctions();
-      MappingInfo mapInfo = mappedFunctions.get(functionSelector);
-      if (mapInfo == null) {
-         // Create new mapping
-         mapInfo = new MappingInfo(pinInformation, functionSelector);
-         mappedFunctions.put(functionSelector, mapInfo);
-      }
-      mapInfo.getFunctions().add(function);
+      
+      MappingInfo mapInfo= pinInformation.addFunction(function, functionSelector);
       addToFunctionMap(function, mapInfo);
-      function.addMapping(mapInfo);
       return mapInfo;
    }
 
@@ -598,36 +606,6 @@ public class DeviceInfo {
       }
       return template;
    }
-
-   //   /**
-   //    * 
-   //    * @param namePattern          Base name of C peripheral class e.g. FTM2 => Ftm
-   //    * @param peripheralBasename     Base name of peripheral e.g. FTM2 => FTM
-   //    * @param instancePattern               Instance e.g. FTM2 => "2"
-   //    * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
-   //    * @param deviceFamily           Device family
-   //    * @param instanceWriter         InstanceWriter to use
-   //    */
-   //   public PeripheralTemplateInformation createPeripheralTemplateInformation(
-   //         String         namePattern,   
-   //         String         peripheralBasename,   
-   //         String         instancePattern, 
-   //         String         matchTemplate, 
-   //         DeviceFamily   deviceFamily, 
-   //         Class<?>       instanceWriterClass) throws Exception {
-   //
-   //      PeripheralTemplateInformation template = null;
-   //      try {
-   //         template = 
-   //               new PeripheralTemplateInformation(
-   //                     this, deviceFamily, namePattern, peripheralBasename, instancePattern, matchTemplate, instanceWriterClass);
-   //         fTemplateList.add(template);
-   //      }
-   //      catch (Exception e) {
-   //         throw new RuntimeException(e);
-   //      }
-   //      return template;
-   //   }
 
    /**
     * Set up templates
@@ -815,7 +793,7 @@ public class DeviceInfo {
                "$1", "$2", "$3",
                "(DMAMUX)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForDmaMux.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(DMA)(\\d)?(.*)",
@@ -848,11 +826,11 @@ public class DeviceInfo {
     * DeviceInformation =============================================================================================
     */
 
-   /** Devices */
+   /** Map from device names to devices */
    private Map<String, DeviceInformation> fDevices = new TreeMap<String, DeviceInformation>();
 
    /**
-    * Create device infomation
+    * Create device information
     * 
     * @param name
     * @param manual
@@ -860,6 +838,9 @@ public class DeviceInfo {
     * @return
     */
    public DeviceInformation createDeviceInformation(String name, String manual, String packageName) {
+      if (fDeviceName == null) {
+         fDeviceName = name;
+      }
       DeviceInformation deviceInformation = new DeviceInformation(name, findOrCreateDevicePackage(packageName), manual);
       fDevices.put(name, deviceInformation);
       return deviceInformation;
@@ -888,31 +869,32 @@ public class DeviceInfo {
     * DmaInfo =============================================================================================
     */
 
-   /** List of DMA channels */
-   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
+//   /** List of DMA channels */
+//   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
    /**
     * Create DMA information entry
     * 
-    * @param dmaInstance
+    * @param dmaMux
     * @param dmaChannelNumber
     * @param dmaSource
     * @return
     */
-   public DmaInfo createDmaInfo(int dmaInstance, int dmaChannelNumber, String dmaSource) {
-      DmaInfo dmaInfo = new DmaInfo(dmaInstance, dmaChannelNumber, dmaSource);
-      fDmaInfoList.add(dmaInfo);
+   public DmaInfo createDmaInfo(String dmaMux, int dmaChannelNumber, String dmaSource) {
+      Peripheral dmaPeripheral = findOrCreatePeripheral(dmaMux);
+      DmaInfo dmaInfo = dmaPeripheral.addDmaChannel(dmaChannelNumber, dmaSource);
+//      fDmaInfoList.add(dmaInfo);
       return dmaInfo;
    }
 
-   /**
-    * Get list of DMA entries
-    *  
-    * @return
-    */
-   public ArrayList<DmaInfo> getDmaList() {
-      return fDmaInfoList;
-   }
+//   /**
+//    * Get list of DMA entries
+//    *  
+//    * @return
+//    */
+//   public ArrayList<DmaInfo> getDmaList() {
+//      return fDmaInfoList;
+//   }
 
    private final static HashMap<String, MuxSelection> exceptions = new  HashMap<String, MuxSelection>();
 
@@ -961,7 +943,66 @@ public class DeviceInfo {
             throw new RuntimeException("No reset value for function " + function);
          }
       }
-
    }
 
+   /*
+    * ==============================================================
+    */
+   /**
+    * Get name of the pin with alias 
+    * 
+    * @return Pin name
+    */
+   public String getPinNameWithAlias(PinInformation pin) {
+      String alias = "";
+      DeviceInformation deviceInformation = fDevices.get(fDeviceName);
+      if (deviceInformation != null) {
+         DevicePackage pkg = fDevicePackages.get(deviceInformation.getPackage().getName());
+         if (pkg != null) {
+            alias = pkg.getLocation(pin);
+         }
+      }
+      if (!alias.isEmpty()) {
+         alias = " ("+alias+")";
+      }
+      return pin.getName() + alias;
+   }
+
+   /**
+    * Load persistent settings
+    */
+   public void loadSettings() {
+      System.err.println("DeviceInfo.loadSettings()");
+      Path path = fPath.getParent().resolve("usbdm.project");
+      if (path.toFile().isFile()) {
+         try {
+         DialogSettings settings = new DialogSettings("USBDM");
+            settings.load(path.toAbsolutePath().toString());
+         for (String pinName:fPins.keySet()) {
+            PinInformation pin = fPins.get(pinName);
+            pin.loadSettings(settings);
+         }
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+   }
+   
+   /**
+    * Save persistent settings
+    */
+   public void saveSettings() {
+      System.err.println("DeviceInfo.saveSettings()");
+      Path path = fPath.getParent().resolve("usbdm.project");
+      DialogSettings settings = new DialogSettings("USBDM");
+      for (String pinName:fPins.keySet()) {
+         PinInformation pin = fPins.get(pinName);
+         pin.saveSettings(settings);
+      }
+      try {
+         settings.save(path.toAbsolutePath().toString());
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
 }

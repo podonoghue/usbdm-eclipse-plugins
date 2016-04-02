@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jface.viewers.TreeViewer;
-
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.peripherals.model.MemoryException;
 
 /**
  * Base Model for tree item
@@ -301,15 +300,6 @@ public class BaseModel {
    }
    
    /**
-    * Get viewers associated with this model
-    * 
-    * @return
-    */
-   protected ArrayList<TreeViewer> getViewers() {
-      return getRoot().getViewers();
-   }
-   
-   /**
     * Check if this node's function mapping conflicts with set of already mapped nodes
     * 
     * @param mappedNodes
@@ -318,5 +308,23 @@ public class BaseModel {
    protected Message checkConflicts(Map<String, List<MappingInfo>> mappedNodes) {
       return null;
    }
+
+   /**
+    * Update the node given
+    * 
+    * @param element
+    * @param properties
+    */
+   protected void viewerUpdate(BaseModel element, String[] properties) {
+      getRoot().viewerUpdate(element, properties);
+   }
+
+   /**
+    * Refresh all views from the model
+    */
+   protected void refresh() {
+      getRoot().refresh();
+   }
+   
 
 }

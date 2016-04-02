@@ -7,8 +7,6 @@ public class MyNameColumnLabelProvider extends CellLabelProvider {
 
    @Override
    public void update(ViewerCell arg0) {
-      // TODO Auto-generated method stub
-
    }
 
 }

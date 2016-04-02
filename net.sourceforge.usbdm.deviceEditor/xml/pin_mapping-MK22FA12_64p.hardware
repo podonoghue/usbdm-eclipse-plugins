@@ -2,11 +2,11 @@
 <!DOCTYPE root SYSTEM "Pins.dtd">
 <!-- pin_mapping-MK22FA12_64p.hardware -->
 <!-- 
-   Generated from MK22FA12_64p.csv
+   Generated from MK22FA12-FRDM.csv
 -->
 
 <root version="1.2.0">
-   <family name="MK22FA12_64p">
+   <family name="MK22FA12-FRDM">
       <device name="MK22F12-FRDM" manual="K22P64M120SF5V2RM" package="FRDM" />
       <device name="MK22F12-LQFP64" manual="K22P64M120SF5V2RM" package="LQFP_64" />
       <device name="MK22FA12-FRDM" manual="K22P64M120SF5V2RM" package="LQFP_64" />
@@ -17,57 +17,57 @@
          <mux sel="fixed"         function="ADC0_DM0" />
          <mux sel="fixed"         function="ADC1_DM3" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC0_DP0"     isFixed="true">
          <mux sel="fixed"         function="ADC0_DP0" />
          <mux sel="fixed"         function="ADC1_DP3" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC1_DM0"     isFixed="true">
          <mux sel="fixed"         function="ADC1_DM0" />
          <mux sel="fixed"         function="ADC0_DM3" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="ADC1_DP0"     isFixed="true">
          <mux sel="fixed"         function="ADC1_DP0" />
          <mux sel="fixed"         function="ADC0_DP3" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="DAC0_OUT"     isFixed="true">
          <mux sel="fixed"         function="DAC0_OUT" />
          <mux sel="fixed"         function="CMP1_IN3" />
          <mux sel="fixed"         function="ADC0_SE23" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="EXTAL32"      isFixed="true">
          <mux sel="fixed"         function="EXTAL32" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="RESET_b"      isFixed="true">
          <mux sel="fixed"         function="RESET_b" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="USB0_DM"      isFixed="true">
          <mux sel="fixed"         function="USB0_DM" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="USB0_DP"      isFixed="true">
          <mux sel="fixed"         function="USB0_DP" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="VOUT33"       isFixed="true">
          <mux sel="fixed"         function="VOUT33" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="VREF_OUT"     isFixed="true">
          <mux sel="fixed"         function="VREF_OUT" />
@@ -75,17 +75,17 @@
          <mux sel="fixed"         function="CMP0_IN5" />
          <mux sel="fixed"         function="ADC1_SE18" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="VREGIN"       isFixed="true">
          <mux sel="fixed"         function="VREGIN" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="XTAL32"       isFixed="true">
          <mux sel="fixed"         function="XTAL32" />
          <reset sel="fixed" />
-         <default sel="reset" />
+         <default sel="fixed" />
       </pin>
       <pin name="PTA0">
          <mux sel="reset"         function="JTAG_TCLK" />
@@ -569,28 +569,28 @@
    </pins>
    <packages>
       <package name="FRDM">
-         <placement pin="ADC0_DM0"      location="ADC0_DM0" />
-         <placement pin="ADC0_DP0"      location="ADC0_DP0" />
-         <placement pin="ADC1_DM0"      location="ADC1_DM0" />
-         <placement pin="ADC1_DP0"      location="ADC1_DP0" />
-         <placement pin="DAC0_OUT"      location="DAC0_OUT" />
-         <placement pin="EXTAL32"       location="EXTAL32" />
-         <placement pin="PTA0"          location="PTA0" />
+         <placement pin="ADC0_DM0"      location="" />
+         <placement pin="ADC0_DP0"      location="" />
+         <placement pin="ADC1_DM0"      location="" />
+         <placement pin="ADC1_DP0"      location="" />
+         <placement pin="DAC0_OUT"      location="" />
+         <placement pin="EXTAL32"       location="" />
+         <placement pin="PTA0"          location="" />
          <placement pin="PTA1"          location="D5" />
          <placement pin="PTA12"         location="D8" />
          <placement pin="PTA13"         location="D24" />
-         <placement pin="PTA18"         location="PTA18" />
-         <placement pin="PTA19"         location="PTA19" />
+         <placement pin="PTA18"         location="" />
+         <placement pin="PTA19"         location="" />
          <placement pin="PTA2"          location="D9/LED_BLUE" />
-         <placement pin="PTA3"          location="PTA3" />
+         <placement pin="PTA3"          location="" />
          <placement pin="PTA4"          location="D21" />
          <placement pin="PTA5"          location="D2" />
          <placement pin="PTB0"          location="A5/ACC_SCL" />
          <placement pin="PTB1"          location="A4/ACC_SDA" />
          <placement pin="PTB16"         location="ConRx" />
          <placement pin="PTB17"         location="ConTx" />
-         <placement pin="PTB18"         location="PTB18" />
-         <placement pin="PTB19"         location="PTB19" />
+         <placement pin="PTB18"         location="" />
+         <placement pin="PTB19"         location="" />
          <placement pin="PTB2"          location="D15" />
          <placement pin="PTB3"          location="D14" />
          <placement pin="PTC0"          location="A0" />
@@ -615,13 +615,13 @@
          <placement pin="PTD7"          location="D22" />
          <placement pin="PTE0"          location="D1" />
          <placement pin="PTE1"          location="D0" />
-         <placement pin="RESET_b"       location="RESET_b" />
-         <placement pin="USB0_DM"       location="USB0_DM" />
-         <placement pin="USB0_DP"       location="USB0_DP" />
-         <placement pin="VOUT33"        location="VOUT33" />
-         <placement pin="VREF_OUT"      location="VREF_OUT" />
-         <placement pin="VREGIN"        location="VREGIN" />
-         <placement pin="XTAL32"        location="XTAL32" />
+         <placement pin="RESET_b"       location="" />
+         <placement pin="USB0_DM"       location="" />
+         <placement pin="USB0_DP"       location="" />
+         <placement pin="VOUT33"        location="" />
+         <placement pin="VREF_OUT"      location="" />
+         <placement pin="VREGIN"        location="" />
+         <placement pin="XTAL32"        location="" />
       </package>
       <package name="LQFP_64">
          <placement pin="ADC0_DM0"      location="p10" />
@@ -723,6 +723,51 @@
       </peripheral>
       <peripheral name="DMAMUX0">
          <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_DMAMUX0_MASK" />
+         <dma>
+            <slot source="Disabled"             num="0" />
+            <slot source="UART0_Receive"        num="2" />
+            <slot source="UART0_Transmit"       num="3" />
+            <slot source="UART1_Receive"        num="4" />
+            <slot source="UART1_Transmit"       num="5" />
+            <slot source="UART2_Receive"        num="6" />
+            <slot source="UART2_Transmit"       num="7" />
+            <slot source="I2S0_Receive"         num="12" />
+            <slot source="I2S0_Transmit"        num="13" />
+            <slot source="SPI0_Receive"         num="14" />
+            <slot source="SPI0_Transmit"        num="15" />
+            <slot source="SPI1_TransmitReceive" num="16" />
+            <slot source="I2C0"                 num="18" />
+            <slot source="I2C1"                 num="19" />
+            <slot source="FTM0_Ch_0"            num="20" />
+            <slot source="FTM0_Ch_1"            num="21" />
+            <slot source="FTM0_Ch_2"            num="22" />
+            <slot source="FTM0_Ch_3"            num="23" />
+            <slot source="FTM0_Ch_4"            num="24" />
+            <slot source="FTM0_Ch_5"            num="25" />
+            <slot source="FTM0_Ch_6"            num="26" />
+            <slot source="FTM0_Ch_7"            num="27" />
+            <slot source="FTM1_Ch_0"            num="28" />
+            <slot source="FTM1_Ch_1"            num="29" />
+            <slot source="FTM2_Ch_0"            num="30" />
+            <slot source="FTM2_Ch_1"            num="31" />
+            <slot source="ADC0"                 num="40" />
+            <slot source="ADC1"                 num="41" />
+            <slot source="CMP0"                 num="42" />
+            <slot source="CMP1"                 num="43" />
+            <slot source="DAC0"                 num="45" />
+            <slot source="PDB"                  num="48" />
+            <slot source="PortA"                num="49" />
+            <slot source="PortB"                num="50" />
+            <slot source="PortC"                num="51" />
+            <slot source="PortD"                num="52" />
+            <slot source="PortE"                num="53" />
+            <slot source="LPUART_Receive"       num="58" />
+            <slot source="LPUART_Transmit"      num="59" />
+            <slot source="AlwaysEnabled0"       num="60" />
+            <slot source="AlwaysEnabled1"       num="61" />
+            <slot source="AlwaysEnabled2"       num="62" />
+            <slot source="AlwaysEnabled3"       num="63" />
+         </dma>
       </peripheral>
       <peripheral name="EWM">
          <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_EWM_MASK" />

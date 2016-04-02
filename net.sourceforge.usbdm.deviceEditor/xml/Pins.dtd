@@ -39,7 +39,7 @@
    
  <!ELEMENT peripherals (peripheral*) >
    
- <!ELEMENT peripheral (clock*,irq*) >
+ <!ELEMENT peripheral (clock*,irq*,dma?) >
    <!ATTLIST peripheral name        CDATA #REQUIRED>
  
  <!ELEMENT pcrs (pcr*) >
@@ -54,4 +54,10 @@
  <!ELEMENT pcr EMPTY >
    <!ATTLIST pcr index        CDATA #REQUIRED>
    <!ATTLIST pcr function     CDATA #REQUIRED>
+   
+ <!ELEMENT dma (slot*) >
+
+ <!ELEMENT slot EMPTY >
+   <!ATTLIST slot source  CDATA #REQUIRED>
+   <!ATTLIST slot num     CDATA #REQUIRED>
    
