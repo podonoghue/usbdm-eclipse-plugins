@@ -4,6 +4,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -13,14 +14,14 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  * @author podonoghue
  *
  */
-public class WriterForI2s extends WriterBase {
+public class WriterForI2s extends Peripheral {
    static final String ALIAS_BASE_NAME       = "i2s_";
    static final String CLASS_BASE_NAME       = "I2s";
    static final String INSTANCE_BASE_NAME    = "i2s";
 
 
-   public WriterForI2s(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForI2s(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    @Override
@@ -96,7 +97,7 @@ public class WriterForI2s extends WriterBase {
    }
    
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";");
    }
 

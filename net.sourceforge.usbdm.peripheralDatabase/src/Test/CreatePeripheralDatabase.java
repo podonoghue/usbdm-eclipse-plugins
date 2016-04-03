@@ -1,3 +1,4 @@
+package Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,7 +29,7 @@ import org.eclipse.core.runtime.IPath;
 public class CreatePeripheralDatabase {
    private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
    private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
-   //   @SuppressWarnings("unused")
+   @SuppressWarnings("unused")
    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
 
    private static final  Path usbdmFolder            = MAIN_FOLDER.resolve("Internal");
@@ -39,11 +40,8 @@ public class CreatePeripheralDatabase {
 
    @SuppressWarnings("unused")
    private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
-   private static final  Path freescaleHeaderFolder  = MAIN_FOLDER.resolve("Freescale_header");
    @SuppressWarnings("unused")
    private static final  Path freescaleFolder_Check   = MAIN_FOLDER.resolve("Freescale.Check");
-   private static final  Path freescaleHeaderFolder_Check   = MAIN_FOLDER.resolve("Freescale_header.Check");
-
    private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";
    private static final  String CMSIS_SCHEMA_FILENAME       = "CMSIS-SVD_Schema_1_1.xsd";
    private static final  String DEVICE_LIST_SCHEMA_FILENAME = "DeviceListSchema.dtd";

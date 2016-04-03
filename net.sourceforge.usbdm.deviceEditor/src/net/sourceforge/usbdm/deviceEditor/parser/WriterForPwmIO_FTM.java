@@ -5,16 +5,21 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
  */
-public class WriterForPwmIO_FTM extends WriterBase {
+public class WriterForPwmIO_FTM extends PeripheralWithState {
 
-   static final String ALIAS_PREFIX          = "ftm_";
+   private static final String ALIAS_PREFIX        = "ftm_";
    
+   private static final String FTM_SC_CLKS_KEY     = "FTM_SC_CLKS";
+   private static final String FTM_SC_PS_KEY       = "FTM_SC_PS";
+   
+
    /** Functions that use this writer */
    protected InfoTable fQuadFunctions = new InfoTable("infoQUAD");
          
@@ -24,8 +29,10 @@ public class WriterForPwmIO_FTM extends WriterBase {
    /** Functions that use this writer */
    protected InfoTable fClkinFunctions = new InfoTable("infoCLKIN");
          
-   public WriterForPwmIO_FTM(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForPwmIO_FTM(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
+      createValue(FTM_SC_CLKS_KEY, "1", "Clock select value");
+      createValue(FTM_SC_PS_KEY,   "2", "Clock divider value");
    }
 
    @Override
@@ -93,11 +100,6 @@ public class WriterForPwmIO_FTM extends WriterBase {
       return required;
    }
 
-   @Override
-   public boolean useGuard() {
-      return true;
-   }
-
    static final String TEMPLATE_DOCUMENTATION = 
    "/**\n"+
    " * Convenience templated class representing a FTM\n"+
@@ -120,10 +122,10 @@ public class WriterForPwmIO_FTM extends WriterBase {
    " * @tparam channel    Timer channel\n"+
    " */\n";
    @Override
-   public String getTemplate() {
+   public String getCTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
             "template<uint8_t channel> using %s = TmrBase_T<%sInfo, channel>;\n\n",
-            getClassName(), getClassName(), getPeripheralName());
+            getClassName(), getClassName(), getName());
    }
 
    @Override
@@ -170,7 +172,7 @@ public class WriterForPwmIO_FTM extends WriterBase {
    }
 
    @Override
-   public void addFunction(PeripheralFunction function) {
+   protected void addFunctionToTable(PeripheralFunction function) {
       InfoTable fFunctions = null;
 
       int signalIndex = -1;
@@ -231,17 +233,16 @@ public class WriterForPwmIO_FTM extends WriterBase {
       return rv;
    }
 
-   int ftm_sc_clks = 0x01;
-   int ftm_sc_ps   = 0x01;
-   
    @Override
    public String getInfoConstants() {
+      int sc_clks = Integer.parseInt(fVariableMap.get(FTM_SC_CLKS_KEY).value);
+      int sc_ps   = Integer.parseInt(fVariableMap.get(FTM_SC_PS_KEY).value);
       StringBuffer sb = new StringBuffer();
       sb.append(super.getInfoConstants());
       sb.append(String.format(
             "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = (FTM_SC_CLKS(0x%02X)|FTM_SC_PS(0x%02X);\n\n",
-            ftm_sc_clks, ftm_sc_ps));
+            "   static constexpr uint32_t scValue  = FTM_SC_CLKS(0x%02X)|FTM_SC_PS(0x%02X);\n\n",
+            sc_clks, sc_ps));
       InfoTable functions = fPeripheralFunctions;
       int lastChannel = -1;
       for (int index=0; index<functions.table.size(); index++) {
@@ -254,6 +255,11 @@ public class WriterForPwmIO_FTM extends WriterBase {
             "\n",
             lastChannel+1));
       return sb.toString();
+   }
+
+   @Override
+   public boolean useAliases(PinInformation pinInfo) {
+      return true;
    }
 
 }

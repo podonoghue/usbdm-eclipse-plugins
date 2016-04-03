@@ -7,6 +7,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
@@ -15,7 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
  * @author podonoghue
  *
  */
-public class WriterForAnalogueIO extends WriterBase {      
+public class WriterForAnalogueIO extends Peripheral {      
 
    static private final String ALIAS_PREFIX = "adc_";
    
@@ -28,8 +30,8 @@ public class WriterForAnalogueIO extends WriterBase {
    /** Functions that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("infoDP");
          
-   public WriterForAnalogueIO(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForAnalogueIO(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    @Override
@@ -97,11 +99,6 @@ public class WriterForAnalogueIO extends WriterBase {
       return required;
    }
 
-    @Override
-   public boolean useGuard() {
-      return true;
-   }
-
    static final String TEMPLATE_DOCUMENTATION = 
          "/**\n"+
          " * Convenience templated class representing an ADC\n"+
@@ -125,7 +122,7 @@ public class WriterForAnalogueIO extends WriterBase {
          " */\n";
 
    @Override
-   public String getTemplate() {   
+   public String getCTemplate() {   
       return TEMPLATE_DOCUMENTATION+String.format(
             "template<uint8_t channel> using %s = Adc_T<%sInfo, channel>;\n\n",
             getClassName(), getClassName());
@@ -162,7 +159,7 @@ public class WriterForAnalogueIO extends WriterBase {
    }
 
    @Override
-   public void addFunction(PeripheralFunction function) {
+   protected void addFunctionToTable(PeripheralFunction function) {
       InfoTable fFunctions = super.fPeripheralFunctions;
       
       Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
@@ -199,6 +196,11 @@ public class WriterForAnalogueIO extends WriterBase {
       rv.add(fDpFunctions);
       rv.add(fDmFunctions);
       return rv;
+   }
+
+   @Override
+   public boolean useAliases(PinInformation pinInfo) {
+      return true;
    }
    
    

@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
-public class ModelFactory {
+public class ModelFactory implements IModelChangeListener {
 
    static class PinCategory {
       final String               name;
@@ -45,24 +45,19 @@ public class ModelFactory {
       }
    }
 
-   static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",      "Mux:Signals", "Description"};
-   static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal", "Mux:Pin",     "Description"};
-   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name", "Value",     "Description"};
+   static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",       "Mux:Signals",    "Description"};
+   static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal",  "Mux:Pin",        "Description"};
+   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name",               "Value",          "Description"};
+   static final private String[] OTHER_COLUMN_LABELS       = {"Name",               "Value",          "Description"};
 
    /*
     * =============================================================================================
     */
-   /** Peripheral based model */
-   private final DeviceModel  fPeripheralModel;
-
-   /** Pin based model */
-   private final DeviceModel  fPinModel;
-   
-   /** Data use to construct models */
-   private final DeviceInformationModel fPackageModel;
-
    /** Data use to construct models */
    private final DeviceInfo   fDeviceInfo;
+
+   /** List of all models */
+   ArrayList<RootModel> fModels = new ArrayList<RootModel>();
 
    /** List of pin mapping entries */
    protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
@@ -98,7 +93,7 @@ public class ModelFactory {
          }
          CategoryModel categoryModel = new CategoryModel(deviceModel, pinCategory.getName(), "");
          for(PinInformation pinInformation:pinCategory.getPins()) {
-            new PinModel(categoryModel, pinInformation, fDeviceInfo.getPinNameWithAlias(pinInformation));
+            new PinModel(categoryModel, pinInformation);
             for (MappingInfo mappingInfo:pinInformation.getMappedFunctions().values()) {
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   continue;
@@ -135,43 +130,36 @@ public class ModelFactory {
    }
    
    /**
-    * Create model for package information
+    * Create model for device selection and package information
     * 
     * @return
     */
    private DeviceInformationModel createPackageModel() {
       DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Device Information", "Device Information");
-      new ConstantModel(packageModel, "Source", fDeviceInfo.getSourceFilename(), "");
+      new StringModel(packageModel, "Source", "", fDeviceInfo.getSourceFilename());
       
-//      Map<String, DevicePackage> deviceFamily = fDeviceInfo.getDevicePackages();
+      new DeviceVariantModel(packageModel, fDeviceInfo);
       new DevicePackageModel(packageModel, fDeviceInfo);
-      
-//      for (String deviceName:deviceFamily.keySet()) {
-//         DevicePackage devicePackage = deviceFamily.get(deviceName);
-//         new BaseModel(packageModel, deviceName, devicePackage.getName());
-//      }
       return packageModel;
    }
 
    /**
-    * @return the PeripheralModel
+    * Create model for Device provided elements
+    * 
+    * @return
     */
-   public DeviceModel getPeripheralModel() {
-      return fPeripheralModel;
-   }
-
-   /**
-    * @return the PinModel
-    */
-   public DeviceModel getPinModel() {
-      return fPinModel;
-   }
-
-   /**
-    * @return the PackageModel
-    */
-   public DeviceInformationModel getPackageModel() {
-      return fPackageModel;
+   private RootModel createOtherModels() {
+      RootModel root = new RootModel(this, OTHER_COLUMN_LABELS, "Device Parameters", "Device Parameters");
+      for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
+         if (device.getName().equals("PIT")) {
+            System.err.println("Checking " + device);
+         }
+         if (device instanceof ModelEntryProvider) {
+            ((ModelEntryProvider) device).getModels(root);
+         }
+      }
+      return root;
    }
 
    /**
@@ -201,7 +189,6 @@ public class ModelFactory {
     * This is done on a delayed thread
     */
    public synchronized void checkConflicts() {
-//      System.err.println("checkConflicts() ===================");
       if (!testAndSetCheckPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
@@ -280,12 +267,25 @@ public class ModelFactory {
     * @param deviceInfo
     */
    public ModelFactory(DeviceInfo deviceInfo) {
+      
       fDeviceInfo      = deviceInfo;
-      fPeripheralModel = createPeripheralModel();
-      fPinModel        = createPinModel();
-      fPackageModel    = createPackageModel();
+      deviceInfo.addListener(this);
+      
+      fModels.add((RootModel)createPackageModel());
+      fModels.add((RootModel)createPeripheralModel());
+      fModels.add((RootModel)createPinModel());
+      fModels.add((RootModel)createOtherModels());
    }
 
+   /**
+    * Get list of all models created
+    * 
+    * @return
+    */
+   public ArrayList<RootModel> getModels() {
+      return fModels;
+   }
+   
    /**
     * Construct factory that hold models
     * 
@@ -331,6 +331,19 @@ public class ModelFactory {
          deviceInfo.loadSettings();
       }
       return new ModelFactory(deviceInfo);
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModel model) {
+      if (model instanceof DeviceInfo) {
+         for (RootModel rootModel:fModels) {
+            rootModel.refresh();
+         }
+      }
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
    }
 
 }

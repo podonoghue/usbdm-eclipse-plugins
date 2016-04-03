@@ -278,7 +278,6 @@ public class ParseFamilyCSV {
       if ((peripheralClockMask==null) || (peripheralClockMask.isEmpty())) {
          peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
       }
-
       String[] irqNums = new String[10]; 
       for (int index=0; index<irqNums.length; index++) {
          if (line.length >= index+5) {
@@ -420,7 +419,7 @@ public class ParseFamilyCSV {
       if (fPackageIndexes.size() == 0) {
          throw new RuntimeException("No packages provided");
       }
-      if (fDeviceInfo.getDevices().size() == 0) {
+      if (fDeviceInfo.getDeviceVariants().size() == 0) {
          throw new RuntimeException("No Devices found in file");
       }
    }

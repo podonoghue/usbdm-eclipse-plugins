@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
@@ -16,7 +18,11 @@ public class ViewContentProvider implements ITreeContentProvider {
 
    @Override
    public Object[] getElements(Object inputElement) {
-      return ((RootModel) inputElement).getChildren().toArray();
+      ArrayList<Object> children = ((RootModel) inputElement).getChildren();
+      if (children == null) {
+         return new Object[0];
+      }
+      return children.toArray();
    }
 
    @Override

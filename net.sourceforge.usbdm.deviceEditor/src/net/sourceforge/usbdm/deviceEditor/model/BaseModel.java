@@ -320,11 +320,10 @@ public class BaseModel {
    }
 
    /**
-    * Refresh all views from the model
+    * Refresh all views from the model from the root node
     */
    protected void refresh() {
       getRoot().refresh();
    }
    
-
 }

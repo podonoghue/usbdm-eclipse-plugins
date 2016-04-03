@@ -14,14 +14,6 @@ import net.sourceforge.usbdm.deviceEditor.editor.DeviceEditor;
 
 public class TestDeviceEditor {
 
-//   private static void createEditor(Composite parent, DeviceModel deviceModel) {
-//      Composite composite = new Composite(parent, SWT.NONE);
-//      composite.setLayout(new FillLayout());
-//      TreeEditor view = new TreeEditor();
-//      view.createControls(composite);
-//      view.setModel(deviceModel);
-//   }
-
    static void testEditor(Path path) {
       Display display = new Display();
 

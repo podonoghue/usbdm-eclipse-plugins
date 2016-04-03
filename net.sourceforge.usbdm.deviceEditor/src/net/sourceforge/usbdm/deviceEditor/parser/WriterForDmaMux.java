@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
@@ -17,10 +18,10 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  * @author podonoghue
  *
  */
-public class WriterForDmaMux extends WriterBase {
+public class WriterForDmaMux extends Peripheral {
 
-   public WriterForDmaMux(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForDmaMux(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    static final String CLASS_BASE_NAME       = "Vref";
@@ -53,13 +54,13 @@ public class WriterForDmaMux extends WriterBase {
    }
    
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
    }
 
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
-      return super.getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
+      return super.getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
 
    @Override
@@ -102,13 +103,13 @@ public class WriterForDmaMux extends WriterBase {
     * @throws IOException
     */
    private void writeDmaXmlInfo(XmlDocumentUtilities documentUtilities) throws IOException {
-      if (fPeripheral.getDmaInfoList().size() == 0) {
+      if (getDmaInfoList().size() == 0) {
          return;
       }
       documentUtilities.openTag("dma");
       documentUtilities.setAttrWidth(30);
 
-      for (DmaInfo item:fPeripheral.getDmaInfoList()) {
+      for (DmaInfo item:getDmaInfoList()) {
          documentUtilities.openTag("slot");
          documentUtilities.writeAttribute("source", item.dmaSource);
          documentUtilities.writeAttribute("num",    item.dmaChannelNumber);
@@ -138,15 +139,15 @@ public class WriterForDmaMux extends WriterBase {
     * @throws IOException
     */
    private void getDmaInfo(DocumentUtilities documentUtilities) throws IOException {
-      if (fPeripheral.getDmaInfoList().size() == 0) {
+      if (getDmaInfoList().size() == 0) {
          return;
       }
       StringBuffer sb = new StringBuffer();
       sb.append(
-            "   /!* DMA channel numbers */\n"+
-            "   enum DmaChannels = {\n");
-      for (DmaInfo item:fPeripheral.getDmaInfoList()) {
-         sb.append(String.format("      %-25s = %s,\n", item.dmaSource, item.dmaChannelNumber));
+            "   /* DMA channel numbers */\n"+
+            "   enum DmaChannels {\n");
+      for (DmaInfo item:getDmaInfoList()) {
+         sb.append(String.format("      %-45s = %s,\n", "DMA0_SLOT_"+item.dmaSource, item.dmaChannelNumber));
       }
       sb.append("   };\n");
       documentUtilities.write(sb.toString());

@@ -1,41 +1,31 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 
-import java.io.IOException;
-
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of PIT
  */
-/**
- * @author podonoghue
- *
- */
-public class WriterForPit extends WriterBase {
+public class WriterForPit extends PeripheralWithState {
 
-   static final String ALIAS_BASE_NAME       = "vref_";
-   static final String CLASS_BASE_NAME       = "Vref";
-   static final String INSTANCE_BASE_NAME    = "vref";
+   static final String ALIAS_PREFIX       = "pit_";
 
-   public WriterForPit(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
-   }
-
-   @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+   /** Key for PIT_LDVAL */
+   private static final String PIT_LDVAL_KEY = "PIT_LDVAL";
+   
+   public WriterForPit(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
+      createValue(PIT_LDVAL_KEY, "2000", "Reload value");
    }
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return INSTANCE_BASE_NAME+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
    /** 
@@ -66,30 +56,31 @@ public class WriterForPit extends WriterBase {
    
    static final String TEMPLATE_DOCUMENTATION = 
          "/**\n"+
-         " * Convenience class representing a VREF\n"+
+         " * Convenience class representing a PIT\n"+
          " *\n"+
          " * Example\n"+
          " * @code\n"+
-         " * using Vref = const USBDM::Vref<VrefInfo>;\n"+
+         " * using Pit = const USBDM::Pit<PitInfo>;\n"+
          " * @endcode\n"+
          " *\n"+
          " */\n";
    
    @Override
-   public String getTemplate() {
-      return TEMPLATE_DOCUMENTATION + String.format(
-            "template<uint8_t channel> using %s = Vref<%sInfo>;\n\n",
-            getClassName(), getClassName());
+   public String getCTemplate() {
+      return null;
+//      return TEMPLATE_DOCUMENTATION + String.format(
+//            "template<uint8_t channel> using %s = %s<%sInfo>;\n\n",
+//            getClassName(), getClassName(), getClassName());
    }
 
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
    }
 
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
-      return super.getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
+      return super.getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
 
    @Override
@@ -110,10 +101,6 @@ public class WriterForPit extends WriterBase {
    @Override
    public String getGroupBriefDescription() {
       return "Pins used for Programmable Interrupt Timer";
-   }
-
-   @Override
-   public void writeInfoClass(DeviceInformation deviceInformation, DocumentUtilities writer) throws IOException {
    }
 
 }

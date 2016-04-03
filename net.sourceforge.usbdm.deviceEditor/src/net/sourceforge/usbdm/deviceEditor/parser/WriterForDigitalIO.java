@@ -7,6 +7,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,27 +17,21 @@ import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
  * @author podonoghue
  *
  */
-public class WriterForDigitalIO extends WriterBase {
+public class WriterForDigitalIO extends Peripheral {
 
    static final String ALIAS_BASE_NAME       = "gpio_";
    static final String CLASS_BASE_NAME       = "Gpio";
    static final String INSTANCE_BASE_NAME    = "gpio";
 
-   public WriterForDigitalIO(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForDigitalIO(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
    public String getAliasName(String signalName, String alias) {
       return ALIAS_BASE_NAME+alias;
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -65,7 +61,7 @@ public class WriterForDigitalIO extends WriterBase {
    }
 
    @Override
-   public String getPcrValue() {
+   public String getPcrDefinition() {
       return String.format(
             "   //! Value for PCR (including MUX value)\n"+
             "   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;\n\n"
@@ -144,11 +140,8 @@ public class WriterForDigitalIO extends WriterBase {
      " */\n";
 //   template<int left, int right, uint32_t defPcrValue=GPIO_DEFAULT_PCR> using GpioAField = Field_T<GpioAInfo, left, right, defPcrValue>;
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getTemplate(FunctionTemplateInformation)
-    */
    @Override
-   public String getTemplate() {  
+   public String getCTemplate() {  
       StringBuffer buff = new StringBuffer();
       buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", getClassName()));
       buff.append(String.format(
@@ -180,17 +173,17 @@ public class WriterForDigitalIO extends WriterBase {
       buff.append(String.format(
             "   //! PORT Hardware base pointer\n"+
             "   static constexpr uint32_t pcrAddress   = %s\n\n",
-            getPeripheralName().replaceAll("GPIO", "PORT")+"_BasePtr;"
+            getName().replaceAll("GPIO", "PORT")+"_BasePtr;"
             ));
 
       // Base address
       buff.append(String.format(
             "   //! GPIO Hardware base pointer\n"+
             "   static constexpr uint32_t gpioAddress   = %s\n\n",
-            getPeripheralName().replaceAll("PORT", "GPIO")+"_BasePtr;"
+            getName().replaceAll("PORT", "GPIO")+"_BasePtr;"
             ));
 
-      buff.append(getPcrValue());
+      buff.append(getPcrDefinition());
       
       if (getClockMask() != null) {
          buff.append(String.format(
@@ -204,15 +197,15 @@ public class WriterForDigitalIO extends WriterBase {
                "   static constexpr uint32_t clockReg  = %s;\n\n",
                "SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+")"));
       }
-      if (fPeripheral.getIrqNumsAsInitialiser() != null) {
+      if (getIrqNumsAsInitialiser() != null) {
          buff.append(String.format(
                "   //! Number of IRQs for hardware\n"+
                "   static constexpr uint32_t irqCount  = %s;\n\n",
-               fPeripheral.getIrqCount()));
+               getIrqCount()));
          buff.append(String.format(
                "   //! IRQ numbers for hardware\n"+
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-               fPeripheral.getIrqNumsAsInitialiser()));
+               getIrqNumsAsInitialiser()));
       }
       return buff.toString();
    }
@@ -232,12 +225,8 @@ public class WriterForDigitalIO extends WriterBase {
       return "Allows use of port pins as simple digital inputs or outputs";
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.parser.WriterBase#useGuard()
-    */
    @Override
-   public boolean useGuard() {
-      return false;
+   public boolean useAliases(PinInformation pinInfo) {
+      return true;
    }
-   
 }

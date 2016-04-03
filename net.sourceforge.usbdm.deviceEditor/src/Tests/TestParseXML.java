@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyXML;
@@ -55,8 +55,8 @@ public class TestParseXML {
    }
 
    static void report(DeviceInfo deviceInfo) {
-      for (String key:deviceInfo.getDevices().keySet()) {
-         DeviceInformation deviceInformation = deviceInfo.findDevice(key);
+      for (String key:deviceInfo.getDeviceVariants().keySet()) {
+         DeviceVariantInformation deviceInformation = deviceInfo.findVariant(key);
          System.err.println("deviceInformation = " + deviceInformation);
       }
       for (String packageName:deviceInfo.getDevicePackages().keySet()) {

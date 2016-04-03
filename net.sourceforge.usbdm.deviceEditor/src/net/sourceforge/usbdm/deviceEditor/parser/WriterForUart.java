@@ -4,6 +4,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -13,14 +14,14 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  * @author podonoghue
  *
  */
-public class WriterForUart extends WriterBase {
+public class WriterForUart extends Peripheral {
 
    static final String ALIAS_BASE_NAME       = "uart_";
    static final String CLASS_BASE_NAME       = "Uart";
    static final String INSTANCE_BASE_NAME    = "uart";
 
-   public WriterForUart(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForUart(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    /* (non-Javadoc)
@@ -80,13 +81,13 @@ public class WriterForUart extends WriterBase {
          " */\n";
 
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
    }
 
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
-      return super.getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
+      return super.getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
 
    @Override

@@ -17,7 +17,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 public class PinInformation extends ObservableModel implements Comparable<PinInformation> {
    
    /** Pin used to denote a disabled mapping */
-   public final static PinInformation DISABLED_PIN = new PinInformation("Disabled");
+   public final static PinInformation DISABLED_PIN = new PinInformation(null, "Disabled");
    
    /** Pin comparator */
    public static Comparator<String> comparator = Utils.comparator;
@@ -62,6 +62,9 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
 
    /** Current pin multiplexor setting */
    private MuxSelection fMuxSelection = MuxSelection.unused;
+   
+   /** Device info owning this pin */
+   private DeviceInfo fDeviceInfo;
 
    /**
     * Get PCR register e.g. PORTA->PCR[3]
@@ -146,10 +149,12 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
    
    /**
     * Create empty pin function for given pin
+    * @param deviceInfo 
     * 
     * @param fName Name of the pin, usually the port name e.g. PTA1
     */
-   PinInformation(String name) {
+   PinInformation(DeviceInfo deviceInfo, String name) {
+      fDeviceInfo = deviceInfo;
       this.fName  = name;
       Pattern p = Pattern.compile("^\\s*PT(.)(\\d*)\\s*$");
       Matcher m = p.matcher(name);
@@ -166,6 +171,20 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
     */
    public String getName() {
       return fName;
+   }
+   
+   /**
+    * Get name of the pin, usually the port name e.g. PTA1 
+    * 
+    * @return Pin name
+    */
+   public String getNameWithLocation() {
+      String location = "";
+      if (fDeviceInfo != null) {
+         location = " ("+fDeviceInfo.getDeviceVariant().getPackage().getLocation(this)+")";
+         
+      }
+      return fName+location;
    }
    
    /**
@@ -384,10 +403,10 @@ public class PinInformation extends ObservableModel implements Comparable<PinInf
    }
 
    /** Key for mux selection persistence */
-   public static final String MUX_SETTINGS_KEY = "muxSetting"; 
+   public static final String MUX_SETTINGS_KEY = "_muxSetting"; 
    
    /** Key for description selection persistence */
-   public static final String DESCRIPTION_SETTINGS_KEY = "descriptionSetting"; 
+   public static final String DESCRIPTION_SETTINGS_KEY = "_descriptionSetting"; 
    
    /**
     * Load pin settings from settings object

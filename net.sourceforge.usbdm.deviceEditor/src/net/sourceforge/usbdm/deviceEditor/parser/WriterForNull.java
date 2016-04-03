@@ -3,10 +3,10 @@ package net.sourceforge.usbdm.deviceEditor.parser;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,24 +15,24 @@ import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
  * @author podonoghue
  *
  */
-public class WriterForNull extends WriterBase {
+public class WriterForNull extends Peripheral {
 
-   public WriterForNull(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForNull(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    @Override
-   public void writeInfoClass(DeviceInformation deviceInformation, DocumentUtilities writer) throws IOException {
+   public void writeInfoClass(DocumentUtilities writer) throws IOException {
    }
 
    @Override
    public String getTitle() {
-      return null;
+      return "";
    }
 
    @Override
    public String getGroupBriefDescription() {
-      return null;
+      return "";
    }
 
    @Override

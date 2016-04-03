@@ -6,19 +6,16 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-/**
- * @author podonoghue
- *
- */
-public class WriterForTsi extends WriterBase {
+public class WriterForTsi extends Peripheral {
 
-   public WriterForTsi(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForTsi(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    /* (non-Javadoc)
@@ -63,7 +60,7 @@ public class WriterForTsi extends WriterBase {
    }
    
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
    }
 

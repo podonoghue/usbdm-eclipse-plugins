@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+
 public class DocumentUtilities {
 
    /** Writer to use */
@@ -33,8 +35,8 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public void writeStartGroup(WriterBase baseWriter) throws IOException {
-      writeStartGroup(baseWriter.getGroupName(), baseWriter.getGroupTitle(), baseWriter.getGroupBriefDescription());
+   public void writeStartGroup(Peripheral peripheral) throws IOException {
+      writeStartGroup(peripheral.getGroupName(), peripheral.getGroupTitle(), peripheral.getGroupBriefDescription());
    }
 
    /**
@@ -51,7 +53,7 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   void conditionallyWriteGroup(WriterBase baseWriter, boolean groupDone) throws IOException {
+   void conditionallyWriteGroup(Peripheral baseWriter, boolean groupDone) throws IOException {
       if (groupDone) {
          return;
       }
@@ -188,7 +190,7 @@ public class DocumentUtilities {
          trueFileName = "";
       }
       else {
-         trueFileName = "(derived from "+trueFileName+")";
+         trueFileName = "(generated from "+trueFileName+")";
       }
       description = description.replaceAll("\n", "\n *            ");
       fWriter.write( String.format(headerfilePreambleTemplate, 
@@ -250,7 +252,7 @@ public class DocumentUtilities {
       fWriter.write(String.format("#include \"%s\"\n", fileName));
    }
 
-   private Deque<String> nameSpaceStack = new ArrayDeque<>();
+   private Deque<String> nameSpaceStack = new ArrayDeque<String>();
 
    /**
     * Write namespace open

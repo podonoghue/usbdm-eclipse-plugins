@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -15,10 +16,10 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  * @author podonoghue
  *
  */
-public class WriterForCmp extends WriterBase {
+public class WriterForCmp extends Peripheral {
 
-   public WriterForCmp(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForCmp(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    /* (non-Javadoc)

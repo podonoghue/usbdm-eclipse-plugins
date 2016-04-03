@@ -18,9 +18,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    /** Mappings corresponding to selections */
    protected final ArrayList<MuxSelection> fMappingInfos = new ArrayList<MuxSelection>();
 
-   public PinModel(BaseModel parent, PinInformation pinInformation, String name) {
-//      super(parent, pinInformation.getName(), pinInformation.getDescription());
-      super(parent, name, pinInformation.getDescription());
+   public PinModel(BaseModel parent, PinInformation pinInformation) {
+      super(parent, pinInformation.getName(), pinInformation.getDescription());
 
       fPinInformation = pinInformation;
       
@@ -191,4 +190,9 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       return mappingInfo.getPin() == PinInformation.DISABLED_PIN;
    }
 
+   @Override
+   public String getName() {
+      return fPinInformation.getNameWithLocation();
+   }
+   
 }

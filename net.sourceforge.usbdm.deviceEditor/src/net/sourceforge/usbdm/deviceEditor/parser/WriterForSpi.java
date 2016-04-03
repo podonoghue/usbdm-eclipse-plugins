@@ -4,23 +4,20 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-/**
- * @author podonoghue
- *
- */
-public class WriterForSpi extends WriterBase {
+public class WriterForSpi extends Peripheral {
 
    static final String ALIAS_BASE_NAME       = "spi_";
    static final String CLASS_BASE_NAME       = "Spi";
    static final String INSTANCE_BASE_NAME    = "spi";
 
-   public WriterForSpi(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForSpi(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    /* (non-Javadoc)
@@ -92,13 +89,13 @@ public class WriterForSpi extends WriterBase {
          " */\n";
 
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return null;
    }
 
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
-      return super.getAlias(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
+      return super.getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
 
    @Override

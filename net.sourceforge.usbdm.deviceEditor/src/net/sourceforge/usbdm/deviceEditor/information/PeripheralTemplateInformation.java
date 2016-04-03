@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterBase;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
 
 /**
  * Represents a peripheral.<br>
@@ -32,13 +32,9 @@ public class PeripheralTemplateInformation {
    /** Pattern for extracting the signal */
    private final String fSignalPattern;
    
-   /** Base name of C peripheral alias e.g. adc_ */
-//   private final String fAliasBaseName;
-
-   /** Base name of peripheral e.g. FTM2 => FTM */
-//   private final String fPeripheralBasename;
-   
-   /** Constructor for Writer used for managing and formatting information */
+   /** Constructor for derived Peripheral<br>
+    * <b><i>String Peripheral(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo)</b></i> 
+    */
    Constructor<?> fConstructor;
 
    /**
@@ -65,18 +61,15 @@ public class PeripheralTemplateInformation {
          String         matchTemplate, 
          Class<?>       instanceWriterClass) throws Exception {
       
- //   public WriterBase(DeviceInfo deviceInfo, PeripheralTemplateInformation template, Peripheral peripheral) {
-
       fDeviceInfo       = deviceInfo;
       fnamePattern      = namePattern;
       fInstancePattern  = instancePattern;
       fSignalPattern    = signalPattern;
-//      fMatchPattern     = Pattern.compile(matchTemplate);
-      fConstructor = instanceWriterClass.getConstructor(DeviceInfo.class, Peripheral.class );
-
-//      fPeripheralBasename     = peripheralBasename;
-//      fAliasBaseName          = namePattern+instancePattern+"_";
-      
+      fConstructor      = instanceWriterClass.getConstructor(
+            /* basename   */ String.class, 
+            /* instance   */ String.class, 
+            /* template   */ PeripheralTemplateInformation.class, 
+            /* deviceinfo */ DeviceInfo.class );
       if (matchTemplate != null) {
          fMatchPattern       = Pattern.compile(matchTemplate);
       }
@@ -86,15 +79,53 @@ public class PeripheralTemplateInformation {
    }
 
    /**
+    * Create peripheral from template
+    *    
+    * @param basename   Base name of peripheral e.g. FTM3 => FTM
+    * @param instance   Instance of peripheral e.g. FTM3 => 3
+    * 
+    * @return Peripheral created
+    */
+   Peripheral createPeripheral(String basename, String instance) {
+      Peripheral peripheral = null;
+      try {
+         peripheral = (Peripheral) fConstructor.newInstance(basename, instance, this, fDeviceInfo);
+      } catch (Exception e) {
+         throw new RuntimeException(e);
+      }
+      return peripheral;
+   }
+   
+   /**
+    * Checks if the template matches this <b>peripheral</b> name<br>
+    * If so, the peripheral is created
+    * 
+    * @param name    Name of peripheral e.g. FTM3
+    * 
+    * @return Peripheral or null if template not applicable
+    */
+   public Peripheral createPeripheral(String name, Mode mode) {
+      Matcher matcher = matcher(name);
+      if ((matcher == null) || !matcher.matches()) {
+         return null;
+      }
+      String basename = matcher.replaceAll(fnamePattern);
+      matcher.reset();
+      String instance = matcher.replaceAll(fInstancePattern);
+      matcher.reset();
+      
+      return fDeviceInfo.createPeripheral(basename, instance, this, mode);
+   }
+   
+   /**
     * Checks if the template matches this <b>function</b> name<br>
     * If so, both the function and peripheral are created as needed
     * 
-    * @param factory Factory for shared data
     * @param name    Name of function e.g. FTM3_CH2
     * 
     * @return PeripheralFunction or null if template not applicable
     */
-   public PeripheralFunction createFunction(DeviceInfo factory, String name) {         
+   public PeripheralFunction createFunction(String name) {         
       Matcher matcher = matcher(name);
       if ((matcher == null) || !matcher.matches()) {
          return null;
@@ -107,34 +138,11 @@ public class PeripheralTemplateInformation {
       String signal = matcher.replaceAll(fSignalPattern);
       matcher.reset();
       
-      Peripheral peripheral = factory.findOrCreatePeripheral(basename, instance, getInstanceWriter(null), this);
-      PeripheralFunction peripheralFunction = factory.createPeripheralFunction(name, basename, instance, signal);
-      peripheral.addFunction(peripheralFunction);
-      return peripheralFunction;
-   }
-   
-   /**
-    * Checks if the template matches this <b>peripheral</b> name<br>
-    * If so, the peripheral is created as needed
-    * 
-    * @param factory Factory for shared data
-    * @param name    Name of function e.g. FTM3
-    * 
-    * @return PeripheralFunction or null if template not applicable
-    */
-   public Peripheral createPeripheral(DeviceInfo factory, String name) {         
-      Matcher matcher = matcher(name);
-      if ((matcher == null) || !matcher.matches()) {
-         return null;
-      }
-
-      String basename = matcher.replaceAll(fnamePattern);
-      matcher.reset();
-      String instance = matcher.replaceAll(fInstancePattern);
-      matcher.reset();
-
-      Peripheral peripheral = factory.findOrCreatePeripheral(basename, instance, getInstanceWriter(null), this);
-      return peripheral;
+      // Create peripheral
+      fDeviceInfo.createPeripheral(basename, instance, this, Mode.ignore);
+      
+      // Create function
+      return fDeviceInfo.createPeripheralFunction(name, basename, instance, signal);
    }
    
    /**
@@ -166,25 +174,25 @@ public class PeripheralTemplateInformation {
       return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");
    }
 
-   /**
-    * Gets the numeric index of the function\n
-    * e.g. FTM3_Ch2 => 2 etc.
-    * 
-    * @param function   Function to look up
-    * @return  Index, -1 is returned if template doesn't match
-    * 
-    * @throws Exception If template matches peripheral but unexpected function 
-    */
-   public int getFunctionIndex(PeripheralFunction function) {
-      if (!getMatchPattern().matcher(function.getName()).matches()) {
-         return -1;
-      }
-      return getInstanceWriter(null).getFunctionIndex(function);
-   }
+//   /**
+//    * Gets the numeric index of the function\n
+//    * e.g. FTM3_Ch2 => 2 etc.
+//    * 
+//    * @param function   Function to look up
+//    * @return  Index, -1 is returned if template doesn't match
+//    * 
+//    * @throws Exception If template matches peripheral but unexpected function 
+//    */
+//   public int getFunctionIndex(PeripheralFunction function) {
+//      if (!getMatchPattern().matcher(function.getName()).matches()) {
+//         return -1;
+//      }
+//      return getPeripheral(null).getFunctionIndex(function);
+//   }
 
-   public boolean useAliases(PinInformation pinInfo) {
-      return getInstanceWriter(null).useAliases(pinInfo);
-   }
+//   public boolean useAliases(PinInformation pinInfo) {
+//      return getPeripheral(null).useAliases(pinInfo);
+//   }
 
    /**
     * Gets the template match function
@@ -218,43 +226,6 @@ public class PeripheralTemplateInformation {
       return function.getPeripheral().getInstance().equals(instance);
    }
 
-   /**
-    * Indicates that it is necessary to create a PcrInfo table in the Peripheral Information class
-    *  
-    * @return true if Information class is needed
-    * @throws Exception 
-    */
-   public boolean needPCRTable() {
-      return getInstanceWriter(null).needPCRTable();
-   }
-
-   /**
-    * Get documentation group title e.g. "Digital Input/Output"
-    * 
-    * @return name
-    */
-   public String getGroupTitle() {
-      return getInstanceWriter(null).getGroupTitle();
-   }
-
-   /**
-    * Get name of documentation group e.g. "DigitalIO_Group"
-    * 
-    * @return name
-    */
-   public String getGroupName() {
-      return getInstanceWriter(null).getGroupName();
-   }
-
-   /**
-    * Get Documentation group brief description <br>e.g. "Allows use of port pins as simple digital inputs or outputs"
-    * 
-    * @return name
-    */
-   public String getGroupBriefDescription() {
-      return getInstanceWriter(null).getGroupBriefDescription();
-   }
-
    @Override
    public String toString() {
       return "Template("+fMatchPattern.toString() + ")";
@@ -262,16 +233,6 @@ public class PeripheralTemplateInformation {
 
    public Pattern getMatchPattern() {
       return fMatchPattern;
-   }
-
-   public WriterBase getInstanceWriter(Peripheral peripheral) {
-      WriterBase writer = null;
-      try {
-         writer = (WriterBase) fConstructor.newInstance(fDeviceInfo, peripheral);
-      } catch (Exception e) {
-         throw new RuntimeException(e);
-      }
-      return writer;
    }
 
    /**

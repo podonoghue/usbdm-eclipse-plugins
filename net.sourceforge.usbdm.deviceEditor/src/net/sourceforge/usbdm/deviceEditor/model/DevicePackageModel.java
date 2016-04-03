@@ -1,34 +1,36 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import java.util.ArrayList;
-
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
 
-public class DevicePackageModel extends SelectionModel {
+public class DevicePackageModel extends StringModel implements IModelChangeListener {
 
-   private DeviceInfo fDeviceInfo;
-   ArrayList<String>  fDeviceNames = new ArrayList<String>();
-   
+   /**
+    * Device package
+    * 
+    * @param parent     Parent node
+    * @param deviceInfo Device info used to construct the node
+    */
    public DevicePackageModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Device", "");
-
-      fDeviceInfo = deviceInfo;
-      
-      for (String deviceName:fDeviceInfo.getDevices().keySet()) {
-         DeviceInformation deviceInformation = fDeviceInfo.getDevices().get(deviceName);
-         fDeviceNames.add(deviceInformation.getName());
-      }
-      
-      fValues     = fDeviceNames.toArray(new String[fDeviceNames.size()]);
-      fSelection  = 0;
+      super(parent, "Package", "Device package", deviceInfo.getDeviceVariant().getPackage().getName());
+      deviceInfo.addListener(this);
    }
 
    @Override
-   public void setValue(String value) {
-      super.setValue(value);
-      fDeviceInfo.setDeviceName(value);
-      refresh();
+   public boolean canEdit() {
+      return false;
    }
 
+   @Override
+   public void modelElementChanged(ObservableModel model) {
+      if (model instanceof DeviceInfo) {
+         DeviceInfo deviceInfo = (DeviceInfo) model;
+         setValue(deviceInfo.getDeviceVariant().getPackage().getName());
+         refresh();
+      }
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+   }
+   
 }

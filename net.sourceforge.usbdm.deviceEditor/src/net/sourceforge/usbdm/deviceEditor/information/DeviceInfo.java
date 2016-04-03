@@ -9,7 +9,7 @@ import java.util.TreeMap;
 
 import org.eclipse.jface.dialogs.DialogSettings;
 
-import net.sourceforge.usbdm.deviceEditor.parser.WriterBase;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForAnalogueIO;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForDigitalIO;
@@ -29,7 +29,7 @@ import net.sourceforge.usbdm.deviceEditor.parser.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.parser.WriterForVref;
 
-public class DeviceInfo {
+public class DeviceInfo extends ObservableModel {
 
    /** Version number */
    public static final String VERSION           = "1.2.0";
@@ -41,7 +41,7 @@ public class DeviceInfo {
    public static final String NAME_SPACE        = "USBDM";
 
    /** How to handle existing files etc */
-   enum Mode {newInstance, anyInstance, allowNullInstance};
+   public enum Mode {ignore, fail};
 
    /** Device families */
    public enum DeviceFamily {mk, mke, mkl, mkm};
@@ -51,9 +51,6 @@ public class DeviceInfo {
 
    /** Device family for this device */
    private final DeviceFamily fDeviceFamily;
-
-   /** Name of the device e.g. MKL25Z4 */
-   private String fDeviceName = null;
 
    /**
     * Create device information
@@ -80,29 +77,11 @@ public class DeviceInfo {
       }
    }
 
-   /** Device family for this device */
+   /** 
+    * Get device family for this device 
+    */
    public DeviceFamily getDeviceFamily() {
       return fDeviceFamily;
-   }
-
-   /**
-    * Set device name
-    * 
-    * @param deviceName
-    * 
-    * @return
-    */
-   public void setDeviceName(String deviceName) {
-      fDeviceName = deviceName;
-   }
-
-   /**
-    * Get device name
-    * 
-    * @return
-    */
-   public String getDeviceName() {
-      return fDeviceName;
    }
 
    /**
@@ -134,48 +113,80 @@ public class DeviceInfo {
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
     * @param instance   Instance of peripheral e.g. FTM2 => 2     
-    * @param writerBase 
+    * @param template   Template to use to create peripheral 
+    * @param mode       Failure action
     * 
     * @return
     */
-   public Peripheral createPeripheral(String baseName, String instance, WriterBase writerBase, PeripheralTemplateInformation template) {  
+   public Peripheral createPeripheral(String baseName, String instance, PeripheralTemplateInformation template, Mode mode) {  
       String name = baseName+instance;
-      Peripheral p = fPeripheralsMap.get(name);
-      if (p!= null) {
-         throw new RuntimeException("Attempting to re-create peripheral instance " + name);
+      Peripheral peripheral = fPeripheralsMap.get(name);
+      if (peripheral != null) {
+         if (mode != Mode.ignore) {
+            throw new RuntimeException("Attempting to re-create peripheral instance " + name);
+         }
+         return peripheral;
       }
-      p = new Peripheral(baseName, instance, template);
-      fPeripheralsMap.put(name, p);
-      return p;
+      peripheral = template.createPeripheral(baseName, instance);
+      fPeripheralsMap.put(name, peripheral);
+      return peripheral;
+   }
+   
+   /**
+    * Find or Create a peripheral<br>
+    * e.g. findPeripheralFunction("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
+    * Checks against all templates.
+    * 
+    * @return Peripheral if found or name matches an expected pattern
+    * 
+    * @throws Exception if name does fit expected form
+    */
+   public Peripheral findOrCreatePeripheral(String name) {
+//      if (name.equals("PIT")) {
+//         System.err.print("Stop here");
+//      }
+      Peripheral peripheral = fPeripheralsMap.get(name);
+      if (peripheral != null) {
+         return peripheral;
+      }
+      for(PeripheralTemplateInformation template:getFunctionTemplateList()) {
+         peripheral = template.createPeripheral(name, Mode.ignore);
+         if (peripheral != null) {
+            return peripheral;
+         }         
+      }
+      throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
    }
 
-   /**
-    * Find or create a peripheral
-    * 
-    * @param baseName   Base name e.g. FTM3 => FTM
-    * @param instance   Instance of peripheral e.g. FTM2 => 2 
-    * @param mode       Mode.anyInstance to allow null instances  
-    * 
-    * @return
-    */
-   public Peripheral findOrCreatePeripheral(String baseName, String instance, WriterBase writerBase, PeripheralTemplateInformation template) {  
-      Peripheral p = fPeripheralsMap.get(baseName+instance);
-      if (p == null) {
-         p = createPeripheral(baseName, instance, writerBase, template);
-      }
-      return p;
-   }
+
+//   /**
+//    * Find or create a peripheral
+//    * 
+//    * @param baseName   Base name e.g. FTM3 => FTM
+//    * @param instance   Instance of peripheral e.g. FTM2 => 2 
+//    * @param mode       Mode.anyInstance to allow null instances  
+//    * 
+//    * @return
+//    */
+//   public Peripheral findOrCreatePeripheral(String baseName, String instance, PeripheralTemplateInformation template) {  
+//      Peripheral p = fPeripheralsMap.get(baseName+instance);
+//      if (p == null) {
+//         p = createPeripheral(baseName, instance, template);
+//      }
+//      return p;
+//   }
 
    /**
     * Find an existing peripheral
     * 
     * @param name   Name e.g. FTM3
+    * @param mode   How to handle failure 
     * 
     * @return
     */
-   public Peripheral findPeripheral(String name) {  
+   public Peripheral findPeripheral(String name, Mode mode) {  
       Peripheral p = fPeripheralsMap.get(name);
-      if (p == null) {
+      if ((p == null) && (mode != Mode.ignore)) {
          throw new RuntimeException("No such instance " + name);
       }
       return p;
@@ -186,15 +197,25 @@ public class DeviceInfo {
     * 
     * @param baseName   Base name e.g. FTM3 => FTM
     * @param instance   Name e.g. FTM3 => 3
+    * @param mode       How to handle failure 
     * 
     * @return
     */
-   public Peripheral findPeripheral(String baseName, String instance) {  
-      Peripheral p = fPeripheralsMap.get(baseName+instance);
-      if (p == null) {
-         throw new RuntimeException("No such instance " + baseName+instance);
-      }
-      return p;
+   public Peripheral findPeripheral(String baseName, String instance, Mode mode) {  
+      return findPeripheral(baseName+instance, mode);
+   }
+
+   /**
+    * Find an existing peripheral
+    * 
+    * @param baseName   Base name e.g. FTM3 => FTM
+    * @param instance   Name e.g. FTM3 => 3
+    * 
+    * @return
+    * @exception If peripheral doesn't exist
+    */
+   public Peripheral findPeripheral(String baseName, String instance) { 
+      return findPeripheral(baseName, instance, Mode.fail);
    }
 
    /**
@@ -310,7 +331,7 @@ public class DeviceInfo {
          return peripheralFunction;
       }
       for(PeripheralTemplateInformation functionTemplateInformation:getFunctionTemplateList()) {
-         peripheralFunction = functionTemplateInformation.createFunction(this, name);
+         peripheralFunction = functionTemplateInformation.createFunction(name);
          if (peripheralFunction != null) {
             peripheralFunction.setIncluded(true);
             peripheralFunction.setTemplate(functionTemplateInformation);
@@ -321,36 +342,12 @@ public class DeviceInfo {
    }
 
    /**
-    * Find or Create a peripheral<br>
-    * e.g. findPeripheralFunction("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
-    * Checks against all templates.
-    * 
-    * @return Peripheral if found or name matches an expected pattern
-    * 
-    * @throws Exception if name does fit expected form
-    */
-   public Peripheral findOrCreatePeripheral(String name) {
-      Peripheral peripheral = fPeripheralsMap.get(name);
-      if (peripheral != null) {
-         return peripheral;
-      }
-      for(PeripheralTemplateInformation functionTemplateInformation:getFunctionTemplateList()) {
-         peripheral = functionTemplateInformation.createPeripheral(this, name);
-         if (peripheral != null) {
-            return peripheral;
-         }         
-      }
-      throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
-   }
-
-   /**
-    * Find or Create peripheral function<br>
+    * Find peripheral function<br>
     * e.g. findPeripheralFunction("FTM0_CH6") => <i>PeripheralFunction</i>(FTM, 0, 6)<br>
-    * Checks against all templates.
     * 
-    * @return Function if found or name matches an expected pattern
+    * @return Function found
     * 
-    * @throws Exception if name does fit expected form
+    * @throws Exception function nor found
     */
    public PeripheralFunction findPeripheralFunction(String name) {
       PeripheralFunction peripheralFunction = null;
@@ -509,7 +506,7 @@ public class DeviceInfo {
          throw new RuntimeException("Pin already exists: " + name);
       }
       // Created pin
-      pinInformation = new PinInformation(name);
+      pinInformation = new PinInformation(this, name);
       // Add to map
       fPins.put(name, pinInformation);
 
@@ -653,8 +650,8 @@ public class DeviceInfo {
                getDeviceFamily(),
                WriterForLptmr.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(PIT)()(\\d+)",
+               "$1", "$2", "$3",
+               "(PIT)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForPit.class);
          createPeripheralTemplateInformation(
@@ -735,7 +732,7 @@ public class DeviceInfo {
                WriterForMisc.class);
          // Note USBOTG is used for clock name
          createPeripheralTemplateInformation(
-               "USB", "",
+               "USB", "0",
                "((audio)?(USB)(OTG)?0?)_?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
@@ -781,11 +778,6 @@ public class DeviceInfo {
                WriterForMisc.class);
          createPeripheralTemplateInformation(
                "$1", "", "$3",
-               "(PIT)(\\d)?(.*)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "", "$3",
                "(CRC)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
@@ -795,7 +787,7 @@ public class DeviceInfo {
                getDeviceFamily(),
                WriterForDmaMux.class);
          createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
+               "$1", "0", "$3",
                "(DMA)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
@@ -805,7 +797,7 @@ public class DeviceInfo {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
+               "FTFE", "$2", "$3",
                "(FTF)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
@@ -823,46 +815,86 @@ public class DeviceInfo {
    }
 
    /*
-    * DeviceInformation =============================================================================================
+    * DeviceVariantInformation =============================================================================================
     */
 
-   /** Map from device names to devices */
-   private Map<String, DeviceInformation> fDevices = new TreeMap<String, DeviceInformation>();
+   /** Name of the device variant e.g. MKL25Z4 */
+   private String fVariantName = null;
+
+   /** Device variant */
+   private DeviceVariantInformation fDeviceVariant = null;
+   
+   /**
+    * Set device variant
+    * 
+    * @param device variant name
+    * 
+    * @return
+    */
+   public void setDeviceVariant(String variantName) {
+      fVariantName   = variantName;
+      fDeviceVariant = fVariants.get(variantName);
+      notifyListeners();
+   }
+
+   /**
+    * Get device variant
+    * 
+    * @return Name
+    */
+   public String getDeviceVariantName() {
+      return fVariantName;
+   }
+
+   /**
+    * Get device variant
+    * 
+    * @return Name
+    */
+   public DeviceVariantInformation getDeviceVariant() {
+      return fDeviceVariant;
+   }
+
+   /** Map from variant names to devices */
+   private Map<String, DeviceVariantInformation> fVariants = new TreeMap<String, DeviceVariantInformation>();
 
    /**
     * Create device information
     * 
-    * @param name
-    * @param manual
-    * @param packageName
+    * @param name          Variant name
+    * @param manual        Manual name
+    * @param packageName   Package name
     * @return
     */
-   public DeviceInformation createDeviceInformation(String name, String manual, String packageName) {
-      if (fDeviceName == null) {
-         fDeviceName = name;
+   public DeviceVariantInformation createDeviceInformation(String name, String manual, String packageName) {
+      DeviceVariantInformation deviceInformation = new DeviceVariantInformation(name, findOrCreateDevicePackage(packageName), manual);
+      fVariants.put(name, deviceInformation);
+
+      if (fVariantName == null) {
+         fVariantName   = name;
+         fDeviceVariant = deviceInformation;
       }
-      DeviceInformation deviceInformation = new DeviceInformation(name, findOrCreateDevicePackage(packageName), manual);
-      fDevices.put(name, deviceInformation);
       return deviceInformation;
    };
 
    /**
-    * Get map of devices
+    * Get map from variant names to device variants
     * 
-    * @return
+    * @return Map
     */
-   public Map<String, DeviceInformation> getDevices() {
-      return fDevices;
+   public Map<String, DeviceVariantInformation> getDeviceVariants() {
+      return fVariants;
    }
 
    /**
-    * Find device from device name
+    * Find device variant from variant name
     * 
-    * @param deviceName
-    * @return
+    * @param variant name
+    * 
+    * @return variant
     */
-   public DeviceInformation findDevice(String deviceName) {
-      return fDevices.get(deviceName);
+   public DeviceVariantInformation findVariant(String deviceName) {
+      return fVariants.get(deviceName);
    }
 
    /*
@@ -955,7 +987,7 @@ public class DeviceInfo {
     */
    public String getPinNameWithAlias(PinInformation pin) {
       String alias = "";
-      DeviceInformation deviceInformation = fDevices.get(fDeviceName);
+      DeviceVariantInformation deviceInformation = fVariants.get(fVariantName);
       if (deviceInformation != null) {
          DevicePackage pkg = fDevicePackages.get(deviceInformation.getPackage().getName());
          if (pkg != null) {
@@ -968,6 +1000,9 @@ public class DeviceInfo {
       return pin.getName() + alias;
    }
 
+   /** Key for device variant persistence */
+   public static final String DEVICE_VARIANT_SETTINGS_KEY = "DeviceInfo_deviceVariant"; 
+   
    /**
     * Load persistent settings
     */
@@ -977,10 +1012,18 @@ public class DeviceInfo {
       if (path.toFile().isFile()) {
          try {
          DialogSettings settings = new DialogSettings("USBDM");
-            settings.load(path.toAbsolutePath().toString());
+         settings.load(path.toAbsolutePath().toString());
+         String variantName = settings.get(DEVICE_VARIANT_SETTINGS_KEY);
+         if (variantName != null) {
+            setDeviceVariant(variantName);
+         }
          for (String pinName:fPins.keySet()) {
             PinInformation pin = fPins.get(pinName);
             pin.loadSettings(settings);
+         }
+         for (String deviceName:fPeripheralsMap.keySet()) {
+            Peripheral peripheral =  fPeripheralsMap.get(deviceName);
+            peripheral.loadSettings(settings);
          }
          } catch (Exception e) {
             e.printStackTrace();
@@ -995,9 +1038,14 @@ public class DeviceInfo {
       System.err.println("DeviceInfo.saveSettings()");
       Path path = fPath.getParent().resolve("usbdm.project");
       DialogSettings settings = new DialogSettings("USBDM");
+      settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       for (String pinName:fPins.keySet()) {
          PinInformation pin = fPins.get(pinName);
          pin.saveSettings(settings);
+      }
+      for (String deviceName:fPeripheralsMap.keySet()) {
+         Peripheral peripheral =  fPeripheralsMap.get(deviceName);
+         peripheral.saveSettings(settings);
       }
       try {
          settings.save(path.toAbsolutePath().toString());
@@ -1005,4 +1053,6 @@ public class DeviceInfo {
          e.printStackTrace();
       }
    }
+   
+
 }

@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import java.util.ArrayList;
-
 import org.eclipse.jface.viewers.TreeViewer;
 
 public class RootModel extends BaseModel {
@@ -9,20 +7,20 @@ public class RootModel extends BaseModel {
    /** Labels for view columns */
    private final String[] fColumnLabels;
    
-   /** List of views associated with this model */
-   private final ArrayList<TreeViewer> fViewers = new ArrayList<TreeViewer>();
+   /** Viewer associated with this model */
+   private TreeViewer fViewer = null;
    
    /** Factory responsible for this model */
    private final ModelFactory fModelFactory;
 
-   /** Device name */
-   private final String fDeviceName;
+   /** Device variant name */
+   private final String fDeviceVariant;
 
    /**
     * @return the Title
     */
    public String getDeviceName() {
-      return fDeviceName;
+      return fDeviceVariant;
    }
 
    /*
@@ -33,17 +31,17 @@ public class RootModel extends BaseModel {
     * 
     * @param modelFactory  Factory owning model
     * @param columnLabels  Labels to use for columns
-    * @param string2 
-    * @param string 
+    * @param title         Title
+    * @param toolTip       Tool tip
     */
    public RootModel(ModelFactory modelFactory, String[] columnLabels, String title, String toolTip) {
       
       super(null, title, modelFactory.getDeviceInfo().getSourceFilename());
-      
-      fModelFactory = modelFactory;
-      fColumnLabels = columnLabels;
-      fDeviceName   = modelFactory.getDeviceInfo().getDeviceName();
       super.setToolTip(toolTip);
+      
+      fModelFactory  = modelFactory;
+      fColumnLabels  = columnLabels;
+      fDeviceVariant = modelFactory.getDeviceInfo().getDeviceVariantName();
    }
 
    /**
@@ -57,7 +55,7 @@ public class RootModel extends BaseModel {
    
    @Override
    public String getValueAsString() {
-      return fDeviceName;
+      return fDeviceVariant;
    }
 
    @Override
@@ -67,17 +65,20 @@ public class RootModel extends BaseModel {
 
    @Override
    protected void viewerUpdate(BaseModel element, String[] properties) {
-      for (TreeViewer viewer:fViewers) {
-         viewer.update(element,  properties);
+      if (fViewer != null) {
+         fViewer.update(element,  properties);
          if (element.getParent() != null) {
-            viewer.update(element.getParent(),  properties);
+            fViewer.update(element.getParent(),  properties);
          }
       }
    }
 
+   /**
+    * Refresh the tree
+    */
    protected void refresh() {
-      for (TreeViewer viewer:fViewers) {
-         viewer.refresh();
+      if (fViewer != null) {
+         fViewer.refresh();
       }
    }
    
@@ -87,11 +88,14 @@ public class RootModel extends BaseModel {
     * @param viewer
     */
    public void addViewer(TreeViewer viewer) {
-      fViewers.add(viewer);
+      if (fViewer != null) {
+         throw new RuntimeException("Viewer already assigned");
+      }
+      fViewer = viewer;
    }
 
    /**
-    * @return the fModelFactory
+    * @return the ModelFactory
     */
    public ModelFactory getModelFactory() {
       return fModelFactory;

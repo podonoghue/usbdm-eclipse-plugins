@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInformation;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -233,15 +233,15 @@ public class WriteFamilyXML {
       documentUtilities.writeXmlFilePreamble(
             fXmlFilename, 
             DeviceInfo.DTD_FILE, 
-            "Generated from "+ deviceInfomation.getDeviceName()+".csv");
+            "Generated from "+ deviceInfomation.getDeviceVariantName()+".csv");
 
       documentUtilities.openTag("root");
       documentUtilities.writeAttribute("version", DeviceInfo.VERSION);
 
       documentUtilities.openTag("family");
-      documentUtilities.writeAttribute("name", deviceInfomation.getDeviceName());
-      for (String key:fDeviceInfo.getDevices().keySet()) {
-         DeviceInformation deviceInformation = fDeviceInfo.findDevice(key);
+      documentUtilities.writeAttribute("name", deviceInfomation.getDeviceVariantName());
+      for (String key:fDeviceInfo.getDeviceVariants().keySet()) {
+         DeviceVariantInformation deviceInformation = fDeviceInfo.findVariant(key);
          documentUtilities.openTag("device");
          documentUtilities.writeAttribute("name",     deviceInformation.getName());
          documentUtilities.writeAttribute("manual",   deviceInformation.getManual());

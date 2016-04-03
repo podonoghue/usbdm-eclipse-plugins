@@ -4,6 +4,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -13,14 +14,14 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  * @author podonoghue
  *
  */
-public class WriterForI2c extends WriterBase {
+public class WriterForI2c extends Peripheral {
    static final String ALIAS_BASE_NAME       = "i2c_";
    static final String CLASS_BASE_NAME       = "I2c";
    static final String INSTANCE_BASE_NAME    = "i2c";
 
 
-   public WriterForI2c(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForI2c(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    @Override
@@ -93,7 +94,7 @@ public class WriterForI2c extends WriterBase {
    }
    
    @Override
-   public String getAlias(String alias, MappingInfo mappingInfo, int fnIndex) {
+   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
       return String.format("using %-20s = %s\n", alias, getDeclaration(mappingInfo, fnIndex)+";");
    }
 
@@ -115,7 +116,7 @@ public class WriterForI2c extends WriterBase {
    }
 
    @Override
-   public String getPcrValue() {
+   public String getPcrDefinition() {
       return String.format(
             "   //! Base value for PCR (excluding MUX value)\n"+
             "   static constexpr uint32_t pcrValue  = I2C_DEFAULT_PCR;\n\n"

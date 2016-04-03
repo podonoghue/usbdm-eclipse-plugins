@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
@@ -15,10 +16,10 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  * @author podonoghue
  *
  */
-public class WriterForMisc extends WriterBase {
+public class WriterForMisc extends Peripheral {
 
-   public WriterForMisc(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForMisc(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    /* (non-Javadoc)
@@ -26,7 +27,7 @@ public class WriterForMisc extends WriterBase {
     */
    @Override
    public String getAliasName(String signalName, String alias) {
-      return fPeripheral.getClassName()+alias;
+      return getClassName()+alias;
    }
 
    /* (non-Javadoc)
@@ -36,7 +37,7 @@ public class WriterForMisc extends WriterBase {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return fPeripheral.getClassName()+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
    /** 
@@ -66,7 +67,7 @@ public class WriterForMisc extends WriterBase {
 
    @Override
    public String getGroupBriefDescription() {
-      return fPeripheral.getName()+"Miscellaneous Pins";
+      return getName()+"Miscellaneous Pins";
    }
 
    @Override
@@ -75,7 +76,7 @@ public class WriterForMisc extends WriterBase {
    }
 
    /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.parser.WriterBase#getDefinition(net.sourceforge.usbdm.deviceEditor.information.MappingInfo, int)
+    * @see net.sourceforge.usbdm.deviceEditor.parser.Peripheral#getDefinition(net.sourceforge.usbdm.deviceEditor.information.MappingInfo, int)
     */
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) throws IOException {

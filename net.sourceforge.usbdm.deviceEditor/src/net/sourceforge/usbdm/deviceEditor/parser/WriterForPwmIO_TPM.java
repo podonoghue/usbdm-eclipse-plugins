@@ -7,11 +7,13 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
+import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (TPM)
  */
-public class WriterForPwmIO_TPM extends WriterBase {
+public class WriterForPwmIO_TPM extends Peripheral {
 
    static final String ALIAS_PREFIX          = "tpm_";
    
@@ -24,8 +26,8 @@ public class WriterForPwmIO_TPM extends WriterBase {
    /** Functions that use this writer */
    protected InfoTable fClkinFunctions = new InfoTable("infoCLKIN");
          
-   public WriterForPwmIO_TPM(DeviceInfo deviceInfo, Peripheral peripheral) {
-      super(deviceInfo, peripheral);
+   public WriterForPwmIO_TPM(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
+      super(basename, instance, template, deviceInfo);
    }
 
    @Override
@@ -93,11 +95,6 @@ public class WriterForPwmIO_TPM extends WriterBase {
       return required;
    }
 
-   @Override
-   public boolean useGuard() {
-      return true;
-   }
-
    static final String TEMPLATE_DOCUMENTATION = 
    "/**\n"+
    " * Convenience templated class representing a TPM\n"+
@@ -120,10 +117,10 @@ public class WriterForPwmIO_TPM extends WriterBase {
    " * @tparam channel    Timer channel\n"+
    " */\n";
    @Override
-   public String getTemplate() {
+   public String getCTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
             "template<uint8_t channel> using %s = TmrBase_T<%sInfo, channel>;\n\n",
-            getClassName(), getClassName(), getPeripheralName());
+            getClassName(), getClassName(), getName());
    }
 
    @Override
@@ -170,7 +167,7 @@ public class WriterForPwmIO_TPM extends WriterBase {
    }
 
    @Override
-   public void addFunction(PeripheralFunction function) {
+   protected void addFunctionToTable(PeripheralFunction function) {
       InfoTable fFunctions = null;
 
       int signalIndex = -1;
@@ -240,7 +237,7 @@ public class WriterForPwmIO_TPM extends WriterBase {
       sb.append(super.getInfoConstants());
       sb.append(String.format(
             "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = (TPM_SC_CMOD(0x%02X)|TPM_SC_PS(0x%02X);\n\n",
+            "   static constexpr uint32_t scValue  = TPM_SC_CMOD(0x%02X)|TPM_SC_PS(0x%02X);\n\n",
             ftm_sc_clks, ftm_sc_ps));
       InfoTable functions = fPeripheralFunctions;
       int lastChannel = -1;
@@ -254,6 +251,11 @@ public class WriterForPwmIO_TPM extends WriterBase {
             "\n",
             lastChannel+1));
       return sb.toString();
+   }
+   
+   @Override
+   public boolean useAliases(PinInformation pinInfo) {
+      return true;
    }
 
 }

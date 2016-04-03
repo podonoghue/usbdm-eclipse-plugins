@@ -689,7 +689,7 @@
          <irq num="ADC1_IRQn" />
       </peripheral>
       <peripheral name="CAN0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_CAN0_MASK" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FLEXCAN0_MASK" />
          <irq num="CAN0_Tx_IRQn" />
          <irq num="CAN0_Rx_IRQn" />
       </peripheral>
@@ -718,7 +718,7 @@
       <peripheral name="DAC1">
          <clock clockReg="SCGC2"    clockMask="SIM_SCGC2_DAC1_MASK" />
       </peripheral>
-      <peripheral name="DMA">
+      <peripheral name="DMA0">
          <clock clockReg="SCGC7"    clockMask="SIM_SCGC7_DMA_MASK" />
       </peripheral>
       <peripheral name="DMAMUX0">
@@ -776,7 +776,7 @@
       <peripheral name="FB">
          <clock clockReg="SCGC7"    clockMask="SIM_SCGC7_FLEXBUS_MASK" />
       </peripheral>
-      <peripheral name="FTF">
+      <peripheral name="FTFE">
          <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTF_MASK" />
       </peripheral>
       <peripheral name="FTM" />
@@ -829,7 +829,7 @@
          <irq num="I2C2_IRQn" />
       </peripheral>
       <peripheral name="I2S0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_I2S0_MASK" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_I2S_MASK" />
          <irq num="I2S0_Tx_IRQn" />
          <irq num="I2S0_Rx_IRQn" />
       </peripheral>
@@ -846,7 +846,7 @@
       <peripheral name="OSC0" />
       <peripheral name="OSC32" />
       <peripheral name="PDB0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PDB0_MASK" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PDB_MASK" />
          <irq num="PDB0_IRQn" />
       </peripheral>
       <peripheral name="PIT">
@@ -882,7 +882,7 @@
          <irq num="UART2_RX_TX_IRQn" />
          <irq num="UART2_ERR_IRQn" />
       </peripheral>
-      <peripheral name="USB">
+      <peripheral name="USB0">
          <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_USBOTG_MASK" />
          <irq num="USB0_IRQn" />
       </peripheral>
