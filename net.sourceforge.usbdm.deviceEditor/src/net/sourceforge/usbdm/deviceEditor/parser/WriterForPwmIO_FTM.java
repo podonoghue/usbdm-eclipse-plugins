@@ -1,4 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -7,7 +8,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
@@ -36,6 +36,11 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
    }
 
    @Override
+   public String getTitle() {
+      return "Input capture, Output compare";
+   }
+
+   @Override
    public String getAliasName(String signalName, String alias) {
       if (signalName.matches(".*ch\\d+")) {
          return ALIAS_PREFIX+alias;
@@ -50,14 +55,7 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
       return getClassName()+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
@@ -129,49 +127,6 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
    }
 
    @Override
-   public String getGroupName() {
-      return "PwmIO_Group";
-   }
-
-   @Override
-   public String getTitle() {
-      return "Input capture, Output compare";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Allows use of port pins as PWM outputs";
-   }
-   
-   @Override
-   public String getPcrInfoTableName(PeripheralFunction function) {
-      Pattern p = Pattern.compile("CH(\\d+)");
-      Matcher m = p.matcher(function.getSignal());
-      if (m.matches()) {
-         return fPeripheralFunctions.getName();
-      }
-      final String quadNames[] = {"QD_PHA", "QD_PHB"};
-      for (int signal=0; signal<quadNames.length; signal++) {
-         if (function.getSignal().matches(quadNames[signal])) {
-            return fQuadFunctions.getName();
-         }
-      }
-      final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
-      for (int signal=0; signal<faultNames.length; signal++) {
-         if (function.getSignal().matches(faultNames[signal])) {
-            return fFaultFunctions.getName();
-         }
-      }
-      final String clkinNames[] = {"CLKIN0", "CLKIN1"};
-      for (int signal=0; signal<clkinNames.length; signal++) {
-         if (function.getSignal().matches(clkinNames[signal])) {
-            return fClkinFunctions.getName();
-         }
-      }
-      throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
-   }
-
-   @Override
    protected void addFunctionToTable(PeripheralFunction function) {
       InfoTable fFunctions = null;
 
@@ -234,11 +189,11 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
    }
 
    @Override
-   public String getInfoConstants() {
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       int sc_clks = Integer.parseInt(fVariableMap.get(FTM_SC_CLKS_KEY).value);
       int sc_ps   = Integer.parseInt(fVariableMap.get(FTM_SC_PS_KEY).value);
       StringBuffer sb = new StringBuffer();
-      sb.append(super.getInfoConstants());
+      super.writeInfoConstants(pinMappingHeaderFile);
       sb.append(String.format(
             "   //! Base value for tmr->SC register\n"+
             "   static constexpr uint32_t scValue  = FTM_SC_CLKS(0x%02X)|FTM_SC_PS(0x%02X);\n\n",
@@ -254,12 +209,7 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
             "   static constexpr int NUM_CHANNELS  = %d;\n" +
             "\n",
             lastChannel+1));
-      return sb.toString();
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return true;
+      pinMappingHeaderFile.write(sb.toString());
    }
 
 }

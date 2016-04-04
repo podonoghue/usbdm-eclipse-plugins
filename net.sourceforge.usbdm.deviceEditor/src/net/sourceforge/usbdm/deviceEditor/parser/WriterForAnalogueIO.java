@@ -8,7 +8,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
@@ -32,6 +31,11 @@ public class WriterForAnalogueIO extends Peripheral {
          
    public WriterForAnalogueIO(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
+   }
+
+   @Override
+   public String getTitle() {
+      return "Analogue Input";
    }
 
    @Override
@@ -61,14 +65,6 @@ public class WriterForAnalogueIO extends Peripheral {
       return getClassName()+instance+"_se"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>19</i></b>>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
-    */
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
@@ -129,36 +125,6 @@ public class WriterForAnalogueIO extends Peripheral {
    }
 
    @Override
-   public String getGroupName() {
-      return "AnalogueIO_Group";
-   }
-
-   @Override
-   public String getTitle() {
-      return "Analogue Input";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for analogue inputs";
-   }
-
-   @Override
-   public String getPcrInfoTableName(PeripheralFunction function) {
-      Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
-      Matcher m = p.matcher(function.getSignal());
-      if (!m.matches()) {
-         throw new RuntimeException("Function "+function+", Signal " + function.getSignal() + " does not match expected pattern");
-      }
-      String tableName = "info"+m.group(1);
-      String suffix     = m.group(3);
-      if ((suffix != null) && suffix.equals("a")) {
-         tableName += "Alt";
-      }
-      return tableName;
-   }
-
-   @Override
    protected void addFunctionToTable(PeripheralFunction function) {
       InfoTable fFunctions = super.fPeripheralFunctions;
       
@@ -198,10 +164,4 @@ public class WriterForAnalogueIO extends Peripheral {
       return rv;
    }
 
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return true;
-   }
-   
-   
 }

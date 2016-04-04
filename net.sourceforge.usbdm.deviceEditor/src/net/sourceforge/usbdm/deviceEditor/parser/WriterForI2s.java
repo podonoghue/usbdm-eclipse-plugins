@@ -5,7 +5,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,7 +14,6 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  *
  */
 public class WriterForI2s extends Peripheral {
-   static final String ALIAS_BASE_NAME       = "i2s_";
    static final String CLASS_BASE_NAME       = "I2s";
    static final String INSTANCE_BASE_NAME    = "i2s";
 
@@ -25,8 +23,8 @@ public class WriterForI2s extends Peripheral {
    }
 
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+   public String getTitle() {
+      return "Inter-Integrated-Circuit Interface";
    }
 
    @Override
@@ -34,18 +32,6 @@ public class WriterForI2s extends Peripheral {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
       return INSTANCE_BASE_NAME+instance+"_"+signal;
-   }
-
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      throw new RuntimeException("Should not be called");
    }
 
    /** 
@@ -111,21 +97,6 @@ public class WriterForI2s extends Peripheral {
    @Override
    public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       return "extern " + getDefinition(mappingInfo, fnIndex);
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Inter-Integrated-Circuit Interface";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for I2C functions";
    }
 
 }

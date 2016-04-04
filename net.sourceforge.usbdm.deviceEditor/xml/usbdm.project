@@ -5,7 +5,7 @@
 	<item value="1" key="FTM0_FTM_SC_CLKS"/>
 	<item value="2" key="FTM2_FTM_SC_PS"/>
 	<item value="1" key="FTM2_FTM_SC_CLKS"/>
-	<item value="mux0" key="PTC11_muxSetting"/>
+	<item value="mux1" key="PTC11_muxSetting"/>
 	<item value="11111" key="PTA0_descriptionSetting"/>
 	<item value="mux0" key="PTC8_muxSetting"/>
 	<item value="1" key="FTM3_FTM_SC_CLKS"/>
@@ -20,11 +20,13 @@
 	<item value="mux0" key="PTC9_muxSetting"/>
 	<item value="mux0" key="PTC1_muxSetting"/>
 	<item value="mux0" key="PTC6_muxSetting"/>
+	<item value="mux4" key="PTB16_muxSetting"/>
 	<item value="mux0" key="PTD6_muxSetting"/>
 	<item value="mux0" key="PTA13_muxSetting"/>
 	<item value="mux0" key="PTB2_muxSetting"/>
 	<item value="4444" key="PTA3_descriptionSetting"/>
 	<item value="2" key="FTM3_FTM_SC_PS"/>
+	<item value="mux4" key="PTA19_muxSetting"/>
 	<item value="mux0" key="PTC2_muxSetting"/>
 	<item value="3333" key="PTA2_descriptionSetting"/>
 	<item value="mux0" key="PTB0_muxSetting"/>

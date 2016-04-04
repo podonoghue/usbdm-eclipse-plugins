@@ -4,7 +4,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of PIT
@@ -22,20 +21,18 @@ public class WriterForPit extends PeripheralWithState {
    }
 
    @Override
+   public String getTitle() {
+      return "Programmable Interrupt Timer";
+   }
+
+   @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
       return getClassName()+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
@@ -86,21 +83,6 @@ public class WriterForPit extends PeripheralWithState {
    @Override
    public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       return "extern " + getDefinition(mappingInfo, fnIndex);
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Programmable Interrupt Timer";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for Programmable Interrupt Timer";
    }
 
 }

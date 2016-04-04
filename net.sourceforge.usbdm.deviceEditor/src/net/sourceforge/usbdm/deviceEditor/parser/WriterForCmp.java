@@ -7,32 +7,28 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-/**
- * @author podonoghue
- *
- */
 public class WriterForCmp extends Peripheral {
+   
+   static final String ALIAS_PREFIX       = "cmp_";
 
    public WriterForCmp(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return getClassName()+alias;
+   public String getTitle() {
+      return "Analogue Comparator";
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
+   @Override
+   public String getAliasName(String signalName, String alias) {
+      return ALIAS_PREFIX+alias;
+   }
+
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -54,25 +50,6 @@ public class WriterForCmp extends Peripheral {
        }
     }
     throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
- }
+   }
    
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Analogue Comparator";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for Analogue Comparator";
-   }
-
-   @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
 }

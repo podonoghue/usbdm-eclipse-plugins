@@ -7,7 +7,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -22,17 +21,24 @@ public class WriterForMisc extends Peripheral {
       super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
+   @Override
+   public String getTitle() {
+      return getClassName().toUpperCase() + " (Miscellaneous)";
+   }
+
    @Override
    public String getAliasName(String signalName, String alias) {
       return getClassName()+alias;
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
+   @Override
+   public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      if ((getClockMask() == null) && (getClockReg() == null)) {
+         return;
+      }
+      super.writeInfoClass(pinMappingHeaderFile);
+   }
+
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -40,14 +46,7 @@ public class WriterForMisc extends Peripheral {
       return getClassName()+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
@@ -57,27 +56,15 @@ public class WriterForMisc extends Peripheral {
 
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
+      final String signalNames[] = {"CLKIN(0?)", "CLKIN1"};
+      for (int signal=0; signal<signalNames.length; signal++) {
+         if (function.getSignal().matches(signalNames[signal])) {
+            return signal;
+         }
+      }
       return -1;
    }
    
-   @Override
-   public String getTitle() {
-      return getClassName().toUpperCase() + " (Miscellaneous)";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return getName()+"Miscellaneous Pins";
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.parser.Peripheral#getDefinition(net.sourceforge.usbdm.deviceEditor.information.MappingInfo, int)
-    */
    @Override
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) throws IOException {
       return null;

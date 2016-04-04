@@ -347,7 +347,7 @@ public abstract class Peripheral {
     * @return name
     */
    public String getGroupName() {
-      return getClassName().toUpperCase()+"_Group";
+      return getBaseName().toUpperCase()+"_Group";
       
    }
    /**
@@ -371,7 +371,9 @@ public abstract class Peripheral {
     * 
     * @return name
     */
-   public abstract String getGroupBriefDescription();
+   public String getGroupBriefDescription() {
+      return "Pins used for "+getTitle();
+   }
 
    /**
     * Get description of peripheral
@@ -403,12 +405,11 @@ public abstract class Peripheral {
    
    /**
     * Get alias name based on the given alias
-    * @param signalName 
     * 
-    * @param signalName   Function being mapped to alias e.g. 
-    * @param alias        Base for alias name e.g. <b><i>A5</b></i>
+    * @param signalName   Function being mapped to alias
+    * @param alias        Base for alias name e.g. <b><i>p36</b></i>
     * 
-    * @return Alias name e.g. gpio_<b><i>A5</b></i>
+    * @return Alias name e.g. gpio_<b><i>p36</b></i> or <b><i>null</b></i> to suppress alias
     */
    public String getAliasName(String signalName, String alias) {
       return null;
@@ -445,7 +446,9 @@ public abstract class Peripheral {
     * @param cppFile        Where to write
     * @throws IOException 
     */
-   protected abstract String getDeclaration(MappingInfo mappingInfo, int fnIndex);
+   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
+      return null;
+   }
 
    /** 
     * Get a definition for a simple function
@@ -515,16 +518,6 @@ public abstract class Peripheral {
    }
 
    /**
-    * Indicates if pin aliases should be written
-    * @param pinInfo 
-    * 
-    * @return true => write aliases
-    */
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   /**
     * Returns the PCR constant to use with pins from this peripheral
     * e.g. 
     * <pre>
@@ -551,10 +544,12 @@ public abstract class Peripheral {
     * //! Address of clock register for peripheral
     * static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,ADC1_CLOCK_REG);
     * </pre>
+    * @param pinMappingHeaderFile 
     * 
     * @return Definitions string
+    * @throws IOException 
     */
-   public String getInfoConstants() {
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       StringBuffer sb = new StringBuffer();
       
       // Base address
@@ -588,23 +583,16 @@ public abstract class Peripheral {
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
                getIrqNumsAsInitialiser()));
       }
-      return sb.toString();
+      pinMappingHeaderFile.write(sb.toString());
    }
 
-   public String getExtraDefinitions() {
-      return "";
+   public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
    public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
-   public void writeInfoConstants(XmlDocumentUtilities documentUtilities) {
-   }
    public void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
-   }
-
-   public String getPcrInfoTableName(PeripheralFunction function) {
-      return "info";
    }
 
    /**
@@ -649,6 +637,72 @@ public abstract class Peripheral {
       return rv;
    }
    
+   protected void writePcrTable(DocumentUtilities pinMappingHeaderFile) throws IOException {      
+      final String DUMMY_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, 0, 0 },\n";
+      final String USED_TEMPLATE     = "         /* %-15s = %-30s */  { %s %d  },\n";
+      final String HEADING_TEMPLATE  = "         // %-15s   %-30s   %s\n";
+
+      if (!needPCRTable()) {
+         return;
+      }
+      ArrayList<InfoTable> functionTables = getFunctionTables();
+      for (InfoTable functionTable:functionTables) {
+         if (functionTable.table.size() == 0) {
+            continue;
+         }
+         pinMappingHeaderFile.write(String.format(
+               "   //! Information for each pin of peripheral\n"+
+                     "   static constexpr PcrInfo  %s[] = {\n"+
+                     "\n",
+                     functionTable.getName()
+               ));
+         pinMappingHeaderFile.write(String.format(
+               HEADING_TEMPLATE,"Function","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
+         // Signal information table
+         for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
+            PeripheralFunction peripheralFunction = functionTable.table.get(signalIndex);
+            if (peripheralFunction == null) {
+               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, "--", "--"));
+               continue;
+            }
+            ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
+            boolean valueWritten = false;
+            for (MappingInfo mappedPin:mappedPins) {
+               if (mappedPin.getMux() == MuxSelection.disabled) {
+                  // Disabled selection - ignore
+                  continue;
+               }
+               if (mappedPin.getMux() == MuxSelection.reset) {
+                  // Reset selection - ignore
+                  continue;
+               }
+               if (mappedPin.getMux() == MuxSelection.fixed) {
+                  // Fixed pin mapping - handled by default following
+                  continue;
+               }
+               if (fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedPin.getPin()) == null) {
+                  // Discard unmapped functions on this package 
+                  continue;
+               }
+               if (mappedPin.getPin().getMuxSelection() == mappedPin.getMux()) {
+                  if (valueWritten) {
+                     throw new RuntimeException("Multiple active pin mappings");
+                  }
+                  valueWritten = true;
+                  String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.getPin());
+                  pinMappingHeaderFile.write(
+                        String.format(USED_TEMPLATE, 
+                              peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation(), pcrInitString, mappedPin.getMux().value));
+               }
+            }
+            if (!valueWritten) {
+               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, peripheralFunction.getName(), "--"));
+            }
+         }
+         pinMappingHeaderFile.write(String.format("   };\n"));
+      }
+   }
+   
    /**
     * Write Peripheral Information Class<br>
     * 
@@ -679,9 +733,6 @@ public abstract class Peripheral {
     * @throws IOException 
     */
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      final String DUMMY_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, 0, 0 },\n";
-      final String USED_TEMPLATE     = "         /* %-15s = %-30s */  { %s %d  },\n";
-      final String HEADING_TEMPLATE  = "         // %-15s   %-30s   %s\n";
 
       pinMappingHeaderFile.writeDocBanner("Peripheral information for " + getGroupTitle());
 
@@ -691,77 +742,24 @@ public abstract class Peripheral {
                   "public:\n",
                   getClassName()+"Info"
             ));
+      
       // Additional, peripheral specific, information
-      pinMappingHeaderFile.write(getInfoConstants());
-      if (needPCRTable()) {
+      writeInfoConstants(pinMappingHeaderFile);
 
-         ArrayList<InfoTable> functionTables = getFunctionTables();
-         for (InfoTable functionTable:functionTables) {
-            if (functionTable.table.size() == 0) {
-               continue;
-            }
-            pinMappingHeaderFile.write(String.format(
-                  "   //! Information for each pin of peripheral\n"+
-                        "   static constexpr PcrInfo  %s[32] = {\n"+
-                        "\n",
-                  functionTable.getName()
-                  ));
-            pinMappingHeaderFile.write(String.format(
-                  HEADING_TEMPLATE,"Function","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
-            // Signal information table
-            for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
-               PeripheralFunction peripheralFunction = functionTable.table.get(signalIndex);
-               if (peripheralFunction == null) {
-                  pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, "--", "--"));
-                  continue;
-               }
-               ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
-               boolean valueWritten = false;
-               for (MappingInfo mappedPin:mappedPins) {
-                  if (mappedPin.getMux() == MuxSelection.disabled) {
-                     // Disabled selection - ignore
-                     continue;
-                  }
-                  if (mappedPin.getMux() == MuxSelection.reset) {
-                     // Reset selection - ignore
-                     continue;
-                  }
-                  if (mappedPin.getMux() == MuxSelection.fixed) {
-                     // Fixed pin mapping - handled by default following
-                     continue;
-                  }
-                  if (fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedPin.getPin()) == null) {
-                     // Discard unmapped functions on this package 
-                     continue;
-                  }
-                  if (mappedPin.getPin().getMuxSelection() == mappedPin.getMux()) {
-                     if (valueWritten) {
-                        throw new RuntimeException("Multiple active pin mappings");
-                     }
-                     valueWritten = true;
-                     String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.getPin());
-                     pinMappingHeaderFile.write(
-                           String.format(USED_TEMPLATE, 
-                           peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation(), pcrInitString, mappedPin.getMux().value));
-                  }
-               }
-               if (!valueWritten) {
-                  pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, peripheralFunction.getName(), "--"));
-               }
-            }
-            pinMappingHeaderFile.write(String.format("   };\n"));
-         }
-      }
+      // Write PCR Table
+      writePcrTable(pinMappingHeaderFile);
+      
+      // Write extra tables
       writeExtraInfo(pinMappingHeaderFile);
+      
+      // Close class
       pinMappingHeaderFile.write(String.format("};\n\n"));
-      pinMappingHeaderFile.write(getExtraDefinitions());
+      
+      // Write extra definitions
+      writeExtraDefinitions(pinMappingHeaderFile);
    }
 
    public void writeCSettings(DocumentUtilities headerFile) throws IOException {
-   }
-
-   public boolean alwaysWriteAliases() {
-      return false;
    }
 
 }

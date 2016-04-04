@@ -49,20 +49,23 @@ public class WriteFamilyCpp {
    /*
     * Macros =============================================================================================
     */
-   HashSet<String> macros = new HashSet<String>();
+   HashSet<String> aliases = null;
    
    /**
-    * Records MACROs used
+    * Records aliases used
     * 
-    * @param MACRO to record
+    * @param aliasName Alias to record
     * 
-    * @return true=> new (acceptable) MACRO
+    * @return true=> new (acceptable) alias
     */
-   private boolean addMacroAlias(String macro) {
-      if (macros.contains(macro)) {
+   private boolean recordAlias(String aliasName) {
+      if (aliases == null) {
+         aliases = new HashSet<String>();
+      }
+      if (aliases.contains(aliasName)) {
          return false;
       }
-      macros.add(macro);
+      aliases.add(aliasName);
       return true;
    }
 
@@ -155,39 +158,38 @@ public class WriteFamilyCpp {
     * Write an external declaration for a simple peripheral (GPIO,ADC,PWM) e.g.
     * 
     * <pre>
-    * <b>#if</b> <i>PTC18_SEL</i> == 1
-    * using <i>gpio_A5</i>  = const USBDM::<i>GpioC&lt;18&gt;</i>;
-    * <b>#endif</b>
+    * template&lt;uint8_t bitNum&gt; using GpioC = Gpio_T&lt;GpioCInfo, bitNum&gt;;
+    * 
+    * using gpio_p56             = const USBDM::GpioC&lt;11&gt;;
+    * using gpio_p57             = const USBDM::GpioC&lt;12&gt;;
     * </pre>
     * 
     * @param peripheral         Template information
     * @param mappedFunction   Information about the pin and function being declared
     * @param fnIndex          Index into list of functions mapped to pin
-    * @param pWriter   Where to write
+    * @param writer   Where to write
     * 
     * @throws Exception 
     */
-   private void writeExternDeclaration(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities pWriter) throws IOException {
+   private void writeExternDeclaration(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities writer) throws IOException {
       String definition = peripheral.getDefinition(mappedFunction, fnIndex);
       if (definition == null) {
          return;
       }
       String signalName = peripheral.getInstanceName(mappedFunction, fnIndex);
-      if (peripheral.useAliases(mappedFunction.getPin())) {
-         String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedFunction.getPin());
-         if ((locations != null) && (!locations.isEmpty())) {
-            for (String location:locations.split("/")) {
-               if (!location.equalsIgnoreCase(mappedFunction.getPin().getName())) {
-                  String aliasName = peripheral.getAliasName(signalName, location);
-                  if (aliasName!= null) {
-                     String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
-                     if ((declaration != null) && (peripheral.alwaysWriteAliases() || isFunctionMappedToPin(peripheral, mappedFunction))) {
-                        if (!addMacroAlias(aliasName)) {
-                           // Comment out repeated aliases
-                           pWriter.write("//");
-                        }
-                        pWriter.write(declaration);
+      String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedFunction.getPin());
+      if ((locations != null) && (!locations.isEmpty())) {
+         for (String location:locations.split("/")) {
+            if (!location.equalsIgnoreCase(mappedFunction.getPin().getName())) {
+               String aliasName = peripheral.getAliasName(signalName, location);
+               if (aliasName!= null) {
+                  String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
+                  if ((declaration != null) && isFunctionMappedToPin(peripheral, mappedFunction)) {
+                     if (!recordAlias(aliasName)) {
+                        // Comment out repeated aliases
+                        writer.write("//");
                      }
+                     writer.write(declaration);
                   }
                }
             }
@@ -306,10 +308,8 @@ public class WriteFamilyCpp {
          writer.writeCloseGroup();
       }
 
-      writer.writeConditionalStart("DO_MAP_PINS_ON_RESET>0");
       writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
       writer.write("extern void usbdm_PinMapping();\n");
-      writer.writeConditionalEnd();
       writer.writeCloseNamespace();
    }
 
@@ -429,7 +429,7 @@ public class WriteFamilyCpp {
     */
    private void writePinMappingHeaderFile(Path filePath) throws IOException {
       
-      macros = new HashSet<String>();
+      aliases = null;
 
       BufferedWriter headerFile = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8);
       DocumentUtilities writer = new DocumentUtilities(headerFile);

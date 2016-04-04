@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,46 +9,35 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-/**
- * @author podonoghue
- *
- */
 public class WriterForDigitalIO extends Peripheral {
 
-   static final String ALIAS_BASE_NAME       = "gpio_";
-   static final String CLASS_BASE_NAME       = "Gpio";
-   static final String INSTANCE_BASE_NAME    = "gpio";
+   static final String ALIAS_PREFIX       = "gpio_";
 
    public WriterForDigitalIO(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
    }
 
    @Override
+   public String getTitle() {
+      return"Digital Input/Output";
+   }
+
    public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+      return ALIAS_PREFIX+alias;
    }
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
-      return INSTANCE_BASE_NAME+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    * @throws Exception 
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
@@ -166,67 +156,48 @@ public class WriterForDigitalIO extends Peripheral {
    }
 
    @Override
-   public String getInfoConstants() {
-      StringBuffer buff = new StringBuffer();
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      StringBuffer sb = new StringBuffer();
       
       // Base address
-      buff.append(String.format(
+      sb.append(String.format(
             "   //! PORT Hardware base pointer\n"+
             "   static constexpr uint32_t pcrAddress   = %s\n\n",
             getName().replaceAll("GPIO", "PORT")+"_BasePtr;"
             ));
 
       // Base address
-      buff.append(String.format(
+      sb.append(String.format(
             "   //! GPIO Hardware base pointer\n"+
             "   static constexpr uint32_t gpioAddress   = %s\n\n",
             getName().replaceAll("PORT", "GPIO")+"_BasePtr;"
             ));
 
-      buff.append(getPcrDefinition());
+      sb.append(getPcrDefinition());
       
       if (getClockMask() != null) {
-         buff.append(String.format(
+         sb.append(String.format(
                "   //! Clock mask for peripheral\n"+
                "   static constexpr uint32_t clockMask = %s;\n\n",
                getClockMask()));
       }
       if (getClockReg() != null) {
-         buff.append(String.format(
+         sb.append(String.format(
                "   //! Address of clock register for peripheral\n"+
                "   static constexpr uint32_t clockReg  = %s;\n\n",
                "SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+")"));
       }
       if (getIrqNumsAsInitialiser() != null) {
-         buff.append(String.format(
+         sb.append(String.format(
                "   //! Number of IRQs for hardware\n"+
                "   static constexpr uint32_t irqCount  = %s;\n\n",
                getIrqCount()));
-         buff.append(String.format(
+         sb.append(String.format(
                "   //! IRQ numbers for hardware\n"+
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
                getIrqNumsAsInitialiser()));
       }
-      return buff.toString();
+      pinMappingHeaderFile.write(sb.toString());
    }
 
-   @Override
-   public String getGroupName() {
-      return "DigitalIO_Group";
-   }
-
-   @Override
-   public String getTitle() {
-      return"Digital Input/Output";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Allows use of port pins as simple digital inputs or outputs";
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return true;
-   }
 }

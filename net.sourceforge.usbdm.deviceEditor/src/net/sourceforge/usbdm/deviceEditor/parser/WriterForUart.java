@@ -5,7 +5,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -24,17 +23,11 @@ public class WriterForUart extends Peripheral {
       super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+   public String getTitle() {
+      return "Universal Asynchonous Receiver/Transmitter";
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -42,14 +35,7 @@ public class WriterForUart extends Peripheral {
       return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
@@ -95,18 +81,4 @@ public class WriterForUart extends Peripheral {
       return "extern " + getDefinition(mappingInfo, fnIndex);
    }
 
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Universal Asynchonous Receiver/Transmitter";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for UART functions";
-   }
 }

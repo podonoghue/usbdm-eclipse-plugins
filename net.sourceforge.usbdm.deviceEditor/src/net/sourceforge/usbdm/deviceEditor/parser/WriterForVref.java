@@ -5,7 +5,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -16,21 +15,22 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  */
 public class WriterForVref extends Peripheral {
 
+   static private final String ALIAS_PREFIX = "Vref_";
+
    public WriterForVref(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return getClassName()+alias;
+   public String getTitle() {
+      return "Voltage Reference";
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
+   @Override
+   public String getAliasName(String signalName, String alias) {
+      return ALIAS_PREFIX+alias;
+   }
+
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -38,19 +38,6 @@ public class WriterForVref extends Peripheral {
       return getClassName()+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
-    */
-   @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-   
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
       final String signalNames[] = {"OUT"};
@@ -67,18 +54,4 @@ public class WriterForVref extends Peripheral {
       return null;
    }
 
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Voltage Reference";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for Voltage Reference";
-   }
 }

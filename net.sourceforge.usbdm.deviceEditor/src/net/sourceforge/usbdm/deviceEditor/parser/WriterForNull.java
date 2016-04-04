@@ -27,26 +27,11 @@ public class WriterForNull extends Peripheral {
 
    @Override
    public String getTitle() {
-      return "";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "";
+      return "Misc";
    }
 
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   @Override
-   public String getAliasName(String signalName, String alias) {
       return null;
    }
 

@@ -5,7 +5,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,18 +14,16 @@ import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
  *
  */
 public class WriterForI2c extends Peripheral {
-   static final String ALIAS_BASE_NAME       = "i2c_";
    static final String CLASS_BASE_NAME       = "I2c";
    static final String INSTANCE_BASE_NAME    = "i2c";
-
 
    public WriterForI2c(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
    }
 
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+   public String getTitle() {
+      return "Inter-Integrated-Circuit Interface";
    }
 
    @Override
@@ -34,18 +31,6 @@ public class WriterForI2c extends Peripheral {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
       return INSTANCE_BASE_NAME+instance+"_"+signal;
-   }
-
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      throw new RuntimeException("Should not be called");
    }
 
    /** 
@@ -111,26 +96,11 @@ public class WriterForI2c extends Peripheral {
    }
 
    @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
    public String getPcrDefinition() {
       return String.format(
             "   //! Base value for PCR (excluding MUX value)\n"+
             "   static constexpr uint32_t pcrValue  = I2C_DEFAULT_PCR;\n\n"
             );
-   }
-
-   @Override
-   public String getTitle() {
-      return "Inter-Integrated-Circuit Interface";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for I2C functions";
    }
 
 }

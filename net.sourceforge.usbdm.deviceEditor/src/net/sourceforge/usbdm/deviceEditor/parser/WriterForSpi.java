@@ -1,11 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.parser;
 
+import java.io.IOException;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -20,17 +21,11 @@ public class WriterForSpi extends Peripheral {
       super(basename, instance, template, deviceInfo);
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getAliasName(java.lang.String)
-    */
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_BASE_NAME+alias;
+   public String getTitle() {
+      return "Serial Peripheral Interface";
    }
 
-   /* (non-Javadoc)
-    * @see InstanceWriter#getInstanceName(MappingInfo, int)
-    */
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
@@ -38,36 +33,18 @@ public class WriterForSpi extends Peripheral {
       return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    */
+   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       String instance  = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
       String signal    = Integer.toString(getFunctionIndex(mappingInfo.getFunctions().get(fnIndex)));
       return "const " + DeviceInfo.NAME_SPACE + "::PcrTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
    }
-//   /* (non-Javadoc)
-//    * @see InstanceWriter#needPcrTable()
-//    */
-//   @Override
-//   public boolean needPeripheralInformationClass() throws Exception {
-//      boolean required = fOwner.getFunctions().size() > 0;
-//      if (!required) {
-//         if ((fOwner.getClockReg() != null) || (fOwner.getClockMask() != null)) {
-//            throw new Exception("Unexpected clock information for non-present peripheral " + fOwner.peripheralName);
-//         }
-//      }
-//      return required;
-//   }
+
+   static final int PCS_START = 3;
+   final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
 
    @Override
    public int getFunctionIndex(PeripheralFunction function) {
-      final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
       for (int signal=0; signal<signalNames.length; signal++) {
          if (function.getSignal().matches(signalNames[signal])) {
             return signal;
@@ -104,26 +81,14 @@ public class WriterForSpi extends Peripheral {
    }
 
    @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-   @Override
-   public String getExtraDefinitions() {
+   public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.fPeripheralFunctions.table.size();
       String name = getClassName();
       StringBuffer buff = new StringBuffer();
-      for (int index=0; index<=5; index++) {
-         buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index, name, index+3));
+      for (int index=PCS_START; index<super.fPeripheralFunctions.table.size(); index++) {
+         buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index-PCS_START, name, index));
       }
-      return buff.toString();
+      pinMappingHeaderFile.write(buff.toString());
    }
 
-   @Override
-   public String getTitle() {
-      return "Serial Peripheral Interface";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used for SPI functions";
-   }
 }

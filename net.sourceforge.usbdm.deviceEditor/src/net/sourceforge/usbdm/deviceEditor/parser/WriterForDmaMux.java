@@ -8,7 +8,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
 import net.sourceforge.usbdm.deviceEditor.information.PeripheralTemplateInformation;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
@@ -20,32 +19,19 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  */
 public class WriterForDmaMux extends Peripheral {
 
+   static final String CLASS_BASE_NAME       = "Dma";
+   static final String INSTANCE_BASE_NAME    = "dma";
+
    public WriterForDmaMux(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
    }
 
-   static final String CLASS_BASE_NAME       = "Vref";
-   static final String INSTANCE_BASE_NAME    = "vref";
-
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return null;
+   public String getTitle() {
+      return "Direct Memory Access (DMA)";
    }
 
    @Override
-   public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param cppFile        Where to write
-    * @throws Exception 
-    */
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal       = getFunctionIndex(mappingInfo.getFunctions().get(fnIndex));
       StringBuffer sb = new StringBuffer();
@@ -66,21 +52,6 @@ public class WriterForDmaMux extends Peripheral {
    @Override
    public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       return "extern " + getDefinition(mappingInfo, fnIndex);
-   }
-
-   @Override
-   public boolean useAliases(PinInformation pinInfo) {
-      return false;
-   }
-
-   @Override
-   public String getTitle() {
-      return "Direct Memory Access (DMA)";
-   }
-
-   @Override
-   public String getGroupBriefDescription() {
-      return "Pins used Direct Memory Access (DMA)";
    }
 
    @Override
