@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="USBDM">
+	<item value="1" key="FTM1_FTM_SC_CLKS"/>
+	<item value="1" key="FTM0_FTM_SC_CLKS"/>
+	<item value="2" key="FTM2_FTM_SC_PS"/>
+	<item value="1" key="FTM2_FTM_SC_CLKS"/>
+	<item value="2000" key="PIT_PIT_LDVAL"/>
+	<item value="MK22F12-FRDM" key="DeviceInfo_deviceVariant"/>
+	<item value="2" key="FTM1_FTM_SC_PS"/>
+	<item value="1" key="FTM3_FTM_SC_CLKS"/>
+	<item value="2" key="FTM3_FTM_SC_PS"/>
+	<item value="2" key="FTM0_FTM_SC_PS"/>
+</section>

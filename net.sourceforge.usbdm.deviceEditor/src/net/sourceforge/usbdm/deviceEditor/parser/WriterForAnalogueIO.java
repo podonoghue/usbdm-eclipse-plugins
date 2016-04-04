@@ -21,13 +21,10 @@ public class WriterForAnalogueIO extends Peripheral {
    static private final String ALIAS_PREFIX = "adc_";
    
    /** Functions that use this writer */
-   protected InfoTable fSeFunctions = new InfoTable("infoSE");
+   protected InfoTable fDmFunctions = new InfoTable("InfoDM");
          
    /** Functions that use this writer */
-   protected InfoTable fDmFunctions = new InfoTable("infoDM");
-         
-   /** Functions that use this writer */
-   protected InfoTable fDpFunctions = new InfoTable("infoDP");
+   protected InfoTable fDpFunctions = new InfoTable("InfoDP");
          
    public WriterForAnalogueIO(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);
@@ -89,7 +86,6 @@ public class WriterForAnalogueIO extends Peripheral {
    public boolean needPCRTable() {
       boolean required = 
             (fPeripheralFunctions.table.size() +
-                  fSeFunctions.table.size() + 
                   fDpFunctions.table.size() + 
                   fDmFunctions.table.size()) > 0;
       return required;
@@ -126,7 +122,7 @@ public class WriterForAnalogueIO extends Peripheral {
 
    @Override
    protected void addFunctionToTable(PeripheralFunction function) {
-      InfoTable fFunctions = super.fPeripheralFunctions;
+      InfoTable fFunctions = null;
       
       Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
       Matcher m = p.matcher(function.getSignal());
@@ -136,13 +132,16 @@ public class WriterForAnalogueIO extends Peripheral {
       int signalIndex = getFunctionIndex(function);
       String signalType = m.group(1);
       if (signalType.equalsIgnoreCase("SE")) {
-         fFunctions = fSeFunctions;
+         fFunctions = super.fPeripheralFunctions;
       }
       else if (signalType.equalsIgnoreCase("DM")) {
          fFunctions = fDmFunctions;
       }
       else if (signalType.equalsIgnoreCase("DP")) {
          fFunctions = fDpFunctions;
+      }
+      if (fFunctions == null) {
+         throw new RuntimeException("Illegal function " + function.toString());
       }
       if (signalIndex>=fFunctions.table.size()) {
          fFunctions.table.setSize(signalIndex+1);
@@ -158,7 +157,6 @@ public class WriterForAnalogueIO extends Peripheral {
    public ArrayList<InfoTable> getFunctionTables() {
       ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
       rv.add(fPeripheralFunctions);
-      rv.add(fSeFunctions);
       rv.add(fDpFunctions);
       rv.add(fDmFunctions);
       return rv;

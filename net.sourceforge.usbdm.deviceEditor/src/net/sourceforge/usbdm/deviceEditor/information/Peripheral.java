@@ -338,8 +338,10 @@ public abstract class Peripheral {
       }
    }
    
+   static final String INFO_TABLE_NAME = "info";
+   
    /** Functions that use this writer */
-   protected InfoTable fPeripheralFunctions = new InfoTable("info");
+   protected InfoTable fPeripheralFunctions = new InfoTable(INFO_TABLE_NAME);
 
    /**
     * Get name of documentation group e.g. "DigitalIO_Group"
@@ -637,7 +639,8 @@ public abstract class Peripheral {
       return rv;
    }
    
-   protected void writePcrTable(DocumentUtilities pinMappingHeaderFile) throws IOException {      
+   protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile) throws IOException {      
+      final String INVALID_TEMPLATE  = "         /* %-15s = %-30s */  { 0, 0, 0, -1, 0 },\n";
       final String DUMMY_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, 0, 0 },\n";
       final String USED_TEMPLATE     = "         /* %-15s = %-30s */  { %s %d  },\n";
       final String HEADING_TEMPLATE  = "         // %-15s   %-30s   %s\n";
@@ -650,19 +653,30 @@ public abstract class Peripheral {
          if (functionTable.table.size() == 0) {
             continue;
          }
+         
+         String indent = "";
+         if (functionTable.getName() != INFO_TABLE_NAME) {
+            pinMappingHeaderFile.write(String.format(
+                  "   class %s {\n"+
+                  "   public:\n",
+                        functionTable.getName()
+                  ));
+            indent = "   ";
+         }
+         
          pinMappingHeaderFile.write(String.format(
-               "   //! Information for each pin of peripheral\n"+
-                     "   static constexpr PcrInfo  %s[] = {\n"+
-                     "\n",
-                     functionTable.getName()
+               indent+"   //! Information for each signal of peripheral\n"+
+               indent+"   static constexpr PcrInfo  %s[] = {\n"+
+               indent+"\n",
+                     INFO_TABLE_NAME
                ));
          pinMappingHeaderFile.write(String.format(
-               HEADING_TEMPLATE,"Function","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
+               indent+HEADING_TEMPLATE,"Signal","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
          // Signal information table
          for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
             PeripheralFunction peripheralFunction = functionTable.table.get(signalIndex);
             if (peripheralFunction == null) {
-               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, "--", "--"));
+               pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, "Unused", "--"));
                continue;
             }
             ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
@@ -696,10 +710,16 @@ public abstract class Peripheral {
                }
             }
             if (!valueWritten) {
-               pinMappingHeaderFile.write(String.format(DUMMY_TEMPLATE, peripheralFunction.getName(), "--"));
+               pinMappingHeaderFile.write(String.format(indent+DUMMY_TEMPLATE, peripheralFunction.getName(), "--"));
             }
          }
-         pinMappingHeaderFile.write(String.format("   };\n"));
+         pinMappingHeaderFile.write(String.format(indent+"   };\n"));
+         
+         if (functionTable.getName() != INFO_TABLE_NAME) {
+            pinMappingHeaderFile.write(String.format(
+                  "   }; \n"
+                  ));
+         }
       }
    }
    
@@ -747,7 +767,7 @@ public abstract class Peripheral {
       writeInfoConstants(pinMappingHeaderFile);
 
       // Write PCR Table
-      writePcrTable(pinMappingHeaderFile);
+      writeInfoTable(pinMappingHeaderFile);
       
       // Write extra tables
       writeExtraInfo(pinMappingHeaderFile);

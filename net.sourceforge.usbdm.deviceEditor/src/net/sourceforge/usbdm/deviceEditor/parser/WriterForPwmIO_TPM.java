@@ -18,13 +18,13 @@ public class WriterForPwmIO_TPM extends Peripheral {
    static final String ALIAS_PREFIX          = "tpm_";
    
    /** Functions that use this writer */
-   protected InfoTable fQuadFunctions = new InfoTable("infoQUAD");
+   protected InfoTable fQuadFunctions = new InfoTable("InfoQUAD");
          
    /** Functions that use this writer */
-   protected InfoTable fFaultFunctions = new InfoTable("infoFAULT");
+   protected InfoTable fFaultFunctions = new InfoTable("InfoFAULT");
          
    /** Functions that use this writer */
-   protected InfoTable fClkinFunctions = new InfoTable("infoCLKIN");
+   protected InfoTable fClkinFunctions = new InfoTable("InfoCLKIN");
          
    public WriterForPwmIO_TPM(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);

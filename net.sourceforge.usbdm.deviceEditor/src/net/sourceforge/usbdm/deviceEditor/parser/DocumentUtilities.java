@@ -75,13 +75,8 @@ public class DocumentUtilities {
     * @throws IOException
     */
    public void writeStartGroup(String groupName, String groupTitle, String groupBrief) throws IOException {
-      if (fCurrentGroupName != null) {
-         if (fCurrentGroupName.equalsIgnoreCase(groupName)) {
-            // Re-opening same group - ignore
-            return;
-         }
-         // Close current group
-         writeCloseGroup();
+      if (groupName == null) {
+         groupName = "";
       }
       fCurrentGroupName = groupName;
 

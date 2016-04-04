@@ -46,7 +46,7 @@ public class TestDeviceEditor {
    public static void main(String[] args) {
       try {
 //         testEditor(Paths.get("data/MK22FA12_64p.csv"));
-         testEditor(Paths.get("xml/pin_mapping-MK22FA12_64p.hardware"));
+         testEditor(Paths.get("xml/MK22FA12_64p.hardware"));
       } catch (Exception e) {
          e.printStackTrace();
       }

@@ -21,13 +21,13 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
    
 
    /** Functions that use this writer */
-   protected InfoTable fQuadFunctions = new InfoTable("infoQUAD");
+   protected InfoTable fQuadFunctions = new InfoTable("InfoQUAD");
          
    /** Functions that use this writer */
-   protected InfoTable fFaultFunctions = new InfoTable("infoFAULT");
+   protected InfoTable fFaultFunctions = new InfoTable("InfoFAULT");
          
    /** Functions that use this writer */
-   protected InfoTable fClkinFunctions = new InfoTable("infoCLKIN");
+   protected InfoTable fClkinFunctions = new InfoTable("InfoCLKIN");
          
    public WriterForPwmIO_FTM(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
       super(basename, instance, template, deviceInfo);

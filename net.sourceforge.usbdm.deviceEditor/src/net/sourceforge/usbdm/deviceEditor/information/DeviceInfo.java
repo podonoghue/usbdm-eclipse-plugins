@@ -52,6 +52,12 @@ public class DeviceInfo extends ObservableModel {
    /** Device family for this device */
    private final DeviceFamily fDeviceFamily;
 
+   /** Name of device configuration file e.g. MK22FA12_64p.hardware */
+   private String fDeviceFilename;
+
+   /** Name of project file e.g. MK22FA12_64p.UsbdmProject */
+   private String fProjectFilename;
+
    /**
     * Create device information
     * 
@@ -61,15 +67,16 @@ public class DeviceInfo extends ObservableModel {
    public DeviceInfo(Path filePath) {
 
       fPath = filePath.toAbsolutePath();
-      String name = fPath.getFileName().toString();
+      fDeviceFilename  = fPath.getFileName().toString();
+      fProjectFilename = fDeviceFilename.replace(".hardware", ".UsbdmProject");
 
-      if (name.startsWith("MKE")) {
+      if (fDeviceFilename.startsWith("MKE")) {
          fDeviceFamily = DeviceFamily.mke;
       }
-      else if (name.startsWith("MKL")) {
+      else if (fDeviceFilename.startsWith("MKL")) {
          fDeviceFamily = DeviceFamily.mkl;
       }
-      else if (name.startsWith("MKM")) {
+      else if (fDeviceFilename.startsWith("MKM")) {
          fDeviceFamily = DeviceFamily.mkm;
       }
       else {
@@ -1007,8 +1014,8 @@ public class DeviceInfo extends ObservableModel {
     * Load persistent settings
     */
    public void loadSettings() {
-      System.err.println("DeviceInfo.loadSettings()");
-      Path path = fPath.getParent().resolve("usbdm.project");
+      System.err.println("DeviceInfo.loadSettings("+fProjectFilename+")");
+      Path path = fPath.getParent().resolve(fProjectFilename);
       if (path.toFile().isFile()) {
          try {
          DialogSettings settings = new DialogSettings("USBDM");
@@ -1035,8 +1042,8 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings
     */
    public void saveSettings() {
-      System.err.println("DeviceInfo.saveSettings()");
-      Path path = fPath.getParent().resolve("usbdm.project");
+      System.err.println("DeviceInfo.saveSettings("+fProjectFilename+")");
+      Path path = fPath.getParent().resolve(fProjectFilename);
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       for (String pinName:fPins.keySet()) {

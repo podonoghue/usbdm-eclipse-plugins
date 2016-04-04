@@ -155,23 +155,58 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Write an external declaration for a simple peripheral (GPIO,ADC,PWM) e.g.
+    * Write all Peripheral Information Classes<br>
     * 
     * <pre>
-    * template&lt;uint8_t bitNum&gt; using GpioC = Gpio_T&lt;GpioCInfo, bitNum&gt;;
+    *  class Adc0Info {
+    *   ...
+    *  };
+    *  class Adc1Info {
+    *   ...
+    *  };
+    * </pre>
+    * @param pinMappingHeaderFile Where to write
     * 
-    * using gpio_p56             = const USBDM::GpioC&lt;11&gt;;
-    * using gpio_p57             = const USBDM::GpioC&lt;12&gt;;
+    * @throws IOException 
+    */
+   private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeBanner("Peripheral Information Classes");
+
+      String groupName = null;
+      
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         if (!peripheral.getGroupName().equals(groupName)) {
+            if (groupName != null) {
+               writer.writeCloseGroup();
+            }
+            writer.writeStartGroup(peripheral);
+            groupName = peripheral.getGroupName();
+         }
+         peripheral.writeInfoClass(writer);
+      }
+      writer.writeCloseGroup();
+      writer.writeCloseNamespace();
+      writer.write("\n");
+   }
+
+   /**
+    * Write templates for simple peripheral functions (e.g. GPIO,ADC,PWM) mapped to locations  e.g.
+    * 
+    * <pre>
+    *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
+    *    using adc_p54              = const USBDM::Adc1&lt;5&gt;;
     * </pre>
     * 
-    * @param peripheral         Template information
+    * @param peripheral       Peripheral information
     * @param mappedFunction   Information about the pin and function being declared
     * @param fnIndex          Index into list of functions mapped to pin
-    * @param writer   Where to write
+    * @param writer           Where to write
     * 
-    * @throws Exception 
+    * @throws IOException 
     */
-   private void writeExternDeclaration(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities writer) throws IOException {
+   private void writeFunctionCTemplates(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities writer) throws IOException {
       String definition = peripheral.getDefinition(mappedFunction, fnIndex);
       if (definition == null) {
          return;
@@ -198,92 +233,66 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Write all Peripheral Information Classes<br>
+    * Write C templates for peripherals and peripheral functions
     * 
     * <pre>
-    *  class Adc0Info {
-    *     public:
-    *        //! Hardware base pointer
-    *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
-    * 
-    *        //! Base value for PCR (excluding MUX value)
-    *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-    * 
-    *        //! Information for each pin of peripheral
-    *        static constexpr PcrInfo  info[32] = {
-    * 
-    *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
-    *   /*  0 * /  { 0 },
-    *   ...
-    *   #if (ADC0_SE4b_PIN_SEL == 1)
-    *    /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
-    *   #else
-    *    /*  4 * /  { 0 },
-    *   #endif
-    *   ...
-    *   };
-    *   };
-    * </pre>
-    * @param pinMappingHeaderFile Where to write
-    * 
-    * @throws IOException 
-    */
-   private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
-      writer.writeBanner("Peripheral Information Classes");
-
-      writer.writeStartGroup( 
-            "PeripheralPinTables", 
-            "Peripheral Information Classes", 
-            "Provides instance specific information about a peripheral");
-
-      for (String key:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         peripheral.writeInfoClass(writer);
-      }
-      writer.writeCloseGroup();
-      writer.writeCloseNamespace();
-      writer.write("\n");
-   }
-
-   /**
-    * Write GPIO Header file.<br>
-    * This mostly contains the extern declarations for peripherals
-    * 
-    * <pre>
-    * <b>#if</b> <i>PTC18_SEL</i> == 1
-    * using <i>gpio_A5</i>  = const USBDM::<i>GpioC&lt;18&gt;</i>;
-    * <b>#endif</b>
+    *    /**
+    *     * Convenience template class representing an ADC
+    *     *
+    *     * Example
+    *     * @code
+    *     *  // Instantiate ADC0 single-ended channel #8
+    *     *  const adc0&lt;8&gt; adc0_se8;
+    *     *
+    *     *  // Initialise ADC
+    *     *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
+    *     *
+    *     *  // Set as analogue input
+    *     *  adc0_se8.setAnalogueInput();
+    *     *
+    *     *  // Read input
+    *     *  uint16_t value = adc0_se8.readAnalogue();
+    *     *  @endcode
+    *     *
+    *     * @tparam adcChannel    ADC channel
+    *     * /
+    *    template&lt;uint8_t channel&gt; using Adc1 = Adc_T&lt;Adc1Info, channel&gt;;
+    *    
+    *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
+    *    using adc_p54              = const USBDM::Adc1&lt;5&gt;;
     * </pre>
     * 
-    * @param gpioHeaderFile Where to write
+    * @param writer Where to write
     * 
     * @throws Exception 
     */
-   private void writeDeclarations(DocumentUtilities writer) throws IOException {
+   private void writePeripheralCTemplates(DocumentUtilities writer) throws IOException {
 
       writer.write("\n");
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
 
-      PeripheralTemplateInformation peripheralTemplateInformation = null;
-      boolean groupDone = false;
+      String groupName = null;
+
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
+
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         if (peripheralTemplateInformation != peripheral.getPeripheralTemplate()) {
-            peripheralTemplateInformation = peripheral.getPeripheralTemplate();
-            if (groupDone) {
+         String declaration = peripheral.getCTemplate();
+         if (declaration == null) {
+            continue;
+         }
+         if (!peripheral.getGroupName().equals(groupName)) {
+            if (groupName != null) {
                // Terminate previous group
                writer.writeCloseGroup();
             }
-            groupDone = false;
-         }
-         String declaration = peripheral.getCTemplate();
-         if (declaration != null) {
+            groupName = peripheral.getGroupName();
             writer.writeStartGroup(peripheral);
-            groupDone = true;
-            writer.write(declaration);
          }
+
+         writer.write(declaration);
+
          for (String pinName:fDeviceInfo.getPins().keySet()) {
+
             PinInformation pin = fDeviceInfo.getPins().get(pinName);
             Map<MuxSelection, MappingInfo> mappedFunctions = pin.getMappedFunctions();
             if (mappedFunctions == null) {
@@ -297,17 +306,16 @@ public class WriteFamilyCpp {
                for (int fnIndex=0; fnIndex<mappedFunction.getFunctions().size(); fnIndex++) {
                   PeripheralFunction function = mappedFunction.getFunctions().get(fnIndex);
                   if (function.getPeripheral() == peripheral) {
-                     writeExternDeclaration(peripheral, mappedFunction, fnIndex, writer);
+                     writeFunctionCTemplates(peripheral, mappedFunction, fnIndex, writer);
                   }
                }
             }
          }
       }
-      if (groupDone) {
+      if (groupName != null) {
          // Terminate last group
          writer.writeCloseGroup();
       }
-
       writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
       writer.write("extern void usbdm_PinMapping();\n");
       writer.writeCloseNamespace();
@@ -449,7 +457,7 @@ public class WriteFamilyCpp {
 
       writer.writeHeaderFileInclude("gpio_defs.h");
 
-      writeDeclarations(writer);
+      writePeripheralCTemplates(writer);
 
       writer.writeHeaderFilePostamble(pinMappingBaseFileName+".h");
 
