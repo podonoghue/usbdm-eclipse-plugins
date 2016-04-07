@@ -7,6 +7,7 @@ import java.util.Vector;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceEditor.editor.ProjectUtilities;
 
 import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
@@ -176,6 +177,7 @@ public class CDTProjectManager {
          }
          Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
          coreModel.setProjectDescription(project, projectDescription);
+         
       } finally {
          monitor.done();
       }

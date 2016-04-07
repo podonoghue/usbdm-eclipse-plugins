@@ -24,7 +24,7 @@ public class BaseModel {
    protected       ArrayList<Object> fChildren = null;
    
    /** Tool-tip */
-   protected       String            fToolTip  = null;
+   protected       String            fToolTip  = "";
    
    /** Information/Warning/Error message */
    protected Message fMessage = null;
@@ -249,7 +249,8 @@ public class BaseModel {
     * @return
     */
    public boolean isWarning() {
-      return (fMessage != null) && (fMessage.greaterThan(Message.Severity.INFORMATION));
+      Message msg = getMessage();
+      return (msg != null) && (msg.greaterThan(Message.Severity.INFORMATION));
    }
 
    /** 
@@ -270,10 +271,10 @@ public class BaseModel {
       String tip = fToolTip;
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
-         tip += fMessage.getMessage();
+         tip += message.getMessage();
       }
       else if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         tip += "\n"+fMessage.getMessage();
+         tip += "\n"+message.getMessage();
       }
       return tip;
    }

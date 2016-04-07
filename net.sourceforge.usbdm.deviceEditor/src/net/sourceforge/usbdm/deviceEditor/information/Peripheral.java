@@ -8,7 +8,7 @@ import java.util.Vector;
 
 import org.eclipse.jface.dialogs.DialogSettings;
 
-import net.sourceforge.usbdm.deviceEditor.parser.DocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
@@ -38,9 +38,6 @@ public abstract class Peripheral {
    /** Instance name/number of the peripheral instance e.g. FTM0 = 0, PTA = A */
    private final String fInstance;
    
-   /** The template associated with this peripheral */
-   private final PeripheralTemplateInformation fTemplate;
-
    /** Clock register e.g. SIM->SCGC6 */
    private String fClockReg = null;
 
@@ -57,25 +54,24 @@ public abstract class Peripheral {
    private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
    /** Map of all functions on this peripheral */
-   private TreeMap<String, PeripheralFunction> fFunctions = new TreeMap<String, PeripheralFunction>(PeripheralFunction.comparator);
+   private TreeMap<String, Signal> fFunctions = new TreeMap<String, Signal>(Signal.comparator);
    
    /**
     * Create peripheral
     * 
-    * @param basename      Base name e.g. FTM3 => FTM
+    * @param baseName      Base name e.g. FTM3 => FTM
     * @param instance      Instance e.g. FTM3 => 3
     * @param writerBase    Description of peripheral
     * @param template      The template associated with this peripheral 
     * @param deviceInfo 
     */
-   protected Peripheral(String basename, String instance, PeripheralTemplateInformation template, DeviceInfo deviceInfo) {
-      fBaseName      = basename;
+   protected Peripheral(String baseName, String instance, DeviceInfo deviceInfo) {
+      fBaseName      = baseName;
       fInstance      = instance;
-      fTemplate      = template;
       fDeviceInfo    = deviceInfo;
       
-      fName          = basename+instance;
-      fClassName     = basename.substring(0, 1).toUpperCase()+basename.substring(1).toLowerCase()+instance;
+      fName          = baseName+instance;
+      fClassName     = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase()+instance;
    }
    
    @Override
@@ -124,15 +120,6 @@ public abstract class Peripheral {
    }
 
    /**
-    * Get the template associated with this peripheral 
-    * 
-    * @return
-    */
-   public PeripheralTemplateInformation getPeripheralTemplate() {
-      return fTemplate;
-   }
-   
-   /**
     * Set clock information
     * 
     * @param clockReg   Clock register name e.g. SCGC5
@@ -165,7 +152,7 @@ public abstract class Peripheral {
     * Get map of all functions on this peripheral
     * @return
     */
-   public TreeMap<String, PeripheralFunction> getFunctions() {
+   public TreeMap<String, Signal> getFunctions() {
       return fFunctions;
    }
 
@@ -253,7 +240,12 @@ public abstract class Peripheral {
     */
    public void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException {
       documentUtilities.openTag("peripheral");
-      documentUtilities.writeAttribute("name", fName);
+      documentUtilities.writeAttribute("baseName", fBaseName);
+      documentUtilities.writeAttribute("instance", fInstance);
+
+      documentUtilities.openTag("handler");
+      documentUtilities.writeAttribute("class", this.getClass().getName());
+      documentUtilities.closeTag();
 
       // Additional, peripheral specific, information
       if ((fClockReg != null) || (fClockMask != null)) {
@@ -327,7 +319,7 @@ public abstract class Peripheral {
     */
    public class InfoTable {
       /** Functions that use this writer indexed by function index */
-      public  Vector<PeripheralFunction> table = new Vector<PeripheralFunction>();
+      public  Vector<Signal> table = new Vector<Signal>();
       private String fName;
       
       public InfoTable(String name) {
@@ -400,8 +392,8 @@ public abstract class Peripheral {
     * @return  String 
     */
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      String instance = mappingInfo.getFunctions().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getFunctions().get(fnIndex).getSignal();
+      String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
       return getClassName()+instance+"_"+signal;
    }
    
@@ -515,7 +507,7 @@ public abstract class Peripheral {
     * 
     * @throws Exception If function doesn't match template
     */
-   public int getFunctionIndex(PeripheralFunction function) {
+   public int getFunctionIndex(Signal function) {
       throw new RuntimeException("Method should not be called");
    }
 
@@ -602,7 +594,7 @@ public abstract class Peripheral {
     * 
     * @param peripheralFunction
     */
-   public void addFunction(PeripheralFunction function) {
+   public void addFunction(Signal function) {
       fFunctions.put(function.getName(), function);
       addFunctionToTable(function);
    }
@@ -612,7 +604,7 @@ public abstract class Peripheral {
     * 
     * @param peripheralFunction
     */
-   protected void addFunctionToTable(PeripheralFunction function) {
+   protected void addFunctionToTable(Signal function) {
       int signalIndex = getFunctionIndex(function);
       if (signalIndex<0) {
          return;
@@ -640,8 +632,9 @@ public abstract class Peripheral {
    }
    
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile) throws IOException {      
-      final String INVALID_TEMPLATE  = "         /* %-15s = %-30s */  { 0, 0, 0, -1, 0 },\n";
-      final String DUMMY_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, 0, 0 },\n";
+      final String INVALID_TEMPLATE  = "         /* %-15s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
+      final String DUMMY_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
+      final String FIXED_TEMPLATE    = "         /* %-15s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
       final String USED_TEMPLATE     = "         /* %-15s = %-30s */  { %s %d  },\n";
       final String HEADING_TEMPLATE  = "         // %-15s   %-30s   %s\n";
 
@@ -674,14 +667,18 @@ public abstract class Peripheral {
                indent+HEADING_TEMPLATE,"Signal","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
          // Signal information table
          for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
-            PeripheralFunction peripheralFunction = functionTable.table.get(signalIndex);
+            Signal peripheralFunction = functionTable.table.get(signalIndex);
             if (peripheralFunction == null) {
-               pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, "Unused", "--"));
+               pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, "--", "--"));
                continue;
             }
             ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
             boolean valueWritten = false;
             for (MappingInfo mappedPin:mappedPins) {
+               if (!mappedPin.getPin().isAvailableInPackage()) {
+                  // Discard unmapped functions on this package 
+                  continue;
+               }
                if (mappedPin.getMux() == MuxSelection.disabled) {
                   // Disabled selection - ignore
                   continue;
@@ -691,21 +688,19 @@ public abstract class Peripheral {
                   continue;
                }
                if (mappedPin.getMux() == MuxSelection.fixed) {
-                  // Fixed pin mapping - handled by default following
-                  continue;
+                  // Fixed pin mapping
+                  pinMappingHeaderFile.write(String.format(indent+FIXED_TEMPLATE, peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation()));
+                  valueWritten = true;
+                  break;
                }
-               if (fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedPin.getPin()) == null) {
-                  // Discard unmapped functions on this package 
-                  continue;
-               }
-               if (mappedPin.getPin().getMuxSelection() == mappedPin.getMux()) {
+               if (mappedPin.getPin().getMuxValue() == mappedPin.getMux()) {
                   if (valueWritten) {
                      throw new RuntimeException("Multiple active pin mappings");
                   }
                   valueWritten = true;
                   String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.getPin());
                   pinMappingHeaderFile.write(
-                        String.format(USED_TEMPLATE, 
+                        String.format(indent+USED_TEMPLATE, 
                               peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation(), pcrInitString, mappedPin.getMux().value));
                }
             }
@@ -780,6 +775,22 @@ public abstract class Peripheral {
    }
 
    public void writeCSettings(DocumentUtilities headerFile) throws IOException {
+   }
+
+   /**
+    * Indicate if the peripheral has some pins that <b>may be</b> mapped to a package location<br>
+    * Used to suppress peripherals that exist but are unusable in a particular package.
+    * 
+    * @return
+    */
+   public boolean hasMappableFunctions() {
+      for (String key:fFunctions.keySet()) {
+         Signal function = fFunctions.get(key);
+         if (function.isAvailableInPackage()) {
+            return true;
+         }
+      }
+      return false;
    }
 
 }

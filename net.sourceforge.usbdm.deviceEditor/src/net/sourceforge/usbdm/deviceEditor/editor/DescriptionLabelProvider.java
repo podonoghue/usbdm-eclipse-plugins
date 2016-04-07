@@ -4,7 +4,7 @@ import org.eclipse.jface.viewers.StyledString;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.FunctionModel;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
 class DescriptionLabelProvider extends BaseLabelProvider {
@@ -35,8 +35,8 @@ class DescriptionLabelProvider extends BaseLabelProvider {
             styledString = new StyledString(model.getDescription(), StyledString.QUALIFIER_STYLER);
          }
       }
-      else if (element instanceof FunctionModel) {
-         FunctionModel model = (FunctionModel)element;
+      else if (element instanceof SignalModel) {
+         SignalModel model = (SignalModel)element;
          if (model.getDescription() != null) {
             styledString = new StyledString(model.getDescription(), StyledString.QUALIFIER_STYLER);
          }

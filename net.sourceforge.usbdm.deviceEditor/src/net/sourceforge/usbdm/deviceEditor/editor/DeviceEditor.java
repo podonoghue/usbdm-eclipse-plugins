@@ -9,6 +9,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
@@ -32,11 +33,13 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.RootModel;
-import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyCpp;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 
-public class DeviceEditor extends EditorPart {
+public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    /** Path from which the data was loaded */
    private Path         fPath                = null;
@@ -47,12 +50,15 @@ public class DeviceEditor extends EditorPart {
    /** Folder containing all the tabs */
    private TabFolder    fTabFolder           = null;
 
+   private TreeEditor[] fTreeEditors         = null;
+   
+
    /** Actions to add to popup menus */
    ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
 
    /** Associated project */
    private IProject fProject = null;
-   
+
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
       super.setSite(editorSite);
@@ -82,6 +88,18 @@ public class DeviceEditor extends EditorPart {
    }
 
    /**
+    * Set the models for page 1..N<br>
+    * Page 0 is assumed unchanged
+    * 
+    */
+   private void setModels() {
+      ArrayList<RootModel> models = fFactory.getModels();
+      for (int index=1; index<models.size(); index++) {
+         fTreeEditors[index].setModel(models.get(index));
+      }
+   }
+   
+   /**
     * Creates the editor pages.
     */
    @Override
@@ -93,7 +111,7 @@ public class DeviceEditor extends EditorPart {
       String failureReason = "Unknown";
       try {
          System.err.println("DeviceEditor(), Input = " + fPath.toAbsolutePath());
-         fFactory = ModelFactory.createModel(fPath, true);
+         fFactory = ModelFactory.createModels(fPath, true);
       } catch (Exception e) {
          failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
          System.err.println(failureReason);
@@ -109,48 +127,31 @@ public class DeviceEditor extends EditorPart {
       }
       
       // Create the containing tab folder
-      fTabFolder = new TabFolder(parent, SWT.NONE);
-
-      TabItem tabItem;
+      fTabFolder   = new TabFolder(parent, SWT.NONE);
+      ArrayList<TreeEditor> treeEditors = new ArrayList<TreeEditor>();
 
       for (RootModel model:fFactory.getModels()) {
          // Pin view
+         TabItem tabItem;
          tabItem = new TabItem(fTabFolder, SWT.NONE);
          tabItem.setText(model.getName());
          tabItem.setToolTipText(model.getToolTip());       
-         TreeEditor editor = new TreeEditor();
-         tabItem.setControl(editor.createControls(fTabFolder).getControl());
-         editor.setModel(model);
+         TreeEditor treeEditor = new TreeEditor();
+         treeEditors.add(treeEditor);
+         tabItem.setControl(treeEditor.createControls(fTabFolder).getControl());
       }
-//      // Pin view
-//      tabItem = new TabItem(fTabFolder, SWT.NONE);
-//      tabItem.setText(fFactory.getPackageModel().getName());
-//      tabItem.setToolTipText(fFactory.getPackageModel().getToolTip());       
-//      fPackageEditor = new TreeEditor();
-//      tabItem.setControl(fPackageEditor.createControls(fTabFolder).getControl());
-//      fPackageEditor.setModel(fFactory.getPackageModel());
-//
-//      // Peripheral view
-//      tabItem = new TabItem(fTabFolder, SWT.NONE);
-//      tabItem.setText(fFactory.getPeripheralModel().getName());
-//      tabItem.setToolTipText(fFactory.getPeripheralModel().getToolTip());       
-//      fPeripheralEditor = new TreeEditor();
-//      tabItem.setControl(fPeripheralEditor.createControls(fTabFolder).getControl());
-//      fPeripheralEditor.setModel(fFactory.getPeripheralModel());
-//
-//      // Pin view
-//      tabItem = new TabItem(fTabFolder, SWT.NONE);
-//      tabItem.setText(fFactory.getPinModel().getName());
-//      tabItem.setToolTipText(fFactory.getPinModel().getToolTip());       
-//      fPinEditor = new TreeEditor();
-//      tabItem.setControl(fPinEditor.createControls(fTabFolder).getControl());
-//      fPinEditor.setModel(fFactory.getPinModel());
+      fTreeEditors = treeEditors.toArray(new TreeEditor[treeEditors.size()]);
 
-//      // Create the actions
+      fTreeEditors[0].setModel(fFactory.getModels().get(0));
+      setModels();
+      
+      fFactory.addListener(this);
+      
+      // Create the actions
       makeActions();
       // Add selected actions to context menu
       hookContextMenu();
-//      // Add selected actions to menu bar
+      // Add selected actions to menu bar
 //      contributeToActionBars();
    }
 
@@ -193,10 +194,15 @@ public class DeviceEditor extends EditorPart {
       }
       WriteFamilyCpp writer = new WriteFamilyCpp();
       try {
-         Path folder = fFactory.getDeviceInfo().getSourcePath().getParent().getParent();
-         writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
          if (fProject != null) {
-            fProject.refreshLocal(IResource.DEPTH_INFINITE, null);
+            writer.writeCppFiles(fProject, fFactory.getDeviceInfo(), new NullProgressMonitor());
+         }
+         else {
+            Path folder = fFactory.getDeviceInfo().getSourcePath().getParent().getParent();
+            writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
+            if (fProject != null) {
+               fProject.refreshLocal(IResource.DEPTH_INFINITE, null);
+            }
          }
       } catch (IOException e) {
          e.printStackTrace();
@@ -305,12 +311,32 @@ public class DeviceEditor extends EditorPart {
 
    @Override
    public boolean isDirty() {
-      return fFactory != null;
+      return (fFactory != null) && (fFactory.getDeviceInfo().isDirty());
    }
 
+   
    @Override
    public boolean isSaveAsAllowed() {
       return false;
+   }
+
+   /** Used when the models have been re-generated */
+   @Override
+   public void modelElementChanged(ObservableModel model) {
+      System.err.println("DeviceEditor.modelElementChanged()");
+      if (model == fFactory) {
+         firePropertyChange(PROP_DIRTY);      
+      }
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+      System.err.println("DeviceEditor.modelStructureChanged()");
+      if (model == fFactory) {
+         System.err.println("DeviceEditor.modelStructureChanged() - Updating models");
+         setModels();
+      }
+      firePropertyChange(PROP_DIRTY);      
    }
 
 }

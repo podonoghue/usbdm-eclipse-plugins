@@ -6,12 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
-import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 
 public class TestCreateXml {
-   /** Base name for pin mapping file */
-   private final static String pinMappingBaseFileName   = "pin_mapping";
    
    private static final DirectoryStream.Filter<Path> csvFilter = new DirectoryStream.Filter<Path>() {
       @Override
@@ -25,7 +23,7 @@ public class TestCreateXml {
       Path directory = Paths.get("");
       
       // Locate data output directory  
-      Path xmlDirectory = directory.resolve("xml");
+      Path xmlDirectory = directory.resolve("usbdm");
 
       // Create output directories if needed  
       if (!xmlDirectory.toFile().exists()) {
@@ -40,16 +38,14 @@ public class TestCreateXml {
           * Process each input file
           */
          System.err.println("Processing " + filePath.getFileName() + " ======================== ");
-         String sourceName = filePath.getFileName().toString();
-         String deviceName = sourceName.replaceAll("\\.csv", "");
+         String sourceName      = filePath.getFileName().toString();
+         String destinationName = sourceName.replaceAll("\\.csv", "")+".hardware";
          
          ParseFamilyCSV reader = new ParseFamilyCSV();
          DeviceInfo deviceInfo = reader.parseFile(filePath);
          
-         String xmlFileName = pinMappingBaseFileName+"-"+deviceName+".hardware";
-         
          WriteFamilyXML writer = new WriteFamilyXML();
-         Path xmlFilePath = xmlDirectory.resolve(xmlFileName);
+         Path xmlFilePath = xmlDirectory.resolve(destinationName);
          writer.writeXmlFile(xmlFilePath, deviceInfo);
       }
    }

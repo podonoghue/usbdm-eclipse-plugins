@@ -216,7 +216,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          }
       }
       else {
-         // XXX - Change default device for testing
+         // TODO - Change default device for testing
          fDeviceSelector.setDevice("FRDM_K64F");
       }
    }

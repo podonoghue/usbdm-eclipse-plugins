@@ -10,37 +10,70 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.PeripheralFunction;
-import net.sourceforge.usbdm.deviceEditor.information.PinInformation;
-import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
-public class ModelFactory implements IModelChangeListener {
+public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
+   /**
+    * Used to sort the pins into categories for display
+    */
    static class PinCategory {
+      /** Name of category */
       final String               name;
+      
+      /** Pattern used to select pins to include in this category */
       final Pattern              pattern;
-      ArrayList<PinInformation>  pins =  new ArrayList<PinInformation>();
+      
+      /** Pins collected that match the pattern*/
+      ArrayList<Pin>  pins =  new ArrayList<Pin>();
 
+      /**
+       * Constructor <br>
+       * Used to sort the pins into categories for display
+       * 
+       * @param name       Name of category 
+       * @param pattern    Pattern used to select pins to include in this category 
+       */
       public PinCategory(String name, String pattern) {
          this.name      = name;
          this.pattern   = Pattern.compile(pattern);
       }
 
-      boolean tryAdd(PinInformation pinInformation) {
+      /**
+       * Add pin to category if pin name matches pattern
+       * 
+       * @param pinInformation
+       * 
+       * @return true => Added to this category
+       */
+      boolean tryAdd(Pin pinInformation) {
          boolean rv = pattern.matcher(pinInformation.getName()).matches();
          if (rv) {
             pins.add(pinInformation);
          }
          return rv;
       }
+      /**
+       * Get name of category
+       * 
+       * @return
+       */
       String getName() {
          return name;
       }
-      ArrayList<PinInformation> getPins() {
+      /**
+       * Get pins in this category
+       * 
+       * @return
+       */
+      ArrayList<Pin> getPins() {
          return pins;
       }
    }
@@ -59,15 +92,18 @@ public class ModelFactory implements IModelChangeListener {
    /** List of all models */
    ArrayList<RootModel> fModels = new ArrayList<RootModel>();
 
-   /** List of pin mapping entries */
-   protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
+   /** List of all pin mapping entries to scan for mapping conflicts */
+   protected ArrayList<MappingInfo> fMappingInfos = null;
 
    /**
     * Create model organised by pin
+    * Also updates fMappingInfos
     * 
-    * @return
+    * @return Model
     */
    private DeviceModel createPinModel() {
+      fMappingInfos = new ArrayList<MappingInfo>();
+
       final ArrayList<PinCategory> categories = new ArrayList<PinCategory>();
 
       // Construct categories
@@ -78,10 +114,13 @@ public class ModelFactory implements IModelChangeListener {
 
       // Group pins into categories
       for (String pName:fDeviceInfo.getPins().keySet()) {
-         PinInformation pinInformation = fDeviceInfo.getPins().get(pName);
-         for (PinCategory category:categories) {
-            if (category.tryAdd(pinInformation)) {
-               break;
+         Pin pinInformation = fDeviceInfo.getPins().get(pName);
+         if (pinInformation.isAvailableInPackage()) {
+            // Only add if available in package
+            for (PinCategory category:categories) {
+               if (category.tryAdd(pinInformation)) {
+                  break;
+               }
             }
          }
       }
@@ -92,39 +131,38 @@ public class ModelFactory implements IModelChangeListener {
             continue;
          }
          CategoryModel categoryModel = new CategoryModel(deviceModel, pinCategory.getName(), "");
-         for(PinInformation pinInformation:pinCategory.getPins()) {
+         for(Pin pinInformation:pinCategory.getPins()) {
             new PinModel(categoryModel, pinInformation);
-            for (MappingInfo mappingInfo:pinInformation.getMappedFunctions().values()) {
+            for (MappingInfo mappingInfo:pinInformation.getMappedSignals().values()) {
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   continue;
                }
                if (mappingInfo.getMux() == MuxSelection.disabled) {
                   continue;
                }
-               if (mappingInfo.getFunctions().get(0) == PeripheralFunction.DISABLED) {
+               if (mappingInfo.getSignals().get(0) == Signal.DISABLED_SIGNAL) {
                   continue;
                }
                fMappingInfos.add(mappingInfo);
             }
          }
       }
+
       return deviceModel;
    }
 
    /**
     * Create model organised by peripheral
     * 
-    * @return
+    * @return Model
     */
    private DeviceModel createPeripheralModel() {
       DeviceModel deviceModel = new DeviceModel(this, PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
-         if (peripheral.getFunctions().size() == 0) {
-            // Ignore peripherals without pins
-            continue;
+         if (peripheral.hasMappableFunctions()) {
+            PeripheralModel.createPeripheralModel(deviceModel, peripheral);
          }
-         PeripheralModel.createPeripheralModel(deviceModel, peripheral);
       }
       return deviceModel;
    }
@@ -132,7 +170,7 @@ public class ModelFactory implements IModelChangeListener {
    /**
     * Create model for device selection and package information
     * 
-    * @return
+    * @return Model
     */
    private DeviceInformationModel createPackageModel() {
       DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Device Information", "Device Information");
@@ -144,11 +182,11 @@ public class ModelFactory implements IModelChangeListener {
    }
 
    /**
-    * Create model for Device provided elements
+    * Create model for Device provided elements usually parameters
     * 
     * @return
     */
-   private RootModel createOtherModels() {
+   private RootModel createParameterModels() {
       RootModel root = new RootModel(this, OTHER_COLUMN_LABELS, "Device Parameters", "Device Parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
@@ -169,27 +207,37 @@ public class ModelFactory implements IModelChangeListener {
       return fDeviceInfo;
    }
    
-   /** Flag used to prevent multiple checks */
-   boolean checkPending = false;
+   /** Flag used to prevent multiple consistency checks */
+   boolean conflictCheckPending = false;
+   
+   /** 
+    * The model for the first page of the editor<br>
+    * This page does not get re-generated
+    */
+   private DeviceInformationModel fPackageModel= null;
+   
+   /** The current device variant - if this changes the models are rebuilt */
+   private DeviceVariantInformation fCurrentDeviceVariant = null;
 
    /**
     * Sets conflict check as pending<br>
-    * Returns original pending state
+    * Returns original pending state<br>
+    * This is used to fold together multiple checks
     * 
     * @return Whether a check was already pending.
     */
-   synchronized boolean testAndSetCheckPending(boolean state) {
-      boolean rv = checkPending;
-      checkPending = state;
+   synchronized boolean testAndSetConflictCheckPending(boolean state) {
+      boolean rv = conflictCheckPending;
+      conflictCheckPending = state;
       return rv;
    }
    
    /**
     * Check for mapping conflicts<br>
-    * This is done on a delayed thread
+    * This is done on a delayed thread for efficiency
     */
    public synchronized void checkConflicts() {
-      if (!testAndSetCheckPending(true)) {
+      if (!testAndSetConflictCheckPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
             public void run() {
@@ -207,57 +255,126 @@ public class ModelFactory implements IModelChangeListener {
          new Thread(runnable).start();
       }
    }
-
+   
+   /** 
+    * Add mapping to map based on key
+    * 
+    * @param map           Map to add to
+    * @param pinMapping    Pin mapping to add
+    * @param key           Key to use in map
+    * 
+    * @return Existing bin that may conflict
+    */
+   List<MappingInfo> addToMap(Map<String, List<MappingInfo>> map, MappingInfo pinMapping, String key) {
+      
+      List<MappingInfo> list = map.get(key);
+      if (list != null) {
+         list.add(pinMapping);
+         return list;
+      }
+      // First mapping for that pin
+      list = new ArrayList<MappingInfo>();
+      map.put(key, list);
+      list.add(pinMapping);
+      return null;
+   }
+   
    /**
     * Check for mapping conflicts
+    * 
+    * <li>Multiple functions mapped to a single pin
+    * <li>Functions mapped to multiple pins
     */
    private void checkConflictsJob() {
-//      System.err.println("checkConflictsJob() ===================");
-      testAndSetCheckPending(false);
-      Map<String, List<MappingInfo>> mappedNodes = new HashMap<String, List<MappingInfo>>();
+      System.err.println("checkConflictsJob() ===================");
+      testAndSetConflictCheckPending(false);
+
+      /** Used to check for multiple mappings to a single pin */ 
+      Map<String, List<MappingInfo>> mappedNodesByPin      = new HashMap<String, List<MappingInfo>>();
+
+      /** Used to check for a function being mapped to multiple pins */
+      Map<String, List<MappingInfo>> mappedNodesByFunction = new HashMap<String, List<MappingInfo>>();
+
       for (MappingInfo mapping:fMappingInfos) {
          mapping.setMessage("");
          if (!mapping.isSelected()) {
             continue;
          }
-         List<MappingInfo> list = mappedNodes.get(mapping.getPin().getName());
-         if (list == null) {
-            list = new ArrayList<MappingInfo>();
-            mappedNodes.put(mapping.getPin().getName(), list);
-            list.add(mapping);
-         }
-         else {
+         List<MappingInfo> list = addToMap(mappedNodesByPin, mapping, mapping.getPin().getName());
+         if (list != null) {
+            // Previously mapped
+
+            // Check if any conflicts between new function mapping and existing ones
+            // Note - Multiple functions may be mapped to the same pin without conflict 
+            // since some functions share a mapping.
+            // Need to check the functionLists not the functions
+            boolean conflicting = false;
             StringBuffer sb = null;
             for (MappingInfo other:list) {
                // Check for conflicts
-               if (!mapping.getFunctionList().equals(other.getFunctionList())) {
-                  if (sb == null) {
-                     sb = new StringBuffer();
-                     sb.append("Conflict(");
-                     sb.append(mapping.getFunctionList());
-                  }
-                  sb.append(", ");
-                  sb.append(other.getFunctionList());
+               if (!mapping.getSignalList().equals(other.getSignalList())) {
+                  // Not shared port mapping
+                  conflicting = true;
                }
             }
-            list.add(mapping);
+            if (conflicting) {
+               // Construct conflict message
+               
+               for (MappingInfo other:list) {
+                  if (sb == null) {
+                     sb = new StringBuffer();
+                     sb.append("Error: (");
+                  }
+                  else {
+                     sb.append(", ");
+                  }
+                  sb.append(other.getSignalList());
+                  sb.append("@"+other.getMux().value);
+               }
+               sb.append(") =>> ");
+               sb.append(mapping.getPin().getName());
+               System.err.println(sb.toString());
+               // Mark all conflicting nodes
+               for (MappingInfo other:list) {
+                  System.err.println(sb.toString());
+                  other.setMessage(sb.toString());
+               }
+            }
+         }
+         list = addToMap(mappedNodesByFunction, mapping, mapping.getSignalList());
+         if (list != null) {
+            // Previously mapped
+
+            // Check if any conflicts between new mapping and existing ones
+            // Construct conflict message
+            StringBuffer sb = null;
+            for (MappingInfo other:list) {
+               // Check for conflicts
+               if (mapping.getSignalList().equals(other.getSignalList())) {
+                  // The same functions mapped to multiple pins 
+                  if (sb == null) {
+                     sb = new StringBuffer();
+                     sb.append("Error: "+mapping.getSignalList()+" =>> (");
+                  }
+                  else {
+                     sb.append(", ");
+                  }
+                  sb.append(other.getPin().getName());
+               }
+            }
             if (sb != null) {
                // Multiple functions mapped to pin
                sb.append(")");
-               System.err.println(sb.toString());
-               mapping.setMessage(sb.toString());
                // Mark all conflicting nodes
                for (MappingInfo other:list) {
-                  System.err.println("Marking: "+other);
+                  System.err.println(sb.toString());
                   other.setMessage(sb.toString());
                }
             }
          }
       }
-      for (MappingInfo mapping:fMappingInfos) {
-         if (mapping.isRefreshPending()) {
-            mapping.notifyListeners();
-         }
+      for (RootModel model:fModels) {
+         model.refresh();
       }
    }
 
@@ -268,15 +385,27 @@ public class ModelFactory implements IModelChangeListener {
     */
    public ModelFactory(DeviceInfo deviceInfo) {
       
-      fDeviceInfo      = deviceInfo;
+      fDeviceInfo   = deviceInfo;
       deviceInfo.addListener(this);
+
+      fPackageModel = createPackageModel();
+      createModels();
       
-      fModels.add((RootModel)createPackageModel());
-      fModels.add((RootModel)createPeripheralModel());
-      fModels.add((RootModel)createPinModel());
-      fModels.add((RootModel)createOtherModels());
+      fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
    }
 
+   /**
+    * Creates models for the variant pages and updates the model list
+    */
+   void createModels() {
+      System.err.println("ModelFactory.createModels()");
+      fModels =  new ArrayList<RootModel>();
+      fModels.add((RootModel)fPackageModel);
+      fModels.add((RootModel)createPeripheralModel());
+      fModels.add((RootModel)createPinModel());
+      fModels.add((RootModel)createParameterModels());
+   }
+   
    /**
     * Get list of all models created
     * 
@@ -296,7 +425,7 @@ public class ModelFactory implements IModelChangeListener {
     * @throws Exception 
     */
    public static ModelFactory createModel(Path path) throws Exception {
-      return createModel(path, false);
+      return createModels(path, false);
    }
    
    /**
@@ -309,7 +438,7 @@ public class ModelFactory implements IModelChangeListener {
     * 
     * @throws Exception 
     */
-   public static ModelFactory createModel(Path path, boolean loadSettings) throws Exception {
+   public static ModelFactory createModels(Path path, boolean loadSettings) throws Exception {
       DeviceInfo deviceInfo = null;
 
       System.err.println("ModelFactory.createModel("+path.toAbsolutePath()+")");
@@ -336,12 +465,22 @@ public class ModelFactory implements IModelChangeListener {
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof DeviceInfo) {
-         for (RootModel rootModel:fModels) {
-            rootModel.refresh();
+         System.err.println("ModelFactory.modelElementChanged()");
+         if (fCurrentDeviceVariant != fDeviceInfo.getDeviceVariant()) {
+            System.err.println("ModelFactory.modelElementChanged() - major");
+            // Major change
+            fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
+            createModels();
+            notifyStructureChangeListeners();
+         }
+         else {
+            System.err.println("ModelFactory.modelElementChanged() - minor");
+            // Minor change
+            notifyListeners();
          }
       }
    }
-
+   
    @Override
    public void modelStructureChanged(ObservableModel model) {
    }

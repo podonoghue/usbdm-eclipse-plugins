@@ -5,21 +5,21 @@ import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
- * Describes how a peripheral function is mapped to a pin<br>
+ * Describes how a peripheral signal is mapped to a pin<br>
  */
 public class MappingInfo extends ObservableModel {
    
    /** Source of change */
-   public static enum Origin {pin, function};
+   public static enum Origin {pin, signal};
    
-   /** List of peripheral functions that are mapped  by this selection */
-   private final ArrayList<PeripheralFunction> fFunctions = new ArrayList<PeripheralFunction>();;
+   /** List of peripheral signals that are mapped  by this selection */
+   private final ArrayList<Signal> fSignals = new ArrayList<Signal>();;
    
-   /** Pin that functions are mapped to */
-   private final PinInformation fPin;
+   /** Pin that signals are mapped to */
+   private final Pin fPin;
    
-   /** Pin multiplexor setting to map these functions on the pin */
-   private final MuxSelection fMux;
+   /** Pin multiplexor setting to map these signals on the pin */
+   private final MuxSelection fMuxValue;
 
    /** Indicates if the current mapping is selected */
    private boolean fSelected;
@@ -29,76 +29,81 @@ public class MappingInfo extends ObservableModel {
    
    private boolean fBusy = false;
    
-   private Origin fOrigin = null;
-   
    public boolean marked = false;
    
+   public static MappingInfo DISABLED_MAPPING = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
    /**
-    * Associates a peripheral function and a pin<br>
+    * Associates a peripheral signal and a pin<br>
     * 
-    * @param function   Peripheral function
+    * @param signal     Peripheral signal
     * @param pin        Pin
-    * @param functionSelector        Pin multiplexor setting to select associated function on the pin
+    * @param muxValue   Pin multiplexor setting to select associated signal on the pin
     */
-   MappingInfo(PinInformation pin, MuxSelection functionSelector)  {
+   public MappingInfo(Pin pin, MuxSelection muxValue)  {
       fPin       = pin;
-      fMux       = functionSelector;
+      fMuxValue  = muxValue;
    }
    
    /**
-    * Get description of mux setting e.g. "PTA1 =>  GPIOC_6/LLWU_P10 @ mux5
+    * Get brief description e.g. "PTA1 =>  GPIOC_6/LLWU_P10 @ mux5
     * 
     * @return Description
     */
    String getDescription() {
-      return String.format("%s => %s @ %s", fPin.getName(), getFunctionList(), fMux);
+      return String.format("%s => %s @ %s", fPin.getName(), getSignalList(), fMuxValue);
    }
    
    /**
-    * Returns a list of mapped functions as a string e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
+    * Returns a list of mapped signals as a string e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
     * 
-    * @return List of mapped functions as string
+    * @return List of mapped signals as string
     */
-   public String getFunctionList() {
+   public String getSignalList() {
       StringBuffer name = new StringBuffer();
-      for (PeripheralFunction function:fFunctions) {
+      for (Signal signal:fSignals) {
          if (name.length() != 0) {
             name.append("/");
          }
-         name.append(function.getName());
+         name.append(signal.getName());
       }
       return name.toString();
    }
 
    /**
-    * Get list of peripheral functions that are mapped by this selection 
+    * Get list of peripheral signals that are mapped by this selection 
     * 
-    * @return List of mapped functions
+    * @return List of mapped signals
     */
-   public ArrayList<PeripheralFunction> getFunctions() {
-      return fFunctions;
+   public ArrayList<Signal> getSignals() {
+      return fSignals;
    }
 
+   /** 
+    * Add signal to the list of signals in this mapping
+    * 
+    * @param signal
+    */
+   public void addSignal(Signal signal) {
+      fSignals.add(signal);
+   }
+   
+   
    /**
-    * Get pin that functions are mapped to 
+    * Get pin that signals are mapped to 
     * 
     * @return Associated pin
     */
-   public PinInformation getPin() {
+   public Pin getPin() {
       return fPin;
    }
 
    /**
-    * Get pin multiplexor setting to map these functions on the pin 
+    * Get pin multiplexor setting to map these signals on the pin 
     * 
     * @return Mux value
     */
    public MuxSelection getMux() {
-      return fMux;
-   }
-
-   public Origin getOrigin() {
-      return fOrigin;
+      return fMuxValue;
    }
 
    /**
@@ -112,16 +117,15 @@ public class MappingInfo extends ObservableModel {
          throw new RuntimeException("Loop!!!");
       }
       fBusy = true;
-      fOrigin = origin;
       if (fSelected != selected) {
          setRefreshPending(true);
          fSelected = selected;
-//         System.err.println(String.format("%-60s => Changed   => %s", toString(), (selected?"selected":"unselected")));
+         System.err.println(String.format("%-60s => Changed   => %s", toString(), (selected?"selected":"unselected")));
          notifyListeners();
       }
-//      else {
-//         System.err.println(String.format("%-60s => No change == %s", toString(), (selected?"selected":"unselected")));
-//      }
+      else {
+         System.err.println(String.format("%-60s => No change == %s", toString(), (selected?"selected":"unselected")));
+      }
       fBusy = false;   
    }
 
@@ -141,7 +145,7 @@ public class MappingInfo extends ObservableModel {
 
    @Override
    public int hashCode() {
-      return fMux.hashCode()^fPin.hashCode()^fFunctions.hashCode();
+      return fMuxValue.hashCode()^fPin.hashCode()^fSignals.hashCode();
    }
 
    /**
@@ -153,22 +157,27 @@ public class MappingInfo extends ObservableModel {
       return (fMessage!= null) && (fMessage.greaterThan(Message.Severity.OK));
    }
 
+   /**
+    * Get message to display
+    * 
+    * @return Message to display
+    */
    public void setMessage(String msg) {
-      Message oldMsg = fMessage;
       if ((msg==null) || msg.isEmpty()) {
          fMessage = null;
       }
       else {
          fMessage = new Message(msg, Message.Severity.ERROR);
       }
-      if (fMessage != oldMsg) {
-//         System.err.println("setMessage() Changed: "+this+"==>"+msg);
-         setRefreshPending(true);
-      }
    }
 
+   /**
+    * Get current message
+    * 
+    * @return Message or null if none
+    */
    public Message getMessage() {
       return fMessage;
    }
-   
+
 };

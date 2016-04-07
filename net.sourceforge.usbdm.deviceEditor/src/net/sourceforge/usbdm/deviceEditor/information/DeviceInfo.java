@@ -10,24 +10,24 @@ import java.util.TreeMap;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForAnalogueIO;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForCmp;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForDigitalIO;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForDmaMux;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForI2c;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForI2s;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForLlwu;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForLptmr;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForLpuart;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForMisc;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForNull;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForPit;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForPwmIO_FTM;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForPwmIO_TPM;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForSpi;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForTsi;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForUart;
-import net.sourceforge.usbdm.deviceEditor.parser.WriterForVref;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAnalogueIO;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_TPM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 
 public class DeviceInfo extends ObservableModel {
 
@@ -46,11 +46,8 @@ public class DeviceInfo extends ObservableModel {
    /** Device families */
    public enum DeviceFamily {mk, mke, mkl, mkm};
 
-   /** Source file containing device description */
-   private final Path fPath;
-
-   /** Device family for this device */
-   private final DeviceFamily fDeviceFamily;
+   /** Path of source file containing device description */
+   private final Path fSourcePath;
 
    /** Name of device configuration file e.g. MK22FA12_64p.hardware */
    private String fDeviceFilename;
@@ -58,6 +55,15 @@ public class DeviceInfo extends ObservableModel {
    /** Name of project file e.g. MK22FA12_64p.UsbdmProject */
    private String fProjectFilename;
 
+   /** Family name of device */
+   private String fFamilyName = null;
+
+   /** Device family for this device */
+   private DeviceFamily fDeviceFamily = null;
+
+   /** Indicates if the data has changed since being loaded */
+   private boolean fIsDirty = false;;
+   
    /**
     * Create device information
     * 
@@ -66,22 +72,52 @@ public class DeviceInfo extends ObservableModel {
     */
    public DeviceInfo(Path filePath) {
 
-      fPath = filePath.toAbsolutePath();
-      fDeviceFilename  = fPath.getFileName().toString();
+      fSourcePath            = filePath.toAbsolutePath();
+      fDeviceFilename  = fSourcePath.getFileName().toString();
       fProjectFilename = fDeviceFilename.replace(".hardware", ".UsbdmProject");
+   }
 
-      if (fDeviceFilename.startsWith("MKE")) {
-         fDeviceFamily = DeviceFamily.mke;
+   /**
+    * Set family name
+    * 
+    * @param familyName  Family name e.g. MK22FA12
+    */
+   public void setFamilyName(String familyName) {
+      fFamilyName = familyName;
+
+      if (fDeviceFamily == null) {
+         // A bit crude
+         if (fFamilyName.startsWith("MKE")) {
+            fDeviceFamily = DeviceFamily.mke;
+         }
+         else if (fDeviceFilename.startsWith("MKL")) {
+            fDeviceFamily = DeviceFamily.mkl;
+         }
+         else if (fDeviceFilename.startsWith("MKM")) {
+            fDeviceFamily = DeviceFamily.mkm;
+         }
+         else {
+            fDeviceFamily = DeviceFamily.mk;
+         }
       }
-      else if (fDeviceFilename.startsWith("MKL")) {
-         fDeviceFamily = DeviceFamily.mkl;
-      }
-      else if (fDeviceFilename.startsWith("MKM")) {
-         fDeviceFamily = DeviceFamily.mkm;
-      }
-      else {
-         fDeviceFamily = DeviceFamily.mk;
-      }
+      setDirty(true);
+   }
+
+   /**
+    * Set device family
+    * 
+    * @param familyName  Family name e.g. MK22FA12
+    */
+   public void setFamily(DeviceFamily deviceFamily) {
+      fDeviceFamily = deviceFamily;
+      setDirty(true);
+   }
+
+   /** 
+    * Get device family for this device 
+    */
+   public String getFamilyName() {
+      return fFamilyName;
    }
 
    /** 
@@ -96,7 +132,7 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public Path getSourcePath() {
-      return fPath;
+      return fSourcePath;
    }
 
    /**
@@ -104,7 +140,7 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public String getSourceFilename() {
-      return fPath.getFileName().toString();
+      return fSourcePath.getFileName().toString();
    }
 
    /*
@@ -140,6 +176,54 @@ public class DeviceInfo extends ObservableModel {
    }
    
    /**
+    * Create peripheral with given name and instance
+    * 
+    * @param baseName      Base name of peripheral e.g. FTM3 => FTM
+    * @param instance      Instance e.g. FTM3 => 3
+    * @param className     Name of class used to represent peripheral<br>(instance of <i>net.sourceforge.usbdm.deviceEditor.information.Peripheral</i>)
+    * @param parameters    Parameters pass to constructor
+    * 
+    * @return Peripheral created
+    * 
+    * @throws Exception
+    */
+   public Peripheral createPeripheral(String baseName, String instance, String className, String parameters) throws Exception {
+//      String args[] = null;
+//      if (parameters != null) {
+//         args = parameters.split(",");
+//      }
+      Peripheral peripheral = null;
+      try {
+         // Get peripheral class
+         Class<?> clazz = Class.forName(className);
+//         System.err.println(String.format("Creating peripheral: %s(%s,%s)", className, baseName, instance));
+         peripheral = (Peripheral) clazz.getConstructor(String.class, String.class, this.getClass()).newInstance(baseName, instance, this);
+      } catch (Exception e) {
+         throw new Exception("Failed to instantiate peripheral from class \'"+className+"\'", e);
+      }
+      if (fPeripheralsMap.put(peripheral.getName(), peripheral) != null) {
+         throw new Exception("Peripheral already exists " + baseName + instance);
+      }
+      return peripheral;
+   }
+   
+   /**
+    * Create peripheral with given name and instance
+    * 
+    * @param baseName      Base name of peripheral e.g. FTM3 => FTM
+    * @param instance      Instance e.g. FTM3 => 3
+    * 
+    * @return Peripheral created
+    */
+   public Peripheral createPeripheral(String baseName, String instance) {
+      Peripheral peripheral = fPeripheralsMap.get(baseName);
+      if (peripheral != null) {
+         throw new RuntimeException("Peripheral already exists");
+      }
+      return findOrCreatePeripheral(baseName+instance);
+   }
+   
+   /**
     * Find or Create a peripheral<br>
     * e.g. findPeripheralFunction("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
     * Checks against all templates.
@@ -149,9 +233,6 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if name does fit expected form
     */
    public Peripheral findOrCreatePeripheral(String name) {
-//      if (name.equals("PIT")) {
-//         System.err.print("Stop here");
-//      }
       Peripheral peripheral = fPeripheralsMap.get(name);
       if (peripheral != null) {
          return peripheral;
@@ -252,21 +333,21 @@ public class DeviceInfo extends ObservableModel {
     * Map of all peripheral functions created<br>
     * May be searched by key derived from function name
     */
-   private Map<String, PeripheralFunction> fPeripheralFunctions = new TreeMap<String, PeripheralFunction>(PeripheralFunction.comparator);
+   private Map<String, Signal> fPeripheralFunctions = new TreeMap<String, Signal>(Signal.comparator);
 
    /**
     * Map of peripheral functions associated with a baseName<br>
     * May be searched by baseName string
     */
-   private Map<String, Map<String, PeripheralFunction>> fPeripheralFunctionsByBaseName = 
-         new TreeMap<String, Map<String, PeripheralFunction>>();
+   private Map<String, Map<String, Signal>> fPeripheralFunctionsByBaseName = 
+         new TreeMap<String, Map<String, Signal>>();
 
    /**
     * Get map of all peripheral functions
     * 
     * @return map 
     */
-   public Map<String, PeripheralFunction> getPeripheralFunctions() {
+   public Map<String, Signal> getPeripheralFunctions() {
       return fPeripheralFunctions;
    }
 
@@ -278,7 +359,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return  Map or null if none exists for baseName
     */
-   public Map<String, PeripheralFunction> getPeripheralFunctionsByBaseName(String baseName) {
+   public Map<String, Signal> getPeripheralFunctionsByBaseName(String baseName) {
       return fPeripheralFunctionsByBaseName.get(baseName);
    }
 
@@ -294,20 +375,20 @@ public class DeviceInfo extends ObservableModel {
     * @return Peripheral function if found or created, null otherwise
     * @throws Exception 
     */
-   public PeripheralFunction createPeripheralFunction(String name, String baseName, String instance, String signal) {
+   public Signal createPeripheralFunction(String name, String baseName, String instance, String signal) {
 
-      PeripheralFunction peripheralFunction = fPeripheralFunctions.get(name);
+      Signal peripheralFunction = fPeripheralFunctions.get(name);
       if (peripheralFunction != null) {
          throw new RuntimeException("PeripheralFunction already exists "+ name);
       }
 
       Peripheral peripheral = findPeripheral(baseName, instance);
-      peripheralFunction = new PeripheralFunction(name, peripheral, signal);
+      peripheralFunction = new Signal(name, peripheral, signal);
 
       // Add to base name map
-      Map<String, PeripheralFunction> map = fPeripheralFunctionsByBaseName.get(baseName);
+      Map<String, Signal> map = fPeripheralFunctionsByBaseName.get(baseName);
       if (map == null) {
-         map = new TreeMap<String, PeripheralFunction>();
+         map = new TreeMap<String, Signal>();
          fPeripheralFunctionsByBaseName.put(baseName, map);
       }
       map.put(baseName, peripheralFunction);
@@ -328,10 +409,10 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if function does fit expected form
     */
-   public PeripheralFunction findOrCreatePeripheralFunction(String name) {
-      PeripheralFunction peripheralFunction = null;
+   public Signal findOrCreatePeripheralFunction(String name) {
+      Signal peripheralFunction = null;
       if (name.equalsIgnoreCase("Disabled")) {
-         return PeripheralFunction.DISABLED;
+         return Signal.DISABLED_SIGNAL;
       }
       peripheralFunction = fPeripheralFunctions.get(name);
       if (peripheralFunction != null) {
@@ -341,7 +422,7 @@ public class DeviceInfo extends ObservableModel {
          peripheralFunction = functionTemplateInformation.createFunction(name);
          if (peripheralFunction != null) {
             peripheralFunction.setIncluded(true);
-            peripheralFunction.setTemplate(functionTemplateInformation);
+//            peripheralFunction.setTemplate(functionTemplateInformation);
             return peripheralFunction;
          }         
       }
@@ -356,10 +437,10 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception function nor found
     */
-   public PeripheralFunction findPeripheralFunction(String name) {
-      PeripheralFunction peripheralFunction = null;
+   public Signal findPeripheralFunction(String name) {
+      Signal peripheralFunction = null;
       if (name.equalsIgnoreCase("Disabled")) {
-         return PeripheralFunction.DISABLED;
+         return Signal.DISABLED_SIGNAL;
       }
       peripheralFunction = fPeripheralFunctions.get(name);
       if (peripheralFunction != null) {
@@ -433,14 +514,14 @@ public class DeviceInfo extends ObservableModel {
    /**
     * Map from Function to list of Pins
     */
-   private Map<PeripheralFunction, ArrayList<MappingInfo>> fPeripheralFunctionMap = new TreeMap<PeripheralFunction, ArrayList<MappingInfo>>();
+   private Map<Signal, ArrayList<MappingInfo>> fPeripheralFunctionMap = new TreeMap<Signal, ArrayList<MappingInfo>>();
 
    /**
     * Add info to map by function
     * 
     * @param info
     */
-   void addToFunctionMap(PeripheralFunction function, MappingInfo info) {
+   void addToFunctionMap(Signal function, MappingInfo info) {
       //      System.err.println(String.format("addToFunctionMap() - F:%s, info:%s", function.toString(), info.toString()));
       ArrayList<MappingInfo> list = fPeripheralFunctionMap.get(function);
       if (list == null) {
@@ -457,7 +538,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return
     */
-   public ArrayList<MappingInfo> getPins(PeripheralFunction function) {
+   public ArrayList<MappingInfo> getPins(Signal function) {
       return fPeripheralFunctionMap.get(function);
    }
 
@@ -472,9 +553,9 @@ public class DeviceInfo extends ObservableModel {
     * @param functionSelector    Multiplexor setting that maps this signal to the pin
     * @return
     */
-   public MappingInfo createMapping(PeripheralFunction function, PinInformation pinInformation, MuxSelection functionSelector) {
+   public MappingInfo createMapping(Signal function, Pin pinInformation, MuxSelection functionSelector) {
       
-      MappingInfo mapInfo= pinInformation.addFunction(function, functionSelector);
+      MappingInfo mapInfo= pinInformation.addSignal(function, functionSelector);
       addToFunctionMap(function, mapInfo);
       return mapInfo;
    }
@@ -486,14 +567,14 @@ public class DeviceInfo extends ObservableModel {
     * Map of all pins created<br>
     * May be searched by pin name
     */
-   private Map<String, PinInformation> fPins = new TreeMap<String, PinInformation>(PinInformation.comparator);
+   private Map<String, Pin> fPins = new TreeMap<String, Pin>(Pin.comparator);
 
    /**
     * Get Map of all pins
     * 
     * @return
     */
-   public Map<String, PinInformation> getPins() {
+   public Map<String, Pin> getPins() {
       return fPins;
    }
 
@@ -506,14 +587,14 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if the pin already exists
     */
-   public PinInformation createPin(String name) {
+   public Pin createPin(String name) {
       // Check for repeated pin
-      PinInformation pinInformation = fPins.get(name);
+      Pin pinInformation = fPins.get(name);
       if (pinInformation != null) {
          throw new RuntimeException("Pin already exists: " + name);
       }
       // Created pin
-      pinInformation = new PinInformation(this, name);
+      pinInformation = new Pin(this, name);
       // Add to map
       fPins.put(name, pinInformation);
 
@@ -527,9 +608,9 @@ public class DeviceInfo extends ObservableModel {
     *                      
     * @return Pin found or null if not present
     */
-   public PinInformation findPin(String name) {
-      if (name.equalsIgnoreCase(PinInformation.DISABLED_PIN.getName())) {
-         return PinInformation.DISABLED_PIN;
+   public Pin findPin(String name) {
+      if (name.equalsIgnoreCase(Pin.DISABLED_PIN.getName())) {
+         return Pin.DISABLED_PIN;
       }
       return fPins.get(name);
    }
@@ -557,7 +638,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return Matching template or null on none
     */
-   public PeripheralTemplateInformation getTemplate(PeripheralFunction function) {
+   public PeripheralTemplateInformation getTemplate(Signal function) {
       for (PeripheralTemplateInformation functionTemplateInformation:fTemplateList) {
          if (functionTemplateInformation.getMatchPattern().matcher(function.getName()).matches()) {
             return functionTemplateInformation;
@@ -815,6 +896,11 @@ public class DeviceInfo extends ObservableModel {
                WriterForMisc.class);
       }
       createPeripheralTemplateInformation(
+            "$1", "", "$2",
+            "(VDD|VSS)(\\d+)",
+            getDeviceFamily(),
+            WriterForMisc.class);
+      createPeripheralTemplateInformation(
             "$1", "$2",
             "(.*)()()",
             getDeviceFamily(),
@@ -830,7 +916,7 @@ public class DeviceInfo extends ObservableModel {
 
    /** Device variant */
    private DeviceVariantInformation fDeviceVariant = null;
-   
+
    /**
     * Set device variant
     * 
@@ -839,9 +925,11 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public void setDeviceVariant(String variantName) {
-      fVariantName   = variantName;
-      fDeviceVariant = fVariants.get(variantName);
-      notifyListeners();
+      if (fVariantName   != variantName) {
+         fVariantName   = variantName;
+         fDeviceVariant = fVariants.get(variantName);
+         setDirty(true);
+      }
    }
 
    /**
@@ -937,7 +1025,7 @@ public class DeviceInfo extends ObservableModel {
 
    private final static HashMap<String, MuxSelection> exceptions = new  HashMap<String, MuxSelection>();
 
-   private static boolean checkOkException(PinInformation pin) {
+   private static boolean checkOkException(Pin pin) {
       if (pin.getResetValue() == MuxSelection.mux0) {
          return true;
       }
@@ -967,7 +1055,7 @@ public class DeviceInfo extends ObservableModel {
    public void consistencyCheck() {
       // Every pin should have a reset entry
       for (String pName:getPins().keySet()) {
-         PinInformation pin = getPins().get(pName);
+         Pin pin = getPins().get(pName);
          if (!checkOkException(pin)) {
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
@@ -976,7 +1064,7 @@ public class DeviceInfo extends ObservableModel {
       // Every peripheral function should have a reset entry implied by the pin information
       // except for functions with fixed pin mapping
       for (String pName:getPeripheralFunctions().keySet()) {
-         PeripheralFunction function = getPeripheralFunctions().get(pName);
+         Signal function = getPeripheralFunctions().get(pName);
          if ((function.getResetMapping() == null) &&
                (function.getPinMapping().first().getMux() != MuxSelection.fixed)) {
             throw new RuntimeException("No reset value for function " + function);
@@ -992,7 +1080,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return Pin name
     */
-   public String getPinNameWithAlias(PinInformation pin) {
+   public String getPinNameWithAlias(Pin pin) {
       String alias = "";
       DeviceVariantInformation deviceInformation = fVariants.get(fVariantName);
       if (deviceInformation != null) {
@@ -1015,7 +1103,7 @@ public class DeviceInfo extends ObservableModel {
     */
    public void loadSettings() {
       System.err.println("DeviceInfo.loadSettings("+fProjectFilename+")");
-      Path path = fPath.getParent().resolve(fProjectFilename);
+      Path path = fSourcePath.getParent().resolve(fProjectFilename);
       if (path.toFile().isFile()) {
          try {
          DialogSettings settings = new DialogSettings("USBDM");
@@ -1025,7 +1113,7 @@ public class DeviceInfo extends ObservableModel {
             setDeviceVariant(variantName);
          }
          for (String pinName:fPins.keySet()) {
-            PinInformation pin = fPins.get(pinName);
+            Pin pin = fPins.get(pinName);
             pin.loadSettings(settings);
          }
          for (String deviceName:fPeripheralsMap.keySet()) {
@@ -1036,6 +1124,7 @@ public class DeviceInfo extends ObservableModel {
             e.printStackTrace();
          }
       }
+      setDirty(false);
    }
    
    /**
@@ -1043,11 +1132,11 @@ public class DeviceInfo extends ObservableModel {
     */
    public void saveSettings() {
       System.err.println("DeviceInfo.saveSettings("+fProjectFilename+")");
-      Path path = fPath.getParent().resolve(fProjectFilename);
+      Path path = fSourcePath.getParent().resolve(fProjectFilename);
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       for (String pinName:fPins.keySet()) {
-         PinInformation pin = fPins.get(pinName);
+         Pin pin = fPins.get(pinName);
          pin.saveSettings(settings);
       }
       for (String deviceName:fPeripheralsMap.keySet()) {
@@ -1059,7 +1148,26 @@ public class DeviceInfo extends ObservableModel {
       } catch (Exception e) {
          e.printStackTrace();
       }
+      setDirty(false);
    }
-   
+
+   /**
+    * Indicates if the data has changed since being loaded 
+    * 
+    * @return true if changed
+    */
+   public boolean isDirty() {
+      return fIsDirty;
+   }
+
+   /**
+    * Indicates if the data has changed since being loaded 
+    * 
+    * @return true if changed
+    */
+   public void setDirty(boolean dirty) {
+      fIsDirty = dirty;
+      notifyListeners();
+   }
 
 }

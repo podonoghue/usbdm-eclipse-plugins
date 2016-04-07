@@ -366,9 +366,14 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    }
 
    public void reindexProject(IProject project, IProgressMonitor monitor) {
-      monitor.beginTask("Update configuration", IProgressMonitor.UNKNOWN);
-      ICProject cproject = CoreModel.getDefault().getCModel().getCProject(project.getName());
-      CCorePlugin.getIndexManager().reindex(cproject);
+      try {
+         monitor.beginTask("Update configuration", IProgressMonitor.UNKNOWN);
+         ICProject cproject = CoreModel.getDefault().getCModel().getCProject(project.getName());
+         CCorePlugin.getIndexManager().reindex(cproject);
+      }
+      finally {
+         monitor.done();
+      }
    }
 
    @Override
@@ -410,9 +415,13 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
          // Create project
          IProject project = new CDTProjectManager().createCDTProj(fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         
          // Apply device project options
          ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
          
+         // Generate CPP code as needed
+         net.sourceforge.usbdm.deviceEditor.editor.ProjectUtilities.generateFiles(project, new SubProgressMonitor(monitor, WORK_SCALE*5));
+
          reindexProject(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
          
          // Allow indexing

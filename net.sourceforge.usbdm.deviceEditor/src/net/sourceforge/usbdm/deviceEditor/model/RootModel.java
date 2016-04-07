@@ -13,16 +13,6 @@ public class RootModel extends BaseModel {
    /** Factory responsible for this model */
    private final ModelFactory fModelFactory;
 
-   /** Device variant name */
-   private final String fDeviceVariant;
-
-   /**
-    * @return the Title
-    */
-   public String getDeviceName() {
-      return fDeviceVariant;
-   }
-
    /*
     * =============================================================================================
     */
@@ -41,7 +31,6 @@ public class RootModel extends BaseModel {
       
       fModelFactory  = modelFactory;
       fColumnLabels  = columnLabels;
-      fDeviceVariant = modelFactory.getDeviceInfo().getDeviceVariantName();
    }
 
    /**
@@ -54,18 +43,13 @@ public class RootModel extends BaseModel {
    }
    
    @Override
-   public String getValueAsString() {
-      return fDeviceVariant;
-   }
-
-   @Override
    protected BaseModel getRoot() {
       return this;
    }
 
    @Override
    protected void viewerUpdate(BaseModel element, String[] properties) {
-      if (fViewer != null) {
+      if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
          fViewer.update(element,  properties);
          if (element.getParent() != null) {
             fViewer.update(element.getParent(),  properties);
@@ -77,7 +61,9 @@ public class RootModel extends BaseModel {
     * Refresh the tree
     */
    protected void refresh() {
-      if (fViewer != null) {
+      System.err.println("RootModel.refresh() "+fName);
+      fViewer.getTree().isDisposed();
+      if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
          fViewer.refresh();
       }
    }

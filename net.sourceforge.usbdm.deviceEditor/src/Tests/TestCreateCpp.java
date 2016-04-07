@@ -6,8 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.parser.ParseFamilyCSV;
-import net.sourceforge.usbdm.deviceEditor.parser.WriteFamilyCpp;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 
 public class TestCreateCpp {
    

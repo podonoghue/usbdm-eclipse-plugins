@@ -68,7 +68,6 @@ public class PeripheralTemplateInformation {
       fConstructor      = instanceWriterClass.getConstructor(
             /* basename   */ String.class, 
             /* instance   */ String.class, 
-            /* template   */ PeripheralTemplateInformation.class, 
             /* deviceinfo */ DeviceInfo.class );
       if (matchTemplate != null) {
          fMatchPattern       = Pattern.compile(matchTemplate);
@@ -89,7 +88,7 @@ public class PeripheralTemplateInformation {
    Peripheral createPeripheral(String basename, String instance) {
       Peripheral peripheral = null;
       try {
-         peripheral = (Peripheral) fConstructor.newInstance(basename, instance, this, fDeviceInfo);
+         peripheral = (Peripheral) fConstructor.newInstance(basename, instance, fDeviceInfo);
       } catch (Exception e) {
          throw new RuntimeException(e);
       }
@@ -125,7 +124,7 @@ public class PeripheralTemplateInformation {
     * 
     * @return PeripheralFunction or null if template not applicable
     */
-   public PeripheralFunction createFunction(String name) {         
+   public Signal createFunction(String name) {         
       Matcher matcher = matcher(name);
       if ((matcher == null) || !matcher.matches()) {
          return null;
@@ -158,7 +157,7 @@ public class PeripheralTemplateInformation {
     * @return
     * @throws Exception 
     */
-   public static String getPCRInitString(PinInformation pin) {
+   public static String getPCRInitString(Pin pin) {
       if (pin == null) {
          throw new RuntimeException("Pin may not be null");
       }
@@ -197,7 +196,7 @@ public class PeripheralTemplateInformation {
    /**
     * Gets the template match function
     * 
-    * @param function PeripheralFunction to match
+    * @param signal PeripheralFunction to match
     * 
     * @return Non-null if the Matcher exists
     */
@@ -214,8 +213,8 @@ public class PeripheralTemplateInformation {
     * 
     * @return True if the template is applicable to this function 
     */
-   public boolean matches(PeripheralFunction function) {
-      if (function == PeripheralFunction.DISABLED) {
+   public boolean matches(Signal function) {
+      if (function == Signal.DISABLED_SIGNAL) {
          return false;
       }
       Matcher matcher = matcher(function.getName());
