@@ -250,7 +250,7 @@ public class ParseFamilyCSV {
          DevicePackage devicePackage = fDeviceInfo.findDevicePackage(pkgIndex.name);
 
          if (devicePackage == null) {
-            throw new RuntimeException("Failed to find package " + pkgIndex.name);
+            throw new RuntimeException("Failed to find package " + pkgIndex.name + ", for "+pinName);
          }
          devicePackage.addPin(pinInformation, pinNum);
          sb.append("(" + pkgIndex.name + ":" + pinNum + ") ");

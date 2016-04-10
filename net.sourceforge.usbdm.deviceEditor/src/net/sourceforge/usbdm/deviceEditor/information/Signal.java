@@ -150,7 +150,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       if (mapInfo.getMux() == MuxSelection.fixed) {
          if (!fPinMappings.isEmpty()) {
-            throw new RuntimeException("Can't add more pins to a fixed signal");
+            throw new RuntimeException("Can't add more pins to a fixed signal " + fName + ", " + mapInfo);
          }
          fPinMappings.add(mapInfo);
          return;
