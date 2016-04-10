@@ -224,17 +224,17 @@ public class ParseFamilyCSV {
                function.setResetPin(mapping);
             }
          }
-         pinInformation.setResetPeripheralFunctions(fDeviceInfo, resetName);
+         pinInformation.setResetSignals(fDeviceInfo, resetName);
       }
       else {
          sb.append("R:" + Signal.DISABLED_SIGNAL.getName() + ", ");
          fDeviceInfo.createMapping(Signal.DISABLED_SIGNAL, pinInformation, MuxSelection.reset);
-         pinInformation.setResetPeripheralFunctions(fDeviceInfo, Signal.DISABLED_SIGNAL.getName());
+         pinInformation.setResetSignals(fDeviceInfo, Signal.DISABLED_SIGNAL.getName());
       }
       if (line.length>fDefaultIndex) {
          String defaultName  = convertName(line[fDefaultIndex]);
          if ((defaultName != null) && (!defaultName.isEmpty())) {
-            pinInformation.setDefaultPeripheralFunctions(fDeviceInfo, defaultName);
+            pinInformation.setDefaultSignals(fDeviceInfo, defaultName);
             sb.append("D:" + pinInformation.getDefaultValue());
          }
       }

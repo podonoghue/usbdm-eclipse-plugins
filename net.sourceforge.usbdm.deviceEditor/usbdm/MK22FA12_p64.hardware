@@ -137,22 +137,22 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="FTM"      instance="0">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
          <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM0_MASK" />
          <irq num="FTM0_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="1">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
          <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM1_MASK" />
          <irq num="FTM1_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="2">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
          <clock clockReg="SCGC3"    clockMask="SIM_SCGC3_FTM2_MASK" />
          <irq num="FTM2_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="3">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
          <clock clockReg="SCGC3"    clockMask="SIM_SCGC3_FTM3_MASK" />
          <irq num="FTM3_IRQn" />
       </peripheral>

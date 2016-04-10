@@ -19,25 +19,23 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
    public DeviceVariantModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Device", "");
       
-      deviceInfo.addListener(this);
-
       fDeviceInfo = deviceInfo;
+      fDeviceInfo.addListener(this);
       
       for (String deviceName:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.getDeviceVariants().get(deviceName);
          fDeviceNames.add(deviceInformation.getName());
       }
-      fValues     = fDeviceNames.toArray(new String[fDeviceNames.size()]);
-      fSelection  = fDeviceNames.indexOf(deviceInfo.getDeviceVariantName());
+      fChoices     = fDeviceNames.toArray(new String[fDeviceNames.size()]);
+      fSelection  = fDeviceNames.indexOf(fDeviceInfo.getDeviceVariantName());
       if (fSelection<0) {
          fSelection = 0;
-         deviceInfo.setDeviceVariant(fValues[0]);
+         fDeviceInfo.setDeviceVariant(fChoices[0]);
       }
    }
 
-   @Override
-   public void setValue(String value) {
-      super.setValue(value);
+   public void setValueAsString(String value) {
+      super.setValueAsString(value);
       fDeviceInfo.setDeviceVariant(value);
       refresh();
    }
@@ -47,15 +45,17 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          String variantName = deviceInfo.getDeviceVariantName();
-         if (variantName  != fValues[fSelection]) {
-            setValue(variantName);
-            refresh();
-         }
+         setValueAsString(variantName);
       }
    }
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
+   }
+
+   @Override
+   protected void removeMyListeners() {
+      fDeviceInfo.removeListener(this);
    }
 
 }

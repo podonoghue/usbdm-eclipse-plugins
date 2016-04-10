@@ -2,7 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.jface.viewers.TreeViewer;
 
-public class RootModel extends BaseModel {
+public abstract class RootModel extends BaseModel {
 
    /** Labels for view columns */
    private final String[] fColumnLabels;
@@ -61,8 +61,6 @@ public class RootModel extends BaseModel {
     * Refresh the tree
     */
    protected void refresh() {
-      System.err.println("RootModel.refresh() "+fName);
-      fViewer.getTree().isDisposed();
       if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
          fViewer.refresh();
       }

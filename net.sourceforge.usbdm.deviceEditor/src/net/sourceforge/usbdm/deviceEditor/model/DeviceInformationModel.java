@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class DeviceInformationModel extends RootModel {
+public final class DeviceInformationModel extends RootModel {
 
    /**
     * Constructor
@@ -12,5 +12,9 @@ public class DeviceInformationModel extends RootModel {
     */
    public DeviceInformationModel(ModelFactory modelFactory, String[] columnLabels, String title, String toolTip) {
       super(modelFactory, columnLabels, title, toolTip);
+   }
+
+   @Override
+   protected void removeMyListeners() {
    }
 }

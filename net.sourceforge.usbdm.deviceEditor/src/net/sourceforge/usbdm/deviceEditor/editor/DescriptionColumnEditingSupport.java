@@ -9,11 +9,11 @@ import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
-public class PinUseDescriptionEditingSupport extends EditingSupport {
+public class DescriptionColumnEditingSupport extends EditingSupport {
 
    private TreeViewer viewer;
 
-   public PinUseDescriptionEditingSupport(TreeViewer viewer) {
+   public DescriptionColumnEditingSupport(TreeViewer viewer) {
       super(viewer);
       this.viewer = viewer;
    }

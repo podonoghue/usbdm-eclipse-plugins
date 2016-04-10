@@ -22,8 +22,8 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_FTM;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPwmIO_TPM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
@@ -196,7 +196,6 @@ public class DeviceInfo extends ObservableModel {
       try {
          // Get peripheral class
          Class<?> clazz = Class.forName(className);
-//         System.err.println(String.format("Creating peripheral: %s(%s,%s)", className, baseName, instance));
          peripheral = (Peripheral) clazz.getConstructor(String.class, String.class, this.getClass()).newInstance(baseName, instance, this);
       } catch (Exception e) {
          throw new Exception("Failed to instantiate peripheral from class \'"+className+"\'", e);
@@ -522,7 +521,6 @@ public class DeviceInfo extends ObservableModel {
     * @param info
     */
    void addToFunctionMap(Signal function, MappingInfo info) {
-      //      System.err.println(String.format("addToFunctionMap() - F:%s, info:%s", function.toString(), info.toString()));
       ArrayList<MappingInfo> list = fPeripheralFunctionMap.get(function);
       if (list == null) {
          list = new ArrayList<MappingInfo>();
@@ -721,7 +719,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2",
                "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
                getDeviceFamily(),
-               WriterForPwmIO_FTM.class);
+               WriterForFTM.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(I2C)([0-3])_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
@@ -756,7 +754,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2",
                "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
                getDeviceFamily(),
-               WriterForPwmIO_TPM.class);
+               WriterForTPM.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(TSI)([0-3])_(CH\\d+)",
@@ -851,7 +849,7 @@ public class DeviceInfo extends ObservableModel {
                WriterForMisc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "",
-               "(SDHC)(\\d+)_(.*)",
+               "(SDHC)(\\d+)?_(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
@@ -1102,7 +1100,6 @@ public class DeviceInfo extends ObservableModel {
     * Load persistent settings
     */
    public void loadSettings() {
-      System.err.println("DeviceInfo.loadSettings("+fProjectFilename+")");
       Path path = fSourcePath.getParent().resolve(fProjectFilename);
       if (path.toFile().isFile()) {
          try {
@@ -1131,7 +1128,6 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings
     */
    public void saveSettings() {
-      System.err.println("DeviceInfo.saveSettings("+fProjectFilename+")");
       Path path = fSourcePath.getParent().resolve(fProjectFilename);
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);

@@ -12,131 +12,102 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    /** List of possible mappings for this signal */
    protected final ArrayList<MappingInfo> fMappingInfos = new ArrayList<MappingInfo>();
    
-   /** Current mapping (may be null) */
-   private MappingInfo fCurrentMapping;
-   
+   /** Associated signal */
    private Signal fSignal = null;
    
-//   /** Peripheral associated with this model */
-//   private PeripheralFunction fPeripheralFunction;
+   /** Current mapping */
+   private MappingInfo fCurrentMapping;
+   
+   /** Mapping used for reset */
+   private MappingInfo fResetMapping = null;
    
    public SignalModel(PeripheralModel parent, Signal signal) {
       super(parent, signal.getName(), "");
-      //      fPeripheralFunction = peripheralFunction;
+
+      fSignal = signal;
 
       TreeSet<MappingInfo> mappingInfoSet = signal.getPinMapping();
       MappingInfo firstMapping = signal.getPinMapping().first();
       if (firstMapping.getMux() == MuxSelection.fixed) {
          // Fixed mapping for function
-         fValues = new String[] {signal.getPinMapping().first().getPin().getName()};
+         fChoices = new String[] {signal.getPinMapping().first().getPin().getName()};
          return;
       }
 
-      fSignal = signal;
-      signal.addListener(this);
-
+      fCurrentMapping = null;
+      
       // List of values to choose from
       ArrayList<String> values = new ArrayList<String>();
-
-//      if ((mappingInfoSet.size()>1) || (mappingInfoSet.first().getMux() != MuxSelection.fixed)) {
-//         // Add disabled option */
-//         values.add(Pin.DISABLED_PIN.getName());
-//         fMappingInfos.add(MappingInfo.DISABLED_MAPPING);
-//      }
       for (MappingInfo mappingInfo:mappingInfoSet) {
          MuxSelection muxSelection = mappingInfo.getMux();
          if (!mappingInfo.getPin().isAvailableInPackage()) {
             // Discard pins without package location
             continue;
          }
-         if (muxSelection == MuxSelection.fixed) {
-            // Uses icon so no prefix
-            values.add(mappingInfo.getPin().getName());
+         if (muxSelection == MuxSelection.reset) {
+            values.add(muxSelection.getShortName()+": ("+mappingInfo.getPin().getName()+")");
+            fResetMapping = mappingInfo;
          }
          else {
-            if (muxSelection == MuxSelection.reset) {
-               values.add(muxSelection.getShortName()+": ("+mappingInfo.getPin().getName()+")");
-            }
-            else {
-               values.add(muxSelection.getShortName()+": "+mappingInfo.getPin().getName());
-            }
+            values.add(muxSelection.getShortName()+": "+mappingInfo.getPin().getName());
          }
          fMappingInfos.add(mappingInfo);
-//         mappingInfo.addListener(this);
+         if (mappingInfo.isSelected()) {
+            fCurrentMapping = mappingInfo;
+            fSelection = fMappingInfos.size()-1;
+         }
       }
-      fValues = values.toArray(new String[values.size()]);
+      if (fCurrentMapping == null) {
+         fCurrentMapping = fMappingInfos.get(0);
+      }
+      if (fResetMapping == null) {
+         fResetMapping = fMappingInfos.get(1);
+      }
+      fChoices = values.toArray(new String[values.size()]);
+
+      fSignal.addListener(this);
+
       fSignal.connectListeners();
    }
 
    @Override
-   public void setValue(String value) {
-      super.setValue(value);
-      MuxSelection muxValue = MuxSelection.disabled;         
+   public void setValueAsString(String value) {
+      super.setValueAsString(value);
+      MuxSelection muxValue = MuxSelection.reset;         
       fCurrentMapping = fMappingInfos.get(fSelection);
-      if (fCurrentMapping != null) {
-         muxValue = fCurrentMapping.getMux();
+      if (fCurrentMapping == null) {
+         throw new RuntimeException("Illegal mapping");
       }
-      System.err.println("===================================================================");
-      System.err.println("Signal("+fName+")::setValue("+fSelection+") => "+muxValue+", "+fCurrentMapping);
-      
+      muxValue = fCurrentMapping.getMux();
+      if (muxValue == MuxSelection.disabled) {
+         // Can't set a signal to disabled because it is unclear what to do to the unmapped pin?
+         muxValue = MuxSelection.reset;
+         fCurrentMapping = fResetMapping;
+         fSelection = fMappingInfos.indexOf(fResetMapping);
+      }
+//      System.err.println("===================================================================");
+//      System.err.println("SignalModel("+fName+")::setValue("+value+", "+fSelection+") => "+fCurrentMapping);
       fSignal.setPin(fCurrentMapping);
-      ((DeviceModel)getRoot()).checkConflicts();
    }
-   
-//   void notifyMuxChange() {
-//      fCurrentMapping = fMappingInfos.get(fSelection);
-//      for (MappingInfo mappingInfo:fMappingInfos) {
-//         if (mappingInfo != null) {
-//            mappingInfo.select(MappingInfo.Origin.signal, mappingInfo == fCurrentMapping);
-//         }
-//      }
-//   }
    
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof Signal) {
          Signal signal = (Signal) model;
-         System.err.println("SignalModel("+fName+")::modelElementChanged("+signal+") => "+fSelection+" => "+fCurrentMapping);
-         fCurrentMapping = signal.getMappedPin();
+//         System.err.println(" "+toString()+"::modelElementChanged() => "+fSelection+" => C:"+fCurrentMapping);
+         fCurrentMapping = signal.getCurrentMapping();
          fSelection = fMappingInfos.indexOf(fCurrentMapping);
          if (fSelection<0) {
-            fSelection = 0;
+            throw new RuntimeException(toString()+"::modelElementChanged("+fSelection+") - Impossible mapping");
          }
-         System.err.println("SignalModel("+fName+")::modelElementChanged("+fSelection+") => "+fSelection+" => "+fCurrentMapping);
-         
+//         System.err.println("*"+toString()+"::modelElementChanged() => "+fSelection+" => N:"+fCurrentMapping);
+         viewerUpdate(this, null);
       }
-      
-//      if (model instanceof MappingInfo) {
-//         MappingInfo mappingInfo = (MappingInfo)model;
-//         boolean selected = mappingInfo.isSelected();
-//
-////         System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
-//
-//         // Get change (either disabled or correct selection)
-//         int changedSelection = fMappingInfos.indexOf(mappingInfo);
-//         if (selected) {
-//            // A function has been mapped to a pin 
-//            if (fSelection != changedSelection) {
-//               // Not already mapped
-////               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
-//               fSelection = changedSelection;
-//               fCurrentMapping = fMappingInfos.get(fSelection);
-//               ((DeviceModel)getRoot()).checkConflicts();
-//            }
-//         }
-//         else {
-//            // A function has been unmapped
-//            if (fSelection == changedSelection) {
-//               // Currently mapped to this pin - unmap
-////               System.err.println(String.format("Function(%s)::modelElementChanged(%s) = %s", fName, mappingInfo, selected?"selected":"unselected"));
-//               fSelection = 0;
-//               fCurrentMapping = fMappingInfos.get(fSelection);
-//               ((DeviceModel)getRoot()).checkConflicts();
-////               notifyMuxChange();
-//            }
-//         }
-//         viewerUpdate(this,  null);
-//      }
+   }
+
+   @Override
+   public String toString() {
+      return "SignalModel("+fName+")";
    }
 
    /**
@@ -156,6 +127,14 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       return super.getMessage();
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.model.SelectionModel#canEdit()
+    */
+   @Override
+   public boolean canEdit() {
+      return super.canEdit() && ((fChoices.length>2) || (fCurrentMapping == MappingInfo.DISABLED_MAPPING));
+   }
+
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
       // Not used
@@ -166,6 +145,12 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       return ((fCurrentMapping == null) || 
               (fCurrentMapping.getMux() == MuxSelection.reset) ||
               (fCurrentMapping.getMux() == MuxSelection.disabled));
+   }
+
+   @Override
+   protected void removeMyListeners() {
+      fSignal.removeListener(this);
+      fSignal.disconnectListeners();
    }
 
 }

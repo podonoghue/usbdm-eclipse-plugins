@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.Comparator;
 import java.util.TreeSet;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
@@ -68,7 +69,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
 
-   private MappingInfo fMappedPin = null;
+   private MappingInfo fCurrentMapping = MappingInfo.DISABLED_MAPPING;
 
    /**
     * 
@@ -83,7 +84,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Connect Pin as listener for changes on pin multiplexing
+    * Connect Signal as listener for changes on pin multiplexing
     */
    public void connectListeners() {
       for (MappingInfo mappingInfo:fPinMappings) {
@@ -91,14 +92,15 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
    }
    
-//   void setTemplate(PeripheralTemplateInformation template) {
-//      fTemplate = template;
-//   }
-//
-//   public PeripheralTemplateInformation getTemplate() {
-//      return fTemplate;
-//   }
-
+   /**
+    * Connect Signal as listener for changes on pin multiplexing
+    */
+   public void disconnectListeners() {
+      for (MappingInfo mappingInfo:fPinMappings) {
+         mappingInfo.removeListener(this);
+      }
+   }
+   
    void setIncluded(boolean include) {
       fIncluded = include;
    }
@@ -206,7 +208,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     */
    public boolean isAvailableInPackage() {
       for (MappingInfo info:fPinMappings) {
-         if (info.getPin().isAvailableInPackage()) {
+         Pin pin = info.getPin();
+         // Exclude disabled pin
+         if ((pin != Pin.DISABLED_PIN) && pin.isAvailableInPackage()) {
             return true;
          }
       }
@@ -219,10 +223,23 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @param mappingInfo
     */
    public void setPin(MappingInfo mappingInfo) {
-      fMappedPin = mappingInfo;
-      if (fMappedPin.getPin() != null) {
-         mappingInfo.getPin().setMuxSelection(mappingInfo.getMux());
+      if (fCurrentMapping == mappingInfo) {
+         // Already mapped - No change
+         return;
       }
+      fCurrentMapping.select(Origin.signal, false);
+      mappingInfo.select(Origin.signal, true);
+      
+//      if (fMappedPin.getPin() != null) {
+//         // Unmap existing pin
+//         fMappedPin.getPin().setMuxSelection(MuxSelection.disabled);
+//      }
+//      fMappedPin = mappingInfo;
+//      if (fMappedPin.getPin() != null) {
+//         // Map new pin
+//         fMappedPin.getPin().setMuxSelection(mappingInfo.getMux());
+//      }
+//      notifyListeners();
    }
 
    @Override
@@ -231,10 +248,22 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       if (model instanceof MappingInfo) {
          MappingInfo mappingInfo = (MappingInfo) model;
          if (mappingInfo.isSelected()) {
-            fMappedPin = mappingInfo;
+            // Signal mapped value
+            if (fCurrentMapping == mappingInfo) {
+               // Already mapped - no change
+               return;
+            }
+            fCurrentMapping = mappingInfo;
+            // New pin has been mapped
          }
          else {
-            fMappedPin = MappingInfo.DISABLED_MAPPING;
+            // Signal unmapped from pin
+            if (mappingInfo != fCurrentMapping) {
+               // Already unmapped - no change
+               return;
+            }
+            // Currently pin has been unmapped
+            fCurrentMapping = MappingInfo.DISABLED_MAPPING;
          }
          notifyListeners();
       }
@@ -245,8 +274,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * 
     * @return
     */
-   public MappingInfo getMappedPin() {
-      return fMappedPin;
+   public MappingInfo getCurrentMapping() {
+      return fCurrentMapping;
    }
    
    @Override

@@ -28,6 +28,15 @@ public class ObservableModel {
     * 
     * @param listener to remove
     */
+   public void removeAllListeners() {
+      fListeners.clear();
+   }
+
+   /**
+    * Remove the model change listener (if present)
+    * 
+    * @param listener to remove
+    */
    public void removeListener(IModelChangeListener listener) {
       fListeners.remove(listener);
    }

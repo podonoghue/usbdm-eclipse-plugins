@@ -28,27 +28,28 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 
 public class WriteFamilyCpp {
 
+   /** Device information */
    private DeviceInfo fDeviceInfo;
 
    /** Include directory in C Project */
-   private final String INCLUDE_DIRECTORY = "Project_Headers";
+   private final static String INCLUDE_DIRECTORY = "Project_Headers";
    
    /** Source directory ion C project */
-   private final String SOURCE_DIRECTORY  = "Sources";
+   private final static String SOURCE_DIRECTORY  = "Sources";
    
    /** Base name for pin mapping file */
-   private final static String pinMappingBaseFileName   = "pin_mapping";
+   private final static String PIN_MAPPING_BASEFILENAME   = "pin_mapping";
 
    /** Base name for C++ files */
-   private final static String gpioBaseFileName         = "gpio";
+   private final static String GPIO_BASEFILENAME          = "gpio";
 
-   /** Fixed GPIO mux function */
+   /** Fixed GPIO multiplexor function */
    private int      gpioFunctionMuxValue          = 1; 
 
-   /** GPIO mux function varies with port */
+   /** GPIO multiplexor function varies with port */
    private boolean  gpioFunctionMuxValueChanged   = false;
 
-   /** Fixed ADC mux function - default to mux setting 0*/
+   /** Fixed ADC multiplexor function - default to multiplexor setting 0*/
    private int      adcFunctionMuxValue           = 0;
 
    /** GPIO ADC function varies with port */
@@ -128,32 +129,8 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Gets pin name with appended location<br>
-    * If no location a null is returned
-    * 
-    * @param pinInformation
-    * @return name with aliases e.g. <b><i>PTE0 (Alias:D14)</b></i>
-    */
-   @SuppressWarnings("unused")
-   private String getPinNameWithLocation(Pin pinInformation) {
-      String pinName = pinInformation.getName();
-
-      String location = fDeviceInfo.getDeviceVariant().getPackage().getLocation(pinInformation.getName());
-      if (location == null) {
-         return null;
-      }
-      if (!location.equalsIgnoreCase(pinInformation.getName())) {
-         location = " (Alias:"+location.replaceAll("/", ", ")+")";
-      }
-      else {
-         location = "";
-      }
-      return pinName+location;
-
-   }
-
-   /**
     * Writes all clock macros e.g.
+    * 
     * <pre>
     * #define ADC0_CLOCK_REG       SIM->SCGC6          
     * #define ADC0_CLOCK_MASK      SIM_SCGC6_ADC0_MASK 
@@ -372,11 +349,13 @@ public class WriteFamilyCpp {
             String signal   = m.replaceAll("$2");
             usedPcrs.add(instance);
             writer.write(String.format(
-                  "   { PORT_PCR_MUX(%d)|%s::DEFAULT_PCR, &PORT%s->PCR[%s]},\n",
+                  " /* %-10s ==> %-25s */  { PORT_PCR_MUX(%d)|%s::DEFAULT_PCR, &PORT%s->%-8s },\n",
+                  pin.getName(),
+                  pin.getMappedSignal().getSignalList(),
                   mux.value, 
                   DeviceInfo.NAME_SPACE, 
                   instance, 
-                  signal));
+                  "PCR["+signal+"],"));
          }
       }
       writer.write("};\n\n");
@@ -541,7 +520,7 @@ public class WriteFamilyCpp {
       DocumentUtilities writer = new DocumentUtilities(headerFile);
       
       writer.writeHeaderFilePreamble(
-            pinMappingBaseFileName+".h", fDeviceInfo.getSourceFilename(),
+            PIN_MAPPING_BASEFILENAME+".h", fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceVariantName());
 
@@ -559,7 +538,7 @@ public class WriteFamilyCpp {
 
       writeDocumentation(writer);
       
-      writer.writeHeaderFilePostamble(pinMappingBaseFileName+".h");
+      writer.writeHeaderFilePostamble(PIN_MAPPING_BASEFILENAME+".h");
 
       writer.close();
    }
@@ -576,7 +555,7 @@ public class WriteFamilyCpp {
       DocumentUtilities writer = new DocumentUtilities(cppFile);
       
       writer.writeCppFilePreamble(
-            gpioBaseFileName+".cpp", fDeviceInfo.getSourceFilename(),
+            GPIO_BASEFILENAME+".cpp", fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceVariantName());
 
@@ -606,8 +585,8 @@ public class WriteFamilyCpp {
          filename = "-"+filename;
       }
       fDeviceInfo = deviceInfo;
-      writePinMappingHeaderFile(directory.resolve("Project_Headers").resolve(pinMappingBaseFileName+filename+".h"));
-      writePinMappingCppFile(directory.resolve("Sources").resolve(gpioBaseFileName+filename+".cpp"));
+      writePinMappingHeaderFile(directory.resolve("Project_Headers").resolve(PIN_MAPPING_BASEFILENAME+filename+".h"));
+      writePinMappingCppFile(directory.resolve("Sources").resolve(GPIO_BASEFILENAME+filename+".cpp"));
    }
    
    /**
@@ -643,16 +622,16 @@ public class WriteFamilyCpp {
       
       Path directory = Paths.get(project.getLocation().toPortableString());
       
-      writePinMappingHeaderFile(directory.resolve(INCLUDE_DIRECTORY).resolve(pinMappingBaseFileName+".h"));
-      writePinMappingCppFile(directory.resolve(SOURCE_DIRECTORY).resolve(gpioBaseFileName+".cpp"));
+      writePinMappingHeaderFile(directory.resolve(INCLUDE_DIRECTORY).resolve(PIN_MAPPING_BASEFILENAME+".h"));
+      writePinMappingCppFile(directory.resolve(SOURCE_DIRECTORY).resolve(GPIO_BASEFILENAME+".cpp"));
       
       IFile file;
       
-      file = project.getFile(INCLUDE_DIRECTORY+"/"+pinMappingBaseFileName+".h");
+      file = project.getFile(INCLUDE_DIRECTORY+"/"+PIN_MAPPING_BASEFILENAME+".h");
       file.refreshLocal(IResource.DEPTH_ONE, mon);
       file.setDerived(true, mon);
       
-      file = project.getFile(SOURCE_DIRECTORY+"/"+gpioBaseFileName+".cpp");
+      file = project.getFile(SOURCE_DIRECTORY+"/"+GPIO_BASEFILENAME+".cpp");
       file.refreshLocal(IResource.DEPTH_ONE, mon);
       file.setDerived(true, mon);
    }

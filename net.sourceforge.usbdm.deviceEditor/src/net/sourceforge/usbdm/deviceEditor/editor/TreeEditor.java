@@ -83,7 +83,7 @@ public class TreeEditor {
       
       TreeViewerEditor.create(fViewer, actSupport, ColumnViewerEditor.DEFAULT);
 
-      fColumns = new TreeViewerColumn[4];
+      fColumns = new TreeViewerColumn[3];
       
       fColumns[0] = new TreeViewerColumn(fViewer, SWT.NONE);
       fColumns[0].getColumn().setWidth(300);
@@ -91,18 +91,13 @@ public class TreeEditor {
 
       fColumns[1] = new TreeViewerColumn(fViewer, SWT.NONE);
       fColumns[1].getColumn().setWidth(300);
-      fColumns[1].setEditingSupport(new PinMappingEditingSupport(fViewer));
+      fColumns[1].setEditingSupport(new ValueColumnEditingSupport(fViewer));
       fColumns[1].setLabelProvider(new ValueColumnLabelProvider());
       
       fColumns[2] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[2].getColumn().setWidth(300);
-      fColumns[2].setEditingSupport(new PinUseDescriptionEditingSupport(fViewer));
-      fColumns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
-
-//      columns[3] = new TreeViewerColumn(viewer, SWT.NONE);
-//      columns[3].getColumn().setText("Description");
-//      columns[3].getColumn().setWidth(300);
-//      columns[3].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionLabelProvider(this)));
+      fColumns[2].getColumn().setWidth(500);
+      fColumns[2].setEditingSupport(new DescriptionColumnEditingSupport(fViewer));
+      fColumns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionColumnLabelProvider(this)));
 
       return fViewer;
    }

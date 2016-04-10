@@ -4,6 +4,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 
 public class DevicePackageModel extends StringModel implements IModelChangeListener {
 
+   private final DeviceInfo fDeviceInfo;
+   
    /**
     * Device package
     * 
@@ -12,12 +14,8 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
     */
    public DevicePackageModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Package", "Device package", deviceInfo.getDeviceVariant().getPackage().getName());
+      fDeviceInfo = deviceInfo;
       deviceInfo.addListener(this);
-   }
-
-   @Override
-   public boolean canEdit() {
-      return false;
    }
 
    @Override
@@ -25,12 +23,16 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
          setValue(deviceInfo.getDeviceVariant().getPackage().getName());
-         refresh();
       }
    }
 
    @Override
    public void modelStructureChanged(ObservableModel model) {
+   }
+
+   @Override
+   protected void removeMyListeners() {
+      fDeviceInfo.addListener(this);
    }
    
 }

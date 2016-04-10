@@ -1,14 +1,223 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE root SYSTEM "Pins.dtd">
-<!-- pin_mapping-MK22F12810.xml -->
+<!-- MK22F12810_multi.hardware -->
 <!-- 
-   Generated from MK22F12810.csv
+   Generated from MK22F12810_multi.csv
 -->
 
 <root version="1.2.0">
-   <family name="MK22F12810">
-      <device name="MK22F12810-LQFP64" manual="K22P121M100SF9RM" package="LQFP-64" />
+   <family name="null">
+      <device name="MK22FN128VDC10" manual="K22P121M100SF9RM" package="BGA-121" />
+      <device name="MK22FN128VLH10" manual="K22P121M100SF9RM" package="LQFP-64" />
+      <device name="MK22FN128VLL10" manual="K22P121M100SF9RM" package="LQFP-100" />
+      <device name="MK22FN128VMP10" manual="K22P121M100SF9RM" package="BGA-64" />
    </family>
+   <peripherals>
+      <peripheral baseName="0"        instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="ADC"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAnalogueIO" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC0_MASK" />
+         <irq num="ADC0_IRQn" />
+      </peripheral>
+      <peripheral baseName="ADC"      instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAnalogueIO" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC1_MASK" />
+         <irq num="ADC1_IRQn" />
+      </peripheral>
+      <peripheral baseName="ADC1a"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC1_MASK" />
+         <irq num="ADC1_IRQn" />
+      </peripheral>
+      <peripheral baseName="CLKOUT"   instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="CMP"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_CMP_MASK" />
+         <irq num="CMP0_IRQn" />
+      </peripheral>
+      <peripheral baseName="CMP"      instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_CMP_MASK" />
+         <irq num="CMP1_IRQn" />
+      </peripheral>
+      <peripheral baseName="CRC"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_CRC_MASK" />
+      </peripheral>
+      <peripheral baseName="DAC"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_DAC0_MASK" />
+      </peripheral>
+      <peripheral baseName="DMA"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC7"    clockMask="SIM_SCGC7_DMA_MASK" />
+      </peripheral>
+      <peripheral baseName="DMAMUX"   instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_DMAMUX_MASK" />
+      </peripheral>
+      <peripheral baseName="EWM"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_EWM_MASK" />
+      </peripheral>
+      <peripheral baseName="EZP"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="FTFE"     instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTF_MASK" />
+      </peripheral>
+      <peripheral baseName="FTM"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+      </peripheral>
+      <peripheral baseName="FTM"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM0_MASK" />
+         <irq num="FTM0_IRQn" />
+      </peripheral>
+      <peripheral baseName="FTM"      instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM1_MASK" />
+         <irq num="FTM1_IRQn" />
+      </peripheral>
+      <peripheral baseName="FTM"      instance="2">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM2_MASK" />
+         <irq num="FTM2_IRQn" />
+      </peripheral>
+      <peripheral baseName="GPIO"     instance="A">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTA_MASK" />
+         <irq num="PORTA_IRQn" />
+      </peripheral>
+      <peripheral baseName="GPIO"     instance="B">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTB_MASK" />
+         <irq num="PORTB_IRQn" />
+      </peripheral>
+      <peripheral baseName="GPIO"     instance="C">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTC_MASK" />
+         <irq num="PORTC_IRQn" />
+      </peripheral>
+      <peripheral baseName="GPIO"     instance="D">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTD_MASK" />
+         <irq num="PORTD_IRQn" />
+      </peripheral>
+      <peripheral baseName="GPIO"     instance="E">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTE_MASK" />
+         <irq num="PORTE_IRQn" />
+      </peripheral>
+      <peripheral baseName="I2C"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_I2C0_MASK" />
+         <irq num="I2C0_IRQn" />
+      </peripheral>
+      <peripheral baseName="I2C"      instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_I2C1_MASK" />
+         <irq num="I2C1_IRQn" />
+      </peripheral>
+      <peripheral baseName="I2S"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_I2S0_MASK" />
+         <irq num="I2S0_Tx_IRQn" />
+         <irq num="I2S0_Rx_IRQn" />
+      </peripheral>
+      <peripheral baseName="JTAG"     instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="LLWU"     instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu" />
+      </peripheral>
+      <peripheral baseName="LPTMR"    instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr" />
+         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_LPTMR_MASK" />
+         <irq num="LPTMR0_IRQn" />
+      </peripheral>
+      <peripheral baseName="LPUART"   instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_LPUART0_MASK" />
+         <irq num="LPUART0_RX_TX_IRQn" />
+      </peripheral>
+      <peripheral baseName="NMI_b"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="OSC0"     instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="OSC32"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="PDB"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PDB0_MASK" />
+         <irq num="PDB0_IRQn" />
+      </peripheral>
+      <peripheral baseName="PIT"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PIT_MASK" />
+         <irq num="PIT0_IRQn" />
+         <irq num="PIT1_IRQn" />
+         <irq num="PIT2_IRQn" />
+         <irq num="PIT3_IRQn" />
+      </peripheral>
+      <peripheral baseName="RESET_b"  instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="RTC"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_RTC_MASK" />
+         <irq num="RTC_Alarm_IRQn" />
+         <irq num="RTC_Seconds_IRQn" />
+      </peripheral>
+      <peripheral baseName="SPI"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_SPI0_MASK" />
+         <irq num="SPI0_IRQn" />
+      </peripheral>
+      <peripheral baseName="SPI"      instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi" />
+         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_SPI1_MASK" />
+         <irq num="SPI1_IRQn" />
+      </peripheral>
+      <peripheral baseName="SWD"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="TRACE"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+      </peripheral>
+      <peripheral baseName="UART"     instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART0_MASK" />
+         <irq num="UART0_RX_TX_IRQn" />
+      </peripheral>
+      <peripheral baseName="UART"     instance="1">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART1_MASK" />
+         <irq num="UART1_RX_TX_IRQn" />
+      </peripheral>
+      <peripheral baseName="UART"     instance="2">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART2_MASK" />
+         <irq num="UART2_RX_TX_IRQn" />
+      </peripheral>
+      <peripheral baseName="USB"      instance="0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_USBOTG_MASK" />
+         <irq num="USB0_IRQn" />
+      </peripheral>
+      <peripheral baseName="VREF"     instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref" />
+         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_VREF_MASK" />
+      </peripheral>
+   </peripherals>
    <pins>
       <pin name="ADC0_DM0">
          <mux sel="reset"         function="ADC0_DM0" />
@@ -810,203 +1019,271 @@
       </pin>
    </pins>
    <packages>
+      <package name="BGA-121">
+         <placement pin="ADC0_DM0"      location="K2" />
+         <placement pin="ADC0_DM1"      location="H2" />
+         <placement pin="ADC0_DP0"      location="K1" />
+         <placement pin="ADC0_DP1"      location="H1" />
+         <placement pin="ADC1_DM0"      location="L2" />
+         <placement pin="ADC1_DM1"      location="J2" />
+         <placement pin="ADC1_DP0"      location="L1" />
+         <placement pin="ADC1_DP1"      location="J1" />
+         <placement pin="CMP0_IN4"      location="K4" />
+         <placement pin="DAC0_OUT"      location="K5" />
+         <placement pin="EXTAL32"       location="L5" />
+         <placement pin="PTA0"          location="J6" />
+         <placement pin="PTA1"          location="H8" />
+         <placement pin="PTA12"         location="K8" />
+         <placement pin="PTA13"         location="L8" />
+         <placement pin="PTA14"         location="K9" />
+         <placement pin="PTA15"         location="L9" />
+         <placement pin="PTA16"         location="J10" />
+         <placement pin="PTA17"         location="H10" />
+         <placement pin="PTA18"         location="L11" />
+         <placement pin="PTA19"         location="K11" />
+         <placement pin="PTA2"          location="J7" />
+         <placement pin="PTA3"          location="H9" />
+         <placement pin="PTA4"          location="J8" />
+         <placement pin="PTA5"          location="K7" />
+         <placement pin="PTB0"          location="G11" />
+         <placement pin="PTB1"          location="G10" />
+         <placement pin="PTB10"         location="D10" />
+         <placement pin="PTB11"         location="C10" />
+         <placement pin="PTB16"         location="B10" />
+         <placement pin="PTB17"         location="E9" />
+         <placement pin="PTB18"         location="D9" />
+         <placement pin="PTB19"         location="C9" />
+         <placement pin="PTB2"          location="G9" />
+         <placement pin="PTB20"         location="F10" />
+         <placement pin="PTB21"         location="F9" />
+         <placement pin="PTB22"         location="F8" />
+         <placement pin="PTB23"         location="E8" />
+         <placement pin="PTB3"          location="G8" />
+         <placement pin="PTB8"          location="D11" />
+         <placement pin="PTB9"          location="E10" />
+         <placement pin="PTC0"          location="B9" />
+         <placement pin="PTC1"          location="D8" />
+         <placement pin="PTC10"         location="C6" />
+         <placement pin="PTC11"         location="C5" />
+         <placement pin="PTC12"         location="B6" />
+         <placement pin="PTC13"         location="A6" />
+         <placement pin="PTC14"         location="A5" />
+         <placement pin="PTC15"         location="B5" />
+         <placement pin="PTC16"         location="D5" />
+         <placement pin="PTC17"         location="C4" />
+         <placement pin="PTC18"         location="B4" />
+         <placement pin="PTC2"          location="C8" />
+         <placement pin="PTC3"          location="B8" />
+         <placement pin="PTC4"          location="A8" />
+         <placement pin="PTC5"          location="D7" />
+         <placement pin="PTC6"          location="C7" />
+         <placement pin="PTC7"          location="B7" />
+         <placement pin="PTC8"          location="A7" />
+         <placement pin="PTC9"          location="D6" />
+         <placement pin="PTD0"          location="D4" />
+         <placement pin="PTD1"          location="D3" />
+         <placement pin="PTD2"          location="C3" />
+         <placement pin="PTD3"          location="B3" />
+         <placement pin="PTD4"          location="A3" />
+         <placement pin="PTD5"          location="A2" />
+         <placement pin="PTD6"          location="B2" />
+         <placement pin="PTD7"          location="A1" />
+         <placement pin="PTE0"          location="E4" />
+         <placement pin="PTE1"          location="E3" />
+         <placement pin="PTE2"          location="E2" />
+         <placement pin="PTE24"         location="H5" />
+         <placement pin="PTE25"         location="J5" />
+         <placement pin="PTE26"         location="H6" />
+         <placement pin="PTE3"          location="F4" />
+         <placement pin="PTE4"          location="H7" />
+         <placement pin="PTE5"          location="G4" />
+         <placement pin="PTE6"          location="F3" />
+         <placement pin="RESET_b"       location="J11" />
+         <placement pin="VREF_OUT"      location="L3" />
+         <placement pin="XTAL32"        location="L4" />
+      </package>
+      <package name="BGA-64">
+         <placement pin="ADC0_DM0"      location="F1" />
+         <placement pin="ADC0_DP0"      location="G1" />
+         <placement pin="ADC1_DM0"      location="F2" />
+         <placement pin="ADC1_DP0"      location="G2" />
+         <placement pin="DAC0_OUT"      location="H2" />
+         <placement pin="EXTAL32"       location="H4" />
+         <placement pin="PTA0"          location="D3" />
+         <placement pin="PTA1"          location="D4" />
+         <placement pin="PTA12"         location="H6" />
+         <placement pin="PTA13"         location="G6" />
+         <placement pin="PTA18"         location="H8" />
+         <placement pin="PTA19"         location="G8" />
+         <placement pin="PTA2"          location="E5" />
+         <placement pin="PTA3"          location="D5" />
+         <placement pin="PTA4"          location="G5" />
+         <placement pin="PTA5"          location="F5" />
+         <placement pin="PTB0"          location="F7" />
+         <placement pin="PTB1"          location="F6" />
+         <placement pin="PTB16"         location="E6" />
+         <placement pin="PTB17"         location="D7" />
+         <placement pin="PTB18"         location="D6" />
+         <placement pin="PTB19"         location="C7" />
+         <placement pin="PTB2"          location="E7" />
+         <placement pin="PTB3"          location="E8" />
+         <placement pin="PTC0"          location="D8" />
+         <placement pin="PTC1"          location="C6" />
+         <placement pin="PTC10"         location="B4" />
+         <placement pin="PTC11"         location="A5" />
+         <placement pin="PTC2"          location="B7" />
+         <placement pin="PTC3"          location="C8" />
+         <placement pin="PTC4"          location="B8" />
+         <placement pin="PTC5"          location="A8" />
+         <placement pin="PTC6"          location="A7" />
+         <placement pin="PTC7"          location="B6" />
+         <placement pin="PTC8"          location="A6" />
+         <placement pin="PTC9"          location="B5" />
+         <placement pin="PTD0"          location="C3" />
+         <placement pin="PTD1"          location="A4" />
+         <placement pin="PTD2"          location="C2" />
+         <placement pin="PTD3"          location="B3" />
+         <placement pin="PTD4"          location="A3" />
+         <placement pin="PTD5"          location="C1" />
+         <placement pin="PTD6"          location="B2" />
+         <placement pin="PTD7"          location="A2" />
+         <placement pin="PTE0"          location="A1" />
+         <placement pin="PTE1"          location="B1" />
+         <placement pin="RESET_b"       location="F8" />
+         <placement pin="VREF_OUT"      location="H1" />
+         <placement pin="XTAL32"        location="H3" />
+      </package>
+      <package name="LQFP-100">
+         <placement pin="ADC0_DM0"      location="p19" />
+         <placement pin="ADC0_DM1"      location="p15" />
+         <placement pin="ADC0_DP0"      location="p18" />
+         <placement pin="ADC0_DP1"      location="p14" />
+         <placement pin="ADC1_DM0"      location="p21" />
+         <placement pin="ADC1_DM1"      location="p17" />
+         <placement pin="ADC1_DP0"      location="p20" />
+         <placement pin="ADC1_DP1"      location="p16" />
+         <placement pin="DAC0_OUT"      location="p27" />
+         <placement pin="EXTAL32"       location="p29" />
+         <placement pin="PTA0"          location="p34" />
+         <placement pin="PTA1"          location="p35" />
+         <placement pin="PTA12"         location="p42" />
+         <placement pin="PTA13"         location="p43" />
+         <placement pin="PTA14"         location="p44" />
+         <placement pin="PTA15"         location="p45" />
+         <placement pin="PTA16"         location="p46" />
+         <placement pin="PTA17"         location="p47" />
+         <placement pin="PTA18"         location="p50" />
+         <placement pin="PTA19"         location="p51" />
+         <placement pin="PTA2"          location="p36" />
+         <placement pin="PTA3"          location="p37" />
+         <placement pin="PTA4"          location="p38" />
+         <placement pin="PTA5"          location="p39" />
+         <placement pin="PTB0"          location="p53" />
+         <placement pin="PTB1"          location="p54" />
+         <placement pin="PTB10"         location="p58" />
+         <placement pin="PTB11"         location="p59" />
+         <placement pin="PTB16"         location="p62" />
+         <placement pin="PTB17"         location="p63" />
+         <placement pin="PTB18"         location="p64" />
+         <placement pin="PTB19"         location="p65" />
+         <placement pin="PTB2"          location="p55" />
+         <placement pin="PTB20"         location="p66" />
+         <placement pin="PTB21"         location="p67" />
+         <placement pin="PTB22"         location="p68" />
+         <placement pin="PTB23"         location="p69" />
+         <placement pin="PTB3"          location="p56" />
+         <placement pin="PTB9"          location="p57" />
+         <placement pin="PTC0"          location="p70" />
+         <placement pin="PTC1"          location="p71" />
+         <placement pin="PTC10"         location="p82" />
+         <placement pin="PTC11"         location="p83" />
+         <placement pin="PTC12"         location="p84" />
+         <placement pin="PTC13"         location="p85" />
+         <placement pin="PTC14"         location="p86" />
+         <placement pin="PTC15"         location="p87" />
+         <placement pin="PTC16"         location="p90" />
+         <placement pin="PTC17"         location="p91" />
+         <placement pin="PTC18"         location="p92" />
+         <placement pin="PTC2"          location="p72" />
+         <placement pin="PTC3"          location="p73" />
+         <placement pin="PTC4"          location="p76" />
+         <placement pin="PTC5"          location="p77" />
+         <placement pin="PTC6"          location="p78" />
+         <placement pin="PTC7"          location="p79" />
+         <placement pin="PTC8"          location="p80" />
+         <placement pin="PTC9"          location="p81" />
+         <placement pin="PTD0"          location="p93" />
+         <placement pin="PTD1"          location="p94" />
+         <placement pin="PTD2"          location="p95" />
+         <placement pin="PTD3"          location="p96" />
+         <placement pin="PTD4"          location="p97" />
+         <placement pin="PTD5"          location="p98" />
+         <placement pin="PTD6"          location="p99" />
+         <placement pin="PTD7"          location="p100" />
+         <placement pin="PTE0"          location="p1" />
+         <placement pin="PTE1"          location="p2" />
+         <placement pin="PTE2"          location="p3" />
+         <placement pin="PTE24"         location="p31" />
+         <placement pin="PTE25"         location="p32" />
+         <placement pin="PTE26"         location="p33" />
+         <placement pin="PTE3"          location="p4" />
+         <placement pin="PTE4"          location="p5" />
+         <placement pin="PTE5"          location="p6" />
+         <placement pin="PTE6"          location="p7" />
+         <placement pin="RESET_b"       location="p52" />
+         <placement pin="VREF_OUT"      location="p26" />
+         <placement pin="XTAL32"        location="p28" />
+      </package>
       <package name="LQFP-64">
-         <placement pin="ADC0_DM0"      location="ADC0_DM0" />
-         <placement pin="ADC0_DP0"      location="ADC0_DP0" />
-         <placement pin="ADC1_DM0"      location="ADC1_DM0" />
-         <placement pin="ADC1_DP0"      location="ADC1_DP0" />
-         <placement pin="DAC0_OUT"      location="DAC0_OUT" />
-         <placement pin="EXTAL32"       location="EXTAL32" />
-         <placement pin="PTA0"          location="PTA0" />
-         <placement pin="PTA1"          location="PTA1" />
-         <placement pin="PTA12"         location="PTA12" />
-         <placement pin="PTA13"         location="PTA13" />
-         <placement pin="PTA18"         location="PTA18" />
-         <placement pin="PTA19"         location="PTA19" />
-         <placement pin="PTA2"          location="PTA2" />
-         <placement pin="PTA3"          location="PTA3" />
-         <placement pin="PTA4"          location="PTA4" />
-         <placement pin="PTA5"          location="PTA5" />
-         <placement pin="PTB0"          location="PTB0" />
-         <placement pin="PTB1"          location="PTB1" />
-         <placement pin="PTB16"         location="PTB16" />
-         <placement pin="PTB17"         location="PTB17" />
-         <placement pin="PTB18"         location="PTB18" />
-         <placement pin="PTB19"         location="PTB19" />
-         <placement pin="PTB2"          location="PTB2" />
-         <placement pin="PTB3"          location="PTB3" />
-         <placement pin="PTC0"          location="PTC0" />
-         <placement pin="PTC1"          location="PTC1" />
-         <placement pin="PTC10"         location="PTC10" />
-         <placement pin="PTC11"         location="PTC11" />
-         <placement pin="PTC2"          location="PTC2" />
-         <placement pin="PTC3"          location="PTC3" />
-         <placement pin="PTC4"          location="PTC4" />
-         <placement pin="PTC5"          location="PTC5" />
-         <placement pin="PTC6"          location="PTC6" />
-         <placement pin="PTC7"          location="PTC7" />
-         <placement pin="PTC8"          location="PTC8" />
-         <placement pin="PTC9"          location="PTC9" />
-         <placement pin="PTD0"          location="PTD0" />
-         <placement pin="PTD1"          location="PTD1" />
-         <placement pin="PTD2"          location="PTD2" />
-         <placement pin="PTD3"          location="PTD3" />
-         <placement pin="PTD4"          location="PTD4" />
-         <placement pin="PTD5"          location="PTD5" />
-         <placement pin="PTD6"          location="PTD6" />
-         <placement pin="PTD7"          location="PTD7" />
-         <placement pin="PTE0"          location="PTE0" />
-         <placement pin="PTE1"          location="PTE1" />
-         <placement pin="RESET_b"       location="RESET_b" />
-         <placement pin="VREF_OUT"      location="VREF_OUT" />
-         <placement pin="XTAL32"        location="XTAL32" />
+         <placement pin="ADC0_DM0"      location="p10" />
+         <placement pin="ADC0_DP0"      location="p9" />
+         <placement pin="ADC1_DM0"      location="p12" />
+         <placement pin="ADC1_DP0"      location="p11" />
+         <placement pin="DAC0_OUT"      location="p18" />
+         <placement pin="EXTAL32"       location="p20" />
+         <placement pin="PTA0"          location="p22" />
+         <placement pin="PTA1"          location="p23" />
+         <placement pin="PTA12"         location="p28" />
+         <placement pin="PTA13"         location="p29" />
+         <placement pin="PTA18"         location="p32" />
+         <placement pin="PTA19"         location="p33" />
+         <placement pin="PTA2"          location="p24" />
+         <placement pin="PTA3"          location="p25" />
+         <placement pin="PTA4"          location="p26" />
+         <placement pin="PTA5"          location="p27" />
+         <placement pin="PTB0"          location="p35" />
+         <placement pin="PTB1"          location="p36" />
+         <placement pin="PTB16"         location="p39" />
+         <placement pin="PTB17"         location="p40" />
+         <placement pin="PTB18"         location="p41" />
+         <placement pin="PTB19"         location="p42" />
+         <placement pin="PTB2"          location="p37" />
+         <placement pin="PTB3"          location="p38" />
+         <placement pin="PTC0"          location="p43" />
+         <placement pin="PTC1"          location="p44" />
+         <placement pin="PTC10"         location="p55" />
+         <placement pin="PTC11"         location="p56" />
+         <placement pin="PTC2"          location="p45" />
+         <placement pin="PTC3"          location="p46" />
+         <placement pin="PTC4"          location="p49" />
+         <placement pin="PTC5"          location="p50" />
+         <placement pin="PTC6"          location="p51" />
+         <placement pin="PTC7"          location="p52" />
+         <placement pin="PTC8"          location="p53" />
+         <placement pin="PTC9"          location="p54" />
+         <placement pin="PTD0"          location="p57" />
+         <placement pin="PTD1"          location="p58" />
+         <placement pin="PTD2"          location="p59" />
+         <placement pin="PTD3"          location="p60" />
+         <placement pin="PTD4"          location="p61" />
+         <placement pin="PTD5"          location="p62" />
+         <placement pin="PTD6"          location="p63" />
+         <placement pin="PTD7"          location="p64" />
+         <placement pin="PTE0"          location="p1" />
+         <placement pin="PTE1"          location="p2" />
+         <placement pin="RESET_b"       location="p34" />
+         <placement pin="VREF_OUT"      location="p17" />
+         <placement pin="XTAL32"        location="p19" />
       </package>
    </packages>
-   <peripherals>
-      <peripheral name="ADC0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC0_MASK" />
-         <irq num="ADC0_IRQn" />
-      </peripheral>
-      <peripheral name="ADC1">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC1_MASK" />
-         <irq num="ADC1_IRQn" />
-      </peripheral>
-      <peripheral name="ADC1a">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_ADC1_MASK" />
-         <irq num="ADC1_IRQn" />
-      </peripheral>
-      <peripheral name="CLKOUT" />
-      <peripheral name="CMP0">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_CMP_MASK" />
-         <irq num="CMP0_IRQn" />
-      </peripheral>
-      <peripheral name="CMP1">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_CMP_MASK" />
-         <irq num="CMP1_IRQn" />
-      </peripheral>
-      <peripheral name="CRC">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_CRC_MASK" />
-      </peripheral>
-      <peripheral name="DAC0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_DAC0_MASK" />
-      </peripheral>
-      <peripheral name="DMA">
-         <clock clockReg="SCGC7"    clockMask="SIM_SCGC7_DMA_MASK" />
-      </peripheral>
-      <peripheral name="DMAMUX0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_DMAMUX_MASK" />
-      </peripheral>
-      <peripheral name="EWM">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_EWM_MASK" />
-      </peripheral>
-      <peripheral name="EZP" />
-      <peripheral name="FTF">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTF_MASK" />
-      </peripheral>
-      <peripheral name="FTM" />
-      <peripheral name="FTM0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM0_MASK" />
-         <irq num="FTM0_IRQn" />
-      </peripheral>
-      <peripheral name="FTM1">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM1_MASK" />
-         <irq num="FTM1_IRQn" />
-      </peripheral>
-      <peripheral name="FTM2">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_FTM2_MASK" />
-         <irq num="FTM2_IRQn" />
-      </peripheral>
-      <peripheral name="GPIOA">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTA_MASK" />
-         <irq num="PORTA_IRQn" />
-      </peripheral>
-      <peripheral name="GPIOB">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTB_MASK" />
-         <irq num="PORTB_IRQn" />
-      </peripheral>
-      <peripheral name="GPIOC">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTC_MASK" />
-         <irq num="PORTC_IRQn" />
-      </peripheral>
-      <peripheral name="GPIOD">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTD_MASK" />
-         <irq num="PORTD_IRQn" />
-      </peripheral>
-      <peripheral name="GPIOE">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_PORTE_MASK" />
-         <irq num="PORTE_IRQn" />
-      </peripheral>
-      <peripheral name="I2C0">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_I2C0_MASK" />
-         <irq num="I2C0_IRQn" />
-      </peripheral>
-      <peripheral name="I2C1">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_I2C1_MASK" />
-         <irq num="I2C1_IRQn" />
-      </peripheral>
-      <peripheral name="I2S0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_I2S0_MASK" />
-         <irq num="I2S0_Tx_IRQn" />
-         <irq num="I2S0_Rx_IRQn" />
-      </peripheral>
-      <peripheral name="JTAG" />
-      <peripheral name="LLWU" />
-      <peripheral name="LPTMR0">
-         <clock clockReg="SCGC5"    clockMask="SIM_SCGC5_LPTMR_MASK" />
-         <irq num="LPTMR0_IRQn" />
-      </peripheral>
-      <peripheral name="LPUART0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_LPUART0_MASK" />
-         <irq num="LPUART0_RX_TX_IRQn" />
-      </peripheral>
-      <peripheral name="NMI_b" />
-      <peripheral name="OSC0" />
-      <peripheral name="OSC32" />
-      <peripheral name="PDB0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PDB0_MASK" />
-         <irq num="PDB0_IRQn" />
-      </peripheral>
-      <peripheral name="PIT">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_PIT_MASK" />
-         <irq num="PIT0_IRQn" />
-         <irq num="PIT1_IRQn" />
-         <irq num="PIT2_IRQn" />
-         <irq num="PIT3_IRQn" />
-      </peripheral>
-      <peripheral name="RESET_b" />
-      <peripheral name="RTC">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_RTC_MASK" />
-         <irq num="RTC_Alarm_IRQn" />
-         <irq num="RTC_Seconds_IRQn" />
-      </peripheral>
-      <peripheral name="SPI0">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_SPI0_MASK" />
-         <irq num="SPI0_IRQn" />
-      </peripheral>
-      <peripheral name="SPI1">
-         <clock clockReg="SCGC6"    clockMask="SIM_SCGC6_SPI1_MASK" />
-         <irq num="SPI1_IRQn" />
-      </peripheral>
-      <peripheral name="SWD" />
-      <peripheral name="TRACE" />
-      <peripheral name="UART0">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART0_MASK" />
-         <irq num="UART0_RX_TX_IRQn" />
-      </peripheral>
-      <peripheral name="UART1">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART1_MASK" />
-         <irq num="UART1_RX_TX_IRQn" />
-      </peripheral>
-      <peripheral name="UART2">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_UART2_MASK" />
-         <irq num="UART2_RX_TX_IRQn" />
-      </peripheral>
-      <peripheral name="USB">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_USBOTG_MASK" />
-         <irq num="USB0_IRQn" />
-      </peripheral>
-      <peripheral name="VREF">
-         <clock clockReg="SCGC4"    clockMask="SIM_SCGC4_VREF_MASK" />
-      </peripheral>
-   </peripherals>
 </root>

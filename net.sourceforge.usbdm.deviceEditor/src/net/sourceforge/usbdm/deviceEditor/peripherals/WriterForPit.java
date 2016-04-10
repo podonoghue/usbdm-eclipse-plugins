@@ -1,8 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
+import java.io.IOException;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 /**
  * Class encapsulating the code for writing an instance of PIT
@@ -16,7 +21,7 @@ public class WriterForPit extends PeripheralWithState {
    
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      createValue(PIT_LDVAL_KEY, "2000", "Reload value");
+      createValue(PIT_LDVAL_KEY, "2000", "Reload value [0-65535]", 0, 65535);
    }
 
    @Override
@@ -50,16 +55,16 @@ public class WriterForPit extends PeripheralWithState {
       throw new RuntimeException("Signal "+function.getSignal()+" does not match expected pattern ");
    }
    
-   static final String TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-         " * Convenience class representing a PIT\n"+
-         " *\n"+
-         " * Example\n"+
-         " * @code\n"+
-         " * using Pit = const USBDM::Pit<PitInfo>;\n"+
-         " * @endcode\n"+
-         " *\n"+
-         " */\n";
+//   static final String TEMPLATE_DOCUMENTATION = 
+//         "/**\n"+
+//         " * Convenience class representing a PIT\n"+
+//         " *\n"+
+//         " * Example\n"+
+//         " * @code\n"+
+//         " * using Pit = const USBDM::Pit<PitInfo>;\n"+
+//         " * @endcode\n"+
+//         " *\n"+
+//         " */\n";
    
    @Override
    public String getCTemplate() {
@@ -82,6 +87,32 @@ public class WriterForPit extends PeripheralWithState {
    @Override
    public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       return "extern " + getDefinition(mappingInfo, fnIndex);
+   }
+
+   static final String TEMPLATE = 
+         "   //! Default value for PIT->SC register\n"+
+         "   static constexpr uint32_t pitLoadValue  = ${PIT_LDVAL};\n\n";
+   
+   @Override
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      pinMappingHeaderFile.write(substitute(TEMPLATE, fVariableMap));
+   }
+
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      BaseModel models[] = {
+            new CategoryModel(parent, getName(), getDescription()),
+         };
+      for (String key:fVariableMap.keySet()) {
+         new VariableModel(models[0], this, key);
+      }
+      return models;
+   }
+
+   @Override
+   public VariableInfo getVariableInfo(String key) {
+      return fVariableMap.get(key);
    }
 
 }

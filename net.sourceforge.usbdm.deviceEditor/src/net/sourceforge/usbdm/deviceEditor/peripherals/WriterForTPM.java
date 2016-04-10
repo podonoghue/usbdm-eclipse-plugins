@@ -6,32 +6,39 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (TPM)
  */
-public class WriterForPwmIO_TPM extends Peripheral {
+public class WriterForTPM extends PeripheralWithState {
 
-   static final String ALIAS_PREFIX          = "tpm_";
-   
+   private static final String ALIAS_PREFIX          = "tpm_";
+
+   private static final String TPM_SC_CMOD_KEY     = "TPM_SC_CMOD";
+   private static final String TPM_SC_PS_KEY       = "TPM_SC_PS";
+
+
    /** Functions that use this writer */
    protected InfoTable fQuadFunctions = new InfoTable("InfoQUAD");
-         
+
    /** Functions that use this writer */
    protected InfoTable fFaultFunctions = new InfoTable("InfoFAULT");
-         
+
    /** Functions that use this writer */
    protected InfoTable fClkinFunctions = new InfoTable("InfoCLKIN");
-         
-   public WriterForPwmIO_TPM(String basename, String instance, DeviceInfo deviceInfo) {
+
+   public WriterForTPM(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
+      createValue(TPM_SC_CMOD_KEY, "1", "FTM_SC.CLKS Clock source");
+      createValue(TPM_SC_PS_KEY,   "0", "FTM_SC.PS Clock prescaler");
    }
 
    @Override
    public String getTitle() {
-      return "Input capture, Output compare";
+      return "PWM, Input capture and Output compare";
    }
 
    @Override
@@ -182,17 +189,15 @@ public class WriterForPwmIO_TPM extends Peripheral {
       return rv;
    }
 
-   int ftm_sc_clks = 0x01;
-   int ftm_sc_ps   = 0x01;
-   
+   static final String TEMPLATE = 
+         "   //! Default value for tmr->SC register\n"+
+         "   static constexpr uint32_t scValue  = TPM_SC_CMOD(${TPM_SC_CMOD})|TPM_SC_PS(${TPM_SC_PS});\n\n";
+
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      StringBuffer sb = new StringBuffer();
       super.writeInfoConstants(pinMappingHeaderFile);
-      sb.append(String.format(
-            "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = TPM_SC_CMOD(0x%02X)|TPM_SC_PS(0x%02X);\n\n",
-            ftm_sc_clks, ftm_sc_ps));
+      StringBuffer sb = new StringBuffer();
+      sb.append(substitute(TEMPLATE, fVariableMap));
       InfoTable functions = fPeripheralFunctions;
       int lastChannel = -1;
       for (int index=0; index<functions.table.size(); index++) {
@@ -206,5 +211,86 @@ public class WriterForPwmIO_TPM extends Peripheral {
             lastChannel+1));
       pinMappingHeaderFile.write(sb.toString());
    }
-   
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState#getModels(net.sourceforge.usbdm.deviceEditor.model.BaseModel)
+    */
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      BaseModel models[] = {
+            new CategoryModel(parent, getName(), getDescription()),
+      };
+
+      new SimpleSelectionModel(models[0], this, TPM_SC_CMOD_KEY) {
+
+         @Override
+         protected String[] getChoicesArray() {
+            final String SELECTION_NAMES[] = {
+                  "0: Disabled",
+                  "1: System clock",
+                  "2: Fixed frequency clock",
+                  "3: External clock",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "1", // Default
+            };
+            return VALUES;
+         }
+
+      };
+
+      new SimpleSelectionModel(models[0], this, TPM_SC_PS_KEY) {
+
+         @Override
+         protected String[] getChoicesArray() {
+            final String SELECTION_NAMES[] = {
+                  "0: Divide by 1",
+                  "1: Divide by 2",
+                  "2: Divide by 4",
+                  "3: Divide by 8",
+                  "4: Divide by 16",
+                  "5: Divide by 32",
+                  "6: Divide by 64",
+                  "7: Divide by 128",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+
+      };
+      return models;
+   }
+
+   @Override
+   public VariableInfo getVariableInfo(String key) {
+      return fVariableMap.get(key);
+   }
+
+
 }

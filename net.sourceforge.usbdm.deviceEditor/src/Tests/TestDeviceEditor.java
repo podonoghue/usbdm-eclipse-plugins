@@ -47,7 +47,8 @@ public class TestDeviceEditor {
       try {
 //         testEditor(Paths.get("data/MK22FA12_64p.csv"));
 //         testEditor(Paths.get("xml/MK22FA12_64p.hardware"));
-         testEditor(Paths.get("usbdm/MK22F51212_multi.hardware"));
+//         testEditor(Paths.get("usbdm/MK22F51212_multi.hardware"));
+         testEditor(Paths.get("usbdm/MK64F12.hardware"));
       } catch (Exception e) {
          e.printStackTrace();
       }

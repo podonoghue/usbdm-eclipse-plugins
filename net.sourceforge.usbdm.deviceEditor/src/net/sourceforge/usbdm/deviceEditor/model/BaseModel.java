@@ -10,7 +10,7 @@ import net.sourceforge.usbdm.peripherals.model.MemoryException;
 /**
  * Base Model for tree item
  */
-public class BaseModel {
+public abstract class BaseModel {
    /** Name of model */
    protected final String            fName;
    
@@ -24,7 +24,7 @@ public class BaseModel {
    protected       ArrayList<Object> fChildren = null;
    
    /** Tool-tip */
-   protected       String            fToolTip  = "";
+   protected       String            fToolTip = null;
    
    /** Information/Warning/Error message */
    protected Message fMessage = null;
@@ -326,5 +326,23 @@ public class BaseModel {
    protected void refresh() {
       getRoot().refresh();
    }
+
+   /**
+    * Remove any listeners created by this model<br>
+    * Doesn't include listeners created by children
+    */
+   protected abstract void removeMyListeners();
    
+   /**
+    * Remove all listeners created by this model including by children
+    */
+   public void removeListeners() {
+      if (fChildren != null) {
+         for (Object child:fChildren) {
+            ((BaseModel) child).removeListeners();
+         }
+      }
+      removeMyListeners();
+   }
+
 }

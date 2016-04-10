@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class StringModel extends BaseModel {
+public abstract class StringModel extends BaseModel {
 
    protected String fValue;
    
@@ -18,4 +18,5 @@ public class StringModel extends BaseModel {
       fValue = value;
       super.viewerUpdate(this, null); 
    }
+
 }

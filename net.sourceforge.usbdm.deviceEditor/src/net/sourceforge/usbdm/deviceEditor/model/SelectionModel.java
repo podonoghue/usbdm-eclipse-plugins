@@ -1,9 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class SelectionModel extends BaseModel {
+public abstract class SelectionModel extends EditableModel {
 
    /** List of selection values */
-   protected String[] fValues = null;
+   protected String[] fChoices = null;
 
    /** Current selection index */
    protected int fSelection = 0;
@@ -13,17 +13,17 @@ public class SelectionModel extends BaseModel {
    }
 
    /**
-    * Get list of selection values
+    * Get array of selection choices
     * 
-    * @return
+    * @return The array of choices displayed to user
     */
-   public String[] getValues() {
-      return fValues;
+   public String[] getChoices() {
+      return fChoices;
    }
 
    @Override
    public boolean canEdit() {
-      return fValues.length>1;
+      return fChoices.length>1;
    }
 
    @Override
@@ -31,32 +31,55 @@ public class SelectionModel extends BaseModel {
       return !canEdit();
    }
 
+   /**
+    * Set the selected value from choices
+    * 
+    * @param selection Index of choice
+    */
+   void setSelection(int selection) {
+      if (selection<fChoices.length) {
+         fSelection = selection;
+      }
+   }
+   
    @Override
    public String getValueAsString() {
       try {
-         return fValues[fSelection];
+         return fChoices[fSelection];
       }
       catch (Exception e) {
          return "Opps";
       }
    }
    
-   public void setValue(String value) {
-      if (value != null) {
-         for (int index=0; index<fValues.length; index++) {
-            if (fValues[index].equals(value)) {
-               fSelection = index;
-               return;
-            }
-         }
+   @Override
+   public void setValueAsString(String value) {
+      fSelection = findChoice(value);
+      if (fSelection<0) {
+         // Invalid - reset to first element
+         fSelection = 0;
       }
-      // Invalid - reset to first element
-      fSelection = 0;
       return;
    }
 
    public boolean isReset() {
       return false;
    }
-   
+
+   /**
+    * Finds the given choice in fValues
+    * 
+    * @param value Choice to look for
+    * 
+    * @return Selection index or -1 if not found
+    */
+   int findChoice(String choice) {
+      for (int index=0; index<fChoices.length; index++) {
+         if (fChoices[index].equalsIgnoreCase(choice)) {
+            return index;
+         }
+      }
+      return -1;
+   }
+
 }

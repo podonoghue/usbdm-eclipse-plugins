@@ -5,7 +5,7 @@ import java.util.TreeMap;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
-public class PeripheralModel extends BaseModel {
+public final class PeripheralModel extends BaseModel {
 
    public PeripheralModel(BaseModel parent, Peripheral peripheral) {
       super(parent, peripheral.getName(), peripheral.getDescription());
@@ -15,13 +15,20 @@ public class PeripheralModel extends BaseModel {
     * =============================================================================================
     */
    public static PeripheralModel createPeripheralModel(BaseModel parent, Peripheral peripheral) {
+      
       PeripheralModel peripheralModel = new PeripheralModel(parent, peripheral);
       TreeMap<String, Signal> peripheralFunctions = peripheral.getFunctions();
       for (String peripheralFunctionName:peripheralFunctions.keySet()) {
          Signal peripheralFunction = peripheralFunctions.get(peripheralFunctionName);
-         new SignalModel(peripheralModel, peripheralFunction);
+         if (peripheralFunction.isAvailableInPackage()) {
+            new SignalModel(peripheralModel, peripheralFunction);
+         }
       }
       return peripheralModel;
+   }
+
+   @Override
+   protected void removeMyListeners() {
    }
 
 }

@@ -7,31 +7,33 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
  */
-public class WriterForPwmIO_FTM extends PeripheralWithState {
+public class WriterForFTM extends PeripheralWithState {
 
    private static final String ALIAS_PREFIX        = "ftm_";
-   
+
    private static final String FTM_SC_CLKS_KEY     = "FTM_SC_CLKS";
    private static final String FTM_SC_PS_KEY       = "FTM_SC_PS";
-   
+
 
    /** Functions that use this writer */
    protected InfoTable fQuadFunctions = new InfoTable("InfoQUAD");
-         
+
    /** Functions that use this writer */
    protected InfoTable fFaultFunctions = new InfoTable("InfoFAULT");
-         
+
    /** Functions that use this writer */
    protected InfoTable fClkinFunctions = new InfoTable("InfoCLKIN");
-         
-   public WriterForPwmIO_FTM(String basename, String instance, DeviceInfo deviceInfo) {
+
+   public WriterForFTM(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      createValue(FTM_SC_CLKS_KEY, "1", "Clock select value");
-      createValue(FTM_SC_PS_KEY,   "2", "Clock divider value");
+      createValue(FTM_SC_CLKS_KEY, "1", "FTM_SC.CLKS Clock source");
+      createValue(FTM_SC_PS_KEY,   "0", "FTM_SC.PS Clock prescaler");
    }
 
    @Override
@@ -94,30 +96,30 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
             (fPeripheralFunctions.table.size() +
                   fQuadFunctions.table.size() + 
                   fFaultFunctions.table.size()) > 0;
-      return required;
+                  return required;
    }
 
    static final String TEMPLATE_DOCUMENTATION = 
-   "/**\n"+
-   " * Convenience template class representing a FTM\n"+
-   " *\n"+
-   " * Example\n"+
-   " * @code\n"+
-   " * // Instantiate the ftm channel (for FTM0 CH6)\n"+
-   " * const USBDM::Ftm0<6>   ftm0_ch6;\n"+
-   " *\n"+
-   " * // Initialise PWM with initial period and alignment\n"+
-   " * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);\n"+
-   " *\n"+
-   " * // Change period (in ticks)\n"+
-   " * ftm0_ch6.setPeriod(500);\n"+
-   " *\n"+
-   " * // Change duty cycle (in percent)\n"+
-   " * ftm0_ch6.setDutyCycle(45);\n"+
-   " * @endcode\n"+
-   " *\n"+
-   " * @tparam channel    Timer channel\n"+
-   " */\n";
+         "/**\n"+
+               " * Convenience template class representing a FTM\n"+
+               " *\n"+
+               " * Example\n"+
+               " * @code\n"+
+               " * // Instantiate the ftm channel (for FTM0 CH6)\n"+
+               " * const USBDM::Ftm0<6>   ftm0_ch6;\n"+
+               " *\n"+
+               " * // Initialise PWM with initial period and alignment\n"+
+               " * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);\n"+
+               " *\n"+
+               " * // Change period (in ticks)\n"+
+               " * ftm0_ch6.setPeriod(500);\n"+
+               " *\n"+
+               " * // Change duty cycle (in percent)\n"+
+               " * ftm0_ch6.setDutyCycle(45);\n"+
+               " * @endcode\n"+
+               " *\n"+
+               " * @tparam channel    Timer channel\n"+
+               " */\n";
    @Override
    public String getCTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
@@ -187,16 +189,15 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
       return rv;
    }
 
+   static final String TEMPLATE = 
+         "   //! Default value for tmr->SC register\n"+
+         "   static constexpr uint32_t scValue  = FTM_SC_CLKS(${FTM_SC_CLKS})|FTM_SC_PS(${FTM_SC_PS});\n\n";
+
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      int sc_clks = Integer.parseInt(fVariableMap.get(FTM_SC_CLKS_KEY).value);
-      int sc_ps   = Integer.parseInt(fVariableMap.get(FTM_SC_PS_KEY).value);
-      StringBuffer sb = new StringBuffer();
       super.writeInfoConstants(pinMappingHeaderFile);
-      sb.append(String.format(
-            "   //! Base value for tmr->SC register\n"+
-            "   static constexpr uint32_t scValue  = FTM_SC_CLKS(0x%02X)|FTM_SC_PS(0x%02X);\n\n",
-            sc_clks, sc_ps));
+      StringBuffer sb = new StringBuffer();
+      sb.append(substitute(TEMPLATE, fVariableMap));
       InfoTable functions = fPeripheralFunctions;
       int lastChannel = -1;
       for (int index=0; index<functions.table.size(); index++) {
@@ -210,5 +211,86 @@ public class WriterForPwmIO_FTM extends PeripheralWithState {
             lastChannel+1));
       pinMappingHeaderFile.write(sb.toString());
    }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState#getModels(net.sourceforge.usbdm.deviceEditor.model.BaseModel)
+    */
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      BaseModel models[] = {
+            new CategoryModel(parent, getName(), getDescription()),
+      };
+
+      new SimpleSelectionModel(models[0], this, FTM_SC_CLKS_KEY) {
+
+         @Override
+         protected String[] getChoicesArray() {
+            final String SELECTION_NAMES[] = {
+                  "0: Disabled",
+                  "1: System clock",
+                  "2: Fixed frequency clock",
+                  "3: External clock",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "1", // Default
+            };
+            return VALUES;
+         }
+
+      };
+
+      new SimpleSelectionModel(models[0], this, FTM_SC_PS_KEY) {
+
+         @Override
+         protected String[] getChoicesArray() {
+            final String SELECTION_NAMES[] = {
+                  "0: Divide by 1",
+                  "1: Divide by 2",
+                  "2: Divide by 4",
+                  "3: Divide by 8",
+                  "4: Divide by 16",
+                  "5: Divide by 32",
+                  "6: Divide by 64",
+                  "7: Divide by 128",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+
+      };
+      return models;
+   }
+
+   @Override
+   public VariableInfo getVariableInfo(String key) {
+      return fVariableMap.get(key);
+   }
+
 
 }

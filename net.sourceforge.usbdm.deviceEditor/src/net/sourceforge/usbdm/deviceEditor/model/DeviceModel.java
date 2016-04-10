@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class DeviceModel extends RootModel {
+public final class DeviceModel extends RootModel {
 
    /**
     * Constructor
@@ -22,5 +22,9 @@ public class DeviceModel extends RootModel {
    protected Message checkConflicts() {
       getModelFactory().checkConflicts();
       return new Message("");
+   }
+
+   @Override
+   protected void removeMyListeners() {
    }
 }

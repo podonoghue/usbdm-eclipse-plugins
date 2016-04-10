@@ -2,13 +2,33 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 public interface ModelEntryProvider {
 
+   public static class VariableInfo {
+      public final String description;
+      public String value;
+      public final long min;
+      public final long max;
+      public final long defaultValue;
+      
+      public VariableInfo(String value, String description, long defaultValue, long min, long max) {
+         this.value        = value;
+         this.description  = description;
+         this.min          = min;
+         this.max          = max;
+         this.defaultValue = defaultValue;
+      }
+
+      public VariableInfo(String value, String description) {
+         this(value, description, 0, Long.MIN_VALUE, Long.MAX_VALUE);
+      }
+   }
+   
    /**
     * Get models contributed by this object
     * 
     * @param parent
     * @return
     */
-   BaseModel[] getModels(BaseModel parent);
+   public BaseModel[] getModels(BaseModel parent);
    
    /**
     * Set a variable
@@ -16,7 +36,7 @@ public interface ModelEntryProvider {
     * @param key     Key used to identify variable
     * @param value   New value for variable
     */
-   void setValue(String key, String value);
+   public void setValue(String key, String value);
 
    /**
     * Get the value of a variable
@@ -25,6 +45,14 @@ public interface ModelEntryProvider {
     * 
     * @return Value for variable
     */
-   String getValue(String key);
+   public String getValueAsString(String key);
 
+   /**
+    * Get the VariableInfo for a variable
+    * 
+    * @param key     Key used to identify variable
+    * 
+    * @return Value for variable
+    */
+   public VariableInfo getVariableInfo(String key);
 }

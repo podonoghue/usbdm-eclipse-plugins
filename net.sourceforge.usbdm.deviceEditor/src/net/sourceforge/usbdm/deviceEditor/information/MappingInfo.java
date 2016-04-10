@@ -120,12 +120,12 @@ public class MappingInfo extends ObservableModel {
       if (fSelected != selected) {
          setRefreshPending(true);
          fSelected = selected;
-         System.err.println(String.format("%-60s => Changed   => %s", toString(), (selected?"selected":"unselected")));
+//         System.err.println(toString() + " Changed, " + (fSelected?"Selected":"Disabled" ));
          notifyListeners();
       }
-      else {
-         System.err.println(String.format("%-60s => No change == %s", toString(), (selected?"selected":"unselected")));
-      }
+//      else {
+//         System.err.println(toString() + " No Change");
+//      }
       fBusy = false;   
    }
 
@@ -140,7 +140,7 @@ public class MappingInfo extends ObservableModel {
    
    @Override
    public String toString() {
-      return String.format("Mapping(%s)", getDescription());
+      return "Mapping("+getDescription() + ", " + fSelected+")";
    }
 
    @Override

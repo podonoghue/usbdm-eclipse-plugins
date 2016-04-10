@@ -783,7 +783,7 @@ public abstract class Peripheral {
     * 
     * @return
     */
-   public boolean hasMappableFunctions() {
+   public boolean hasMappableSignals() {
       for (String key:fFunctions.keySet()) {
          Signal function = fFunctions.get(key);
          if (function.isAvailableInPackage()) {

@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -33,6 +34,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
@@ -64,8 +66,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       super.setSite(editorSite);
       super.setInput(editorInput);
       
-      System.err.println("DeviceEditor.init()");
-
       fFactory = null;
       IResource input = (IResource)editorInput.getAdapter(IResource.class);
       fProject = input.getProject();
@@ -74,8 +74,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    
    /** Initialise the editor for testing */
    public void init(Path path) {
-      System.err.println("DeviceEditor.init()");
-
       fFactory = null;
       fPath = path;
    }
@@ -106,11 +104,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    public void createPartControl(Composite parent) {
 
       fFactory = null;
-      System.err.println("DeviceEditor()");
       
       String failureReason = "Unknown";
       try {
-         System.err.println("DeviceEditor(), Input = " + fPath.toAbsolutePath());
          fFactory = ModelFactory.createModels(fPath, true);
       } catch (Exception e) {
          failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
@@ -302,7 +298,21 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    @Override
    public void doSave(IProgressMonitor paramIProgressMonitor) {
-      fFactory.getDeviceInfo().saveSettings();
+      DeviceInfo deviceInfo = fFactory.getDeviceInfo();
+      if (deviceInfo == null) {
+         return;
+      }
+      deviceInfo.saveSettings();
+      try {
+         if (fProject != null) {
+            IFolder settingsFolder = fProject.getFolder("usbdm");
+            if (settingsFolder.exists()) {
+               settingsFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
+            }
+         }
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
    }
 
    @Override
@@ -323,7 +333,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Used when the models have been re-generated */
    @Override
    public void modelElementChanged(ObservableModel model) {
-      System.err.println("DeviceEditor.modelElementChanged()");
       if (model == fFactory) {
          firePropertyChange(PROP_DIRTY);      
       }
@@ -331,9 +340,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    @Override
    public void modelStructureChanged(ObservableModel model) {
-      System.err.println("DeviceEditor.modelStructureChanged()");
       if (model == fFactory) {
-         System.err.println("DeviceEditor.modelStructureChanged() - Updating models");
          setModels();
       }
       firePropertyChange(PROP_DIRTY);      

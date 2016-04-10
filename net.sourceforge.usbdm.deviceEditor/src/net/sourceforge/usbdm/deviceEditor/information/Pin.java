@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.DialogSettings;
 
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
@@ -35,22 +36,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /** Name of the pin, usually the port name e.g. PTA1 */
    private String fName;
    
-//   /** Description of peripheral signals that may be mapped to this pin */
-//   private StringBuilder  fDescription = new StringBuilder();
-
-//   /**
-//    * Peripheral signals associated with this pin<br> 
-//    */
-//   private  ArrayList<Peripheralsignal> fMappedPins = new ArrayList<Peripheralsignal>();
-
    /** Map of signals mapped to this pin ordered by mux value */
    private Map<MuxSelection, MappingInfo> fMappedSignals = new TreeMap<MuxSelection, MappingInfo>();
-
-//   /**
-//    * Peripheral signals associated with this pin arranged by signal base name<br> 
-//    * e.g. multiple FTMs may be associated with a pin 
-//    */
-//   private HashMap<String, ArrayList<MappingInfo>> fMappedPinsBysignal = new HashMap<String, ArrayList<MappingInfo>>();
 
    /** Multiplexor value at reset */
    private MuxSelection fResetMuxValue = MuxSelection.unused;
@@ -62,11 +49,48 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    private String fPinUseDescription = "";
 
    /** Current multiplexor setting */
-   private MuxSelection fMuxValue = MuxSelection.unused;
+   private MuxSelection fMuxValue = MuxSelection.reset;
    
    /** Device info owning this pin */
    private DeviceInfo fDeviceInfo;
 
+   /**
+    * Create empty pin function for given pin
+    * @param deviceInfo 
+    * 
+    * @param fName Name of the pin, usually the port name e.g. PTA1
+    */
+   Pin(DeviceInfo deviceInfo, String name) {
+      fDeviceInfo = deviceInfo;
+      this.fName  = name;
+      Pattern p = Pattern.compile("^\\s*PT(.)(\\d*)\\s*$");
+      Matcher m = p.matcher(name);
+      if (m.matches()) {
+         fPortInstance = m.group(1);
+         fPortPin      = m.group(2);
+      }
+   }
+   
+   /**
+    * Connect Pin as listener for changes on pin multiplexing
+    */
+   public void connectListeners() {
+      for (MuxSelection muxValue:fMappedSignals.keySet()) {
+         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+         mappingInfo.addListener(this);
+      }
+   }
+   
+   /**
+    * Disconnect Pin as listener for changes on pin multiplexing
+    */
+   public void disconnectListeners() {
+      for (MuxSelection muxValue:fMappedSignals.keySet()) {
+         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+         mappingInfo.removeListener(this);
+      }
+   }
+   
    /**
     * Get PCR register e.g. PORTA->PCR[3]
     * 
@@ -149,23 +173,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    /**
-    * Create empty pin function for given pin
-    * @param deviceInfo 
-    * 
-    * @param fName Name of the pin, usually the port name e.g. PTA1
-    */
-   Pin(DeviceInfo deviceInfo, String name) {
-      fDeviceInfo = deviceInfo;
-      this.fName  = name;
-      Pattern p = Pattern.compile("^\\s*PT(.)(\\d*)\\s*$");
-      Matcher m = p.matcher(name);
-      if (m.matches()) {
-         fPortInstance = m.group(1);
-         fPortPin      = m.group(2);
-      }
-   }
-   
-   /**
     * Get name of the pin, usually the port name e.g. PTA1 
     * 
     * @return Pin name
@@ -207,7 +214,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public String getNameWithLocation() {
       String location = getLocation();
-      if (location == null) {
+      if ((location == null) || (location.length() == 0)) {
          return fName;
       }
       else {  
@@ -238,13 +245,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Sets the reset pin mapping
     * 
-    * @param mux reset peripheral function on this pin
+    * @param mux reset peripheral function on this pin<br>
+    * Note - The value should never be <b>MuxSelection.reset</b> i.e. it is the actual mux value used for reset
     * 
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setResetValue(MuxSelection mux) {
-      if ((mux !=fResetMuxValue) && (fResetMuxValue != MuxSelection.unused)) {
-         throw new RuntimeException("Pin "+getName()+" already has reset value "+fResetMuxValue);
+      if ((fResetMuxValue != mux) && (fResetMuxValue != MuxSelection.unused)) {
+         throw new RuntimeException("Pin "+fName+" already has reset value "+fResetMuxValue);
+      }
+      if (fResetMuxValue == MuxSelection.reset) {
+         throw new RuntimeException("Pin "+fName+" illegal reset value "+mux);
       }
       fResetMuxValue = mux;
    }
@@ -266,10 +277,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setDefaultValue(MuxSelection mux) {
-      if ((mux != fDefaultMuxValue) && (fDefaultMuxValue != MuxSelection.unused)) {
-         throw new RuntimeException("Pin "+getName()+" already has default value "+fDefaultMuxValue);
+      if ((fDefaultMuxValue != mux) && (fDefaultMuxValue != MuxSelection.unused)) {
+         throw new RuntimeException("Pin "+fName+" already has default value "+fDefaultMuxValue);
       }
-      if (fMuxValue == MuxSelection.unused) {
+      // Set current value to default if not already set
+      if ((fMuxValue == MuxSelection.unused) || (fMuxValue == MuxSelection.reset)) {
          fMuxValue = mux;
       }
       fDefaultMuxValue = mux;
@@ -288,57 +300,50 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Sets the default peripheral functions for the pin
+    * Sets the default signal mapping for the pin
     * 
-    * @param defaultPeripheralName  Name of peripherals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
+    * @param defaultSignals  Name of signals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
     * 
-    * @throws Exception If pin already has default or new default not found as available pin mapping
+    * @throws Exception If pin already has default or value not available pin mapping
     */
-   public void setDefaultPeripheralFunctions(DeviceInfo factory, final String defaultPeripheralName) {
-      if (fDefaultMuxValue != MuxSelection.unused) {
-         throw new RuntimeException("Pin "+getName()+" already has default value "+fDefaultMuxValue);
-      }
-      Map<MuxSelection, MappingInfo> functionMappings = getMappedSignals();
-      
-      for (MuxSelection functionMappingIndex:functionMappings.keySet()) {
-         MappingInfo mappingInfo= functionMappings.get(functionMappingIndex);
-         if (mappingInfo.getSignalList().equalsIgnoreCase(defaultPeripheralName) && (mappingInfo.getMux() != MuxSelection.reset)) {
+   public void setDefaultSignals(DeviceInfo factory, final String defaultSignals) {
+      for (MuxSelection muxValue:fMappedSignals.keySet()) {
+         MappingInfo mappingInfo= fMappedSignals.get(muxValue);
+         if (mappingInfo.getSignalList().equalsIgnoreCase(defaultSignals) && (mappingInfo.getMux() != MuxSelection.reset)) {
             setDefaultValue(mappingInfo.getMux());
             break;
          }
       }
       if (fDefaultMuxValue == null) {
-         throw new RuntimeException("Peripheral "+defaultPeripheralName+" not found as option for pin " + getName());
+         throw new RuntimeException("Signal "+defaultSignals+" not found as option for pin " + fName);
       }
    }
 
    /**
-    * Sets the reset peripheral functions for the pin
+    * Sets the reset peripheral signals for the pin
     * 
-    * @param resetFunctionName  Name of peripheral functions to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
+    * @param resetSignals  Name of signals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
     * 
-    * @throws Exception If pin already has default or new default not found as available pin mapping
+    * @throws Exception If pin already has reset or value not available pin mapping
     */
-   public void setResetPeripheralFunctions(DeviceInfo factory, final String resetFunctionName) {
-      // Should be one of the mappings given (or disabled which defaults to mux 0)
-      Map<MuxSelection, MappingInfo> functionMappings = getMappedSignals();
-      for (MuxSelection functionMappingIndex:functionMappings.keySet()) {
-         MappingInfo mappingInfo= functionMappings.get(functionMappingIndex);
-         if ((mappingInfo.getMux() != MuxSelection.reset && mappingInfo.getSignalList().equalsIgnoreCase(resetFunctionName))) {
+   public void setResetSignals(DeviceInfo factory, final String resetSignals) {
+      for (MuxSelection muxValue:fMappedSignals.keySet()) {
+         MappingInfo mappingInfo= fMappedSignals.get(muxValue);
+         if (mappingInfo.getSignalList().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.reset)) {
             setResetValue(mappingInfo.getMux());
             break;
          }
       }
       // Disabled is not necessarily in list of mappings
       // If necessary create mux0=disabled if free
-      if ((fResetMuxValue == MuxSelection.unused) && resetFunctionName.equalsIgnoreCase(MuxSelection.disabled.name())) {
-         if (functionMappings.get(MuxSelection.mux0) == null) {
+      if ((fResetMuxValue == MuxSelection.unused) && resetSignals.equalsIgnoreCase(MuxSelection.disabled.name())) {
+         if (fMappedSignals.get(MuxSelection.mux0) == null) {
             factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
             setResetValue(MuxSelection.mux0);
          }
       }
       if (fResetMuxValue == MuxSelection.unused) {
-         throw new RuntimeException("Function "+resetFunctionName+" not found as option for pin " + getName());
+         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
       }
    }
 
@@ -370,7 +375,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    @Override
    public int compareTo(Pin o) {
-      return comparator.compare(getName(), o.getName());
+      return comparator.compare(fName, o.fName);
    }
 
    /**
@@ -397,29 +402,29 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return fPinUseDescription;
    }
 
-   /**
-    * Connect Pin as listener for changes on pin multiplexing
-    */
-   public void connectListeners() {
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
-         mappingInfo.addListener(this);
-      }
-   }
-   
    /** 
     * Set current pin multiplexor setting 
     * 
     * @param newMuxValue Multiplexor value to set
     */
    public void setMuxSelection(MuxSelection newMuxValue) {
-      System.err.println("Pin("+fName+")::setMuxSelection("+newMuxValue+")");
+//      System.err.println("Pin("+fName+")::setMuxSelection("+newMuxValue+")");
       if (this == DISABLED_PIN) {
          return;
       }
-      fMappedSignals.get(fMuxValue).select(MappingInfo.Origin.pin, false);
+      if (newMuxValue == fMuxValue) {
+         return;
+      }
+      fDeviceInfo.setDirty(true);
+      MappingInfo mapInfo = fMappedSignals.get(fMuxValue);
       fMuxValue = newMuxValue;
-      fMappedSignals.get(newMuxValue).select(MappingInfo.Origin.pin, true);
+      if (mapInfo != null) {
+         mapInfo.select(MappingInfo.Origin.pin, false);
+      }
+      mapInfo = fMappedSignals.get(fMuxValue);
+      if (mapInfo != null) {
+         mapInfo.select(MappingInfo.Origin.pin, true);
+      }
    }
 
    /** 
@@ -493,23 +498,51 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /**
     * Get the currently mapped signal for this pin
     * 
-    * @return Mapped signal or null if none
+    * @return Mapped signal or <b>MappingInfo.DISABLED_MAPPING</b> if none
     */
    public MappingInfo getMappedSignal() {
-      return fMappedSignals.get(fMuxValue);
+      MappingInfo rv = fMappedSignals.get(fMuxValue);
+      if (rv == null) {
+         rv = MappingInfo.DISABLED_MAPPING;
+      }
+      return rv;
    }
 
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof MappingInfo) {
-         for (MuxSelection mux: fMappedSignals.keySet()) {
-            MappingInfo mappingInfo = fMappedSignals.get(mux);
-            if (mappingInfo.isSelected()) {
-               fMuxValue = mux;
+         MappingInfo mappingInfo = (MappingInfo) model;
+         if (mappingInfo.isSelected()) {
+            // Signal has been mapped to this pin
+            if (fMuxValue == mappingInfo.getMux()) {
+//               System.err.println("Pin("+fName+").modelElementChanged("+mappingInfo+") - Selection Ignored");
+               // Already mapped - ignore
+               return;
             }
+            // Deselect other signals
+            for (MuxSelection muxValue:fMappedSignals.keySet()) {
+               if (muxValue != mappingInfo.getMux()) {
+                  fMappedSignals.get(muxValue).select(Origin.pin, false);
+               }
+            }
+            // Select this signal
+            fMuxValue = mappingInfo.getMux();
          }
-         notifyListeners();
+         else {
+            // Signal may have been unmapped
+            if (fMuxValue != mappingInfo.getMux()) {
+               // Not currently mapped - ignore
+//               System.err.println("Pin("+fName+").modelElementChanged("+mappingInfo+") - Unselection Ignored");
+               return;
+            }
+            fMuxValue = fResetMuxValue;
+         }
       }
+//      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
+      if (fMuxValue == null) {
+         throw new RuntimeException("Impossible mapping");
+      }
+      notifyListeners();
    }
 
    @Override

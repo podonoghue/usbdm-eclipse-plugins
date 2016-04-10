@@ -7,9 +7,9 @@ import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
-class DescriptionLabelProvider extends BaseLabelProvider {
+class DescriptionColumnLabelProvider extends BaseLabelProvider {
 
-   public DescriptionLabelProvider(TreeEditor configViewer) {
+   public DescriptionColumnLabelProvider(TreeEditor configViewer) {
       super(configViewer);
    }
 
