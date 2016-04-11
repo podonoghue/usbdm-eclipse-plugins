@@ -3,15 +3,23 @@ package net.sourceforge.usbdm.deviceEditor.model;
 public interface ModelEntryProvider {
 
    public static class VariableInfo {
-      public final String description;
-      public String value;
-      public final long min;
-      public final long max;
-      public final long defaultValue;
+      public final String  name;
+      public final long    min;
+      public final long    max;
+      public final long    defaultValue;
+      public       String  value;
       
-      public VariableInfo(String value, String description, long defaultValue, long min, long max) {
+      /**
+       * 
+       * @param value         Initial value for variable
+       * @param name          Display name of variable
+       * @param defaultValue  Default value
+       * @param min           Minimum value (inclusive)
+       * @param max           Maximum value (inclusive)
+       */
+      public VariableInfo(String value, String name, long defaultValue, long min, long max) {
          this.value        = value;
-         this.description  = description;
+         this.name         = name;
          this.min          = min;
          this.max          = max;
          this.defaultValue = defaultValue;

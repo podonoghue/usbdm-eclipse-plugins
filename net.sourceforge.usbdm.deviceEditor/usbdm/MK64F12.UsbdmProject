@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="USBDM">
+	<item value="1" key="FTM1_FTM_SC_CLKS"/>
+	<item value="0" key="LPTMR0_PSR_PCS"/>
+	<item value="0" key="FTM0_FTM_SC_CLKS"/>
+	<item value="0" key="FTM2_FTM_SC_PS"/>
+	<item value="2" key="FTM2_FTM_SC_CLKS"/>
+	<item value="1" key="LPTMR0_CSR_TMS"/>
+	<item value="1" key="LPTMR0_PSR_PBYP"/>
+	<item value="1" key="LPTMR0_USE_NAKED_HANDLER"/>
+	<item value="2" key="LPTMR0_IRQ_LEVEL"/>
+	<item value="0" key="LPTMR0_CSR_TPS"/>
+	<item value="3" key="FTM3_FTM_SC_CLKS"/>
+	<item value="1" key="LPTMR0_CSR_TFC"/>
+	<item value="0" key="FTM3_FTM_SC_PS"/>
+	<item value="mux6" key="PTA19_muxSetting"/>
+	<item value="1" key="LPTMR0_CSR_TPP"/>
+	<item value="mux3" key="PTC5_muxSetting"/>
+	<item value="2000" key="PIT_PIT_LDVAL"/>
+	<item value="FRDM_K64F" key="DeviceInfo_deviceVariant"/>
+	<item value="0" key="FTM1_FTM_SC_PS"/>
+	<item value="5" key="LPTMR0_PSR_PRESCALE"/>
+	<item value="0" key="FTM0_FTM_SC_PS"/>
+</section>

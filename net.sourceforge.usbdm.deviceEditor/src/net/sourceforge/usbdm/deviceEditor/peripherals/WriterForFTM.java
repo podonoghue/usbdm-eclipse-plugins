@@ -17,10 +17,6 @@ public class WriterForFTM extends PeripheralWithState {
 
    private static final String ALIAS_PREFIX        = "ftm_";
 
-   private static final String FTM_SC_CLKS_KEY     = "FTM_SC_CLKS";
-   private static final String FTM_SC_PS_KEY       = "FTM_SC_PS";
-
-
    /** Functions that use this writer */
    protected InfoTable fQuadFunctions = new InfoTable("InfoQUAD");
 
@@ -52,48 +48,48 @@ public class WriterForFTM extends PeripheralWithState {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal().replaceAll("CH", "ch");
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName().replaceAll("CH", "ch");
       return getClassName()+instance+"_"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal = getFunctionIndex(mappingInfo.getSignals().get(fnIndex));
+      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
       return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       Pattern p = Pattern.compile("CH(\\d+)");
-      Matcher m = p.matcher(function.getSignal());
+      Matcher m = p.matcher(function.getSignalName());
       if (m.matches()) {
          return Integer.parseInt(m.group(1));
       }
       final String quadNames[] = {"QD_PHA", "QD_PHB"};
       for (int signal=0; signal<quadNames.length; signal++) {
-         if (function.getSignal().matches(quadNames[signal])) {
+         if (function.getSignalName().matches(quadNames[signal])) {
             return signal;
          }
       }
       final String clockNames[] = {"CLKIN0", "CLKIN1"};
       for (int signal=0; signal<clockNames.length; signal++) {
-         if (function.getSignal().matches(clockNames[signal])) {
+         if (function.getSignalName().matches(clockNames[signal])) {
             return signal;
          }
       }
       final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
       for (int signal=0; signal<faultNames.length; signal++) {
-         if (function.getSignal().matches(faultNames[signal])) {
+         if (function.getSignalName().matches(faultNames[signal])) {
             return signal;
          }
       }
-      throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+      throw new RuntimeException("function '" + function.getSignalName() + "' does not match expected pattern");
    }
 
    @Override
    public boolean needPCRTable() {
       boolean required = 
-            (fPeripheralFunctions.table.size() +
+            (fInfoTable.table.size() +
                   fQuadFunctions.table.size() + 
                   fFaultFunctions.table.size()) > 0;
                   return required;
@@ -120,6 +116,7 @@ public class WriterForFTM extends PeripheralWithState {
                " *\n"+
                " * @tparam channel    Timer channel\n"+
                " */\n";
+   
    @Override
    public String getCTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
@@ -128,21 +125,21 @@ public class WriterForFTM extends PeripheralWithState {
    }
 
    @Override
-   protected void addFunctionToTable(Signal function) {
+   protected void addSignalToTable(Signal function) {
       InfoTable fFunctions = null;
 
       int signalIndex = -1;
 
       Pattern p = Pattern.compile(".*CH(\\d+)");
-      Matcher m = p.matcher(function.getSignal());
+      Matcher m = p.matcher(function.getSignalName());
       if (m.matches()) {
-         fFunctions = fPeripheralFunctions;
+         fFunctions = fInfoTable;
          signalIndex = Integer.parseInt(m.group(1));
       }
       if (fFunctions == null) {
          final String quadNames[] = {"QD_PHA", "QD_PHB"};
          for (signalIndex=0; signalIndex<quadNames.length; signalIndex++) {
-            if (function.getSignal().endsWith(quadNames[signalIndex])) {
+            if (function.getSignalName().endsWith(quadNames[signalIndex])) {
                fFunctions = fQuadFunctions;
                break;
             }
@@ -151,7 +148,7 @@ public class WriterForFTM extends PeripheralWithState {
       if (fFunctions == null) {
          final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
          for (signalIndex=0; signalIndex<faultNames.length; signalIndex++) {
-            if (function.getSignal().endsWith(faultNames[signalIndex])) {
+            if (function.getSignalName().endsWith(faultNames[signalIndex])) {
                fFunctions = fFaultFunctions;
                break;
             }
@@ -160,14 +157,14 @@ public class WriterForFTM extends PeripheralWithState {
       if (fFunctions == null) {
          final String clkinNames[] = {"CLKIN0", "CLKIN1"};
          for (signalIndex=0; signalIndex<clkinNames.length; signalIndex++) {
-            if (function.getSignal().matches(clkinNames[signalIndex])) {
+            if (function.getSignalName().matches(clkinNames[signalIndex])) {
                fFunctions = fClkinFunctions;
                break;
             }
          }
       }
       if (fFunctions == null) {
-         throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+         throw new RuntimeException("function '" + function.getSignalName() + "' does not match expected pattern");
       }
       if (signalIndex>=fFunctions.table.size()) {
          fFunctions.table.setSize(signalIndex+1);
@@ -180,9 +177,9 @@ public class WriterForFTM extends PeripheralWithState {
    }
 
    @Override
-   public ArrayList<InfoTable> getFunctionTables() {
+   public ArrayList<InfoTable> getSignalTables() {
       ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
-      rv.add(fPeripheralFunctions);
+      rv.add(fInfoTable);
       rv.add(fFaultFunctions);
       rv.add(fQuadFunctions);
       rv.add(fClkinFunctions);
@@ -198,7 +195,7 @@ public class WriterForFTM extends PeripheralWithState {
       super.writeInfoConstants(pinMappingHeaderFile);
       StringBuffer sb = new StringBuffer();
       sb.append(substitute(TEMPLATE, fVariableMap));
-      InfoTable functions = fPeripheralFunctions;
+      InfoTable functions = fInfoTable;
       int lastChannel = -1;
       for (int index=0; index<functions.table.size(); index++) {
          if (functions.table.get(index) != null) {
@@ -212,17 +209,20 @@ public class WriterForFTM extends PeripheralWithState {
       pinMappingHeaderFile.write(sb.toString());
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState#getModels(net.sourceforge.usbdm.deviceEditor.model.BaseModel)
-    */
+   private static final String FTM_SC_CLKS_KEY     = "FTM_SC_CLKS";
+   private static final String FTM_SC_PS_KEY       = "FTM_SC_PS";
+
    @Override
    public BaseModel[] getModels(BaseModel parent) {
       BaseModel models[] = {
             new CategoryModel(parent, getName(), getDescription()),
       };
 
-      new SimpleSelectionModel(models[0], this, FTM_SC_CLKS_KEY) {
-
+      new SimpleSelectionModel(models[0], this, FTM_SC_CLKS_KEY, "[FTM_SC_CLKS]") {
+         {
+            setName("Clock source");
+            setToolTip("Selects the clock source for the module");
+         }
          @Override
          protected String[] getChoicesArray() {
             final String SELECTION_NAMES[] = {
@@ -246,11 +246,13 @@ public class WriterForFTM extends PeripheralWithState {
             };
             return VALUES;
          }
-
       };
 
-      new SimpleSelectionModel(models[0], this, FTM_SC_PS_KEY) {
-
+      new SimpleSelectionModel(models[0], this, FTM_SC_PS_KEY, "[FTM_SC_PS]") {
+         {
+            setName("Clock prescaler");
+            setToolTip("Selects the prescaler for the module");
+         }
          @Override
          protected String[] getChoicesArray() {
             final String SELECTION_NAMES[] = {
@@ -282,7 +284,6 @@ public class WriterForFTM extends PeripheralWithState {
             };
             return VALUES;
          }
-
       };
       return models;
    }

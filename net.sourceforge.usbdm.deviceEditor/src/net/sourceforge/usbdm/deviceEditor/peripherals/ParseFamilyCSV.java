@@ -31,16 +31,16 @@ public class ParseFamilyCSV {
    /** List of all indices of package columns in CSV file */
    private ArrayList<PackageColumnInfo> fPackageIndexes = new ArrayList<PackageColumnInfo>();
    
-   /** Index of reset function column in CSV file */
+   /** Index of reset signal column in CSV file */
    private int fResetIndex     = 3;
    
-   /** Index of default function column in CSV file */
+   /** Index of default signal column in CSV file */
    private int fDefaultIndex   = 4;
    
-   /** Start index of multiplexor function columns in CSV file */
+   /** Start index of multiplexor signal columns in CSV file */
    private int fAltStartIndex  = 5;
    
-   /** Last index of multiplexor function columns in CSV file */
+   /** Last index of multiplexor signal columns in CSV file */
    private int fAltEndIndex    = fAltStartIndex+7;
    
    /**
@@ -75,35 +75,35 @@ public class ParseFamilyCSV {
    }
    
    /**
-    * Create a list of peripheral functions described by a string
+    * Create a list of signals described by a string
     * 
-    * @param pinText Text of function names e.g. <b><i>PTA4/LLWU_P3</b></i>
+    * @param pinText Text of signal names e.g. <b><i>PTA4/LLWU_P3</b></i>
     * 
-    * @return List of functions created
+    * @return List of signals created
     * 
     * @throws Exception
     */
-   private ArrayList<Signal> createFunctionsFromString(String pinText, Boolean convert) {
-      ArrayList<Signal> peripheralFunctionList = new ArrayList<Signal>();
+   private ArrayList<Signal> createSignalsFromString(String pinText, Boolean convert) {
+      ArrayList<Signal> signalList = new ArrayList<Signal>();
       pinText = pinText.trim();
       if (pinText.isEmpty()) {
-         return peripheralFunctionList;
+         return signalList;
       }
       if (convert) {
          pinText = convertName(pinText);
       }
-      String[] functions = pinText.split("\\s*/\\s*");
-      for (String function:functions) {
-         function = function.trim();
-         if (function.isEmpty()) {
+      String[] signalNames = pinText.split("\\s*/\\s*");
+      for (String signalName:signalNames) {
+         signalName = signalName.trim();
+         if (signalName.isEmpty()) {
             continue;
          }
-         Signal peripheralFunction = fDeviceInfo.findOrCreatePeripheralFunction(function);
-         if (peripheralFunction != null) {
-            peripheralFunctionList.add(peripheralFunction);
+         Signal signal = fDeviceInfo.findOrCreateSignal(signalName);
+         if (signal != null) {
+            signalList.add(signal);
          }
       }
-      return peripheralFunctionList;
+      return signalList;
    }
    
    private class PackageColumnInfo {
@@ -193,21 +193,21 @@ public class ParseFamilyCSV {
          pinName = m.group(1);
       }
 
-      final Pin pinInformation = fDeviceInfo.createPin(pinName);
+      final Pin pin = fDeviceInfo.createPin(pinName);
       
-      sb.append(String.format("%-10s => ", pinInformation.getName()));
+      sb.append(String.format("%-10s => ", pin.getName()));
       
       boolean pinIsMapped = false;
       for (int col=fAltStartIndex; col<=fAltEndIndex; col++) {
          if (col>=line.length) {
             break;
          }
-         ArrayList<Signal> peripheralFunctions = createFunctionsFromString(line[col], true);
-         for (Signal peripheralFunction:peripheralFunctions) {
-            sb.append(peripheralFunction.getName()+", ");
-            if ((peripheralFunction != null)) {
-               MuxSelection functionSelector = MuxSelection.valueOf(col-fAltStartIndex);
-               fDeviceInfo.createMapping(peripheralFunction, pinInformation, functionSelector);
+         ArrayList<Signal> signals = createSignalsFromString(line[col], true);
+         for (Signal signal:signals) {
+            sb.append(signal.getName()+", ");
+            if ((signal != null)) {
+               MuxSelection muxValue = MuxSelection.valueOf(col-fAltStartIndex);
+               fDeviceInfo.createMapping(signal, pin, muxValue);
                pinIsMapped = true;
             }
          }
@@ -215,32 +215,32 @@ public class ParseFamilyCSV {
 
       if ((line.length>fResetIndex) && (line[fResetIndex] != null) && (!line[fResetIndex].isEmpty())) {
          String resetName  = line[fResetIndex];
-         ArrayList<Signal> resetFunctions = createFunctionsFromString(resetName, true);
-         for (Signal peripheralFunction:resetFunctions) {
-            sb.append("R:" + peripheralFunction.getName() + ", ");
-            // Pin is not mapped to this function in the ALT columns - must be a non-mappable pin
-            MappingInfo mapping = fDeviceInfo.createMapping(peripheralFunction, pinInformation, pinIsMapped?MuxSelection.reset:MuxSelection.fixed);
-            for (Signal function:mapping.getSignals()) {
-               function.setResetPin(mapping);
+         ArrayList<Signal> resetSignals = createSignalsFromString(resetName, true);
+         for (Signal resetSignal:resetSignals) {
+            sb.append("R:" + resetSignal.getName() + ", ");
+            // Pin is not mapped to this signal in the ALT columns - must be a non-mappable pin
+            MappingInfo mapping = fDeviceInfo.createMapping(resetSignal, pin, pinIsMapped?MuxSelection.reset:MuxSelection.fixed);
+            for (Signal signal:mapping.getSignals()) {
+               signal.setResetPin(mapping);
             }
          }
-         pinInformation.setResetSignals(fDeviceInfo, resetName);
+         pin.setResetSignals(fDeviceInfo, resetName);
       }
       else {
          sb.append("R:" + Signal.DISABLED_SIGNAL.getName() + ", ");
-         fDeviceInfo.createMapping(Signal.DISABLED_SIGNAL, pinInformation, MuxSelection.reset);
-         pinInformation.setResetSignals(fDeviceInfo, Signal.DISABLED_SIGNAL.getName());
+         fDeviceInfo.createMapping(Signal.DISABLED_SIGNAL, pin, MuxSelection.reset);
+         pin.setResetSignals(fDeviceInfo, Signal.DISABLED_SIGNAL.getName());
       }
       if (line.length>fDefaultIndex) {
          String defaultName  = convertName(line[fDefaultIndex]);
          if ((defaultName != null) && (!defaultName.isEmpty())) {
-            pinInformation.setDefaultSignals(fDeviceInfo, defaultName);
-            sb.append("D:" + pinInformation.getDefaultValue());
+            pin.setDefaultSignals(fDeviceInfo, defaultName);
+            sb.append("D:" + pin.getDefaultValue());
          }
       }
-      if (pinInformation.getDefaultValue() == MuxSelection.unused) {
+      if (pin.getDefaultValue() == MuxSelection.unused) {
          // If no default set then set the default to reset value
-         pinInformation.setDefaultValue(MuxSelection.reset);
+         pin.setDefaultValue(MuxSelection.reset);
       }
       for (PackageColumnInfo pkgIndex:fPackageIndexes){
          String pinNum = line[pkgIndex.index];
@@ -252,7 +252,7 @@ public class ParseFamilyCSV {
          if (devicePackage == null) {
             throw new RuntimeException("Failed to find package " + pkgIndex.name + ", for "+pinName);
          }
-         devicePackage.addPin(pinInformation, pinNum);
+         devicePackage.addPin(pin, pinNum);
          sb.append("(" + pkgIndex.name + ":" + pinNum + ") ");
       }
    }

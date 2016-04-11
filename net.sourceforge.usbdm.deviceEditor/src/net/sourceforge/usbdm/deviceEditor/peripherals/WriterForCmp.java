@@ -31,24 +31,24 @@ public class WriterForCmp extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_"+signal;
    }
  
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
     Pattern p = Pattern.compile("IN(\\d+)");
-    Matcher m = p.matcher(function.getSignal());
+    Matcher m = p.matcher(function.getSignalName());
     if (m.matches()) {
        return Integer.parseInt(m.group(1));
     }
     final String signalNames[] = {"OUT"};
     for (int signal=0; signal<signalNames.length; signal++) {
-       if (function.getSignal().matches(signalNames[signal])) {
+       if (function.getSignalName().matches(signalNames[signal])) {
           return 8+signal;
        }
     }
-    throw new RuntimeException("function '" + function.getSignal() + "' does not match expected pattern");
+    throw new RuntimeException("function '" + function.getSignalName() + "' does not match expected pattern");
    }
    
 }

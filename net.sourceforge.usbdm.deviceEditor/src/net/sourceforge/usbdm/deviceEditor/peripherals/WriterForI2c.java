@@ -28,7 +28,7 @@ public class WriterForI2c extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
@@ -43,7 +43,7 @@ public class WriterForI2c extends Peripheral {
     */
    protected String getPcrDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal    = Integer.toString(getFunctionIndex(mappingInfo.getSignals().get(fnIndex)));
+      String signal    = Integer.toString(getSignalIndex(mappingInfo.getSignals().get(fnIndex)));
 //      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Pcr<"+signal+">";
       return "const " + DeviceInfo.NAME_SPACE + "::PcrTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
 //      return "const " + CreatePinDescription.NAME_SPACE + "::PcrTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
@@ -60,21 +60,21 @@ public class WriterForI2c extends Peripheral {
     */
    protected String getGpioDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
       String instance  = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal    = Integer.toString(getFunctionIndex(mappingInfo.getSignals().get(fnIndex)));
+      String signal    = Integer.toString(getSignalIndex(mappingInfo.getSignals().get(fnIndex)));
 //      return "const " + CreatePinDescription.NAME_SPACE + "::" + CLASS_BASE_NAME + instance +"Gpio<"+signal+">";
 //      return "const " + CreatePinDescription.NAME_SPACE + "::GpioTable_T<" + signal + ", " + CLASS_BASE_NAME + instance + "Info>";
       return "const " + DeviceInfo.NAME_SPACE + "::GpioTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       String signalNames[] = {"SCL", "SDA", "4WSCLOUT", "4WSDAOUT"};
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.getSignal().matches(signalNames[signal])) {
+         if (function.getSignalName().matches(signalNames[signal])) {
             return signal;
          }
       }
-      throw new RuntimeException("Signal does not match expected pattern " + function.getSignal());
+      throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
    
    @Override

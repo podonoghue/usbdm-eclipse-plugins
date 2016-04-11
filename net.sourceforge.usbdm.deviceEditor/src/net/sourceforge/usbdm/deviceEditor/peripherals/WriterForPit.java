@@ -32,27 +32,27 @@ public class WriterForPit extends PeripheralWithState {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getFunctionIndex(mappingInfo.getSignals().get(fnIndex));
+      int signal       = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
       StringBuffer sb = new StringBuffer();
       sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       final String signalNames[] = {"OUT"};
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.getSignal().matches(signalNames[signal])) {
+         if (function.getSignalName().matches(signalNames[signal])) {
             return signal;
          }
       }
-      throw new RuntimeException("Signal "+function.getSignal()+" does not match expected pattern ");
+      throw new RuntimeException("Signal "+function.getSignalName()+" does not match expected pattern ");
    }
    
 //   static final String TEMPLATE_DOCUMENTATION = 
@@ -105,7 +105,9 @@ public class WriterForPit extends PeripheralWithState {
             new CategoryModel(parent, getName(), getDescription()),
          };
       for (String key:fVariableMap.keySet()) {
-         new VariableModel(models[0], this, key);
+         VariableInfo variableInfo = fVariableMap.get(key);
+         VariableModel model = new VariableModel(models[0], this, key);
+         model.setName(variableInfo.name);
       }
       return models;
    }

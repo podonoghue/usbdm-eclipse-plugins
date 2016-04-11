@@ -161,7 +161,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return
     */
-   public Peripheral createPeripheral(String baseName, String instance, PeripheralTemplateInformation template, Mode mode) {  
+   public Peripheral createPeripheral(String baseName, String instance, SignalTemplate template, Mode mode) {  
       String name = baseName+instance;
       Peripheral peripheral = fPeripheralsMap.get(name);
       if (peripheral != null) {
@@ -224,7 +224,7 @@ public class DeviceInfo extends ObservableModel {
    
    /**
     * Find or Create a peripheral<br>
-    * e.g. findPeripheralFunction("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
+    * e.g. findOrCreatePeripheral("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
     * Checks against all templates.
     * 
     * @return Peripheral if found or name matches an expected pattern
@@ -236,7 +236,7 @@ public class DeviceInfo extends ObservableModel {
       if (peripheral != null) {
          return peripheral;
       }
-      for(PeripheralTemplateInformation template:getFunctionTemplateList()) {
+      for(SignalTemplate template:getSignalTemplateList()) {
          peripheral = template.createPeripheral(name, Mode.ignore);
          if (peripheral != null) {
             return peripheral;
@@ -326,137 +326,136 @@ public class DeviceInfo extends ObservableModel {
    }
 
    /*
-    * PeripheralFunction =============================================================================================
+    * Signal =============================================================================================
     */
    /**
-    * Map of all peripheral functions created<br>
-    * May be searched by key derived from function name
+    * Map of all signals created<br>
+    * May be searched by key derived from signal name
     */
-   private Map<String, Signal> fPeripheralFunctions = new TreeMap<String, Signal>(Signal.comparator);
+   private Map<String, Signal> fSignals = new TreeMap<String, Signal>(Signal.comparator);
 
    /**
-    * Map of peripheral functions associated with a baseName<br>
+    * Map of signals associated with a baseName<br>
     * May be searched by baseName string
     */
-   private Map<String, Map<String, Signal>> fPeripheralFunctionsByBaseName = 
+   private Map<String, Map<String, Signal>> fSignalsByBaseName = 
          new TreeMap<String, Map<String, Signal>>();
 
    /**
-    * Get map of all peripheral functions
+    * Get map of all signals
     * 
     * @return map 
     */
-   public Map<String, Signal> getPeripheralFunctions() {
-      return fPeripheralFunctions;
+   public Map<String, Signal> getSignals() {
+      return fSignals;
    }
 
    /**
-    * Get map of peripheral functions associated with the given baseName<br>
-    * e.g. "FTM" with return all the FTM peripheral functions
+    * Get map of signals associated with the given baseName<br>
+    * e.g. "FTM" with return all the FTM signals
     * 
     * @param baseName Base name to search for e.g. FTM, ADC etc
     * 
     * @return  Map or null if none exists for baseName
     */
-   public Map<String, Signal> getPeripheralFunctionsByBaseName(String baseName) {
-      return fPeripheralFunctionsByBaseName.get(baseName);
+   public Map<String, Signal> getSignalsByBaseName(String baseName) {
+      return fSignalsByBaseName.get(baseName);
    }
 
    /**
-    * Create peripheral function
-    * e.g. createPeripheralFunction(FTM,0,6) = <i>PeripheralFunction</i>(FTM, 0, 6)
+    * Create signal
+    * e.g. createSignal(FTM,0,6) = <i>Signal</i>(FTM, 0, 6)
     * 
     * @param name          e.g. FTM0_CH6
     * @param baseName      e.g. FTM0_CH6 = FTM
     * @param instance      e.g. FTM0_CH6 = 0
     * @param signal        e.g. FTM0_CH6 = 6
     *                      
-    * @return Peripheral function if found or created, null otherwise
+    * @return Signal if found or created, null otherwise
     * @throws Exception 
     */
-   public Signal createPeripheralFunction(String name, String baseName, String instance, String signal) {
+   public Signal createSignal(String name, String baseName, String instance, String signalName) {
 
-      Signal peripheralFunction = fPeripheralFunctions.get(name);
-      if (peripheralFunction != null) {
-         throw new RuntimeException("PeripheralFunction already exists "+ name);
+      Signal signal = fSignals.get(name);
+      if (signal != null) {
+         throw new RuntimeException("Signal already exists "+ name);
       }
 
       Peripheral peripheral = findPeripheral(baseName, instance);
-      peripheralFunction = new Signal(name, peripheral, signal);
+      signal = new Signal(name, peripheral, signalName);
 
       // Add to base name map
-      Map<String, Signal> map = fPeripheralFunctionsByBaseName.get(baseName);
+      Map<String, Signal> map = fSignalsByBaseName.get(baseName);
       if (map == null) {
          map = new TreeMap<String, Signal>();
-         fPeripheralFunctionsByBaseName.put(baseName, map);
+         fSignalsByBaseName.put(baseName, map);
       }
-      map.put(baseName, peripheralFunction);
+      map.put(baseName, signal);
 
       // Add to map
-      fPeripheralFunctions.put(name, peripheralFunction);
-      peripheral.addFunction(peripheralFunction);
+      fSignals.put(name, signal);
+      peripheral.addSignal(signal);
 
-      return peripheralFunction;
+      return signal;
    }
 
    /**
-    * Find or Create peripheral function<br>
-    * e.g. findPeripheralFunction("FTM0_CH6") => <i>PeripheralFunction</i>(FTM, 0, 6)<br>
+    * Find or Create signal<br>
+    * e.g. findOrCreateSignal("FTM0_CH6") => <i>Signal</i>(FTM, 0, 6)<br>
     * Checks against all templates.
     * 
-    * @return Function if found or matches an expected pattern
+    * @return Signal if found or matches an expected pattern
     * 
-    * @throws Exception if function does fit expected form
+    * @throws Exception if signal does fit expected form
     */
-   public Signal findOrCreatePeripheralFunction(String name) {
-      Signal peripheralFunction = null;
+   public Signal findOrCreateSignal(String name) {
+      Signal signal = null;
       if (name.equalsIgnoreCase("Disabled")) {
          return Signal.DISABLED_SIGNAL;
       }
-      peripheralFunction = fPeripheralFunctions.get(name);
-      if (peripheralFunction != null) {
-         return peripheralFunction;
+      signal = fSignals.get(name);
+      if (signal != null) {
+         return signal;
       }
-      for(PeripheralTemplateInformation functionTemplateInformation:getFunctionTemplateList()) {
-         peripheralFunction = functionTemplateInformation.createFunction(name);
-         if (peripheralFunction != null) {
-            peripheralFunction.setIncluded(true);
-//            peripheralFunction.setTemplate(functionTemplateInformation);
-            return peripheralFunction;
+      // Try each template
+      for(SignalTemplate signalTemplate:getSignalTemplateList()) {
+         signal = signalTemplate.createSignal(name);
+         if (signal != null) {
+            return signal;
          }         
       }
-      throw new RuntimeException("Failed to find pattern that matched peripheral function: \'" + name + "\'");
+      throw new RuntimeException("Failed to find pattern that matched signal: \'" + name + "\'");
    }
 
    /**
-    * Find peripheral function<br>
-    * e.g. findPeripheralFunction("FTM0_CH6") => <i>PeripheralFunction</i>(FTM, 0, 6)<br>
+    * Find signal<br>
+    * e.g. findSignal("FTM0_CH6") => <i>Signal</i>(FTM, 0, 6)<br>
     * 
-    * @return Function found
+    * @return Signal found
     * 
-    * @throws Exception function nor found
+    * @throws Exception signal nor found
     */
-   public Signal findPeripheralFunction(String name) {
-      Signal peripheralFunction = null;
+   public Signal findSignal(String name) {
+      Signal signal = null;
       if (name.equalsIgnoreCase("Disabled")) {
          return Signal.DISABLED_SIGNAL;
       }
-      peripheralFunction = fPeripheralFunctions.get(name);
-      if (peripheralFunction != null) {
-         return peripheralFunction;
+      signal = fSignals.get(name);
+      if (signal != null) {
+         return signal;
       }
-      throw new RuntimeException("Failed to find pattern that matched peripheral function: \'" + name + "\'");
+      throw new RuntimeException("Failed to find signal: \'" + name + "\'");
    }
 
    /**
-    * A string listing all peripheral functions
+    * A string listing all signals
     *  
     * @return
     */
-   public String listPeripheralFunctions() {
+   public String listSignals() {
       StringBuffer buff = new StringBuffer();
       buff.append("(");
-      for (String f:fPeripheralFunctions.keySet()) {
+      for (String f:fSignals.keySet()) {
          buff.append(f+",");
       }
       buff.append(")");
@@ -511,50 +510,50 @@ public class DeviceInfo extends ObservableModel {
     */
 
    /**
-    * Map from Function to list of Pins
+    * Map from Signal to list of Pins
     */
-   private Map<Signal, ArrayList<MappingInfo>> fPeripheralFunctionMap = new TreeMap<Signal, ArrayList<MappingInfo>>();
+   private Map<Signal, ArrayList<MappingInfo>> fSignalMap = new TreeMap<Signal, ArrayList<MappingInfo>>();
 
    /**
-    * Add info to map by function
+    * Add info to map by signal
     * 
     * @param info
     */
-   void addToFunctionMap(Signal function, MappingInfo info) {
-      ArrayList<MappingInfo> list = fPeripheralFunctionMap.get(function);
+   void addToSignalMap(Signal signal, MappingInfo info) {
+      ArrayList<MappingInfo> list = fSignalMap.get(signal);
       if (list == null) {
          list = new ArrayList<MappingInfo>();
-         fPeripheralFunctionMap.put(function, list);
+         fSignalMap.put(signal, list);
       }
       list.add(info);
    }
 
    /**
-    * Get list of pin mappings associated with given function
+    * Get list of pin mappings associated with given signal
     * 
-    * @param function 
+    * @param signal 
     * 
     * @return
     */
-   public ArrayList<MappingInfo> getPins(Signal function) {
-      return fPeripheralFunctionMap.get(function);
+   public ArrayList<MappingInfo> getPins(Signal signal) {
+      return fSignalMap.get(signal);
    }
 
    /**
     * Create new Pin mapping<br>
     * 
     * Mapping is added to pin map<br>
-    * Mapping is added to function map<br>
+    * Mapping is added to signal map<br>
     * 
-    * @param function            Function signal being mapped e.g. I2C2_SCL
-    * @param pinInformation      Pin being mapped e.g. PTA (pin name not signal!)
-    * @param functionSelector    Multiplexor setting that maps this signal to the pin
+    * @param signal          Signal signal being mapped e.g. I2C2_SCL
+    * @param pinInformation  Pin being mapped e.g. PTA (pin name not signal!)
+    * @param muxValue        Multiplexor setting that maps this signal to the pin
     * @return
     */
-   public MappingInfo createMapping(Signal function, Pin pinInformation, MuxSelection functionSelector) {
+   public MappingInfo createMapping(Signal signal, Pin pinInformation, MuxSelection muxValue) {
       
-      MappingInfo mapInfo= pinInformation.addSignal(function, functionSelector);
-      addToFunctionMap(function, mapInfo);
+      MappingInfo mapInfo= pinInformation.addSignal(signal, muxValue);
+      addToSignalMap(signal, mapInfo);
       return mapInfo;
    }
 
@@ -618,28 +617,28 @@ public class DeviceInfo extends ObservableModel {
    /**
     * List of all templates
     */
-   private ArrayList<PeripheralTemplateInformation> fTemplateList = new ArrayList<PeripheralTemplateInformation>();
+   private ArrayList<SignalTemplate> fSignalTemplateList = new ArrayList<SignalTemplate>();
 
    /**
     * Get list of all templates
     * 
     * @return
     */
-   public ArrayList<PeripheralTemplateInformation> getFunctionTemplateList() {
-      return fTemplateList;
+   public ArrayList<SignalTemplate> getSignalTemplateList() {
+      return fSignalTemplateList;
    }
 
    /**
-    * Gets template that matches this function
+    * Gets template that matches this signal
     * 
-    * @param function   Function to match
+    * @param signal   Signal to match
     * 
     * @return Matching template or null on none
     */
-   public PeripheralTemplateInformation getTemplate(Signal function) {
-      for (PeripheralTemplateInformation functionTemplateInformation:fTemplateList) {
-         if (functionTemplateInformation.getMatchPattern().matcher(function.getName()).matches()) {
-            return functionTemplateInformation;
+   public SignalTemplate getTemplate(Signal signal) {
+      for (SignalTemplate signalTemplate:fSignalTemplateList) {
+         if (signalTemplate.getMatchPattern().matcher(signal.getName()).matches()) {
+            return signalTemplate;
          }
       }
       return null;
@@ -653,7 +652,7 @@ public class DeviceInfo extends ObservableModel {
     * @param deviceFamily           Device family
     * @param instanceWriter         InstanceWriter to use
     */
-   private PeripheralTemplateInformation createPeripheralTemplateInformation(
+   private SignalTemplate createPeripheralTemplateInformation(
          String        namePattern,   
          String        instancePattern, 
          String        matchTemplate, 
@@ -670,7 +669,7 @@ public class DeviceInfo extends ObservableModel {
     * @param deviceFamily           Device family
     * @param instanceWriter         InstanceWriter to use
     */
-   private PeripheralTemplateInformation createPeripheralTemplateInformation(
+   private SignalTemplate createPeripheralTemplateInformation(
          String        namePattern,   
          String        instancePattern, 
          String        signalPattern, 
@@ -678,11 +677,11 @@ public class DeviceInfo extends ObservableModel {
          DeviceFamily  deviceFamily, 
          Class<?>      instanceWriterClass) {
 
-      PeripheralTemplateInformation template = null; 
+      SignalTemplate template = null; 
 
       try {
-         template = new PeripheralTemplateInformation(this, deviceFamily, namePattern, signalPattern, instancePattern, matchTemplate, instanceWriterClass);
-         fTemplateList.add(template);
+         template = new SignalTemplate(this, deviceFamily, namePattern, signalPattern, instancePattern, matchTemplate, instanceWriterClass);
+         fSignalTemplateList.add(template);
       }
       catch (Exception e) {
          throw new RuntimeException(e);
@@ -777,7 +776,12 @@ public class DeviceInfo extends ObservableModel {
                WriterForVref.class);
          createPeripheralTemplateInformation(
                "FB", "", "",
-               "(FB|FLEXBUS|FXIO|FLEXIO).*",
+               "(FB|FLEXBUS).*",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "FLEXIO", "", "",
+               "(FXIO|FLEXIO).*",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
@@ -884,7 +888,12 @@ public class DeviceInfo extends ObservableModel {
                WriterForMisc.class);
          createPeripheralTemplateInformation(
                "FTFE", "$2", "$3",
-               "(FTF)(\\d)?(.*)",
+               "(FTFE)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "FTFA", "$2", "$3",
+               "(FTFA)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
@@ -1059,13 +1068,13 @@ public class DeviceInfo extends ObservableModel {
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
       }
-      // Every peripheral function should have a reset entry implied by the pin information
-      // except for functions with fixed pin mapping
-      for (String pName:getPeripheralFunctions().keySet()) {
-         Signal function = getPeripheralFunctions().get(pName);
-         if ((function.getResetMapping() == null) &&
-               (function.getPinMapping().first().getMux() != MuxSelection.fixed)) {
-            throw new RuntimeException("No reset value for function " + function);
+      // Every signal should have a reset entry implied by the pin information
+      // except for signals with fixed pin mapping
+      for (String pName:getSignals().keySet()) {
+         Signal signal = getSignals().get(pName);
+         if ((signal.getResetMapping() == null) &&
+               (signal.getPinMapping().first().getMux() != MuxSelection.fixed)) {
+            throw new RuntimeException("No reset value for signal " + signal);
          }
       }
    }

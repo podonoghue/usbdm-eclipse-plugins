@@ -9,7 +9,7 @@ public class VariableModel extends NumericModel {
    private final VariableInfo variableInfo;
    
    public VariableModel(BaseModel parent, ModelEntryProvider provider, String key) {
-      super(parent, key, provider.getVariableInfo(key).description);
+      super(parent, key, "");
       fProvider      = provider;
       fKey           = key;
       variableInfo   = provider.getVariableInfo(key);

@@ -57,22 +57,22 @@ public class WriterForAnalogueIO extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_se"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal = getFunctionIndex(mappingInfo.getSignals().get(fnIndex));
+      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
       return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
    }
    
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
-      Matcher m = p.matcher(function.getSignal());
+      Matcher m = p.matcher(function.getSignalName());
       if (!m.matches()) {
-         throw new RuntimeException("Function "+function+", Signal " + function.getSignal() + " does not match expected pattern");
+         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
       int index = Integer.parseInt(m.group(2));
       if ((m.group(3) != null) && m.group(3).equalsIgnoreCase("a")) {
@@ -84,7 +84,7 @@ public class WriterForAnalogueIO extends Peripheral {
    @Override
    public boolean needPCRTable() {
       boolean required = 
-            (fPeripheralFunctions.table.size() +
+            (fInfoTable.table.size() +
                   fDpFunctions.table.size() + 
                   fDmFunctions.table.size()) > 0;
       return required;
@@ -120,18 +120,18 @@ public class WriterForAnalogueIO extends Peripheral {
    }
 
    @Override
-   protected void addFunctionToTable(Signal function) {
+   protected void addSignalToTable(Signal function) {
       InfoTable fFunctions = null;
       
       Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
-      Matcher m = p.matcher(function.getSignal());
+      Matcher m = p.matcher(function.getSignalName());
       if (!m.matches()) {
-         throw new RuntimeException("Function "+function+", Signal " + function.getSignal() + " does not match expected pattern");
+         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
-      int signalIndex = getFunctionIndex(function);
+      int signalIndex = getSignalIndex(function);
       String signalType = m.group(1);
       if (signalType.equalsIgnoreCase("SE")) {
-         fFunctions = super.fPeripheralFunctions;
+         fFunctions = super.fInfoTable;
       }
       else if (signalType.equalsIgnoreCase("DM")) {
          fFunctions = fDmFunctions;
@@ -153,9 +153,9 @@ public class WriterForAnalogueIO extends Peripheral {
    }
 
    @Override
-   public ArrayList<InfoTable> getFunctionTables() {
+   public ArrayList<InfoTable> getSignalTables() {
       ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
-      rv.add(fPeripheralFunctions);
+      rv.add(fInfoTable);
       rv.add(fDpFunctions);
       rv.add(fDmFunctions);
       return rv;

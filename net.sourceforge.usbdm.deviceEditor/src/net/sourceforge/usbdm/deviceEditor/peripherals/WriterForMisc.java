@@ -46,23 +46,23 @@ public class WriterForMisc extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getFunctionIndex(mappingInfo.getSignals().get(fnIndex));
+      int signal       = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
       StringBuffer sb = new StringBuffer();
       sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       final String signalNames[] = {"CLKIN(0?)", "CLKIN1"};
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.getSignal().matches(signalNames[signal])) {
+         if (function.getSignalName().matches(signalNames[signal])) {
             return signal;
          }
       }

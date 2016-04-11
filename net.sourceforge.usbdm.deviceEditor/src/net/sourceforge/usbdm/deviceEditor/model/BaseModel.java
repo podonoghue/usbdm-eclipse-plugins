@@ -12,7 +12,7 @@ import net.sourceforge.usbdm.peripherals.model.MemoryException;
  */
 public abstract class BaseModel {
    /** Name of model */
-   protected final String            fName;
+   protected       String            fName;
    
    /** Description of node */
    protected final String            fDescription;
@@ -88,6 +88,15 @@ public abstract class BaseModel {
     */
    public ArrayList<Object> getChildren() {
       return fChildren;
+   }
+
+   /**
+    * Sets the name of the tree item
+    * 
+    * @param name
+    */
+   public void setName(String name) {
+      fName = name;
    }
 
    /**

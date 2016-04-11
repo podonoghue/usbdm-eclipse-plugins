@@ -53,9 +53,12 @@ public abstract class Peripheral {
    /** List of DMA channels */
    private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
-   /** Map of all functions on this peripheral */
-   private TreeMap<String, Signal> fFunctions = new TreeMap<String, Signal>(Signal.comparator);
+   /** Map of all signals on this peripheral */
+   private TreeMap<String, Signal> fSignals = new TreeMap<String, Signal>(Signal.comparator);
    
+   /** Information for signals that use this writer */
+   protected InfoTable fInfoTable = new InfoTable(INFO_TABLE_NAME);
+
    /**
     * Create peripheral
     * 
@@ -149,11 +152,11 @@ public abstract class Peripheral {
    }
 
    /**
-    * Get map of all functions on this peripheral
+    * Get map of all signals on this peripheral
     * @return
     */
-   public TreeMap<String, Signal> getFunctions() {
-      return fFunctions;
+   public TreeMap<String, Signal> getSignals() {
+      return fSignals;
    }
 
    /**
@@ -315,10 +318,10 @@ public abstract class Peripheral {
    }
 
    /** 
-    * Class used to hold different classes of peripheral functions 
+    * Class used to hold different classes of peripheral signals 
     */
    public class InfoTable {
-      /** Functions that use this writer indexed by function index */
+      /** Signals that use this writer indexed by signal index */
       public  Vector<Signal> table = new Vector<Signal>();
       private String fName;
       
@@ -332,9 +335,6 @@ public abstract class Peripheral {
    
    static final String INFO_TABLE_NAME = "info";
    
-   /** Functions that use this writer */
-   protected InfoTable fPeripheralFunctions = new InfoTable(INFO_TABLE_NAME);
-
    /**
     * Get name of documentation group e.g. "DigitalIO_Group"
     * 
@@ -384,23 +384,23 @@ public abstract class Peripheral {
    }
 
    /**
-    * Get instance name for a simple function e.g. <b><i>gpioA_0</b></i>
+    * Get instance name for a simple signal e.g. <b><i>gpioA_0</b></i>
     * 
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
+    * @param mappingInfo    Mapping information (pin and signal)
+    * @param fnIndex        Index into list of signals mapped to pin
     * 
     * @return  String 
     */
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_"+signal;
    }
    
    /**
     * Get alias name based on the given alias
     * 
-    * @param signalName   Function being mapped to alias
+    * @param signalName   Signal being mapped to alias
     * @param alias        Base for alias name e.g. <b><i>p36</b></i>
     * 
     * @return Alias name e.g. gpio_<b><i>p36</b></i> or <b><i>null</b></i> to suppress alias
@@ -410,13 +410,13 @@ public abstract class Peripheral {
    }
    
    /** 
-    * Get alias declaration for a simple function e.g. 
+    * Get alias declaration for a simple signal e.g. 
     * <pre>
     * using <b><i>alias</b></i> = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
     * </pre>
     * @param alias          Name of alias e.g. ftm_D8
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
+    * @param mappingInfo    Mapping information (pin and signal)
+    * @param fnIndex        Index into list of signals mapped to pin
     * 
     * @return  String 
     */
@@ -436,7 +436,7 @@ public abstract class Peripheral {
     * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>>
     * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
     * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
+    * @param mappingInfo    Mapping information (pin and signal)
     * @param cppFile        Where to write
     * @throws IOException 
     */
@@ -445,15 +445,15 @@ public abstract class Peripheral {
    }
 
    /** 
-    * Get a definition for a simple function
+    * Get a definition for a simple signal
     * <pre>
     * using gpio<b><i>A</b></i>_<b><i>0</b></i>   = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
     * using adc<b><i>0</i></b>_se<b><i>19</i></b> = const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>;
     * using adc<b><i>1</i></b>_se<b><i>17</i></b> = const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> ;
     * using ftm<b><i>1</i></b>_ch<b><i>17</i></b> = const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>;
     * </pre>
-    * @param mappingInfo    Mapping information (pin and peripheral function)
-    * @param fnIndex        Index into list of functions mapped to pin
+    * @param mappingInfo    Mapping information (pin and signal)
+    * @param fnIndex        Index into list of signals mapped to pin
     * @param cppFile        Where to write
     * @throws IOException 
     */
@@ -468,8 +468,8 @@ public abstract class Peripheral {
     * extern const USBDM::Adc<b><i>0</i></b>&lt;<b><i>19</i></b>&gt adc<b><i>A</b></i>_ch<b><i>0</b></i>;
     * extern const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
     * </pre>
-    * @param mappingInfo   Mapping information (pin and peripheral function)
-    * @param fnIndex       Index into list of functions mapped to pin
+    * @param mappingInfo   Mapping information (pin and signal)
+    * @param fnIndex       Index into list of signals mapped to pin
     * @param cppFile       Where to write
     * @throws Exception 
     */
@@ -479,14 +479,14 @@ public abstract class Peripheral {
 
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
-    * Default implementation checks the size of the function table
+    * Default implementation checks the size of the signal table
     * 
     * @return
     * @throws Exception 
     */
    public boolean needPCRTable() {
-      // Assume required if functions are present
-      return fPeripheralFunctions.table.size() > 0;
+      // Assume required if signals are present
+      return fInfoTable.table.size() > 0;
    }
 
    /**
@@ -499,15 +499,16 @@ public abstract class Peripheral {
    }
    
    /**
-    * Gets the numeric index of the function for use in PCR tables\n
+    * Gets the numeric index of the signal for use in PCR tables\n
     * e.g. FTM3_Ch2 => 2 etc.
     * 
-    * @param function   Function to look up
-    * @return  Index, -1 is returned if function matches template but non-mapped pin
+    * @param signal   Signal to look up
     * 
-    * @throws Exception If function doesn't match template
+    * @return  Index, -1 is returned if signal matches template but non-mapped pin
+    * 
+    * @throws Exception if signal doesn't match template
     */
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal signal) {
       throw new RuntimeException("Method should not be called");
    }
 
@@ -590,44 +591,44 @@ public abstract class Peripheral {
    }
 
    /**
-    * Add to map of all functions on this peripheral
+    * Add to map of all signal on this peripheral
     * 
-    * @param peripheralFunction
+    * @param signal
     */
-   public void addFunction(Signal function) {
-      fFunctions.put(function.getName(), function);
-      addFunctionToTable(function);
+   public void addSignal(Signal signal) {
+      fSignals.put(signal.getName(), signal);
+      addSignalToTable(signal);
    }
    
    /**
-    * Add to table of functions on this peripheral sorted for code generation
+    * Add to table of signals on this peripheral sorted for code generation
     * 
-    * @param peripheralFunction
+    * @param signal
     */
-   protected void addFunctionToTable(Signal function) {
-      int signalIndex = getFunctionIndex(function);
+   protected void addSignalToTable(Signal signal) {
+      int signalIndex = getSignalIndex(signal);
       if (signalIndex<0) {
          return;
       }
-      if (signalIndex>=fPeripheralFunctions.table.size()) {
-         fPeripheralFunctions.table.setSize(signalIndex+1);
+      if (signalIndex>=fInfoTable.table.size()) {
+         fInfoTable.table.setSize(signalIndex+1);
       }
-      if ((fPeripheralFunctions.table.get(signalIndex) != null) && 
-            (fPeripheralFunctions.table.get(signalIndex) != function)) {
+      if ((fInfoTable.table.get(signalIndex) != null) && 
+            (fInfoTable.table.get(signalIndex) != signal)) {
          throw new RuntimeException(
-               "Multiple functions mapped to index\n new = " + function + ",\n old = " + fPeripheralFunctions.table.get(signalIndex));
+               "Multiple signals mapped to index\n new = " + signal + ",\n old = " + fInfoTable.table.get(signalIndex));
       }
-      fPeripheralFunctions.table.setElementAt(function, signalIndex);
+      fInfoTable.table.setElementAt(signal, signalIndex);
    }
    
    /**
-    * Returns Function tables
+    * Returns signal tables
     * 
     * @return
     */
-   public ArrayList<InfoTable> getFunctionTables() {
+   public ArrayList<InfoTable> getSignalTables() {
       ArrayList<InfoTable> rv = new ArrayList<InfoTable>();
-      rv.add(fPeripheralFunctions);
+      rv.add(fInfoTable);
       return rv;
    }
    
@@ -641,18 +642,18 @@ public abstract class Peripheral {
       if (!needPCRTable()) {
          return;
       }
-      ArrayList<InfoTable> functionTables = getFunctionTables();
-      for (InfoTable functionTable:functionTables) {
-         if (functionTable.table.size() == 0) {
+      ArrayList<InfoTable> signalTables = getSignalTables();
+      for (InfoTable signalTable:signalTables) {
+         if (signalTable.table.size() == 0) {
             continue;
          }
          
          String indent = "";
-         if (functionTable.getName() != INFO_TABLE_NAME) {
+         if (signalTable.getName() != INFO_TABLE_NAME) {
             pinMappingHeaderFile.write(String.format(
                   "   class %s {\n"+
                   "   public:\n",
-                        functionTable.getName()
+                        signalTable.getName()
                   ));
             indent = "   ";
          }
@@ -666,17 +667,16 @@ public abstract class Peripheral {
          pinMappingHeaderFile.write(String.format(
                indent+HEADING_TEMPLATE,"Signal","Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
          // Signal information table
-         for (int signalIndex = 0; signalIndex<functionTable.table.size(); signalIndex++) {
-            Signal peripheralFunction = functionTable.table.get(signalIndex);
-            if (peripheralFunction == null) {
+         for (Signal signal:signalTable.table) {
+            if (signal == null) {
                pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, "--", "--"));
                continue;
             }
-            ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(peripheralFunction);
+            ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(signal);
             boolean valueWritten = false;
             for (MappingInfo mappedPin:mappedPins) {
                if (!mappedPin.getPin().isAvailableInPackage()) {
-                  // Discard unmapped functions on this package 
+                  // Discard unmapped signals on this package 
                   continue;
                }
                if (mappedPin.getMux() == MuxSelection.disabled) {
@@ -689,7 +689,7 @@ public abstract class Peripheral {
                }
                if (mappedPin.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
-                  pinMappingHeaderFile.write(String.format(indent+FIXED_TEMPLATE, peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation()));
+                  pinMappingHeaderFile.write(String.format(indent+FIXED_TEMPLATE, signal.getName(), mappedPin.getPin().getNameWithLocation()));
                   valueWritten = true;
                   break;
                }
@@ -698,19 +698,19 @@ public abstract class Peripheral {
                      throw new RuntimeException("Multiple active pin mappings");
                   }
                   valueWritten = true;
-                  String pcrInitString = PeripheralTemplateInformation.getPCRInitString(mappedPin.getPin());
+                  String pcrInitString = SignalTemplate.getPCRInitString(mappedPin.getPin());
                   pinMappingHeaderFile.write(
                         String.format(indent+USED_TEMPLATE, 
-                              peripheralFunction.getName(), mappedPin.getPin().getNameWithLocation(), pcrInitString, mappedPin.getMux().value));
+                              signal.getName(), mappedPin.getPin().getNameWithLocation(), pcrInitString, mappedPin.getMux().value));
                }
             }
             if (!valueWritten) {
-               pinMappingHeaderFile.write(String.format(indent+DUMMY_TEMPLATE, peripheralFunction.getName(), "--"));
+               pinMappingHeaderFile.write(String.format(indent+DUMMY_TEMPLATE, signal.getName(), "--"));
             }
          }
-         pinMappingHeaderFile.write(String.format(indent+"   };\n"));
+         pinMappingHeaderFile.write(String.format(indent+"   };\n\n"));
          
-         if (functionTable.getName() != INFO_TABLE_NAME) {
+         if (signalTable.getName() != INFO_TABLE_NAME) {
             pinMappingHeaderFile.write(String.format(
                   "   }; \n"
                   ));
@@ -784,9 +784,9 @@ public abstract class Peripheral {
     * @return
     */
    public boolean hasMappableSignals() {
-      for (String key:fFunctions.keySet()) {
-         Signal function = fFunctions.get(key);
-         if (function.isAvailableInPackage()) {
+      for (String key:fSignals.keySet()) {
+         Signal signal = fSignals.get(key);
+         if (signal.isAvailableInPackage()) {
             return true;
          }
       }

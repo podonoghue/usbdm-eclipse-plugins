@@ -51,36 +51,31 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Peripheral that signal belongs to */
    private final Peripheral fPeripheral;
 
-   /** Peripheral signal name number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK */
-   private final String fSignal;
+   /** Signal name number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK */
+   private final String fSignalName;
 
-   /** Name of peripheral signal e.g. FTM0_CH3 */
+   /** Name of signal e.g. FTM0_CH3 */
    private final String fName;
 
-   /** Indicates whether to include this signal in output */
-   private boolean fIncluded;
-
-   /** Template applicable to this signal (if any) */
-//   private PeripheralTemplateInformation fTemplate = null;     
-
-   /** Map of pins that this peripheral signal may be mapped to */
+   /** Set of pin mappings for this signal */
    private TreeSet<MappingInfo> fPinMappings = new TreeSet<MappingInfo>(pinMappingComparator);
 
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
 
+   /** Current mapping for this signal */
    private MappingInfo fCurrentMapping = MappingInfo.DISABLED_MAPPING;
 
    /**
     * 
-    * @param name          Name of peripheral signal e.g. FTM0_CH3 
+    * @param name          Name of signal e.g. FTM0_CH3 
     * @param peripheral    Peripheral that signal belongs to 
-    * @param signal        Peripheral signal name or number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK 
+    * @param signal        Signal name or number e.g. PTA3 = 3, FTM0_CH6 = CH6, SPI0_SCK = SCK 
     */
    Signal(String name, Peripheral peripheral, String signal) {
       fName       = name;
       fPeripheral = peripheral;
-      fSignal     = signal;
+      fSignalName = signal;
    }
 
    /**
@@ -101,22 +96,22 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
    }
    
-   void setIncluded(boolean include) {
-      fIncluded = include;
-   }
-
-   public boolean isIncluded() {
-      return fIncluded;
-   }
-
    /**
-    * Create descriptive name<br>
-    * e.g. MappingInfo(FTM, 0, 6) = FTM0_6
+    * Get name e.g. FTM0_6, GPIOA_4
     * 
     * @return name created
     */
    public String getName() {
       return fName;
+   }
+
+   /**
+    * Get signal name or number without prefix e.g. GPIOA_4 = 4, FTM0_CH6 = CH6, SPI0_SCK = SCK 
+    * 
+    * @return Name
+    */
+   public String getSignalName() {
+      return fSignalName;
    }
 
    @Override
@@ -125,17 +120,12 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * @return the Peripheral
+    * Get peripheral that owns this signal
+    * 
+    * @return Owner
     */
    public Peripheral getPeripheral() {
       return fPeripheral;
-   }
-
-   /**
-    * @return the signal
-    */
-   public String getSignal() {
-      return fSignal;
    }
 
    /**
@@ -164,7 +154,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get ordered set of possible pin mappings for peripheral signal
+    * Get ordered set of pin mappings for this signal 
     * 
     * @return
     */
@@ -172,6 +162,11 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       return fPinMappings;
    }
 
+   /**
+    * Set the reset pin mapping for this signal
+    * 
+    * @param mapping
+    */
    public void setResetPin(MappingInfo mapping) {
       if (this == DISABLED_SIGNAL) {
          // Ignore resets to Disabled
@@ -183,6 +178,11 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       fResetMapping = mapping;
    }
 
+   /**
+    * Get the reset pin mapping for this signal
+    * 
+    * return mapping
+    */
    public MappingInfo getResetMapping() {
       return fResetMapping;
    }
@@ -202,7 +202,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Indicates if the signal is available in the current package
+    * Indicates if the signal is available in the current package<br>
+    * i.e. is it possible to map this function to a pin with a location
     * 
     * @return
     */
@@ -229,17 +230,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       fCurrentMapping.select(Origin.signal, false);
       mappingInfo.select(Origin.signal, true);
-      
-//      if (fMappedPin.getPin() != null) {
-//         // Unmap existing pin
-//         fMappedPin.getPin().setMuxSelection(MuxSelection.disabled);
-//      }
-//      fMappedPin = mappingInfo;
-//      if (fMappedPin.getPin() != null) {
-//         // Map new pin
-//         fMappedPin.getPin().setMuxSelection(mappingInfo.getMux());
-//      }
-//      notifyListeners();
    }
 
    @Override
@@ -270,7 +260,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get current pin mapping
+    * Get current pin mapping for this signal
     * 
     * @return
     */
@@ -280,6 +270,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
+      // Not used
    }
 
 }

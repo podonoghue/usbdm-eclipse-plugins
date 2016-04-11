@@ -25,24 +25,28 @@ public abstract class SimpleSelectionModel extends SelectionModel {
     */
    protected abstract String[] getValuesArray();
    
-   public SimpleSelectionModel(BaseModel parent, ModelEntryProvider provider, String key) {
-      super(parent, key, provider.getVariableInfo(key).description);
-
+   /**
+    * 
+    * @param parent     
+    * @param provider
+    * @param key
+    */
+   public SimpleSelectionModel(BaseModel parent, ModelEntryProvider provider, String key, String description) {
+      super(parent, key, description);
+      
       fProvider   = provider;
       fKey        = key;
-
+      
       fChoices     = getChoicesArray();
       fValues      = getValuesArray();
       
       fDefaultSelection = findValue(fValues[fValues.length-1]);
-//            findValue(provider.getVariableInfo(key).defaultValue);
       fSelection        = fDefaultSelection;
 
       String sel = fProvider.getValueAsString(fKey);
       if (sel != null) {
          fSelection = findValue(sel);
       }
-      setToolTip("Selects the clock source for the module.");
    }
 
    /**

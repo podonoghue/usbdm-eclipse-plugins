@@ -32,13 +32,13 @@ public class WriterForDigitalIO extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName()+instance+"_"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getFunctionIndex(mappingInfo.getSignals().get(fnIndex));
+      int signal       = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
       StringBuffer sb = new StringBuffer();
       sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
@@ -144,11 +144,11 @@ public class WriterForDigitalIO extends Peripheral {
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       Pattern p = Pattern.compile("(\\d+).*");
-      Matcher m = p.matcher(function.getSignal());
+      Matcher m = p.matcher(function.getSignalName());
       if (!m.matches()) {
-         throw new RuntimeException("Function "+function+", Signal " + function.getSignal() + " does not match expected pattern");
+         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
       int signalIndex = Integer.parseInt(m.group(1));
       return signalIndex;

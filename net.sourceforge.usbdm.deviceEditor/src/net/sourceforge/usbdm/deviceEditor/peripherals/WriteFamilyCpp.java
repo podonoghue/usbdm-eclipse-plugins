@@ -456,16 +456,20 @@ public class WriteFamilyCpp {
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         String function = pin.getMappedSignals().get(pin.getMuxValue()).getSignalList();
+         MuxSelection                    a = pin.getMuxValue();
+         Map<MuxSelection, MappingInfo>  b = pin.getMappedSignals();
+         MappingInfo                     c = b.get(a);
+         
+         String signal = pin.getMappedSignals().get(pin.getMuxValue()).getSignalList();
          writer.write(String.format(DOCUMENTATION_TEMPLATE,
                pin.getName(), 
-               function,
+               signal,
                pin.getLocation(), 
                useDescription));
          if ((pin.getLocation() != null) && !pin.getLocation().isEmpty()) {
             pinsByLocation.put(pin.getLocation(), pin);
          }
-         pinsByFunction.put(function, pin);
+         pinsByFunction.put(signal, pin);
       }
       writer.write(TABLE_CLOSE);
       writer.write(String.format(TABLE_OPEN, "PinsByLocation", "Pins by Location"));

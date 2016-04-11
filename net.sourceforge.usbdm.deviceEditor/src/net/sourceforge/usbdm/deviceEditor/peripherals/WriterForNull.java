@@ -35,7 +35,7 @@ public class WriterForNull extends Peripheral {
    }
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       return -1;
    }
 

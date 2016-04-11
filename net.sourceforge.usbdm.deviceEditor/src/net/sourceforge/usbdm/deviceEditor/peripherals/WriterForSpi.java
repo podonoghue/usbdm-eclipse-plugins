@@ -28,14 +28,14 @@ public class WriterForSpi extends Peripheral {
    @Override
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignal();
+      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return INSTANCE_BASE_NAME+instance+"_"+signal;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       String instance  = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal    = Integer.toString(getFunctionIndex(mappingInfo.getSignals().get(fnIndex)));
+      String signal    = Integer.toString(getSignalIndex(mappingInfo.getSignals().get(fnIndex)));
       return "const " + DeviceInfo.NAME_SPACE + "::PcrTable_T<" + CLASS_BASE_NAME + instance + "Info, " + signal + ">" ;
    }
 
@@ -43,13 +43,13 @@ public class WriterForSpi extends Peripheral {
    final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
 
    @Override
-   public int getFunctionIndex(Signal function) {
+   public int getSignalIndex(Signal function) {
       for (int signal=0; signal<signalNames.length; signal++) {
-         if (function.getSignal().matches(signalNames[signal])) {
+         if (function.getSignalName().matches(signalNames[signal])) {
             return signal;
          }
       }
-      throw new RuntimeException("Signal does not match expected pattern " + function.getSignal());
+      throw new RuntimeException("Signal does not match expected pattern " + function.getSignalName());
    }
    
    static final String TEMPLATE_DOCUMENTATION = 
@@ -81,10 +81,10 @@ public class WriterForSpi extends Peripheral {
 
    @Override
    public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.fPeripheralFunctions.table.size();
+      super.fInfoTable.table.size();
       String name = getClassName();
       StringBuffer buff = new StringBuffer();
-      for (int index=PCS_START; index<super.fPeripheralFunctions.table.size(); index++) {
+      for (int index=PCS_START; index<super.fInfoTable.table.size(); index++) {
          buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index-PCS_START, name, index));
       }
       pinMappingHeaderFile.write(buff.toString());

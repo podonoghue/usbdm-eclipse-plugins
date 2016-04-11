@@ -26,26 +26,39 @@ public class WriteFamilyXML {
 
    private DeviceInfo fDeviceInfo;
 
+   @SuppressWarnings("unused")
+   private void writeSignals(XmlDocumentUtilities documentUtilities) throws IOException {
+      documentUtilities.openTag("signals");
+      for (String signalName:fDeviceInfo.getSignals().keySet()) {
+         Signal signal = fDeviceInfo.getSignals().get(signalName);
+         documentUtilities.openTag("signal");
+         documentUtilities.writeAttribute("name", signal.getName());
+         documentUtilities.writeAttribute("peripheral", signal.getPeripheral().getName());
+         documentUtilities.closeTag();
+      }
+      documentUtilities.closeTag();
+   }
+   
    /**
-    * Writes XML describing how peripheral functions are mapped to a pin
+    * Writes XML describing how peripheral signals are mapped to a pin
     * e.g.<pre>
     *   &lt;pin name=="PTD7"&gt;
-    *      &lt;mux sel="mux1" function="GPIOD_7" /&gt;
-    *      &lt;mux sel="mux2" function="CMT_IRO" /&gt;
+    *      &lt;mux sel="mux1" signal="GPIOD_7" /&gt;
+    *      &lt;mux sel="mux2" signal="CMT_IRO" /&gt;
     *      &lt;reset sel="Disabled" /&gt;
     *      &lt;default sel="mux1" /&gt;
     *   &lt;/pin&gt;
     * </pre>
     *  
     * @param documentUtilities   Where to write
-    * @param pinInformation      Peripheral function to write definitions for
+    * @param pin                 Pin to write definitions for
     * 
     * @throws IOException 
     */
-   private void writePinMapping(XmlDocumentUtilities documentUtilities, Pin pinInformation) throws IOException {
+   private void writePin(XmlDocumentUtilities documentUtilities, Pin pin) throws IOException {
       documentUtilities.openTag("pin");
 
-      Map<MuxSelection, MappingInfo>  mappingInfo  = pinInformation.getMappedSignals();
+      Map<MuxSelection, MappingInfo>  mappingInfo  = pin.getMappedSignals();
 
       Set<MuxSelection> sortedSelectionIndexes = mappingInfo.keySet();
 
@@ -54,32 +67,21 @@ public class WriteFamilyXML {
       // Construct list of alternatives
       StringBuffer alternativeHint = new StringBuffer();
       for (MuxSelection selection:mappingInfo.keySet()) {
-         //         if (selection == MuxSelection.disabled) {
-         //            // Ignore disabled entries
-         //            continue;
-         //         }
-         //         if ((selection == MuxSelection.reset) && (sortedSelectionIndexes.size()>1)) {
-         //            continue;
-         //         }
          if (selection == MuxSelection.fixed) {
             defaultSelection = MuxSelection.fixed;
          }
-         if (selection == pinInformation.getDefaultValue()) {
+         if (selection == pin.getDefaultValue()) {
             defaultSelection = selection;
          }
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
          name.append(mInfo.getSignalList());
-         //         if ((pinInformation.getDefaultValue() != null) && 
-         //             (mInfo.functions == pinInformation.getDefaultValue().functions)) {
-         //            defaultSelection = selection;
-         //         }
          if (alternativeHint.length() != 0) {
             alternativeHint.append(", ");
          }
          alternativeHint.append(name);
       }
-      documentUtilities.writeAttribute("name", pinInformation.getName());
+      documentUtilities.writeAttribute("name", pin.getName());
       if (defaultSelection == MuxSelection.fixed) {
          documentUtilities.writeAttribute("isFixed", "true");
       }
@@ -91,26 +93,26 @@ public class WriteFamilyXML {
          for (Signal fn:mInfo.getSignals()) {
             documentUtilities.openTag("mux");
             documentUtilities.writeAttribute("sel", selection.name());
-            documentUtilities.writeAttribute("function", fn.getName());
+            documentUtilities.writeAttribute("signal", fn.getName());
             documentUtilities.closeTag();
          }
       }
       documentUtilities.openTag("reset");
-      documentUtilities.writeAttribute("sel", pinInformation.getResetValue().name());
+      documentUtilities.writeAttribute("sel", pin.getResetValue().name());
       documentUtilities.closeTag();
 
       documentUtilities.openTag("default");
-      documentUtilities.writeAttribute("sel", pinInformation.getDefaultValue().name());
+      documentUtilities.writeAttribute("sel", pin.getDefaultValue().name());
       documentUtilities.closeTag();
       documentUtilities.closeTag();
    }
 
    /**
-    * Writes XML describing how peripheral functions are mapped to all pins
+    * Writes XML describing how peripheral signals are mapped to all pins
     * e.g.<pre>
     * &ltpins&gt;
     *   &lt;pin name=="PTD7"&gt;
-    *      &lt;mux sel="mux1" function="GPIOD_7" /&gt;
+    *      &lt;mux sel="mux1" signal="GPIOD_7" /&gt;
     *      ...
     *   &lt;/pin&gt;
     *   ...
@@ -162,13 +164,19 @@ public class WriteFamilyXML {
          ArrayList<Pin> category = categories.get(p);
          if (category != null) {
             for (Pin pinInformation:category) {
-               writePinMapping(documentUtilities, pinInformation);
+               writePin(documentUtilities, pinInformation);
             }
          }
       }
       documentUtilities.closeTag();
    }
 
+   /**
+    * Write XML for peripherals
+    * 
+    * @param documentUtilities
+    * @throws IOException
+    */
    void writePeripherals(XmlDocumentUtilities documentUtilities) throws IOException {
       documentUtilities.openTag("peripherals");
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
@@ -251,6 +259,7 @@ public class WriteFamilyXML {
       documentUtilities.closeTag();
 
       writePeripherals(documentUtilities);
+//      writeSignals(documentUtilities);
       writePins(documentUtilities);
       writePackages(documentUtilities);
       

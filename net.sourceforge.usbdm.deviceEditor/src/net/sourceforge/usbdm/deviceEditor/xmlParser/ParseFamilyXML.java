@@ -9,6 +9,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
@@ -37,7 +38,8 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "mux") {
-            factory.createMapping(factory.findOrCreatePeripheralFunction(element.getAttribute("function")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
+//            factory.createMapping(factory.findSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
+            factory.createMapping(factory.findOrCreateSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
          }
          else if (element.getTagName() == "reset") {
             MuxSelection muxSelection = MuxSelection.valueOf(element.getAttribute("sel"));
@@ -177,6 +179,32 @@ public class ParseFamilyXML extends XML_BaseParser {
       }
    }
 
+   private void parseSignals(Element signalsElement) throws Exception {
+      for (Node node = signalsElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "signal") {
+            parseSignal(element);
+         }
+         else {
+            throw new RuntimeException("Unexpected field in SIGNALS, value = \'"+element.getTagName()+"\'");
+         }
+      }
+   }
+
+   private void parseSignal(Element peripheralElement) throws Exception {
+      String signalName     = peripheralElement.getAttribute("name");
+      String peripheralName = peripheralElement.getAttribute("peripheral");
+
+      factory.findPeripheral(peripheralName, Mode.fail);
+      factory.findOrCreateSignal(signalName);
+   }
+
+
    // Peripherals not implied by the pins
    ArrayList<Pattern> predefinedPeripherals = new ArrayList<Pattern>();
    
@@ -268,14 +296,17 @@ public class ParseFamilyXML extends XML_BaseParser {
          if (element.getTagName() == "family") {
             parseFamily(path, element);
          }
+         else if (element.getTagName() == "peripherals") {
+            parsePeripherals(element);
+         }
+         else if (element.getTagName() == "signals") {
+            parseSignals(element);
+         }
          else if (element.getTagName() == "pins") {
             parsePins(element);
          }
          else if (element.getTagName() == "packages") {
             parsePackages(element);
-         }
-         else if (element.getTagName() == "peripherals") {
-            parsePeripherals(element);
          }
          else {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");

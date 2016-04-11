@@ -445,6 +445,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (muxValue == MuxSelection.fixed) {
          fResetMuxValue    = MuxSelection.fixed;
          fDefaultMuxValue  = MuxSelection.fixed;
+         fMuxValue         = MuxSelection.fixed;
       }
       MappingInfo mapInfo = fMappedSignals.get(muxValue);
       if (mapInfo == null) {

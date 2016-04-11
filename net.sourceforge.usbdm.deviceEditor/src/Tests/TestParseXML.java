@@ -26,14 +26,14 @@ public class TestParseXML {
       Path directory = Paths.get("");
       
       // Locate data output directory  
-      Path outputDirectory = directory.resolve("xml2");
+      Path outputDirectory = directory.resolve("usbdm2");
 
       // Create output directories if needed  
       if (!outputDirectory.toFile().exists()) {
          Files.createDirectory(outputDirectory);
       }
       DeviceInfo deviceInfo = null;
-      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("xml").toAbsolutePath(), xmlFilter);
+      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("usbdm").toAbsolutePath(), xmlFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {
             continue;
@@ -77,8 +77,8 @@ public class TestParseXML {
          System.err.print("Peripheral = " + peripheralName+", ");
       };
       System.err.println();
-      for(String peripheralFunction:deviceInfo.getPeripheralFunctions().keySet()) {
-         System.err.print("PeripheralFunction = " + peripheralFunction + ", ");
+      for(String signals:deviceInfo.getSignals().keySet()) {
+         System.err.print("Signal = " + signals + ", ");
       };
       System.err.println();
 

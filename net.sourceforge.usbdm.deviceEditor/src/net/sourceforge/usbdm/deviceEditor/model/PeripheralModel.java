@@ -17,7 +17,7 @@ public final class PeripheralModel extends BaseModel {
    public static PeripheralModel createPeripheralModel(BaseModel parent, Peripheral peripheral) {
       
       PeripheralModel peripheralModel = new PeripheralModel(parent, peripheral);
-      TreeMap<String, Signal> peripheralFunctions = peripheral.getFunctions();
+      TreeMap<String, Signal> peripheralFunctions = peripheral.getSignals();
       for (String peripheralFunctionName:peripheralFunctions.keySet()) {
          Signal peripheralFunction = peripheralFunctions.get(peripheralFunctionName);
          if (peripheralFunction.isAvailableInPackage()) {
