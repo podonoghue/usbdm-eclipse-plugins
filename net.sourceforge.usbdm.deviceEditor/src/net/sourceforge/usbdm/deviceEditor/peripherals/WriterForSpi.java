@@ -4,20 +4,32 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-public class WriterForSpi extends Peripheral {
+public class WriterForSpi extends PeripheralWithState {
 
    static final String ALIAS_BASE_NAME       = "spi_";
    static final String CLASS_BASE_NAME       = "Spi";
    static final String INSTANCE_BASE_NAME    = "spi";
 
+   /* Keys for SPI */
+   private static final String SPI_MODE_KEY              = "MODE";
+   private static final String SPI_LSBE_KEY              = "LSBE";
+   private static final String SPI_SPEED_KEY             = "SPEED";
+   private static final String SPI_IRQ_LEVEL_KEY         = "IRQ_LEVEL";
+
    public WriterForSpi(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
+      createValue(SPI_MODE_KEY,                "0",  "SPI Mode",              0, 3);
+      createValue(SPI_LSBE_KEY,                "0",  "Transmission order",    0, 1);
+      createValue(SPI_SPEED_KEY,        "10000000",  "Speed",                 0, 10000000);
+      createValue(SPI_IRQ_LEVEL_KEY,           "0", "IRQ Level in NVIC [0-15]", 0, 15);
    }
 
    @Override
@@ -66,6 +78,7 @@ public class WriterForSpi extends Peripheral {
 
    @Override
    public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
+      // No aliases
       return null;
    }
 
@@ -79,15 +92,101 @@ public class WriterForSpi extends Peripheral {
       return "extern " + getDefinition(mappingInfo, fnIndex);
    }
 
+   static final String TEMPLATE = 
+         "   //! Default communication mode: order, clock phase and clock polarity\n"+
+         "   static constexpr uint32_t modeValue = (${"+SPI_LSBE_KEY+"}<<SPI_CTAR_LSBFE_SHIFT)|(${"+SPI_MODE_KEY+"}<<SPI_CTAR_CPHA_SHIFT);\n\n" +
+         "   //! Default speed (Hz)\n"+
+         "   static constexpr uint32_t speed = ${"+SPI_SPEED_KEY+"};\n\n"+
+         "   //! Default IRQ level\n"+
+         "   static constexpr uint32_t irqLevel =  ${"+SPI_IRQ_LEVEL_KEY+"};\n\n";
+   
    @Override
-   public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.fInfoTable.table.size();
-      String name = getClassName();
-      StringBuffer buff = new StringBuffer();
-      for (int index=PCS_START; index<super.fInfoTable.table.size(); index++) {
-         buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index-PCS_START, name, index));
-      }
-      pinMappingHeaderFile.write(buff.toString());
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      pinMappingHeaderFile.write(substitute(TEMPLATE, fVariableMap));
    }
 
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      BaseModel models[] = {
+            new CategoryModel(parent, getName(), getDescription()),
+         };
+
+      new SimpleSelectionModel(models[0], this, SPI_MODE_KEY, "") {
+         {
+            setName(fVariableMap.get(SPI_MODE_KEY).name);
+            setToolTip("Communication modes");
+         }
+         @Override
+         protected String[] getChoicesArray() {
+            String SELECTION_NAMES[] = {
+                  "Mode 0",
+                  "Mode 1",
+                  "Mode 2",
+                  "Mode 3",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+      };
+
+      new SimpleSelectionModel(models[0], this, SPI_LSBE_KEY, "") {
+         {
+            setName(fVariableMap.get(SPI_LSBE_KEY).name);
+            setToolTip("Transmission order");
+         }
+         @Override
+         protected String[] getChoicesArray() {
+            String SELECTION_NAMES[] = {
+                  "0: MSB first",
+                  "1: LSB first",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+      };
+      
+      new VariableModel(models[0], this, SPI_SPEED_KEY).setName(fVariableMap.get(SPI_SPEED_KEY).name);
+
+      new VariableModel(models[0], this, SPI_IRQ_LEVEL_KEY).setName(fVariableMap.get(SPI_IRQ_LEVEL_KEY).name);
+
+      return models;
+   }
+
+   @Override
+   public VariableInfo getVariableInfo(String key) {
+      return fVariableMap.get(key);
+   }
+
+//   @Override
+//   public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
+//      String name = getClassName();
+//      StringBuffer buff = new StringBuffer();
+//      for (int index=PCS_START; index<super.fInfoTable.table.size(); index++) {
+//         buff.append(String.format("using %s_PCS%s = USBDM::PcrTable_T<USBDM::%sInfo, %s>;\n", name, index-PCS_START, name, index));
+//      }
+//      pinMappingHeaderFile.write(buff.toString());
+//   }
 }

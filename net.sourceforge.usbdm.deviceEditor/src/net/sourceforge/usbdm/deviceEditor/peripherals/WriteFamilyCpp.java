@@ -41,7 +41,7 @@ public class WriteFamilyCpp {
    private final static String PIN_MAPPING_BASEFILENAME   = "pin_mapping";
 
    /** Base name for C++ files */
-   private final static String GPIO_BASEFILENAME          = "gpio";
+   private final static String HARDWARE_BASEFILENAME          = "hardware";
 
    /** Fixed GPIO multiplexor function */
    private int      gpioFunctionMuxValue          = 1; 
@@ -456,9 +456,6 @@ public class WriteFamilyCpp {
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         MuxSelection                    a = pin.getMuxValue();
-         Map<MuxSelection, MappingInfo>  b = pin.getMappedSignals();
-         MappingInfo                     c = b.get(a);
          
          String signal = pin.getMappedSignals().get(pin.getMuxValue()).getSignalList();
          writer.write(String.format(DOCUMENTATION_TEMPLATE,
@@ -536,7 +533,7 @@ public class WriteFamilyCpp {
       writeClockMacros(writer);
       writePeripheralInformationClasses(writer);
 
-      writer.writeHeaderFileInclude("gpio_defs.h");
+      writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME+".h");
 
       writePeripheralCTemplates(writer);
 
@@ -559,12 +556,12 @@ public class WriteFamilyCpp {
       DocumentUtilities writer = new DocumentUtilities(cppFile);
       
       writer.writeCppFilePreamble(
-            GPIO_BASEFILENAME+".cpp", fDeviceInfo.getSourceFilename(),
+            HARDWARE_BASEFILENAME+".cpp", fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceVariantName());
 
 
-      writer.writeHeaderFileInclude("gpio.h");
+      writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME+".h");
       writer.write("\n");
 
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
@@ -590,7 +587,7 @@ public class WriteFamilyCpp {
       }
       fDeviceInfo = deviceInfo;
       writePinMappingHeaderFile(directory.resolve("Project_Headers").resolve(PIN_MAPPING_BASEFILENAME+filename+".h"));
-      writePinMappingCppFile(directory.resolve("Sources").resolve(GPIO_BASEFILENAME+filename+".cpp"));
+      writePinMappingCppFile(directory.resolve("Sources").resolve(HARDWARE_BASEFILENAME+filename+".cpp"));
    }
    
    /**
@@ -627,7 +624,7 @@ public class WriteFamilyCpp {
       Path directory = Paths.get(project.getLocation().toPortableString());
       
       writePinMappingHeaderFile(directory.resolve(INCLUDE_DIRECTORY).resolve(PIN_MAPPING_BASEFILENAME+".h"));
-      writePinMappingCppFile(directory.resolve(SOURCE_DIRECTORY).resolve(GPIO_BASEFILENAME+".cpp"));
+      writePinMappingCppFile(directory.resolve(SOURCE_DIRECTORY).resolve(HARDWARE_BASEFILENAME+".cpp"));
       
       IFile file;
       
@@ -635,7 +632,7 @@ public class WriteFamilyCpp {
       file.refreshLocal(IResource.DEPTH_ONE, mon);
       file.setDerived(true, mon);
       
-      file = project.getFile(SOURCE_DIRECTORY+"/"+GPIO_BASEFILENAME+".cpp");
+      file = project.getFile(SOURCE_DIRECTORY+"/"+HARDWARE_BASEFILENAME+".cpp");
       file.refreshLocal(IResource.DEPTH_ONE, mon);
       file.setDerived(true, mon);
    }

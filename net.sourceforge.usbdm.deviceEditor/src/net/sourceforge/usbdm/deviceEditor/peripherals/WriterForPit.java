@@ -16,12 +16,19 @@ public class WriterForPit extends PeripheralWithState {
 
    static final String ALIAS_PREFIX       = "pit_";
 
-   /** Key for PIT_LDVAL */
-   private static final String PIT_LDVAL_KEY = "PIT_LDVAL";
+   /* Keys for PIT */
+   private static final String PIT_LDVAL_KEY              = "LDVAL";
+   private static final String PIT_MCR_FRZ_KEY            = "MCR_FRZ";
+   private static final String PIT_IRQ_LEVEL_KEY          = "IRQ_LEVEL";
+   private static final String PIT_USES_NAKED_HANDLER_KEY = "USES_NAKED_HANDLER";
+   
    
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      createValue(PIT_LDVAL_KEY, "2000", "Reload value [0-65535]", 0, 65535);
+      createValue(PIT_LDVAL_KEY,                "2000",  "Reload value [0-65535]",        0, 65535);
+      createValue(PIT_USES_NAKED_HANDLER_KEY,   "0",     "Use naked handler",             0, 1);
+      createValue(PIT_MCR_FRZ_KEY,              "0",     "PIT Freeze in debug mode",      0, 1);
+      createValue(PIT_IRQ_LEVEL_KEY,            "0",     "PIT IRQ Level in NVIC [0-15]",  0, 15);
    }
 
    @Override
@@ -91,7 +98,13 @@ public class WriterForPit extends PeripheralWithState {
 
    static final String TEMPLATE = 
          "   //! Default value for PIT->SC register\n"+
-         "   static constexpr uint32_t pitLoadValue  = ${PIT_LDVAL};\n\n";
+         "   static constexpr uint32_t loadValue  = ${"+PIT_LDVAL_KEY+"};\n\n"+
+         "   //! PIT operation in debug mode\n"+
+         "   static constexpr uint32_t mcrValue = (${"+PIT_MCR_FRZ_KEY+"}<<PIT_MCR_FRZ_SHIFT);\n\n" +
+         "   //! PIT IRQ Level in NVIC\n"+
+         "   static constexpr uint32_t irqLevel = ${"+PIT_IRQ_LEVEL_KEY+"};\n\n"+
+         "   //! Indicates that naked interrupt handlers are used rather that software table\n"+
+         "   #define PIT_USES_NAKED_HANDLER ${"+PIT_USES_NAKED_HANDLER_KEY+"}\n\n";
    
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
@@ -104,11 +117,64 @@ public class WriterForPit extends PeripheralWithState {
       BaseModel models[] = {
             new CategoryModel(parent, getName(), getDescription()),
          };
-      for (String key:fVariableMap.keySet()) {
-         VariableInfo variableInfo = fVariableMap.get(key);
-         VariableModel model = new VariableModel(models[0], this, key);
-         model.setName(variableInfo.name);
-      }
+
+      new VariableModel(models[0], this, PIT_LDVAL_KEY).setName(fVariableMap.get(PIT_LDVAL_KEY).name);
+
+      new SimpleSelectionModel(models[0], this, PIT_USES_NAKED_HANDLER_KEY, "") {
+         {
+            setName(fVariableMap.get(PIT_USES_NAKED_HANDLER_KEY).name);
+            setToolTip("The interrupt handler may use an external functions named PITx_IRQHandler() or\n"+
+                       "may be set by use of the setCallback() function");
+         }
+         @Override
+         protected String[] getChoicesArray() {
+            String SELECTION_NAMES[] = {
+                  "0: Interrupt handlers are programmatically set",
+                  "1: External functions PITx_IRQHandler() are used",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+      };
+
+      new SimpleSelectionModel(models[0], this, PIT_MCR_FRZ_KEY, "") {
+         {
+            setName(fVariableMap.get(PIT_MCR_FRZ_KEY).name);
+            setToolTip(" When FRZ is set, the PIT will pause when in debug mode");
+         }
+         @Override
+         protected String[] getChoicesArray() {
+            String SELECTION_NAMES[] = {
+                  "0: Timers continue to run in debug mode",
+                  "1: Timers are stopped in Debug mode",
+                  "Default"
+            };
+            return SELECTION_NAMES;
+         }
+
+         @Override
+         protected String[] getValuesArray() {
+            final String VALUES[] = {
+                  "0",
+                  "1",
+                  "0", // Default
+            };
+            return VALUES;
+         }
+      };
+
+      new VariableModel(models[0], this, PIT_IRQ_LEVEL_KEY).setName(fVariableMap.get(PIT_IRQ_LEVEL_KEY).name);
+
       return models;
    }
 

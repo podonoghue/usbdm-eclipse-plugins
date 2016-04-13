@@ -849,5 +849,9 @@ public class DocumentUtilities {
       fWriter.write(string);
    }
 
+   public void flush() throws IOException {
+      fWriter.flush();
+   }
+
 }
    
