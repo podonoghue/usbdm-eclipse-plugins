@@ -86,11 +86,11 @@ public class TreeEditor {
       fColumns = new TreeViewerColumn[3];
       
       fColumns[0] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[0].getColumn().setWidth(300);
+      fColumns[0].getColumn().setWidth(350);
       fColumns[0].setLabelProvider(new NameColumnLabelProvider());
 
       fColumns[1] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[1].getColumn().setWidth(300);
+      fColumns[1].getColumn().setWidth(450);
       fColumns[1].setEditingSupport(new ValueColumnEditingSupport(fViewer));
       fColumns[1].setLabelProvider(new ValueColumnLabelProvider());
       

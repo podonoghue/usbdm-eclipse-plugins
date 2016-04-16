@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 public class ParseFamilyXML extends XML_BaseParser {
 
    /** Device Information */
-   private DeviceInfo factory = null;
+   private DeviceInfo fDeviceInfo = null;
 
    /**
     * Parse &lt;pin&gt;
@@ -28,7 +28,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     */
    private void parsePin(Element pinElement) {
 
-      Pin pin = factory.createPin(pinElement.getAttribute("name"));
+      Pin pin = fDeviceInfo.createPin(pinElement.getAttribute("name"));
 
       for (Node node = pinElement.getFirstChild();
             node != null;
@@ -39,7 +39,7 @@ public class ParseFamilyXML extends XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == "mux") {
 //            factory.createMapping(factory.findSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
-            factory.createMapping(factory.findOrCreateSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
+            fDeviceInfo.createMapping(fDeviceInfo.findOrCreateSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
          }
          else if (element.getTagName() == "reset") {
             MuxSelection muxSelection = MuxSelection.valueOf(element.getAttribute("sel"));
@@ -84,13 +84,12 @@ public class ParseFamilyXML extends XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private void parseFamily(Path path, Element familyElement) throws Exception {
+   private void parseFamily(Element familyElement) throws Exception {
 
-      factory = new DeviceInfo(path);
-      factory.initialiseTemplates();
+      fDeviceInfo.initialiseTemplates();
 
       String familyName = familyElement.getAttribute("name");
-      factory.setFamilyName(familyName);
+      fDeviceInfo.setFamilyName(familyName);
       
       for (Node node = familyElement.getFirstChild();
             node != null;
@@ -103,7 +102,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             String name        = element.getAttribute("name");
             String manual      = element.getAttribute("manual");
             String packageName = element.getAttribute("package");
-            factory.createDeviceInformation(name, manual, packageName);
+            fDeviceInfo.createDeviceInformation(name, manual, packageName);
          }
          else {
             throw new RuntimeException("Unexpected field in FAMILYT, value = \'"+element.getTagName()+"\'");
@@ -128,9 +127,9 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName()  == "placement") {
-            Pin pin           = factory.findPin(element.getAttribute("pin"));
+            Pin pin           = fDeviceInfo.findPin(element.getAttribute("pin"));
             String         location      = element.getAttribute("location");
-            DevicePackage  devicePackage = factory.findDevicePackage(packageName);
+            DevicePackage  devicePackage = fDeviceInfo.findDevicePackage(packageName);
             devicePackage.addPin(pin, location);
          }
          else {
@@ -200,8 +199,8 @@ public class ParseFamilyXML extends XML_BaseParser {
       String signalName     = peripheralElement.getAttribute("name");
       String peripheralName = peripheralElement.getAttribute("peripheral");
 
-      factory.findPeripheral(peripheralName, Mode.fail);
-      factory.findOrCreateSignal(signalName);
+      fDeviceInfo.findPeripheral(peripheralName, Mode.fail);
+      fDeviceInfo.findOrCreateSignal(signalName);
    }
 
 
@@ -229,11 +228,11 @@ public class ParseFamilyXML extends XML_BaseParser {
             if (peripheral!=null) {
                throw new RuntimeException("Peripheral already created");
             }
-            peripheral = factory.createPeripheral(baseName, instance, element.getAttribute("class"), element.getAttribute("parameters"));
+            peripheral = fDeviceInfo.createPeripheral(baseName, instance, element.getAttribute("class"), element.getAttribute("parameters"));
          }
          else if (element.getTagName() == "clock") {
             if (peripheral==null) {
-               peripheral = factory.createPeripheral(baseName, instance);
+               peripheral = fDeviceInfo.createPeripheral(baseName, instance);
             }
             peripheral.setClockInfo(element.getAttribute("clockReg"), element.getAttribute("clockMask"));
          }
@@ -273,12 +272,14 @@ public class ParseFamilyXML extends XML_BaseParser {
 
    /**
     * Parses document from top element
+    * @param deviceInfo 
     * @return 
     * 
     * @throws Exception
     */
-   public DeviceInfo parseFile(Path path) throws Exception {
+   public void parseFile(DeviceInfo deviceInfo, Path path) throws Exception {
 
+      fDeviceInfo = deviceInfo;
       Document document = parseXmlFile(path);
 
       Element documentElement = document.getDocumentElement();
@@ -294,7 +295,7 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "family") {
-            parseFamily(path, element);
+            parseFamily(element);
          }
          else if (element.getTagName() == "peripherals") {
             parsePeripherals(element);
@@ -312,8 +313,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }      
-      factory.consistencyCheck();
-      return factory;
+      fDeviceInfo.consistencyCheck();
    }
 
 }

@@ -9,26 +9,34 @@ import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
 public class ValueColumnLabelProvider extends ColumnLabelProvider{
    private  Image lockedImage    = null;
+   private  Image checkedImage   = null;
+   private  Image uncheckedImage = null;
    final    Color disabledColour = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW);
 
    ValueColumnLabelProvider() {
       super();
+      if (Activator.getDefault() != null) {
+         lockedImage = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+         checkedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+         uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+      }
    }
 
    @Override
    public Image getImage(Object element) {
-      if ((lockedImage == null) && (Activator.getDefault() != null)) {
-         lockedImage = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
-      }
       if (element instanceof BaseModel) {
          BaseModel model = (BaseModel) element;
          if (model.isLocked()) {
             return lockedImage;
          }
+      }
+      if (element instanceof BinaryModel) {
+         return ((Boolean)((BinaryModel)element).getBooleanValue())?checkedImage:uncheckedImage;
       }
       return null;
    }

@@ -4,20 +4,20 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 
 public class TestParseXML {
    
-   private static final DirectoryStream.Filter<Path>xmlFilter = new DirectoryStream.Filter<Path>() {
+   private static final DirectoryStream.Filter<Path> sourceFilter = new DirectoryStream.Filter<Path>() {
       @Override
       public boolean accept(Path path) throws IOException {
-         return path.getFileName().toString().matches(".*\\.hardware$");
+         return path.getFileName().toString().matches(".*"+Pattern.quote(DeviceInfo.HARDWARE_FILE_EXTENSION)+"$");
       }
    };
 
@@ -32,8 +32,7 @@ public class TestParseXML {
       if (!outputDirectory.toFile().exists()) {
          Files.createDirectory(outputDirectory);
       }
-      DeviceInfo deviceInfo = null;
-      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("usbdm").toAbsolutePath(), xmlFilter);
+      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("usbdm").toAbsolutePath(), sourceFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {
             continue;
@@ -43,9 +42,8 @@ public class TestParseXML {
           */
          System.err.println("Processing " + filePath.getFileName() + " ======================== ");
          
-         ParseFamilyXML parser = new ParseFamilyXML();
-         deviceInfo = parser.parseFile(filePath);
-         
+         DeviceInfo deviceInfo = DeviceInfo.create(filePath);
+
 //         report(deviceInfo);
          
          WriteFamilyXML writer = new WriteFamilyXML();

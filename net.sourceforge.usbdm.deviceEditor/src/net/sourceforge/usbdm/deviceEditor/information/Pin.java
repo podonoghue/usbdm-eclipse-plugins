@@ -282,7 +282,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       // Set current value to default if not already set
       if ((fMuxValue == MuxSelection.unused) || (fMuxValue == MuxSelection.reset)) {
-         fMuxValue = mux;
+         setMuxSelection(mux);
       }
       fDefaultMuxValue = mux;
    }
@@ -294,7 +294,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public MuxSelection getDefaultValue() {
       if (fMuxValue == MuxSelection.unused) {
-         fMuxValue = fResetMuxValue;
+         setMuxSelection(fResetMuxValue);
       }
       return fDefaultMuxValue;
    }
@@ -392,6 +392,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public void setPinUseDescription(String pinUseDescription) {
       fPinUseDescription = pinUseDescription;
+      fDeviceInfo.setDirty(true);
       notifyListeners();
    }
 
@@ -445,7 +446,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (muxValue == MuxSelection.fixed) {
          fResetMuxValue    = MuxSelection.fixed;
          fDefaultMuxValue  = MuxSelection.fixed;
-         fMuxValue         = MuxSelection.fixed;
+         setMuxSelection(MuxSelection.fixed);
       }
       MappingInfo mapInfo = fMappedSignals.get(muxValue);
       if (mapInfo == null) {
@@ -487,7 +488,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param settings Settings object
     */
    public void saveSettings(DialogSettings settings) {
-      if (fMuxValue != fDefaultMuxValue) {
+      if ((fMuxValue != fDefaultMuxValue) && (fMuxValue != MuxSelection.fixed)) {
          settings.put(fName+MUX_SETTINGS_KEY, fMuxValue.name());
       }
       String desc = getPinUseDescription();
@@ -528,6 +529,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             }
             // Select this signal
             fMuxValue = mappingInfo.getMux();
+            fDeviceInfo.setDirty(true);
          }
          else {
             // Signal may have been unmapped
@@ -537,6 +539,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
                return;
             }
             fMuxValue = fResetMuxValue;
+            fDeviceInfo.setDirty(true);
          }
       }
 //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");

@@ -1,19 +1,32 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAnalogueIO;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
@@ -22,12 +35,13 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
+import net.sourceforge.usbdm.jni.Usbdm;
 
 public class DeviceInfo extends ObservableModel {
 
@@ -46,14 +60,11 @@ public class DeviceInfo extends ObservableModel {
    /** Device families */
    public enum DeviceFamily {mk, mke, mkl, mkm};
 
-   /** Path of source file containing device description */
-   private final Path fSourcePath;
+   /** Path of file containing device hardware description */
+   private Path fHardwarePath;
 
-   /** Name of device configuration file e.g. MK22FA12_64p.hardware */
-   private String fDeviceFilename;
-
-   /** Name of project file e.g. MK22FA12_64p.UsbdmProject */
-   private String fProjectFilename;
+   /** Path of file containing project settings */
+   private Path fProjectSettingsPath;
 
    /** Family name of device */
    private String fFamilyName = null;
@@ -62,19 +73,124 @@ public class DeviceInfo extends ObservableModel {
    private DeviceFamily fDeviceFamily = null;
 
    /** Indicates if the data has changed since being loaded */
-   private boolean fIsDirty = false;;
+   private boolean fIsDirty = false;
+
+   /** File name extension for project file */
+   public static final String PROJECT_FILE_EXTENSION = ".usbdmProject";
+
+   /** File name extension for hardware description file */
+   public static final String HARDWARE_FILE_EXTENSION = ".usbdmHardware";
+
+   /** File name extension for hardware description file (CSV format) */
+   public static final String HARDWARE_CSV_FILE_EXTENSION = ".csv";
+
+   /** Key for device variant persistence */
+   public static final String DEVICE_VARIANT_SETTINGS_KEY  = "DeviceInfo_deviceVariant"; 
+
+   /** Key for hardware source file persistence */
+   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
+
+   /** Directory in Eclipse project for USBDM settings */
+   public static final String USBDM_PROJECT_DIRECTORY = "usbdm";
+
+   /** Name of default USBDM project file in Eclipse project */
+   public static final String USBDM_PROJECT_FILENAME = "Configure";
+   
+   /** Relative location of hardware files in USBDM installation */
+   public static final String USBDM_HARDWARE_LOCATION = "Stationery/Packages/180.ARM_Peripherals/Hardware";
    
    /**
     * Create device information
     * 
-    * @param filePath   File name
-    * @param deviceName       Device name
+    * @param filePath     File path to either .usbdmProject or .usbdmHardware file
     */
-   public DeviceInfo(Path filePath) {
+   private DeviceInfo() {
+   }
 
-      fSourcePath            = filePath.toAbsolutePath();
-      fDeviceFilename  = fSourcePath.getFileName().toString();
-      fProjectFilename = fDeviceFilename.replace(".hardware", ".UsbdmProject");
+   /**
+    * Create device hardware description from given file<br>
+    * An associated settings file may be opened if a <b>.usbdmHardware</b> file is provided
+    * 
+    * @param filePath   Path to <b>.usbdmProject</b> or <b>.usbdmHardware</b> file
+    * 
+    * @return Create hardware description for device
+    * 
+    * @throws Exception
+    */
+   public static DeviceInfo create(Path filePath) throws Exception {
+      Path   path      = filePath.toAbsolutePath();
+      Path   folder    = filePath.getParent();     
+      String filename  = path.getFileName().toString();
+
+      String projectFilename  = null;
+      String hardwareFilename = null;
+      if (filename.endsWith(HARDWARE_FILE_EXTENSION)) {
+         hardwareFilename = filename;
+         projectFilename  = filename.replaceAll("(^.*)"+Pattern.quote(HARDWARE_FILE_EXTENSION)+"$", "$1"+PROJECT_FILE_EXTENSION);
+      }
+      else if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+         hardwareFilename = filename;
+         projectFilename  = filename.replaceAll("(^.*)"+Pattern.quote(HARDWARE_CSV_FILE_EXTENSION)+"$", "$1"+PROJECT_FILE_EXTENSION);
+      }
+      else if (filename.endsWith(PROJECT_FILE_EXTENSION)) {
+         projectFilename   = filename;
+         hardwareFilename  = null;
+      }
+      else {
+         throw new RuntimeException("Unknown file type " + filePath);
+      }
+
+      // Save project settings file path
+      Path projectSettingsPath = folder.resolve(projectFilename);
+
+      DeviceInfo deviceInfo = new DeviceInfo();
+      DialogSettings projectSettings = deviceInfo.getSettings(projectSettingsPath);
+
+      if ((hardwareFilename == null) && (projectSettings != null)) {
+         // Use hardware filename from settings if not explicitly given
+         hardwareFilename = projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY);
+      }
+      if (hardwareFilename == null) {
+         throw new RuntimeException("Unable to determine hardware description file");
+      }
+
+      // Look for hardware file in current directory
+      Path hardwarePath = folder.resolve(hardwareFilename);
+      if (!hardwarePath.toFile().exists()) {
+         // Look for hardware file in USBDM directory
+         hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(hardwareFilename);
+      }
+      if (!hardwarePath.toFile().exists()) {
+         throw new RuntimeException("Unable to locate hardware description file " + hardwarePath);
+      }
+
+      deviceInfo.parse(hardwarePath);
+      if (projectSettings != null) {
+         deviceInfo.loadSettings(projectSettings);
+      }
+      return deviceInfo;
+   }
+
+   /**
+    * Load hardware description from file
+    * 
+    * @param hardwarePath  Path to load from
+    * 
+    * @throws Exception
+    */
+   private void parse(Path hardwarePath) throws Exception {
+      fHardwarePath = hardwarePath;
+      if (fHardwarePath.getFileName().toString().endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+         ParseFamilyCSV parser = new ParseFamilyCSV();
+         parser.parseFile(this, fHardwarePath);
+      }
+      else if ((fHardwarePath.getFileName().toString().endsWith("xml"))||(fHardwarePath.getFileName().toString().endsWith(HARDWARE_FILE_EXTENSION))) {
+         ParseFamilyXML parser = new ParseFamilyXML();
+         parser.parseFile(this, fHardwarePath);
+      }
+      else {
+         throw new Exception("Unexpected file type for " + hardwarePath);
+      }
    }
 
    /**
@@ -90,10 +206,10 @@ public class DeviceInfo extends ObservableModel {
          if (fFamilyName.startsWith("MKE")) {
             fDeviceFamily = DeviceFamily.mke;
          }
-         else if (fDeviceFilename.startsWith("MKL")) {
+         else if (fFamilyName.startsWith("MKL")) {
             fDeviceFamily = DeviceFamily.mkl;
          }
-         else if (fDeviceFilename.startsWith("MKM")) {
+         else if (fFamilyName.startsWith("MKM")) {
             fDeviceFamily = DeviceFamily.mkm;
          }
          else {
@@ -132,7 +248,7 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public Path getSourcePath() {
-      return fSourcePath;
+      return fHardwarePath;
    }
 
    /**
@@ -140,7 +256,7 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public String getSourceFilename() {
-      return fSourcePath.getFileName().toString();
+      return fHardwarePath.getFileName().toString();
    }
 
    /*
@@ -174,7 +290,7 @@ public class DeviceInfo extends ObservableModel {
       fPeripheralsMap.put(name, peripheral);
       return peripheral;
    }
-   
+
    /**
     * Create peripheral with given name and instance
     * 
@@ -188,10 +304,10 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception
     */
    public Peripheral createPeripheral(String baseName, String instance, String className, String parameters) throws Exception {
-//      String args[] = null;
-//      if (parameters != null) {
-//         args = parameters.split(",");
-//      }
+      //      String args[] = null;
+      //      if (parameters != null) {
+      //         args = parameters.split(",");
+      //      }
       Peripheral peripheral = null;
       try {
          // Get peripheral class
@@ -205,7 +321,7 @@ public class DeviceInfo extends ObservableModel {
       }
       return peripheral;
    }
-   
+
    /**
     * Create peripheral with given name and instance
     * 
@@ -221,7 +337,7 @@ public class DeviceInfo extends ObservableModel {
       }
       return findOrCreatePeripheral(baseName+instance);
    }
-   
+
    /**
     * Find or Create a peripheral<br>
     * e.g. findOrCreatePeripheral("FTM0") => <i>Peripheral</i>(FTM, 0)<br>
@@ -246,22 +362,22 @@ public class DeviceInfo extends ObservableModel {
    }
 
 
-//   /**
-//    * Find or create a peripheral
-//    * 
-//    * @param baseName   Base name e.g. FTM3 => FTM
-//    * @param instance   Instance of peripheral e.g. FTM2 => 2 
-//    * @param mode       Mode.anyInstance to allow null instances  
-//    * 
-//    * @return
-//    */
-//   public Peripheral findOrCreatePeripheral(String baseName, String instance, PeripheralTemplateInformation template) {  
-//      Peripheral p = fPeripheralsMap.get(baseName+instance);
-//      if (p == null) {
-//         p = createPeripheral(baseName, instance, template);
-//      }
-//      return p;
-//   }
+   //   /**
+   //    * Find or create a peripheral
+   //    * 
+   //    * @param baseName   Base name e.g. FTM3 => FTM
+   //    * @param instance   Instance of peripheral e.g. FTM2 => 2 
+   //    * @param mode       Mode.anyInstance to allow null instances  
+   //    * 
+   //    * @return
+   //    */
+   //   public Peripheral findOrCreatePeripheral(String baseName, String instance, PeripheralTemplateInformation template) {  
+   //      Peripheral p = fPeripheralsMap.get(baseName+instance);
+   //      if (p == null) {
+   //         p = createPeripheral(baseName, instance, template);
+   //      }
+   //      return p;
+   //   }
 
    /**
     * Find an existing peripheral
@@ -504,7 +620,7 @@ public class DeviceInfo extends ObservableModel {
    public Map<String, DevicePackage> getDevicePackages() {
       return fDevicePackages;
    }
-   
+
    /*
     * MappingInfo =============================================================================================
     */
@@ -551,7 +667,7 @@ public class DeviceInfo extends ObservableModel {
     * @return
     */
    public MappingInfo createMapping(Signal signal, Pin pinInformation, MuxSelection muxValue) {
-      
+
       MappingInfo mapInfo= pinInformation.addSignal(signal, muxValue);
       addToSignalMap(signal, mapInfo);
       return mapInfo;
@@ -1003,8 +1119,8 @@ public class DeviceInfo extends ObservableModel {
     * DmaInfo =============================================================================================
     */
 
-//   /** List of DMA channels */
-//   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
+   //   /** List of DMA channels */
+   //   private ArrayList<DmaInfo> fDmaInfoList = new ArrayList<DmaInfo>();
 
    /**
     * Create DMA information entry
@@ -1017,18 +1133,18 @@ public class DeviceInfo extends ObservableModel {
    public DmaInfo createDmaInfo(String dmaMux, int dmaChannelNumber, String dmaSource) {
       Peripheral dmaPeripheral = findOrCreatePeripheral(dmaMux);
       DmaInfo dmaInfo = dmaPeripheral.addDmaChannel(dmaChannelNumber, dmaSource);
-//      fDmaInfoList.add(dmaInfo);
+      //      fDmaInfoList.add(dmaInfo);
       return dmaInfo;
    }
 
-//   /**
-//    * Get list of DMA entries
-//    *  
-//    * @return
-//    */
-//   public ArrayList<DmaInfo> getDmaList() {
-//      return fDmaInfoList;
-//   }
+   //   /**
+   //    * Get list of DMA entries
+   //    *  
+   //    * @return
+   //    */
+   //   public ArrayList<DmaInfo> getDmaList() {
+   //      return fDmaInfoList;
+   //   }
 
    private final static HashMap<String, MuxSelection> exceptions = new  HashMap<String, MuxSelection>();
 
@@ -1102,18 +1218,25 @@ public class DeviceInfo extends ObservableModel {
       return pin.getName() + alias;
    }
 
-   /** Key for device variant persistence */
-   public static final String DEVICE_VARIANT_SETTINGS_KEY = "DeviceInfo_deviceVariant"; 
-   
+   /**
+    * Load persistent settings
+    * @throws IOException 
+    */
+   public DialogSettings getSettings(Path path) throws IOException {
+      fProjectSettingsPath = path;
+      if (path.toFile().isFile()) {
+         DialogSettings settings = new DialogSettings("USBDM");
+         settings.load(path.toAbsolutePath().toString());
+         return settings;
+      }
+      return null;
+   }
+
    /**
     * Load persistent settings
     */
-   public void loadSettings() {
-      Path path = fSourcePath.getParent().resolve(fProjectFilename);
-      if (path.toFile().isFile()) {
-         try {
-         DialogSettings settings = new DialogSettings("USBDM");
-         settings.load(path.toAbsolutePath().toString());
+   public void loadSettings(DialogSettings settings) {
+      try {
          String variantName = settings.get(DEVICE_VARIANT_SETTINGS_KEY);
          if (variantName != null) {
             setDeviceVariant(variantName);
@@ -1126,20 +1249,27 @@ public class DeviceInfo extends ObservableModel {
             Peripheral peripheral =  fPeripheralsMap.get(deviceName);
             peripheral.loadSettings(settings);
          }
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
+      } catch (Exception e) {
+         e.printStackTrace();
       }
       setDirty(false);
    }
-   
+
    /**
-    * Save persistent settings
+    * Save persistent settings to the current settings path
     */
    public void saveSettings() {
-      Path path = fSourcePath.getParent().resolve(fProjectFilename);
+      saveSettingsAs(fProjectSettingsPath);
+   }
+
+   /**
+    * Save persistent settings to the given path
+    */
+   public void saveSettingsAs(Path path) {
+      fProjectSettingsPath = path;
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
+      settings.put(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY, fHardwarePath.getFileName().toString());
       for (String pinName:fPins.keySet()) {
          Pin pin = fPins.get(pinName);
          pin.saveSettings(settings);
@@ -1149,7 +1279,7 @@ public class DeviceInfo extends ObservableModel {
          peripheral.saveSettings(settings);
       }
       try {
-         settings.save(path.toAbsolutePath().toString());
+         settings.save(fProjectSettingsPath.toAbsolutePath().toString());
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -1173,6 +1303,102 @@ public class DeviceInfo extends ObservableModel {
    public void setDirty(boolean dirty) {
       fIsDirty = dirty;
       notifyListeners();
+   }
+
+   /**
+    * Create device hardware description from Eclipse project files<br>
+    * 
+    * @param project    Project to load files from
+    * @param monitor
+    * 
+    * @return Created hardware description for device
+    * 
+    * @throws Exception
+    */
+   public static DeviceInfo create(IProject project, IProgressMonitor monitor) throws Exception {
+      monitor.subTask("Opening Project");
+
+      IFile projectFile = project.getFile(USBDM_PROJECT_DIRECTORY+"/"+USBDM_PROJECT_FILENAME+PROJECT_FILE_EXTENSION);
+      if (projectFile.exists()) {
+         // Load configuration
+         Path filePath = Paths.get(projectFile.getLocation().toPortableString());
+         return DeviceInfo.create(filePath);
+      }
+      return null;
+   }
+
+   /**
+    * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project
+    * 
+    * @param project       Destination Eclipse C++ project 
+    * @param monitor
+    */
+   public void generateCppFiles(IProject project, IProgressMonitor monitor) {
+      monitor.subTask("Generating CPP files");
+      
+      WriteFamilyCpp writer = new WriteFamilyCpp();
+      try {
+         writer.writeCppFiles(project, this, monitor);
+      } catch (IOException e) {
+         e.printStackTrace();
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
+   }
+
+   /**
+    * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project<br>
+    * Used during initial project creation
+    * 
+    * @param project       Eclipse C++ project 
+    * @param monitor
+    * 
+    * @throws Exception
+    */
+   static public void generateFiles(IProject project, IProgressMonitor monitor) {
+      SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+
+      // Load hardware project
+      DeviceInfo deviceInfo;
+      try {
+         deviceInfo = DeviceInfo.create(project, subMonitor);
+         if (deviceInfo != null) {
+            // Generate C++ code
+            deviceInfo.generateCppFiles(project, subMonitor);
+            deviceInfo.saveSettings(project);
+         }
+      } catch (Exception e) {
+        // Ignore
+      }
+   }
+   
+   /**
+    * Save persistent settings to the current settings path
+    * 
+    * @param project Associated project to refresh
+    */
+   public void saveSettings(IProject project) {
+      saveSettingsAs(fProjectSettingsPath, project);
+   }
+
+   /**
+    * Save persistent settings to the given path
+    * 
+    * @param project Associated project to refresh
+    */
+   public void saveSettingsAs(Path path, IProject project) {
+      saveSettingsAs(path);
+      try {
+         if (project != null) {
+            // Assume within project directory
+            IFolder settingsFolder = project.getFolder(USBDM_PROJECT_DIRECTORY);
+            if (settingsFolder.exists()) {
+               settingsFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
+            }
+         }
+      } catch (CoreException e) {
+         e.printStackTrace();
+      }
    }
 
 }

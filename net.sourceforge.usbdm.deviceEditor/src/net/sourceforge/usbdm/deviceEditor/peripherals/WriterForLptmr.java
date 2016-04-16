@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
@@ -32,15 +33,16 @@ public class WriterForLptmr extends PeripheralWithState {
    public WriterForLptmr(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
 
-      createValue(LPTMR_PSR_PCS_KEY,             "1", "Clock Source");
-      createValue(LPTMR_PSR_PBYP_KEY,            "1", "Prescaler Bypass");
-      createValue(LPTMR_PSR_PRESCALE_KEY,        "1", "Prescaler Value");
-      createValue(LPTMR_CSR_TMS_KEY,             "1", "Timer Mode Select");
-      createValue(LPTMR_CSR_TFC_KEY,             "1", "Timer Free-Running Counter");
-      createValue(LPTMR_CSR_TPP_KEY,             "1", "Timer Pin Polarity");
+      createValue(LPTMR_PSR_PCS_KEY,             "0", "Clock Source");
+      createValue(LPTMR_PSR_PRESCALE_KEY,        "0", "Prescaler Value");
       createValue(LPTMR_CSR_TPS_KEY,             "1", "Timer Pin Select");
       createValue(LPTMR_IRQ_LEVEL_KEY,           "0", "IRQ Level in NVIC [0-15]", 0, 15);
-      createValue(LPTMR_USES_NAKED_HANDLER_KEY,  "1", "Interrupt handler setup");
+
+      createValue(LPTMR_PSR_PBYP_KEY,            "0", "Prescaler Bypass");
+      createValue(LPTMR_CSR_TMS_KEY,             "0", "Timer Mode Select");
+      createValue(LPTMR_CSR_TFC_KEY,             "0", "Timer Free-Running Counter");
+      createValue(LPTMR_CSR_TPP_KEY,             "0", "Timer Pin Polarity");
+      createValue(LPTMR_USES_NAKED_HANDLER_KEY,  "0", "Interrupt handler setup");
    }
 
    @Override
@@ -77,7 +79,7 @@ public class WriterForLptmr extends PeripheralWithState {
             new CategoryModel(parent, getName(), getDescription()),
       };
 
-      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PCS_KEY, "[LPTMR_PSR_PCS]") {
+      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PCS_KEY, "[PSR_PCS]") {
          {
             setName(fVariableMap.get(LPTMR_PSR_PCS_KEY).name);
             setToolTip("Low Power Timer clock source");
@@ -85,10 +87,10 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getChoicesArray() {
             final String SELECTION_NAMES[] = {
-                  "0: MCG Internal Reference Clock (MCGIRCLK)",
-                  "1: Low power oscillator (LPO - 1kHz)",
-                  "2: 32kHz Clock Source (ERCLK32)",
-                  "3: Oscillator External Reference Clock (OSCERCLK)",
+                  "MCG Internal Reference Clock (MCGIRCLK)",
+                  "Low power oscillator (LPO - 1kHz)",
+                  "32kHz Clock Source (ERCLK32)",
+                  "Oscillator External Reference Clock (OSCERCLK)",
                   "Default"
             };
             return SELECTION_NAMES;
@@ -97,48 +99,14 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getValuesArray() {
             final String VALUES[] = {
-                  "0",
-                  "1",
-                  "2",
-                  "3",
-                  "1", // Default
+                  "0", "1", "2", "3", 
+                  "0", // Default
             };
             return VALUES;
          }
       };
 
-      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PBYP_KEY, "[LPTMR_PSR_PBYP]") {
-         {
-            setName(fVariableMap.get(LPTMR_PSR_PBYP_KEY).name);
-            setToolTip(
-                  "When PBYP is set:\n"+
-                  "- The selected prescaler clock in Time Counter mode or\n"+
-                  "  the selected input source in Pulse Counter mode, directly clocks the CNR.\n" +
-                  "When PBYP is clear:\n"+
-                  "- The CNR is clocked by the output of the prescaler/glitch filter");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            final String SELECTION_NAMES[] = {
-                  "0: Prescaler/glitch filter is enabled",
-                  "1: Prescaler/glitch filter is bypassed",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "1", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PRESCALE_KEY, "[LPTMR_PSR_PRESCALE]") {
+      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PRESCALE_KEY, "[PSR_PRESCALE]") {
          {
             setName(fVariableMap.get(LPTMR_PSR_PRESCALE_KEY).name);
             setToolTip(" Configures the size of the Prescaler in Time Counter mode or\n"+
@@ -147,22 +115,22 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getChoicesArray() {
             String SELECTION_NAMES[] = {
-                  "0:  Prescaler = 2, no glitch filter",
-                  "1:  Prescaler = 4, 2 clock glitch filter",
-                  "2:  Prescaler = 8, 4 clock glitch filter",
-                  "3:  Prescaler = 16, 8 clock glitch filter",
-                  "4:  Prescaler = 32, 16 clock glitch filter",
-                  "5:  Prescaler = 64, 32 clock glitch filter",
-                  "6:  Prescaler = 128, 64 clock glitch filter",
-                  "7:  Prescaler = 256, 128 clock glitch filter",
-                  "8:  Prescaler = 512, 256 clock glitch filter",
-                  "9:  Prescaler = 1024, 512 clock glitch filter",
-                  "10: Prescaler = 2048, 1024 clock glitch filter",
-                  "11: Prescaler = 4096, 2048 clock glitch filter",
-                  "12: Prescaler = 8192, 4096 clock glitch filter",
-                  "13: Prescaler = 16384, 8192 clock glitch filter",
-                  "14: Prescaler = 32768, 16384 clock glitch filter",
-                  "15: Prescaler = 65536, 32768 clock glitch filter",
+                  "Prescaler = 2, no glitch filter",
+                  "Prescaler = 4, 2 clock glitch filter",
+                  "Prescaler = 8, 4 clock glitch filter",
+                  "Prescaler = 16, 8 clock glitch filter",
+                  "Prescaler = 32, 16 clock glitch filter",
+                  "Prescaler = 64, 32 clock glitch filter",
+                  "Prescaler = 128, 64 clock glitch filter",
+                  "Prescaler = 256, 128 clock glitch filter",
+                  "Prescaler = 512, 256 clock glitch filter",
+                  "Prescaler = 1024, 512 clock glitch filter",
+                  "Prescaler = 2048, 1024 clock glitch filter",
+                  "Prescaler = 4096, 2048 clock glitch filter",
+                  "Prescaler = 8192, 4096 clock glitch filter",
+                  "Prescaler = 16384, 8192 clock glitch filter",
+                  "Prescaler = 32768, 16384 clock glitch filter",
+                  "Prescaler = 65536, 32768 clock glitch filter",
                   "Default"
             };
             return SELECTION_NAMES;
@@ -171,108 +139,15 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getValuesArray() {
             final String VALUES[] = {
-                  "0",
-                  "1",
-                  "2",
-                  "3",
-                  "4",
-                  "5",
-                  "6",
-                  "7",
-                  "8",
-                  "9",
-                  "10",
-                  "11",
-                  "12",
-                  "13",
-                  "14",
-                  "15",
-                  "0", // Default
+               "0", "1", "2", "3", "4", "5", "6", "7", 
+               "8", "9", "10", "11", "12", "13", "14", "15",
+               "0", // Default
             };
             return VALUES;
          }
       };
 
-      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TMS_KEY, "[LPTMR_CSR_TMS]") {
-         {
-            setName(fVariableMap.get(LPTMR_CSR_TMS_KEY).name);
-            setToolTip("Configures the mode of the LPTMR");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: Time Counter mode",
-                  "1: Pulse Counter mode",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-      
-      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TFC_KEY, "[LPTMR_CSR_TFC]") {
-         {
-            setName(fVariableMap.get(LPTMR_CSR_TFC_KEY).name);
-            setToolTip("When clear, TFC configures the CNR to reset whenever TCF is set.n"+
-                       "When set, TFC configures the CNR to reset on overflow");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: CNR is reset whenever TCF is set",
-                  "1: CNR is reset on overflow",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TPP_KEY, "[LPTMR_CSR_TPP]") {
-         {
-            setName(fVariableMap.get(LPTMR_CSR_TPP_KEY).name);
-            setToolTip("Configures the polarity of the input source in Pulse Counter mode");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: Active-high source, rising-edge increments CNR",
-                  "1: Active-low source,  falling-edge increments CNR",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TPS_KEY, "[LPTMR_CSR_TPS]") {
+      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TPS_KEY, "[CSR_TPS]") {
          {
             setName(fVariableMap.get(LPTMR_CSR_TPS_KEY).name);
             setToolTip("Configures the input source to be used in Pulse Counter mode.\n"+
@@ -281,9 +156,9 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getChoicesArray() {
             String SELECTION_NAMES[] = {
-                  "0: CMP0 output",
-                  "1: LPTMR_ALT1 pin",
-                  "1: LPTMR_ALT2 pin",
+                  "CMP0 output",
+                  "LPTMR_ALT1 pin",
+                  "LPTMR_ALT2 pin",
                   "Default"
             };
             return SELECTION_NAMES;
@@ -292,43 +167,53 @@ public class WriterForLptmr extends PeripheralWithState {
          @Override
          protected String[] getValuesArray() {
             final String VALUES[] = {
-                  "0",
-                  "1",
-                  "2",
+                  "0", "1", "2",
                   "0", // Default
             };
             return VALUES;
          }
       };
 
-      new VariableModel(models[0], this, LPTMR_IRQ_LEVEL_KEY).setName(fVariableMap.get(LPTMR_IRQ_LEVEL_KEY).name);
+      VariableModel vModel = new VariableModel(models[0], this, LPTMR_IRQ_LEVEL_KEY, "");
+      vModel.setName(fVariableMap.get(LPTMR_IRQ_LEVEL_KEY).name);
+      vModel.setToolTip("");
 
-      new SimpleSelectionModel(models[0], this, LPTMR_USES_NAKED_HANDLER_KEY, "") {
-         {
-            setName(fVariableMap.get(LPTMR_USES_NAKED_HANDLER_KEY).name);
-            setToolTip("The interrupt handler may use an external function named LPTMR0_IRQHandler() or\n"+
+      BinaryModel model = new BinaryModel(models[0], this, LPTMR_PSR_PBYP_KEY, "[PSR_PBYP]");
+      model.setName(fVariableMap.get(LPTMR_PSR_PBYP_KEY).name);
+      model.setToolTip("When PBYP is set:\n"+
+                  "- The selected prescaler clock in Time Counter mode or\n"+
+                  "  the selected input source in Pulse Counter mode, directly clocks the CNR.\n" +
+                  "When PBYP is clear:\n"+
+                  "- The CNR is clocked by the output of the prescaler/glitch filter");
+      model.setValue0("Prescaler/glitch filter is enabled",   "0");
+      model.setValue1("Prescaler/glitch filter is bypassed", "1");
+      
+      model = new BinaryModel(models[0], this, LPTMR_CSR_TMS_KEY, "[CSR_TMS]");
+      model.setName(fVariableMap.get(LPTMR_CSR_TMS_KEY).name);
+      model.setToolTip("Configures the mode of the LPTMR");
+      model.setValue0("Time Counter mode",   "0");
+      model.setValue1("Pulse Counter mode", "1");
+      
+      model = new BinaryModel(models[0], this, LPTMR_CSR_TFC_KEY, "[CSR_TFC]");
+      model.setName(fVariableMap.get(LPTMR_CSR_TFC_KEY).name);
+      model.setToolTip("When clear, TFC configures the CNR to reset whenever TCF is set.\n"+
+                       "When set, TFC configures the CNR to reset on overflow");
+      model.setValue0("CNR is reset whenever TCF is set",   "0");
+      model.setValue1("CNR is reset on overflow", "1");
+      
+      model = new BinaryModel(models[0], this, LPTMR_CSR_TPP_KEY, "[CSR_TPP]");
+      model.setName(fVariableMap.get(LPTMR_CSR_TPP_KEY).name);
+      model.setToolTip("Configures the polarity of the input source in Pulse Counter mode");
+      model.setValue0("Active-high source, rising-edge increments CNR",  "0");
+      model.setValue1("Active-low source,  falling-edge increments CNR", "1");
+      
+      model = new BinaryModel(models[0], this, LPTMR_USES_NAKED_HANDLER_KEY, "");
+      model.setName(fVariableMap.get(LPTMR_USES_NAKED_HANDLER_KEY).name);
+      model.setToolTip("The interrupt handler may use an external function named LPTMR0_IRQHandler() or\n"+
                        "may be set by use of the setCallback() function");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: Interrupt handler is programmatically set",
-                  "1: External function LPTMR0_IRQHandler() is used",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
+      model.setValue0("Interrupt handler is programmatically set",   "0");
+      model.setValue1("External function LPTMR0_IRQHandler() is used", "1");
+      
       return models;
    }
    

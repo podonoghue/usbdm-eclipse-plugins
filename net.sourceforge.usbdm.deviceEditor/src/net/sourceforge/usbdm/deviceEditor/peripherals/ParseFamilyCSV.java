@@ -438,9 +438,9 @@ public class ParseFamilyCSV {
     * 
     * @throws IOException 
     */
-   public DeviceInfo parseFile(Path filePath) throws Exception {
+   public void parseFile(DeviceInfo deviceInfo, Path filePath) throws Exception {
 
-      fDeviceInfo = new DeviceInfo(filePath);
+      fDeviceInfo = deviceInfo;
       
       // Open source file
       BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
@@ -455,8 +455,6 @@ public class ParseFamilyCSV {
       sourceFile.close();
       
       fDeviceInfo.consistencyCheck();
-      
-      return fDeviceInfo;
    }
 
 }

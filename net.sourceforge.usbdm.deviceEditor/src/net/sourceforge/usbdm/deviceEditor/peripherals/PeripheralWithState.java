@@ -56,7 +56,10 @@ public abstract class PeripheralWithState extends Peripheral implements ModelEnt
          System.err.println("Variable " + key + " not found");
          return;
       }
-      variable.value = value;
+      if (variable.value != value) {
+         variable.value = value;
+         super.fDeviceInfo.setDirty(true);
+      }
    }
 
    @Override

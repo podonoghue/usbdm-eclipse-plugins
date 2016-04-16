@@ -14,10 +14,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
@@ -174,9 +172,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return Model
     */
    private DeviceInformationModel createPackageModel() {
-      DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Device Information", "Device Information");
-      new ConstantModel(packageModel, "Source File", "", fDeviceInfo.getSourceFilename());
-      
+      DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Project", "Project Settings");
+      new ConstantModel(packageModel, "Hardware File", "", fDeviceInfo.getSourceFilename());
+//      new FilePathModel(packageModel, this);
       new DeviceVariantModel(packageModel, fDeviceInfo);
       new DevicePackageModel(packageModel, fDeviceInfo);
       return packageModel;
@@ -188,7 +186,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return
     */
    private RootModel createParameterModels() {
-      RootModel root = new PeripheralConfigurationModel(this, OTHER_COLUMN_LABELS, "Peripheral Parameters", "Peripheral Parameters");
+      RootModel root = new PeripheralConfigurationModel(this, OTHER_COLUMN_LABELS, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof ModelEntryProvider) {
@@ -284,6 +282,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * <li>Signals mapped to multiple pins
     */
    private void checkConflictsJob() {
+//      System.err.println("checkConflictsJob()");
       testAndSetConflictCheckPending(false);
 
       /** Used to check for multiple mappings to a single pin */ 
@@ -336,12 +335,14 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
                for (MappingInfo other:signalsMappedToPin) {
                   other.setMessage(sb.toString());
                }
+               sb.append("\nPin mapped to multiple signals");
             }
          }
          /*
           * Check for Signal => multiple Pins
           */
          List<MappingInfo>  pinsMappedToSignal = addToMap(mappedPinsBySignal, mapping, mapping.getSignalList());
+//         System.err.println("checkConflictsJob(): " + mapping);
          if (pinsMappedToSignal != null) {
             // Pins previously mapped to this signal
 
@@ -359,6 +360,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             }
             // Multiple signals mapped to pin
             sb.append(")");
+            sb.append("\nSignal mapped to multiple pins");
             // Mark all conflicting nodes
             for (MappingInfo other:pinsMappedToSignal) {
                other.setMessage(sb.toString());
@@ -400,7 +402,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       fModels.add((RootModel)fPackageModel);
       fModels.add((RootModel)createPeripheralModel());
       fModels.add((RootModel)createPinModel());
-      fModels.add((RootModel)createParameterModels());
+      fModels.add(createParameterModels());
+      fModels.add(PackageImageModel.createModel(this));
+
       checkConflicts();
    }
    
@@ -424,23 +428,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @throws Exception 
     */
    public static ModelFactory createModels(Path path, boolean loadSettings) throws Exception {
-      DeviceInfo deviceInfo = null;
-
-      if (path.getFileName().toString().endsWith("csv")) {
-         ParseFamilyCSV parser = new ParseFamilyCSV();
-         deviceInfo = parser.parseFile(path);
-      }
-      else if ((path.getFileName().toString().endsWith("xml"))||(path.getFileName().toString().endsWith("hardware"))) {
-         ParseFamilyXML parser = new ParseFamilyXML();
-         deviceInfo = parser.parseFile(path);
-      }
-      else {
-         throw new Exception("Unknown file type");
-      }
-      if (loadSettings) {
-         deviceInfo.loadSettings();
-      }
-      return new ModelFactory(deviceInfo);
+      return new ModelFactory(DeviceInfo.create(path));
    }
 
    @Override
@@ -461,6 +449,10 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    
    @Override
    public void modelStructureChanged(ObservableModel model) {
+   }
+
+   public void setHardwareFile(String value) {
+      System.err.println("setHardwareFile("+value+")");
    }
 
 }

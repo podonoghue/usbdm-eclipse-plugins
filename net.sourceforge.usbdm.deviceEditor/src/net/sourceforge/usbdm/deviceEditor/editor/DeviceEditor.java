@@ -1,14 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.Action;
@@ -21,8 +20,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.TabFolder;
@@ -38,6 +39,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.PackageImageModel;
 import net.sourceforge.usbdm.deviceEditor.model.RootModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 
@@ -52,10 +54,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Folder containing all the tabs */
    private TabFolder    fTabFolder           = null;
 
-   private TreeEditor[] fTreeEditors         = null;
-   
+   private Object[] fTreeEditors             = null;
 
-   /** Actions to add to popup menus */
+   /** Actions to add to pop-up menus */
    ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
 
    /** Associated project */
@@ -93,7 +94,15 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    private void setModels() {
       ArrayList<RootModel> models = fFactory.getModels();
       for (int index=1; index<models.size(); index++) {
-         fTreeEditors[index].setModel(models.get(index));
+         RootModel model = models.get(index);
+         if (model instanceof PackageImageModel) {
+            ImageCanvas canvas = (ImageCanvas) fTreeEditors[index];
+            canvas.setModel((PackageImageModel)model);
+         }
+         else {
+            TreeEditor editor = (TreeEditor) fTreeEditors[index];
+            editor.setModel(models.get(index));
+         }
       }
    }
    
@@ -111,7 +120,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       } catch (Exception e) {
          failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
          System.err.println(failureReason);
-         e.printStackTrace();
+//         e.printStackTrace();
       }
 
       if (fFactory == null) {
@@ -124,7 +133,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       
       // Create the containing tab folder
       fTabFolder   = new TabFolder(parent, SWT.NONE);
-      ArrayList<TreeEditor> treeEditors = new ArrayList<TreeEditor>();
+      ArrayList<Object> treeEditors = new ArrayList<Object>();
 
       for (RootModel model:fFactory.getModels()) {
          // Pin view
@@ -132,13 +141,21 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          tabItem = new TabItem(fTabFolder, SWT.NONE);
          tabItem.setText(model.getName());
          tabItem.setToolTipText(model.getToolTip());       
-         TreeEditor treeEditor = new TreeEditor();
-         treeEditors.add(treeEditor);
-         tabItem.setControl(treeEditor.createControls(fTabFolder).getControl());
+         if (model instanceof PackageImageModel) {
+            Canvas canvas = new ImageCanvas(fTabFolder, (PackageImageModel) model);
+//            Canvas canvas = new ImageCanvas_FRDM_K22F(fTabFolder, (PackageImageModel) model);
+            treeEditors.add(canvas);
+            tabItem.setControl(canvas);
+         }
+         else {
+            TreeEditor treeEditor = new TreeEditor();
+            treeEditors.add(treeEditor);
+            tabItem.setControl(treeEditor.createControls(fTabFolder).getControl());
+         }
       }
-      fTreeEditors = treeEditors.toArray(new TreeEditor[treeEditors.size()]);
+      fTreeEditors = treeEditors.toArray(new Object[treeEditors.size()]);
 
-      fTreeEditors[0].setModel(fFactory.getModels().get(0));
+      ((TreeEditor)fTreeEditors[0]).setModel(fFactory.getModels().get(0));
       setModels();
       
       fFactory.addListener(this);
@@ -191,22 +208,18 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       WriteFamilyCpp writer = new WriteFamilyCpp();
       try {
          if (fProject != null) {
-            writer.writeCppFiles(fProject, fFactory.getDeviceInfo(), new NullProgressMonitor());
+            // Opened as part of a Eclipse project
+            fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
          }
          else {
-            Path folder = fFactory.getDeviceInfo().getSourcePath().getParent().getParent();
+            // Used for testing
+            Path folder = fFactory.getDeviceInfo().getSourcePath().toAbsolutePath().getParent().getParent();
             writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
-            if (fProject != null) {
-               fProject.refreshLocal(IResource.DEPTH_INFINITE, null);
-            }
          }
       } catch (IOException e) {
          e.printStackTrace();
-      } catch (CoreException e) {
-         e.printStackTrace();
       }
       MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
-
    }
    
    class GenerateCodeAction extends MyAction {
@@ -297,26 +310,31 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }
 
    @Override
+   public void doSaveAs() {  
+      FileDialog dialog = new FileDialog(getSite().getShell(), SWT.SAVE);
+      dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.PROJECT_FILE_EXTENSION});
+      dialog.setFilterPath(fPath.getParent().toString());
+      String result = dialog.open();
+      if (result != null) {
+         DeviceInfo deviceInfo = fFactory.getDeviceInfo();
+         if (deviceInfo == null) {
+            return;
+         }
+         Path path = FileSystems.getDefault().getPath(result);
+         deviceInfo.saveSettingsAs(path, fProject);
+      }
+   }   
+   
+   @Override
    public void doSave(IProgressMonitor paramIProgressMonitor) {
+      if (fFactory == null) {
+         return;
+      }
       DeviceInfo deviceInfo = fFactory.getDeviceInfo();
       if (deviceInfo == null) {
          return;
       }
-      deviceInfo.saveSettings();
-      try {
-         if (fProject != null) {
-            IFolder settingsFolder = fProject.getFolder("usbdm");
-            if (settingsFolder.exists()) {
-               settingsFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
-            }
-         }
-      } catch (CoreException e) {
-         e.printStackTrace();
-      }
-   }
-
-   @Override
-   public void doSaveAs() {
+      deviceInfo.saveSettings(fProject);
    }
 
    @Override
@@ -327,7 +345,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    
    @Override
    public boolean isSaveAsAllowed() {
-      return false;
+      return true;
    }
 
    /** Used when the models have been re-generated */

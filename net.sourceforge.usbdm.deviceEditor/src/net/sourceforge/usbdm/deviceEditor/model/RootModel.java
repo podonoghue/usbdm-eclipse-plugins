@@ -11,7 +11,7 @@ public abstract class RootModel extends BaseModel {
    private TreeViewer fViewer = null;
    
    /** Factory responsible for this model */
-   private final ModelFactory fModelFactory;
+   protected final ModelFactory fModelFactory;
 
    /*
     * =============================================================================================

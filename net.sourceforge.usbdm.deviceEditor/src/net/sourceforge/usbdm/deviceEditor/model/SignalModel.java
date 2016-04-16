@@ -45,11 +45,11 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
             continue;
          }
          if (muxSelection == MuxSelection.reset) {
-            values.add(muxSelection.getShortName()+": ("+mappingInfo.getPin().getName()+")");
+            values.add(muxSelection.getShortName()+": ("+mappingInfo.getPin().getNameWithLocation()+")");
             fResetMapping = mappingInfo;
          }
          else {
-            values.add(muxSelection.getShortName()+": "+mappingInfo.getPin().getName());
+            values.add(muxSelection.getShortName()+": "+mappingInfo.getPin().getNameWithLocation());
          }
          fMappingInfos.add(mappingInfo);
          if (mappingInfo.isSelected()) {

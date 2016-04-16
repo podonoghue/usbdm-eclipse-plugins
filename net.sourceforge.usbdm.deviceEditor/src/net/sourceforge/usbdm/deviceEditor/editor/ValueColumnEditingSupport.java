@@ -1,16 +1,27 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Tree;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
+import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
 import net.sourceforge.usbdm.deviceEditor.model.NumericModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
@@ -34,24 +45,32 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      CellEditor editor = null;
-
+      if (element instanceof BinaryModel) {
+         return new BooleanCellEditor(viewer.getTree());
+      }
       if (element instanceof SelectionModel) {
          SelectionModel model = (SelectionModel)element;
 
          String[] choices = model.getChoices();
          return new ChoiceCellEditor(viewer.getTree(), choices);
       }      
-      else if (element instanceof NumericModel) {
+      if (element instanceof NumericModel) {
          NumericModel model = (NumericModel)element;
-
          return new NumericTextCellEditor(viewer.getTree(), model.min(), model.max());
       }      
-      return editor;
+      if (element instanceof FilePathModel) {
+         return new HardwareCellEditor(viewer.getTree());
+      }
+      return null;
    }
 
    @Override
    protected Object getValue(Object element) {
+      if (element instanceof BinaryModel) {
+         BinaryModel model = (BinaryModel)element;
+         boolean rv = model.getBooleanValue();
+         return rv;
+      }
       if (element instanceof BaseModel) {
          BaseModel model = (BaseModel)element;
          return model.getValueAsString();
@@ -61,7 +80,11 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (element instanceof EditableModel) {
+      if (element instanceof BinaryModel) {
+         BinaryModel model = (BinaryModel)element;
+         model.setBooleanValue((Boolean) value);
+      }
+      else if (element instanceof EditableModel) {
          EditableModel model = (EditableModel)element;
          model.setValueAsString((String) value);
       }
@@ -84,7 +107,6 @@ public class ValueColumnEditingSupport extends EditingSupport {
          public String isValid(Object value) {
             String rv = null;
             long   lValue;
-            
             try {
                String s = value.toString().trim();
                if (s.startsWith("0b")) {
@@ -109,10 +131,18 @@ public class ValueColumnEditingSupport extends EditingSupport {
          setValidator(new Validator(min, max));
       }
 
+   }
+   
+   static class BooleanCellEditor extends CheckboxCellEditor {
+      public BooleanCellEditor(Tree tree) {
+         super(tree);
+         setValueValid(true);
+      }
+
       @Override
       protected Object doGetValue() {
-         Object item = super.doGetValue();
-         return item;
+         Boolean value = (Boolean) super.doGetValue();
+         return value;
       }
 
       @Override
@@ -122,7 +152,6 @@ public class ValueColumnEditingSupport extends EditingSupport {
    }
    
    static class ChoiceCellEditor extends ComboBoxCellEditor {
-
       public ChoiceCellEditor(Composite tree, String[] choices) {
          super(tree, choices, SWT.READ_ONLY);
          setValueValid(true);
@@ -151,4 +180,29 @@ public class ValueColumnEditingSupport extends EditingSupport {
       }
    }
 
+   static class HardwareCellEditor extends DialogCellEditor {
+
+      String currentPath = null;
+      
+      HardwareCellEditor(Composite parent) {
+         super(parent, SWT.NONE);
+      }
+      
+      @Override
+      protected void doSetValue(Object value) {
+         currentPath = (String) value;
+         super.doSetValue(value);
+      }
+
+      @Override
+      protected Object openDialogBox(Control paramControl) { 
+         FileDialog dialog = new FileDialog(paramControl.getShell(), SWT.OPEN);
+         dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.HARDWARE_FILE_EXTENSION});
+         Path path = Paths.get(currentPath).toAbsolutePath();
+         dialog.setFilterPath(path.getParent().toString());
+         dialog.setFileName(path.getFileName().toString());
+         return dialog.open();
+      }
+      
+   }
 }

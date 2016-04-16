@@ -636,6 +636,5 @@ public class WriteFamilyCpp {
       file.refreshLocal(IResource.DEPTH_ONE, mon);
       file.setDerived(true, mon);
    }
-   
 
 }

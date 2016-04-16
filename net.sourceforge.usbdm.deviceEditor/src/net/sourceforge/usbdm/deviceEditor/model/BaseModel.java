@@ -24,7 +24,7 @@ public abstract class BaseModel {
    protected       ArrayList<Object> fChildren = null;
    
    /** Tool-tip */
-   protected       String            fToolTip = null;
+   protected       String            fToolTip = "";
    
    /** Information/Warning/Error message */
    protected Message fMessage = null;
@@ -151,6 +151,11 @@ public abstract class BaseModel {
    public String getDescription() {
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
+         String msg = message.getMessage();
+         int eolIndex = msg.indexOf('\n');
+         if (eolIndex>0) {
+            msg = msg.substring(0, eolIndex);
+         }
          return message.getMessage();
       }
       return fDescription;
@@ -278,6 +283,9 @@ public abstract class BaseModel {
     */
    public String getToolTip() {
       String tip = fToolTip;
+      if (fToolTip == null) {
+         tip = "";
+      }
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
          tip += message.getMessage();
@@ -285,7 +293,7 @@ public abstract class BaseModel {
       else if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
          tip += "\n"+message.getMessage();
       }
-      return tip;
+      return (tip.length()==0)?null:tip;
    }
 
    /**
@@ -293,7 +301,7 @@ public abstract class BaseModel {
     * 
     * @param toolTip
     */
-   protected void setToolTip(String toolTip) {
+   public void setToolTip(String toolTip) {
       fToolTip = toolTip;
    }
 

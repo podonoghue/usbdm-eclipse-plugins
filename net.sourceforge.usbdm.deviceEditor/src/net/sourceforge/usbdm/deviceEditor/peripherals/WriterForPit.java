@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
@@ -26,9 +27,9 @@ public class WriterForPit extends PeripheralWithState {
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
       createValue(PIT_LDVAL_KEY,                "2000",  "Reload value [0-65535]",        0, 65535);
-      createValue(PIT_USES_NAKED_HANDLER_KEY,   "0",     "Use naked handler",             0, 1);
-      createValue(PIT_MCR_FRZ_KEY,              "0",     "PIT Freeze in debug mode",      0, 1);
-      createValue(PIT_IRQ_LEVEL_KEY,            "0",     "PIT IRQ Level in NVIC [0-15]",  0, 15);
+      createValue(PIT_USES_NAKED_HANDLER_KEY,   "0",     "Interrupt handler setup",             0, 1);
+      createValue(PIT_MCR_FRZ_KEY,              "0",     "Freeze in debug mode",      0, 1);
+      createValue(PIT_IRQ_LEVEL_KEY,            "0",     "IRQ Level in NVIC [0-15]",  0, 15);
    }
 
    @Override
@@ -118,63 +119,23 @@ public class WriterForPit extends PeripheralWithState {
             new CategoryModel(parent, getName(), getDescription()),
          };
 
-      new VariableModel(models[0], this, PIT_LDVAL_KEY).setName(fVariableMap.get(PIT_LDVAL_KEY).name);
+      new VariableModel(models[0], this, PIT_LDVAL_KEY, "[LDVAL]").setName(fVariableMap.get(PIT_LDVAL_KEY).name);
 
-      new SimpleSelectionModel(models[0], this, PIT_USES_NAKED_HANDLER_KEY, "") {
-         {
-            setName(fVariableMap.get(PIT_USES_NAKED_HANDLER_KEY).name);
-            setToolTip("The interrupt handler may use an external functions named PITx_IRQHandler() or\n"+
-                       "may be set by use of the setCallback() function");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: Interrupt handlers are programmatically set",
-                  "1: External functions PITx_IRQHandler() are used",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
+      new VariableModel(models[0], this, PIT_IRQ_LEVEL_KEY, "").setName(fVariableMap.get(PIT_IRQ_LEVEL_KEY).name);
 
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, PIT_MCR_FRZ_KEY, "") {
-         {
-            setName(fVariableMap.get(PIT_MCR_FRZ_KEY).name);
-            setToolTip(" When FRZ is set, the PIT will pause when in debug mode");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "0: Timers continue to run in debug mode",
-                  "1: Timers are stopped in Debug mode",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0",
-                  "1",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new VariableModel(models[0], this, PIT_IRQ_LEVEL_KEY).setName(fVariableMap.get(PIT_IRQ_LEVEL_KEY).name);
-
+      BinaryModel model = new BinaryModel(models[0], this, PIT_USES_NAKED_HANDLER_KEY, "");
+      model.setName(fVariableMap.get(PIT_USES_NAKED_HANDLER_KEY).name);
+      model.setToolTip("The interrupt handler may use an external functions named PITx_IRQHandler() or\n"+
+            "may be set by use of the setCallback() function");
+      model.setValue0("Interrupt handlers are programmatically set",   "0");
+      model.setValue1("External functions PITx_IRQHandler() are used", "1");
+      
+      model = new BinaryModel(models[0], this, PIT_MCR_FRZ_KEY, "[MCR_FRZ]");
+      model.setName(fVariableMap.get(PIT_MCR_FRZ_KEY).name);
+      model.setToolTip("When FRZ is set, the PIT will pause when in debug mode");
+      model.setValue0("Timers continue to run in debug mode",   "0");
+      model.setValue1("Timers are stopped in Debug mode", "1");
+      
       return models;
    }
 

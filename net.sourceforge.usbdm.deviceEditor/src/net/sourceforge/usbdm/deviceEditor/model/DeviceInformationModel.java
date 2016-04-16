@@ -7,8 +7,8 @@ public final class DeviceInformationModel extends RootModel {
     * 
     * @param modelFactory  Factory owning model
     * @param columnLabels  Labels to use for columns
-    * @param string2 
-    * @param string 
+    * @param title 
+    * @param toolTip 
     */
    public DeviceInformationModel(ModelFactory modelFactory, String[] columnLabels, String title, String toolTip) {
       super(modelFactory, columnLabels, title, toolTip);

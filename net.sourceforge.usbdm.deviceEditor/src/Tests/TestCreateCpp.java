@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 
 public class TestCreateCpp {
@@ -45,10 +44,7 @@ public class TestCreateCpp {
           * Process each input file
           */
          System.err.println("Processing " + filePath.getFileName() + " ======================== ");
-         
-         ParseFamilyCSV reader = new ParseFamilyCSV();
-         DeviceInfo deviceInfo = reader.parseFile(filePath);
-         
+         DeviceInfo deviceInfo = DeviceInfo.create(filePath);
          WriteFamilyCpp writer = new WriteFamilyCpp();
          writer.writeCppFiles(directory, deviceInfo);
       }

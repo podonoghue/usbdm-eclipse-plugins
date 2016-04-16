@@ -8,8 +8,8 @@ public class VariableModel extends NumericModel {
    private final String fKey;
    private final VariableInfo variableInfo;
    
-   public VariableModel(BaseModel parent, ModelEntryProvider provider, String key) {
-      super(parent, key, "");
+   public VariableModel(BaseModel parent, ModelEntryProvider provider, String key, String description) {
+      super(parent, key, description);
       fProvider      = provider;
       fKey           = key;
       variableInfo   = provider.getVariableInfo(key);

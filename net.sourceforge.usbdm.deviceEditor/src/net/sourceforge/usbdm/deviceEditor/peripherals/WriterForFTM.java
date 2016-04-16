@@ -226,10 +226,10 @@ public class WriterForFTM extends PeripheralWithState {
          @Override
          protected String[] getChoicesArray() {
             final String SELECTION_NAMES[] = {
-                  "0: Disabled",
-                  "1: System clock",
-                  "2: Fixed frequency clock",
-                  "3: External clock",
+                  "Disabled",
+                  "System clock",
+                  "Fixed frequency clock",
+                  "External clock",
                   "Default"
             };
             return SELECTION_NAMES;
@@ -238,10 +238,7 @@ public class WriterForFTM extends PeripheralWithState {
          @Override
          protected String[] getValuesArray() {
             final String VALUES[] = {
-                  "0",
-                  "1",
-                  "2",
-                  "3",
+                  "0", "1", "2", "3",
                   "1", // Default
             };
             return VALUES;
@@ -256,14 +253,14 @@ public class WriterForFTM extends PeripheralWithState {
          @Override
          protected String[] getChoicesArray() {
             final String SELECTION_NAMES[] = {
-                  "0: Divide by 1",
-                  "1: Divide by 2",
-                  "2: Divide by 4",
-                  "3: Divide by 8",
-                  "4: Divide by 16",
-                  "5: Divide by 32",
-                  "6: Divide by 64",
-                  "7: Divide by 128",
+                  "Divide by 1",
+                  "Divide by 2",
+                  "Divide by 4",
+                  "Divide by 8",
+                  "Divide by 16",
+                  "Divide by 32",
+                  "Divide by 64",
+                  "Divide by 128",
                   "Default"
             };
             return SELECTION_NAMES;
@@ -272,14 +269,7 @@ public class WriterForFTM extends PeripheralWithState {
          @Override
          protected String[] getValuesArray() {
             final String VALUES[] = {
-                  "0",
-                  "1",
-                  "2",
-                  "3",
-                  "4",
-                  "5",
-                  "6",
-                  "7",
+                  "0", "1", "2", "3", "4", "5", "6", "7",
                   "0", // Default
             };
             return VALUES;
