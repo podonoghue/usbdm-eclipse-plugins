@@ -1,22 +1,10 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Vector;
-
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceEditor.editor.ProjectUtilities;
 
 import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
-import org.eclipse.cdt.core.index.IndexerSetupParticipant;
-import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvidersKeeper;
-import org.eclipse.cdt.core.language.settings.providers.LanguageSettingsManager;
 import org.eclipse.cdt.core.model.CoreModel;
-import org.eclipse.cdt.core.model.ICProject;
-import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICProjectDescription;
 import org.eclipse.cdt.core.settings.model.extension.CConfigurationData;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
@@ -27,19 +15,18 @@ import org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.internal.core.ManagedProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
+
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 
 @SuppressWarnings({ "restriction", "unused" })
 public class CDTProjectManager {

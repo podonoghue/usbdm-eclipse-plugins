@@ -31,6 +31,7 @@ import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
@@ -420,7 +421,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
          
          // Generate CPP code as needed
-         net.sourceforge.usbdm.deviceEditor.editor.ProjectUtilities.generateFiles(project, new SubProgressMonitor(monitor, WORK_SCALE*5));
+         DeviceInfo.generateFiles(project, new SubProgressMonitor(monitor, WORK_SCALE*5));
 
          reindexProject(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
          
