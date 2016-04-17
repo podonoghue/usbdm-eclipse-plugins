@@ -58,7 +58,7 @@ IConfigurationEnvironmentVariableSupplier {
    private String getToolPath(IConfiguration configuration) {
       if (configuration == null) {
          // No configuration - Use default settings
-         System.err.println("ConfigEnvVarSupplier.getToolPath() configuration = null");
+//         System.err.println("ConfigEnvVarSupplier.getToolPath() configuration = null");
          String toolPath = "";
          String pathVariableId = null; 
          if (buildToolOptionId.equals(UsbdmConstants.COLDFIRE_BUILDTOOLS_OPTIONS)) {
