@@ -59,6 +59,9 @@ public abstract class Peripheral {
    /** Information for signals that use this writer */
    protected InfoTable fInfoTable = new InfoTable(INFO_TABLE_NAME);
 
+   /** Clock source for peripheral. Usually SystemCoreClock or SystemBusClock. */
+   private String fClockSource;
+
    /**
     * Create peripheral
     * 
@@ -129,6 +132,9 @@ public abstract class Peripheral {
     * @param clockMask  Clock register mask e.g. SIM_SCGC5_PORTB_MASK
     */
    public void setClockInfo(String clockReg, String clockMask) {
+      if ((clockReg.length()==0) || (clockMask.length()==0)) {
+         throw new RuntimeException("Illegale clock info = " + clockReg + ", " + clockMask);
+      }
       this.fClockReg  = clockReg;
       this.fClockMask = clockMask;
    }
@@ -254,10 +260,13 @@ public abstract class Peripheral {
       if ((fClockReg != null) || (fClockMask != null)) {
          documentUtilities.openTag("clock");
          if (fClockReg != null) {
-            documentUtilities.writeAttribute("clockReg",  fClockReg);
+            documentUtilities.writeAttribute("reg",  fClockReg);
          }
          if (fClockMask != null) {
-            documentUtilities.writeAttribute("clockMask", fClockMask);
+            documentUtilities.writeAttribute("mask", fClockMask);
+         }
+         if (fClockSource != null) {
+            documentUtilities.writeAttribute("source", fClockSource);
          }
          documentUtilities.closeTag();
       }
@@ -578,6 +587,11 @@ public abstract class Peripheral {
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
                getIrqNumsAsInitialiser()));
       }
+      if (getClockSource() != null) {
+         sb.append(String.format(
+               "   //! Clock source for peripheral\n"+
+               "   static constexpr uint32_t &clockSource = %s;\n\n", getClockSource()));
+      }
       pinMappingHeaderFile.write(sb.toString());
    }
 
@@ -659,7 +673,10 @@ public abstract class Peripheral {
                   ));
             indent = "   ";
          }
-         
+         pinMappingHeaderFile.write(String.format(
+               indent+"   static constexpr int NUM_SIGNALS  = %d;\n" +
+               "\n",
+               signalTable.table.size()));
          pinMappingHeaderFile.write(String.format(
                indent+"   //! Information for each signal of peripheral\n"+
                indent+"   static constexpr PcrInfo  %s[] = {\n"+
@@ -895,7 +912,7 @@ public abstract class Peripheral {
                   // No PCR
                   break;
                }
-               if (mappedPin.getPin().getMuxValue() == mappedPin.getMux()) {
+               if (mappedPin.isSelected()) {
                      initPcrbuffer.append(String.format( PCR_TEMPLATE, 
                            getClassName()+"Info"+tableName+",",
                            index+",",
@@ -919,6 +936,27 @@ public abstract class Peripheral {
       pinMappingHeaderFile.write(initPcrbuffer.toString());
       pinMappingHeaderFile.write(clearPcrbuffer.toString());
 
+   }
+
+   /**
+    * Set clock source for peripheral. Usually SystemCoreClock or SystemBusClock. 
+    * 
+    * @param clockSource
+    */
+   public void setClockSource(String clockSource) {
+      if ((clockSource != null) && (clockSource.length()==0)) {
+         throw new RuntimeException("Illegal clock Source = " + clockSource);
+      }
+      fClockSource = clockSource;
+   }
+
+   /**
+    * Get clock source for peripheral. Usually SystemCoreClock or SystemBusClock. 
+    * 
+    * @return clockSource
+    */
+   public String getClockSource() {
+      return fClockSource;
    }
 
 }

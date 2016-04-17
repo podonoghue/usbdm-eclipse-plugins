@@ -234,7 +234,10 @@ public class ParseFamilyXML extends XML_BaseParser {
             if (peripheral==null) {
                peripheral = fDeviceInfo.createPeripheral(baseName, instance);
             }
-            peripheral.setClockInfo(element.getAttribute("clockReg"), element.getAttribute("clockMask"));
+            peripheral.setClockInfo(element.getAttribute("reg"), element.getAttribute("mask"));
+            if (element.hasAttribute("source")) {
+               peripheral.setClockSource(element.getAttribute("source"));
+            }
          }
          else if (element.getTagName() == "irq") {
             peripheral.addIrqNum(element.getAttribute("num"));

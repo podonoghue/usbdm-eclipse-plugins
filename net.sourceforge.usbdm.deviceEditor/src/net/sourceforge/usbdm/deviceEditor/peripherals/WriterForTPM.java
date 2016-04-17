@@ -194,17 +194,6 @@ public class WriterForTPM extends PeripheralWithState {
       super.writeInfoConstants(pinMappingHeaderFile);
       StringBuffer sb = new StringBuffer();
       sb.append(substitute(TEMPLATE, fVariableMap));
-      InfoTable functions = fInfoTable;
-      int lastChannel = -1;
-      for (int index=0; index<functions.table.size(); index++) {
-         if (functions.table.get(index) != null) {
-            lastChannel = index;
-         }
-      }
-      sb.append(String.format(
-            "   static constexpr int NUM_CHANNELS  = %d;\n" +
-            "\n",
-            lastChannel+1));
       pinMappingHeaderFile.write(sb.toString());
    }
 

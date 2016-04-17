@@ -257,6 +257,12 @@ public class ParseFamilyCSV {
       }
    }
 
+   static final int PERIPHERAL_NAME_COL = 1;
+   static final int CLOCK_REG_COL       = 2;
+   static final int CLOCK_MASK_COL      = 3;
+   static final int CLOCK_SOURCE_COL    = 4;
+   static final int IRQ_NUM_COL         = 5;
+   
    /**
     * Parse line containing Peripheral information
     * 
@@ -269,20 +275,30 @@ public class ParseFamilyCSV {
       if (line.length < 3) {
          throw new RuntimeException("Illegal ClockInfo Mapping line");
       }
-      String peripheralName       = line[1];
-      String peripheralClockReg   = line[2];
+      String peripheralName       = line[PERIPHERAL_NAME_COL];
+      String peripheralClockReg   = line[CLOCK_REG_COL];
       
       String peripheralClockMask = null;
-      if (line.length >= 4) {
-         peripheralClockMask = line[3];
+      if (line.length > CLOCK_MASK_COL) {
+         peripheralClockMask = line[CLOCK_MASK_COL];
+      }
+      String clockSource = null;
+      if ((line.length > CLOCK_SOURCE_COL) && (line[CLOCK_SOURCE_COL].length() > 0)) {
+         clockSource = line[CLOCK_SOURCE_COL];
+         if (!clockSource.equals("SystemCoreClock") && !clockSource.equals("SystemBusClock")) {
+            throw new RuntimeException("Unexpected Clock Source " + clockSource + " for " + peripheralName);
+         }
       }
       if ((peripheralClockMask==null) || (peripheralClockMask.isEmpty())) {
          peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
       }
       String[] irqNums = new String[10]; 
       for (int index=0; index<irqNums.length; index++) {
-         if (line.length >= index+5) {
-            irqNums[index] = line[index+4];
+         if (line.length > index+IRQ_NUM_COL) {
+            irqNums[index] = line[index+IRQ_NUM_COL];
+            if (!irqNums[index].endsWith("IRQn")) {
+               throw new RuntimeException("Unexpected Irq " + irqNums[index] + " for " + peripheralName);
+            }
          }
       }
       
@@ -301,6 +317,7 @@ public class ParseFamilyCSV {
       }
       if (peripheral != null) {
          peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
+         peripheral.setClockSource(clockSource);
          for (int index=0; index<irqNums.length; index++) {
             if (irqNums[index] != null) {
                peripheral.addIrqNum(irqNums[index]);

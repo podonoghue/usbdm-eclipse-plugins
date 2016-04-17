@@ -26,13 +26,13 @@ public class TestParseXML {
       Path directory = Paths.get("");
       
       // Locate data output directory  
-      Path outputDirectory = directory.resolve("usbdm2");
+      Path outputDirectory = directory.resolve("hardware2");
 
       // Create output directories if needed  
       if (!outputDirectory.toFile().exists()) {
          Files.createDirectory(outputDirectory);
       }
-      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("usbdm").toAbsolutePath(), sourceFilter);
+      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("hardware").toAbsolutePath(), sourceFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {
             continue;

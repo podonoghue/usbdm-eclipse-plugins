@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
+import java.io.IOException;
+
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
@@ -24,7 +26,7 @@ public class WriterForUart extends Peripheral {
 
    @Override
    public String getTitle() {
-      return "Universal Asynchonous Receiver/Transmitter";
+      return "Universal Asynchronous Receiver/Transmitter";
    }
 
    @Override
