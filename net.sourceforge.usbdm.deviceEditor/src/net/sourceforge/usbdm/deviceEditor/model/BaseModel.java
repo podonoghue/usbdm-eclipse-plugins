@@ -15,7 +15,7 @@ public abstract class BaseModel {
    protected       String            fName;
    
    /** Description of node */
-   protected final String            fDescription;
+   protected       String            fDescription;
    
    /** Parent node */
    protected final BaseModel         fParent;
@@ -141,7 +141,16 @@ public abstract class BaseModel {
    public boolean isChanged() throws Exception {
       return false;
    }
-
+   
+   /**
+    * Set description text
+    * 
+    * @param description
+    */
+   void setDescription(String description) {
+      fDescription = description;
+   }
+   
    /**
     * 
     * Gets description of element

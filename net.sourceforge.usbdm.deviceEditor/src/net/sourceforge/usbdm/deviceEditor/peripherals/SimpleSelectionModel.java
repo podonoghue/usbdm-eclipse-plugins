@@ -1,12 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.ModelEntryProvider;
+import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
 public abstract class SimpleSelectionModel extends SelectionModel {
 
-   private final ModelEntryProvider fProvider;
+   private final IModelEntryProvider fProvider;
    private final String             fKey;
    private final String[]           fValues;
    
@@ -31,7 +31,7 @@ public abstract class SimpleSelectionModel extends SelectionModel {
     * @param provider
     * @param key
     */
-   public SimpleSelectionModel(BaseModel parent, ModelEntryProvider provider, String key, String description) {
+   public SimpleSelectionModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
       super(parent, key, description);
       
       fProvider   = provider;

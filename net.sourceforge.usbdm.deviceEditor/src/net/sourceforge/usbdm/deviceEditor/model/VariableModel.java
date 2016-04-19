@@ -1,14 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import net.sourceforge.usbdm.deviceEditor.model.ModelEntryProvider.VariableInfo;
+import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider.VariableInfo;
 
 public class VariableModel extends NumericModel {
 
-   private final ModelEntryProvider fProvider;
+   private final IModelEntryProvider fProvider;
    private final String fKey;
    private final VariableInfo variableInfo;
    
-   public VariableModel(BaseModel parent, ModelEntryProvider provider, String key, String description) {
+   public VariableModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
       super(parent, key, description);
       fProvider      = provider;
       fKey           = key;

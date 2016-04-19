@@ -12,11 +12,11 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
  */
-public class WriterForDigitalIO extends Peripheral {
+public class WriterForGpio extends Peripheral {
 
    static final String ALIAS_PREFIX       = "gpio_";
 
-   public WriterForDigitalIO(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
 

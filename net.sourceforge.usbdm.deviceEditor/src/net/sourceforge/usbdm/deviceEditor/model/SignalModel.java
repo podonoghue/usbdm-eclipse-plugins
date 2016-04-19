@@ -65,6 +65,8 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       }
       fChoices = values.toArray(new String[values.size()]);
 
+      setDescription(fCurrentMapping.getPin().getPinUseDescription());
+
       fSignal.addListener(this);
 
       fSignal.connectListeners();
@@ -100,6 +102,8 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          if (fSelection<0) {
             throw new RuntimeException(toString()+"::modelElementChanged("+fSelection+") - Impossible mapping");
          }
+         setDescription(fCurrentMapping.getPin().getPinUseDescription());
+
 //         System.err.println("*"+toString()+"::modelElementChanged() => "+fSelection+" => N:"+fCurrentMapping);
          viewerUpdate(this, null);
       }

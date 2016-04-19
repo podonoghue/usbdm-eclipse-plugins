@@ -199,6 +199,9 @@ public class WriteFamilyCpp {
     * @throws IOException 
     */
    private void writeFunctionCTemplates(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities writer) throws IOException {
+      if (!mappedFunction.isSelected()) {// && (mappedFunction.getMux()!=MuxSelection.mux1)) {
+         return;
+      }
       String definition = peripheral.getDefinition(mappedFunction, fnIndex);
       if (definition == null) {
          return;
@@ -207,17 +210,15 @@ public class WriteFamilyCpp {
       String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedFunction.getPin());
       if ((locations != null) && (!locations.isEmpty())) {
          for (String location:locations.split("/")) {
-            if (!location.equalsIgnoreCase(mappedFunction.getPin().getName())) {
-               String aliasName = peripheral.getAliasName(signalName, location);
-               if (aliasName!= null) {
-                  String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
-                  if ((declaration != null) && isFunctionMappedToPin(peripheral, mappedFunction)) {
-                     if (!recordAlias(aliasName)) {
-                        // Comment out repeated aliases
-                        writer.write("//");
-                     }
-                     writer.write(declaration);
+            String aliasName = peripheral.getAliasName(signalName, location);
+            if (aliasName!= null) {
+               String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
+               if (declaration != null) {
+                  if (!recordAlias(aliasName)) {
+                     // Comment out repeated aliases
+                     writer.write("//");
                   }
+                  writer.write(declaration);
                }
             }
          }
@@ -390,22 +391,22 @@ public class WriteFamilyCpp {
       writer.write("}\n");
    }
 
-   /**
-    * Checks if a function is mapped to a pin
-    * 
-    * @param peripheral
-    * @param mappedFunction
-    * 
-    * @return True if mapped.
-    */
-   private boolean isFunctionMappedToPin(Peripheral peripheral, MappingInfo mappedFunction) {
-      if (mappedFunction.getMux() == MuxSelection.fixed) {
-         // Fixed mapping are always available
-         return true;
-      }
-      Pin pin = mappedFunction.getPin();
-      return (pin.getMuxValue() == mappedFunction.getMux());
-   }
+//   /**
+//    * Checks if a function is mapped to a pin
+//    * 
+//    * @param peripheral
+//    * @param mappedFunction
+//    * 
+//    * @return True if mapped.
+//    */
+//   private boolean isFunctionMappedToPin(Peripheral peripheral, MappingInfo mappedFunction) {
+//      if (mappedFunction.getMux() == MuxSelection.fixed) {
+//         // Fixed mapping are always available
+//         return true;
+//      }
+//      Pin pin = mappedFunction.getPin();
+//      return (pin.getMuxValue() == mappedFunction.getMux());
+//   }
 
    
    private final String DOCUMENTATION_OPEN = 

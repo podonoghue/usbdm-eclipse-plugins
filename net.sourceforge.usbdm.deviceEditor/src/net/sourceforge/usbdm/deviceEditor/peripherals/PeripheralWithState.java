@@ -8,9 +8,9 @@ import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.model.ModelEntryProvider;
+import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 
-public abstract class PeripheralWithState extends Peripheral implements ModelEntryProvider {
+public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);

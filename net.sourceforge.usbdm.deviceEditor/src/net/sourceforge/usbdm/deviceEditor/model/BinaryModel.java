@@ -15,7 +15,7 @@ public class BinaryModel extends VariableModel {
    Pair value0 = new Pair("false", "false");
    Pair value1 = new Pair("true",  "true");
    
-   public BinaryModel(BaseModel parent, ModelEntryProvider provider, String key, String description) {
+   public BinaryModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
       super(parent, provider, key, description);
    }
 

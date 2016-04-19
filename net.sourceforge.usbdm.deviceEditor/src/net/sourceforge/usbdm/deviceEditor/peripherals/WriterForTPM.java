@@ -119,7 +119,7 @@ public class WriterForTPM extends PeripheralWithState {
    @Override
    public String getCTemplate() {
       return TEMPLATE_DOCUMENTATION + String.format(
-            "template<uint8_t channel> using %s = TmrBase_T<%sInfo, channel>;\n\n",
+            "template<uint8_t channel> using %s = Tmr_T<%sInfo, channel>;\n\n",
             getClassName(), getClassName(), getName());
    }
 

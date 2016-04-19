@@ -19,12 +19,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.DialogSettings;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
+import net.sourceforge.usbdm.deviceEditor.model.DevicePackageModel;
+import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAnalogueIO;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDigitalIO;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
@@ -244,19 +248,29 @@ public class DeviceInfo extends ObservableModel {
    }
 
    /**
-    * Get source file name
+    * Get path to hardware file
+    * 
     * @return
     */
-   public Path getSourcePath() {
+   public Path getHardwarePath() {
       return fHardwarePath;
    }
 
    /**
-    * Get source file name
+    * Get hardware file name
     * @return
     */
    public String getSourceFilename() {
       return fHardwarePath.getFileName().toString();
+   }
+
+   /**
+    * Get path to project settings file
+    * 
+    * @return
+    */
+   public Path getProjectSettingsPath() {
+      return fProjectSettingsPath;
    }
 
    /*
@@ -813,13 +827,13 @@ public class DeviceInfo extends ObservableModel {
             "GPIO", "$2", "$4",
             "^(GPIO|PORT)([A-I])(_(\\d+))?$",
             getDeviceFamily(),
-            WriterForDigitalIO.class);
+            WriterForGpio.class);
       if (getDeviceFamily() != DeviceFamily.mkm) {
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(ADC)([0-3])_((SE|DM|DP)\\d+(a|b)?)",
                getDeviceFamily(),
-               WriterForAnalogueIO.class);
+               WriterForAdc.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(CMP)([0-3])?_(.*)",
@@ -1388,17 +1402,27 @@ public class DeviceInfo extends ObservableModel {
     */
    public void saveSettingsAs(Path path, IProject project) {
       saveSettingsAs(path);
-      try {
-         if (project != null) {
-            // Assume within project directory
-            IFolder settingsFolder = project.getFolder(USBDM_PROJECT_DIRECTORY);
-            if (settingsFolder.exists()) {
-               settingsFolder.refreshLocal(IResource.DEPTH_INFINITE, null);
+      if (project != null) {
+         org.eclipse.core.runtime.IPath ePath = new org.eclipse.core.runtime.Path(path.toAbsolutePath().toString());
+         if (project.getLocation().isPrefixOf(ePath)) {
+            ePath = ePath.makeRelativeTo(project.getLocation());
+            try {
+               project.getFile(ePath).getParent().refreshLocal(1, null);
+            } catch (CoreException e) {
+               e.printStackTrace();
             }
+
          }
-      } catch (CoreException e) {
-         e.printStackTrace();
       }
+   }
+   
+   public BaseModel[] getModels(BaseModel parent) {
+      BaseModel[] models = {
+            new ConstantModel(parent, "Hardware File", "", getSourceFilename()),
+            new DeviceVariantModel(parent, this),
+            new DevicePackageModel(parent, this),
+      };
+      return models;
    }
 
 }

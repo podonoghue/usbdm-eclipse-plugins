@@ -213,7 +213,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          }
          else {
             // Used for testing
-            Path folder = fFactory.getDeviceInfo().getSourcePath().toAbsolutePath().getParent().getParent();
+            Path folder = fFactory.getDeviceInfo().getProjectSettingsPath().toAbsolutePath().getParent().getParent();
             writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
          }
       } catch (IOException e) {

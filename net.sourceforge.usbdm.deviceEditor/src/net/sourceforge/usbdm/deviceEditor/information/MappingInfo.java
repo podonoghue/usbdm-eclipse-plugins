@@ -130,12 +130,12 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Indicates if the current mapping is selected 
+    * Indicates if the current mapping is selected (or fixed)
     * 
     * @return
     */
    public boolean isSelected() {
-      return fSelected;
+      return fSelected || (fMuxValue == MuxSelection.fixed);
    }
    
    @Override

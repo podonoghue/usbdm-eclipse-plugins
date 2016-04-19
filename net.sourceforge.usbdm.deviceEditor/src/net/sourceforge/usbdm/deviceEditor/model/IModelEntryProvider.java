@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public interface ModelEntryProvider {
+public interface IModelEntryProvider {
 
    public static class VariableInfo {
       public final String  name;
@@ -60,7 +60,7 @@ public interface ModelEntryProvider {
     * 
     * @param key     Key used to identify variable
     * 
-    * @return Value for variable
+    * @return Information for variable
     */
    public VariableInfo getVariableInfo(String key);
 }

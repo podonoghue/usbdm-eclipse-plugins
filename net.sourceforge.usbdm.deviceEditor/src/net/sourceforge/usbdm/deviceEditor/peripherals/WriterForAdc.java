@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
  * @author podonoghue
  *
  */
-public class WriterForAnalogueIO extends Peripheral {      
+public class WriterForAdc extends Peripheral {      
 
    static private final String ALIAS_PREFIX = "adc_";
    
@@ -25,7 +25,7 @@ public class WriterForAnalogueIO extends Peripheral {
    /** Functions that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("InfoDP");
          
-   public WriterForAnalogueIO(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
 

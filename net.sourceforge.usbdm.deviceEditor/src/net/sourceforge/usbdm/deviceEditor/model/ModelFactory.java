@@ -146,7 +146,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             }
          }
       }
-
       return deviceModel;
    }
 
@@ -173,10 +172,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    private DeviceInformationModel createPackageModel() {
       DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Project", "Project Settings");
-      new ConstantModel(packageModel, "Hardware File", "", fDeviceInfo.getSourceFilename());
-//      new FilePathModel(packageModel, this);
-      new DeviceVariantModel(packageModel, fDeviceInfo);
-      new DevicePackageModel(packageModel, fDeviceInfo);
+      fDeviceInfo.getModels(packageModel);
       return packageModel;
    }
 
@@ -189,8 +185,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       RootModel root = new PeripheralConfigurationModel(this, OTHER_COLUMN_LABELS, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
-         if (device instanceof ModelEntryProvider) {
-            ((ModelEntryProvider) device).getModels(root);
+         if (device instanceof IModelEntryProvider) {
+            ((IModelEntryProvider) device).getModels(root);
          }
       }
       return root;
