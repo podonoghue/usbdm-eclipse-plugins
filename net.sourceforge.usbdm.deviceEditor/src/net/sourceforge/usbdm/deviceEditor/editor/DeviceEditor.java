@@ -205,7 +205,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          MessageDialog.openError(null, "Failed", "Regenerated code files failed");
          return;
       }
-      WriteFamilyCpp writer = new WriteFamilyCpp();
       try {
          if (fProject != null) {
             // Opened as part of a Eclipse project
@@ -214,6 +213,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          else {
             // Used for testing
             Path folder = fFactory.getDeviceInfo().getProjectSettingsPath().toAbsolutePath().getParent().getParent();
+            WriteFamilyCpp writer = new WriteFamilyCpp();
             writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
          }
       } catch (IOException e) {

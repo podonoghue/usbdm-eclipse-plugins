@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
-import java.io.IOException;
-
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;

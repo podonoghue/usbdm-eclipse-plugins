@@ -11,9 +11,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -28,9 +26,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
@@ -94,8 +92,8 @@ public class DeviceInfo extends ObservableModel {
    /** Key for hardware source file persistence */
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
 
-   /** Directory in Eclipse project for USBDM settings */
-   public static final String USBDM_PROJECT_DIRECTORY = "usbdm";
+//   /** Directory in Eclipse project for USBDM settings */
+//   public static final String USBDM_PROJECT_DIRECTORY = "usbdm";
 
    /** Name of default USBDM project file in Eclipse project */
    public static final String USBDM_PROJECT_FILENAME = "Configure";
@@ -1331,8 +1329,7 @@ public class DeviceInfo extends ObservableModel {
     */
    public static DeviceInfo create(IProject project, IProgressMonitor monitor) throws Exception {
       monitor.subTask("Opening Project");
-
-      IFile projectFile = project.getFile(USBDM_PROJECT_DIRECTORY+"/"+USBDM_PROJECT_FILENAME+PROJECT_FILE_EXTENSION);
+      IFile projectFile = project.getFile(USBDM_PROJECT_FILENAME+PROJECT_FILE_EXTENSION);
       if (projectFile.exists()) {
          // Load configuration
          Path filePath = Paths.get(projectFile.getLocation().toPortableString());

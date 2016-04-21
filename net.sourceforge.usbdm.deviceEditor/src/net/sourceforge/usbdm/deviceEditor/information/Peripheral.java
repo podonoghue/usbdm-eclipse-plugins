@@ -649,7 +649,8 @@ public abstract class Peripheral {
    private static final String INVALID_TEMPLATE  = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
    private static final String DUMMY_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
    private static final String FIXED_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s %d  },\n";
+//   private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s %d  },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s PORT_PCR_MUX(%d)|pcrValue  },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-15s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
@@ -668,6 +669,7 @@ public abstract class Peripheral {
          indent = "   ";
       }
       pinMappingHeaderFile.write(String.format(
+            indent+"   //! Number of signals available in info table\n"+
             indent+"   static constexpr int NUM_SIGNALS  = %d;\n" +
             "\n",
             signalTable.table.size()));
@@ -678,7 +680,7 @@ public abstract class Peripheral {
                   INFO_TABLE_NAME
             ));
       pinMappingHeaderFile.write(String.format(
-            indent+HEADING_TEMPLATE, "Signal", "Pin","   clockMask          pcrAddress      gpioAddress     bit  mux"));
+            indent+HEADING_TEMPLATE, "Signal", "Pin","   clockMask          pcrAddress      gpioAddress     bit  PCR value"));
       // Signal information table
       int index = -1;
       for (Signal signal:signalTable.table) {
@@ -766,7 +768,7 @@ public abstract class Peripheral {
     *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
     * 
     *        //! Information for each pin of peripheral
-    *        static constexpr PcrInfo  info[32] = {
+    *        static constexpr PcrInfo  info[] = {
     * 
     *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
     *   /*  0 * /  { 0 },
@@ -844,7 +846,7 @@ public abstract class Peripheral {
          return;
       }
       final String PCR_TEMPLATE = 
-            indent+"      PcrTable_T<%-20s %3s %s>::setPCR(%s); // %-15s = %-30s\n";
+            indent+"      PcrTable_T<%s %2s>::setPCR(%s); // %-15s = %-30s\n";
       
       final String PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
@@ -891,15 +893,13 @@ public abstract class Peripheral {
             if (mappedPin.isSelected()) {
                   initPcrbuffer.append(String.format( PCR_TEMPLATE, 
                         getClassName()+"Info"+tableName+",",
-                        index+",",
-                        getClassName()+"Info::pcrValue",
+                        index,
                         "",
                         signal.getName(),
                         mappedPin.getPin().getNameWithLocation()));
                   clearPcrbuffer.append(String.format( PCR_TEMPLATE, 
                         getClassName()+"Info"+tableName+",",
-                        index+",",
-                        getClassName()+"Info::pcrValue",
+                        index,
                         "0",
                         signal.getName(),
                         mappedPin.getPin().getNameWithLocation()));
