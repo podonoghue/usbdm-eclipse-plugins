@@ -180,22 +180,25 @@ public abstract class VectorTable extends ModeControl {
     * @return
     */
    public String getHandlerName(int index) {
-      if (interrupts[index] != null) {
-         String handlerName = interrupts[index].getHandlerName();
-         if (handlerName == null) {
-            handlerName = interrupts[index].getName();
-         }
-         if (handlerName == null) {
-            return null;
-         }
-         if (index<firstIrqIndex) {
-            return handlerName = handlerName+EXCEPTION_HANDLER_SUFFIX;
-         }
-         else {
-            return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
-         }
+      if (interrupts[index] == null) {
+         return null;
       }
-      return null;
+      // Try arbitrary handler name
+      String handlerName = interrupts[index].getHandlerName();
+      if (handlerName != null) {
+         return handlerName;
+      }
+      // Construct default from name
+      handlerName = interrupts[index].getName();
+      if (handlerName == null) {
+         throw new RuntimeException("Irq entry without name!");
+      }
+      if (index<firstIrqIndex) {
+         return handlerName = handlerName+EXCEPTION_HANDLER_SUFFIX;
+      }
+      else {
+         return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
+      }
    }
    
 

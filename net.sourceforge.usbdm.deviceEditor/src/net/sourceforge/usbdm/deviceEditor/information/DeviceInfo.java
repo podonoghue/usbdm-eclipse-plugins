@@ -17,6 +17,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.DialogSettings;
 
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.DevicePackageModel;
@@ -44,6 +45,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public class DeviceInfo extends ObservableModel {
 
@@ -89,11 +93,11 @@ public class DeviceInfo extends ObservableModel {
    /** Key for device variant persistence */
    public static final String DEVICE_VARIANT_SETTINGS_KEY  = "DeviceInfo_deviceVariant"; 
 
+   /** Key for device variant persistence */
+   public static final String DEVICE_NAME_SETTINGS_KEY  = "DeviceInfo_Target_Device"; 
+
    /** Key for hardware source file persistence */
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
-
-//   /** Directory in Eclipse project for USBDM settings */
-//   public static final String USBDM_PROJECT_DIRECTORY = "usbdm";
 
    /** Name of default USBDM project file in Eclipse project */
    public static final String USBDM_PROJECT_FILENAME = "Configure";
@@ -275,7 +279,8 @@ public class DeviceInfo extends ObservableModel {
     * Peripherals =============================================================================================
     */
    /**
-    * Map of all Peripherals
+    * Map of all peripherals<br>
+    * name -> peripheral
     */
    private Map<String, Peripheral> fPeripheralsMap = new TreeMap<String, Peripheral>(); 
 
@@ -434,7 +439,8 @@ public class DeviceInfo extends ObservableModel {
    }
 
    /**
-    * Get map of all peripherals
+    * Get map of all peripherals<br>
+    * name -> peripheral
     * 
     * @return
     */
@@ -1046,6 +1052,17 @@ public class DeviceInfo extends ObservableModel {
     * DeviceVariantInformation =============================================================================================
     */
 
+   /** Name of device */
+   private String fDeviceName = null;
+
+   void setDeviceName(String deviceName) {
+      fDeviceName = deviceName;
+   }
+   
+   String getDeviceName() {
+      return fDeviceName;
+   }
+   
    /** Name of the device variant e.g. MKL25Z4 */
    private String fVariantName = null;
 
@@ -1253,12 +1270,16 @@ public class DeviceInfo extends ObservableModel {
          if (variantName != null) {
             setDeviceVariant(variantName);
          }
+         String deviceName = settings.get(DEVICE_NAME_SETTINGS_KEY);
+         if (deviceName != null) {
+            setDeviceName(deviceName);
+         }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
             pin.loadSettings(settings);
          }
-         for (String deviceName:fPeripheralsMap.keySet()) {
-            Peripheral peripheral =  fPeripheralsMap.get(deviceName);
+         for (String peripheralName:fPeripheralsMap.keySet()) {
+            Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
          }
       } catch (Exception e) {
@@ -1280,14 +1301,15 @@ public class DeviceInfo extends ObservableModel {
    public void saveSettingsAs(Path path) {
       fProjectSettingsPath = path;
       DialogSettings settings = new DialogSettings("USBDM");
+      settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       settings.put(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY, fHardwarePath.getFileName().toString());
       for (String pinName:fPins.keySet()) {
          Pin pin = fPins.get(pinName);
          pin.saveSettings(settings);
       }
-      for (String deviceName:fPeripheralsMap.keySet()) {
-         Peripheral peripheral =  fPeripheralsMap.get(deviceName);
+      for (String peripheralName:fPeripheralsMap.keySet()) {
+         Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
          peripheral.saveSettings(settings);
       }
       try {
@@ -1338,27 +1360,91 @@ public class DeviceInfo extends ObservableModel {
       return null;
    }
 
-   /**
-    * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project
-    * 
-    * @param project       Destination Eclipse C++ project 
-    * @param monitor
-    */
-   public void generateCppFiles(IProject project, IProgressMonitor monitor) {
-      monitor.subTask("Generating CPP files");
-      
-      WriteFamilyCpp writer = new WriteFamilyCpp();
-      try {
-         writer.writeCppFiles(project, this, monitor);
-      } catch (IOException e) {
-         e.printStackTrace();
-      } catch (CoreException e) {
-         e.printStackTrace();
+   void doVectors(String deviceName) throws Exception {
+      // Get description of all peripherals for device
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      // Get description of all peripherals for this device
+      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);
+      if (devicePeripherals == null) {
+         throw new Exception ("Failed to create DevicePeripherals for "+ deviceName);
       }
    }
 
    /**
-    * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project<br>
+    * Creates vector table information and add to variable map
+    * 
+    * @param variableMap
+    * @throws Exception
+    */
+   private void generateVectorTable(Map<String, String> variableMap) throws Exception {
+      // Get description of all peripherals for device
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      String deviceName = fDeviceName;
+      if (deviceName.equalsIgnoreCase("$(targetDevice)")) {
+         // For testing
+         deviceName = "FRDM_K22F";
+      }
+      // Get description of all peripherals for this device
+      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);
+      if (devicePeripherals == null) {
+         throw new Exception ("Failed to create DevicePeripherals for "+ deviceName);
+      }
+      // Update vector table
+      VectorTable vectorTable = devicePeripherals.getVectorTable();
+      variableMap.put("VectorsIncludeFiles", "");
+      for (String peripheralName:getPeripherals().keySet()) {
+         Peripheral peripheral = getPeripherals().get(peripheralName);
+         peripheral.getVariables(variableMap, vectorTable);
+      }
+      // Add information to variable map
+      variableMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, vectorTable.getCVectorTableEntries());
+   }
+   
+   /**
+    * Generate CPP files (pin_mapping.h, gpio.h)<br>
+    * Used for testing (files created relative to executable)
+    * 
+    * @throws Exception 
+    */
+   public void generateCppFiles() throws Exception {
+      
+      doVectors("FRDM_K22F");
+      
+      // Output directory for test files
+      Path folder = Paths.get("Testing");
+
+      // Generate pinmapping.h etc
+      WriteFamilyCpp writer = new WriteFamilyCpp();
+      writer.writeCppFiles(folder, "", this);
+
+      // Regenerate vectors.cpp
+      Map<String, String> variableMap = new HashMap<String, String>();
+      generateVectorTable(variableMap);
+      FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
+   }
+
+   /**
+    * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project
+    * 
+    * @param project       Destination Eclipse C++ project 
+    * @param monitor
+    * @throws Exception 
+    */
+   public void generateCppFiles(IProject project, IProgressMonitor monitor) throws Exception {
+      monitor.subTask("Generating CPP files");
+
+      // Generate pinmapping.h etc
+      WriteFamilyCpp writer = new WriteFamilyCpp();
+      writer.writeCppFiles(project, this, monitor);
+      
+      // Regenerate vectors.cpp
+      Map<String, String> variableMap = new HashMap<String, String>();
+      generateVectorTable(variableMap);
+      FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, monitor);
+   }
+
+   /**
+    * Generate CPP files (pin_mapping.h, gpio.h etc) within an Eclipse C++ project<br>
     * Used during initial project creation
     * 
     * @param project       Eclipse C++ project 
@@ -1415,6 +1501,7 @@ public class DeviceInfo extends ObservableModel {
    
    public BaseModel[] getModels(BaseModel parent) {
       BaseModel[] models = {
+            new ConstantModel(parent, "Device", "", getDeviceName()),
             new ConstantModel(parent, "Hardware File", "", getSourceFilename()),
             new DeviceVariantModel(parent, this),
             new DevicePackageModel(parent, this),

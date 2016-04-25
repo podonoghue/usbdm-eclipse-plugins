@@ -215,7 +215,7 @@ public class DevicePeripherals extends ModeControl {
    }
    
    /**
-    * Get vector table
+    * Get vector table<br>
     * An empty vector is created if needed.
     * 
     * @return the vectorTable

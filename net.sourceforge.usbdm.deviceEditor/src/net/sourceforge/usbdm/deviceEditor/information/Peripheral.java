@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -10,6 +11,7 @@ import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Represents a peripheral.<br>
@@ -931,6 +933,15 @@ public abstract class Peripheral {
     */
    public String getClockSource() {
       return fClockSource;
+   }
+
+   /**
+    * Adds variables to map for C++ generation
+    * 
+    * @param variableMap
+    * @param vectorTable 
+    */
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
    }
 
 }

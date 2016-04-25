@@ -23,8 +23,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class WriteFamilyCpp {
 
@@ -41,7 +41,7 @@ public class WriteFamilyCpp {
    private final static String PIN_MAPPING_BASEFILENAME   = "pin_mapping";
 
    /** Base name for C++ files */
-   private final static String HARDWARE_BASEFILENAME          = "hardware";
+   private final static String HARDWARE_BASEFILENAME      = "hardware";
 
    /** Fixed GPIO multiplexor function */
    private int      gpioFunctionMuxValue          = 1; 
@@ -165,20 +165,13 @@ public class WriteFamilyCpp {
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
       writer.writeBanner("Peripheral Information Classes");
 
-      String groupName = null;
-      
+      DocumentationGroups groups = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         if (!peripheral.getGroupName().equals(groupName)) {
-            if (groupName != null) {
-               writer.writeCloseGroup();
-            }
-            writer.writeStartGroup(peripheral);
-            groupName = peripheral.getGroupName();
-         }
+         groups.openGroup(peripheral);
          peripheral.writeInfoClass(writer);
       }
-      writer.writeCloseGroup();
+      groups.closeGroup();
       writer.writeCloseNamespace();
       writer.write("\n");
    }
@@ -198,13 +191,15 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException 
     */
-   private void writeFunctionCTemplates(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex, DocumentUtilities writer) throws IOException {
+   private String writeFunctionCTemplates(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex) throws IOException {
+      StringBuffer sb = null;
+      
       if (!mappedFunction.isSelected()) {// && (mappedFunction.getMux()!=MuxSelection.mux1)) {
-         return;
+         return null;
       }
       String definition = peripheral.getDefinition(mappedFunction, fnIndex);
       if (definition == null) {
-         return;
+         return null;
       }
       String signalName = peripheral.getInstanceName(mappedFunction, fnIndex);
       String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedFunction.getPin());
@@ -214,17 +209,49 @@ public class WriteFamilyCpp {
             if (aliasName!= null) {
                String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
                if (declaration != null) {
+                  if (sb == null) {
+                     sb = new StringBuffer();
+                  }
                   if (!recordAlias(aliasName)) {
                      // Comment out repeated aliases
-                     writer.write("//");
+                     sb.append("//");
                   }
-                  writer.write(declaration);
+                  sb.append(declaration);
                }
             }
          }
       }
+      if (sb == null) {
+         return null;
+      }
+      return sb.toString();
    }
 
+   private class DocumentationGroups {
+      DocumentUtilities fWriter;
+      
+      public DocumentationGroups(DocumentUtilities writer) {
+         fWriter = writer;
+      }
+      String groupName = null;
+      public void openGroup(Peripheral peripheral) throws IOException {
+         if (!peripheral.getGroupName().equals(groupName)) {
+            if (groupName != null) {
+               // Terminate previous group
+               fWriter.writeCloseGroup();
+            }
+            groupName = peripheral.getGroupName();
+            fWriter.writeStartGroup(peripheral);
+         }
+      }
+      public void closeGroup() throws IOException {
+         if (groupName != null) {
+            // Terminate last group
+            fWriter.writeCloseGroup();
+         }
+      }
+   }
+   
    /**
     * Write C templates for peripherals and peripheral functions
     * 
@@ -261,31 +288,25 @@ public class WriteFamilyCpp {
     */
    private void writePeripheralCTemplates(DocumentUtilities writer) throws IOException {
 
+      if (fDeviceInfo.getPeripherals().containsKey("FTM0")) {
+         writer.writeHeaderFileInclude("ftm.h");
+      }
+      if (fDeviceInfo.getPeripherals().containsKey("TPM0")) {
+         writer.writeHeaderFileInclude("tpm.h");
+      }
       writer.write("\n");
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
 
-      String groupName = null;
-
+      DocumentationGroups startGroup = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
 
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          String declaration = peripheral.getCTemplate();
-         if (declaration == null) {
-            continue;
+         if (declaration != null) {
+            startGroup.openGroup(peripheral);
+            writer.write(declaration);
          }
-         if (!peripheral.getGroupName().equals(groupName)) {
-            if (groupName != null) {
-               // Terminate previous group
-               writer.writeCloseGroup();
-            }
-            groupName = peripheral.getGroupName();
-            writer.writeStartGroup(peripheral);
-         }
-
-         writer.write(declaration);
-
          for (String pinName:fDeviceInfo.getPins().keySet()) {
-
             Pin pin = fDeviceInfo.getPins().get(pinName);
             Map<MuxSelection, MappingInfo> mappedFunctions = pin.getMappedSignals();
             if (mappedFunctions == null) {
@@ -299,16 +320,17 @@ public class WriteFamilyCpp {
                for (int fnIndex=0; fnIndex<mappedFunction.getSignals().size(); fnIndex++) {
                   Signal function = mappedFunction.getSignals().get(fnIndex);
                   if (function.getPeripheral() == peripheral) {
-                     writeFunctionCTemplates(peripheral, mappedFunction, fnIndex, writer);
+                     String template = writeFunctionCTemplates(peripheral, mappedFunction, fnIndex);
+                     if (template != null) {
+                        startGroup.openGroup(peripheral);
+                        writer.write(template);
+                     }
                   }
                }
             }
          }
       }
-      if (groupName != null) {
-         // Terminate last group
-         writer.writeCloseGroup();
-      }
+      startGroup.closeGroup();
       writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
       writer.write("extern void usbdm_PinMapping();\n");
       writer.writeCloseNamespace();
@@ -418,11 +440,11 @@ public class WriteFamilyCpp {
          " *\n"+
          " * @section %s %s\n"+
          " *\n"+
-         " *    Pin Name               |   Functions                                 |  Location           |  Description  \n"+
-         " *  ------------------------ | --------------------------------------------|---------------------| ------------- \n";
+         " *    Pin Name               |   Functions                                 |  Location                 |  Description  \n"+
+         " *  ------------------------ | --------------------------------------------|---------------------------| ------------- \n";
       
    private final String DOCUMENTATION_TEMPLATE = 
-      " *  %-20s     | %-40s    | %-15s     | %s       \n";
+      " *  %-20s     | %-40s    | %-21s     | %s       \n";
    
    private final String TABLE_CLOSE = 
          " *\n";
@@ -529,12 +551,14 @@ public class WriteFamilyCpp {
       writer.writeSystemHeaderFileInclude("stddef.h");
       writer.writeHeaderFileInclude("derivative.h");
       headerFile.write("\n");
+      writer.writeHeaderFileInclude("gpio.h");
+      headerFile.write("\n");
 
       writePinDefines(writer);
       writeClockMacros(writer);
       writePeripheralInformationClasses(writer);
 
-      writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME+".h");
+      writer.writeHeaderFileInclude("adc.h");
 
       writePeripheralCTemplates(writer);
 
@@ -548,12 +572,12 @@ public class WriteFamilyCpp {
    /**                    
     * Write CPP file      
     *                     
-    * @param filePath      Path to file for writing
+    * @param path      Path to file for writing
     * 
     * @throws IOException 
     */                    
-   private void writePinMappingCppFile(Path filePath) throws IOException {
-      BufferedWriter cppFile = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8);
+   private void writePinMappingCppFile(Path path) throws IOException {
+      BufferedWriter cppFile = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
       DocumentUtilities writer = new DocumentUtilities(cppFile);
       
       writer.writeCppFilePreamble(

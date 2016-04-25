@@ -1578,6 +1578,7 @@ public class Usbdm {
             else {
                shell = new Shell(disp);
             }
+            System.err.println("Libary Path = "+System.getProperty("java.library.path"));
             libraryLoadFailed = true;
             MessageBox msgbox = new MessageBox(shell, SWT.OK);
             msgbox.setText("USBDM Error");

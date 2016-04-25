@@ -75,18 +75,17 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public void setValueAsString(String value) {
       super.setValueAsString(value);
-      MuxSelection muxValue = MuxSelection.reset;         
       fCurrentMapping = fMappingInfos.get(fSelection);
       if (fCurrentMapping == null) {
          throw new RuntimeException("Illegal mapping");
       }
-      muxValue = fCurrentMapping.getMux();
-      if (muxValue == MuxSelection.disabled) {
-         // Can't set a signal to disabled because it is unclear what to do to the unmapped pin?
-         muxValue = MuxSelection.reset;
-         fCurrentMapping = fResetMapping;
-         fSelection = fMappingInfos.indexOf(fResetMapping);
-      }
+//      MuxSelection muxValue = fCurrentMapping.getMux();
+//      if (muxValue == MuxSelection.disabled) {
+//         // Can't set a signal to disabled because it is unclear what to do to the unmapped pin?
+//         muxValue = MuxSelection.reset;
+//         fCurrentMapping = fResetMapping;
+//         fSelection = fMappingInfos.indexOf(fResetMapping);
+//      }
 //      System.err.println("===================================================================");
 //      System.err.println("SignalModel("+fName+")::setValue("+value+", "+fSelection+") => "+fCurrentMapping);
       fSignal.setPin(fCurrentMapping);
@@ -131,13 +130,10 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       return super.getMessage();
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.model.SelectionModel#canEdit()
-    */
-   @Override
-   public boolean canEdit() {
-      return super.canEdit() && ((fChoices.length>2) || (fCurrentMapping == MappingInfo.DISABLED_MAPPING));
-   }
+//   @Override
+//   public boolean canEdit() {
+//      return super.canEdit() && ((fChoices.length>2) || (fCurrentMapping == MappingInfo.DISABLED_MAPPING));
+//   }
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {

@@ -45,12 +45,8 @@ public class TestDeviceEditor {
     */
    public static void main(String[] args) {
       try {
-       testEditor(Paths.get("usbdm/FRDM_K20D50M.usbdmProject"));
-//         testEditor(Paths.get("data/MK22FA12.csv"));
-//         testEditor(Paths.get("xml/MK22FA12.usbdmHardware"));
-//       testEditor(Paths.get("usbdm/FRDM_K20D50M.usbdmProject"));
-//       testEditor(Paths.get("usbdm/MK22F51212.usbdmHardware"));
-//         testEditor(Paths.get("usbdm/MK64F12.usbdmHardware"));
+//         testEditor(Paths.get("projectFiles/FRDM_K20D50M.usbdmProject"));
+         testEditor(Paths.get("projectFiles/FRDM_KL25Z.usbdmProject"));
       } catch (Exception e) {
          e.printStackTrace();
       }

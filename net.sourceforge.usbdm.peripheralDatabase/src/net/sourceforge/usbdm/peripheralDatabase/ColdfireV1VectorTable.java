@@ -74,7 +74,7 @@ public class ColdfireV1VectorTable extends VectorTable {
 
    static final String vectorTableOpen     = 
          "__attribute__ ((section(\".interrupt_vectors\")))\n"+
-         "VectorTable const __vector_table = {\n"+
+         "extern VectorTable const __vector_table = {\n"+
          "                                          /*  Exc# */\n"+
          "   &__StackTop,                           /*    0  Initial stack pointer                                                  */\n"+
          "   {\n"+

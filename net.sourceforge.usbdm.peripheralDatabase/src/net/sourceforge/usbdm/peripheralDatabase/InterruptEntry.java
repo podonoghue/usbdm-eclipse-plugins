@@ -2,18 +2,16 @@ package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.PrintWriter;
 
-   class InterruptEntry {
+   public class InterruptEntry {
 
-      private int       index;
-      private String    name;
-      private String    handlerName; // This is a transient property and not written to SVD
-      private String    description;
+      private int       fIndex;
+      private String    fName;
+      private String    fHandlerName; // This is a transient property and not written to SVD
+      private String    fDescription;
+      private boolean   fClassMemberUsedAsHandler = false;
       
       public InterruptEntry() {
-         this.index      = -100;     
-         this.name        = "";       
-         this.description = "";
-         this.handlerName = null;
+         this("", 100, null, "");
       }
 
       /**
@@ -27,10 +25,10 @@ import java.io.PrintWriter;
        * Note: handlerName is a transient property and not written to SVD
        */
       public InterruptEntry(String name, int number, String handlerName, String description) {
-         this.index      = number;     
-         this.name        = name;    
-         this.handlerName = handlerName;
-         this.description = description;
+         this.fIndex      = number;     
+         this.fName        = name;    
+         this.fHandlerName = handlerName;
+         this.fDescription = description;
       }
 
       @Override
@@ -39,70 +37,113 @@ import java.io.PrintWriter;
             return false;
          }
          InterruptEntry o = (InterruptEntry)other;
-         return (this.index == o.index) &&
-                 this.name.equalsIgnoreCase(o.name) &&
-                (this.description.equalsIgnoreCase(o.description));
+         return (this.fIndex == o.fIndex) &&
+                 this.fName.equalsIgnoreCase(o.fName) &&
+                (this.fDescription.equalsIgnoreCase(o.fDescription));
       }
       
       /**
        * @return the index number
        */
       public int getIndexNumber() {
-         return index;
+         return fIndex;
       }
 
       /**
-       * @param index number the number to set
+       * @param fIndex number the number to set
        */
       public void setIndexNumber(int number) {
-         this.index = number;
+         this.fIndex = number;
       }
 
       /**
        * @return the name
        */
       public String getName() {
-         return name;
+         return fName;
       }
 
       /**
        * @param name the name to set
        */
       public void setName(String name) {
-         this.name = name;
+         this.fName = name;
       }
 
       /**
        * @return the name of the handler
        */
       public String getHandlerName() {
-         return handlerName;
+         return fHandlerName;
+      }
+
+      /**
+       * @return the name of the handler<br>
+       * This overrides the default name created from the name of the vector
+       */
+      public void setHandlerName(String handlerName) {
+         fHandlerName = handlerName;
       }
 
       /**
        * @return the description
        */
       public String getDescription() {
-         return description;
+         return fDescription;
       }
 
       /**
        * @param description the description to set
        */
       public void setDescription(String description) {
-         this.description = description;
+         this.fDescription = description;
       }
 
+      /**
+       * Set whether the handler for this interrupt is a static member of a class
+       * 
+       * @param handlerIsClassMember
+       */
+      public void setClassMemberUsedAsHandler(boolean handlerIsClassMember) {
+         fClassMemberUsedAsHandler = handlerIsClassMember;
+      }
+      
+      /**
+       * Set whether the handler for this interrupt is a static member of a class
+       * 
+       * @return true if handler is a member function
+       */
+      public boolean isClassMemberUsedAsHandler() {
+         return fClassMemberUsedAsHandler;
+      }
+      
       public void writeSVD(PrintWriter writer, int indent) {
          final String indenter = RegisterUnion.getIndent(indent);
          writer.println(              indenter+"<interrupt>");
-         writer.println(String.format(indenter+"   <name>%s</name>", name));
-         writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(description)));
-         writer.println(String.format(indenter+"   <value>%d</value>", index));
+         writer.println(String.format(indenter+"   <name>%s</name>", fName));
+         writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
+         writer.println(String.format(indenter+"   <value>%d</value>", fIndex));
          writer.println(              indenter+"</interrupt>");
       }
 
       public String getCDescription() {
-         return SVD_XML_BaseParser.unEscapeString(description);
+         return SVD_XML_BaseParser.unEscapeString(fDescription);
       }
+
+      /* (non-Javadoc)
+       * @see java.lang.Object#toString()
+       */
+      @Override
+      public String toString() {
+         StringBuffer sb = new StringBuffer();
+         sb.append("InterruptEntry(");
+         sb.append(fIndex+", ");
+         sb.append(fName+", ");
+         sb.append(fDescription+", ");
+         sb.append(fHandlerName+", ");
+         sb.append(")");
+         return sb.toString();
+      }
+      
+      
    };

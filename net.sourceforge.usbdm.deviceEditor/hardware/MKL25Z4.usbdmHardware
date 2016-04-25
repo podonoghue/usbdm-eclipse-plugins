@@ -7,7 +7,7 @@
 
 <root version="1.2.0">
    <family name="MKL25Z4">
-      <device name="FRDM_KL25Z"   manual="KL25P80M48SF0RM" package="FRDM" />
+      <device name="FRDM_KL25Z"   manual="KL25P80M48SF0RM" package="FRDM_KL25Z" />
       <device name="MKL25Z128VFM4" manual="KL25P80M48SF0RM" package="QFN_32" />
       <device name="MKL25Z128VFT4" manual="KL25P80M48SF0RM" package="QFN_48" />
       <device name="MKL25Z128VLH4" manual="KL25P80M48SF0RM" package="LQFP_64" />
@@ -908,7 +908,7 @@
       </pin>
    </pins>
    <packages>
-      <package name="FRDM">
+      <package name="FRDM_KL25Z">
          <placement pin="PTA0"          location="" />
          <placement pin="PTA1"          location="D0/ConRx" />
          <placement pin="PTA12"         location="D3" />

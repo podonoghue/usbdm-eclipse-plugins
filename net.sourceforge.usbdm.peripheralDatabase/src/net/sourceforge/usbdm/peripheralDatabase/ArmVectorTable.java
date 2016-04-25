@@ -17,12 +17,12 @@ public abstract class ArmVectorTable extends VectorTable {
    static final String vectorTableTypedef       =
          "typedef struct {\n"        +
          "   uint32_t *initialSP;\n" +
-         "   intfunc  handlers[];\n" +
+         "   intfunc  handlers[%d];\n" +
          "} VectorTable;\n\n";
 
    static final String vectorTableOpen     = 
          "__attribute__ ((section(\".interrupt_vectors\")))\n"+
-         "VectorTable const __vector_table = {\n"+
+         "extern VectorTable const __vector_table = {\n"+
          "                                     /*  Exc# Irq# */\n"+
          "   &__StackTop,                      /*    0   -16  Initial stack pointer                                                            */\n"+
          "   {\n"+
@@ -56,6 +56,9 @@ public abstract class ArmVectorTable extends VectorTable {
       
       // Write out handler prototypes
       for (int index=2; index<=lastEntry; index++) {
+         if ((interrupts[index] == null) || interrupts[index].isClassMemberUsedAsHandler()) {
+            continue;
+         }
          String handlerName = getHandlerName(index);
          // Exclude empty entries and the hard fault handler
          if ((handlerName != null) && (index != HARD_FAULT_NUMBER)) {
@@ -65,7 +68,7 @@ public abstract class ArmVectorTable extends VectorTable {
       writer.write('\n');
       
       // Write out vector table
-      writer.write(vectorTableTypedef);
+      writer.write(String.format(vectorTableTypedef, lastEntry));
       writer.write(vectorTableOpen);
       
       for (int index=2; index<=lastEntry; index++) {

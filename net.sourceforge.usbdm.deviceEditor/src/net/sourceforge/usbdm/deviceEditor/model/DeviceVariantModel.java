@@ -17,10 +17,9 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
     * @param deviceInfo    Device information to construct node
     */
    public DeviceVariantModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Device", "");
+      super(parent, "Variant", "");
       
       fDeviceInfo = deviceInfo;
-      fDeviceInfo.addListener(this);
       
       for (String deviceName:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.getDeviceVariants().get(deviceName);
@@ -32,6 +31,8 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
          fSelection = 0;
          fDeviceInfo.setDeviceVariant(fChoices[0]);
       }
+      
+      fDeviceInfo.addListener(this);
    }
 
    public void setValueAsString(String value) {

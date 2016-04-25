@@ -9,6 +9,7 @@ import org.eclipse.jface.dialogs.DialogSettings;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
 
@@ -109,6 +110,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          }
       }
       return s;
+   }
+
+   @Override
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+      for (String variableName:fVariableMap.keySet()) {
+         variableMap.put(fName+"_"+variableName, fVariableMap.get(variableName).value);
+      }
    }
    
 }

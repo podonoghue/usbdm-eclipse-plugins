@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,7 +40,6 @@ import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PackageImageModel;
 import net.sourceforge.usbdm.deviceEditor.model.RootModel;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
@@ -212,14 +210,13 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          }
          else {
             // Used for testing
-            Path folder = fFactory.getDeviceInfo().getProjectSettingsPath().toAbsolutePath().getParent().getParent();
-            WriteFamilyCpp writer = new WriteFamilyCpp();
-            writer.writeCppFiles(folder, "", fFactory.getDeviceInfo());
+            fFactory.getDeviceInfo().generateCppFiles();
          }
-      } catch (IOException e) {
+         MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
+      } catch (Exception e) {
          e.printStackTrace();
+         MessageDialog.openError(null, "Regenerate Code Failed", "Failed to regenerate code.\nReason:\n"+e.getMessage());
       }
-      MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
    }
    
    class GenerateCodeAction extends MyAction {

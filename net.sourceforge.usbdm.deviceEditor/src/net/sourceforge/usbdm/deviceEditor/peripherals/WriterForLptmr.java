@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
+import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -9,6 +10,8 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -28,7 +31,7 @@ public class WriterForLptmr extends PeripheralWithState {
    private static final String LPTMR_CSR_TPP_KEY             = "CSR_TPP";
    private static final String LPTMR_CSR_TPS_KEY             = "CSR_TPS";
    private static final String LPTMR_IRQ_LEVEL_KEY           = "IRQ_LEVEL";
-   private static final String LPTMR_USES_NAKED_HANDLER_KEY  = "USES_NAKED_HANDLER";
+   private static final String LPTMR_IRQ_HANDLER_KEY         = "LPTMR_IRQ_HANDLER";
    
    public WriterForLptmr(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -36,13 +39,13 @@ public class WriterForLptmr extends PeripheralWithState {
       createValue(LPTMR_PSR_PCS_KEY,             "0", "Clock Source");
       createValue(LPTMR_PSR_PRESCALE_KEY,        "0", "Prescaler Value");
       createValue(LPTMR_CSR_TPS_KEY,             "1", "Timer Pin Select");
-      createValue(LPTMR_IRQ_LEVEL_KEY,           "0", "IRQ Level in NVIC [0-15]", 0, 15);
 
       createValue(LPTMR_PSR_PBYP_KEY,            "0", "Prescaler Bypass");
       createValue(LPTMR_CSR_TMS_KEY,             "0", "Timer Mode Select");
       createValue(LPTMR_CSR_TFC_KEY,             "0", "Timer Free-Running Counter");
       createValue(LPTMR_CSR_TPP_KEY,             "0", "Timer Pin Polarity");
-      createValue(LPTMR_USES_NAKED_HANDLER_KEY,  "0", "Interrupt handler setup");
+      createValue(LPTMR_IRQ_HANDLER_KEY,         "0", "Handler for IRQ", 0, 1);
+      createValue(LPTMR_IRQ_LEVEL_KEY,           "0", "IRQ Level in NVIC [0-15]", 0, 15);
    }
 
    @Override
@@ -174,10 +177,6 @@ public class WriterForLptmr extends PeripheralWithState {
          }
       };
 
-      VariableModel vModel = new VariableModel(models[0], this, LPTMR_IRQ_LEVEL_KEY, "");
-      vModel.setName(fVariableMap.get(LPTMR_IRQ_LEVEL_KEY).name);
-      vModel.setToolTip("");
-
       BinaryModel model = new BinaryModel(models[0], this, LPTMR_PSR_PBYP_KEY, "[PSR_PBYP]");
       model.setName(fVariableMap.get(LPTMR_PSR_PBYP_KEY).name);
       model.setToolTip("When PBYP is set:\n"+
@@ -207,13 +206,17 @@ public class WriterForLptmr extends PeripheralWithState {
       model.setValue0("Active-high source, rising-edge increments CNR",  "0");
       model.setValue1("Active-low source,  falling-edge increments CNR", "1");
       
-      model = new BinaryModel(models[0], this, LPTMR_USES_NAKED_HANDLER_KEY, "");
-      model.setName(fVariableMap.get(LPTMR_USES_NAKED_HANDLER_KEY).name);
-      model.setToolTip("The interrupt handler may use an external function named LPTMR0_IRQHandler() or\n"+
-                       "may be set by use of the setCallback() function");
-      model.setValue0("Interrupt handler is programmatically set",   "0");
-      model.setValue1("External function LPTMR0_IRQHandler() is used", "1");
+      model = new BinaryModel(models[0], this, LPTMR_IRQ_HANDLER_KEY, "");
+      model.setName(fVariableMap.get(LPTMR_IRQ_HANDLER_KEY).name);
+      model.setToolTip("The interrupt handler may be a static member function or\n"+
+            "may be set by use of the setCallback() method");
+      model.setValue0("No handler installed", "0");
+      model.setValue1("Handler installed",    "1");
       
+      VariableModel vModel = new VariableModel(models[0], this, LPTMR_IRQ_LEVEL_KEY, "");
+      vModel.setName(fVariableMap.get(LPTMR_IRQ_LEVEL_KEY).name);
+      vModel.setToolTip("Sets the priority level used to configure the NVIC");
+
       return models;
    }
    
@@ -223,9 +226,7 @@ public class WriterForLptmr extends PeripheralWithState {
        "   //! Default CSR value\n"+
        "   static constexpr uint32_t csrValue =  (${CSR_TMS}<<LPTMR_CSR_TMS_SHIFT)|(${CSR_TFC}<<LPTMR_CSR_TFC_SHIFT)|(${CSR_TPP}<<LPTMR_CSR_TPP_SHIFT)|LPTMR_CSR_TPS(${CSR_TPS});\n\n"+
        "   //! Default IRQ level\n"+
-       "   static constexpr uint32_t irqLevel =  ${"+LPTMR_IRQ_LEVEL_KEY+"};\n\n"+
-       "   //! Indicates that naked interrupt handlers are used rather that software table\n"+
-       "   #define LPTMR_USES_NAKED_HANDLER ${"+LPTMR_USES_NAKED_HANDLER_KEY+"}\n\n";
+       "   static constexpr uint32_t irqLevel =  ${"+LPTMR_IRQ_LEVEL_KEY+"};\n\n";
    
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
@@ -237,5 +238,27 @@ public class WriterForLptmr extends PeripheralWithState {
    public VariableInfo getVariableInfo(String key) {
       return fVariableMap.get(key);
       }
+
+   @Override
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+      final String headerFileName = getBaseName().toLowerCase()+".h";
+      super.getVariables(variableMap, vectorTable);
+      boolean handlerSet = false;
+      for (InterruptEntry entry:vectorTable.getEntries()) {
+         if ((entry != null) && entry.getName().startsWith(fName)) {
+            if (getVariableInfo(LPTMR_IRQ_HANDLER_KEY).value.equals("1")) {
+               entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irqHandler");
+               entry.setClassMemberUsedAsHandler(true);
+               handlerSet = true;
+            }
+         }
+      }
+      if (handlerSet) {
+         String headers = variableMap.get("VectorsIncludeFiles");
+         if (!headers.contains(headerFileName)) {
+            variableMap.put("VectorsIncludeFiles", headers + "#include \""+headerFileName+"\"\n");
+         }
+      }
+   }
 
 }

@@ -19,6 +19,8 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
+   boolean underConstruction;
+   
    /**
     * Used to sort the pins into categories for display
     */
@@ -364,7 +366,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          }
       }
       for (RootModel model:fModels) {
-         model.refresh();
+         if (model != null) {
+            model.refresh();
+         }
       }
    }
 
@@ -375,14 +379,17 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    public ModelFactory(DeviceInfo deviceInfo) {
       
+      underConstruction     = true;
+      
       fDeviceInfo           = deviceInfo;
       fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
 
       fDeviceInfo.addListener(this);
 
       fPackageModel = createPackageModel();
-      
       createModels();
+      
+      underConstruction     = false;
    }
 
    /**
@@ -429,6 +436,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
    @Override
    public void modelElementChanged(ObservableModel model) {
+      if (underConstruction) {
+         return;
+      }
       if (model instanceof DeviceInfo) {
          if (fCurrentDeviceVariant != fDeviceInfo.getDeviceVariant()) {
             // Major change

@@ -7,8 +7,8 @@
 
 <root version="1.2.0">
    <family name="MK22FA12">
-      <device name="FRDM_K22F121M0" manual="K22P64M120SF5V2RM" package="FRDM_K20D50M" />
-      <device name="FRDM_K22FA121M0" manual="K22P64M120SF5RM" package="FRDM_K20D50M" />
+      <device name="FRDM_K22F1M0" manual="K22P64M120SF5V2RM" package="FRDM_K20D50M" />
+      <device name="FRDM_K22FA1M0" manual="K22P64M120SF5RM" package="FRDM_K20D50M" />
       <device name="MK22FN1M0AVLH12" manual="K22P64M120SF5V2RM" package="LQFP_64" />
       <device name="MK22FN1M0VLH12" manual="K22P64M120SF5RM" package="LQFP_64" />
       <device name="MK22FX512AVLH12" manual="K22P64M120SF5V2RM" package="LQFP_64" />

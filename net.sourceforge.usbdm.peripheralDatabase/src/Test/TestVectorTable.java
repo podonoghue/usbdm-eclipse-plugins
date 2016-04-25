@@ -51,7 +51,8 @@ public class TestVectorTable {
 //      String device="MCF52259";
 //      String device="MK20D5";
       String device="MKL25Z32M4";
-      
+//      Path usbdmResourcePath = Paths.get(Usbdm.getResourcePath().toOSString());
+
       testVectorTable(device);
 //      testHeaderFile(device);
    }

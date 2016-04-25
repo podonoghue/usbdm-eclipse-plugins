@@ -113,19 +113,18 @@ public class MappingInfo extends ObservableModel {
     * @param selected
     */
    public void select(Origin origin, boolean selected) {
+      if (fSelected == selected) {
+//       System.err.println(toString() + " No Change");
+         return;
+      }
       if (fBusy) {
          throw new RuntimeException("Loop!!!");
       }
       fBusy = true;
-      if (fSelected != selected) {
-         setRefreshPending(true);
-         fSelected = selected;
+      setRefreshPending(true);
+      fSelected = selected;
 //         System.err.println(toString() + " Changed, " + (fSelected?"Selected":"Disabled" ));
-         notifyListeners();
-      }
-//      else {
-//         System.err.println(toString() + " No Change");
-//      }
+      notifyListeners();
       fBusy = false;   
    }
 

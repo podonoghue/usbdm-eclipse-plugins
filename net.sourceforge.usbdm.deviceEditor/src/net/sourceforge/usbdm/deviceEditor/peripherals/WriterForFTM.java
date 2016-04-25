@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,7 +9,11 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
@@ -28,8 +33,10 @@ public class WriterForFTM extends PeripheralWithState {
 
    public WriterForFTM(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      createValue(FTM_SC_CLKS_KEY, "1", "FTM_SC.CLKS Clock source");
-      createValue(FTM_SC_PS_KEY,   "0", "FTM_SC.PS Clock prescaler");
+      createValue(FTM_SC_CLKS_KEY,     "1", "FTM_SC.CLKS Clock source");
+      createValue(FTM_SC_PS_KEY,       "0", "FTM_SC.PS Clock prescaler");
+      createValue(FTM_IRQ_HANDLER_KEY, "0", "Handler for IRQ", 0, 1);
+      createValue(FTM_IRQ_LEVEL_KEY,   "0", "IRQ Level in NVIC [0-15]", 0, 15);
    }
 
    @Override
@@ -55,7 +62,7 @@ public class WriterForFTM extends PeripheralWithState {
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signal);
    }
 
    @Override
@@ -92,36 +99,7 @@ public class WriterForFTM extends PeripheralWithState {
             (fInfoTable.table.size() +
              fQuadFunctions.table.size() + 
              fFaultFunctions.table.size()) > 0;
-                  return required;
-   }
-
-   static final String TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-               " * Convenience template class representing a FTM\n"+
-               " *\n"+
-               " * Example\n"+
-               " * @code\n"+
-               " * // Instantiate the ftm channel (for FTM0 CH6)\n"+
-               " * const USBDM::Ftm0<6>   ftm0_ch6;\n"+
-               " *\n"+
-               " * // Initialise PWM with initial period and alignment\n"+
-               " * ftm0_ch6.setPwmOutput(200, USBDM::ftm_leftAlign);\n"+
-               " *\n"+
-               " * // Change period (in ticks)\n"+
-               " * ftm0_ch6.setPeriod(500);\n"+
-               " *\n"+
-               " * // Change duty cycle (in percent)\n"+
-               " * ftm0_ch6.setDutyCycle(45);\n"+
-               " * @endcode\n"+
-               " *\n"+
-               " * @tparam channel    Timer channel\n"+
-               " */\n";
-   
-   @Override
-   public String getCTemplate() {
-      return TEMPLATE_DOCUMENTATION + String.format(
-            "template<uint8_t channel> using %s = Tmr_T<%sInfo, channel>;\n\n",
-            getClassName(), getClassName(), getName());
+      return required;
    }
 
    @Override
@@ -200,7 +178,9 @@ public class WriterForFTM extends PeripheralWithState {
 
    private static final String FTM_SC_CLKS_KEY     = "FTM_SC_CLKS";
    private static final String FTM_SC_PS_KEY       = "FTM_SC_PS";
-
+   private static final String FTM_IRQ_HANDLER_KEY = "FTM_IRQ_HANDLER";
+   private static final String FTM_IRQ_LEVEL_KEY   = "FTM_IRQ_LEVEL";
+   
    @Override
    public BaseModel[] getModels(BaseModel parent) {
       BaseModel models[] = {
@@ -264,6 +244,19 @@ public class WriterForFTM extends PeripheralWithState {
             return VALUES;
          }
       };
+      BinaryModel model;
+      
+      model = new BinaryModel(models[0], this, FTM_IRQ_HANDLER_KEY, "");
+      model.setName(fVariableMap.get(FTM_IRQ_HANDLER_KEY).name);
+      model.setToolTip("The interrupt handler may be a static member function or\n"+
+            "may be set by use of the setCallback() method");
+      model.setValue0("No handler installed", "0");
+      model.setValue1("Handler installed",    "1");
+      
+      VariableModel vModel = new VariableModel(models[0], this, FTM_IRQ_LEVEL_KEY, "");
+      vModel.setName(fVariableMap.get(FTM_IRQ_LEVEL_KEY).name);
+      vModel.setToolTip("Sets the priority level used to configure the NVIC");
+
       return models;
    }
 
@@ -272,5 +265,26 @@ public class WriterForFTM extends PeripheralWithState {
       return fVariableMap.get(key);
    }
 
+   @Override
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+      final String headerFileName = getBaseName().toLowerCase()+".h";
+      super.getVariables(variableMap, vectorTable);
+      boolean handlerSet = false;
+      for (InterruptEntry entry:vectorTable.getEntries()) {
+         if ((entry != null) && entry.getName().startsWith(fName)) {
+            if (getVariableInfo(FTM_IRQ_HANDLER_KEY).value.equals("1")) {
+               entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irqHandler");
+               entry.setClassMemberUsedAsHandler(true);
+               handlerSet = true;
+            }
+         }
+      }
+      if (handlerSet) {
+         String headers = variableMap.get("VectorsIncludeFiles");
+         if (!headers.contains(headerFileName)) {
+            variableMap.put("VectorsIncludeFiles", headers + "#include \""+headerFileName+"\"\n");
+         }
+      }
+   }
 
 }
