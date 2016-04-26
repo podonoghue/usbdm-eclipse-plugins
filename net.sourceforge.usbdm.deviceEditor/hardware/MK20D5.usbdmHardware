@@ -144,6 +144,9 @@
          <irq num="PIT2_IRQn" />
          <irq num="PIT3_IRQn" />
       </peripheral>
+      <peripheral baseName="POWER"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+      </peripheral>
       <peripheral baseName="RESET_b"  instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
@@ -196,9 +199,6 @@
       <peripheral baseName="VBAT"     instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
-      <peripheral baseName="VDD"      instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
-      </peripheral>
       <peripheral baseName="VDDA"     instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
@@ -217,9 +217,6 @@
       </peripheral>
       <peripheral baseName="VREGIN"   instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-      </peripheral>
-      <peripheral baseName="VSS"      instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="VSSA"     instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />

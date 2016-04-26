@@ -122,6 +122,9 @@
          <clock reg="SCGC6"         mask="SIM_SCGC6_PIT_MASK" />
          <irq num="PIT_IRQn" />
       </peripheral>
+      <peripheral baseName="POWER"    instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+      </peripheral>
       <peripheral baseName="RESET_b"  instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
@@ -143,6 +146,9 @@
       <peripheral baseName="SWD"      instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
+      <peripheral baseName="TPM"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
+      </peripheral>
       <peripheral baseName="TPM"      instance="0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_TPM0_MASK" />
@@ -158,12 +164,6 @@
          <clock reg="SCGC6"         mask="SIM_SCGC6_TPM2_MASK" />
          <irq num="TPM2_IRQn" />
       </peripheral>
-      <peripheral baseName="TPM_CLKIN0" instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-      </peripheral>
-      <peripheral baseName="TPM_CLKIN1" instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-      </peripheral>
       <peripheral baseName="UART"     instance="2">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart" />
          <clock reg="SCGC4"         mask="SIM_SCGC4_UART2_MASK" />
@@ -173,9 +173,6 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
          <clock reg="SCGC4"         mask="SIM_SCGC4_USBOTG_MASK" />
          <irq num="USB0_IRQn" />
-      </peripheral>
-      <peripheral baseName="VDD"      instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="VDDA"     instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
@@ -195,9 +192,6 @@
       </peripheral>
       <peripheral baseName="VREGIN"   instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-      </peripheral>
-      <peripheral baseName="VSS"      instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="VSSA"     instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />

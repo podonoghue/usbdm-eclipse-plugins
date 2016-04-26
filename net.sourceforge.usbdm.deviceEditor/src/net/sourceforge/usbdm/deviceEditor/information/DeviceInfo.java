@@ -914,12 +914,17 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
+               "SDRAM", "", "",
+               "(SDRAM).*",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
                "FLEXIO", "", "",
                "(FXIO|FLEXIO).*",
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
                "(CAN)([0-3])_(RX|TX)",
                getDeviceFamily(),
                WriterForMisc.class);
@@ -981,6 +986,11 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
+               "$1", "$2",
+               "(TPM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForMisc.class);
+         createPeripheralTemplateInformation(
                "$1", "", "",
                "(ENET)(0_)?(.*)",
                getDeviceFamily(),
@@ -1037,8 +1047,8 @@ public class DeviceInfo extends ObservableModel {
                WriterForMisc.class);
       }
       createPeripheralTemplateInformation(
-            "$1", "", "$2",
-            "(VDD|VSS)(\\d+)",
+            "POWER", "", "$2",
+            "(VDD|VSS|VBAT|VSSA|VSSB)(\\d+?(a|b|c)?)",
             getDeviceFamily(),
             WriterForMisc.class);
       createPeripheralTemplateInformation(

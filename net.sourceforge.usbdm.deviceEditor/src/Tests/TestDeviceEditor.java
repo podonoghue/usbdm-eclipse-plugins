@@ -46,7 +46,8 @@ public class TestDeviceEditor {
    public static void main(String[] args) {
       try {
 //         testEditor(Paths.get("projectFiles/FRDM_K20D50M.usbdmProject"));
-         testEditor(Paths.get("projectFiles/FRDM_KL25Z.usbdmProject"));
+//         testEditor(Paths.get("projectFiles/FRDM_KL25Z.usbdmProject"));
+         testEditor(Paths.get("projectFiles/MK66F18.usbdmProject"));
       } catch (Exception e) {
          e.printStackTrace();
       }
