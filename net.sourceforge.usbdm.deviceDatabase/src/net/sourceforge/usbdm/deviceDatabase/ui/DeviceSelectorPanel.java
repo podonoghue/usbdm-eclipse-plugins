@@ -120,6 +120,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M10)$",     "$1xxx$2 (100MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M12)$",     "$1xxx$2 (120MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M15)$",     "$1xxx$2 (150MHz)"),
+            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M18)$",     "$1xxx$2 (180MHz)"),
             //            new Pair("^([a-zA-Z]+[0-9]*).*$",
       };
       Pair[] cfv1Patterns = {
