@@ -137,22 +137,22 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="FTM"      instance="0">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_FTM0_MASK" />
          <irq num="FTM0_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="1">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_FTM1_MASK" />
          <irq num="FTM1_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="2">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm" />
          <clock reg="SCGC3"         mask="SIM_SCGC3_FTM2_MASK" />
          <irq num="FTM2_IRQn" />
       </peripheral>
       <peripheral baseName="FTM"      instance="3">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm" />
          <clock reg="SCGC3"         mask="SIM_SCGC3_FTM3_MASK" />
          <irq num="FTM3_IRQn" />
       </peripheral>
@@ -213,6 +213,9 @@
          <clock reg="SCGC5"         mask="SIM_SCGC5_LPTMR_MASK" />
          <irq num="LPTMR0_IRQn" />
       </peripheral>
+      <peripheral baseName="MCG"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg" />
+      </peripheral>
       <peripheral baseName="MPU"      instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
          <clock reg="SCGC7"         mask="SIM_SCGC7_MPU_MASK" />
@@ -221,10 +224,10 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
       <peripheral baseName="OSC0"     instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc" />
       </peripheral>
       <peripheral baseName="OSC32"    instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc32" />
       </peripheral>
       <peripheral baseName="PDB"      instance="0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />

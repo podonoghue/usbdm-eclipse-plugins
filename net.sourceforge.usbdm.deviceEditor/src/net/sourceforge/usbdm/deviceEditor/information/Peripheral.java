@@ -313,7 +313,7 @@ public abstract class Peripheral {
    public static final String DESCRIPTION_SETTINGS_KEY = "descriptionSetting"; 
    
    /**
-    * Load pin settings from settings object
+    * Load settings from settings object
     * 
     * @param settings Settings object
     */
@@ -321,7 +321,7 @@ public abstract class Peripheral {
    }
 
    /**
-    * Save pin settings to settings object
+    * Save settings to settings object
     * 
     * @param settings Settings object
     */
@@ -554,6 +554,7 @@ public abstract class Peripheral {
     * 
     * @return Definitions string
     * @throws IOException 
+    * @throws Exception 
     */
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       StringBuffer sb = new StringBuffer();
@@ -651,7 +652,6 @@ public abstract class Peripheral {
    private static final String INVALID_TEMPLATE  = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
    private static final String DUMMY_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
    private static final String FIXED_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
-//   private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s %d  },\n";
    private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s PORT_PCR_MUX(%d)|pcrValue  },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-15s   %-30s   %s\n";
 

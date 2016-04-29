@@ -272,10 +272,18 @@ public class ParseFamilyCSV {
       if (!line[0].equals("Peripheral")) {
          return;
       }
-      if (line.length < 3) {
-         throw new RuntimeException("Illegal ClockInfo Mapping line");
+      if (line.length < 2) {
+         throw new RuntimeException("Illegal Peripehral Mapping line");
       }
       String peripheralName       = line[PERIPHERAL_NAME_COL];
+      Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
+      if (peripheral == null) {
+         throw new RuntimeException("Unable to find peripheral "+peripheralName);
+      }
+      if (line.length < 3) {
+         // No parameters
+         return;
+      }
       String peripheralClockReg   = line[CLOCK_REG_COL];
       
       String peripheralClockMask = null;
@@ -311,11 +319,6 @@ public class ParseFamilyCSV {
       if (!peripheralClockMask.contains(peripheralClockReg)) {
          throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
       }
-      Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
-      if (peripheral == null) {
-         throw new RuntimeException("Unable to find peripheral "+peripheralName);
-      }
-      if (peripheral != null) {
          peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
          peripheral.setClockSource(clockSource);
          for (int index=0; index<irqNums.length; index++) {
@@ -323,7 +326,6 @@ public class ParseFamilyCSV {
                peripheral.addIrqNum(irqNums[index]);
             }
          }
-      }
    }
 
    /**

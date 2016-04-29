@@ -107,11 +107,14 @@
          <clock reg="SCGC5"         mask="SIM_SCGC5_LPUART1_MASK" />
          <irq num="LPUART1_IRQn" />
       </peripheral>
+      <peripheral baseName="MCG"      instance="">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg" />
+      </peripheral>
       <peripheral baseName="NMI_b"    instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
       <peripheral baseName="OSC0"     instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc" />
       </peripheral>
       <peripheral baseName="PIT"      instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit" />
@@ -147,17 +150,17 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
       </peripheral>
       <peripheral baseName="TPM"      instance="0">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTpm" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_TPM0_MASK" />
          <irq num="TPM0_IRQn" />
       </peripheral>
       <peripheral baseName="TPM"      instance="1">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTpm" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_TPM1_MASK" />
          <irq num="TPM1_IRQn" />
       </peripheral>
       <peripheral baseName="TPM"      instance="2">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTpm" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_TPM2_MASK" />
          <irq num="TPM2_IRQn" />
       </peripheral>

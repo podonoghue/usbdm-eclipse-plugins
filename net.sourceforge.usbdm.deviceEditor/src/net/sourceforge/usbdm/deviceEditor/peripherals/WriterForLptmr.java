@@ -1,15 +1,18 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -22,30 +25,12 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  */
 public class WriterForLptmr extends PeripheralWithState {
 
-   /** Key for LPTMR */
-   private static final String LPTMR_PSR_PCS_KEY             = "PSR_PCS";
-   private static final String LPTMR_PSR_PBYP_KEY            = "PSR_PBYP";
-   private static final String LPTMR_PSR_PRESCALE_KEY        = "PSR_PRESCALE";
-   private static final String LPTMR_CSR_TMS_KEY             = "CSR_TMS";
-   private static final String LPTMR_CSR_TFC_KEY             = "CSR_TFC";
-   private static final String LPTMR_CSR_TPP_KEY             = "CSR_TPP";
-   private static final String LPTMR_CSR_TPS_KEY             = "CSR_TPS";
-   private static final String LPTMR_IRQ_LEVEL_KEY           = "IRQ_LEVEL";
-   private static final String LPTMR_IRQ_HANDLER_KEY         = "LPTMR_IRQ_HANDLER";
-   
+   /** Data about model loaded from file */
+   protected Data fData = null;
+
    public WriterForLptmr(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-
-      createValue(LPTMR_PSR_PCS_KEY,             "0", "Clock Source");
-      createValue(LPTMR_PSR_PRESCALE_KEY,        "0", "Prescaler Value");
-      createValue(LPTMR_CSR_TPS_KEY,             "1", "Timer Pin Select");
-
-      createValue(LPTMR_PSR_PBYP_KEY,            "0", "Prescaler Bypass");
-      createValue(LPTMR_CSR_TMS_KEY,             "0", "Timer Mode Select");
-      createValue(LPTMR_CSR_TFC_KEY,             "0", "Timer Free-Running Counter");
-      createValue(LPTMR_CSR_TPP_KEY,             "0", "Timer Pin Polarity");
-      createValue(LPTMR_IRQ_HANDLER_KEY,         "0", "Handler for IRQ", 0, 1);
-      createValue(LPTMR_IRQ_LEVEL_KEY,           "0", "IRQ Level in NVIC [0-15]", 0, 15);
+      loadModels();
    }
 
    @Override
@@ -77,176 +62,42 @@ public class WriterForLptmr extends PeripheralWithState {
    }
 
    @Override
-   public BaseModel[] getModels(BaseModel parent) {
-      BaseModel models[] = {
-            new CategoryModel(parent, getName(), getDescription()),
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PCS_KEY, "[PSR_PCS]") {
-         {
-            setName(fVariableMap.get(LPTMR_PSR_PCS_KEY).name);
-            setToolTip("Low Power Timer clock source");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            final String SELECTION_NAMES[] = {
-                  "MCG Internal Reference Clock (MCGIRCLK)",
-                  "Low power oscillator (LPO - 1kHz)",
-                  "32kHz Clock Source (ERCLK32)",
-                  "Oscillator External Reference Clock (OSCERCLK)",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0", "1", "2", "3", 
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_PSR_PRESCALE_KEY, "[PSR_PRESCALE]") {
-         {
-            setName(fVariableMap.get(LPTMR_PSR_PRESCALE_KEY).name);
-            setToolTip(" Configures the size of the Prescaler in Time Counter mode or\n"+
-                       "width of the glitch filter in Pulse Counter mode");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "Prescaler = 2, no glitch filter",
-                  "Prescaler = 4, 2 clock glitch filter",
-                  "Prescaler = 8, 4 clock glitch filter",
-                  "Prescaler = 16, 8 clock glitch filter",
-                  "Prescaler = 32, 16 clock glitch filter",
-                  "Prescaler = 64, 32 clock glitch filter",
-                  "Prescaler = 128, 64 clock glitch filter",
-                  "Prescaler = 256, 128 clock glitch filter",
-                  "Prescaler = 512, 256 clock glitch filter",
-                  "Prescaler = 1024, 512 clock glitch filter",
-                  "Prescaler = 2048, 1024 clock glitch filter",
-                  "Prescaler = 4096, 2048 clock glitch filter",
-                  "Prescaler = 8192, 4096 clock glitch filter",
-                  "Prescaler = 16384, 8192 clock glitch filter",
-                  "Prescaler = 32768, 16384 clock glitch filter",
-                  "Prescaler = 65536, 32768 clock glitch filter",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-               "0", "1", "2", "3", "4", "5", "6", "7", 
-               "8", "9", "10", "11", "12", "13", "14", "15",
-               "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      new SimpleSelectionModel(models[0], this, LPTMR_CSR_TPS_KEY, "[CSR_TPS]") {
-         {
-            setName(fVariableMap.get(LPTMR_CSR_TPS_KEY).name);
-            setToolTip("Configures the input source to be used in Pulse Counter mode.\n"+
-                       "The input connections vary by device");
-         }
-         @Override
-         protected String[] getChoicesArray() {
-            String SELECTION_NAMES[] = {
-                  "CMP0 output",
-                  "LPTMR_ALT1 pin",
-                  "LPTMR_ALT2 pin",
-                  "Default"
-            };
-            return SELECTION_NAMES;
-         }
-
-         @Override
-         protected String[] getValuesArray() {
-            final String VALUES[] = {
-                  "0", "1", "2",
-                  "0", // Default
-            };
-            return VALUES;
-         }
-      };
-
-      BinaryModel model = new BinaryModel(models[0], this, LPTMR_PSR_PBYP_KEY, "[PSR_PBYP]");
-      model.setName(fVariableMap.get(LPTMR_PSR_PBYP_KEY).name);
-      model.setToolTip("When PBYP is set:\n"+
-                  "- The selected prescaler clock in Time Counter mode or\n"+
-                  "  the selected input source in Pulse Counter mode, directly clocks the CNR.\n" +
-                  "When PBYP is clear:\n"+
-                  "- The CNR is clocked by the output of the prescaler/glitch filter");
-      model.setValue0("Prescaler/glitch filter is enabled",   "0");
-      model.setValue1("Prescaler/glitch filter is bypassed", "1");
-      
-      model = new BinaryModel(models[0], this, LPTMR_CSR_TMS_KEY, "[CSR_TMS]");
-      model.setName(fVariableMap.get(LPTMR_CSR_TMS_KEY).name);
-      model.setToolTip("Configures the mode of the LPTMR");
-      model.setValue0("Time Counter mode",   "0");
-      model.setValue1("Pulse Counter mode", "1");
-      
-      model = new BinaryModel(models[0], this, LPTMR_CSR_TFC_KEY, "[CSR_TFC]");
-      model.setName(fVariableMap.get(LPTMR_CSR_TFC_KEY).name);
-      model.setToolTip("When clear, TFC configures the CNR to reset whenever TCF is set.\n"+
-                       "When set, TFC configures the CNR to reset on overflow");
-      model.setValue0("CNR is reset whenever TCF is set",   "0");
-      model.setValue1("CNR is reset on overflow", "1");
-      
-      model = new BinaryModel(models[0], this, LPTMR_CSR_TPP_KEY, "[CSR_TPP]");
-      model.setName(fVariableMap.get(LPTMR_CSR_TPP_KEY).name);
-      model.setToolTip("Configures the polarity of the input source in Pulse Counter mode");
-      model.setValue0("Active-high source, rising-edge increments CNR",  "0");
-      model.setValue1("Active-low source,  falling-edge increments CNR", "1");
-      
-      model = new BinaryModel(models[0], this, LPTMR_IRQ_HANDLER_KEY, "");
-      model.setName(fVariableMap.get(LPTMR_IRQ_HANDLER_KEY).name);
-      model.setToolTip("The interrupt handler may be a static member function or\n"+
-            "may be set by use of the setCallback() method");
-      model.setValue0("No handler installed", "0");
-      model.setValue1("Handler installed",    "1");
-      
-      VariableModel vModel = new VariableModel(models[0], this, LPTMR_IRQ_LEVEL_KEY, "");
-      vModel.setName(fVariableMap.get(LPTMR_IRQ_LEVEL_KEY).name);
-      vModel.setToolTip("Sets the priority level used to configure the NVIC");
-
-      return models;
-   }
-   
-   static final String TEMPLATE = 
-       "   //! Default PSR value\n"+
-       "   static constexpr uint32_t psrValue = LPTMR_PSR_PRESCALE(${PSR_PRESCALE})|LPTMR_PSR_PCS(${PSR_PCS})|(${PSR_PBYP}<<LPTMR_PSR_PBYP_SHIFT)|(${PSR_PCS}<<LPTMR_PSR_PCS_SHIFT);\n\n"+
-       "   //! Default CSR value\n"+
-       "   static constexpr uint32_t csrValue =  (${CSR_TMS}<<LPTMR_CSR_TMS_SHIFT)|(${CSR_TFC}<<LPTMR_CSR_TFC_SHIFT)|(${CSR_TPP}<<LPTMR_CSR_TPP_SHIFT)|LPTMR_CSR_TPS(${CSR_TPS});\n\n"+
-       "   //! Default IRQ level\n"+
-       "   static constexpr uint32_t irqLevel =  ${"+LPTMR_IRQ_LEVEL_KEY+"};\n\n";
-   
-   @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
-      pinMappingHeaderFile.write(substitute(TEMPLATE, fVariableMap));
+      StringBuffer sb = new StringBuffer();
+      sb.append(substitute(fData.fTemplate));
+      pinMappingHeaderFile.write(sb.toString());
    }
 
-   @Override
-   public VariableInfo getVariableInfo(String key) {
-      return fVariableMap.get(key);
+   public void loadModels() {
+
+      Path path = Paths.get("hardware/lptmr.xml");
+      try {
+         fData = ParseMenuXML.parseFile(path, null, this);
+      } catch (Exception e) {
+         e.printStackTrace();
+         BaseModel models[] = {
+               new CategoryModel(null, getName(), getDescription()),
+            };
+         fData = new Data(models, "");
+         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
       }
+   }
+   
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      fData.fModels[0].setParent(parent);
+      return fData.fModels;
+   }
 
    @Override
    public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
-      final String headerFileName = getBaseName().toLowerCase()+".h";
       super.getVariables(variableMap, vectorTable);
+      final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean handlerSet = false;
       for (InterruptEntry entry:vectorTable.getEntries()) {
          if ((entry != null) && entry.getName().startsWith(fName)) {
-            if (getVariableInfo(LPTMR_IRQ_HANDLER_KEY).value.equals("1")) {
+            if (getVariableValue("IRQ_HANDLER").equals("1")) {
                entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irqHandler");
                entry.setClassMemberUsedAsHandler(true);
                handlerSet = true;

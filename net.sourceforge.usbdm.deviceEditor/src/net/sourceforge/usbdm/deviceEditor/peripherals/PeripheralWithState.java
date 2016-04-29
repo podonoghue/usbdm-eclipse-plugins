@@ -1,15 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
+import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
-import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
 
@@ -17,106 +16,78 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       super(basename, instance, deviceInfo);
    }
 
-   protected Map<String, VariableInfo> fVariableMap = new HashMap<String, VariableInfo>();
+   // XXX Remove
+   public void createValue(String key, String value, String string2, long min, long max) {
+      createVariable(key, value);
+   }
 
+   // XXX Remove
+   public void createValue(String key, String value, String string2) {
+      createVariable(key, value);
+   }
+
+   private class KeyMaker implements IKeyMaker {
+      @Override
+      public String makeKey(String name) {
+         return getName()+"_"+name;
+      }
+   }
+   
+   private KeyMaker keyMaker = new KeyMaker();
+   
    /**
     * Create a variable
     * 
-    * @param key     Key used to identify variable
+    * @param key     Key identifying variable
     * @param value   Initial value for variable
-    * @param name    Display name of variable
-    * @param min     Minimum value (inclusive)
-    * @param max     Maximum value (inclusive)
-    * @return 
-    */
-   public VariableInfo createValue(String key, String value, String name, long min, long max) {
-      VariableInfo variable = fVariableMap.get(key);
-      if (variable != null) {
-         throw new RuntimeException("Variable " + key + " already exists");
-      }
-      variable = new VariableInfo(value, name, Long.parseLong(value), min, max);
-      fVariableMap.put(key, variable);
-      return variable;
-   }
-
-   /**
-    * Create a variable with range [Long.MIN_VALUE, Long.MAX_VALUE]
     * 
-    * @param key     Key used to identify variable
-    * @param value   New value for variable
-    * @param name    Display name of variable
+    * @throws Exception if variable already exists
     */
-   public void createValue(String key, String value, String name) {
-      createValue(key, value, name, Long.MIN_VALUE, Long.MAX_VALUE);
-   }
-   
-   @Override
-   public void setValue(String key, String value) {
-      VariableInfo variable = fVariableMap.get(key);
-      if (variable == null) {
-         System.err.println("Variable " + key + " not found");
-         return;
-      }
-      if (variable.value != value) {
-         variable.value = value;
-         super.fDeviceInfo.setDirty(true);
-      }
+   public void createVariable(String key, String value) {
+      fDeviceInfo.createVariable(keyMaker.makeKey(key), value);
    }
 
    @Override
-   public String getValueAsString(String key) {
-      VariableInfo variable = fVariableMap.get(key);
-      if (variable == null) {
-         throw new RuntimeException("Variable " + key + " not found");
-      }
-      return variable.value;
+   public void setVariableValue(String key, String value) {
+      fDeviceInfo.setVariableValue(keyMaker.makeKey(key), value);
+   }
+
+   @Override
+   public String getVariableValue(String key) {
+      return fDeviceInfo.getVariableValue(keyMaker.makeKey(key));
    }
 
    @Override
    public void loadSettings(DialogSettings settings) {
       super.loadSettings(settings);
-
-      for (String key:fVariableMap.keySet()) {
-         String value = settings.get(fName+"_"+key);
-         if ((value != null) && !value.isEmpty()) {
-            setValue(key, value);
-         }
-      }
    }
 
    @Override
    public void saveSettings(DialogSettings settings) {
       super.saveSettings(settings);
-      
-      for (String key:fVariableMap.keySet()) {
-         VariableInfo variable = fVariableMap.get(key);
-         settings.put(fName+"_"+key, variable.value);
-      }
    }
-
+   
    /**
     * Does variable substitution in a string
     * 
-    * @param s             String to process
+    * @param input         String to process
     * @param variableMap   Map of key->replacement values
     * 
     * @return Modified string or original if no changes
+    * @throws Exception 
     */
-   static String substitute(String s, Map<String, VariableInfo> variableMap) {
-      for (String key:variableMap.keySet()) {
-         String keyPattern = Pattern.quote("${"+key+"}");
-         if (s.contains(key)) {
-            s = s.replaceAll(keyPattern, variableMap.get(key).value);
-         }
-      }
-      return s;
+   String substitute(String input, Map<String, String> variableMap) {
+      return FileUtility.substitute(input, variableMap, keyMaker);
    }
 
-   @Override
-   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
-      for (String variableName:fVariableMap.keySet()) {
-         variableMap.put(fName+"_"+variableName, fVariableMap.get(variableName).value);
-      }
+   /**
+    * Does variable substitution in a string using the device variable map
+    * 
+    * @param input  String to process
+    * 
+    * @return Modified string or original if no changes
+    */
+   String substitute(String input) {
+      return substitute(input, fDeviceInfo.getVariableMap());
    }
-   
 }

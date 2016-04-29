@@ -2,8 +2,15 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 public class FilePathModel extends EditableModel {
 
+   /**  Model factory associated with this model */
    ModelFactory fFactory;
    
+   /**
+    * Constructor
+    * 
+    * @param parent        Parent model
+    * @param modelFactory  Model factory associated with this model
+    */
    public FilePathModel(DeviceInformationModel parent, ModelFactory modelFactory) {
       super(parent, "Hardware", "Path to hardware description");
       

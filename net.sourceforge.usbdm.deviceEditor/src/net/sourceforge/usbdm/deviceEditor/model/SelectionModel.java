@@ -67,13 +67,13 @@ public abstract class SelectionModel extends EditableModel {
    }
 
    /**
-    * Finds the given choice in fValues
+    * Finds the given choice in fChoices
     * 
     * @param value Choice to look for
     * 
     * @return Selection index or -1 if not found
     */
-   int findChoice(String choice) {
+   protected int findChoice(String choice) {
       for (int index=0; index<fChoices.length; index++) {
          if (fChoices[index].equalsIgnoreCase(choice)) {
             return index;

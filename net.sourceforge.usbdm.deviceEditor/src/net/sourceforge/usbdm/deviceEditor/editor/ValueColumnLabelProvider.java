@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 
 public class ValueColumnLabelProvider extends ColumnLabelProvider{
@@ -35,8 +35,8 @@ public class ValueColumnLabelProvider extends ColumnLabelProvider{
             return lockedImage;
          }
       }
-      if (element instanceof BinaryModel) {
-         return ((Boolean)((BinaryModel)element).getBooleanValue())?checkedImage:uncheckedImage;
+      if (element instanceof BinaryVariableModel) {
+         return ((Boolean)((BinaryVariableModel)element).getBooleanValue())?checkedImage:uncheckedImage;
       }
       return null;
    }

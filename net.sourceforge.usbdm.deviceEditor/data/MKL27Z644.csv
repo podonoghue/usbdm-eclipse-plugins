@@ -81,6 +81,7 @@ Pin,PTD6,D14/ONBOARD_SDA,p63,p31,p47,B2,ADC0_SE7b,I2C1_SDA,ADC0_SE7b,GPIOD_6/LLW
 Pin,PTD7,D15/ONBOARD_SCL,p64,p32,p48,A2,DISABLED,I2C1_SCL,,GPIOD_7,SPI1_MISO,LPUART0_TX,I2C1_SCL,SPI1_MOSI,FXIO0_D7,,68,64,32,48,A2,A2
 ,,,,,,,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,Irq number,Irq number,Irq number,,,,,,,,,,,,,,,
+Peripheral,MCG,,,,,,,,,,,,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,I2C1,SIM->SCGC4,,,I2C1_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,UART2,SIM->SCGC4,,,UART2_FLEXIO_IRQn,,,,,,,,,,,,,,,,,

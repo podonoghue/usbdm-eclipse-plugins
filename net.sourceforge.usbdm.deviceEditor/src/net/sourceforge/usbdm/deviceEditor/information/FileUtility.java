@@ -25,6 +25,22 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 
 public class FileUtility {
 
+   public interface IKeyMaker {
+      public String makeKey(String name);
+   }
+
+   public static class KeyMaker implements IKeyMaker {
+      /**
+       * Generate variable key from name
+       * 
+       * @param  name NAme used to create key
+       * @return Key generated from name
+       */
+      public String makeKey(String name) {
+         return name;
+      }
+   }
+   
    /**
     * Finds all $(..) patterns in string
     * 
@@ -34,25 +50,25 @@ public class FileUtility {
    private static ArrayList<String> findAllPatterns(String input) {
       ArrayList<String> patterns = new ArrayList<String>();
 
-      Pattern pattern = Pattern.compile("\\$\\([^\\)]+\\)");
+      Pattern pattern = Pattern.compile("\\$\\(([^\\)]+)\\)");
       Matcher matcher = pattern.matcher(input);
-      if (matcher.find(0)) {
-         do {
-            patterns.add(input.substring(matcher.start()+2, matcher.end()-1));
-         } while (matcher.find());
+      while (matcher.find()) {
+         patterns.add(matcher.group(1));
+         System.err.println("p = \'"+matcher.group(1)+"\'");
       }
       return patterns;
    }
 
    /**
-    * Replaces macros e.g. $(key) with values from a map
+    * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
     * @param input        String to replace macros in
     * @param variableMap  Map of key->value pairs for substitution
+    * @param keyMaker     Interface providing a method to create a key from a variable name
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substitute(String input, Map<String,String> variableMap) {
+   public static String substitute(String input, Map<String,String> variableMap, IKeyMaker keyMaker) {
 
       if (input == null) {
          return null;
@@ -71,19 +87,31 @@ public class FileUtility {
          if (matcher.find()) {
             key          = matcher.group(1);
             defaultValue = matcher.group(2);
-            //          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
+//          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
          }
-         String replaceWith = variableMap.get(key);
+         String replaceWith = variableMap.get(keyMaker.makeKey(key));
          if (replaceWith == null) {
             //           System.out.println("Using default \'" + defaultValue + "\'");
             replaceWith = defaultValue;
          }
          if (replaceWith == null) {
-            continue;
+            replaceWith = "---Symbol not found for substitution \'$("+pattern+")\'";
          }
          input = input.replaceAll("\\$\\("+pattern+"\\)", Matcher.quoteReplacement(replaceWith));
       }
       return input;
+   }
+
+   /**
+    * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
+    * 
+    * @param input        String to replace macros in
+    * @param variableMap  Map of key->value pairs for substitution
+    * 
+    * @return      String with substitutions (or original if none)
+    */
+   public static String substitute(String input, Map<String,String> variableMap) {
+      return substitute(input, variableMap, new KeyMaker());
    }
 
    /**

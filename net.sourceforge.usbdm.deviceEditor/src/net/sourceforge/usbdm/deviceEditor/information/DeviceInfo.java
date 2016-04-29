@@ -28,18 +28,21 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFTM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc32;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTPM;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTpm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
@@ -104,6 +107,8 @@ public class DeviceInfo extends ObservableModel {
    
    /** Relative location of hardware files in USBDM installation */
    public static final String USBDM_HARDWARE_LOCATION = "Stationery/Packages/180.ARM_Peripherals/Hardware";
+   
+   private final HashMap<String, String> fVariables = new HashMap<String, String>();
    
    /**
     * Create device information
@@ -365,6 +370,9 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if name does fit expected form
     */
    public Peripheral findOrCreatePeripheral(String name) {
+      if (!name.matches("^[a-zA-Z]\\w*$")) {
+         throw new RuntimeException("Illegal peripheral name = " + name);
+      }
       Peripheral peripheral = fPeripheralsMap.get(name);
       if (peripheral != null) {
          return peripheral;
@@ -852,7 +860,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2",
                "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
                getDeviceFamily(),
-               WriterForFTM.class);
+               WriterForFtm.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(I2C)([0-3])_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
@@ -887,7 +895,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2",
                "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
                getDeviceFamily(),
-               WriterForTPM.class);
+               WriterForTpm.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(TSI)([0-3])_(CH\\d+)",
@@ -949,10 +957,15 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "OSC$2", "", "$1",
-               "(E?XTAL)(0|32)()",
+               "OSC0", "", "$1",
+               "(E?XTAL)(0)?",
                getDeviceFamily(),
-               WriterForNull.class);
+               WriterForOsc.class);
+         createPeripheralTemplateInformation(
+               "OSC32", "", "$1",
+               "(E?XTAL32)",
+               getDeviceFamily(),
+               WriterForOsc32.class);
          // Note USBOTG is used for clock name
          createPeripheralTemplateInformation(
                "USBDCD", "",
@@ -1045,6 +1058,11 @@ public class DeviceInfo extends ObservableModel {
                "(RNGA)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForMisc.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(MCG)",
+               getDeviceFamily(),
+               WriterForMcg.class);
       }
       createPeripheralTemplateInformation(
             "POWER", "", "$2",
@@ -1164,13 +1182,13 @@ public class DeviceInfo extends ObservableModel {
    /**
     * Create DMA information entry
     * 
-    * @param dmaMux
+    * @param dmaMuxNum
     * @param dmaChannelNumber
     * @param dmaSource
     * @return
     */
-   public DmaInfo createDmaInfo(String dmaMux, int dmaChannelNumber, String dmaSource) {
-      Peripheral dmaPeripheral = findOrCreatePeripheral(dmaMux);
+   public DmaInfo createDmaInfo(String dmaMuxNum, int dmaChannelNumber, String dmaSource) {
+      Peripheral dmaPeripheral = findOrCreatePeripheral("DMAMUX"+dmaMuxNum);
       DmaInfo dmaInfo = dmaPeripheral.addDmaChannel(dmaChannelNumber, dmaSource);
       //      fDmaInfoList.add(dmaInfo);
       return dmaInfo;
@@ -1292,6 +1310,12 @@ public class DeviceInfo extends ObservableModel {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
          }
+         for (String key:fVariables.keySet()) {
+            String value = settings.get(key);
+            if (value != null) {
+               setVariableValue(key, value);
+            }
+         }
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -1321,6 +1345,9 @@ public class DeviceInfo extends ObservableModel {
       for (String peripheralName:fPeripheralsMap.keySet()) {
          Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
          peripheral.saveSettings(settings);
+      }
+      for (String key:fVariables.keySet()) {
+         settings.put(key, getVariableValue(key));
       }
       try {
          settings.save(fProjectSettingsPath.toAbsolutePath().toString());
@@ -1509,6 +1536,12 @@ public class DeviceInfo extends ObservableModel {
       }
    }
    
+   /**
+    * Get model for device information
+    * 
+    * @param parent
+    * @return
+    */
    public BaseModel[] getModels(BaseModel parent) {
       BaseModel[] models = {
             new ConstantModel(parent, "Device", "", getDeviceName()),
@@ -1519,4 +1552,54 @@ public class DeviceInfo extends ObservableModel {
       return models;
    }
 
+   /**
+    * Get variable map
+    * 
+    * @return Map of VariableKey -> Value
+    */
+   public Map<String, String> getVariableMap() {
+      return fVariables;
+   }
+   
+   /**
+    * Creates a variable
+    * 
+    * @param key     Key used to identify variable
+    * @param value   Value for variable
+    * 
+    * @throws Exception if variable already exists
+    */
+   public void createVariable(String key, String value) {
+      if (fVariables.put(key, value) != null) {
+         throw new RuntimeException("Variable already exists \'"+key+"\'");
+      };
+   }
+   
+   /**
+    * Get value of variable
+    * 
+    * @param key  Key used to identify variable
+    * 
+    * @throws Exception if variable doesn't exist
+    */
+   public String getVariableValue(String key) {
+      String value = fVariables.get(key);
+      if (value == null) {
+         throw new RuntimeException("Variable does not exist \'"+key+"\'");
+      };
+      return value;
+   }
+
+   /**
+    * Get value of variable
+    * 
+    * @param key  Key used to identify variable
+    * 
+    * @throws Exception if variable doesn't exist
+    */
+   public void setVariableValue(String key, String value) {
+      if (fVariables.put(key, value) == null) {
+         throw new RuntimeException("Variable does not exist \'"+key+"\'");
+      };
+   }
 }

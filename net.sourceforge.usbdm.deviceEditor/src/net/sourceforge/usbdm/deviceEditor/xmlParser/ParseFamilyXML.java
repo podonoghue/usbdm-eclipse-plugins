@@ -288,7 +288,7 @@ public class ParseFamilyXML extends XML_BaseParser {
       Element documentElement = document.getDocumentElement();
 
       if (documentElement == null) {
-         System.out.println("Parser.parseDocument() - failed to get documentElement");
+         throw new Exception("Failed to get documentElement for " + path);
       }
       for (Node node = documentElement.getFirstChild();
             node != null;

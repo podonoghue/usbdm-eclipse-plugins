@@ -1,7 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
@@ -297,6 +299,32 @@ public class XML_BaseParser {
       return safeLongToInt(getLongAttribute(element, name));
    }
 
+   protected static Document parseXmlString(String xmlString, Path path) throws ParserConfigurationException, SAXException, IOException {
+
+      // Get the factory
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+
+      dbf.setNamespaceAware(true);
+      dbf.setXIncludeAware(true);
+
+      DocumentBuilder db = dbf.newDocumentBuilder();
+
+      InputStream is  = null;
+      Document    doc = null;
+
+      try {
+         is = new ByteArrayInputStream(xmlString.getBytes(StandardCharsets.UTF_8));
+         //  Parse using builder to get DOM representation of the XML file
+         doc = db.parse(is, path.toString());
+      }
+      finally {
+         if (is != null) {
+            is.close();
+         }
+      }
+      return doc;
+   }
+   
    /**
     * Parse the XML file into the XML internal DOM representation
     * 
@@ -312,8 +340,8 @@ public class XML_BaseParser {
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-      dbf.setXIncludeAware(true);
       dbf.setNamespaceAware(true);
+      dbf.setXIncludeAware(true);
 
       DocumentBuilder db = dbf.newDocumentBuilder();
 

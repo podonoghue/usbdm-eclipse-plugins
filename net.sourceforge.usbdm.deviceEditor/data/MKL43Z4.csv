@@ -75,6 +75,7 @@ Pin,PTD7,p64,A2,D12,LCD_P47,,LCD_P47,GPIOD_7,SPI1_MISO,LPUART0_TX,,SPI1_MOSI,FXI
 ,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,Irq number,Irq number,Irq number,,,,,,,,,,,
+Peripheral,MCG,,,,,,,,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,,,,
 Peripheral,I2C1,SIM->SCGC4,,,I2C1_IRQn,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,

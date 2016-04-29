@@ -1,69 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="USBDM">
-	<item value="1" key="FTM1_FTM_SC_CLKS"/>
-	<item value="1" key="FTM0_FTM_SC_CLKS"/>
-	<item value="1" key="FTM2_FTM_SC_CLKS"/>
-	<item value="0" key="SPI2_SPI_IRQ_HANDLER"/>
+	<item value="0" key="FTM1_SC_CLKS"/>
+	<item value="0" key="FTM1_IRQ_LEVEL"/>
+	<item value="0" key="I2C1_IRQ_HANDLER"/>
+	<item value="0" key="I2C2_IRQ_HANDLER"/>
 	<item value="0" key="SPI2_IRQ_LEVEL"/>
-	<item value="0" key="PIT_PIT_IRQ_HANDLER3"/>
-	<item value="0" key="PIT_PIT_IRQ_HANDLER0"/>
-	<item value="0" key="PIT_PIT_IRQ_HANDLER2"/>
-	<item value="0" key="TPM1_TPM_IRQ_HANDLER"/>
-	<item value="0" key="PIT_PIT_IRQ_HANDLER1"/>
-	<item value="1" key="FTM3_FTM_SC_CLKS"/>
+	<item value="0" key="MCG_system_fast_irc_clock"/>
+	<item value="0" key="OSC0_CR_ERCLKEN"/>
+	<item value="0" key="FTM1_SC_PS"/>
+	<item value="0" key="OSC0_CR_SCP"/>
+	<item value="0" key="I2C3_IRQ_LEVEL"/>
+	<item value="0" key="TPM2_SC_CMOD"/>
 	<item value="0" key="LPTMR0_CSR_TFC"/>
-	<item value="0" key="I2C3_I2C_IRQ_HANDLER"/>
-	<item value="0" key="I2C2_I2C_IRQ_LEVEL"/>
-	<item value="0" key="FTM1_FTM_IRQ_HANDLER"/>
-	<item value="0" key="FTM3_FTM_IRQ_LEVEL"/>
-	<item value="0" key="FTM1_FTM_SC_PS"/>
+	<item value="1" key="PIT_TCTRL_CHN3"/>
+	<item value="1" key="I2C0_IRQ_HANDLER"/>
+	<item value="1" key="PIT_TCTRL_CHN1"/>
+	<item value="0" key="FTM3_SC_CLKS"/>
+	<item value="0" key="SPI2_LSBFE"/>
+	<item value="0" key="TPM2_IRQ_LEVEL"/>
+	<item value="8" key="I2C0_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_PSR_PRESCALE"/>
-	<item value="0" key="I2C0_I2C_IRQ_HANDLER"/>
+	<item value="1" key="LPTMR0_IRQ_HANDLER"/>
+	<item value="1" key="I2C3_IRQ_HANDLER"/>
+	<item value="0" key="FTM0_IRQ_LEVEL"/>
 	<item value="0" key="SPI0_MODE"/>
-	<item value="0" key="PIT_IRQ_LEVEL"/>
-	<item value="0" key="I2C2_I2C_IRQ_HANDLER"/>
-	<item value="10000000" key="SPI0_SPEED"/>
-	<item value="0" key="FTM3_FTM_SC_PS"/>
-	<item value="0" key="TPM2_TPM_IRQ_HANDLER"/>
-	<item value="0" key="I2C1_I2C_IRQ_LEVEL"/>
+	<item value="0" key="FTM2_IRQ_LEVEL"/>
+	<item value="5" key="PIT_IRQ_LEVEL"/>
+	<item value="20000" key="SPI0_SPEED"/>
+	<item value="0" key="MCG_oscclk_clock"/>
+	<item value="0" key="MCG_system_erc_clock"/>
+	<item value="1" key="PIT_IRQ2_HANDLER"/>
+	<item value="0" key="SPI2_IRQ_HANDLER"/>
+	<item value="0" key="MCG_system_slow_irc_clock"/>
 	<item value="0" key="PIT_MCR_FRZ"/>
-	<item value="0" key="SPI0_LSBE"/>
-	<item value="0" key="FTM2_FTM_IRQ_HANDLER"/>
-	<item value="1" key="TPM1_TPM_SC_CMOD"/>
-	<item value="0" key="FTM0_FTM_IRQ_LEVEL"/>
-	<item value="1" key="TPM2_TPM_SC_CMOD"/>
-	<item value="0" key="FTM0_FTM_SC_PS"/>
+	<item value="0" key="TPM1_IRQ_LEVEL"/>
+	<item value="1" key="PIT_IRQ0_HANDLER"/>
+	<item value="0" key="SPI0_LSBFE"/>
+	<item value="1" key="SPI0_IRQ_HANDLER"/>
+	<item value="0" key="OSC0_CR_EREFSTEN"/>
+	<item value="0" key="SPI1_IRQ_HANDLER"/>
+	<item value="3" key="I2C1_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_PSR_PCS"/>
-	<item value="10000000" key="SPI1_SPEED"/>
-	<item value="0" key="FTM2_FTM_SC_PS"/>
-	<item value="0" key="I2C1_I2C_IRQ_HANDLER"/>
+	<item value="3000" key="SPI1_SPEED"/>
+	<item value="0" key="FTM2_SC_CLKS"/>
 	<item value="MK66FN2M0M18" key="DeviceInfo_Target_Device"/>
+	<item value="0" key="OSC32_RTC_CR_SUP"/>
+	<item value="0" key="TPM1_SC_PS"/>
+	<item value="0" key="TPM2_IRQ_HANDLER"/>
+	<item value="0" key="FTM3_SC_PS"/>
+	<item value="0" key="FTM3_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_IRQ_LEVEL"/>
-	<item value="1" key="LPTMR0_CSR_TPS"/>
+	<item value="0" key="LPTMR0_CSR_TPS"/>
 	<item value="2000" key="PIT_LDVAL"/>
 	<item value="0" key="SPI1_MODE"/>
 	<item value="0" key="LPTMR0_CSR_TPP"/>
-	<item value="0" key="SPI1_LSBE"/>
-	<item value="0" key="TPM2_TPM_SC_PS"/>
-	<item value="0" key="TPM1_TPM_IRQ_LEVEL"/>
+	<item value="0" key="OSC32_RTC_CR_UM"/>
+	<item value="0" key="OSC32_CR_SCP"/>
+	<item value="0" key="OSC32_CR_OSCE"/>
 	<item value="FRDM_K66F" key="DeviceInfo_deviceVariant"/>
-	<item value="0" key="SPI1_SPI_IRQ_HANDLER"/>
-	<item value="0" key="FTM1_FTM_IRQ_LEVEL"/>
+	<item value="0" key="MCG_irc48m_clock"/>
+	<item value="0" key="FTM0_SC_PS"/>
+	<item value="1" key="TPM1_SC_CMOD"/>
+	<item value="1" key="FTM0_IRQ_HANDLER"/>
+	<item value="0" key="MCG_clock_mode"/>
+	<item value="1" key="TPM1_IRQ_HANDLER"/>
+	<item value="1" key="FTM0_SC_CLKS"/>
 	<item value="0" key="SPI0_IRQ_LEVEL"/>
+	<item value="1" key="FTM3_IRQ_HANDLER"/>
+	<item value="0" key="OSC32_RTC_CR_WPE"/>
+	<item value="0" key="MCG_system_low_power_clock"/>
+	<item value="1" key="PIT_IRQ3_HANDLER"/>
 	<item value="0" key="SPI1_IRQ_LEVEL"/>
+	<item value="1" key="FTM2_IRQ_HANDLER"/>
+	<item value="1" key="FTM1_IRQ_HANDLER"/>
 	<item value="0" key="LPTMR0_CSR_TMS"/>
-	<item value="0" key="I2C0_I2C_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_PSR_PBYP"/>
-	<item value="0" key="SPI2_LSBE"/>
-	<item value="0" key="I2C3_I2C_IRQ_LEVEL"/>
-	<item value="0" key="LPTMR0_LPTMR_IRQ_HANDLER"/>
-	<item value="0" key="TPM1_TPM_SC_PS"/>
+	<item value="0" key="OSC32_CR_CLKO"/>
+	<item value="1" key="PIT_IRQ1_HANDLER"/>
+	<item value="0" key="SPI1_LSBFE"/>
+	<item value="0" key="MCG_system_usb_clkin_clock"/>
 	<item value="MK66F18.usbdmHardware" key="Hardware_Source_Filename"/>
-	<item value="0" key="FTM0_FTM_IRQ_HANDLER"/>
-	<item value="0" key="FTM3_FTM_IRQ_HANDLER"/>
-	<item value="0" key="TPM2_TPM_IRQ_LEVEL"/>
-	<item value="0" key="SPI0_SPI_IRQ_HANDLER"/>
+	<item value="0" key="I2C2_IRQ_LEVEL"/>
+	<item value="0" key="FTM2_SC_PS"/>
+	<item value="0" key="TPM2_SC_PS"/>
 	<item value="0" key="SPI2_MODE"/>
-	<item value="0" key="FTM2_FTM_IRQ_LEVEL"/>
-	<item value="10000000" key="SPI2_SPEED"/>
+	<item value="0" key="MCG_rtcclk_clock"/>
+	<item value="0" key="SPI2_SPEED"/>
 </section>

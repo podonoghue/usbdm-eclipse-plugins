@@ -19,11 +19,12 @@ import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryModel;
+import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
-import net.sourceforge.usbdm.deviceEditor.model.NumericModel;
+import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 
@@ -45,17 +46,19 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if (element instanceof BinaryModel) {
+      if (element instanceof BinaryVariableModel) {
          return new BooleanCellEditor(viewer.getTree());
       }
       if (element instanceof SelectionModel) {
          SelectionModel model = (SelectionModel)element;
-
-         String[] choices = model.getChoices();
-         return new ChoiceCellEditor(viewer.getTree(), choices);
+         return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
       }      
-      if (element instanceof NumericModel) {
-         NumericModel model = (NumericModel)element;
+      if (element instanceof SelectionVariableModel) {
+         SelectionVariableModel model = (SelectionVariableModel)element;
+         return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
+      }      
+      if (element instanceof NumericVariableModel) {
+         NumericVariableModel model = (NumericVariableModel)element;
          return new NumericTextCellEditor(viewer.getTree(), model.min(), model.max());
       }      
       if (element instanceof FilePathModel) {
@@ -66,8 +69,8 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof BinaryModel) {
-         BinaryModel model = (BinaryModel)element;
+      if (element instanceof BinaryVariableModel) {
+         BinaryVariableModel model = (BinaryVariableModel)element;
          boolean rv = model.getBooleanValue();
          return rv;
       }
@@ -80,8 +83,8 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (element instanceof BinaryModel) {
-         BinaryModel model = (BinaryModel)element;
+      if (element instanceof BinaryVariableModel) {
+         BinaryVariableModel model = (BinaryVariableModel)element;
          model.setBooleanValue((Boolean) value);
       }
       else if (element instanceof EditableModel) {

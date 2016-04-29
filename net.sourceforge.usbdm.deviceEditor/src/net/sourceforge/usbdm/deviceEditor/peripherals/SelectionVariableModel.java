@@ -2,61 +2,78 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
-import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
-public abstract class SimpleSelectionModel extends SelectionModel {
+public class SelectionVariableModel extends VariableModel {
 
-   private final IModelEntryProvider fProvider;
-   private final String             fKey;
-   private final String[]           fValues;
+   /** Array of values corresponding to displayed choices */
+   private String[]  fValues = null;
    
-   private int fDefaultSelection = 0;
+   /** List of displayed choices */
+   protected String[] fChoices = null;
 
    /**
-    * Gets array of choices to display to user
+    * Create model
     * 
-    * @return
+    * @param parent        Parent model
+    * @param provider      Provider that owns the variable
+    * @param key           Key used to access the variable
+    * @param description   Description for the display
     */
-   protected abstract String[] getChoicesArray();
-   /**
-    * Get array of values that correspond to choices
-    * 
-    * @return
-    */
-   protected abstract String[] getValuesArray();
-   
-   /**
-    * 
-    * @param parent     
-    * @param provider
-    * @param key
-    */
-   public SimpleSelectionModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
-      super(parent, key, description);
-      
-      fProvider   = provider;
-      fKey        = key;
-      
-      fChoices     = getChoicesArray();
-      fValues      = getValuesArray();
-      
-      fDefaultSelection = findValue(fValues[fValues.length-1]);
-      fSelection        = fDefaultSelection;
-
-      String sel = fProvider.getValueAsString(fKey);
-      if (sel != null) {
-         fSelection = findValue(sel);
-      }
+   public SelectionVariableModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
+      super(parent, provider, key, description);
    }
 
    /**
-    * Finds the given value in VALUES
+    * Get array of selection choices
+    * 
+    * @return The array of choices displayed to user
+    */
+   public String[] getChoices() {
+      return fChoices;
+   }
+
+   /** 
+    * Set choices displayed
+    * 
+    * @param choices
+    */
+   public void setChoices(String[] choices) {
+      fChoices = choices;
+   }
+   
+   /** 
+    * Set values corresponding to choices displayed
+    * 
+    * @param values
+    */
+   public void setValues(String[] values) {
+      fValues = values;
+   }
+   
+   /**
+    * Finds the given choice in fChoices
+    * 
+    * @param value Choice to look for
+    * 
+    * @return Selection index or -1 if not found
+    */
+   protected int findChoice(String choice) {
+      for (int index=0; index<fChoices.length; index++) {
+         if (fChoices[index].equalsIgnoreCase(choice)) {
+            return index;
+         }
+      }
+      return -1;
+   }
+   /**
+    * Finds the given value in fValues
     * 
     * @param value Value to look for
     * 
     * @return Selection index or -1 if not found
     */
-   int findValue(String value) {
+   protected int findValue(String value) {
       for (int index=0; index<fValues.length; index++) {
          if (fValues[index].equalsIgnoreCase(value)) {
             return index;
@@ -65,16 +82,20 @@ public abstract class SimpleSelectionModel extends SelectionModel {
       return -1;
    }
 
-   @Override
    public void setValueAsString(String value) {
-      super.setValueAsString(value);
-      if (fSelection >= (fValues.length-1)) {
-         // Handle default choice
-         fSelection = fDefaultSelection;
+      int selection = findChoice(value);
+      if (selection<0) {
+         // Invalid - reset to first element
+         selection = 0;
       }
-      fProvider.setValue(fKey, fValues[fSelection]);
+      super.setValueAsString(fValues[selection]);
    }
 
+   @Override
+   public String getValueAsString() {
+      return fChoices[findValue(super.getValueAsString())];
+   }
+   
    @Override
    protected void removeMyListeners() {
    }

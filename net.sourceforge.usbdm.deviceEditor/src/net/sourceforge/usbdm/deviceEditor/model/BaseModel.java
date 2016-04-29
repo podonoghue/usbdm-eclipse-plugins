@@ -18,7 +18,7 @@ public abstract class BaseModel {
    protected       String            fDescription;
    
    /** Parent node */
-   protected final BaseModel         fParent;
+   protected BaseModel         fParent;
    
    /** Child nodes */
    protected       ArrayList<Object> fChildren = null;
@@ -32,9 +32,9 @@ public abstract class BaseModel {
    /**
     * Constructor
     * 
-    * @param parent        Parent of this element in tree
-    * @param name          Name of this element in tree
-    * @param description   Description of element
+    * @param parent        Parent model
+    * @param name          Display name
+    * @param description   Display description
     * 
     * @note Added as child of parent if not null
     */
@@ -362,13 +362,20 @@ public abstract class BaseModel {
    /**
     * Remove all listeners created by this model including by children
     */
-   public void removeListeners() {
+   public final void removeListeners() {
       if (fChildren != null) {
          for (Object child:fChildren) {
             ((BaseModel) child).removeListeners();
          }
       }
       removeMyListeners();
+   }
+
+   public void setParent(BaseModel parent) {
+      fParent = parent;
+      if (parent != null) {
+         parent.addChild(this);
+      }
    }
 
 }

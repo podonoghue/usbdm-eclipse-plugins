@@ -1,23 +1,35 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider.VariableInfo;
-
-public class VariableModel extends NumericModel {
+/**
+ * Model for a variable maintained by a provider
+ */
+public class VariableModel extends EditableModel {
 
    private final IModelEntryProvider fProvider;
-   private final String fKey;
-   private final VariableInfo variableInfo;
+   private final String              fKey;
    
+   /**
+    * Create model
+    * 
+    * @param parent        Parent model
+    * @param provider      Provider that owns the variable
+    * @param key           Key used to access the variable
+    * @param description   Description for the display
+    */
    public VariableModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
       super(parent, key, description);
       fProvider      = provider;
       fKey           = key;
-      variableInfo   = provider.getVariableInfo(key);
    }
 
    @Override
    public String getValueAsString() {
-      return fProvider.getValueAsString(fKey);
+      return fProvider.getVariableValue(fKey);
+   }
+
+   @Override
+   public void setValueAsString(String value) {
+      fProvider.setVariableValue(fKey, value);
    }
 
    @Override
@@ -29,19 +41,4 @@ public class VariableModel extends NumericModel {
    protected void removeMyListeners() {
    }
 
-   @Override
-   public void setValueAsString(String value) {
-      fProvider.setValue(fKey, value);
-   }
-
-   @Override
-   public long min() {
-      return variableInfo.min;
-   }
-
-   @Override
-   public long max() {
-      return variableInfo.max;
-   }
-   
 }
