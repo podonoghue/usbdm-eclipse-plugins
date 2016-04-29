@@ -92,7 +92,7 @@ public class FllClockValidate extends MyValidator {
       }
       if (mcg_c2_range < 0) {
          String msgText;
-         // Not suitable frequency fpr FLL
+         // Not suitable frequency for FLL
          msgText = String.format("Frequency of %s (%d) is not suitable for use as FLL input\n", 
                system_erc_clock_name, system_erc_clock);
          msgText += String.format("Permitted ranges [%d-%d], [%d-%d] or [%d-%d]", 

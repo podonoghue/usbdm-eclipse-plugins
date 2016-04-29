@@ -500,21 +500,43 @@ public class AnnotationParser {
             }
             switch (sArgs.length) {
             case 1: 
-               //               System.err.println(String.format("Creating function: %s(%d)", className, args[0]));
-               validatorClass = (MyValidator) clazz.getConstructor(long.class).newInstance(args[0]);
+               validatorClass = (MyValidator) clazz.getConstructor(long.class).
+               newInstance(args[0]);
                break;
             case 2: 
-               //               System.err.println(String.format("Creating function: %s(%d,%d)", className, args[0], args[1]));
-               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class).newInstance(args[0],args[1]);
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class).
+               newInstance(args[0],args[1]);
                break;
             case 3: 
-               //               System.err.println(String.format("Creating function: %s(%d,%d,%d)", className, args[0], args[1], args[2]));
-               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class).newInstance(args[0],args[1],args[2]);
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2]);
                break;
             case 4: 
-               //               System.err.println(String.format("Creating function: %s(%d,%d,%d,%d)", className, args[0], args[1], args[2], args[3]));
-               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class).newInstance(args[0],args[1],args[2],args[3]);
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3]);
                break;
+            case 5: 
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3],args[4]);
+               break;
+            case 6: 
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3],args[4],args[5]);
+               break;
+            case 7: 
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3],args[4],args[5], args[6]);
+               break;
+            case 8: 
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]);
+               break;
+            case 9: 
+               validatorClass = (MyValidator) clazz.getConstructor(long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class,long.class).
+               newInstance(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8]);
+               break;
+            default:
+               validatorClass = (MyValidator) clazz.getConstructor(long[].class).newInstance(args);
             } 
          }
          newValidators.add(validatorClass);

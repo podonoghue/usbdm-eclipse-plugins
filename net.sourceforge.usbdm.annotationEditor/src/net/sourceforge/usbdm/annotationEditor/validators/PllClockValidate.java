@@ -10,21 +10,34 @@ import org.eclipse.jface.viewers.TreeViewer;
 
 public class PllClockValidate extends MyValidator {
 
-   static final long PLL_IN_MINIMUM_FREQUENCY = 2000000;
-   static final long PLL_IN_MAXIMUM_FREQUENCY = 4000000;
+   private final long PLL_IN_MINIMUM_FREQUENCY;
+   private final long PLL_IN_MAXIMUM_FREQUENCY;
    
-   static long PLL_OUT_MINIMUM_FREQUENCY;
-   static long PLL_OUT_MAXIMUM_FREQUENCY;
+   private final long PLL_OUT_MINIMUM_FREQUENCY;
+   private final long PLL_OUT_MAXIMUM_FREQUENCY;
    
-   static final int  PRDIV_MIN = 1;
-   static final int  PRDIV_MAX = 25;
+   private final int  PRDIV_MIN;
+   private final int  PRDIV_MAX;
    
-   static final int  VDIV_MIN = 24;
-   static final int  VDIV_MAX = 55;
+   private final int  VDIV_MIN;
+   private final int  VDIV_MAX;
    
-   public PllClockValidate(long pllOutMinimumFrequency, long pllOutMaximumFrequency) {
-      PLL_OUT_MINIMUM_FREQUENCY = pllOutMinimumFrequency;
-      PLL_OUT_MAXIMUM_FREQUENCY = pllOutMaximumFrequency;
+   private final int  PLL_POST_DIV;
+   
+   public PllClockValidate(long pllOutMin, long pllOutMax, long pllInMin, long pllInMax, long prDivMin, long prDivMax, long vDivMin, long vDivMax, long pllPostDiv) {
+      PLL_OUT_MINIMUM_FREQUENCY = pllOutMin;
+      PLL_OUT_MAXIMUM_FREQUENCY = pllOutMax;
+      PLL_IN_MINIMUM_FREQUENCY  = pllInMin;
+      PLL_IN_MAXIMUM_FREQUENCY  = pllInMax;
+      PRDIV_MIN                 = (int) prDivMin;
+      PRDIV_MAX                 = (int) prDivMax;
+      VDIV_MIN                  = (int) vDivMin;
+      VDIV_MAX                  = (int) vDivMax;
+      PLL_POST_DIV              = (int) pllPostDiv;
+   }
+   
+   public PllClockValidate(long pllOutMin, long pllOutMax) {
+      this (pllOutMin, pllOutMax, 2000000, 4000000, 1, 25, 24, 55, 1);
    }
    
    @Deprecated
@@ -62,30 +75,39 @@ public class PllClockValidate extends MyValidator {
       // Try each prescale value
       for (mcg_prdiv = PRDIV_MIN; mcg_prdiv <= PRDIV_MAX; mcg_prdiv++) {
          double pllInFrequency = system_erc_clock/mcg_prdiv;
+         System.err.print(String.format("(prdiv = %d, pllIn=%f) => ", mcg_prdiv, pllInFrequency));
          if (pllInFrequency>PLL_IN_MAXIMUM_FREQUENCY) {
             // Invalid as input to PLL
+            System.err.println("too high");
             continue;
          }
-         if (pllInFrequency<(PLL_IN_MINIMUM_FREQUENCY)) {
+         if (pllInFrequency<PLL_IN_MINIMUM_FREQUENCY) {
             // Invalid as input to PLL
+            System.err.println("too low");
             break;
          }
          // Try each multiplier value
          for (mcg_vdiv=VDIV_MIN; mcg_vdiv<=VDIV_MAX; mcg_vdiv++) {
-            long pllOutFrequency = Math.round(mcg_vdiv*pllInFrequency);
+            long pllOutFrequency = Math.round((mcg_vdiv*pllInFrequency)/PLL_POST_DIV);
+            System.err.print(pllOutFrequency);
             if (pllOutFrequency<PLL_OUT_MINIMUM_FREQUENCY) {
+               System.err.print("-, ");
                continue;
             }
             if (pllOutFrequency>PLL_OUT_MAXIMUM_FREQUENCY) {
-               continue;
+               System.err.print("+, ");
+               break;
             }
+            System.err.print("*,");
             pllFrequencies.add(pllOutFrequency);
 //            System.err.println(String.format("PllClockValidate.validate(): Trying prdiv=%d, vdiv=%d, pllIn=%d, pllOut=%d", prdiv, vdiv, pllInFrequency, pllOutFrequency));
             valid =  pllOutFrequency == pllTargetFrequency;
             if (valid) {
+               System.err.print("=");
                break;
             }
          }
+         System.err.println();
          if (valid) {
             break;
          }
