@@ -281,7 +281,6 @@ public class ParseFamilyXML extends XML_BaseParser {
     * @throws Exception
     */
    public void parseFile(DeviceInfo deviceInfo, Path path) throws Exception {
-
       fDeviceInfo = deviceInfo;
       Document document = parseXmlFile(path);
 

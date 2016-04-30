@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,10 +8,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -23,10 +17,6 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 public class WriterForPit extends PeripheralWithState {
 
    static final String ALIAS_PREFIX       = "pit_";
-
-
-   /** Data about model loaded from file */
-   protected Data fData = null;
 
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -93,29 +83,18 @@ public class WriterForPit extends PeripheralWithState {
    }
 
    public void loadModels() {
-      Path path = null;
+      fData = null;
       switch (fDeviceInfo.getDeviceFamily()) {
       case mk:
-         path = Paths.get("hardware/pit.xml");
+         loadModels("Pit");
          break;
       case mkl:
-         path = Paths.get("hardware/pitSharedIrq.xml");
+         loadModels("PitSharedIrq");
          break;
       case mke:
       case mkm:
       default:
-         fData = null;
          return;
-      }
-      try {
-         fData = ParseMenuXML.parseFile(path, null, this);
-      } catch (Exception e) {
-         e.printStackTrace();
-         BaseModel models[] = {
-               new CategoryModel(null, getName(), getDescription()),
-            };
-         fData = new Data(models, "");
-         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
       }
    }
    

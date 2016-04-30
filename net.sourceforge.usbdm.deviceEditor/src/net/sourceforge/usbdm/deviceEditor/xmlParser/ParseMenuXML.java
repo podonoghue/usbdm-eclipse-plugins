@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,12 +9,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
+import net.sourceforge.usbdm.jni.Usbdm;
 
 public class ParseMenuXML extends XML_BaseParser {
 
@@ -42,8 +46,9 @@ public class ParseMenuXML extends XML_BaseParser {
       long   min         = getLongAttribute(longElement, "min");
       long   max         = getLongAttribute(longElement, "max");
       long   step        = getLongAttribute(longElement, "step");
-       
-      fProvider.createVariable(name, "0");
+      String value       = longElement.getAttribute("value");
+      
+      fProvider.createVariable(name, value);
       NumericVariableModel model = new NumericVariableModel(parent, fProvider, name, description);
       model.setToolTip(toolTip);
       model.setMin(min);
@@ -57,12 +62,13 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param choiceElement
     */
    private void parseChoiceOption(BaseModel parent, Element choiceElement) {
-      String name        = choiceElement.getAttribute("name");
-      String description = choiceElement.getAttribute("description");
-      String toolTip     = choiceElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
+      String  name        = choiceElement.getAttribute("name");
+      String  description = choiceElement.getAttribute("description");
+      String  toolTip     = choiceElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
 
-      ArrayList<String> choices = new ArrayList<>();
-      ArrayList<String> values  = new ArrayList<>();
+      ArrayList<String> choices = new ArrayList<String>();
+      ArrayList<String> values  = new ArrayList<String>();
+      String defaultValue = null;
       for (Node node = choiceElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -71,14 +77,21 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "choice") {
+            String value = element.getAttribute("value");
             choices.add(element.getAttribute("name"));
-            values.add(element.getAttribute("value"));
+            values.add(value);
+            if (defaultValue == null) {
+               defaultValue = value;
+            }
+            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+               defaultValue = value;
+            }
          }
          else {
             throw new RuntimeException("Unexpected field in <choiceOption>, value = \'"+element.getTagName()+"\'");
          }
       }
-      fProvider.createValue(name, "0", name);
+      fProvider.createValue(name, defaultValue, name);
       String theChoices[] = choices.toArray(new String[choices.size()]);
       String theValues[]  = values.toArray(new String[values.size()]);
       SelectionVariableModel model = new SelectionVariableModel(parent, fProvider, name, description);
@@ -97,8 +110,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String description = binaryElement.getAttribute("description");
       String toolTip     = binaryElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
 
-      ArrayList<String> choices = new ArrayList<>();
-      ArrayList<String> values  = new ArrayList<>();
+      ArrayList<String> choices = new ArrayList<String>();
+      ArrayList<String> values  = new ArrayList<String>();
+      String defaultValue = null;
       for (Node node = binaryElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -107,8 +121,15 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "choice") {
+            String value = element.getAttribute("value");
             choices.add(element.getAttribute("name"));
-            values.add(element.getAttribute("value"));
+            values.add(value);
+            if (defaultValue == null) {
+               defaultValue = value;
+            }
+            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+               defaultValue = value;
+            }
          }
          else {
             throw new RuntimeException("Unexpected field in <binaryOption>, value = \'"+element.getTagName()+"\'");
@@ -117,7 +138,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((choices.size()==0)||(choices.size()>2)) {
          throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+choices.size());
       }
-      fProvider.createValue(name, "0", name);
+      fProvider.createValue(name, defaultValue, name);
       
       BinaryVariableModel model = new BinaryVariableModel(parent, fProvider, name, description);
       model.setName(name);
@@ -219,9 +240,50 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception
     */
-   public static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) throws Exception {
+   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) throws Exception {
+
+      if (!path.toFile().exists()) {
+         // Look in USBDM directory
+         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+      }
+      if (!path.toFile().exists()) {
+         throw new RuntimeException("Unable to locate hardware description file " + path);
+      }
       return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
    }
+
+   /**
+    * Parses document from top element
+    * @param models 
+    * @param deviceInfo 
+    * @return 
+    * 
+    * @throws Exception
+    */
+   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) {
+      
+      // For debug try local directory
+      Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
+      if (Files.isRegularFile(path)) {
+         path = path.toAbsolutePath();
+//         System.err.println("Opening debug file "+path);
+      }
+      else {
+         path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
+      }
+      try {
+         return parseFile(path, parent, provider);
+      } catch (Exception e) {
+         e.printStackTrace();
+         BaseModel models[] = {
+               new CategoryModel(null, "Unknown", "Error"),
+            };
+         Data data = new Data(models, "");
+         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
+         return data;
+      }
+   }
+
 
    /**
     * Parses document from top element

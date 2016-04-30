@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -39,10 +39,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc32;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTpm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
@@ -58,7 +57,7 @@ public class DeviceInfo extends ObservableModel {
    public static final String VERSION           = "1.2.0";
 
    /** DTD file to reference in XML */
-   public static final String DTD_FILE          = "Pins.dtd";
+   public static final String DTD_FILE          = "Hardware.dtd";
 
    /** Name space for C files */
    public static final String NAME_SPACE        = "USBDM";
@@ -111,13 +110,55 @@ public class DeviceInfo extends ObservableModel {
    private final HashMap<String, String> fVariables = new HashMap<String, String>();
    
    /**
-    * Create device information
-    * 
-    * @param filePath     File path to either .usbdmProject or .usbdmHardware file
+    * Create empty device information
     */
    private DeviceInfo() {
    }
 
+   /**
+    * Create DeviceInfo from hardware file, either .csv or .usbdmHardware<br>
+    * Several locations will be searched for the file
+    * 
+    * @param filePath   Path to file
+    * 
+    * @return DeviceInfo created
+    * 
+    * @throws Exception
+    */
+   private static DeviceInfo createFromHardwareFile(Path filePath) throws Exception {
+      
+      String filename  = filePath.getFileName().toString();
+      if (!filename.endsWith(HARDWARE_FILE_EXTENSION) &&
+          !filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+         throw new Exception("Incorrect file type"+ filePath);
+      }
+
+      if (!filePath.isAbsolute()) {
+         // Try default locations
+         do {
+            // As is
+            Path path = filePath.toAbsolutePath();
+            if (Files.isReadable(path)) {
+               filePath = path;
+               continue;
+            }
+            // Debug location
+            path = Paths.get("hardware").resolve(filePath);
+            if (Files.isReadable(path)) {
+               filePath = path;
+               continue;
+            }
+            // USBDM installation
+            filePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(filePath);
+         } while (false);
+      }
+      if (!Files.isReadable(filePath)) {
+         throw new Exception("Cannot locate file "+ filePath);
+      }
+      DeviceInfo deviceInfo = new DeviceInfo();
+      deviceInfo.parse(filePath);
+      return deviceInfo;
+   }
    /**
     * Create device hardware description from given file<br>
     * An associated settings file may be opened if a <b>.usbdmHardware</b> file is provided
@@ -128,58 +169,75 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception
     */
-   public static DeviceInfo create(Path filePath) throws Exception {
-      Path   path      = filePath.toAbsolutePath();
-      Path   folder    = filePath.getParent();     
-      String filename  = path.getFileName().toString();
+   public static DeviceInfo createFromSettingsFile(Path filePath) throws Exception {
+      
+      String filename  = filePath.getFileName().toString();
+      if (!filename.endsWith(PROJECT_FILE_EXTENSION)) {
+         throw new Exception("Incorrect file type"+ filePath);
+      }
+      
+      filePath = filePath.toAbsolutePath();
+      if (!Files.isReadable(filePath)) {
+         throw new Exception("Cannot locate file "+ filePath);
+      }
 
-      String projectFilename  = null;
-      String hardwareFilename = null;
+      DeviceInfo deviceInfo = new DeviceInfo();
+
+      DialogSettings projectSettings = deviceInfo.getSettings(filePath);
+
+      Path hardwarePath = Paths.get(projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY));
+
+      if (!hardwarePath.isAbsolute()) {
+         // Try default locations
+         do {
+            // As is
+            Path path = hardwarePath.toAbsolutePath();
+            if (Files.isReadable(path)) {
+               hardwarePath = path;
+               continue;
+            }
+            // Debug location
+            path = Paths.get("hardware").resolve(hardwarePath);
+            if (Files.isReadable(path)) {
+               hardwarePath = path;
+               continue;
+            }
+            // USBDM installation
+            hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(hardwarePath);
+         } while (false);
+      }
+      if (!Files.isReadable(hardwarePath)) {
+         throw new Exception("Cannot locate file "+ hardwarePath);
+      }
+      deviceInfo.parse(hardwarePath);
+      deviceInfo.loadSettings(projectSettings);
+      return deviceInfo;
+   }
+
+   /**
+    * Create device hardware description from given file<br>
+    * 
+    * @param filePath   Path to <b>.usbdmProject</b> or <b>.usbdmHardware</b> file
+    * 
+    * @return Create hardware description for device
+    * 
+    * @throws Exception
+    */
+   public static DeviceInfo create(Path filePath) throws Exception {
+      String filename  = filePath.getFileName().toString();
+
       if (filename.endsWith(HARDWARE_FILE_EXTENSION)) {
-         hardwareFilename = filename;
-         projectFilename  = filename.replaceAll("(^.*)"+Pattern.quote(HARDWARE_FILE_EXTENSION)+"$", "$1"+PROJECT_FILE_EXTENSION);
+         return createFromHardwareFile(filePath);
       }
       else if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
-         hardwareFilename = filename;
-         projectFilename  = filename.replaceAll("(^.*)"+Pattern.quote(HARDWARE_CSV_FILE_EXTENSION)+"$", "$1"+PROJECT_FILE_EXTENSION);
+         return createFromHardwareFile(filePath);
       }
       else if (filename.endsWith(PROJECT_FILE_EXTENSION)) {
-         projectFilename   = filename;
-         hardwareFilename  = null;
+         return createFromSettingsFile(filePath);
       }
       else {
          throw new RuntimeException("Unknown file type " + filePath);
       }
-
-      // Save project settings file path
-      Path projectSettingsPath = folder.resolve(projectFilename);
-
-      DeviceInfo deviceInfo = new DeviceInfo();
-      DialogSettings projectSettings = deviceInfo.getSettings(projectSettingsPath);
-
-      if ((hardwareFilename == null) && (projectSettings != null)) {
-         // Use hardware filename from settings if not explicitly given
-         hardwareFilename = projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY);
-      }
-      if (hardwareFilename == null) {
-         throw new RuntimeException("Unable to determine hardware description file");
-      }
-
-      // Look for hardware file in current directory
-      Path hardwarePath = folder.resolve(hardwareFilename);
-      if (!hardwarePath.toFile().exists()) {
-         // Look for hardware file in USBDM directory
-         hardwarePath = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(USBDM_HARDWARE_LOCATION).resolve(hardwareFilename);
-      }
-      if (!hardwarePath.toFile().exists()) {
-         throw new RuntimeException("Unable to locate hardware description file " + hardwarePath);
-      }
-
-      deviceInfo.parse(hardwarePath);
-      if (projectSettings != null) {
-         deviceInfo.loadSettings(projectSettings);
-      }
-      return deviceInfo;
    }
 
    /**
@@ -190,12 +248,14 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception
     */
    private void parse(Path hardwarePath) throws Exception {
+      System.err.println("Loading "+hardwarePath.toAbsolutePath());
       fHardwarePath = hardwarePath;
-      if (fHardwarePath.getFileName().toString().endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
+      String filename = fHardwarePath.getFileName().toString();
+      if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
          ParseFamilyCSV parser = new ParseFamilyCSV();
          parser.parseFile(this, fHardwarePath);
       }
-      else if ((fHardwarePath.getFileName().toString().endsWith("xml"))||(fHardwarePath.getFileName().toString().endsWith(HARDWARE_FILE_EXTENSION))) {
+      else if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseFile(this, fHardwarePath);
       }
@@ -895,7 +955,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2",
                "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
                getDeviceFamily(),
-               WriterForTpm.class);
+               WriterForFtm.class);
          createPeripheralTemplateInformation(
                "$1", "$2",
                "(TSI)([0-3])_(CH\\d+)",
@@ -942,11 +1002,6 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "$1", "", "$3",
-               "(RTC)_?()(CLKOUT|CLKIN|WAKEUP_b)?",
-               getDeviceFamily(),
-               WriterForNull.class);
-         createPeripheralTemplateInformation(
                "$1", "$2",
                "(JTAG|EZP|SWD|CLKOUT|NMI_b|RESET_b|TRACE|VOUT33|VREGIN|EXTRG)_?()(.*)",
                getDeviceFamily(),
@@ -957,15 +1012,20 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForMisc.class);
          createPeripheralTemplateInformation(
-               "OSC0", "", "$1",
+               "OSC", "0", "$1",
                "(E?XTAL)(0)?",
                getDeviceFamily(),
                WriterForOsc.class);
          createPeripheralTemplateInformation(
-               "OSC32", "", "$1",
+               "RTC", "", "$3",
+               "(RTC)_?()(CLKOUT|CLKIN|WAKEUP_b)",
+               getDeviceFamily(),
+               WriterForRtc.class);
+         createPeripheralTemplateInformation(
+               "RTC", "", "$1",
                "(E?XTAL32)",
                getDeviceFamily(),
-               WriterForOsc32.class);
+               WriterForRtc.class);
          // Note USBOTG is used for clock name
          createPeripheralTemplateInformation(
                "USBDCD", "",
@@ -1280,6 +1340,7 @@ public class DeviceInfo extends ObservableModel {
     * @throws IOException 
     */
    public DialogSettings getSettings(Path path) throws IOException {
+      System.err.println("Getting settings from " + path.toAbsolutePath());
       fProjectSettingsPath = path;
       if (path.toFile().isFile()) {
          DialogSettings settings = new DialogSettings("USBDM");
@@ -1333,6 +1394,7 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings to the given path
     */
    public void saveSettingsAs(Path path) {
+      System.err.println("Saving settings to :"+path.toAbsolutePath());
       fProjectSettingsPath = path;
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
@@ -1598,8 +1660,11 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if variable doesn't exist
     */
    public void setVariableValue(String key, String value) {
-      if (fVariables.put(key, value) == null) {
-         throw new RuntimeException("Variable does not exist \'"+key+"\'");
-      };
+      String oldValue = getVariableValue(key);
+      if (oldValue.equals(value)) {
+         return;
+      }
+      fVariables.put(key, value);
+      setDirty(true);
    }
 }

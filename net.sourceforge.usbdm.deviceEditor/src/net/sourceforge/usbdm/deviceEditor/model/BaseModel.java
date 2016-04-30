@@ -28,7 +28,10 @@ public abstract class BaseModel {
    
    /** Information/Warning/Error message */
    protected Message fMessage = null;
-   
+
+   /** Controls logging */
+   protected boolean fLogging = false;
+
    /**
     * Constructor
     * 
@@ -50,6 +53,10 @@ public abstract class BaseModel {
       fDescription = description;
       if (parent != null) {
          parent.addChild(this);
+      }
+//      fLogging = (fName.equalsIgnoreCase("FTM0") || ((fParent != null)&&fParent.fName.equalsIgnoreCase("FTM0")));
+      if (fLogging) {
+         System.err.println("Creating model "+name);
       }
    }
 
@@ -158,16 +165,24 @@ public abstract class BaseModel {
     * @return string
     */
    public String getDescription() {
+      String description = fDescription;
+      if (fLogging) {
+         System.err.println("Here");
+      }
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         String msg = message.getMessage();
-         int eolIndex = msg.indexOf('\n');
+         description = message.getMessage();
+
+         // Truncate to single line
+         int eolIndex = description.indexOf('\n');
          if (eolIndex>0) {
-            msg = msg.substring(0, eolIndex);
+            description = description.substring(0, eolIndex);
          }
-         return message.getMessage();
       }
-      return fDescription;
+      if (fLogging) {
+         System.err.println("Getting dscription "+fName+" => "+description);
+      }
+      return description;
    }
 
    /**
@@ -213,12 +228,12 @@ public abstract class BaseModel {
     * 
     * @param message Message to set (may be null)
     */
-   protected void setMessage(String message) {
-      if ((message == null) || message.isEmpty()) {
-         fMessage = null;
-         return;
+   public void setMessage(String message) {
+      Message msg = null;
+      if ((message != null) && !message.isEmpty()) {
+         msg = new Message(message, Message.Severity.ERROR, this);
       }
-      setMessage(new Message(message, Message.Severity.ERROR));
+      setMessage(msg);
    }
 
    /**
@@ -277,6 +292,15 @@ public abstract class BaseModel {
    }
 
    /** 
+    * Indicates that element is 'reset'
+    * 
+    * @return
+    */
+   public boolean isReset() {
+      return false;
+   }
+
+   /** 
     * Indicates that element is enabled
     * 
     * @return
@@ -292,17 +316,17 @@ public abstract class BaseModel {
     */
    public String getToolTip() {
       String tip = fToolTip;
-      if (fToolTip == null) {
+      if (tip == null) {
          tip = "";
       }
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
-         tip += message.getMessage();
+         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
       }
       else if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         tip += "\n"+message.getMessage();
+         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
       }
-      return (tip.length()==0)?null:tip;
+      return (tip.isEmpty())?null:tip;
    }
 
    /**
@@ -343,7 +367,12 @@ public abstract class BaseModel {
     * @param properties
     */
    protected void viewerUpdate(BaseModel element, String[] properties) {
-      getRoot().viewerUpdate(element, properties);
+      if (element != null) {
+         BaseModel root = getRoot();
+         if (root != null) {
+            root.viewerUpdate(element, properties);
+         }
+      }
    }
 
    /**

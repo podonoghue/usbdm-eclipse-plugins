@@ -10,20 +10,20 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 /**
  * Class encapsulating the code for writing an instance of OSC
  */
-public class WriterForOsc extends PeripheralWithState {
+public class WriterForRtc extends PeripheralWithState {
 
-   static final String ALIAS_BASE_NAME       = "osc_";
-   static final String CLASS_BASE_NAME       = "Osc";
-   static final String INSTANCE_BASE_NAME    = "osc";
+   static final String ALIAS_BASE_NAME       = "rtc_";
+   static final String CLASS_BASE_NAME       = "Rtc";
+   static final String INSTANCE_BASE_NAME    = "rtc";
 
-   public WriterForOsc(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForRtc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
       loadModels();
    }
 
    @Override
    public String getTitle() {
-      return "Crystal Oscillator";
+      return "Real Time Clock";
    }
 
    @Override
@@ -39,7 +39,7 @@ public class WriterForOsc extends PeripheralWithState {
       return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signal);
    }
 
-   final String signalNames[] = {"^XTAL(32)?$", "^EXTAL(32)?$", };
+   final String signalNames[] = {"XTAL32", "EXTAL32", "CLKOUT", "CLKIN", "WAKEUP_b"};
 
    @Override
    public int getSignalIndex(Signal function) {

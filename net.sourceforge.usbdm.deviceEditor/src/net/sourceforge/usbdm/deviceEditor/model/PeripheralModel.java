@@ -5,7 +5,7 @@ import java.util.TreeMap;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
-public final class PeripheralModel extends BaseModel {
+public final class PeripheralModel extends CategoryModel {
 
    public PeripheralModel(BaseModel parent, Peripheral peripheral) {
       super(parent, peripheral.getName(), peripheral.getDescription());

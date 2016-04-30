@@ -9,8 +9,13 @@ import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
+
+   /** Data about model loaded from file */
+   protected Data fData = null;
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -34,6 +39,24 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    private KeyMaker keyMaker = new KeyMaker();
+
+   /**
+    * Load the models for this class of peripheral
+    * 
+    * @return
+    */
+   public void loadModels() {
+      loadModels(getVersion());
+   }
+   
+   /**
+    * Load the models for this class of peripheral
+    * 
+    * @return
+    */
+   public final void loadModels(String name) {
+      fData = ParseMenuXML.parseFile(name, null, this);
+   }
    
    /**
     * Create a variable

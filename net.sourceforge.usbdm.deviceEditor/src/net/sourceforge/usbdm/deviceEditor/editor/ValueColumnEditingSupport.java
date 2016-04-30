@@ -59,7 +59,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
       }      
       if (element instanceof NumericVariableModel) {
          NumericVariableModel model = (NumericVariableModel)element;
-         return new NumericTextCellEditor(viewer.getTree(), model.min(), model.max());
+         return new NumericTextCellEditor(viewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
          return new HardwareCellEditor(viewer.getTree());
@@ -98,28 +98,15 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
       class Validator implements ICellEditorValidator {
          
-         long min;
-         long max;
-         
-         Validator(long min, long max) {
-            this.min = min;
-            this.max = max;
+         Validator() {
          }
          
          @Override
          public String isValid(Object value) {
             String rv = null;
-            long   lValue;
             try {
                String s = value.toString().trim();
-               if (s.startsWith("0b")) {
-                  lValue = Long.parseLong(s.substring(2, s.length()), 2);
-               } else {
-                  lValue = Long.decode(s);
-               }
-               if ((lValue<min) || (lValue>max)) {
-                  rv = "Value out of range";
-               }
+               Long.decode(s);
             }
             catch (NumberFormatException e) {
                rv = "Illegal number";
@@ -128,10 +115,11 @@ public class ValueColumnEditingSupport extends EditingSupport {
          }
       }
       
-      public NumericTextCellEditor(Composite parent, long min, long max) {
+      public NumericTextCellEditor(Tree parent, NumericVariableModel model) {
          super(parent, SWT.SINGLE);
          setValueValid(true);
-         setValidator(new Validator(min, max));
+         Validator validator =  new Validator();
+         setValidator(validator);
       }
 
    }

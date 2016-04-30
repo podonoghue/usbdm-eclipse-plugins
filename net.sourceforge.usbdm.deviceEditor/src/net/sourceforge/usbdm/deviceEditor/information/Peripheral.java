@@ -31,8 +31,8 @@ public abstract class Peripheral {
    /** Name of peripheral e.g. FTM2 */
    protected final String fName;
 
-   /** Name of C peripheral class e.g. Ftm2 */
-   private final String fClassName;
+   /** Base name of C peripheral class e.g. Ftm */
+   private final String fClassBaseName;
    
    /** Base name of the peripheral e.g. FTM0 = FTM, PTA = PT */
    private final String fBaseName;
@@ -79,7 +79,7 @@ public abstract class Peripheral {
       fDeviceInfo    = deviceInfo;
       
       fName          = baseName+instance;
-      fClassName     = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase()+instance;
+      fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
    }
    
    @Override
@@ -119,12 +119,29 @@ public abstract class Peripheral {
    }
 
    /**
+    * Get name of C peripheral class e.g. Ftm
+    * 
+    * @return
+    */
+   public String getClassBaseName() {
+      return fClassBaseName;
+   }
+
+   /**
     * Get name of C peripheral class e.g. Ftm2 
     * 
     * @return
     */
    public String getClassName() {
-      return fClassName;
+      return getClassBaseName()+fInstance;
+   }
+
+   /**
+    * Return version name of peripheral<br>
+    * Defaults to name based on peripheral e.g. Ftm
+    */
+   public String getVersion() {
+      return getClassBaseName();
    }
 
    /**

@@ -69,6 +69,8 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       IResource input = (IResource)editorInput.getAdapter(IResource.class);
       fProject = input.getProject();
       fPath = Paths.get(input.getLocation().toPortableString());
+      
+      setPartName(input.getName());
    }
    
    /** Initialise the editor for testing */

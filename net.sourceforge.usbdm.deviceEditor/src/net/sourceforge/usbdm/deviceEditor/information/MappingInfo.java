@@ -166,7 +166,7 @@ public class MappingInfo extends ObservableModel {
          fMessage = null;
       }
       else {
-         fMessage = new Message(msg, Message.Severity.ERROR);
+         fMessage = new Message(msg, Message.Severity.ERROR, null);
       }
    }
 

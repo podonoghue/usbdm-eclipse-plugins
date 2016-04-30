@@ -139,6 +139,10 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     */
    @Override
    Message getMessage() {
+//      String msg = fPin.isValid();
+//      if (msg != null) {
+//         return new Message(msg, this);
+//      }
       Message rv = fPin.getMappedSignal().getMessage();
       if (rv != null) {
          return rv;

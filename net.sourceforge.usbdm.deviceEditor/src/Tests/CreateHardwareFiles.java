@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 
-public class TestCreateXml {
+public class CreateHardwareFiles {
    
    private static final DirectoryStream.Filter<Path> sourceFilter = new DirectoryStream.Filter<Path>() {
       @Override

@@ -1,18 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -22,9 +16,6 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 public class WriterForI2c extends PeripheralWithState {
    private static final String CLASS_BASE_NAME       = "I2c";
    private static final String INSTANCE_BASE_NAME    = "i2c";
-
-   /** Data about model loaded from file */
-   protected Data fData = null;
 
    public WriterForI2c(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -115,21 +106,6 @@ public class WriterForI2c extends PeripheralWithState {
       pinMappingHeaderFile.write(sb.toString());
    }
 
-   public void loadModels() {
-
-      Path path = Paths.get("hardware/i2c.xml");
-      try {
-         fData = ParseMenuXML.parseFile(path, null, this);
-      } catch (Exception e) {
-         e.printStackTrace();
-         BaseModel models[] = {
-               new CategoryModel(null, getName(), getDescription()),
-            };
-         fData = new Data(models, "");
-         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
-      }
-   }
-   
    @Override
    public BaseModel[] getModels(BaseModel parent) {
       fData.fModels[0].setParent(parent);

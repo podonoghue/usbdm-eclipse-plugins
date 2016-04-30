@@ -4,10 +4,10 @@
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
    <menu name="_instance" description="Flex timer">
-      <choiceOption name="SC_CLKS" description="Clock Source"
+      <choiceOption name="SC_CMOD" description="Clock Source"
          toolTip="Selects the clock source for the module">
          <choice value="0" name="Disabled" />
-         <choice value="1" name="System clock" />
+         <choice value="1" name="System clock" isDefault="true" />
          <choice value="2" name="Fixed frequency clock" />
          <choice value="3" name="External clock" />
          <choice value="1" name="Default" />
@@ -38,7 +38,7 @@
    </menu>
    <template>
       \t//! Default value for SC register\n
-      \tstatic constexpr uint32_t scValue  = FTM_SC_CLKS($(SC_CLKS))|FTM_SC_PS($(SC_PS));\n\n
+      \tstatic constexpr uint32_t scValue  = TPM_SC_CMOD($(SC_CMOD))|TPM_SC_PS($(SC_PS));\n\n
        \t//! Default IRQ level\n
        \tstatic constexpr uint32_t irqLevel =  $(IRQ_LEVEL);\n\n
    </template>

@@ -32,6 +32,7 @@
 <!ELEMENT choice EMPTY >
    <!ATTLIST choice value        CDATA        #REQUIRED>
    <!ATTLIST choice name         CDATA        #REQUIRED>
+   <!ATTLIST choice isDefault    (false|true) "false">
 
 <!ELEMENT xi:include EMPTY>
    <!ATTLIST xi:include href      CDATA        #REQUIRED>

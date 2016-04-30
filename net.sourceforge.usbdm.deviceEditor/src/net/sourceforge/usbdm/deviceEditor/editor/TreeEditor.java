@@ -70,7 +70,6 @@ public class TreeEditor {
       Tree tree = fViewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
-//      ColumnViewerToolTipSupport.enableFor(viewer);
 
       fViewer.setContentProvider(new ViewContentProvider());
 
@@ -87,12 +86,13 @@ public class TreeEditor {
       
       fColumns[0] = new TreeViewerColumn(fViewer, SWT.NONE);
       fColumns[0].getColumn().setWidth(350);
-      fColumns[0].setLabelProvider(new NameColumnLabelProvider());
+//      fColumns[0].setLabelProvider(new NameColumnLabelProviderX());
+      fColumns[0].setLabelProvider(new DelegatingStyledCellLabelProvider(new NameColumnLabelProvider(this)));
 
       fColumns[1] = new TreeViewerColumn(fViewer, SWT.NONE);
       fColumns[1].getColumn().setWidth(450);
       fColumns[1].setEditingSupport(new ValueColumnEditingSupport(fViewer));
-      fColumns[1].setLabelProvider(new ValueColumnLabelProvider());
+      fColumns[1].setLabelProvider(new DelegatingStyledCellLabelProvider(new ValueColumnLabelProvider(this)));
       
       fColumns[2] = new TreeViewerColumn(fViewer, SWT.NONE);
       fColumns[2].getColumn().setWidth(500);

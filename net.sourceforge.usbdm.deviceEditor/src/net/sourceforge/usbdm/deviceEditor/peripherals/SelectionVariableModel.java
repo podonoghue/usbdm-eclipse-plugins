@@ -93,7 +93,8 @@ public class SelectionVariableModel extends VariableModel {
 
    @Override
    public String getValueAsString() {
-      return fChoices[findValue(super.getValueAsString())];
+      String value = super.getValueAsString();
+      return fChoices[findValue(value)];
    }
    
    @Override

@@ -1,12 +1,16 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of AnalogueIO
@@ -15,7 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
  * @author podonoghue
  *
  */
-public class WriterForAdc extends Peripheral {      
+public class WriterForAdc extends PeripheralWithState {      
 
    static private final String ALIAS_PREFIX = "adc_";
    
@@ -27,6 +31,7 @@ public class WriterForAdc extends Peripheral {
          
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
+      loadModels();
    }
 
    @Override
@@ -64,7 +69,7 @@ public class WriterForAdc extends Peripheral {
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signal);
    }
    
    @Override
@@ -80,7 +85,7 @@ public class WriterForAdc extends Peripheral {
       }
       return index;
    }
-
+   
    @Override
    public boolean needPCRTable() {
       boolean required = 
@@ -88,35 +93,6 @@ public class WriterForAdc extends Peripheral {
                   fDpFunctions.table.size() + 
                   fDmFunctions.table.size()) > 0;
       return required;
-   }
-
-   static final String TEMPLATE_DOCUMENTATION = 
-         "/**\n"+
-         " * Convenience templated class representing an ADC\n"+
-         " *\n"+
-         " * Example\n"+
-         " * @code\n"+
-         " *  // Instantiate ADC0 single-ended channel #8\n"+
-         " *  const adc0<8> adc0_se8;\n"+
-         " *\n"+
-         " *  // Initialise ADC\n"+
-         " *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);\n"+
-         " *\n"+
-         " *  // Set as analogue input\n"+
-         " *  adc0_se8.setAnalogueInput();\n"+
-         " *\n"+
-         " *  // Read input\n"+
-         " *  uint16_t value = adc0_se8.readAnalogue();\n"+
-         " *  @endcode\n"+
-         " *\n"+
-         " * @tparam adcChannel    ADC channel\n"+
-         " */\n";
-
-   @Override
-   public String getCTemplate() {   
-      return TEMPLATE_DOCUMENTATION+String.format(
-            "template<uint8_t channel> using %s = Adc_T<%sInfo, channel>;\n\n",
-            getClassName(), getClassName());
    }
 
    @Override
@@ -159,6 +135,42 @@ public class WriterForAdc extends Peripheral {
       rv.add(fDpFunctions);
       rv.add(fDmFunctions);
       return rv;
+   }
+
+   @Override
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      StringBuffer sb = new StringBuffer();
+      sb.append(substitute(fData.fTemplate));
+      pinMappingHeaderFile.write(sb.toString());
+   }
+
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      fData.fModels[0].setParent(parent);
+      return fData.fModels;
+   }
+
+   @Override
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+      super.getVariables(variableMap, vectorTable);
+      final String headerFileName = getBaseName().toLowerCase()+".h";
+      boolean handlerSet = false;
+      for (InterruptEntry entry:vectorTable.getEntries()) {
+         if ((entry != null) && entry.getName().startsWith(fName)) {
+            if (getVariableValue("IRQ_HANDLER").equals("1")) {
+               entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irqHandler");
+               entry.setClassMemberUsedAsHandler(true);
+               handlerSet = true;
+            }
+         }
+      }
+      if (handlerSet) {
+         String headers = variableMap.get("VectorsIncludeFiles");
+         if (!headers.contains(headerFileName)) {
+            variableMap.put("VectorsIncludeFiles", headers + "#include \""+headerFileName+"\"\n");
+         }
+      }
    }
 
 }

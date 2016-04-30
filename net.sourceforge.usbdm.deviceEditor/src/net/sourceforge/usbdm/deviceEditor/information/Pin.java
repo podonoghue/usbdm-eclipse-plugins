@@ -553,4 +553,15 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void modelStructureChanged(ObservableModel model) {
       notifyStructureChangeListeners();
    }
+   
+//   public String isValid() {
+//      int mapCount = 0;
+//      for (MuxSelection key:fMappedSignals.keySet()) {
+//         MappingInfo mappedSignal = fMappedSignals.get(key);
+//         if (mappedSignal.isSelected()) {
+//            mapCount++;
+//         }
+//      }
+//      return (mapCount>1)?"Conflict":null;
+//   }
 }

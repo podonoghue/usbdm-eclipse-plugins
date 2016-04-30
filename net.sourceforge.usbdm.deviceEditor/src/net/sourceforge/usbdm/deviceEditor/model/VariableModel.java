@@ -7,7 +7,7 @@ public class VariableModel extends EditableModel {
 
    private final IModelEntryProvider fProvider;
    private final String              fKey;
-   
+
    /**
     * Create model
     * 
@@ -30,6 +30,7 @@ public class VariableModel extends EditableModel {
    @Override
    public void setValueAsString(String value) {
       fProvider.setVariableValue(fKey, value);
+      viewerUpdate(getParent(), null);
    }
 
    @Override
@@ -40,5 +41,16 @@ public class VariableModel extends EditableModel {
    @Override
    protected void removeMyListeners() {
    }
-
+   
+   /**
+    * Check if the string is valid as a value for this Variable
+    * 
+    * @param value Value as String
+    * 
+    * @return Description of error or null if valid
+    */
+   public String isValid(String value) {
+      return null;
+   }
+   
 }

@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -11,10 +9,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -22,8 +16,6 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * Class encapsulating the code for writing an instance of PwmIO (FTM)
  */
 public class WriterForFtm extends PeripheralWithState {
-
-   private static final String ALIAS_PREFIX        = "ftm_";
 
    /** Signals that use this writer */
    protected InfoTable fQuadSignals = new InfoTable("InfoQUAD");
@@ -33,9 +25,6 @@ public class WriterForFtm extends PeripheralWithState {
 
    /** Signals that use this writer */
    protected InfoTable fClkinSignals = new InfoTable("InfoCLKIN");
-
-   /** Data about model loaded from file */
-   protected Data fData = null;
 
    public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -50,7 +39,7 @@ public class WriterForFtm extends PeripheralWithState {
    @Override
    public String getAliasName(String signalName, String alias) {
       if (signalName.matches(".*ch\\d+")) {
-         return ALIAS_PREFIX+alias;
+         return getBaseName().toLowerCase()+"_"+alias;
       }
       return null;
    }
@@ -175,21 +164,6 @@ public class WriterForFtm extends PeripheralWithState {
       pinMappingHeaderFile.write(sb.toString());
    }
 
-   public void loadModels() {
-
-      Path path = Paths.get("hardware/ftm.xml");
-      try {
-         fData = ParseMenuXML.parseFile(path, null, this);
-      } catch (Exception e) {
-         e.printStackTrace();
-         BaseModel models[] = {
-               new CategoryModel(null, getName(), getDescription()),
-            };
-         fData = new Data(models, "");
-         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
-      }
-   }
-   
    @Override
    public BaseModel[] getModels(BaseModel parent) {
       fData.fModels[0].setParent(parent);

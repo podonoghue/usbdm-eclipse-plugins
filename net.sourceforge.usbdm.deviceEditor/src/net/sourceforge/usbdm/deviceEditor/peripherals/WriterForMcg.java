@@ -1,18 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
@@ -27,6 +21,7 @@ public class WriterForMcg extends PeripheralWithState {
    /* Keys for MCG */
    public WriterForMcg(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
+      loadModels();
    }
 
    @Override
@@ -79,24 +74,13 @@ public class WriterForMcg extends PeripheralWithState {
    }
 
    @Override
-   public BaseModel[] getModels(BaseModel parent) {
-      Path path = Paths.get("hardware/mcg.xml");
-      try {
-         Data data = ParseMenuXML.parseFile(path, parent, this);
-         return data.fModels;
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      BaseModel models[] = {
-            new CategoryModel(parent, getName(), getDescription()),
-         };
-      new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
-      return models;
+   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+      super.getVariables(variableMap, vectorTable);
    }
 
    @Override
-   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
-      super.getVariables(variableMap, vectorTable);
+   public BaseModel[] getModels(BaseModel parent) {
+      return null;
    }
 
 }

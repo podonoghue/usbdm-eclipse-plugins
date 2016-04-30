@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 /**
  * Simple model that only provides a passive holder in the tree
  */
-public final class CategoryModel extends BaseModel {
+public class CategoryModel extends BaseModel {
    /**
     * Create model
     * 

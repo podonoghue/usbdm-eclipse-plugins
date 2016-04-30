@@ -62,10 +62,6 @@ public abstract class SelectionModel extends EditableModel {
       return;
    }
 
-   public boolean isReset() {
-      return false;
-   }
-
    /**
     * Finds the given choice in fChoices
     * 

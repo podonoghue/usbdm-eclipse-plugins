@@ -58,7 +58,7 @@ public class Message {
     * 
     * @param message Message text
     */
-   public Message(String message) {
+   public Message(String message, BaseModel source) {
       this.fMessage = message;
       this.fSeverity = Severity.ERROR;
    }
@@ -69,7 +69,7 @@ public class Message {
     * @param message    Message text
     * @param severity   Severity level
     */
-   public Message(String message, Severity severity) {
+   public Message(String message, Severity severity, BaseModel source) {
       this.fMessage  = message;
       this.fSeverity = severity;
    }
@@ -101,7 +101,7 @@ public class Message {
     * @return
     */
    public String getMessage() {
-      return fMessage;
+      return fSeverity.name() + ": " + fMessage;
    }
    /**
     * Returns severity level of message

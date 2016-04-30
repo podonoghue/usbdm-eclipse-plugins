@@ -21,7 +21,7 @@ public final class DeviceModel extends RootModel {
 
    protected Message checkConflicts() {
       getModelFactory().checkConflicts();
-      return new Message("");
+      return null;
    }
 
    @Override

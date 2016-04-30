@@ -54,7 +54,7 @@ public class FileUtility {
       Matcher matcher = pattern.matcher(input);
       while (matcher.find()) {
          patterns.add(matcher.group(1));
-         System.err.println("p = \'"+matcher.group(1)+"\'");
+//         System.err.println("p = \'"+matcher.group(1)+"\'");
       }
       return patterns;
    }

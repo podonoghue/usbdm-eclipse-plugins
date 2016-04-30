@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE root SYSTEM "Pins.dtd">
+<!DOCTYPE root SYSTEM "Hardware.dtd">
 <!-- MK64F12.usbdmHardware -->
 <!-- 
    Generated from MK64F12.csv
@@ -254,11 +254,8 @@
       <peripheral baseName="NMI_b"    instance="">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
       </peripheral>
-      <peripheral baseName="OSC0"     instance="">
+      <peripheral baseName="OSC"      instance="0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc" />
-      </peripheral>
-      <peripheral baseName="OSC32"    instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc32" />
       </peripheral>
       <peripheral baseName="PDB"      instance="0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc" />
@@ -284,7 +281,7 @@
          <clock reg="SCGC6"         mask="SIM_SCGC6_RNG_MASK" />
       </peripheral>
       <peripheral baseName="RTC"      instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_RTC_MASK" />
          <irq num="RTC_Alarm_IRQn" />
          <irq num="RTC_Seconds_IRQn" />

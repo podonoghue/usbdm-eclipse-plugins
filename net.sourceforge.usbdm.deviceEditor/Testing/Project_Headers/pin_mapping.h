@@ -35,6 +35,16 @@
 
 namespace USBDM {
 
+/** Class to static check signal mapping is valid*/
+template<class Info, int signalNum> class CheckSignal {
+#ifdef DEBUG_BUILD
+   static_assert((signalNum<Info::NUM_SIGNALS), "Non-existent signal - Modify Configure.usbdm");
+   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), "Signal is not mapped to a pin - Modify Configure.usbdm");
+   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != INVALID_PCR),  "Signal doesn't exist in this device/package");
+   static_assert((signalNum>=Info::NUM_SIGNALS)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), "Illegal signal");
+};
+#endif
+
 /*
  * Peripheral Information Classes
  */
@@ -70,6 +80,26 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Default value for ADCx_CFG1 register
+   static constexpr uint32_t CFG1  = 
+       (2<<ADC_CFG1_ADICLK_SHIFT)||
+       (1<<ADC_CFG1_MODE_SHIFT)||
+       (1<<ADC_CFG1_ADLSMP_SHIFT)||
+       (2<<ADC_CFG1_ADIV_SHIFT)||
+       (1<<ADC_CFG1_ADLPC_SHIFT);
+
+   //! Default value for ADCx_CFG2 register
+   static constexpr uint32_t CFG2  = 
+       (2<<ADC_CFG2_ADLSTS_SHIFT)||
+       (0<<ADC_CFG2_ADHSC_SHIFT)||
+       (1<<ADC_CFG2_ADACKEN_SHIFT);
+
+   static constexpr uint32_t SC1  = 
+       (1<<ADC_SC1_AIEN_SHIFT);
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 24;
 
@@ -84,7 +114,7 @@ public:
          /*   4: ADC0_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: ADC0_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: ADC0_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC0_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: ADC0_SE7b       = PTD6 (nRF_mosi)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
          /*   8: ADC0_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   9: ADC0_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  10: ADC0_SE10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -107,12 +137,14 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Adc0Info,  7>::setPCR(); // ADC0_SE7b       = PTD6 (nRF_mosi)               
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Adc0Info,  7>::setPCR(0); // ADC0_SE7b       = PTD6 (nRF_mosi)               
    }
 
    class InfoDP {
@@ -201,6 +233,26 @@ public:
 
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! Default value for ADCx_CFG1 register
+   static constexpr uint32_t CFG1  = 
+       (0<<ADC_CFG1_ADICLK_SHIFT)||
+       (0<<ADC_CFG1_MODE_SHIFT)||
+       (0<<ADC_CFG1_ADLSMP_SHIFT)||
+       (0<<ADC_CFG1_ADIV_SHIFT)||
+       (0<<ADC_CFG1_ADLPC_SHIFT);
+
+   //! Default value for ADCx_CFG2 register
+   static constexpr uint32_t CFG2  = 
+       (0<<ADC_CFG2_ADLSTS_SHIFT)||
+       (0<<ADC_CFG2_ADHSC_SHIFT)||
+       (0<<ADC_CFG2_ADACKEN_SHIFT);
+
+   static constexpr uint32_t SC1  = 
+       (0<<ADC_SC1_AIEN_SHIFT);
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 40;
@@ -781,23 +833,30 @@ public:
       DMA0_SLOT_FTM0_Ch_5                           = 25,
       DMA0_SLOT_FTM0_Ch_6                           = 26,
       DMA0_SLOT_FTM0_Ch_7                           = 27,
-      DMA0_SLOT_FTM1_Ch_0/TPM1_Ch_0                 = 28,
-      DMA0_SLOT_FTM1_Ch_1/TPM1_Ch_1                 = 29,
-      DMA0_SLOT_FTM2_Ch_0/TPM2_Ch_0                 = 30,
-      DMA0_SLOT_FTM2_Ch_1/TPM2_Ch_1                 = 31,
+      DMA0_SLOT_FTM1_Ch_0                           = 28,
+      DMA0_SLOT_TPM1_Ch_0                           = 28,
+      DMA0_SLOT_FTM1_Ch_1                           = 29,
+      DMA0_SLOT_TPM1_Ch_1                           = 29,
+      DMA0_SLOT_FTM2_Ch_0                           = 30,
+      DMA0_SLOT_TPM2_Ch_0                           = 30,
+      DMA0_SLOT_FTM2_Ch_1                           = 31,
+      DMA0_SLOT_TPM2_Ch_1                           = 31,
       DMA0_SLOT_FTM3_Ch_0                           = 32,
       DMA0_SLOT_FTM3_Ch_1                           = 33,
       DMA0_SLOT_FTM3_Ch_2                           = 34,
       DMA0_SLOT_FTM3_Ch_3                           = 35,
       DMA0_SLOT_FTM3_Ch_4                           = 36,
       DMA0_SLOT_FTM3_Ch_5                           = 37,
-      DMA0_SLOT_FTM3_Ch_6/SPI2_Rx                   = 38,
-      DMA0_SLOT_FTM3_Ch_7/SPI2_Tx                   = 39,
+      DMA0_SLOT_FTM3_Ch_6                           = 38,
+      DMA0_SLOT_SPI2_Rx                             = 38,
+      DMA0_SLOT_FTM3_Ch_7                           = 39,
+      DMA0_SLOT_SPI2_Tx                             = 39,
       DMA0_SLOT_ADC0                                = 40,
       DMA0_SLOT_ADC1                                = 41,
       DMA0_SLOT_CMP0                                = 42,
       DMA0_SLOT_CMP1                                = 43,
-      DMA0_SLOT_CMP2/CMP3                           = 44,
+      DMA0_SLOT_CMP2                                = 44,
+      DMA0_SLOT_CMP3                                = 44,
       DMA0_SLOT_DAC0                                = 45,
       DMA0_SLOT_DAC1                                = 46,
       DMA0_SLOT_CMT                                 = 47,
@@ -1027,10 +1086,10 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(0)|FTM_SC_PS(0);
+   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  0;
+   static constexpr uint32_t irqLevel =  5;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 8;
@@ -1039,11 +1098,11 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: FTM0_CH0        = PTC1 (D18)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,   PORT_PCR_MUX(4)|pcrValue  },
          /*   1: FTM0_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   2: FTM0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: FTM0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: FTM0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: FTM0_CH4        = PTD4 (nRF_cs_n)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,   PORT_PCR_MUX(4)|pcrValue  },
          /*   5: FTM0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: FTM0_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   7: FTM0_CH7        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -1053,12 +1112,16 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Ftm0Info,  0>::setPCR(); // FTM0_CH0        = PTC1 (D18)                    
+      PcrTable_T<Ftm0Info,  4>::setPCR(); // FTM0_CH4        = PTD4 (nRF_cs_n)               
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Ftm0Info,  0>::setPCR(0); // FTM0_CH0        = PTC1 (D18)                    
+      PcrTable_T<Ftm0Info,  4>::setPCR(0); // FTM0_CH4        = PTD4 (nRF_cs_n)               
    }
 
    class InfoFAULT {
@@ -1120,7 +1183,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(0)|FTM_SC_PS(0);
+   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -1231,7 +1294,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(0)|FTM_SC_PS(0);
+   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -1342,7 +1405,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(0)|FTM_SC_PS(0);
+   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -1595,7 +1658,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  8;
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 2;
@@ -1650,7 +1713,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  3;
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 2;
@@ -2151,13 +2214,13 @@ public:
  * @}
  */
 /**
- * @addtogroup OSC0_Group OSC0, Crystal Oscillator
+ * @addtogroup OSC_Group OSC, Crystal Oscillator
  * @brief Pins used for Crystal Oscillator
  * @{
  */
 #define USBDM_OSC0_IS_DEFINED 
 /**
- * Peripheral information for OSC0, Crystal Oscillator
+ * Peripheral information for OSC, Crystal Oscillator
  */
 class Osc0Info {
 public:
@@ -2171,13 +2234,13 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! External Reference Enable
-   static constexpr uint32_t OSC_CR_ERCLKEN_M  = (${CR_ERCLKEN}<<OSC_CR_ERCLKEN_SHIFT);
+   static constexpr uint32_t CR_ERCLKEN_M  = (0<<OSC_CR_ERCLKEN_SHIFT);
 
    //! External Reference Stop Enable
-   static constexpr uint32_t OSC_CR_EREFSTEN_M = (${CR_EREFSTEN}<<OSC_CR_EREFSTEN_SHIFT);
+   static constexpr uint32_t CR_EREFSTEN_M = (0<<OSC_CR_EREFSTEN_SHIFT);
 
    //! Oscillator load capacitance
-   static constexpr uint32_t OSC_CR_SCP_M      = (${CR_SCP}<<OSC_CR_SC16P_SHIFT);
+   static constexpr uint32_t CR_SCP_M      = (2<<OSC_CR_SC16P_SHIFT);
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 2;
@@ -2205,74 +2268,7 @@ public:
 };
 
 /** 
- * End OSC0_Group
- * @}
- */
-/**
- * @addtogroup OSC32_Group OSC32, 32kHz Crystal Oscillator
- * @brief Pins used for 32kHz Crystal Oscillator
- * @{
- */
-#define USBDM_OSC32_IS_DEFINED 
-/**
- * Peripheral information for OSC32, 32kHz Crystal Oscillator
- */
-class Osc32Info {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = OSC32_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-   //! RTC Oscillator Enable
-   static constexpr uint32_t RTC_CR_OSCE_M  = (${CR_OSCE}<<RTC_CR_OSCE_SHIFT);
-
-   //!  RTC 32kHz Clock Output
-   static constexpr uint32_t RTC_CR_CLKO_M  = (${CR_CLKO}<<RTC_CR_CLKO_SHIFT);
-
-   //! Update Mode
-   static constexpr uint32_t RTC_CR_UM_M    = (${RTC_CR_UM}<<RTC_CR_UM_SHIFT);
-
-   //! Supervisor Access
-   static constexpr uint32_t RTC_CR_SUP_M   = (${RTC_CR_SUP}<<RTC_CR_SUP_SHIFT);
-
-   //! Wakeup Pin Enable
-   static constexpr uint32_t RTC_CR_WPE_M   = (${RTC_CR_WPE}<<RTC_CR_WPE_SHIFT);
-
-   //! Oscillator load capacitance
-   static constexpr uint32_t RCT_CR_SCP_M   = (${CR_SCP}<<RTC_CR_SC16P_SHIFT);
-
-   //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: XTAL32          = XTAL32                         */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   1: EXTAL32         = EXTAL32                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-   }
-
-};
-
-/** 
- * End OSC32_Group
+ * End OSC_Group
  * @}
  */
 /**
@@ -2346,13 +2342,13 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for PIT->SC register
-   static constexpr uint32_t loadValue  = 2000;
+   static constexpr uint32_t loadValue  = 0;
 
    //! PIT operation in debug mode
-   static constexpr uint32_t mcrValue = (0<<PIT_MCR_FRZ_SHIFT);
+   static constexpr uint32_t mcrValue = (1<<PIT_MCR_FRZ_SHIFT);
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  5;
+   static constexpr uint32_t irqLevel =  0;
 
 };
 
@@ -2388,10 +2384,81 @@ public:
  * @}
  */
 /**
- * @addtogroup RTC_Group RTC, Misc
- * @brief Pins used for Misc
+ * @addtogroup RTC_Group RTC, Real Time Clock
+ * @brief Pins used for Real Time Clock
  * @{
  */
+#define USBDM_RTC_IS_DEFINED 
+/**
+ * Peripheral information for RTC, Real Time Clock
+ */
+class RtcInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = RTC_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_RTC_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 2;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {RTC_Alarm_IRQn, RTC_Seconds_IRQn};
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! RTC Oscillator Enable
+   static constexpr uint32_t CR_OSCE_M  = (0<<RTC_CR_OSCE_SHIFT);
+
+   //!  RTC 32kHz Clock Output
+   static constexpr uint32_t CR_CLKO_M  = (0<<RTC_CR_CLKO_SHIFT);
+
+   //! Update Mode
+   static constexpr uint32_t CR_UM_M    = (0<<RTC_CR_UM_SHIFT);
+
+   //! Supervisor Access
+   static constexpr uint32_t CR_SUP_M   = (0<<RTC_CR_SUP_SHIFT);
+
+   //! Wakeup Pin Enable
+   static constexpr uint32_t CR_WPE_M   = (0<<RTC_CR_WPE_SHIFT);
+
+   //! Oscillator load capacitance
+   static constexpr uint32_t CR_SCP_M   = (0<<RTC_CR_SC16P_SHIFT);
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 3;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: XTAL32          = XTAL32                         */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: EXTAL32         = EXTAL32                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   2: RTC_CLKOUT      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
  * End RTC_Group
  * @}
@@ -2496,7 +2563,7 @@ public:
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 20000;
+   static constexpr uint32_t speed = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2566,7 +2633,7 @@ public:
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 3000;
+   static constexpr uint32_t speed = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2780,7 +2847,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = TPM_SC_CMOD(0)|TPM_SC_PS(0);
+   static constexpr uint32_t scValue  = TPM_SC_CMOD(1)|TPM_SC_PS(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2852,7 +2919,7 @@ public:
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: TSI0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   1: TSI0_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: TSI0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: TSI0_CH2        = PTA1                           */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  1,   PORT_PCR_MUX(0)|pcrValue  },
          /*   3: TSI0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   4: TSI0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: TSI0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -2872,12 +2939,14 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Tsi0Info,  2>::setPCR(); // TSI0_CH2        = PTA1                          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Tsi0Info,  2>::setPCR(0); // TSI0_CH2        = PTA1                          
    }
 
 };
@@ -3375,52 +3444,20 @@ namespace USBDM {
  * @brief Pins used for Analogue Input
  * @{
  */
-/**
- * Convenience templated class representing an ADC
- *
- * Example
- * @code
- *  // Instantiate ADC0 single-ended channel #8
- *  const adc0<8> adc0_se8;
- *
- *  // Initialise ADC
- *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
- *
- *  // Set as analogue input
- *  adc0_se8.setAnalogueInput();
- *
- *  // Read input
- *  uint16_t value = adc0_se8.readAnalogue();
- *  @endcode
- *
- * @tparam adcChannel    ADC channel
- */
-template<uint8_t channel> using Adc0 = Adc_T<Adc0Info, channel>;
-
-/**
- * Convenience templated class representing an ADC
- *
- * Example
- * @code
- *  // Instantiate ADC0 single-ended channel #8
- *  const adc0<8> adc0_se8;
- *
- *  // Initialise ADC
- *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
- *
- *  // Set as analogue input
- *  adc0_se8.setAnalogueInput();
- *
- *  // Read input
- *  uint16_t value = adc0_se8.readAnalogue();
- *  @endcode
- *
- * @tparam adcChannel    ADC channel
- */
-template<uint8_t channel> using Adc1 = Adc_T<Adc1Info, channel>;
-
+using adc_nRF_mosi         = const USBDM::Adc0Channel<7>;
 /** 
  * End ADC_Group
+ * @}
+ */
+/**
+ * @addtogroup FTM_Group FTM, PWM, Input capture and Output compare
+ * @brief Pins used for PWM, Input capture and Output compare
+ * @{
+ */
+using ftm_D18              = const USBDM::Ftm0Channel<0>;
+using ftm_nRF_cs_n         = const USBDM::Ftm0Channel<4>;
+/** 
+ * End FTM_Group
  * @}
  */
 /**
@@ -3815,7 +3852,7 @@ extern void usbdm_PinMapping();
  *  DAC1_OUT                 | DAC1_OUT/CMP0_IN4/CMP2_IN3/ADC1_SE23        |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
- *  PTA1                     | JTAG_TDI                                    |                           | -       
+ *  PTA1                     | TSI0_CH2                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
  *  PTA4                     | NMI_b                                       |                           | -       
@@ -3861,7 +3898,7 @@ extern void usbdm_PinMapping();
  *  PTB22                    | Disabled                                    |                           | -       
  *  PTB23                    | Disabled                                    | A10                       | -       
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
- *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
+ *  PTC1                     | FTM0_CH0                                    | D18                       | -       
  *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
  *  PTC3                     | CMP1_IN1                                    | D0                        | -       
  *  PTC4                     | Disabled                                    | D1                        | -       
@@ -3884,7 +3921,7 @@ extern void usbdm_PinMapping();
  *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
  *  PTD2                     | Disabled                                    | D11                       | -       
  *  PTD3                     | Disabled                                    | D12                       | -       
- *  PTD4                     | Disabled                                    | nRF_cs_n                  | -       
+ *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
  *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
  *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
  *  PTD7                     | Disabled                                    | nRF_miso                  | -       
@@ -3983,7 +4020,7 @@ extern void usbdm_PinMapping();
  *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
  *  PTE12                    | Disabled                                    | D16                       | -       
  *  PTE11                    | Disabled                                    | D17                       | -       
- *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
+ *  PTC1                     | FTM0_CH0                                    | D18                       | -       
  *  PTC6                     | CMP0_IN0                                    | D19                       | -       
  *  PTE9                     | Disabled                                    | D20                       | -       
  *  PTC7                     | CMP0_IN1                                    | D21                       | -       
@@ -4003,7 +4040,7 @@ extern void usbdm_PinMapping();
  *  PTD11                    | Disabled                                    | SW2                       | -       
  *  PTA10                    | Disabled                                    | SW3                       | -       
  *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
- *  PTD4                     | Disabled                                    | nRF_cs_n                  | -       
+ *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
  *  PTC18                    | Disabled                                    | nRF_irq                   | -       
  *  PTD7                     | Disabled                                    | nRF_miso                  | -       
  *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
@@ -4026,7 +4063,6 @@ extern void usbdm_PinMapping();
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
- *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
  *  ADC0_SE16                | ADC0_SE16/CMP1_IN2/ADC0_SE21                |                           | -       
  *  PTE24                    | ADC0_SE17                                   | D30                       | -       
  *  PTE25                    | ADC0_SE18                                   | D31                       | -       
@@ -4062,12 +4098,14 @@ extern void usbdm_PinMapping();
  *  VREG_IN1                 | Disabled                                    |                           | -       
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
+ *  PTC1                     | FTM0_CH0                                    | D18                       | -       
+ *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
- *  PTA1                     | JTAG_TDI                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
  *  PTA4                     | NMI_b                                       |                           | -       
  *  RESET_b                  | RESET_b                                     |                           | -       
+ *  PTA1                     | TSI0_CH2                                    |                           | -       
  *  PTB16                    | TSI0_CH9                                    |                           | -       
  *  PTB17                    | TSI0_CH10                                   |                           | -       
  *  PTB18                    | TSI0_CH11                                   | D8                        | -       

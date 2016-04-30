@@ -15,7 +15,7 @@
 
       <intOption name="SPEED" description="Speed"
          toolTip="Speed of transmission"
-         value="0" min="0" max="10000000" />
+         value="100000" min="0" max="10000000" />
 
       <binaryOption name="LSBFE" description="Handler for IRQ"
          toolTip="Transmission order">
