@@ -35,15 +35,15 @@
 
 namespace USBDM {
 
-/** Class to static check signal mapping is valid*/
+/** Class to static check signal mapping is valid */
 template<class Info, int signalNum> class CheckSignal {
 #ifdef DEBUG_BUILD
    static_assert((signalNum<Info::NUM_SIGNALS), "Non-existent signal - Modify Configure.usbdm");
    static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), "Signal is not mapped to a pin - Modify Configure.usbdm");
    static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != INVALID_PCR),  "Signal doesn't exist in this device/package");
    static_assert((signalNum>=Info::NUM_SIGNALS)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), "Illegal signal");
-};
 #endif
+};
 
 /*
  * Peripheral Information Classes
@@ -89,13 +89,20 @@ public:
        (1<<ADC_CFG1_ADLPC_SHIFT);
 
    //! Default value for ADCx_CFG2 register
-   static constexpr uint32_t CFG2  = 
+    static constexpr uint32_t CFG2  = 
+        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
        (2<<ADC_CFG2_ADLSTS_SHIFT)||
        (0<<ADC_CFG2_ADHSC_SHIFT)||
        (1<<ADC_CFG2_ADACKEN_SHIFT);
 
    static constexpr uint32_t SC1  = 
        (1<<ADC_SC1_AIEN_SHIFT);
+
+   static constexpr uint32_t SC2  =
+       (0<<ADC_SC2_REFSEL_SHIFT)||
+       (0<<ADC_SC2_DMAEN_SHIFT)||
+       (0b000<<ADC_SC2_ACREN_SHIFT)||
+       (0<<ADC_SC2_ADTRG_SHIFT);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -243,13 +250,20 @@ public:
        (0<<ADC_CFG1_ADLPC_SHIFT);
 
    //! Default value for ADCx_CFG2 register
-   static constexpr uint32_t CFG2  = 
+    static constexpr uint32_t CFG2  = 
+        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
        (0<<ADC_CFG2_ADLSTS_SHIFT)||
        (0<<ADC_CFG2_ADHSC_SHIFT)||
        (0<<ADC_CFG2_ADACKEN_SHIFT);
 
    static constexpr uint32_t SC1  = 
        (0<<ADC_SC1_AIEN_SHIFT);
+
+   static constexpr uint32_t SC2  =
+       (0<<ADC_SC2_REFSEL_SHIFT)||
+       (0<<ADC_SC2_DMAEN_SHIFT)||
+       (0b000<<ADC_SC2_ACREN_SHIFT)||
+       (0<<ADC_SC2_ADTRG_SHIFT);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -268,10 +282,10 @@ public:
          /*   4: ADC1_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: ADC1_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: ADC1_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC1_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: ADC1_SE7b       = PTC11 (D14)                    */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11,  PORT_PCR_MUX(0)|pcrValue  },
          /*   8: ADC1_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   9: ADC1_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  10: ADC1_SE10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: ADC1_SE10       = PTB4 (A3)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4,   PORT_PCR_MUX(0)|pcrValue  },
          /*  11: ADC1_SE11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  12: ADC1_SE12       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  13: ADC1_SE13       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -298,8 +312,8 @@ public:
          /*  34: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*  35: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*  36: ADC1_SE4a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  37: ADC1_SE5a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  38: ADC1_SE6a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  37: ADC1_SE5a       = PTE1                           */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  1,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  38: ADC1_SE6a       = PTE2                           */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
          /*  39: ADC1_SE7a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
@@ -307,12 +321,20 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Adc1Info,  7>::setPCR(); // ADC1_SE7b       = PTC11 (D14)                   
+      PcrTable_T<Adc1Info, 10>::setPCR(); // ADC1_SE10       = PTB4 (A3)                     
+      PcrTable_T<Adc1Info, 37>::setPCR(); // ADC1_SE5a       = PTE1                          
+      PcrTable_T<Adc1Info, 38>::setPCR(); // ADC1_SE6a       = PTE2                          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Adc1Info,  7>::setPCR(0); // ADC1_SE7b       = PTC11 (D14)                   
+      PcrTable_T<Adc1Info, 10>::setPCR(0); // ADC1_SE10       = PTB4 (A3)                     
+      PcrTable_T<Adc1Info, 37>::setPCR(0); // ADC1_SE5a       = PTE1                          
+      PcrTable_T<Adc1Info, 38>::setPCR(0); // ADC1_SE6a       = PTE2                          
    }
 
    class InfoDP {
@@ -433,7 +455,7 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP0_IN0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: CMP0_IN0        = PTC6 (D19)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
          /*   1: CMP0_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   2: CMP0_IN2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: CMP0_IN3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -448,12 +470,14 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Cmp0Info,  0>::setPCR(); // CMP0_IN0        = PTC6 (D19)                    
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Cmp0Info,  0>::setPCR(0); // CMP0_IN0        = PTC6 (D19)                    
    }
 
 };
@@ -1086,7 +1110,14 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<FTM_SC_CPWMS_SHIFT)|
+       ((1|1)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CLKS(3)|
+       FTM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  5;
@@ -1183,7 +1214,14 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<FTM_SC_CPWMS_SHIFT)|
+       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CLKS(1)|
+       FTM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -1196,19 +1234,21 @@ public:
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: FTM1_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM1_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM1_CH1        = PTB1                           */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  1,   PORT_PCR_MUX(3)|pcrValue  },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Ftm1Info,  1>::setPCR(); // FTM1_CH1        = PTB1                          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Ftm1Info,  1>::setPCR(0); // FTM1_CH1        = PTB1                          
    }
 
    class InfoFAULT {
@@ -1294,7 +1334,14 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<FTM_SC_CPWMS_SHIFT)|
+       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CLKS(1)|
+       FTM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -1307,19 +1354,21 @@ public:
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: FTM2_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM2_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM2_CH1        = PTB19 (D9)                     */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  19,  PORT_PCR_MUX(3)|pcrValue  },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Ftm2Info,  1>::setPCR(); // FTM2_CH1        = PTB19 (D9)                    
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Ftm2Info,  1>::setPCR(0); // FTM2_CH1        = PTB19 (D9)                    
    }
 
    class InfoFAULT {
@@ -1405,7 +1454,14 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = FTM_SC_CLKS(1)|FTM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<FTM_SC_CPWMS_SHIFT)|
+       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CLKS(1)|
+       FTM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2033,10 +2089,22 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default PSR value
-   static constexpr uint32_t psrValue = LPTMR_PSR_PRESCALE(0)|LPTMR_PSR_PCS(0)|(0<<LPTMR_PSR_PBYP_SHIFT)|(0<<LPTMR_PSR_PCS_SHIFT);
+   static constexpr uint32_t PSR = 
+      LPTMR_PSR_PRESCALE(0)|
+      LPTMR_PSR_PCS(0)|
+      (0<<LPTMR_PSR_PBYP_SHIFT)|
+      (0<<LPTMR_PSR_PCS_SHIFT);
 
    //! Default CSR value
-   static constexpr uint32_t csrValue =  (0<<LPTMR_CSR_TMS_SHIFT)|(0<<LPTMR_CSR_TFC_SHIFT)|(0<<LPTMR_CSR_TPP_SHIFT)|LPTMR_CSR_TPS(0);
+   static constexpr uint32_t CSR = 
+      (0<<LPTMR_CSR_TIE_SHIFT)|
+      (0<<LPTMR_CSR_TMS_SHIFT)|
+      (0<<LPTMR_CSR_TFC_SHIFT)|
+      (0<<LPTMR_CSR_TPP_SHIFT)|
+      LPTMR_CSR_TPS(0);
+
+   //! Default Timer period
+   static constexpr uint32_t PERIOD = 10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2431,7 +2499,7 @@ public:
    static constexpr uint32_t CR_WPE_M   = (0<<RTC_CR_WPE_SHIFT);
 
    //! Oscillator load capacitance
-   static constexpr uint32_t CR_SCP_M   = (0<<RTC_CR_SC16P_SHIFT);
+   static constexpr uint32_t CR_SCP_M   = (5<<RTC_CR_SC16P_SHIFT);
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 3;
@@ -2789,7 +2857,13 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = TPM_SC_CMOD(1)|TPM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<TPM_SC_TOIE_SHIFT)|
+       TPM_SC_CMOD(1)|
+       TPM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2847,7 +2921,13 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for SC register
-   static constexpr uint32_t scValue  = TPM_SC_CMOD(1)|TPM_SC_PS(0);
+   static constexpr uint32_t SC  = 
+       (0<<TPM_SC_TOIE_SHIFT)|
+       TPM_SC_CMOD(1)|
+       TPM_SC_PS(0);
+
+   //! Default Timer Period
+   static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -3436,6 +3516,7 @@ public:
 
 #include "adc.h"
 #include "ftm.h"
+#include "tpm.h"
 
 namespace USBDM {
 
@@ -3445,6 +3526,8 @@ namespace USBDM {
  * @{
  */
 using adc_nRF_mosi         = const USBDM::Adc0Channel<7>;
+using adc_A3               = const USBDM::Adc1Channel<10>;
+using adc_D14              = const USBDM::Adc1Channel<7>;
 /** 
  * End ADC_Group
  * @}
@@ -3456,6 +3539,7 @@ using adc_nRF_mosi         = const USBDM::Adc0Channel<7>;
  */
 using ftm_D18              = const USBDM::Ftm0Channel<0>;
 using ftm_nRF_cs_n         = const USBDM::Ftm0Channel<4>;
+using ftm_D9               = const USBDM::Ftm2Channel<1>;
 /** 
  * End FTM_Group
  * @}
@@ -3862,7 +3946,7 @@ extern void usbdm_PinMapping();
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTA9                     | Disabled                                    |                           | -       
  *  PTA10                    | Disabled                                    | SW3                       | -       
- *  PTA11                    | Disabled                                    | BLUE_LED                  | -       
+ *  PTA11                    | Disabled                                    | LED_BLUE                  | -       
  *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA14                    | Disabled                                    |                           | -       
@@ -3878,26 +3962,26 @@ extern void usbdm_PinMapping();
  *  PTA28                    | Disabled                                    |                           | -       
  *  PTA29                    | Disabled                                    |                           | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
- *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
+ *  PTB1                     | FTM1_CH1                                    |                           | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
- *  PTB5                     | ADC1_SE11                                   | A2                        | -       
- *  PTB6                     | ADC1_SE12                                   | A10                       | -       
+ *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
+ *  PTB6                     | ADC1_SE12                                   | A1                        | -       
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
- *  PTB8                     | Disabled                                    |                           | -       
+ *  PTB8                     | GPIOB_8                                     |                           | -       
  *  PTB9                     | Disabled                                    |                           | -       
  *  PTB10                    | ADC1_SE14                                   | D27                       | -       
  *  PTB11                    | ADC1_SE15                                   | D28                       | -       
  *  PTB16                    | TSI0_CH9                                    |                           | -       
  *  PTB17                    | TSI0_CH10                                   |                           | -       
  *  PTB18                    | TSI0_CH11                                   | D8                        | -       
- *  PTB19                    | TSI0_CH12                                   | D9                        | -       
+ *  PTB19                    | FTM2_CH1                                    | D9                        | -       
  *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
  *  PTB21                    | Disabled                                    |                           | -       
  *  PTB22                    | Disabled                                    |                           | -       
  *  PTB23                    | Disabled                                    | A10                       | -       
- *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
+ *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
  *  PTC1                     | FTM0_CH0                                    | D18                       | -       
  *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
  *  PTC3                     | CMP1_IN1                                    | D0                        | -       
@@ -3906,7 +3990,7 @@ extern void usbdm_PinMapping();
  *  PTC6                     | CMP0_IN0                                    | D19                       | -       
  *  PTC7                     | CMP0_IN1                                    | D21                       | -       
  *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | RED_LED                   | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
  *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
  *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
  *  PTC12                    | Disabled                                    | D4                        | -       
@@ -3939,7 +4023,7 @@ extern void usbdm_PinMapping();
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
  *  PTE4                     | Disabled                                    |                           | -       
  *  PTE5                     | Disabled                                    |                           | -       
- *  PTE6                     | Disabled                                    | GREEN_LED                 | -       
+ *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
  *  PTE7                     | Disabled                                    | D23                       | -       
  *  PTE8                     | Disabled                                    | D22                       | -       
  *  PTE9                     | Disabled                                    | D20                       | -       
@@ -3994,14 +4078,14 @@ extern void usbdm_PinMapping();
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
- *  PTB5                     | ADC1_SE11                                   | A2                        | -       
+ *  PTB6                     | ADC1_SE12                                   | A1                        | -       
+ *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB23                    | Disabled                                    | A10                       | -       
  *  PTC14                    | Disabled                                    | BLUETOOTH_Rx              | -       
  *  PTC15                    | Disabled                                    | BLUETOOTH_Tx              | -       
- *  PTA11                    | Disabled                                    | BLUE_LED                  | -       
  *  PTC3                     | CMP1_IN1                                    | D0                        | -       
  *  PTC4                     | Disabled                                    | D1                        | -       
  *  PTC16                    | Disabled                                    | D2                        | -       
@@ -4011,7 +4095,7 @@ extern void usbdm_PinMapping();
  *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
  *  PTA25                    | CMP3_IN5                                    | D7                        | -       
  *  PTB18                    | TSI0_CH11                                   | D8                        | -       
- *  PTB19                    | TSI0_CH12                                   | D9                        | -       
+ *  PTB19                    | FTM2_CH1                                    | D9                        | -       
  *  PTD0                     | Disabled                                    | D10                       | -       
  *  PTD2                     | Disabled                                    | D11                       | -       
  *  PTD3                     | Disabled                                    | D12                       | -       
@@ -4028,15 +4112,16 @@ extern void usbdm_PinMapping();
  *  PTE7                     | Disabled                                    | D23                       | -       
  *  PTB10                    | ADC1_SE14                                   | D27                       | -       
  *  PTB11                    | ADC1_SE15                                   | D28                       | -       
- *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
+ *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
  *  PTE24                    | ADC0_SE17                                   | D30                       | -       
  *  PTE25                    | ADC0_SE18                                   | D31                       | -       
  *  PTD13                    | Disabled                                    | D32                       | -       
  *  PTD12                    | Disabled                                    | D33                       | -       
- *  PTE6                     | Disabled                                    | GREEN_LED                 | -       
+ *  PTA11                    | Disabled                                    | LED_BLUE                  | -       
+ *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
  *  PTD8                     | Disabled                                    | ONBOARD_SCL               | -       
  *  PTD9                     | Disabled                                    | ONBOARD_SDA               | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | RED_LED                   | -       
  *  PTD11                    | Disabled                                    | SW2                       | -       
  *  PTA10                    | Disabled                                    | SW3                       | -       
  *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
@@ -4057,12 +4142,10 @@ extern void usbdm_PinMapping();
  *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
  *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
- *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
  *  PTA7                     | ADC0_SE10                                   |                           | -       
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
- *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
  *  ADC0_SE16                | ADC0_SE16/CMP1_IN2/ADC0_SE21                |                           | -       
  *  PTE24                    | ADC0_SE17                                   | D30                       | -       
  *  PTE25                    | ADC0_SE18                                   | D31                       | -       
@@ -4071,14 +4154,13 @@ extern void usbdm_PinMapping();
  *  PTE0                     | ADC1_SE4a                                   |                           | -       
  *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
  *  PTE1                     | ADC1_SE5a                                   |                           | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | RED_LED                   | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
  *  PTE2                     | ADC1_SE6a                                   |                           | -       
  *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
  *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
- *  PTB5                     | ADC1_SE11                                   | A2                        | -       
- *  PTB6                     | ADC1_SE12                                   | A10                       | -       
+ *  PTB6                     | ADC1_SE12                                   | A1                        | -       
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
  *  PTB10                    | ADC1_SE14                                   | D27                       | -       
  *  PTB11                    | ADC1_SE15                                   | D28                       | -       
@@ -4096,20 +4178,24 @@ extern void usbdm_PinMapping();
  *  DAC0_OUT                 | DAC0_OUT/CMP1_IN3/ADC0_SE23                 |                           | -       
  *  DAC1_OUT                 | DAC1_OUT/CMP0_IN4/CMP2_IN3/ADC1_SE23        |                           | -       
  *  VREG_IN1                 | Disabled                                    |                           | -       
+ *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
  *  PTC1                     | FTM0_CH0                                    | D18                       | -       
  *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
+ *  PTB1                     | FTM1_CH1                                    |                           | -       
+ *  PTB19                    | FTM2_CH1                                    | D9                        | -       
+ *  PTB8                     | GPIOB_8                                     |                           | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
  *  PTA4                     | NMI_b                                       |                           | -       
+ *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
  *  RESET_b                  | RESET_b                                     |                           | -       
  *  PTA1                     | TSI0_CH2                                    |                           | -       
  *  PTB16                    | TSI0_CH9                                    |                           | -       
  *  PTB17                    | TSI0_CH10                                   |                           | -       
  *  PTB18                    | TSI0_CH11                                   | D8                        | -       
- *  PTB19                    | TSI0_CH12                                   | D9                        | -       
  *  USB0_DM                  | USB0_DM                                     |                           | -       
  *  USB0_DP                  | USB0_DP                                     |                           | -       
  *  VBAT                     | VBAT                                        |                           | -       

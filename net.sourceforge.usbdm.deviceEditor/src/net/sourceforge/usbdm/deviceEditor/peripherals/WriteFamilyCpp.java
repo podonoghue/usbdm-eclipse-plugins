@@ -172,8 +172,8 @@ public class WriteFamilyCpp {
             "   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), \"Signal is not mapped to a pin - Modify Configure.usbdm\");\n"+
             "   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != INVALID_PCR),  \"Signal doesn't exist in this device/package\");\n"+
             "   static_assert((signalNum>=Info::NUM_SIGNALS)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), \"Illegal signal\");\n"+
-            "};\n"+
-            "#endif\n\n"
+            "#endif\n"+
+            "};\n\n"
             );
       
       writer.writeBanner("Peripheral Information Classes");
@@ -265,6 +265,19 @@ public class WriteFamilyCpp {
       }
    }
    
+   private void writeIncludes(DocumentUtilities writer) throws IOException {
+      if (fDeviceInfo.getPeripherals().containsKey("ADC0")||fDeviceInfo.getPeripherals().containsKey("ADC1")) {
+         writer.writeHeaderFileInclude("adc.h");
+      }
+      if (fDeviceInfo.getPeripherals().containsKey("FTM0")||fDeviceInfo.getPeripherals().containsKey("FTM1")) {
+         writer.writeHeaderFileInclude("ftm.h");
+      }
+      if (fDeviceInfo.getPeripherals().containsKey("TPM0")|fDeviceInfo.getPeripherals().containsKey("TPM1")) {
+         writer.writeHeaderFileInclude("tpm.h");
+      }
+      writer.write("\n");
+   }
+   
    /**
     * Write C templates for peripherals and peripheral functions
     * 
@@ -301,13 +314,8 @@ public class WriteFamilyCpp {
     */
    private void writePeripheralCTemplates(DocumentUtilities writer) throws IOException {
 
-      if (fDeviceInfo.getPeripherals().containsKey("FTM0")) {
-         writer.writeHeaderFileInclude("ftm.h");
-      }
-      if (fDeviceInfo.getPeripherals().containsKey("TPM0")) {
-         writer.writeHeaderFileInclude("tpm.h");
-      }
-      writer.write("\n");
+      writeIncludes(writer);
+      
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
 
       DocumentationGroups startGroup = new DocumentationGroups(writer);
@@ -570,8 +578,6 @@ public class WriteFamilyCpp {
       writePinDefines(writer);
       writeClockMacros(writer);
       writePeripheralInformationClasses(writer);
-
-      writer.writeHeaderFileInclude("adc.h");
 
       writePeripheralCTemplates(writer);
 
