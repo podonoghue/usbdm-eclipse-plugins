@@ -114,7 +114,7 @@ public class WriterForPit extends PeripheralWithState {
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               if (getVariableValue("IRQ"+m.group(1)+"_HANDLER").equals("1")) {
+               if (isCTrueValue("IRQ"+m.group(1)+"_HANDLER")) {
                   entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
                   entry.setClassMemberUsedAsHandler(true);
                   handlerSet = true;

@@ -13,9 +13,6 @@
 #include "pin_mapping.h"
 
 /*********** $start(VectorsIncludeFiles) *** Do not edit after this comment ****************/
-#include "adc.h"
-#include "ftm.h"
-#include "i2c.h"
 #include "pit.h"
 /*********** $end(VectorsIncludeFiles)   *** Do not edit above this comment ***************/
 
@@ -325,6 +322,7 @@ void PMC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LLWU_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void RNG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
+void I2C0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2C1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -339,14 +337,15 @@ void UART2_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART2_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void UART3_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART3_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
+void ADC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void FTM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMT_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void RTC_Alarm_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void RTC_Seconds_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void PIT1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PIT2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PIT3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PDB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -444,7 +443,7 @@ extern VectorTable const __vector_table = {
       LLWU_IRQHandler,               /*   37,   21  Low Leakage Wakeup                                                               */
       WDOG_IRQHandler,               /*   38,   22  External Watchdog Monitor                                                        */
       RNG_IRQHandler,                /*   39,   23  Random Number Generator                                                          */
-      USBDM::I2c0::irqHandler,       /*   40,   24  Inter-Integrated Circuit                                                         */
+      I2C0_IRQHandler,               /*   40,   24  Inter-Integrated Circuit                                                         */
       I2C1_IRQHandler,               /*   41,   25  Inter-Integrated Circuit                                                         */
       SPI0_IRQHandler,               /*   42,   26  Serial Peripheral Interface                                                      */
       SPI1_IRQHandler,               /*   43,   27  Serial Peripheral Interface                                                      */
@@ -459,17 +458,17 @@ extern VectorTable const __vector_table = {
       UART2_ERR_IRQHandler,          /*   52,   36  Serial Communication Interface                                                   */
       UART3_RX_TX_IRQHandler,        /*   53,   37  Serial Communication Interface                                                   */
       UART3_ERR_IRQHandler,          /*   54,   38  Serial Communication Interface                                                   */
-      USBDM::Adc0::irqHandler,       /*   55,   39  Analogue to Digital Converter                                                    */
+      ADC0_IRQHandler,               /*   55,   39  Analogue to Digital Converter                                                    */
       CMP0_IRQHandler,               /*   56,   40  High-Speed Comparator                                                            */
       CMP1_IRQHandler,               /*   57,   41  High-Speed Comparator                                                            */
-      USBDM::Ftm0::irqHandler,       /*   58,   42  FlexTimer Module                                                                 */
+      FTM0_IRQHandler,               /*   58,   42  FlexTimer Module                                                                 */
       FTM1_IRQHandler,               /*   59,   43  FlexTimer Module                                                                 */
       FTM2_IRQHandler,               /*   60,   44  FlexTimer Module                                                                 */
       CMT_IRQHandler,                /*   61,   45  Carrier Modulator Transmitter                                                    */
       RTC_Alarm_IRQHandler,          /*   62,   46  Real Time Clock                                                                  */
       RTC_Seconds_IRQHandler,        /*   63,   47  Real Time Clock                                                                  */
       USBDM::Pit::irq0Handler,       /*   64,   48  Periodic Interrupt Timer                                                         */
-      PIT1_IRQHandler,               /*   65,   49  Periodic Interrupt Timer                                                         */
+      USBDM::Pit::irq1Handler,       /*   65,   49  Periodic Interrupt Timer                                                         */
       PIT2_IRQHandler,               /*   66,   50  Periodic Interrupt Timer                                                         */
       PIT3_IRQHandler,               /*   67,   51  Periodic Interrupt Timer                                                         */
       PDB0_IRQHandler,               /*   68,   52  Programmable Delay Block                                                         */

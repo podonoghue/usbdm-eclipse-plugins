@@ -113,4 +113,22 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    String substitute(String input) {
       return substitute(input, fDeviceInfo.getVariableMap());
    }
+   
+   /**
+    * Checks if a variable is true when interpreted as a C value <br>
+    * i.e. non-zero or "true"
+    * 
+    * @param key to Access variable
+    * 
+    * @return
+    */
+   public boolean isCTrueValue(String key) {
+      String value = getVariableValue(key);
+      try {
+         return Long.decode(value) != 0;
+      }
+      catch (NumberFormatException e){
+      }
+      return value.equalsIgnoreCase("true");
+   }
 }

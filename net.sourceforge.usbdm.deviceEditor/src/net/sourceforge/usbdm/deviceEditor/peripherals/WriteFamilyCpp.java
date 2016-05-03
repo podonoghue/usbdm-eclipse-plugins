@@ -43,6 +43,9 @@ public class WriteFamilyCpp {
    /** Base name for C++ files */
    private final static String HARDWARE_BASEFILENAME      = "hardware";
 
+   /** Name of function to do pin mapping */
+   private static final String DO_PIN_MAPPING_FUNCTION = "mapAllPins";
+
    /** Fixed GPIO multiplexor function */
    private int      gpioFunctionMuxValue          = 1; 
 
@@ -353,7 +356,7 @@ public class WriteFamilyCpp {
       }
       startGroup.closeGroup();
       writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
-      writer.write("extern void usbdm_PinMapping();\n");
+      writer.write("extern void "+DO_PIN_MAPPING_FUNCTION+"();\n");
       writer.writeCloseNamespace();
    }
 
@@ -408,7 +411,7 @@ public class WriteFamilyCpp {
             "/**\n" + 
                   " * Used to configure pin-mapping before 1st use of peripherals\n" + 
                   " */\n" + 
-                  "void usbdm_PinMapping() {\n"
+                  "void "+DO_PIN_MAPPING_FUNCTION+"() {\n"
             );
 
       boolean maskWritten = false;

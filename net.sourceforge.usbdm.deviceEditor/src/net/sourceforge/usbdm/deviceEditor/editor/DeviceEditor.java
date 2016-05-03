@@ -18,15 +18,17 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -50,7 +52,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    private ModelFactory fFactory             = null;
 
    /** Folder containing all the tabs */
-   private TabFolder    fTabFolder           = null;
+   private CTabFolder    fTabFolder           = null;
 
    private Object[] fTreeEditors             = null;
 
@@ -64,21 +66,21 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
       super.setSite(editorSite);
       super.setInput(editorInput);
-      
+
       fFactory = null;
       IResource input = (IResource)editorInput.getAdapter(IResource.class);
       fProject = input.getProject();
       fPath = Paths.get(input.getLocation().toPortableString());
-      
+
       setPartName(input.getName());
    }
-   
+
    /** Initialise the editor for testing */
    public void init(Path path) {
       fFactory = null;
       fPath = path;
    }
-   
+
    @Override
    public void setFocus() {
       if (fTabFolder != null) {
@@ -105,7 +107,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          }
       }
    }
-   
+
    /**
     * Creates the editor pages.
     */
@@ -113,7 +115,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    public void createPartControl(Composite parent) {
 
       fFactory = null;
-      
+
       String failureReason = "Unknown";
       try {
          fFactory = ModelFactory.createModels(fPath, true);
@@ -128,17 +130,22 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
          label.setText(failureReason);
          return;
-         
+
       }
-      
+      Display display = Display.getCurrent();
       // Create the containing tab folder
-      fTabFolder   = new TabFolder(parent, SWT.NONE);
+      fTabFolder   = new CTabFolder(parent, SWT.BOTTOM|SWT.BORDER);
+      fTabFolder.setSimple(false);
       ArrayList<Object> treeEditors = new ArrayList<Object>();
+      fTabFolder.setBackground(new Color[]{
+            display.getSystemColor(SWT.COLOR_CYAN), 
+            display.getSystemColor(SWT.COLOR_WHITE)},
+            new int[] {50});
 
       for (RootModel model:fFactory.getModels()) {
          // Pin view
-         TabItem tabItem;
-         tabItem = new TabItem(fTabFolder, SWT.NONE);
+         CTabItem tabItem;
+         tabItem = new CTabItem(fTabFolder, SWT.NONE);
          tabItem.setText(model.getName());
          tabItem.setToolTipText(model.getToolTip());       
          if (model instanceof PackageImageModel) {
@@ -157,15 +164,15 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
       ((TreeEditor)fTreeEditors[0]).setModel(fFactory.getModels().get(0));
       setModels();
-      
+
       fFactory.addListener(this);
-      
+
       // Create the actions
       makeActions();
       // Add selected actions to context menu
       hookContextMenu();
       // Add selected actions to menu bar
-//      contributeToActionBars();
+      //      contributeToActionBars();
    }
 
    //   @Override
@@ -220,7 +227,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          MessageDialog.openError(null, "Regenerate Code Failed", "Failed to regenerate code.\nReason:\n"+e.getMessage());
       }
    }
-   
+
    class GenerateCodeAction extends MyAction {
       GenerateCodeAction() {
          super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_WARNING_NODE_IMAGE);
@@ -233,12 +240,12 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }
 
    MyAction fActions[] = {new GenerateCodeAction()};
-   
+
    /** 
     * Create menu actions
     */
    private void makeActions() {
-      
+
       // These actions end up on the pop-up menu
       for(MyAction action:fActions) {
          popupActions.add(action);
@@ -323,7 +330,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          deviceInfo.saveSettingsAs(path, fProject);
       }
    }   
-   
+
    @Override
    public void doSave(IProgressMonitor paramIProgressMonitor) {
       if (fFactory == null) {
@@ -341,7 +348,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       return (fFactory != null) && (fFactory.getDeviceInfo().isDirty());
    }
 
-   
+
    @Override
    public boolean isSaveAsAllowed() {
       return true;

@@ -82,30 +82,30 @@ public:
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
-       (2<<ADC_CFG1_ADICLK_SHIFT)||
-       (1<<ADC_CFG1_MODE_SHIFT)||
-       (1<<ADC_CFG1_ADLSMP_SHIFT)||
-       (2<<ADC_CFG1_ADIV_SHIFT)||
-       (1<<ADC_CFG1_ADLPC_SHIFT);
+       (3<<ADC_CFG1_ADICLK_SHIFT)|
+       (1<<ADC_CFG1_MODE_SHIFT)|
+       (0<<ADC_CFG1_ADLSMP_SHIFT)|
+       (0<<ADC_CFG1_ADIV_SHIFT)|
+       (0<<ADC_CFG1_ADLPC_SHIFT);
 
    //! Default value for ADCx_CFG2 register
     static constexpr uint32_t CFG2  = 
         ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
-       (2<<ADC_CFG2_ADLSTS_SHIFT)||
-       (0<<ADC_CFG2_ADHSC_SHIFT)||
-       (1<<ADC_CFG2_ADACKEN_SHIFT);
+       (0<<ADC_CFG2_ADLSTS_SHIFT)|
+       (0<<ADC_CFG2_ADHSC_SHIFT)|
+       (0<<ADC_CFG2_ADACKEN_SHIFT);
 
    static constexpr uint32_t SC1  = 
-       (1<<ADC_SC1_AIEN_SHIFT);
+       (0<<ADC_SC1_AIEN_SHIFT);
 
    static constexpr uint32_t SC2  =
-       (0<<ADC_SC2_REFSEL_SHIFT)||
-       (0<<ADC_SC2_DMAEN_SHIFT)||
-       (0b000<<ADC_SC2_ACREN_SHIFT)||
+       (0<<ADC_SC2_REFSEL_SHIFT)|
+       (0<<ADC_SC2_DMAEN_SHIFT)|
+       (0b000<<ADC_SC2_ACREN_SHIFT)|
        (0<<ADC_SC2_ADTRG_SHIFT);
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  0;
+   static constexpr uint32_t irqLevel =  6;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 24;
@@ -121,13 +121,13 @@ public:
          /*   4: ADC0_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: ADC0_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: ADC0_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC0_SE7b       = PTD6 (nRF_mosi)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   7: ADC0_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   8: ADC0_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   9: ADC0_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  10: ADC0_SE10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  11: ADC0_SE11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  12: ADC0_SE12       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  13: ADC0_SE13       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: ADC0_SE12       = PTB2 (A5)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  13: ADC0_SE13       = PTB3 (A4)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  3,   PORT_PCR_MUX(0)|pcrValue  },
          /*  14: ADC0_SE14       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  15: ADC0_SE15       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  16: ADC0_SE16       = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
@@ -144,14 +144,16 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Adc0Info,  7>::setPCR(); // ADC0_SE7b       = PTD6 (nRF_mosi)               
+      PcrTable_T<Adc0Info, 12>::setPCR(); // ADC0_SE12       = PTB2 (A5)                     
+      PcrTable_T<Adc0Info, 13>::setPCR(); // ADC0_SE13       = PTB3 (A4)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Adc0Info,  7>::setPCR(0); // ADC0_SE7b       = PTD6 (nRF_mosi)               
+      PcrTable_T<Adc0Info, 12>::setPCR(0); // ADC0_SE12       = PTB2 (A5)                     
+      PcrTable_T<Adc0Info, 13>::setPCR(0); // ADC0_SE13       = PTB3 (A4)                     
    }
 
    class InfoDP {
@@ -243,26 +245,26 @@ public:
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
-       (0<<ADC_CFG1_ADICLK_SHIFT)||
-       (0<<ADC_CFG1_MODE_SHIFT)||
-       (0<<ADC_CFG1_ADLSMP_SHIFT)||
-       (0<<ADC_CFG1_ADIV_SHIFT)||
+       (0<<ADC_CFG1_ADICLK_SHIFT)|
+       (0<<ADC_CFG1_MODE_SHIFT)|
+       (0<<ADC_CFG1_ADLSMP_SHIFT)|
+       (2<<ADC_CFG1_ADIV_SHIFT)|
        (0<<ADC_CFG1_ADLPC_SHIFT);
 
    //! Default value for ADCx_CFG2 register
     static constexpr uint32_t CFG2  = 
         ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
-       (0<<ADC_CFG2_ADLSTS_SHIFT)||
-       (0<<ADC_CFG2_ADHSC_SHIFT)||
+       (0<<ADC_CFG2_ADLSTS_SHIFT)|
+       (0<<ADC_CFG2_ADHSC_SHIFT)|
        (0<<ADC_CFG2_ADACKEN_SHIFT);
 
    static constexpr uint32_t SC1  = 
        (0<<ADC_SC1_AIEN_SHIFT);
 
    static constexpr uint32_t SC2  =
-       (0<<ADC_SC2_REFSEL_SHIFT)||
-       (0<<ADC_SC2_DMAEN_SHIFT)||
-       (0b000<<ADC_SC2_ACREN_SHIFT)||
+       (0<<ADC_SC2_REFSEL_SHIFT)|
+       (0<<ADC_SC2_DMAEN_SHIFT)|
+       (0b000<<ADC_SC2_ACREN_SHIFT)|
        (0<<ADC_SC2_ADTRG_SHIFT);
 
    //! Default IRQ level
@@ -282,13 +284,13 @@ public:
          /*   4: ADC1_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: ADC1_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: ADC1_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC1_SE7b       = PTC11 (D14)                    */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11,  PORT_PCR_MUX(0)|pcrValue  },
+         /*   7: ADC1_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   8: ADC1_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   9: ADC1_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  10: ADC1_SE10       = PTB4 (A3)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  11: ADC1_SE11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  12: ADC1_SE12       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  13: ADC1_SE13       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: ADC1_SE11       = PTB5 (A2)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  5,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  12: ADC1_SE12       = PTB6 (A1)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  13: ADC1_SE13       = PTB7 (A0)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  7,   PORT_PCR_MUX(0)|pcrValue  },
          /*  14: ADC1_SE14       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  15: ADC1_SE15       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  16: ADC1_SE16       = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
@@ -312,8 +314,8 @@ public:
          /*  34: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*  35: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*  36: ADC1_SE4a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  37: ADC1_SE5a       = PTE1                           */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  1,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  38: ADC1_SE6a       = PTE2                           */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  37: ADC1_SE5a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  38: ADC1_SE6a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  39: ADC1_SE7a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
@@ -321,20 +323,20 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Adc1Info,  7>::setPCR(); // ADC1_SE7b       = PTC11 (D14)                   
       PcrTable_T<Adc1Info, 10>::setPCR(); // ADC1_SE10       = PTB4 (A3)                     
-      PcrTable_T<Adc1Info, 37>::setPCR(); // ADC1_SE5a       = PTE1                          
-      PcrTable_T<Adc1Info, 38>::setPCR(); // ADC1_SE6a       = PTE2                          
+      PcrTable_T<Adc1Info, 11>::setPCR(); // ADC1_SE11       = PTB5 (A2)                     
+      PcrTable_T<Adc1Info, 12>::setPCR(); // ADC1_SE12       = PTB6 (A1)                     
+      PcrTable_T<Adc1Info, 13>::setPCR(); // ADC1_SE13       = PTB7 (A0)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Adc1Info,  7>::setPCR(0); // ADC1_SE7b       = PTC11 (D14)                   
       PcrTable_T<Adc1Info, 10>::setPCR(0); // ADC1_SE10       = PTB4 (A3)                     
-      PcrTable_T<Adc1Info, 37>::setPCR(0); // ADC1_SE5a       = PTE1                          
-      PcrTable_T<Adc1Info, 38>::setPCR(0); // ADC1_SE6a       = PTE2                          
+      PcrTable_T<Adc1Info, 11>::setPCR(0); // ADC1_SE11       = PTB5 (A2)                     
+      PcrTable_T<Adc1Info, 12>::setPCR(0); // ADC1_SE12       = PTB6 (A1)                     
+      PcrTable_T<Adc1Info, 13>::setPCR(0); // ADC1_SE13       = PTB7 (A0)                     
    }
 
    class InfoDP {
@@ -455,7 +457,7 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP0_IN0        = PTC6 (D19)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   0: CMP0_IN0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   1: CMP0_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   2: CMP0_IN2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: CMP0_IN3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -470,14 +472,12 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Cmp0Info,  0>::setPCR(); // CMP0_IN0        = PTC6 (D19)                    
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Cmp0Info,  0>::setPCR(0); // CMP0_IN0        = PTC6 (D19)                    
    }
 
 };
@@ -1112,15 +1112,15 @@ public:
    //! Default value for SC register
    static constexpr uint32_t SC  = 
        (0<<FTM_SC_CPWMS_SHIFT)|
-       ((1|1)<<FTM_SC_TOIE_SHIFT)|
-       FTM_SC_CLKS(3)|
+       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
    static constexpr uint32_t PERIOD =  10000;
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  5;
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 8;
@@ -1129,11 +1129,11 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM0_CH0        = PTC1 (D18)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,   PORT_PCR_MUX(4)|pcrValue  },
+         /*   0: FTM0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   1: FTM0_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   2: FTM0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: FTM0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: FTM0_CH4        = PTD4 (nRF_cs_n)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,   PORT_PCR_MUX(4)|pcrValue  },
+         /*   4: FTM0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: FTM0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: FTM0_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   7: FTM0_CH7        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -1143,16 +1143,12 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Ftm0Info,  0>::setPCR(); // FTM0_CH0        = PTC1 (D18)                    
-      PcrTable_T<Ftm0Info,  4>::setPCR(); // FTM0_CH4        = PTD4 (nRF_cs_n)               
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Ftm0Info,  0>::setPCR(0); // FTM0_CH0        = PTC1 (D18)                    
-      PcrTable_T<Ftm0Info,  4>::setPCR(0); // FTM0_CH4        = PTD4 (nRF_cs_n)               
    }
 
    class InfoFAULT {
@@ -1234,21 +1230,19 @@ public:
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: FTM1_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM1_CH1        = PTB1                           */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  1,   PORT_PCR_MUX(3)|pcrValue  },
+         /*   1: FTM1_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Ftm1Info,  1>::setPCR(); // FTM1_CH1        = PTB1                          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Ftm1Info,  1>::setPCR(0); // FTM1_CH1        = PTB1                          
    }
 
    class InfoFAULT {
@@ -1354,21 +1348,19 @@ public:
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: FTM2_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM2_CH1        = PTB19 (D9)                     */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  19,  PORT_PCR_MUX(3)|pcrValue  },
+         /*   1: FTM2_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Ftm2Info,  1>::setPCR(); // FTM2_CH1        = PTB19 (D9)                    
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Ftm2Info,  1>::setPCR(0); // FTM2_CH1        = PTB19 (D9)                    
    }
 
    class InfoFAULT {
@@ -1723,20 +1715,24 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2C0_SCL        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: I2C0_SDA        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: I2C0_SCL        = PTD8 (ONBOARD_SCL)             */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  8,   PORT_PCR_MUX(2)|pcrValue  },
+         /*   1: I2C0_SDA        = PTD9 (ONBOARD_SDA)             */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  9,   PORT_PCR_MUX(2)|pcrValue  },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<I2c0Info,  0>::setPCR(); // I2C0_SCL        = PTD8 (ONBOARD_SCL)            
+      PcrTable_T<I2c0Info,  1>::setPCR(); // I2C0_SDA        = PTD9 (ONBOARD_SDA)            
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<I2c0Info,  0>::setPCR(0); // I2C0_SCL        = PTD8 (ONBOARD_SCL)            
+      PcrTable_T<I2c0Info,  1>::setPCR(0); // I2C0_SDA        = PTD9 (ONBOARD_SDA)            
    }
 
 };
@@ -2016,38 +2012,68 @@ public:
          /*   3: LLWU_P3         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   4: LLWU_P4         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: LLWU_P5         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: LLWU_P6         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: LLWU_P7         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: LLWU_P8         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   9: LLWU_P9         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  10: LLWU_P10        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  11: LLWU_P11        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  12: LLWU_P12        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  13: LLWU_P13        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  14: LLWU_P14        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: LLWU_P6         = PTC1 (D18)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,   PORT_PCR_MUX(1)|pcrValue  },
+         /*   7: LLWU_P7         = PTC3 (D0)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,   PORT_PCR_MUX(1)|pcrValue  },
+         /*   8: LLWU_P8         = PTC4 (D1)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,   PORT_PCR_MUX(1)|pcrValue  },
+         /*   9: LLWU_P9         = PTC5 (D5)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  5,   PORT_PCR_MUX(1)|pcrValue  },
+         /*  10: LLWU_P10        = PTC6 (D19)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,   PORT_PCR_MUX(1)|pcrValue  },
+         /*  11: LLWU_P11        = PTC11 (D14)                    */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
+         /*  12: LLWU_P12        = PTD0 (D10)                     */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  0,   PORT_PCR_MUX(1)|pcrValue  },
+         /*  13: LLWU_P13        = PTD2 (D11)                     */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  2,   PORT_PCR_MUX(1)|pcrValue  },
+         /*  14: LLWU_P14        = PTD4 (nRF_cs_n)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,   PORT_PCR_MUX(1)|pcrValue  },
          /*  15: LLWU_P15        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  16: LLWU_P16        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  17: LLWU_P17        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: LLWU_P16        = PTE6 (LED_GREEN)               */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  6,   PORT_PCR_MUX(1)|pcrValue  },
+         /*  17: LLWU_P17        = PTE9 (D20)                     */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  9,   PORT_PCR_MUX(1)|pcrValue  },
          /*  18: LLWU_P18        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  19: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*  20: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  21: LLWU_P21        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  22: LLWU_P22        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  23: LLWU_P23        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  21: LLWU_P21        = PTE25 (D31)                    */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  25,  PORT_PCR_MUX(1)|pcrValue  },
+         /*  22: LLWU_P22        = PTA10 (SW3)                    */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  10,  PORT_PCR_MUX(1)|pcrValue  },
+         /*  23: LLWU_P23        = PTA11 (LED_BLUE)               */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
          /*  24: LLWU_P24        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  25: LLWU_P25        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  25: LLWU_P25        = PTD11 (SW2)                    */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<LlwuInfo,  6>::setPCR(); // LLWU_P6         = PTC1 (D18)                    
+      PcrTable_T<LlwuInfo,  7>::setPCR(); // LLWU_P7         = PTC3 (D0)                     
+      PcrTable_T<LlwuInfo,  8>::setPCR(); // LLWU_P8         = PTC4 (D1)                     
+      PcrTable_T<LlwuInfo,  9>::setPCR(); // LLWU_P9         = PTC5 (D5)                     
+      PcrTable_T<LlwuInfo, 10>::setPCR(); // LLWU_P10        = PTC6 (D19)                    
+      PcrTable_T<LlwuInfo, 11>::setPCR(); // LLWU_P11        = PTC11 (D14)                   
+      PcrTable_T<LlwuInfo, 12>::setPCR(); // LLWU_P12        = PTD0 (D10)                    
+      PcrTable_T<LlwuInfo, 13>::setPCR(); // LLWU_P13        = PTD2 (D11)                    
+      PcrTable_T<LlwuInfo, 14>::setPCR(); // LLWU_P14        = PTD4 (nRF_cs_n)               
+      PcrTable_T<LlwuInfo, 16>::setPCR(); // LLWU_P16        = PTE6 (LED_GREEN)              
+      PcrTable_T<LlwuInfo, 17>::setPCR(); // LLWU_P17        = PTE9 (D20)                    
+      PcrTable_T<LlwuInfo, 21>::setPCR(); // LLWU_P21        = PTE25 (D31)                   
+      PcrTable_T<LlwuInfo, 22>::setPCR(); // LLWU_P22        = PTA10 (SW3)                   
+      PcrTable_T<LlwuInfo, 23>::setPCR(); // LLWU_P23        = PTA11 (LED_BLUE)              
+      PcrTable_T<LlwuInfo, 25>::setPCR(); // LLWU_P25        = PTD11 (SW2)                   
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<LlwuInfo,  6>::setPCR(0); // LLWU_P6         = PTC1 (D18)                    
+      PcrTable_T<LlwuInfo,  7>::setPCR(0); // LLWU_P7         = PTC3 (D0)                     
+      PcrTable_T<LlwuInfo,  8>::setPCR(0); // LLWU_P8         = PTC4 (D1)                     
+      PcrTable_T<LlwuInfo,  9>::setPCR(0); // LLWU_P9         = PTC5 (D5)                     
+      PcrTable_T<LlwuInfo, 10>::setPCR(0); // LLWU_P10        = PTC6 (D19)                    
+      PcrTable_T<LlwuInfo, 11>::setPCR(0); // LLWU_P11        = PTC11 (D14)                   
+      PcrTable_T<LlwuInfo, 12>::setPCR(0); // LLWU_P12        = PTD0 (D10)                    
+      PcrTable_T<LlwuInfo, 13>::setPCR(0); // LLWU_P13        = PTD2 (D11)                    
+      PcrTable_T<LlwuInfo, 14>::setPCR(0); // LLWU_P14        = PTD4 (nRF_cs_n)               
+      PcrTable_T<LlwuInfo, 16>::setPCR(0); // LLWU_P16        = PTE6 (LED_GREEN)              
+      PcrTable_T<LlwuInfo, 17>::setPCR(0); // LLWU_P17        = PTE9 (D20)                    
+      PcrTable_T<LlwuInfo, 21>::setPCR(0); // LLWU_P21        = PTE25 (D31)                   
+      PcrTable_T<LlwuInfo, 22>::setPCR(0); // LLWU_P22        = PTA10 (SW3)                   
+      PcrTable_T<LlwuInfo, 23>::setPCR(0); // LLWU_P23        = PTA11 (LED_BLUE)              
+      PcrTable_T<LlwuInfo, 25>::setPCR(0); // LLWU_P25        = PTD11 (SW2)                   
    }
 
 };
@@ -2410,10 +2436,10 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for PIT->SC register
-   static constexpr uint32_t loadValue  = 0;
+   static constexpr uint32_t loadValue  = 65535;
 
    //! PIT operation in debug mode
-   static constexpr uint32_t mcrValue = (1<<PIT_MCR_FRZ_SHIFT);
+   static constexpr uint32_t mcrValue = (0<<PIT_MCR_FRZ_SHIFT);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2499,7 +2525,7 @@ public:
    static constexpr uint32_t CR_WPE_M   = (0<<RTC_CR_WPE_SHIFT);
 
    //! Oscillator load capacitance
-   static constexpr uint32_t CR_SCP_M   = (5<<RTC_CR_SC16P_SHIFT);
+   static constexpr uint32_t CR_SCP_M   = (2<<RTC_CR_SC16P_SHIFT);
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 3;
@@ -2631,7 +2657,7 @@ public:
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 0;
+   static constexpr uint32_t speed = 100000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2701,7 +2727,7 @@ public:
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 0;
+   static constexpr uint32_t speed = 100000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2713,9 +2739,9 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: SPI1_SCK        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: SPI1_SIN        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: SPI1_SOUT       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: SPI1_SCK        = PTD5 (nRF_sck)                 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  5,   PORT_PCR_MUX(7)|pcrValue  },
+         /*   1: SPI1_SIN        = PTD7 (nRF_miso)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  7,   PORT_PCR_MUX(7)|pcrValue  },
+         /*   2: SPI1_SOUT       = PTD6 (nRF_mosi)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,   PORT_PCR_MUX(7)|pcrValue  },
          /*   3: SPI1_PCS0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   4: SPI1_PCS1       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: SPI1_PCS2       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -2726,12 +2752,18 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Spi1Info,  0>::setPCR(); // SPI1_SCK        = PTD5 (nRF_sck)                
+      PcrTable_T<Spi1Info,  1>::setPCR(); // SPI1_SIN        = PTD7 (nRF_miso)               
+      PcrTable_T<Spi1Info,  2>::setPCR(); // SPI1_SOUT       = PTD6 (nRF_mosi)               
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Spi1Info,  0>::setPCR(0); // SPI1_SCK        = PTD5 (nRF_sck)                
+      PcrTable_T<Spi1Info,  1>::setPCR(0); // SPI1_SIN        = PTD7 (nRF_miso)               
+      PcrTable_T<Spi1Info,  2>::setPCR(0); // SPI1_SOUT       = PTD6 (nRF_mosi)               
    }
 
 };
@@ -2769,7 +2801,7 @@ public:
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 0;
+   static constexpr uint32_t speed = 100000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2999,13 +3031,13 @@ public:
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
          /*   0: TSI0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   1: TSI0_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: TSI0_CH2        = PTA1                           */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  1,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   2: TSI0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: TSI0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   4: TSI0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: TSI0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: TSI0_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: TSI0_CH7        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: TSI0_CH8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: TSI0_CH7        = PTB2 (A5)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   8: TSI0_CH8        = PTB3 (A4)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  3,   PORT_PCR_MUX(0)|pcrValue  },
          /*   9: TSI0_CH9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  10: TSI0_CH10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  11: TSI0_CH11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -3019,14 +3051,16 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Tsi0Info,  2>::setPCR(); // TSI0_CH2        = PTA1                          
+      PcrTable_T<Tsi0Info,  7>::setPCR(); // TSI0_CH7        = PTB2 (A5)                     
+      PcrTable_T<Tsi0Info,  8>::setPCR(); // TSI0_CH8        = PTB3 (A4)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Tsi0Info,  2>::setPCR(0); // TSI0_CH2        = PTA1                          
+      PcrTable_T<Tsi0Info,  7>::setPCR(0); // TSI0_CH7        = PTB2 (A5)                     
+      PcrTable_T<Tsi0Info,  8>::setPCR(0); // TSI0_CH8        = PTB3 (A4)                     
    }
 
 };
@@ -3074,8 +3108,8 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART0_TX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART0_RX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: UART0_TX        = PTB17 (ConTx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  17,  PORT_PCR_MUX(3)|pcrValue  },
+         /*   1: UART0_RX        = PTB16 (ConRx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  16,  PORT_PCR_MUX(3)|pcrValue  },
          /*   2: UART0_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: UART0_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   4: UART0_COL_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -3085,12 +3119,16 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Uart0Info,  0>::setPCR(); // UART0_TX        = PTB17 (ConTx)                 
+      PcrTable_T<Uart0Info,  1>::setPCR(); // UART0_RX        = PTB16 (ConRx)                 
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Uart0Info,  0>::setPCR(0); // UART0_TX        = PTB17 (ConTx)                 
+      PcrTable_T<Uart0Info,  1>::setPCR(0); // UART0_RX        = PTB16 (ConRx)                 
    }
 
 };
@@ -3291,8 +3329,8 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART4_TX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART4_RX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: UART4_TX        = PTC15 (BLUETOOTH_Tx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  15,  PORT_PCR_MUX(3)|pcrValue  },
+         /*   1: UART4_RX        = PTC14 (BLUETOOTH_Rx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  14,  PORT_PCR_MUX(3)|pcrValue  },
          /*   2: UART4_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   3: UART4_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
@@ -3301,12 +3339,16 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Uart4Info,  0>::setPCR(); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
+      PcrTable_T<Uart4Info,  1>::setPCR(); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Uart4Info,  0>::setPCR(0); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
+      PcrTable_T<Uart4Info,  1>::setPCR(0); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
    }
 
 };
@@ -3525,23 +3567,14 @@ namespace USBDM {
  * @brief Pins used for Analogue Input
  * @{
  */
-using adc_nRF_mosi         = const USBDM::Adc0Channel<7>;
+using adc_A5               = const USBDM::Adc0Channel<12>;
+using adc_A4               = const USBDM::Adc0Channel<13>;
 using adc_A3               = const USBDM::Adc1Channel<10>;
-using adc_D14              = const USBDM::Adc1Channel<7>;
+using adc_A2               = const USBDM::Adc1Channel<11>;
+using adc_A1               = const USBDM::Adc1Channel<12>;
+using adc_A0               = const USBDM::Adc1Channel<13>;
 /** 
  * End ADC_Group
- * @}
- */
-/**
- * @addtogroup FTM_Group FTM, PWM, Input capture and Output compare
- * @brief Pins used for PWM, Input capture and Output compare
- * @{
- */
-using ftm_D18              = const USBDM::Ftm0Channel<0>;
-using ftm_nRF_cs_n         = const USBDM::Ftm0Channel<4>;
-using ftm_D9               = const USBDM::Ftm2Channel<1>;
-/** 
- * End FTM_Group
  * @}
  */
 /**
@@ -3621,6 +3654,9 @@ template<uint8_t bitNum> using GpioA = Gpio_T<GpioAInfo, bitNum>;
  */
 template<int left, int right> using GpioAField = Field_T<GpioAInfo, left, right>;
 
+using gpio_SW3             = const USBDM::GpioA<10>;
+using gpio_LED_BLUE        = const USBDM::GpioA<11>;
+using gpio_D7              = const USBDM::GpioA<25>;
 /**
  * @brief Convenience template for GpioB. See @ref Gpio_T
  *
@@ -3693,6 +3729,12 @@ template<uint8_t bitNum> using GpioB = Gpio_T<GpioBInfo, bitNum>;
  */
 template<int left, int right> using GpioBField = Field_T<GpioBInfo, left, right>;
 
+using gpio_D27             = const USBDM::GpioB<10>;
+using gpio_D28             = const USBDM::GpioB<11>;
+using gpio_D8              = const USBDM::GpioB<18>;
+using gpio_D9              = const USBDM::GpioB<19>;
+using gpio_nRF_ce_n        = const USBDM::GpioB<20>;
+using gpio_A10             = const USBDM::GpioB<23>;
 /**
  * @brief Convenience template for GpioC. See @ref Gpio_T
  *
@@ -3765,6 +3807,21 @@ template<uint8_t bitNum> using GpioC = Gpio_T<GpioCInfo, bitNum>;
  */
 template<int left, int right> using GpioCField = Field_T<GpioCInfo, left, right>;
 
+using gpio_D29             = const USBDM::GpioC<0>;
+using gpio_D18             = const USBDM::GpioC<1>;
+using gpio_D6              = const USBDM::GpioC<2>;
+using gpio_D0              = const USBDM::GpioC<3>;
+using gpio_D1              = const USBDM::GpioC<4>;
+using gpio_D5              = const USBDM::GpioC<5>;
+using gpio_D19             = const USBDM::GpioC<6>;
+using gpio_D21             = const USBDM::GpioC<7>;
+using gpio_D3              = const USBDM::GpioC<8>;
+using gpio_LED_RED         = const USBDM::GpioC<9>;
+using gpio_D15             = const USBDM::GpioC<10>;
+using gpio_D14             = const USBDM::GpioC<11>;
+using gpio_D4              = const USBDM::GpioC<12>;
+using gpio_D2              = const USBDM::GpioC<16>;
+using gpio_nRF_irq         = const USBDM::GpioC<18>;
 /**
  * @brief Convenience template for GpioD. See @ref Gpio_T
  *
@@ -3837,6 +3894,14 @@ template<uint8_t bitNum> using GpioD = Gpio_T<GpioDInfo, bitNum>;
  */
 template<int left, int right> using GpioDField = Field_T<GpioDInfo, left, right>;
 
+using gpio_D10             = const USBDM::GpioD<0>;
+using gpio_D13             = const USBDM::GpioD<1>;
+using gpio_D11             = const USBDM::GpioD<2>;
+using gpio_D12             = const USBDM::GpioD<3>;
+using gpio_nRF_cs_n        = const USBDM::GpioD<4>;
+using gpio_SW2             = const USBDM::GpioD<11>;
+using gpio_D33             = const USBDM::GpioD<12>;
+using gpio_D32             = const USBDM::GpioD<13>;
 /**
  * @brief Convenience template for GpioE. See @ref Gpio_T
  *
@@ -3909,6 +3974,14 @@ template<uint8_t bitNum> using GpioE = Gpio_T<GpioEInfo, bitNum>;
  */
 template<int left, int right> using GpioEField = Field_T<GpioEInfo, left, right>;
 
+using gpio_LED_GREEN       = const USBDM::GpioE<6>;
+using gpio_D23             = const USBDM::GpioE<7>;
+using gpio_D22             = const USBDM::GpioE<8>;
+using gpio_D20             = const USBDM::GpioE<9>;
+using gpio_D17             = const USBDM::GpioE<11>;
+using gpio_D16             = const USBDM::GpioE<12>;
+using gpio_D30             = const USBDM::GpioE<24>;
+using gpio_D31             = const USBDM::GpioE<25>;
 /** 
  * End GPIO_Group
  * @}
@@ -3916,7 +3989,7 @@ template<int left, int right> using GpioEField = Field_T<GpioEInfo, left, right>
 /**
  * Used to configure pin-mapping before 1st use of peripherals
  */
-extern void usbdm_PinMapping();
+extern void mapAllPins();
 
 } // End namespace USBDM
 /**
@@ -3936,7 +4009,7 @@ extern void usbdm_PinMapping();
  *  DAC1_OUT                 | DAC1_OUT/CMP0_IN4/CMP2_IN3/ADC1_SE23        |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
- *  PTA1                     | TSI0_CH2                                    |                           | -       
+ *  PTA1                     | JTAG_TDI                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
  *  PTA4                     | NMI_b                                       |                           | -       
@@ -3945,8 +4018,8 @@ extern void usbdm_PinMapping();
  *  PTA7                     | ADC0_SE10                                   |                           | -       
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTA9                     | Disabled                                    |                           | -       
- *  PTA10                    | Disabled                                    | SW3                       | -       
- *  PTA11                    | Disabled                                    | LED_BLUE                  | -       
+ *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | -       
  *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA14                    | Disabled                                    |                           | -       
@@ -3956,65 +4029,65 @@ extern void usbdm_PinMapping();
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  PTA19                    | XTAL0                                       |                           | -       
  *  PTA24                    | CMP3_IN4                                    |                           | -       
- *  PTA25                    | CMP3_IN5                                    | D7                        | -       
+ *  PTA25                    | GPIOA_25                                    | D7                        | -       
  *  PTA26                    | Disabled                                    |                           | -       
  *  PTA27                    | Disabled                                    |                           | -       
  *  PTA28                    | Disabled                                    |                           | -       
  *  PTA29                    | Disabled                                    |                           | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
- *  PTB1                     | FTM1_CH1                                    |                           | -       
+ *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
- *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
+ *  PTB5                     | ADC1_SE11                                   | A2                        | -       
  *  PTB6                     | ADC1_SE12                                   | A1                        | -       
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
- *  PTB8                     | GPIOB_8                                     |                           | -       
+ *  PTB8                     | Disabled                                    |                           | -       
  *  PTB9                     | Disabled                                    |                           | -       
- *  PTB10                    | ADC1_SE14                                   | D27                       | -       
- *  PTB11                    | ADC1_SE15                                   | D28                       | -       
- *  PTB16                    | TSI0_CH9                                    |                           | -       
- *  PTB17                    | TSI0_CH10                                   |                           | -       
- *  PTB18                    | TSI0_CH11                                   | D8                        | -       
- *  PTB19                    | FTM2_CH1                                    | D9                        | -       
- *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
+ *  PTB10                    | GPIOB_10                                    | D27                       | -       
+ *  PTB11                    | GPIOB_11                                    | D28                       | -       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
+ *  PTB18                    | GPIOB_18                                    | D8                        | -       
+ *  PTB19                    | GPIOB_19                                    | D9                        | -       
+ *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
  *  PTB21                    | Disabled                                    |                           | -       
  *  PTB22                    | Disabled                                    |                           | -       
- *  PTB23                    | Disabled                                    | A10                       | -       
- *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
- *  PTC1                     | FTM0_CH0                                    | D18                       | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
- *  PTC4                     | Disabled                                    | D1                        | -       
- *  PTC5                     | Disabled                                    | D5                        | -       
- *  PTC6                     | CMP0_IN0                                    | D19                       | -       
- *  PTC7                     | CMP0_IN1                                    | D21                       | -       
- *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
- *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
- *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
- *  PTC12                    | Disabled                                    | D4                        | -       
+ *  PTB23                    | GPIOB_23                                    | A10                       | -       
+ *  PTC0                     | GPIOC_0                                     | D29                       | -       
+ *  PTC1                     | GPIOC_1/LLWU_P6                             | D18                       | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
+ *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
+ *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
+ *  PTC7                     | GPIOC_7                                     | D21                       | -       
+ *  PTC8                     | GPIOC_8                                     | D3                        | -       
+ *  PTC9                     | GPIOC_9                                     | LED_RED                   | -       
+ *  PTC10                    | GPIOC_10                                    | D15                       | -       
+ *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
+ *  PTC12                    | GPIOC_12                                    | D4                        | -       
  *  PTC13                    | Disabled                                    |                           | -       
- *  PTC14                    | Disabled                                    | BLUETOOTH_Rx              | -       
- *  PTC15                    | Disabled                                    | BLUETOOTH_Tx              | -       
- *  PTC16                    | Disabled                                    | D2                        | -       
+ *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
+ *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
+ *  PTC16                    | GPIOC_16                                    | D2                        | -       
  *  PTC17                    | Disabled                                    |                           | -       
- *  PTC18                    | Disabled                                    | nRF_irq                   | -       
+ *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
  *  PTC19                    | Disabled                                    |                           | -       
- *  PTD0                     | Disabled                                    | D10                       | -       
- *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
- *  PTD2                     | Disabled                                    | D11                       | -       
- *  PTD3                     | Disabled                                    | D12                       | -       
- *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
- *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
- *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
- *  PTD7                     | Disabled                                    | nRF_miso                  | -       
- *  PTD8                     | Disabled                                    | ONBOARD_SCL               | -       
- *  PTD9                     | Disabled                                    | ONBOARD_SDA               | -       
+ *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
+ *  PTD1                     | GPIOD_1                                     | D13                       | -       
+ *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
+ *  PTD3                     | GPIOD_3                                     | D12                       | -       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
+ *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
+ *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
+ *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
+ *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
+ *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
  *  PTD10                    | Disabled                                    |                           | -       
- *  PTD11                    | Disabled                                    | SW2                       | -       
- *  PTD12                    | Disabled                                    | D33                       | -       
- *  PTD13                    | Disabled                                    | D32                       | -       
+ *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
+ *  PTD12                    | GPIOD_12                                    | D33                       | -       
+ *  PTD13                    | GPIOD_13                                    | D32                       | -       
  *  PTD14                    | Disabled                                    |                           | -       
  *  PTD15                    | Disabled                                    |                           | -       
  *  PTE0                     | ADC1_SE4a                                   |                           | -       
@@ -4023,15 +4096,15 @@ extern void usbdm_PinMapping();
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
  *  PTE4                     | Disabled                                    |                           | -       
  *  PTE5                     | Disabled                                    |                           | -       
- *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
- *  PTE7                     | Disabled                                    | D23                       | -       
- *  PTE8                     | Disabled                                    | D22                       | -       
- *  PTE9                     | Disabled                                    | D20                       | -       
+ *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
+ *  PTE7                     | GPIOE_7                                     | D23                       | -       
+ *  PTE8                     | GPIOE_8                                     | D22                       | -       
+ *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
  *  PTE10                    | Disabled                                    |                           | -       
- *  PTE11                    | Disabled                                    | D17                       | -       
- *  PTE12                    | Disabled                                    | D16                       | -       
- *  PTE24                    | ADC0_SE17                                   | D30                       | -       
- *  PTE25                    | ADC0_SE18                                   | D31                       | -       
+ *  PTE11                    | GPIOE_11                                    | D17                       | -       
+ *  PTE12                    | GPIOE_12                                    | D16                       | -       
+ *  PTE24                    | GPIOE_24                                    | D30                       | -       
+ *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
  *  PTE26                    | Disabled                                    |                           | -       
  *  PTE27                    | Disabled                                    |                           | -       
  *  PTE28                    | Disabled                                    |                           | -       
@@ -4079,57 +4152,59 @@ extern void usbdm_PinMapping();
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
  *  PTB6                     | ADC1_SE12                                   | A1                        | -       
- *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
+ *  PTB5                     | ADC1_SE11                                   | A2                        | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
- *  PTB23                    | Disabled                                    | A10                       | -       
- *  PTC14                    | Disabled                                    | BLUETOOTH_Rx              | -       
- *  PTC15                    | Disabled                                    | BLUETOOTH_Tx              | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
- *  PTC4                     | Disabled                                    | D1                        | -       
- *  PTC16                    | Disabled                                    | D2                        | -       
- *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
- *  PTC12                    | Disabled                                    | D4                        | -       
- *  PTC5                     | Disabled                                    | D5                        | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
- *  PTA25                    | CMP3_IN5                                    | D7                        | -       
- *  PTB18                    | TSI0_CH11                                   | D8                        | -       
- *  PTB19                    | FTM2_CH1                                    | D9                        | -       
- *  PTD0                     | Disabled                                    | D10                       | -       
- *  PTD2                     | Disabled                                    | D11                       | -       
- *  PTD3                     | Disabled                                    | D12                       | -       
- *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
- *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
- *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
- *  PTE12                    | Disabled                                    | D16                       | -       
- *  PTE11                    | Disabled                                    | D17                       | -       
- *  PTC1                     | FTM0_CH0                                    | D18                       | -       
- *  PTC6                     | CMP0_IN0                                    | D19                       | -       
- *  PTE9                     | Disabled                                    | D20                       | -       
- *  PTC7                     | CMP0_IN1                                    | D21                       | -       
- *  PTE8                     | Disabled                                    | D22                       | -       
- *  PTE7                     | Disabled                                    | D23                       | -       
- *  PTB10                    | ADC1_SE14                                   | D27                       | -       
- *  PTB11                    | ADC1_SE15                                   | D28                       | -       
- *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
- *  PTE24                    | ADC0_SE17                                   | D30                       | -       
- *  PTE25                    | ADC0_SE18                                   | D31                       | -       
- *  PTD13                    | Disabled                                    | D32                       | -       
- *  PTD12                    | Disabled                                    | D33                       | -       
- *  PTA11                    | Disabled                                    | LED_BLUE                  | -       
- *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
- *  PTD8                     | Disabled                                    | ONBOARD_SCL               | -       
- *  PTD9                     | Disabled                                    | ONBOARD_SDA               | -       
- *  PTD11                    | Disabled                                    | SW2                       | -       
- *  PTA10                    | Disabled                                    | SW3                       | -       
- *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
- *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
- *  PTC18                    | Disabled                                    | nRF_irq                   | -       
- *  PTD7                     | Disabled                                    | nRF_miso                  | -       
- *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
- *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
+ *  PTB23                    | GPIOB_23                                    | A10                       | -       
+ *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
+ *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
+ *  PTC16                    | GPIOC_16                                    | D2                        | -       
+ *  PTC8                     | GPIOC_8                                     | D3                        | -       
+ *  PTC12                    | GPIOC_12                                    | D4                        | -       
+ *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
+ *  PTA25                    | GPIOA_25                                    | D7                        | -       
+ *  PTB18                    | GPIOB_18                                    | D8                        | -       
+ *  PTB19                    | GPIOB_19                                    | D9                        | -       
+ *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
+ *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
+ *  PTD3                     | GPIOD_3                                     | D12                       | -       
+ *  PTD1                     | GPIOD_1                                     | D13                       | -       
+ *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
+ *  PTC10                    | GPIOC_10                                    | D15                       | -       
+ *  PTE12                    | GPIOE_12                                    | D16                       | -       
+ *  PTE11                    | GPIOE_11                                    | D17                       | -       
+ *  PTC1                     | GPIOC_1/LLWU_P6                             | D18                       | -       
+ *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
+ *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
+ *  PTC7                     | GPIOC_7                                     | D21                       | -       
+ *  PTE8                     | GPIOE_8                                     | D22                       | -       
+ *  PTE7                     | GPIOE_7                                     | D23                       | -       
+ *  PTB10                    | GPIOB_10                                    | D27                       | -       
+ *  PTB11                    | GPIOB_11                                    | D28                       | -       
+ *  PTC0                     | GPIOC_0                                     | D29                       | -       
+ *  PTE24                    | GPIOE_24                                    | D30                       | -       
+ *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
+ *  PTD13                    | GPIOD_13                                    | D32                       | -       
+ *  PTD12                    | GPIOD_12                                    | D33                       | -       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | -       
+ *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
+ *  PTC9                     | GPIOC_9                                     | LED_RED                   | -       
+ *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
+ *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
+ *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
+ *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
+ *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
+ *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
+ *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
+ *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
+ *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
  *
  *
  * @section PinsByFunction Pins by Function
@@ -4137,65 +4212,90 @@ extern void usbdm_PinMapping();
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  ADC0_DM0                 | ADC0_DM0/ADC1_DM3                           |                           | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
- *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
- *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
- *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
+ *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
  *  PTA7                     | ADC0_SE10                                   |                           | -       
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  ADC0_SE16                | ADC0_SE16/CMP1_IN2/ADC0_SE21                |                           | -       
- *  PTE24                    | ADC0_SE17                                   | D30                       | -       
- *  PTE25                    | ADC0_SE18                                   | D31                       | -       
  *  ADC1_DM0                 | ADC1_DM0/ADC0_DM3                           |                           | -       
  *  ADC1_DP0                 | ADC1_DP0/ADC0_DP3                           |                           | -       
  *  PTE0                     | ADC1_SE4a                                   |                           | -       
- *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
  *  PTE1                     | ADC1_SE5a                                   |                           | -       
- *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
  *  PTE2                     | ADC1_SE6a                                   |                           | -       
- *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
- *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
+ *  PTB5                     | ADC1_SE11                                   | A2                        | -       
  *  PTB6                     | ADC1_SE12                                   | A1                        | -       
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
- *  PTB10                    | ADC1_SE14                                   | D27                       | -       
- *  PTB11                    | ADC1_SE15                                   | D28                       | -       
  *  ADC1_SE16                | ADC1_SE16/CMP2_IN2/ADC0_SE22                |                           | -       
  *  PTA17                    | ADC1_SE17                                   |                           | -       
- *  PTC6                     | CMP0_IN0                                    | D19                       | -       
- *  PTC7                     | CMP0_IN1                                    | D21                       | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
  *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA15                    | CMP3_IN1                                    |                           | -       
  *  PTA16                    | CMP3_IN2                                    |                           | -       
  *  PTA24                    | CMP3_IN4                                    |                           | -       
- *  PTA25                    | CMP3_IN5                                    | D7                        | -       
  *  DAC0_OUT                 | DAC0_OUT/CMP1_IN3/ADC0_SE23                 |                           | -       
  *  DAC1_OUT                 | DAC1_OUT/CMP0_IN4/CMP2_IN3/ADC1_SE23        |                           | -       
  *  VREG_IN1                 | Disabled                                    |                           | -       
- *  PTB5                     | ENET0_1588_TMR3                             | A2                        | -       
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
- *  PTC1                     | FTM0_CH0                                    | D18                       | -       
- *  PTD4                     | FTM0_CH4                                    | nRF_cs_n                  | -       
- *  PTB1                     | FTM1_CH1                                    |                           | -       
- *  PTB19                    | FTM2_CH1                                    | D9                        | -       
- *  PTB8                     | GPIOB_8                                     |                           | -       
+ *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | -       
+ *  PTA25                    | GPIOA_25                                    | D7                        | -       
+ *  PTB10                    | GPIOB_10                                    | D27                       | -       
+ *  PTB11                    | GPIOB_11                                    | D28                       | -       
+ *  PTB18                    | GPIOB_18                                    | D8                        | -       
+ *  PTB19                    | GPIOB_19                                    | D9                        | -       
+ *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
+ *  PTB23                    | GPIOB_23                                    | A10                       | -       
+ *  PTC0                     | GPIOC_0                                     | D29                       | -       
+ *  PTC1                     | GPIOC_1/LLWU_P6                             | D18                       | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
+ *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
+ *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
+ *  PTC7                     | GPIOC_7                                     | D21                       | -       
+ *  PTC8                     | GPIOC_8                                     | D3                        | -       
+ *  PTC9                     | GPIOC_9                                     | LED_RED                   | -       
+ *  PTC10                    | GPIOC_10                                    | D15                       | -       
+ *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
+ *  PTC12                    | GPIOC_12                                    | D4                        | -       
+ *  PTC16                    | GPIOC_16                                    | D2                        | -       
+ *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
+ *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
+ *  PTD1                     | GPIOD_1                                     | D13                       | -       
+ *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
+ *  PTD3                     | GPIOD_3                                     | D12                       | -       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
+ *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
+ *  PTD12                    | GPIOD_12                                    | D33                       | -       
+ *  PTD13                    | GPIOD_13                                    | D32                       | -       
+ *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
+ *  PTE7                     | GPIOE_7                                     | D23                       | -       
+ *  PTE8                     | GPIOE_8                                     | D22                       | -       
+ *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
+ *  PTE11                    | GPIOE_11                                    | D17                       | -       
+ *  PTE12                    | GPIOE_12                                    | D16                       | -       
+ *  PTE24                    | GPIOE_24                                    | D30                       | -       
+ *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
+ *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
+ *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
+ *  PTA1                     | JTAG_TDI                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
  *  PTA4                     | NMI_b                                       |                           | -       
- *  PTC0                     | PDB0_EXTRG                                  | D29                       | -       
  *  RESET_b                  | RESET_b                                     |                           | -       
- *  PTA1                     | TSI0_CH2                                    |                           | -       
- *  PTB16                    | TSI0_CH9                                    |                           | -       
- *  PTB17                    | TSI0_CH10                                   |                           | -       
- *  PTB18                    | TSI0_CH11                                   | D8                        | -       
+ *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
+ *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
+ *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
+ *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
+ *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
  *  USB0_DM                  | USB0_DM                                     |                           | -       
  *  USB0_DP                  | USB0_DP                                     |                           | -       
  *  VBAT                     | VBAT                                        |                           | -       

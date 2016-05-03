@@ -177,7 +177,7 @@ public class WriterForFtm extends PeripheralWithState {
       boolean handlerSet = false;
       for (InterruptEntry entry:vectorTable.getEntries()) {
          if ((entry != null) && entry.getName().startsWith(fName)) {
-            if (getVariableValue("IRQ_HANDLER").equals("1")) {
+            if (isCTrueValue("IRQ_HANDLER")) {
                entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irqHandler");
                entry.setClassMemberUsedAsHandler(true);
                handlerSet = true;
