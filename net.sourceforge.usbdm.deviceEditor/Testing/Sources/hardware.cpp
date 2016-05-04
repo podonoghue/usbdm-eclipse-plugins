@@ -21,8 +21,11 @@ struct PinInit {
 };
 
 static constexpr PinInit pinInit[] = {
+ /* PTA4       ==> FTM0_CH1                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTA->PCR[4],  },
+ /* PTA5       ==> GPIOA_5                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[5],  },
  /* PTA10      ==> GPIOA_10/LLWU_P22         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[10], },
- /* PTA11      ==> GPIOA_11/LLWU_P23         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[11], },
+ /* PTA11      ==> FTM2_QD_PHB/TPM2_CH1      */  { PORT_PCR_MUX(6)|USBDM::DEFAULT_PCR, &PORTA->PCR[11], },
+ /* PTA12      ==> FTM1_QD_PHA/TPM1_CH0      */  { PORT_PCR_MUX(7)|USBDM::DEFAULT_PCR, &PORTA->PCR[12], },
  /* PTA25      ==> GPIOA_25                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[25], },
  /* PTB2       ==> ADC0_SE12/TSI0_CH7        */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[2],  },
  /* PTB3       ==> ADC0_SE13/TSI0_CH8        */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[3],  },
@@ -39,7 +42,7 @@ static constexpr PinInit pinInit[] = {
  /* PTB20      ==> GPIOB_20                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[20], },
  /* PTB23      ==> GPIOB_23                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[23], },
  /* PTC0       ==> GPIOC_0                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[0],  },
- /* PTC1       ==> GPIOC_1/LLWU_P6           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[1],  },
+ /* PTC1       ==> I2S0_TXD0                 */  { PORT_PCR_MUX(6)|USBDM::DEFAULT_PCR, &PORTC->PCR[1],  },
  /* PTC2       ==> GPIOC_2                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[2],  },
  /* PTC3       ==> GPIOC_3/LLWU_P7           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[3],  },
  /* PTC4       ==> GPIOC_4/LLWU_P8           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[4],  },
@@ -47,7 +50,7 @@ static constexpr PinInit pinInit[] = {
  /* PTC6       ==> GPIOC_6/LLWU_P10          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[6],  },
  /* PTC7       ==> GPIOC_7                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[7],  },
  /* PTC8       ==> GPIOC_8                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[8],  },
- /* PTC9       ==> GPIOC_9                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[9],  },
+ /* PTC9       ==> FTM3_CH5                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTC->PCR[9],  },
  /* PTC10      ==> GPIOC_10                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[10], },
  /* PTC11      ==> GPIOC_11/LLWU_P11         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[11], },
  /* PTC12      ==> GPIOC_12                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[12], },

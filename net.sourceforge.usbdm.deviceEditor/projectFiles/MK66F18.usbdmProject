@@ -19,6 +19,7 @@
 	<item value="mux7" key="PTD5_muxSetting"/>
 	<item value="0" key="ADC1_IRQ_LEVEL"/>
 	<item value="0" key="TPM2_IRQ_LEVEL"/>
+	<item value="mux1" key="PTA5_muxSetting"/>
 	<item value="mux2" key="PTD8_muxSetting"/>
 	<item value="mux1" key="PTE8_muxSetting"/>
 	<item value="0" key="LPTMR0_IRQ_HANDLER"/>
@@ -69,7 +70,7 @@
 	<item value="mux1" key="PTD13_muxSetting"/>
 	<item value="mux1" key="PTD1_muxSetting"/>
 	<item value="0" key="TPM1_IRQ_HANDLER"/>
-	<item value="mux1" key="PTC1_muxSetting"/>
+	<item value="mux6" key="PTC1_muxSetting"/>
 	<item value="0" key="FTM1_SC_CPWMS"/>
 	<item value="0" key="SPI1_IRQ_LEVEL"/>
 	<item value="mux3" key="PTB16_muxSetting"/>
@@ -101,6 +102,7 @@
 	<item value="1" key="FTM3_SC_CLKS"/>
 	<item value="0" key="SPI2_LSBFE"/>
 	<item value="mux3" key="PTB17_muxSetting"/>
+	<item value="mux7" key="PTA12_muxSetting"/>
 	<item value="0" key="I2C0_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_PSR_PRESCALE"/>
 	<item value="0" key="I2C3_IRQ_HANDLER"/>
@@ -137,10 +139,11 @@
 	<item value="0" key="ADC0_SC2_REFSEL"/>
 	<item value="0" key="ADC0_SC2_DMAEN"/>
 	<item value="0b000" key="ADC1_SC2_COMPARE"/>
+	<item value="mux3" key="PTA4_muxSetting"/>
 	<item value="mux1" key="PTE7_muxSetting"/>
 	<item value="0" key="FTM3_SC_PS"/>
 	<item value="0" key="FTM3_IRQ_LEVEL"/>
-	<item value="mux1" key="PTA11_muxSetting"/>
+	<item value="mux6" key="PTA11_muxSetting"/>
 	<item value="mux0" key="PTB4_muxSetting"/>
 	<item value="mux1" key="PTE24_muxSetting"/>
 	<item value="10000" key="TPM2_PERIOD"/>
@@ -152,7 +155,7 @@
 	<item value="1" key="TPM1_SC_CMOD"/>
 	<item value="0" key="FTM0_IRQ_HANDLER"/>
 	<item value="0" key="MCG_clock_mode"/>
-	<item value="mux1" key="PTC9_muxSetting"/>
+	<item value="mux3" key="PTC9_muxSetting"/>
 	<item value="0" key="ADC1_CFG1_ADICLK"/>
 	<item value="1" key="FTM0_SC_CLKS"/>
 	<item value="0" key="SPI0_IRQ_LEVEL"/>

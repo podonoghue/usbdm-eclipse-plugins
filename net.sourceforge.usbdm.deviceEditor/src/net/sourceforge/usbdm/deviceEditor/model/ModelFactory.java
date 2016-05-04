@@ -329,11 +329,11 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
                }
                sb.append(") =>> ");
                sb.append(mapping.getPin().getName());
+               sb.append("\nPin mapped to multiple signals");
                // Mark all conflicting nodes
                for (MappingInfo other:signalsMappedToPin) {
                   other.setMessage(sb.toString());
                }
-               sb.append("\nPin mapped to multiple signals");
             }
          }
          /*
@@ -349,7 +349,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             for (MappingInfo other:pinsMappedToSignal) {
                if (sb == null) {
                   sb = new StringBuffer();
-                  sb.append("Error: "+mapping.getSignalList()+" =>> (");
+                  sb.append(mapping.getSignalList()+" =>> (");
                }
                else {
                   sb.append(", ");

@@ -57,91 +57,91 @@ public class WriterForGpio extends Peripheral {
             );
    }
 
-   static final String TEMPLATE_DOCUMENTATION_1 = 
-     "/**\n"+
-     " * @brief Convenience template for %s. See @ref Gpio_T\n"+
-     " *\n"+
-     " * <b>Usage</b>\n"+
-     " * @code\n"+
-     " * // Instantiate for bit 3 of %s\n"+
-     " * %s<3> %s3\n"+
-     " *\n"+
-     " * // Set as digital output\n"+
-     " * %s3.setOutput();\n"+
-     " *\n"+
-     " * // Set pin high\n"+
-     " * %s3.set();\n"+
-     " *\n"+
-     " * // Set pin low\n"+
-     " * %s3.clear();\n"+
-     " *\n"+
-     " * // Toggle pin\n"+
-     " * %s3.toggle();\n"+
-     " *\n"+
-     " * // Set pin to boolean value\n"+
-     " * %s3.write(true);\n"+
-     " *\n"+
-     " * // Set pin to boolean value\n"+
-     " * %s3.write(false);\n"+
-     " *\n"+
-     " * // Set as digital input\n"+
-     " * %s3.setInput();\n"+
-     " *\n"+
-     " * // Read pin as boolean value\n"+
-     " * bool x = %s3.read();\n"+
-     " * @endcode\n"+
-     " *\n"+
-     " * @tparam bitNum        Bit number in the port\n"+
-     " */\n";
-   static final String TEMPLATE_DOCUMENTATION_2 = 
-     "/**\n"+
-     " * @brief Convenience template for %s fields. See @ref Field_T\n"+
-     " *\n"+
-     " * <b>Usage</b>\n"+
-     " * @code\n"+
-     " * // Instantiate for bit 6 down to 3 of %s\n"+
-     " * %sField<6,3> %s6_3\n"+
-     " *\n"+
-     " * // Set as digital output\n"+
-     " * %s6_3.setOutput();\n"+
-     " *\n"+
-     " * // Write value to field\n"+
-     " * %s6_3.write(0x53);\n"+
-     " *\n"+
-     " * // Clear all of field\n"+
-     " * %s6_3.bitClear();\n"+
-     " *\n"+
-     " * // Clear lower two bits of field\n"+
-     " * %s6_3.bitClear(0x3);\n"+
-     " *\n"+
-     " * // Set lower two bits of field\n"+
-     " * %s6_3.bitSet(0x3);\n"+
-     " *\n"+
-     " * // Set as digital input\n"+
-     " * %s6_3.setInput();\n"+
-     " *\n"+
-     " * // Read pin as int value\n"+
-     " * int x = %s6_3.read();\n"+
-     " * @endcode\n"+
-     " *\n"+
-     " * @tparam left          Bit number of leftmost bit in port (inclusive)\n"+
-     " * @tparam right         Bit number of rightmost bit in port (inclusive)\n"+
-     " */\n";
+//   static final String TEMPLATE_DOCUMENTATION_1 = 
+//     "/**\n"+
+//     " * @brief Convenience template for %s. See @ref Gpio_T\n"+
+//     " *\n"+
+//     " * <b>Usage</b>\n"+
+//     " * @code\n"+
+//     " * // Instantiate for bit 3 of %s\n"+
+//     " * %s<3> %s3\n"+
+//     " *\n"+
+//     " * // Set as digital output\n"+
+//     " * %s3.setOutput();\n"+
+//     " *\n"+
+//     " * // Set pin high\n"+
+//     " * %s3.set();\n"+
+//     " *\n"+
+//     " * // Set pin low\n"+
+//     " * %s3.clear();\n"+
+//     " *\n"+
+//     " * // Toggle pin\n"+
+//     " * %s3.toggle();\n"+
+//     " *\n"+
+//     " * // Set pin to boolean value\n"+
+//     " * %s3.write(true);\n"+
+//     " *\n"+
+//     " * // Set pin to boolean value\n"+
+//     " * %s3.write(false);\n"+
+//     " *\n"+
+//     " * // Set as digital input\n"+
+//     " * %s3.setInput();\n"+
+//     " *\n"+
+//     " * // Read pin as boolean value\n"+
+//     " * bool x = %s3.read();\n"+
+//     " * @endcode\n"+
+//     " *\n"+
+//     " * @tparam bitNum        Bit number in the port\n"+
+//     " */\n";
+//   static final String TEMPLATE_DOCUMENTATION_2 = 
+//     "/**\n"+
+//     " * @brief Convenience template for %s fields. See @ref Field_T\n"+
+//     " *\n"+
+//     " * <b>Usage</b>\n"+
+//     " * @code\n"+
+//     " * // Instantiate for bit 6 down to 3 of %s\n"+
+//     " * %sField<6,3> %s6_3\n"+
+//     " *\n"+
+//     " * // Set as digital output\n"+
+//     " * %s6_3.setOutput();\n"+
+//     " *\n"+
+//     " * // Write value to field\n"+
+//     " * %s6_3.write(0x53);\n"+
+//     " *\n"+
+//     " * // Clear all of field\n"+
+//     " * %s6_3.bitClear();\n"+
+//     " *\n"+
+//     " * // Clear lower two bits of field\n"+
+//     " * %s6_3.bitClear(0x3);\n"+
+//     " *\n"+
+//     " * // Set lower two bits of field\n"+
+//     " * %s6_3.bitSet(0x3);\n"+
+//     " *\n"+
+//     " * // Set as digital input\n"+
+//     " * %s6_3.setInput();\n"+
+//     " *\n"+
+//     " * // Read pin as int value\n"+
+//     " * int x = %s6_3.read();\n"+
+//     " * @endcode\n"+
+//     " *\n"+
+//     " * @tparam left          Bit number of leftmost bit in port (inclusive)\n"+
+//     " * @tparam right         Bit number of rightmost bit in port (inclusive)\n"+
+//     " */\n";
 //   template<int left, int right, uint32_t defPcrValue=GPIO_DEFAULT_PCR> using GpioAField = Field_T<GpioAInfo, left, right, defPcrValue>;
 
-   @Override
-   public String getCTemplate() {  
-      StringBuffer buff = new StringBuffer();
-      buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", getClassName()));
-      buff.append(String.format(
-            "template<uint8_t bitNum> using %s = Gpio_T<%sInfo, bitNum>;\n\n",
-            getClassName(), getClassName()));
-      buff.append(TEMPLATE_DOCUMENTATION_2.replaceAll("%s", getClassName()));
-      buff.append(String.format(
-            "template<int left, int right> using %sField = Field_T<%sInfo, left, right>;\n\n",
-            getClassName(), getClassName()));
-      return buff.toString();
-   }
+//   @Override
+//   public String getCTemplate() {  
+//      StringBuffer buff = new StringBuffer();
+//      buff.append(TEMPLATE_DOCUMENTATION_1.replaceAll("%s", getClassName()));
+//      buff.append(String.format(
+//            "template<uint8_t bitNum> using %s = Gpio_T<%sInfo, bitNum>;\n\n",
+//            getClassName(), getClassName()));
+//      buff.append(TEMPLATE_DOCUMENTATION_2.replaceAll("%s", getClassName()));
+//      buff.append(String.format(
+//            "template<int left, int right> using %sField = Field_T<%sInfo, left, right>;\n\n",
+//            getClassName(), getClassName()));
+//      return buff.toString();
+//   }
 
    @Override
    public int getSignalIndex(Signal function) {

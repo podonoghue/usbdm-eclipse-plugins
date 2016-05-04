@@ -180,7 +180,7 @@ public abstract class BaseModel {
          }
       }
       if (fLogging) {
-         System.err.println("Getting dscription "+fName+" => "+description);
+         System.err.println("Getting description "+fName+" => "+description);
       }
       return description;
    }

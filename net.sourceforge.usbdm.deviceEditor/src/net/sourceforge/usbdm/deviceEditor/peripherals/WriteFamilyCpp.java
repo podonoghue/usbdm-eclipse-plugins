@@ -278,6 +278,7 @@ public class WriteFamilyCpp {
       if (fDeviceInfo.getPeripherals().containsKey("TPM0")|fDeviceInfo.getPeripherals().containsKey("TPM1")) {
          writer.writeHeaderFileInclude("tpm.h");
       }
+      writer.writeHeaderFileInclude("gpio.h");
       writer.write("\n");
    }
    
@@ -575,7 +576,7 @@ public class WriteFamilyCpp {
       writer.writeSystemHeaderFileInclude("stddef.h");
       writer.writeHeaderFileInclude("derivative.h");
       headerFile.write("\n");
-      writer.writeHeaderFileInclude("gpio.h");
+      writer.writeHeaderFileInclude("pcr.h");
       headerFile.write("\n");
 
       writePinDefines(writer);

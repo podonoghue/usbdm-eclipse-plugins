@@ -130,17 +130,20 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
          label.setText(failureReason);
          return;
-
       }
       Display display = Display.getCurrent();
       // Create the containing tab folder
-      fTabFolder   = new CTabFolder(parent, SWT.BOTTOM|SWT.BORDER);
+      fTabFolder   = new CTabFolder(parent, SWT.BOTTOM);
       fTabFolder.setSimple(false);
       ArrayList<Object> treeEditors = new ArrayList<Object>();
       fTabFolder.setBackground(new Color[]{
-            display.getSystemColor(SWT.COLOR_CYAN), 
-            display.getSystemColor(SWT.COLOR_WHITE)},
-            new int[] {50});
+            display.getSystemColor(SWT.COLOR_WHITE),
+            display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)}, 
+            new int[]{100}, true);
+      fTabFolder.setSelectionBackground(new Color[]{
+            display.getSystemColor(SWT.COLOR_WHITE),
+            display.getSystemColor(SWT.COLOR_WHITE)}, 
+            new int[]{100}, true);
 
       for (RootModel model:fFactory.getModels()) {
          // Pin view
