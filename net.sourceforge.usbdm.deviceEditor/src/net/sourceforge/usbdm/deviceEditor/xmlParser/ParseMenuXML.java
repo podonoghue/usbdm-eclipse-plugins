@@ -22,12 +22,14 @@ import net.sourceforge.usbdm.jni.Usbdm;
 public class ParseMenuXML extends XML_BaseParser {
 
    public static class Data {
-      public final BaseModel[] fModels;
-      public final String      fTemplate;
+      public final BaseModel[]          fModels;
+      public final String               fTemplate;
+      public final ArrayList<Validator> fValidators;
       
-      public Data(BaseModel[] models, String template) {
-         fModels   = models;
-         fTemplate = template;
+      public Data(BaseModel[] models, String template, ArrayList<Validator> validators) {
+         fModels     = models;
+         fTemplate   = template;
+         fValidators = validators;
       }
    };
    
@@ -91,13 +93,95 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in <choiceOption>, value = \'"+element.getTagName()+"\'");
          }
       }
-      fProvider.createValue(name, defaultValue, name);
+      fProvider.createVariable(name, defaultValue);
       String theChoices[] = choices.toArray(new String[choices.size()]);
       String theValues[]  = values.toArray(new String[values.size()]);
       SelectionVariableModel model = new SelectionVariableModel(parent, fProvider, name, description);
       model.setToolTip(toolTip);;
       model.setChoices(theChoices);
       model.setValues(theValues);
+   }
+   
+   /**
+    * Class representing a validator parameter
+    */
+   static class Param {
+   };
+   
+   static class LongParam extends Param {
+      long   fValue;
+      /**
+       * COnstruct parameter with Long value
+       * @param value
+       */
+      public LongParam(long value) {
+         fValue = value;
+      }
+   };
+   
+   static class StringParam extends Param {
+      String   fValue;
+      /**
+       * COnstruct parameter with String value
+       * @param value
+       */
+      public StringParam(String value) {
+         fValue = value;
+      }
+   };
+   
+   static class Validator {
+      String fClassName;
+      ArrayList<Param> params = new ArrayList<Param>();
+      /**
+       * Construct validator
+       * 
+       * @param className Name of class
+       */
+      public Validator(String className) {
+         fClassName = className;
+      }
+      /**
+       * Add parameter to validator
+       * 
+       * @param param
+       */
+      void addParam(Param param) {
+         params.add(param);
+      }
+   }
+   
+   /**
+    * Parse &lt;validate&gt; element<br>
+    * 
+    * @param validateElement
+    */
+   private static Validator parseValidate(Element validateElement) {
+      Validator validator = new Validator(validateElement.getAttribute("class"));
+      for (Node node = validateElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "param") {
+            String  type   = element.getAttribute("type");
+            if (type.equalsIgnoreCase("int")) {
+               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+            }
+            else if (type.equalsIgnoreCase("string")) {
+               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+            }
+            else {
+               throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
+            }
+         }
+         else {
+            throw new RuntimeException("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
+         }
+      }
+      return validator;
    }
 
    /**
@@ -138,7 +222,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((choices.size()==0)||(choices.size()>2)) {
          throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+choices.size());
       }
-      fProvider.createValue(name, defaultValue, name);
+      fProvider.createVariable(name, defaultValue);
       
       BinaryVariableModel model = new BinaryVariableModel(parent, fProvider, name, description);
       model.setName(name);
@@ -156,7 +240,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private BaseModel parseMenu(BaseModel parent, Element menuElement) throws Exception {
 
-      String name        = menuElement.getAttribute("name");
+      String name = menuElement.getAttribute("name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
@@ -170,7 +254,10 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "intOption") {
+         if (element.getTagName() == "menu") {
+            parseMenu(model, element);
+         }
+         else if (element.getTagName() == "intOption") {
             parseLongOption(model, element);
          }
          else if (element.getTagName() == "binaryOption") {
@@ -212,6 +299,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String template = null;
       ParseMenuXML parser = new ParseMenuXML(provider);
       ArrayList<BaseModel> models = new ArrayList<BaseModel>();
+      ArrayList<Validator> validators = new ArrayList<Validator>();
       for (Node node = documentElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -222,6 +310,9 @@ public class ParseMenuXML extends XML_BaseParser {
          if (element.getTagName() == "menu") {
             models.add(parser.parseMenu(parent, element));
          }
+         else if (element.getTagName() == "validate") {
+            parseValidate(element);
+         }
          else if (element.getTagName() == "template") {
             template = element.getTextContent().replaceAll("^\n\\s*","").replaceAll("(\\\\n|\\n)\\s*", "\n").replaceAll("\\\\t","   ");
          }
@@ -229,7 +320,7 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }
-      return new Data(models.toArray(new BaseModel[models.size()]), template);
+      return new Data(models.toArray(new BaseModel[models.size()]), template, validators);
    }
    
    /**
@@ -278,7 +369,7 @@ public class ParseMenuXML extends XML_BaseParser {
          BaseModel models[] = {
                new CategoryModel(null, "Unknown", "Error"),
             };
-         Data data = new Data(models, "");
+         Data data = new Data(models, "", new ArrayList<Validator>());
          new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
          return data;
       }

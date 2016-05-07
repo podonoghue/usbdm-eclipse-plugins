@@ -107,8 +107,19 @@ public class DeviceInfo extends ObservableModel {
    /** Relative location of hardware files in USBDM installation */
    public static final String USBDM_HARDWARE_LOCATION = "Stationery/Packages/180.ARM_Peripherals/Hardware";
    
-   private final HashMap<String, String> fVariables = new HashMap<String, String>();
-   
+   public static class Variable extends ObservableModel {
+      String fName;
+      String fValue;
+      
+      Variable(String name, String value) {
+         fName  = name;
+         fValue = value;
+      }
+   }
+
+   /** Map of variables for this peripheral */
+   private final HashMap<String, Variable> fVariables = new HashMap<String, Variable>();
+
    /**
     * Create empty device information
     */
@@ -1619,7 +1630,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return Map of VariableKey -> Value
     */
-   public Map<String, String> getVariableMap() {
+   public Map<String, Variable> getVariableMap() {
       return fVariables;
    }
    
@@ -1631,10 +1642,12 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if variable already exists
     */
-   public void createVariable(String key, String value) {
-      if (fVariables.put(key, value) != null) {
+   public Variable createVariable(String key, String value) {
+      Variable variable = new Variable(key, value);
+      if (fVariables.put(key, variable) != null) {
          throw new RuntimeException("Variable already exists \'"+key+"\'");
       };
+      return variable;
    }
    
    /**
@@ -1645,11 +1658,11 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if variable doesn't exist
     */
    public String getVariableValue(String key) {
-      String value = fVariables.get(key);
+      Variable value = fVariables.get(key);
       if (value == null) {
          throw new RuntimeException("Variable does not exist \'"+key+"\'");
       };
-      return value;
+      return value.fValue;
    }
 
    /**
@@ -1660,11 +1673,19 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if variable doesn't exist
     */
    public void setVariableValue(String key, String value) {
-      String oldValue = getVariableValue(key);
-      if (oldValue.equals(value)) {
+      Variable variable = fVariables.get(key);
+      if (variable.fValue.equals(value)) {
          return;
       }
-      fVariables.put(key, value);
+      variable.fValue = value;
       setDirty(true);
+   }
+
+   public Map<String, String> getSimpleMap() {
+      HashMap<String, String>map = new HashMap<String, String>();
+      for (String key:fVariables.keySet()) {
+         map.put(key, fVariables.get(key).fValue);
+      }
+      return map;
    }
 }

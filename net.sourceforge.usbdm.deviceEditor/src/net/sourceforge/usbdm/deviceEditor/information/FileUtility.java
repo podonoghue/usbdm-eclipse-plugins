@@ -63,17 +63,17 @@ public class FileUtility {
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
     * @param input        String to replace macros in
-    * @param variableMap  Map of key->value pairs for substitution
+    * @param map  Map of key->value pairs for substitution
     * @param keyMaker     Interface providing a method to create a key from a variable name
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substitute(String input, Map<String,String> variableMap, IKeyMaker keyMaker) {
+   public static String substitute(String input, Map<String, String> map, IKeyMaker keyMaker) {
 
       if (input == null) {
          return null;
       }
-      if (variableMap == null) {
+      if (map == null) {
          return input;
       }
       ArrayList<String> patterns = findAllPatterns(input);
@@ -89,7 +89,7 @@ public class FileUtility {
             defaultValue = matcher.group(2);
 //          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
          }
-         String replaceWith = variableMap.get(keyMaker.makeKey(key));
+         String replaceWith = map.get(keyMaker.makeKey(key));
          if (replaceWith == null) {
             //           System.out.println("Using default \'" + defaultValue + "\'");
             replaceWith = defaultValue;

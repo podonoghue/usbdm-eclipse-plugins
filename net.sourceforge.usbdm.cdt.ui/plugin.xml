@@ -284,13 +284,15 @@
             tooltip="Create USBDM Launch configuration">
             <visibleWhen>
                <and>
-                  <with variable="org.eclipse.core.runtime.Platform">
+                  <iterate operator="or">
                      <test
-                        property="org.eclipse.core.runtime.isBundleInstalled"
-                        args="com.freescale.s32ds.cdt"/>
-                  </with>
-                  <iterate operator="and">
-                     <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature" />
+                           property="org.eclipse.core.resources.projectNature"
+                           value="org.eclipse.cdt.core.cnature">
+                     </test>
+                     <test
+                           property="org.eclipse.core.resources.projectNature"
+                           value="org.eclipse.cdt.core.ccnature">
+                     </test>
                   </iterate>
                   <not>
                      <iterate operator="and">

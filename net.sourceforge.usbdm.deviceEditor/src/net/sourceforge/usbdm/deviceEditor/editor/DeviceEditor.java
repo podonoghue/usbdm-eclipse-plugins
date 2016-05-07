@@ -52,7 +52,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    private ModelFactory fFactory             = null;
 
    /** Folder containing all the tabs */
-   private CTabFolder    fTabFolder           = null;
+   private CTabFolder    fTabFolder          = null;
 
    private Object[] fTreeEditors             = null;
 

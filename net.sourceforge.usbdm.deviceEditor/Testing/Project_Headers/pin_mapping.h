@@ -2252,6 +2252,7 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   //! Indicates interrupt handler has been installed
 };
 
 /** 

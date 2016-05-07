@@ -7,6 +7,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
@@ -33,7 +34,7 @@ public class WriterForMcg extends PeripheralWithState {
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
       String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
-      return INSTANCE_BASE_NAME+instance+"_"+signal;
+      return getClassName()+instance+"_"+signal;
    }
 
    @Override
@@ -64,13 +65,18 @@ public class WriterForMcg extends PeripheralWithState {
       return "extern " + getDefinition(mappingInfo, fnIndex);
    }
 
-   static final String TEMPLATE = 
-         "";
-   
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
-      pinMappingHeaderFile.write(substitute(TEMPLATE));
+      StringBuffer sb = new StringBuffer();
+      sb.append(substitute(fData.fTemplate));
+      pinMappingHeaderFile.write(sb.toString());
+   }
+
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      fData.fModels[0].setParent(parent);
+      return fData.fModels;
    }
 
    @Override
@@ -79,8 +85,14 @@ public class WriterForMcg extends PeripheralWithState {
    }
 
    @Override
-   public BaseModel[] getModels(BaseModel parent) {
-      return null;
+   public void modelElementChanged(ObservableModel observableModel) {
+      // TODO Auto-generated method stub
+      
    }
 
+   @Override
+   public void modelStructureChanged(ObservableModel observableModel) {
+      // TODO Auto-generated method stub
+      
+   }
 }

@@ -15,11 +15,12 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -88,30 +89,29 @@ public class CreateLaunchConfigurationHandler implements IHandler {
     */
    private String scrapeDeviceName(IProject project) {
       String  targetDeviceName = null;
-      IFolder folder          = project.getFolder("Project_Settings/Debugger");
-      final String pattern    = ".*DEVICE_NAME.*\"Freescale_.*_(.*)\".*";
-      
-      String[] launchFilenames = {
-            project.getName()+"_Debug.launch",
+      final String pattern     = ".*DEVICE_NAME.*\"(Freescale|NXP)_.*_(.*)\".*";
+
+      String[] launchFilePaths = {
+            "Project_Settings/Debugger/"+project.getName()+"_Debug_PNE.launch",
             project.getName()+"_Debug_PNE.launch",
+            "Project_Settings/Debugger/"+project.getName()+"_Debug.launch",
+            project.getName()+"_Debug.launch",
       };
-      
-      for (String launchFilename : launchFilenames) {
-         IFile launchFile = folder.getFile(launchFilename);
+
+      for (String launchFilePath : launchFilePaths) {
+         IFile launchFile = project.getFile(launchFilePath);
          if (!launchFile.exists()) {
-//            System.err.println("P&E launch file " + launchFile + " doesn't exist");
+            System.err.println("Launch file \'" + launchFile + "\' doesn't exist");
             continue;
          }
          try {
             Matcher m = scrapeFile(launchFile.getContents(), pattern);
             if (m != null) {
-               targetDeviceName = m.group(1);
-//               System.err.println("Matched target = " + targetDeviceName);
+               targetDeviceName = m.group(2);
+               System.err.println("Matched "+m.group(1)+" target = " + targetDeviceName);
+               break;
             }
          } catch (Exception e) {
-         }
-         if (targetDeviceName != null) {
-            return targetDeviceName;
          }
       }
       return targetDeviceName;
@@ -158,27 +158,25 @@ public class CreateLaunchConfigurationHandler implements IHandler {
          System.err.println("Selection.getFirstElement() is not an instance of org.eclipse.cdt.core.model.IProject");
          return null;
       }         
-      IProject  project    = (IProject) selection.getFirstElement();
-      IFolder   folder     = project.getFolder("Project_Settings/Debugger");
+      IProject project    = (IProject) selection.getFirstElement();
+      IContainer  folder  = project.getFolder("Project_Settings/Debugger");
       if (!folder.exists()) {
-         System.err.println("Folder " + folder + " doesn't exist");
-         displayError(shell, "Project does not have expected structure.\nIs this a S32DS project?");
-         return null;
+         System.err.println("Folder " + folder + " doesn't exist, creating launch config in root directory");
+         folder = project;
       }
-      try {
-         String[] natures = project.getDescription().getNatureIds();
-         for (String nature:natures) {
-            System.err.println(nature);
-         }
-      } catch (CoreException e1) {
-         e1.printStackTrace();
-      }
-      String launchFilename = project.getName()+"_Debug_USBDM.launch";
-      IFile launchFile = folder.getFile(launchFilename);
+//      try {
+//         String[] natures = project.getDescription().getNatureIds();
+//         for (String nature:natures) {
+//            System.err.println(nature);
+//         }
+//      } catch (CoreException e1) {
+//         e1.printStackTrace();
+//      }
+      IFile launchFile = folder.getFile(new Path(project.getName()+"_Debug_USBDM.launch"));
 
       if (launchFile.exists()) {
          System.err.println("File " + launchFile + " already exist");
-         displayError(shell, "Launch configuration \n\"" + launchFilename + "\"\nalready exists");
+         displayError(shell, "Launch configuration \n\"" + launchFile.getName() + "\"\nalready exists");
          return null;
       }
       String deviceName = scrapeDeviceName(project);

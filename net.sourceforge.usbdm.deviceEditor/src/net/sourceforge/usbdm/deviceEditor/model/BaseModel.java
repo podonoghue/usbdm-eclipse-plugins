@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.peripherals.model.MemoryException;
 
 /**
  * Base Model for tree item

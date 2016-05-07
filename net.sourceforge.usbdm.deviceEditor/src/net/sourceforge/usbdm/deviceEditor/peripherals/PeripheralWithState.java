@@ -5,30 +5,23 @@ import java.util.Map;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 
-public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider {
+public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener{
 
    /** Data about model loaded from file */
    protected Data fData = null;
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-   }
-
-   // XXX Remove
-   public void createValue(String key, String value, String string2, long min, long max) {
-      createVariable(key, value);
-   }
-
-   // XXX Remove
-   public void createValue(String key, String value, String string2) {
-      createVariable(key, value);
    }
 
    private class KeyMaker implements IKeyMaker {
@@ -67,7 +60,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception if variable already exists
     */
    public void createVariable(String key, String value) {
-      fDeviceInfo.createVariable(keyMaker.makeKey(key), value);
+      Variable variable = fDeviceInfo.createVariable(keyMaker.makeKey(key), value);
+      variable.addListener(this);
    }
 
    @Override
@@ -94,13 +88,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Does variable substitution in a string
     * 
     * @param input         String to process
-    * @param variableMap   Map of key->replacement values
+    * @param map   Map of key->replacement values
     * 
     * @return Modified string or original if no changes
     * @throws Exception 
     */
-   String substitute(String input, Map<String, String> variableMap) {
-      return FileUtility.substitute(input, variableMap, keyMaker);
+   String substitute(String input, Map<String, String> map) {
+      return FileUtility.substitute(input, map, keyMaker);
    }
 
    /**
@@ -111,7 +105,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified string or original if no changes
     */
    String substitute(String input) {
-      return substitute(input, fDeviceInfo.getVariableMap());
+      return substitute(input, fDeviceInfo.getSimpleMap());
    }
    
    /**
@@ -131,4 +125,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
       return value.equalsIgnoreCase("true");
    }
+
+   @Override
+   public void modelElementChanged(ObservableModel observableModel) {
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel observableModel) {
+   }
+
 }
