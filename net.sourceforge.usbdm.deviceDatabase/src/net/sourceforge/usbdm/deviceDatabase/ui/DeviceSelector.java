@@ -57,9 +57,6 @@ public class DeviceSelector extends TitleAreaDialog  {
       fTargetName = targetName;
    }
    
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.dialogs.Dialog#createContents(org.eclipse.swt.widgets.Composite)
-    */
    @Override
    protected Control createDialogArea(Composite parent) {
       Composite comp = (Composite)super.createDialogArea(parent);
@@ -83,16 +80,18 @@ public class DeviceSelector extends TitleAreaDialog  {
    void validate() {
       if (deviceSelectorPanel != null) {
          String msg = deviceSelectorPanel.validate();
-         setErrorMessage(msg);
+         if (msg != null) {
+            setErrorMessage(msg+" (Matching devices: "+deviceSelectorPanel.getMatchingDevices()+")");
+         }
+         else {
+            setErrorMessage(null);
+         }
          getButton(IDialogConstants.OK_ID).setEnabled(msg == null);
          fTargetName   = deviceSelectorPanel.getDeviceName();
          fTargetDevice = deviceSelectorPanel.getDevice();
       }
    }
    
-   /* (non-Javadoc)
-    * @see org.eclipse.jface.dialogs.Dialog#create()
-    */
    @Override
    public void create() {
       super.create();
@@ -100,29 +99,17 @@ public class DeviceSelector extends TitleAreaDialog  {
       validate();
    }
 
-   /*
-    * (non-Javadoc)
-    * @see org.eclipse.jface.window.Window#configureShell(org.eclipse.swt.widgets.Shell)
-    */
    @Override
    protected void configureShell(Shell newShell) {
      super.configureShell(newShell);
      newShell.setText("USBDM Device Selection");
    }
 
-   /*
-    * (non-Javadoc)
-    * @see org.eclipse.jface.dialogs.Dialog#getInitialSize()
-    */
    @Override
    protected Point getInitialSize() {
      return new Point(500, 600);
    }
    
-   /*
-    * (non-Javadoc)
-    * @see org.eclipse.jface.dialogs.Dialog#isResizable()
-    */
    @Override
    protected boolean isResizable() {
       return true;
@@ -151,7 +138,9 @@ public class DeviceSelector extends TitleAreaDialog  {
       Shell shell = new Shell(display);
       shell.setBackground(new Color(display, 255,0,0));
       
-      DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, null);//"MK20DX128M5");
+//      DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, null);
+      DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, "K20DX128");
+//      DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, "K20DX128m5");
       int rc = deviceSelector.open();
       System.out.println("rc = " + rc);
       if (rc == Window.OK) {
