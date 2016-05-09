@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public abstract class VectorTable extends ModeControl {
    
@@ -18,6 +19,9 @@ public abstract class VectorTable extends ModeControl {
    protected String             name              = null;
    protected String             description       = "";
    
+   /** List of files to #include at top of file */ 
+   protected HashSet<String>  fIncludeFiles      = new HashSet<String>();
+
    protected static final String DEFAULT_HANDLER_NAME       = "Default_Handler";
    protected static final String EXCEPTION_HANDLER_SUFFIX   = "_Handler";
    protected static final String EXCEPTION_IRQ_SUFFIX       = "_IRQHandler";
@@ -352,4 +356,27 @@ public abstract class VectorTable extends ModeControl {
       }
       return writer.toString();
    }
+
+   /**
+    * Add to set of files to #include at top of vector file 
+    *
+    * @param headerFileName
+    */
+   public void addIncludeFile(String headerFileName) {
+      fIncludeFiles.add(headerFileName);
+   }
+   
+   /**
+    * Get set of files to #include at top of vector file 
+    * 
+    * @return Set of include files
+    */
+   public String getCIncludeFiles() {
+      StringBuffer sb = new StringBuffer();
+      for (String includeFile:fIncludeFiles) {
+         sb.append(String.format("#include \"%s\"\n", includeFile));
+      }
+      return sb.toString();
+   }
+
 }

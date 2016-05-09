@@ -46,6 +46,7 @@ public class UsbdmConstants {
    public final static String CONDITION_PREFIX_KEY             = "projectOptionValue";     //$NON-NLS-1$
    public final static String FILE_COPY_LIST                   = "fileCopyList";           //$NON-NLS-1$
    public final static String C_VECTOR_TABLE_KEY               = "cVectorTable";           //$NON-NLS-1$
+   public final static String C_VECTOR_TABLE_INCLUDES_KEY      = "VectorsIncludeFiles";    //$NON-NLS-1$
    
    public final static String EXCLUDED_FILES_PATTERN_KEY       = "excludedFilesPattern";    //$NON-NLS-1$
    public final static String LINKER_FILE_KEY                  = "linkerFile";              //$NON-NLS-1$
