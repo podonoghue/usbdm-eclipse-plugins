@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+/**
+ * Model describing the Device
+ */
 public final class DeviceInformationModel extends RootModel {
 
    /**

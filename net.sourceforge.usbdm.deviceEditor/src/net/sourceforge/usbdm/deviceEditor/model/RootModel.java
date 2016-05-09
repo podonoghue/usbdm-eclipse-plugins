@@ -49,11 +49,12 @@ public abstract class RootModel extends BaseModel {
 
    @Override
    protected void viewerUpdate(BaseModel element, String[] properties) {
+      System.err.println("BaseModel("+fName+").viewerUpdate("+element.getName()+")");
       if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
          fViewer.update(element,  properties);
-         if (element.getParent() != null) {
-            fViewer.update(element.getParent(),  properties);
-         }
+//         if (element.getParent() != null) {
+//            fViewer.update(element.getParent(),  properties);
+//         }
       }
    }
 

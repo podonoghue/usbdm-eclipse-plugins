@@ -165,9 +165,6 @@ public abstract class BaseModel {
     */
    public String getDescription() {
       String description = fDescription;
-      if (fLogging) {
-         System.err.println("Here");
-      }
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
          description = message.getMessage();

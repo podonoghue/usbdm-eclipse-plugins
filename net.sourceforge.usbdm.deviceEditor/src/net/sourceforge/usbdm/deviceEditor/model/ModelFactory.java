@@ -96,7 +96,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    protected ArrayList<MappingInfo> fMappingInfos = null;
 
    /**
-    * Create model organised by pin
+    * Create model organised by pin<br>
     * Also updates fMappingInfos
     * 
     * @return Model
@@ -379,7 +379,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    public ModelFactory(DeviceInfo deviceInfo) {
       
-      underConstruction     = true;
+      underConstruction     = false;
       
       fDeviceInfo           = deviceInfo;
       fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
@@ -392,6 +392,17 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       underConstruction     = false;
    }
 
+   void report() {
+      for (String key:fDeviceInfo.getPins().keySet()) {
+         Pin pin= fDeviceInfo.getPins().get(key);
+         System.err.println(String.format("Pin:%-15s => %-15s %s", pin.getName(), pin.getMuxValue()+",", pin.getMappedSignals().get(pin.getMuxValue())));
+      }
+      for (String key:fDeviceInfo.getSignals().keySet()) {
+         Signal signal = fDeviceInfo.getSignals().get(key);
+         System.err.println(String.format("Signal: %-15s => %-15s", signal.getName(), signal.getMappedPin()));
+      }
+   }
+   
    /**
     * Creates models for the variant pages and updates the model list
     */
@@ -408,6 +419,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       fModels.add(createParameterModels());
       fModels.add(PackageImageModel.createModel(this));
 
+//      report();
+      
       checkConflicts();
    }
    

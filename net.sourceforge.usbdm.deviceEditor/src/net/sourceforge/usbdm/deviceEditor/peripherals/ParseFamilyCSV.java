@@ -89,6 +89,7 @@ public class ParseFamilyCSV {
       if (pinText.isEmpty()) {
          return signalList;
       }
+      pinText = fixSignalName(pinText);
       if (convert) {
          pinText = convertName(pinText);
       }
@@ -170,6 +171,22 @@ public class ParseFamilyCSV {
    }
    
    /**
+    * Do some simple conversion on pin names
+    * 
+    * @param pinName
+    * @return
+    */
+   private String fixSignalName(String pinName) {
+      if (pinName.matches("(.*)(_B)$")) {
+         pinName = pinName.replaceAll("(.*)(_B)$", "$1_b");
+      }
+      if (pinName.matches("(.*)(_A)$")) {
+         pinName = pinName.replaceAll("(.*)(_A)$", "$1_a");
+      }
+      return pinName;
+   }
+   
+   /**
     * Parse line containing Pin information
     *  
     * @param line
@@ -186,13 +203,13 @@ public class ParseFamilyCSV {
       if ((pinName == null) || (pinName.isEmpty())) {
          throw new RuntimeException("No pin name");
       }
+      pinName = fixSignalName(pinName);
       // Use first name on pin as Pin name e.g. PTC4/LLWU_P8 => PTC4
       Pattern p = Pattern.compile("(.+?)/.*");
       Matcher m = p.matcher(pinName);
       if (m.matches()) {
          pinName = m.group(1);
       }
-
       final Pin pin = fDeviceInfo.createPin(pinName);
       
       sb.append(String.format("%-10s => ", pin.getName()));

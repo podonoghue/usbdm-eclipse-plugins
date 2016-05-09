@@ -54,7 +54,7 @@ public abstract class SelectionModel extends EditableModel {
    
    @Override
    public void setValueAsString(String value) {
-      fSelection = findChoice(value);
+      fSelection = findChoiceIndex(value);
       if (fSelection<0) {
          // Invalid - reset to first element
          fSelection = 0;
@@ -69,7 +69,7 @@ public abstract class SelectionModel extends EditableModel {
     * 
     * @return Selection index or -1 if not found
     */
-   protected int findChoice(String choice) {
+   protected int findChoiceIndex(String choice) {
       for (int index=0; index<fChoices.length; index++) {
          if (fChoices[index].equalsIgnoreCase(choice)) {
             return index;

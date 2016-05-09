@@ -10,13 +10,13 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin;
 public class PinModel extends SelectionModel implements IModelChangeListener {
 
    /** Associated pin */
-   protected final Pin fPin;
+   private final Pin fPin;
 
    /** Default selection index */
-   protected int fDefaultSelection = 0;
+   private int fDefaultSelection = 0;
 
    /** Mappings corresponding to selections */
-   protected final ArrayList<MuxSelection> fMappingInfos = new ArrayList<MuxSelection>();
+   private final MappingInfo[] fMappingInfos;
 
    public PinModel(BaseModel parent, Pin pin) {
       super(parent, pin.getNameWithLocation(), pin.getDescription());
@@ -24,24 +24,29 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       fPin = pin;
       fPin.addListener(this);
 
-      Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappedSignals();
-
       MuxSelection defaultMuxValue  = fPin.getDefaultValue();
       MuxSelection currentMuxValue  = fPin.getMuxValue();
 
       fDefaultSelection = 0;
       fSelection        = 0;
 
+      Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappedSignals();
+
+      MappingInfo fixedMapping = mappingInfoMap.get(MuxSelection.fixed);
+      if (fixedMapping != null) {
+         // Fixed mapping for pin
+         fChoices      = new String[] {fixedMapping.getSignalList()};
+         fMappingInfos = null;
+         return;
+      }
+      
       // List of values to choose from
-      ArrayList<String> values = new ArrayList<String>();
+      ArrayList<String>      values       = new ArrayList<String>();
+      ArrayList<MappingInfo> mappingInfos = new ArrayList<MappingInfo>();
       for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
-         if (muxSelection == MuxSelection.fixed) {
-            // Uses icon so no prefix
-            values.add(mappingInfoMap.get(muxSelection).getSignalList());
-            fMappingInfos.add(muxSelection);
-            break;
-         }
          MappingInfo mappingInfo = mappingInfoMap.get(muxSelection);
+
+         mappingInfos.add(mappingInfo);
          if (muxSelection == MuxSelection.reset) {
             values.add(muxSelection.getShortName()+": ("+mappingInfo.getSignalList()+")");
          }
@@ -54,51 +59,66 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          if (muxSelection == currentMuxValue) {
             fSelection = values.size()-1;
          }
-         fMappingInfos.add(muxSelection);
       }
       if (values.size()>1) {
          // Add default entry
          values.add(values.get(fDefaultSelection).replaceFirst(".:", "D:"));
       }
 
-      fChoices = values.toArray(new String[values.size()]);
-
+      fChoices      = values.toArray(new String[values.size()]);
+      fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
+      
       fPin.connectListeners();
       fPin.setMuxSelection(currentMuxValue);
    }
 
+   /**
+    * Find selection index corresponding to mapping info from signal
+    * 
+    * @param value
+    * @return
+    */
+   int findValueIndex(MappingInfo value) {
+      if (fMappingInfos == null) {
+         // Fixed mapping
+         return 0;
+      }
+      for (int index=0; index<fMappingInfos.length; index++) {
+         if (fMappingInfos[index] == value) {
+            return index;
+         }
+      }
+      return -1;
+   }
+   
+   @Override
+   public String getValueAsString() {
+      return fChoices[findValueIndex(fPin.getMappedSignal())];
+   }
+
    @Override
    public void setValueAsString(String value) {
-
       super.setValueAsString(value);
       if (fSelection == fChoices.length-1) {
          // Last entry is the default
          fSelection = fDefaultSelection;
       }
-      MuxSelection  currentMuxValue = fMappingInfos.get(fSelection);
-      if (currentMuxValue == null) {
-         currentMuxValue = MuxSelection.disabled;
-      }
-//      System.err.println("===================================================================");
-//      System.err.println("PinModel("+fName+")::setValue("+fSelection+") => "+currentMuxValue+", ");
-
-      fPin.setMuxSelection(currentMuxValue);
+      fPin.setMappedSignal(fMappingInfos[fSelection]);
       ((DeviceModel)getRoot()).checkConflicts();
    }
 
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof Pin) {
-         Pin pin = (Pin) model;
-         MuxSelection muxValue = pin.getMuxValue();
-         fSelection = fMappingInfos.indexOf(muxValue);
-         if (fSelection<0) {
-            throw new RuntimeException("Impossible pin");
-         }
-//         System.err.println("PinModel("+fName+")::modelElementChanged(M:"+muxValue+", S:"+fSelection+")");
          viewerUpdate(this, null);
          ((DeviceModel)getRoot()).checkConflicts();
       }
+   }
+
+   @Override
+   public String getDescription() {
+      setDescription(getPinUseDescription());
+      return super.getDescription();
    }
 
    /**
@@ -117,9 +137,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     */
    public void setPinUseDescription(String pinUseDescription) {
       fPin.setPinUseDescription(pinUseDescription);
-      // Update watchers of active mapping
-      MappingInfo mappingInfo = fPin.getMappedSignals().get(fMappingInfos.get(fSelection));
-      mappingInfo.notifyListeners();
    }
 
    @Override
@@ -129,7 +146,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
    @Override
    public boolean isReset() {
-      return (fMappingInfos.get(fSelection) == MuxSelection.reset);
+      return (fPin.getMuxValue() == MuxSelection.reset);
    }
 
    /**
@@ -139,10 +156,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     */
    @Override
    Message getMessage() {
-//      String msg = fPin.isValid();
-//      if (msg != null) {
-//         return new Message(msg, this);
-//      }
       Message rv = fPin.getMappedSignal().getMessage();
       if (rv != null) {
          return rv;
@@ -158,7 +171,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
    @Override
    public String toString() {
-      return "PinModel("+fName+")";
+      return "PinModel("+fName+") => "+getValueAsString();
    }
-
 }

@@ -81,12 +81,12 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = 0;
+   static constexpr bool irqHandlerInstalled = false;
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
-       (3<<ADC_CFG1_ADICLK_SHIFT)|
-       (1<<ADC_CFG1_MODE_SHIFT)|
+       (0<<ADC_CFG1_ADICLK_SHIFT)|
+       (2<<ADC_CFG1_MODE_SHIFT)|
        (0<<ADC_CFG1_ADLSMP_SHIFT)|
        (0<<ADC_CFG1_ADIV_SHIFT)|
        (0<<ADC_CFG1_ADLPC_SHIFT);
@@ -105,7 +105,7 @@ public:
        (0<<ADC_SC2_ADTRG_SHIFT);
 
    //! Default IRQ level
-   static constexpr uint32_t irqLevel =  6;
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 24;
@@ -113,47 +113,43 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   1: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   2: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   3: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   4: ADC0_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: ADC0_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: ADC0_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC0_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: ADC0_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   9: ADC0_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  10: ADC0_SE10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  11: ADC0_SE11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  12: ADC0_SE12       = PTB2 (A5)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  13: ADC0_SE13       = PTB3 (A4)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  3,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  14: ADC0_SE14       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  15: ADC0_SE15       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  16: ADC0_SE16       = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  17: ADC0_SE17       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  18: ADC0_SE18       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  19: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  20: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  21: ADC0_SE21       = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  22: ADC0_SE22       = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  23: ADC0_SE23       = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   4: ADC0_SE4b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: ADC0_SE5b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: ADC0_SE6b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: ADC0_SE7b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: ADC0_SE8             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: ADC0_SE9             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: ADC0_SE10            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: ADC0_SE11            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: ADC0_SE12            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: ADC0_SE13            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: ADC0_SE14            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: ADC0_SE15            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: ADC0_SE16            = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  17: ADC0_SE17            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: ADC0_SE18            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  19: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  20: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  21: ADC0_SE21            = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  22: ADC0_SE22            = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  23: ADC0_SE23            = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Adc0Info, 12>::setPCR(); // ADC0_SE12       = PTB2 (A5)                     
-      PcrTable_T<Adc0Info, 13>::setPCR(); // ADC0_SE13       = PTB3 (A4)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Adc0Info, 12>::setPCR(0); // ADC0_SE12       = PTB2 (A5)                     
-      PcrTable_T<Adc0Info, 13>::setPCR(0); // ADC0_SE13       = PTB3 (A4)                     
    }
 
    class InfoDP {
@@ -164,11 +160,11 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   1: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   2: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   3: ADC0_DP3        = ADC1_DP0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   3: ADC0_DP3             = ADC1_DP0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
       };
 
       /**
@@ -193,11 +189,11 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: ADC0_DM0        = ADC0_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-            /*   1: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   2: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   3: ADC0_DM3        = ADC1_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: ADC0_DM0             = ADC0_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   3: ADC0_DM3             = ADC1_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
       };
 
       /**
@@ -244,14 +240,14 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = 0;
+   static constexpr bool irqHandlerInstalled = false;
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
        (0<<ADC_CFG1_ADICLK_SHIFT)|
-       (0<<ADC_CFG1_MODE_SHIFT)|
+       (2<<ADC_CFG1_MODE_SHIFT)|
        (0<<ADC_CFG1_ADLSMP_SHIFT)|
-       (2<<ADC_CFG1_ADIV_SHIFT)|
+       (0<<ADC_CFG1_ADIV_SHIFT)|
        (0<<ADC_CFG1_ADLPC_SHIFT);
 
    //! Default value for ADCx_CFG2 register
@@ -276,67 +272,59 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   1: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   2: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   3: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   4: ADC1_SE4b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: ADC1_SE5b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: ADC1_SE6b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: ADC1_SE7b       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: ADC1_SE8        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   9: ADC1_SE9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  10: ADC1_SE10       = PTB4 (A3)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  11: ADC1_SE11       = PTB5 (A2)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  5,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  12: ADC1_SE12       = PTB6 (A1)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  6,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  13: ADC1_SE13       = PTB7 (A0)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  7,   PORT_PCR_MUX(0)|pcrValue  },
-         /*  14: ADC1_SE14       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  15: ADC1_SE15       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  16: ADC1_SE16       = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  17: ADC1_SE17       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  18: ADC1_SE18       = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  19: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  20: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  21: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  22: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  23: ADC1_SE23       = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*  24: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  25: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  26: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  27: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  28: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  29: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  30: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  31: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  32: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  33: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  34: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  35: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  36: ADC1_SE4a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  37: ADC1_SE5a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  38: ADC1_SE6a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  39: ADC1_SE7a       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   4: ADC1_SE4b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: ADC1_SE5b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: ADC1_SE6b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: ADC1_SE7b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: ADC1_SE8             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: ADC1_SE9             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: ADC1_SE10            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: ADC1_SE11            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: ADC1_SE12            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: ADC1_SE13            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: ADC1_SE14            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: ADC1_SE15            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: ADC1_SE16            = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  17: ADC1_SE17            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: ADC1_SE18            = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  19: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  20: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  21: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  22: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  23: ADC1_SE23            = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  24: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  25: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  26: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  27: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  28: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  29: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  30: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  31: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  32: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  33: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  34: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  35: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  36: ADC1_SE4a            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  37: ADC1_SE5a            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  38: ADC1_SE6a            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  39: ADC1_SE7a            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Adc1Info, 10>::setPCR(); // ADC1_SE10       = PTB4 (A3)                     
-      PcrTable_T<Adc1Info, 11>::setPCR(); // ADC1_SE11       = PTB5 (A2)                     
-      PcrTable_T<Adc1Info, 12>::setPCR(); // ADC1_SE12       = PTB6 (A1)                     
-      PcrTable_T<Adc1Info, 13>::setPCR(); // ADC1_SE13       = PTB7 (A0)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Adc1Info, 10>::setPCR(0); // ADC1_SE10       = PTB4 (A3)                     
-      PcrTable_T<Adc1Info, 11>::setPCR(0); // ADC1_SE11       = PTB5 (A2)                     
-      PcrTable_T<Adc1Info, 12>::setPCR(0); // ADC1_SE12       = PTB6 (A1)                     
-      PcrTable_T<Adc1Info, 13>::setPCR(0); // ADC1_SE13       = PTB7 (A0)                     
    }
 
    class InfoDP {
@@ -347,8 +335,8 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: ADC1_DP0        = ADC1_DP0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: ADC1_DP0             = ADC1_DP0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
       };
 
       /**
@@ -373,11 +361,11 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: ADC1_DM0        = ADC1_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-            /*   1: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   2: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-            /*   3: ADC1_DM3        = ADC0_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: ADC1_DM0             = ADC1_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+            /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+            /*   3: ADC1_DM3             = ADC0_DM0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
       };
 
       /**
@@ -401,21 +389,110 @@ public:
  * @}
  */
 /**
- * @addtogroup CAN_Misc_Group CAN, CAN0 (Miscellaneous)
- * @brief Pins used for CAN0 (Miscellaneous)
+ * @addtogroup CAN_Group CAN, Controller Area Network
+ * @brief Pins used for Controller Area Network
  * @{
  */
-/** 
- * End CAN_Misc_Group
- * @}
- */
+#define USBDM_CAN0_IS_DEFINED 
 /**
- * @addtogroup CLKOUT_Group CLKOUT, Misc
- * @brief Pins used for Misc
- * @{
+ * Peripheral information for CAN, Controller Area Network
  */
+class Can0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = CAN0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_FLEXCAN0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 2;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CAN0_RX              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CAN0_TX              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
+#define USBDM_CAN1_IS_DEFINED 
+/**
+ * Peripheral information for CAN, Controller Area Network
+ */
+class Can1Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = CAN1_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC3_FLEXCAN1_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC3);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 2;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CAN1_RX              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CAN1_TX              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
- * End CLKOUT_Group
+ * End CAN_Group
  * @}
  */
 /**
@@ -456,16 +533,16 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP0_IN0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: CMP0_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: CMP0_IN2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: CMP0_IN3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: CMP0_IN4        = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   5: CMP0_IN5        = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   6: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   7: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   8: CMP0_OUT        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CMP0_IN0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CMP0_IN1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: CMP0_IN2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: CMP0_IN3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: CMP0_IN4             = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   5: CMP0_IN5             = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   8: CMP0_OUT             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -503,16 +580,16 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP1_IN0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: CMP1_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: CMP1_IN2        = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   3: CMP1_IN3        = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   4: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   5: CMP1_IN5        = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   6: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   7: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   8: CMP1_OUT        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CMP1_IN0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CMP1_IN1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: CMP1_IN2             = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   3: CMP1_IN3             = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   4: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   5: CMP1_IN5             = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   8: CMP1_OUT             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -550,16 +627,16 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP2_IN0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: CMP2_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: CMP2_IN2        = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   3: CMP2_IN3        = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   4: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   5: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   6: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   7: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   8: CMP2_OUT        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CMP2_IN0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CMP2_IN1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: CMP2_IN2             = ADC1_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   3: CMP2_IN3             = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   4: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   5: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   8: CMP2_OUT             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -597,16 +674,16 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   1: CMP3_IN1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: CMP3_IN2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   4: CMP3_IN4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: CMP3_IN5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   7: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   8: CMP3_OUT        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   1: CMP3_IN1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: CMP3_IN2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   4: CMP3_IN4             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: CMP3_IN5             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   8: CMP3_OUT             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -628,13 +705,13 @@ public:
  * @}
  */
 /**
- * @addtogroup CMT_Misc_Group CMT, CMT (Miscellaneous)
- * @brief Pins used for CMT (Miscellaneous)
+ * @addtogroup CMT_Group CMT, Carrier Modulator Transmitter
+ * @brief Pins used for Carrier Modulator Transmitter
  * @{
  */
 #define USBDM_CMT_IS_DEFINED 
 /**
- * Peripheral information for CMT, CMT (Miscellaneous)
+ * Peripheral information for CMT, Carrier Modulator Transmitter
  */
 class CmtInfo {
 public:
@@ -656,28 +733,104 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 1;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: CMT_IRO              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End CMT_Misc_Group
+ * End CMT_Group
  * @}
  */
 /**
- * @addtogroup CRC_Misc_Group CRC, CRC (Miscellaneous)
- * @brief Pins used for CRC (Miscellaneous)
+ * @addtogroup Control_Group CONTROL, Control
+ * @brief Pins used for Control
+ * @{
+ */
+#define USBDM_CONTROL_IS_DEFINED 
+/**
+ * Peripheral information for CONTROL, Control
+ */
+class ControlInfo {
+public:
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 16;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: RESET_b              = RESET_b                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: JTAG_TCLK            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: SWD_CLK              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: JTAG_TDI             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: JTAG_TDO             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: TRACE_SWO            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: JTAG_TMS             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: SWD_DIO              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: NMI_b                = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: JTAG_TRST_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: CLKOUT               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: TRACE_CLKOUT         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: TRACE_D3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: TRACE_D2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: TRACE_D1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: TRACE_D0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
+/** 
+ * End Control_Group
+ * @}
+ */
+/**
+ * @addtogroup CRC_TODO_Group CRC, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
 #define USBDM_CRC_IS_DEFINED 
 /**
- * Peripheral information for CRC, CRC (Miscellaneous)
+ * Peripheral information for CRC, (Incomplete)
  */
 class CrcInfo {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = CRC_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC6_CRC_MASK;
@@ -694,17 +847,17 @@ public:
 };
 
 /** 
- * End CRC_Misc_Group
+ * End CRC_TODO_Group
  * @}
  */
 /**
- * @addtogroup DAC_Misc_Group DAC, DAC0 (Miscellaneous)
- * @brief Pins used for DAC0 (Miscellaneous)
+ * @addtogroup DAC_Group DAC, Digital-to-Analogue Converter
+ * @brief Pins used for Digital-to-Analogue Converter
  * @{
  */
 #define USBDM_DAC0_IS_DEFINED 
 /**
- * Peripheral information for DAC, DAC0 (Miscellaneous)
+ * Peripheral information for DAC, Digital-to-Analogue Converter
  */
 class Dac0Info {
 public:
@@ -729,11 +882,33 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 1;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: DAC0_OUT             = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 #define USBDM_DAC1_IS_DEFINED 
 /**
- * Peripheral information for DAC, DAC1 (Miscellaneous)
+ * Peripheral information for DAC, Digital-to-Analogue Converter
  */
 class Dac1Info {
 public:
@@ -758,28 +933,47 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 1;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: DAC1_OUT             = DAC1_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End DAC_Misc_Group
+ * End DAC_Group
  * @}
  */
 /**
- * @addtogroup DMA_Misc_Group DMA, DMA0 (Miscellaneous)
- * @brief Pins used for DMA0 (Miscellaneous)
+ * @addtogroup DMA_TODO_Group DMA, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
 #define USBDM_DMA0_IS_DEFINED 
 /**
- * Peripheral information for DMA, DMA0 (Miscellaneous)
+ * Peripheral information for DMA, (Incomplete)
  */
 class Dma0Info {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = DMA0_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC7_DMA_MASK;
@@ -796,7 +990,7 @@ public:
 };
 
 /** 
- * End DMA_Misc_Group
+ * End DMA_TODO_Group
  * @}
  */
 /**
@@ -812,9 +1006,6 @@ class Dmamux0Info {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = DMAMUX0_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC6_DMAMUX0_MASK;
@@ -908,13 +1099,13 @@ public:
  * @}
  */
 /**
- * @addtogroup ENET_Misc_Group ENET, ENET (Miscellaneous)
- * @brief Pins used for ENET (Miscellaneous)
+ * @addtogroup ENET_Group ENET, 10/100-Mbps Ethernet MAC
+ * @brief Pins used for 10/100-Mbps Ethernet MAC
  * @{
  */
 #define USBDM_ENET_IS_DEFINED 
 /**
- * Peripheral information for ENET, ENET (Miscellaneous)
+ * Peripheral information for ENET, 10/100-Mbps Ethernet MAC
  */
 class EnetInfo {
 public:
@@ -939,20 +1130,77 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 36;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: MII0_RXD0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: MII0_RXD1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: MII0_RXD2            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: MII0_RXD3            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: MII0_TXD0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: MII0_TXD1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: MII0_TXD2            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: MII0_TXD3            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: RMII0_RXD0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: RMII0_RXD1           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  11: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  12: RMII0_TXD0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: RMII0_TXD1           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  15: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  16: ENET0_1588_TMR0      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  17: ENET0_1588_TMR1      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: ENET0_1588_TMR2      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  19: ENET0_1588_TMR3      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  20: ENET_1588_CLKIN      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  21: MII0_COL             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  22: MII0_CRS             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  23: MII0_MDC             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  24: MII0_MDIO            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  25: MII0_RXCLK           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  26: MII0_RXDV            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  27: MII0_RXER            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  28: MII0_TXCLK           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  29: MII0_TXEN            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  30: MII0_TXER            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  31: RMII0_CRS_DV         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  32: RMII0_MDC            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  33: RMII0_MDIO           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  34: RMII0_RXER           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  35: RMII0_TXEN           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End ENET_Misc_Group
+ * End ENET_Group
  * @}
  */
 /**
- * @addtogroup EWM_Misc_Group EWM, EWM (Miscellaneous)
- * @brief Pins used for EWM (Miscellaneous)
+ * @addtogroup EWM_Group EWM, External Watchdog Monitor
+ * @brief Pins used for External Watchdog Monitor
  * @{
  */
 #define USBDM_EWM_IS_DEFINED 
 /**
- * Peripheral information for EWM, EWM (Miscellaneous)
+ * Peripheral information for EWM, External Watchdog Monitor
  */
 class EwmInfo {
 public:
@@ -974,20 +1222,43 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 2;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: EWM_IN               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: EWM_OUT_b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End EWM_Misc_Group
+ * End EWM_Group
  * @}
  */
 /**
- * @addtogroup FB_Misc_Group FB, FB (Miscellaneous)
- * @brief Pins used for FB (Miscellaneous)
+ * @addtogroup FB_Group FB, Flexbus
+ * @brief Pins used for Flexbus
  * @{
  */
 #define USBDM_FB_IS_DEFINED  
 /**
- * Peripheral information for FB, FB (Miscellaneous)
+ * Peripheral information for FB, Flexbus
  */
 class FbInfo {
 public:
@@ -998,7 +1269,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC7_FLEXBUS_MASK;
+   static constexpr uint32_t clockMask = SIM_SCGC7_FB_MASK;
 
    //! Address of clock register for peripheral
    static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
@@ -1009,46 +1280,128 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 82;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FB_CS0_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FB_CS1_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: FB_CS2_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: FB_CS3_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: FB_CS4_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: FB_CS5_b             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: FB_AD0               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: FB_AD1               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: FB_AD2               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: FB_AD3               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: FB_AD4               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: FB_AD5               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: FB_AD6               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: FB_AD7               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: FB_AD8               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: FB_AD9               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: FB_AD10              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  17: FB_AD11              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: FB_AD12              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  19: FB_AD13              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  20: FB_AD14              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  21: FB_AD15              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  22: FB_AD16              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  23: FB_AD17              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  24: FB_AD18              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  25: FB_AD19              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  26: FB_AD20              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  27: FB_AD21              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  28: FB_AD22              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  29: FB_AD23              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  30: FB_AD24              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  31: FB_AD25              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  32: FB_AD26              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  33: FB_AD27              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  34: FB_AD28              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  35: FB_AD29              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  36: FB_AD30              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  37: FB_AD31              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  38: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  39: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  40: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  41: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  42: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  43: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  44: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  45: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  46: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  47: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  48: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  49: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  50: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  51: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  52: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  53: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  54: FB_A16               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  55: FB_A17               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  56: FB_A18               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  57: FB_A19               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  58: FB_A20               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  59: FB_A21               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  60: FB_A22               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  61: FB_A23               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  62: FB_A24               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  63: FB_A25               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  64: FB_A26               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  65: FB_A27               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  66: FB_A28               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  67: FB_A29               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  68: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  69: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  70: FB_TSIZ0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  71: FB_TSIZ1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  72: FB_ALE               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  73: FB_OE_b              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  74: FB_RW_b              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  75: FB_TA_b              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  76: FB_TBST_b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  77: FB_TS_b              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  78: FB_BE7_0_BLS31_24_b  = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  79: FB_BE15_8_BLS23_16_b = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  80: FB_BE23_16_BLS15_8_b = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  81: FB_BE31_24_BLS7_0_b  = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End FB_Misc_Group
+ * End FB_Group
  * @}
  */
 /**
- * @addtogroup FLEXCAN0_Group FLEXCAN0, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End FLEXCAN0_Group
- * @}
- */
-/**
- * @addtogroup FLEXCAN1_Group FLEXCAN1, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End FLEXCAN1_Group
- * @}
- */
-/**
- * @addtogroup FTFE_Misc_Group FTFE, FTFE (Miscellaneous)
- * @brief Pins used for FTFE (Miscellaneous)
+ * @addtogroup FTFE_TODO_Group FTFE, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
 #define USBDM_FTFE_IS_DEFINED 
 /**
- * Peripheral information for FTFE, FTFE (Miscellaneous)
+ * Peripheral information for FTFE, (Incomplete)
  */
 class FtfeInfo {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = FTFE_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC6_FTF_MASK;
@@ -1065,14 +1418,48 @@ public:
 };
 
 /** 
- * End FTFE_Misc_Group
+ * End FTFE_TODO_Group
  * @}
  */
 /**
- * @addtogroup FTM_Misc_Group FTM, FTM (Miscellaneous)
- * @brief Pins used for FTM (Miscellaneous)
+ * @addtogroup FTM_Misc_Group FTM, Shared
+ * @brief Pins used for Shared
  * @{
  */
+#define USBDM_FTM_IS_DEFINED 
+/**
+ * Peripheral information for FTM, Shared
+ */
+class FtmInfo {
+public:
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 2;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FTM_CLKIN0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM_CLKIN1           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
  * End FTM_Misc_Group
  * @}
@@ -1128,29 +1515,27 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM0_CH1        = PTA4                           */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  4,   PORT_PCR_MUX(3)|pcrValue  },
-         /*   2: FTM0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: FTM0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: FTM0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: FTM0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: FTM0_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: FTM0_CH7        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FTM0_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM0_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: FTM0_CH2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: FTM0_CH3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: FTM0_CH4             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: FTM0_CH5             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: FTM0_CH6             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: FTM0_CH7             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Ftm0Info,  1>::setPCR(); // FTM0_CH1        = PTA4                          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Ftm0Info,  1>::setPCR(0); // FTM0_CH1        = PTA4                          
    }
 
    class InfoFAULT {
@@ -1161,11 +1546,11 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM0_FLT0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-            /*   1: FTM0_FLT1       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-            /*   2: FTM0_FLT2       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-            /*   3: FTM0_FLT3       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM0_FLT0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            /*   1: FTM0_FLT1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            /*   2: FTM0_FLT2            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            /*   3: FTM0_FLT3            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
@@ -1230,9 +1615,9 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM1_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM1_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FTM1_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM1_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -1255,8 +1640,8 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM1_FLT0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM1_FLT0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
@@ -1281,23 +1666,21 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM1_QD_PHA     = PTA12                          */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  12,  PORT_PCR_MUX(7)|pcrValue  },
-            /*   1: FTM1_QD_PHB     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM1_QD_PHA          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            /*   1: FTM1_QD_PHB          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
        * Initialise pins used by peripheral
        */
       static void initPCRs() {
-         PcrTable_T<Ftm1Info::InfoQUAD,  0>::setPCR(); // FTM1_QD_PHA     = PTA12                         
       }
 
       /**
        * Initialise pins used by peripheral
        */
       static void clearPCRs() {
-         PcrTable_T<Ftm1Info::InfoQUAD,  0>::setPCR(0); // FTM1_QD_PHA     = PTA12                         
       }
 
    }; 
@@ -1350,21 +1733,23 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM2_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM2_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FTM2_CH0             = PTA10 (SW3)                    */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  10,  PORT_PCR_MUX(3)|pcrValue  },
+         /*   1: FTM2_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Ftm2Info,  0>::setPCR(); // FTM2_CH0        = PTA10 (SW3)                   
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Ftm2Info,  0>::setPCR(0); // FTM2_CH0        = PTA10 (SW3)                   
    }
 
    class InfoFAULT {
@@ -1375,8 +1760,8 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM2_FLT0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM2_FLT0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
@@ -1401,23 +1786,21 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM2_QD_PHA     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-            /*   1: FTM2_QD_PHB     = PTA11 (LED_BLUE)               */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  11,  PORT_PCR_MUX(6)|pcrValue  },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM2_QD_PHA          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            /*   1: FTM2_QD_PHB          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
        * Initialise pins used by peripheral
        */
       static void initPCRs() {
-         PcrTable_T<Ftm2Info::InfoQUAD,  1>::setPCR(); // FTM2_QD_PHB     = PTA11 (LED_BLUE)              
       }
 
       /**
        * Initialise pins used by peripheral
        */
       static void clearPCRs() {
-         PcrTable_T<Ftm2Info::InfoQUAD,  1>::setPCR(0); // FTM2_QD_PHB     = PTA11 (LED_BLUE)              
       }
 
    }; 
@@ -1470,29 +1853,27 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: FTM3_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: FTM3_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: FTM3_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: FTM3_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: FTM3_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: FTM3_CH5        = PTC9 (LED_RED)                 */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  9,   PORT_PCR_MUX(3)|pcrValue  },
-         /*   6: FTM3_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: FTM3_CH7        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: FTM3_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: FTM3_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: FTM3_CH2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: FTM3_CH3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: FTM3_CH4             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: FTM3_CH5             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: FTM3_CH6             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: FTM3_CH7             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Ftm3Info,  5>::setPCR(); // FTM3_CH5        = PTC9 (LED_RED)                
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Ftm3Info,  5>::setPCR(0); // FTM3_CH5        = PTC9 (LED_RED)                
    }
 
    class InfoFAULT {
@@ -1503,8 +1884,8 @@ public:
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
    
-            //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-            /*   0: FTM3_FLT0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+            //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+            /*   0: FTM3_FLT0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
       };
 
       /**
@@ -1722,25 +2103,21 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2C0_SCL        = PTD8 (ONBOARD_SCL)             */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  8,   PORT_PCR_MUX(2)|pcrValue  },
-         /*   1: I2C0_SDA        = PTD9 (ONBOARD_SDA)             */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  9,   PORT_PCR_MUX(2)|pcrValue  },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: I2C0_SCL             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: I2C0_SDA             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<I2c0Info,  0>::setPCR(); // I2C0_SCL        = PTD8 (ONBOARD_SCL)            
-      PcrTable_T<I2c0Info,  1>::setPCR(); // I2C0_SDA        = PTD9 (ONBOARD_SDA)            
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<I2c0Info,  0>::setPCR(0); // I2C0_SCL        = PTD8 (ONBOARD_SCL)            
-      PcrTable_T<I2c0Info,  1>::setPCR(0); // I2C0_SDA        = PTD9 (ONBOARD_SDA)            
    }
 
 };
@@ -1781,9 +2158,9 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2C1_SCL        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: I2C1_SDA        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: I2C1_SCL             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: I2C1_SDA             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -1836,9 +2213,9 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2C2_SCL        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: I2C2_SDA        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: I2C2_SCL             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: I2C2_SDA             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -1891,9 +2268,9 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2C3_SCL        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: I2C3_SDA        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: I2C3_SCL             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: I2C3_SDA             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -1947,17 +2324,21 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 5;
+   static constexpr int NUM_SIGNALS  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: I2S0_MCLK       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: I2S0_RX_BCLK    = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: I2S0_RX_FS      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: I2S0_TX_BCLK    = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: I2S0_TX_FS      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: I2S0_MCLK            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: I2S0_RX_BCLK         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: I2S0_RX_FS           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: I2S0_TX_BCLK         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: I2S0_TX_FS           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: I2S0_TXD0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: I2S0_TXD1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: I2S0_RXD0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: I2S0_RXD1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -1976,15 +2357,6 @@ public:
 
 /** 
  * End I2S_Group
- * @}
- */
-/**
- * @addtogroup JTAG_Group JTAG, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End JTAG_Group
  * @}
  */
 /**
@@ -2013,71 +2385,47 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: LLWU_P0         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: LLWU_P1         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: LLWU_P2         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: LLWU_P3         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: LLWU_P4         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: LLWU_P5         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: LLWU_P6         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: LLWU_P7         = PTC3 (D0)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,   PORT_PCR_MUX(1)|pcrValue  },
-         /*   8: LLWU_P8         = PTC4 (D1)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,   PORT_PCR_MUX(1)|pcrValue  },
-         /*   9: LLWU_P9         = PTC5 (D5)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  5,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  10: LLWU_P10        = PTC6 (D19)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  11: LLWU_P11        = PTC11 (D14)                    */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
-         /*  12: LLWU_P12        = PTD0 (D10)                     */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  0,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  13: LLWU_P13        = PTD2 (D11)                     */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  2,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  14: LLWU_P14        = PTD4 (nRF_cs_n)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  4,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  15: LLWU_P15        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  16: LLWU_P16        = PTE6 (LED_GREEN)               */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  6,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  17: LLWU_P17        = PTE9 (D20)                     */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  9,   PORT_PCR_MUX(1)|pcrValue  },
-         /*  18: LLWU_P18        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  19: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  20: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*  21: LLWU_P21        = PTE25 (D31)                    */  { PORTE_CLOCK_MASK, PORTE_BasePtr,  GPIOE_BasePtr,  25,  PORT_PCR_MUX(1)|pcrValue  },
-         /*  22: LLWU_P22        = PTA10 (SW3)                    */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  10,  PORT_PCR_MUX(1)|pcrValue  },
-         /*  23: LLWU_P23        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  24: LLWU_P24        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  25: LLWU_P25        = PTD11 (SW2)                    */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: LLWU_P0              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: LLWU_P1              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: LLWU_P2              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: LLWU_P3              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: LLWU_P4              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: LLWU_P5              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: LLWU_P6              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: LLWU_P7              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: LLWU_P8              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: LLWU_P9              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: LLWU_P10             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: LLWU_P11             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: LLWU_P12             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: LLWU_P13             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: LLWU_P14             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: LLWU_P15             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: LLWU_P16             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  17: LLWU_P17             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: LLWU_P18             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  19: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  20: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  21: LLWU_P21             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  22: LLWU_P22             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  23: LLWU_P23             = PTA11 (LED_BLUE)               */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
+         /*  24: LLWU_P24             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  25: LLWU_P25             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<LlwuInfo,  7>::setPCR(); // LLWU_P7         = PTC3 (D0)                     
-      PcrTable_T<LlwuInfo,  8>::setPCR(); // LLWU_P8         = PTC4 (D1)                     
-      PcrTable_T<LlwuInfo,  9>::setPCR(); // LLWU_P9         = PTC5 (D5)                     
-      PcrTable_T<LlwuInfo, 10>::setPCR(); // LLWU_P10        = PTC6 (D19)                    
-      PcrTable_T<LlwuInfo, 11>::setPCR(); // LLWU_P11        = PTC11 (D14)                   
-      PcrTable_T<LlwuInfo, 12>::setPCR(); // LLWU_P12        = PTD0 (D10)                    
-      PcrTable_T<LlwuInfo, 13>::setPCR(); // LLWU_P13        = PTD2 (D11)                    
-      PcrTable_T<LlwuInfo, 14>::setPCR(); // LLWU_P14        = PTD4 (nRF_cs_n)               
-      PcrTable_T<LlwuInfo, 16>::setPCR(); // LLWU_P16        = PTE6 (LED_GREEN)              
-      PcrTable_T<LlwuInfo, 17>::setPCR(); // LLWU_P17        = PTE9 (D20)                    
-      PcrTable_T<LlwuInfo, 21>::setPCR(); // LLWU_P21        = PTE25 (D31)                   
-      PcrTable_T<LlwuInfo, 22>::setPCR(); // LLWU_P22        = PTA10 (SW3)                   
-      PcrTable_T<LlwuInfo, 25>::setPCR(); // LLWU_P25        = PTD11 (SW2)                   
+      PcrTable_T<LlwuInfo, 23>::setPCR(); // LLWU_P23        = PTA11 (LED_BLUE)              
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<LlwuInfo,  7>::setPCR(0); // LLWU_P7         = PTC3 (D0)                     
-      PcrTable_T<LlwuInfo,  8>::setPCR(0); // LLWU_P8         = PTC4 (D1)                     
-      PcrTable_T<LlwuInfo,  9>::setPCR(0); // LLWU_P9         = PTC5 (D5)                     
-      PcrTable_T<LlwuInfo, 10>::setPCR(0); // LLWU_P10        = PTC6 (D19)                    
-      PcrTable_T<LlwuInfo, 11>::setPCR(0); // LLWU_P11        = PTC11 (D14)                   
-      PcrTable_T<LlwuInfo, 12>::setPCR(0); // LLWU_P12        = PTD0 (D10)                    
-      PcrTable_T<LlwuInfo, 13>::setPCR(0); // LLWU_P13        = PTD2 (D11)                    
-      PcrTable_T<LlwuInfo, 14>::setPCR(0); // LLWU_P14        = PTD4 (nRF_cs_n)               
-      PcrTable_T<LlwuInfo, 16>::setPCR(0); // LLWU_P16        = PTE6 (LED_GREEN)              
-      PcrTable_T<LlwuInfo, 17>::setPCR(0); // LLWU_P17        = PTE9 (D20)                    
-      PcrTable_T<LlwuInfo, 21>::setPCR(0); // LLWU_P21        = PTE25 (D31)                   
-      PcrTable_T<LlwuInfo, 22>::setPCR(0); // LLWU_P22        = PTA10 (SW3)                   
-      PcrTable_T<LlwuInfo, 25>::setPCR(0); // LLWU_P25        = PTD11 (SW2)                   
+      PcrTable_T<LlwuInfo, 23>::setPCR(0); // LLWU_P23        = PTA11 (LED_BLUE)              
    }
 
 };
@@ -2145,10 +2493,10 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: --              = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   1: LPTMR0_ALT1     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: LPTMR0_ALT2     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   1: LPTMR0_ALT1          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: LPTMR0_ALT2          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2170,13 +2518,13 @@ public:
  * @}
  */
 /**
- * @addtogroup LPUART_Group LPUART, Low Power Universal Asynchonous Receiver/Transmitter
+ * @addtogroup LPUART_Group LPUART, Low Power Universal Asynchronous Receiver/Transmitter
  * @brief Pins used for Universal Asynchronous Receiver/Transmitter
  * @{
  */
 #define USBDM_LPUART0_IS_DEFINED 
 /**
- * Peripheral information for LPUART, Low Power Universal Asynchonous Receiver/Transmitter
+ * Peripheral information for LPUART, Low Power Universal Asynchronous Receiver/Transmitter
  */
 class Lpuart0Info {
 public:
@@ -2207,11 +2555,11 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: LPUART0_TX      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: LPUART0_RX      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: LPUART0_RTS_b   = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: LPUART0_CTS_b   = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: LPUART0_TX           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: LPUART0_RX           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: LPUART0_RTS_b        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: LPUART0_CTS_b        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2246,13 +2594,12 @@ public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = MCG_BasePtr;
 
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
-   //! Indicates interrupt handler has been installed
+   //! Clock Mode
+   static constexpr uint32_t CLOCK_MODE = 0;
+
 };
 
 /** 
@@ -2260,30 +2607,18 @@ public:
  * @}
  */
 /**
- * @addtogroup MII_Misc_Group MII, MII0 (Miscellaneous)
- * @brief Pins used for MII0 (Miscellaneous)
- * @{
- */
-/** 
- * End MII_Misc_Group
- * @}
- */
-/**
- * @addtogroup MPU_Misc_Group MPU, MPU (Miscellaneous)
- * @brief Pins used for MPU (Miscellaneous)
+ * @addtogroup MPU_TODO_Group MPU, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
 #define USBDM_MPU_IS_DEFINED 
 /**
- * Peripheral information for MPU, MPU (Miscellaneous)
+ * Peripheral information for MPU, (Incomplete)
  */
 class MpuInfo {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = MPU_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC7_MPU_MASK;
@@ -2300,16 +2635,7 @@ public:
 };
 
 /** 
- * End MPU_Misc_Group
- * @}
- */
-/**
- * @addtogroup NMI_B_Group NMI_b, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End NMI_B_Group
+ * End MPU_TODO_Group
  * @}
  */
 /**
@@ -2347,9 +2673,9 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: XTAL0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: EXTAL0          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: XTAL0                = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: EXTAL0               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2371,13 +2697,13 @@ public:
  * @}
  */
 /**
- * @addtogroup PDB_Misc_Group PDB, PDB0 (Miscellaneous)
- * @brief Pins used for PDB0 (Miscellaneous)
+ * @addtogroup PDB_Group PDB, Programmable Dely Block
+ * @brief Pins used for Programmable Dely Block
  * @{
  */
 #define USBDM_PDB0_IS_DEFINED 
 /**
- * Peripheral information for PDB, PDB0 (Miscellaneous)
+ * Peripheral information for PDB, Programmable Dely Block
  */
 class Pdb0Info {
 public:
@@ -2402,10 +2728,32 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 1;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: PDB0_EXTRG           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End PDB_Misc_Group
+ * End PDB_Group
  * @}
  */
 /**
@@ -2421,9 +2769,6 @@ class PitInfo {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = PIT_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC6_PIT_MASK;
@@ -2441,7 +2786,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for PIT->SC register
-   static constexpr uint32_t loadValue  = 65535;
+   static constexpr uint32_t loadValue  = 10000;
 
    //! PIT operation in debug mode
    static constexpr uint32_t mcrValue = (0<<PIT_MCR_FRZ_SHIFT);
@@ -2456,30 +2801,103 @@ public:
  * @}
  */
 /**
- * @addtogroup POWER_Misc_Group POWER, POWER (Miscellaneous)
- * @brief Pins used for POWER (Miscellaneous)
+ * @addtogroup Power_Group POWER, Power
+ * @brief Pins used for Power
  * @{
  */
+#define USBDM_POWER_IS_DEFINED 
+/**
+ * Peripheral information for POWER, Power
+ */
+class PowerInfo {
+public:
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 27;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: VBAT                 = VBAT                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: VDD1                 = VDD1                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   2: VDD2                 = VDD2                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   3: VDD3                 = VDD3                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   4: VDD4                 = VDD4                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   5: VDD5                 = VDD5                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   6: VDD6                 = VDD6                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   7: VDD7                 = VDD7                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   8: VDD8                 = VDD8                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   9: VDD9                 = VDD9                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  10: VDDA                 = VDDA                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  11: VREFH                = VREFH                          */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  12: VREFL                = VREFL                          */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  13: VREG_IN0             = VREG_IN0                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  14: VREG_IN1             = VREG_IN1                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  15: VREG_OUT             = VREG_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  16: VSS1                 = VSS1                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  17: VSS2a                = VSS2a                          */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  18: VSS2b                = VSS2b                          */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  19: VSS3                 = VSS3                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  20: VSS4                 = VSS4                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  21: VSS5                 = VSS5                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  22: VSS6                 = VSS6                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  23: VSS7                 = VSS7                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  24: VSS8                 = VSS8                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  25: VSS9                 = VSS9                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*  26: VSSA                 = VSSA                           */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
- * End POWER_Misc_Group
+ * End Power_Group
  * @}
  */
 /**
- * @addtogroup RESET_B_Group RESET_b, Misc
- * @brief Pins used for Misc
+ * @addtogroup RNG_TODO_Group RNG, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
-/** 
- * End RESET_B_Group
- * @}
- */
+#define USBDM_RNG_IS_DEFINED 
 /**
- * @addtogroup RNG_Group RNG, Misc
- * @brief Pins used for Misc
- * @{
+ * Peripheral information for RNG, (Incomplete)
  */
+class RngInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = RNG_BasePtr;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC6_RNG_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+};
+
 /** 
- * End RNG_Group
+ * End RNG_TODO_Group
  * @}
  */
 /**
@@ -2533,15 +2951,17 @@ public:
    static constexpr uint32_t CR_SCP_M   = (2<<RTC_CR_SC16P_SHIFT);
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 3;
+   static constexpr int NUM_SIGNALS  = 5;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: XTAL32          = XTAL32                         */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   1: EXTAL32         = EXTAL32                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
-         /*   2: RTC_CLKOUT      = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: XTAL32               = XTAL32                         */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: EXTAL32              = EXTAL32                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   2: RTC_CLKOUT           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   4: RTC_WAKEUP_b         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2563,45 +2983,88 @@ public:
  * @}
  */
 /**
- * @addtogroup RTC_WAKEUP_B_Group RTC_WAKEUP_B, Misc
- * @brief Pins used for Misc
+ * @addtogroup SDHC_Group SDHC, Real Time Clock
+ * @brief Pins used for Real Time Clock
  * @{
  */
-/** 
- * End RTC_WAKEUP_B_Group
- * @}
- */
+#define USBDM_SDHC0_IS_DEFINED 
 /**
- * @addtogroup SDHC_Group SDHC, Misc
- * @brief Pins used for Misc
- * @{
+ * Peripheral information for SDHC, Real Time Clock
  */
+class Sdhc0Info {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = SDHC0_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC3_SDHC_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC3);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {SDHC_IRQn};
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 11;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: SDHC0_D0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: SDHC0_D1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: SDHC0_D2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: SDHC0_D3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: SDHC0_D4             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: SDHC0_D5             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: SDHC0_D6             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: SDHC0_D7             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: SDHC0_CLKIN          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: SDHC0_CMD            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: SDHC0_DCLK           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
  * End SDHC_Group
  * @}
  */
 /**
- * @addtogroup SDHC_Misc_Group SDHC, SDHC0 (Miscellaneous)
- * @brief Pins used for SDHC0 (Miscellaneous)
+ * @addtogroup SDRAMC_Group SDRAMC, Synchronous DRAM Controller
+ * @brief Pins used for Synchronous DRAM Controller
  * @{
  */
-/** 
- * End SDHC_Misc_Group
- * @}
- */
+#define USBDM_SDRAMC_IS_DEFINED 
 /**
- * @addtogroup SDRAM_Misc_Group SDRAM, SDRAM (Miscellaneous)
- * @brief Pins used for SDRAM (Miscellaneous)
- * @{
+ * Peripheral information for SDRAMC, Synchronous DRAM Controller
  */
-#define USBDM_SDRAM_IS_DEFINED 
-/**
- * Peripheral information for SDRAM, SDRAM (Miscellaneous)
- */
-class SdramInfo {
+class SdramcInfo {
 public:
    //! Hardware base pointer
-   static constexpr uint32_t basePtr   = SDRAM_BasePtr;
+   static constexpr uint32_t basePtr   = SDRAMC_BasePtr;
 
    //! Base value for PCR (excluding MUX value)
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
@@ -2618,10 +3081,105 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 74;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   4: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   5: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   8: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*   9: SDRAM_A9             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: SDRAM_A10            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: SDRAM_A11            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: SDRAM_A12            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: SDRAM_A13            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: SDRAM_A14            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: SDRAM_A15            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  16: SDRAM_A16            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  17: SDRAM_A17            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  18: SDRAM_A18            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  19: SDRAM_A19            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  20: SDRAM_A20            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  21: SDRAM_A21            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  22: SDRAM_A22            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  23: SDRAM_A23            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  24: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  25: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  26: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  27: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  28: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  29: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  30: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  31: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  32: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  33: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  34: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  35: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  36: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  37: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  38: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  39: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  40: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  41: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  42: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  43: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  44: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  45: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  46: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  47: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
+         /*  48: SDRAM_D16            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  49: SDRAM_D17            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  50: SDRAM_D18            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  51: SDRAM_D19            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  52: SDRAM_D20            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  53: SDRAM_D21            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  54: SDRAM_D22            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  55: SDRAM_D23            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  56: SDRAM_D24            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  57: SDRAM_D25            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  58: SDRAM_D26            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  59: SDRAM_D27            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  60: SDRAM_D28            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  61: SDRAM_D29            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  62: SDRAM_D30            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  63: SDRAM_D31            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  64: SDRAM_DQM0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  65: SDRAM_DQM1           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  66: SDRAM_DQM2           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  67: SDRAM_DQM3           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  68: SDRAM_RAS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  69: SDRAM_CAS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  70: SDRAM_WE             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  71: SDRAM_CKE            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  72: SDRAM_CS0_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  73: SDRAM_CS1_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End SDRAM_Misc_Group
+ * End SDRAMC_Group
  * @}
  */
 /**
@@ -2673,16 +3231,16 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: SPI0_SCK        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: SPI0_SIN        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: SPI0_SOUT       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: SPI0_PCS0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: SPI0_PCS1       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: SPI0_PCS2       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: SPI0_PCS3       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: SPI0_PCS4       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: SPI0_PCS5       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: SPI0_SCK             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: SPI0_SIN             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: SPI0_SOUT            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: SPI0_PCS0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: SPI0_PCS1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: SPI0_PCS2            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: SPI0_PCS3            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: SPI0_PCS4            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: SPI0_PCS5            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2743,32 +3301,26 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: SPI1_SCK        = PTD5 (nRF_sck)                 */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  5,   PORT_PCR_MUX(7)|pcrValue  },
-         /*   1: SPI1_SIN        = PTD7 (nRF_miso)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  7,   PORT_PCR_MUX(7)|pcrValue  },
-         /*   2: SPI1_SOUT       = PTD6 (nRF_mosi)                */  { PORTD_CLOCK_MASK, PORTD_BasePtr,  GPIOD_BasePtr,  6,   PORT_PCR_MUX(7)|pcrValue  },
-         /*   3: SPI1_PCS0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: SPI1_PCS1       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: SPI1_PCS2       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: SPI1_PCS3       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: SPI1_SCK             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: SPI1_SIN             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: SPI1_SOUT            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: SPI1_PCS0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: SPI1_PCS1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: SPI1_PCS2            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: SPI1_PCS3            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Spi1Info,  0>::setPCR(); // SPI1_SCK        = PTD5 (nRF_sck)                
-      PcrTable_T<Spi1Info,  1>::setPCR(); // SPI1_SIN        = PTD7 (nRF_miso)               
-      PcrTable_T<Spi1Info,  2>::setPCR(); // SPI1_SOUT       = PTD6 (nRF_mosi)               
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Spi1Info,  0>::setPCR(0); // SPI1_SCK        = PTD5 (nRF_sck)                
-      PcrTable_T<Spi1Info,  1>::setPCR(0); // SPI1_SIN        = PTD7 (nRF_miso)               
-      PcrTable_T<Spi1Info,  2>::setPCR(0); // SPI1_SOUT       = PTD6 (nRF_mosi)               
    }
 
 };
@@ -2817,12 +3369,12 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: SPI2_SCK        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: SPI2_SIN        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: SPI2_SOUT       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: SPI2_PCS0       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: SPI2_PCS1       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: SPI2_SCK             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: SPI2_SIN             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: SPI2_SOUT            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: SPI2_PCS0            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: SPI2_PCS1            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -2844,19 +3396,44 @@ public:
  * @}
  */
 /**
- * @addtogroup SWD_Group SWD, Misc
- * @brief Pins used for Misc
+ * @addtogroup TPM_Misc_Group TPM, Shared
+ * @brief Pins used for Shared
  * @{
  */
-/** 
- * End SWD_Group
- * @}
- */
+#define USBDM_TPM_IS_DEFINED 
 /**
- * @addtogroup TPM_Misc_Group TPM, TPM (Miscellaneous)
- * @brief Pins used for TPM (Miscellaneous)
- * @{
+ * Peripheral information for TPM, Shared
  */
+class TpmInfo {
+public:
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 2;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: TPM_CLKIN0           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: TPM_CLKIN1           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
  * End TPM_Misc_Group
  * @}
@@ -2911,23 +3488,21 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: TPM1_CH0        = PTA12                          */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  12,  PORT_PCR_MUX(7)|pcrValue  },
-         /*   1: TPM1_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: TPM1_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: TPM1_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Tpm1Info,  0>::setPCR(); // TPM1_CH0        = PTA12                         
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Tpm1Info,  0>::setPCR(0); // TPM1_CH0        = PTA12                         
    }
 
 };
@@ -2977,23 +3552,21 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: TPM2_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: TPM2_CH1        = PTA11 (LED_BLUE)               */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  11,  PORT_PCR_MUX(6)|pcrValue  },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: TPM2_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: TPM2_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Tpm2Info,  1>::setPCR(); // TPM2_CH1        = PTA11 (LED_BLUE)              
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Tpm2Info,  1>::setPCR(0); // TPM2_CH1        = PTA11 (LED_BLUE)              
    }
 
 };
@@ -3003,17 +3576,8 @@ public:
  * @}
  */
 /**
- * @addtogroup TRACE_Group TRACE, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End TRACE_Group
- * @}
- */
-/**
- * @addtogroup TSI_Group TSI, Misc
- * @brief Pins used for Misc
+ * @addtogroup TSI_Group TSI, Low-leakage Wake-up Unit
+ * @brief Pins used for Low-leakage Wake-up Unit
  * @{
  */
 #define USBDM_TSI0_IS_DEFINED 
@@ -3028,8 +3592,20 @@ public:
    //! Base value for PCR (excluding MUX value)
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC5_TSI0_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC5);
+
    //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {TSI_IRQn};
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 16;
@@ -3037,39 +3613,35 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: TSI0_CH0        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: TSI0_CH1        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: TSI0_CH2        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: TSI0_CH3        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: TSI0_CH4        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   5: TSI0_CH5        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   6: TSI0_CH6        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   7: TSI0_CH7        = PTB2 (A5)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
-         /*   8: TSI0_CH8        = PTB3 (A4)                      */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  3,   PORT_PCR_MUX(0)|pcrValue  },
-         /*   9: TSI0_CH9        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  10: TSI0_CH10       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  11: TSI0_CH11       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  12: TSI0_CH12       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  13: TSI0_CH13       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  14: TSI0_CH14       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  15: TSI0_CH15       = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: TSI0_CH0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: TSI0_CH1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: TSI0_CH2             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: TSI0_CH3             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: TSI0_CH4             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   5: TSI0_CH5             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   6: TSI0_CH6             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: TSI0_CH7             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   8: TSI0_CH8             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   9: TSI0_CH9             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  10: TSI0_CH10            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  11: TSI0_CH11            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  12: TSI0_CH12            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  13: TSI0_CH13            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  14: TSI0_CH14            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*  15: TSI0_CH15            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Tsi0Info,  7>::setPCR(); // TSI0_CH7        = PTB2 (A5)                     
-      PcrTable_T<Tsi0Info,  8>::setPCR(); // TSI0_CH8        = PTB3 (A4)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Tsi0Info,  7>::setPCR(0); // TSI0_CH7        = PTB2 (A5)                     
-      PcrTable_T<Tsi0Info,  8>::setPCR(0); // TSI0_CH8        = PTB3 (A4)                     
    }
 
 };
@@ -3116,28 +3688,24 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART0_TX        = PTB17 (ConTx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  17,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   1: UART0_RX        = PTB16 (ConRx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  16,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   2: UART0_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART0_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: UART0_COL_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: UART0_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: UART0_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: UART0_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: UART0_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   4: UART0_COL_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Uart0Info,  0>::setPCR(); // UART0_TX        = PTB17 (ConTx)                 
-      PcrTable_T<Uart0Info,  1>::setPCR(); // UART0_RX        = PTB16 (ConRx)                 
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Uart0Info,  0>::setPCR(0); // UART0_TX        = PTB17 (ConTx)                 
-      PcrTable_T<Uart0Info,  1>::setPCR(0); // UART0_RX        = PTB16 (ConRx)                 
    }
 
 };
@@ -3175,11 +3743,11 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART1_TX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART1_RX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART1_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART1_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: UART1_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: UART1_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: UART1_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: UART1_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -3229,11 +3797,11 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART2_TX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART2_RX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART2_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART2_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: UART2_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: UART2_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: UART2_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: UART2_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -3283,11 +3851,11 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART3_TX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART3_RX        = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART3_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART3_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: UART3_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: UART3_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: UART3_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: UART3_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -3337,27 +3905,23 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART4_TX        = PTC15 (BLUETOOTH_Tx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  15,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   1: UART4_RX        = PTC14 (BLUETOOTH_Rx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  14,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   2: UART4_RTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART4_CTS_b     = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: UART4_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: UART4_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   2: UART4_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: UART4_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Uart4Info,  0>::setPCR(); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
-      PcrTable_T<Uart4Info,  1>::setPCR(); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Uart4Info,  0>::setPCR(0); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
-      PcrTable_T<Uart4Info,  1>::setPCR(0); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
    }
 
 };
@@ -3367,13 +3931,13 @@ public:
  * @}
  */
 /**
- * @addtogroup USB_Misc_Group USB, USB0 (Miscellaneous)
- * @brief Pins used for USB0 (Miscellaneous)
+ * @addtogroup USB_Group USB, USB OTG Controller
+ * @brief Pins used for USB OTG Controller
  * @{
  */
 #define USBDM_USB0_IS_DEFINED 
 /**
- * Peripheral information for USB, USB0 (Miscellaneous)
+ * Peripheral information for USB, USB OTG Controller
  */
 class Usb0Info {
 public:
@@ -3384,42 +3948,64 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC4_USBOTG_MASK;
+   static constexpr uint32_t clockMask = SIM_SCGC4_USB0_MASK;
 
    //! Address of clock register for peripheral
    static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC4);
 
    //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 2;
+   static constexpr uint32_t irqCount  = 1;
 
    //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {USBHS_IRQn, USB0_IRQn};
+   static constexpr IRQn_Type irqNums[]  = {USB0_IRQn};
 
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 4;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: USB0_DM              = USB0_DM                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: USB0_DP              = USB0_DP                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   2: USB0_CLKIN           = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   3: USB0_SOF_OUT         = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
 };
 
 /** 
- * End USB_Misc_Group
+ * End USB_Group
  * @}
  */
 /**
- * @addtogroup USBDCD_Misc_Group USBDCD, USBDCD (Miscellaneous)
- * @brief Pins used for USBDCD (Miscellaneous)
+ * @addtogroup USBDCD_Group USBDCD, USB Device Charger Detection
+ * @brief Pins used for USB Device Charger Detection
  * @{
  */
 #define USBDM_USBDCD_IS_DEFINED 
 /**
- * Peripheral information for USBDCD, USBDCD (Miscellaneous)
+ * Peripheral information for USBDCD, USB Device Charger Detection
  */
 class UsbdcdInfo {
 public:
    //! Hardware base pointer
    static constexpr uint32_t basePtr   = USBDCD_BasePtr;
-
-   //! Base value for PCR (excluding MUX value)
-   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
    static constexpr uint32_t clockMask = SIM_SCGC6_USBDCD_MASK;
@@ -3439,25 +4025,103 @@ public:
 };
 
 /** 
- * End USBDCD_Misc_Group
+ * End USBDCD_Group
  * @}
  */
 /**
- * @addtogroup VBAT_Group VBAT, Misc
- * @brief Pins used for Misc
+ * @addtogroup USBHS_Group USBHS, USB High Speed OTG Controller
+ * @brief Pins used for USB High Speed OTG Controller
  * @{
  */
+#define USBDM_USBHS_IS_DEFINED 
+/**
+ * Peripheral information for USBHS, USB High Speed OTG Controller
+ */
+class UsbhsInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = USBHS_BasePtr;
+
+   //! Base value for PCR (excluding MUX value)
+   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC3_USBHS_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC3);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 1;
+
+   //! IRQ numbers for hardware
+   static constexpr IRQn_Type irqNums[]  = {USBHS_IRQn};
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   //! Number of signals available in info table
+   static constexpr int NUM_SIGNALS  = 5;
+
+   //! Information for each signal of peripheral
+   static constexpr PcrInfo  info[] = {
+
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: USB1_DM              = USB1_DM                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   1: USB1_DP              = USB1_DP                        */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   2: USB1_VBUS            = USB1_VBUS                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   3: USB1_VSS             = USB1_VSS                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         /*   4: USB1_ID              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+   };
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void initPCRs() {
+   }
+
+   /**
+    * Initialise pins used by peripheral
+    */
+   static void clearPCRs() {
+   }
+
+};
+
 /** 
- * End VBAT_Group
+ * End USBHS_Group
  * @}
  */
 /**
- * @addtogroup VDDA_Group VDDA, Misc
- * @brief Pins used for Misc
+ * @addtogroup USBHSPHY_TODO_Group USBHSPHY, (Incomplete)
+ * @brief Pins used for (Incomplete)
  * @{
  */
+#define USBDM_USBHSPHY_IS_DEFINED 
+/**
+ * Peripheral information for USBHSPHY, (Incomplete)
+ */
+class UsbhsphyInfo {
+public:
+   //! Hardware base pointer
+   static constexpr uint32_t basePtr   = USBHSPHY_BasePtr;
+
+   //! Clock mask for peripheral
+   static constexpr uint32_t clockMask = SIM_SCGC3_USBHSPHY_MASK;
+
+   //! Address of clock register for peripheral
+   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC3);
+
+   //! Number of IRQs for hardware
+   static constexpr uint32_t irqCount  = 0;
+
+   //! Clock source for peripheral
+   static constexpr uint32_t &clockSource = SystemCoreClock;
+
+};
+
 /** 
- * End VDDA_Group
+ * End USBHSPHY_TODO_Group
  * @}
  */
 /**
@@ -3495,8 +4159,8 @@ public:
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
 
-         //      Signal            Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: VREF_OUT        = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
+         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
+         /*   0: VREF_OUT             = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
    };
 
    /**
@@ -3517,51 +4181,6 @@ public:
  * End VREF_Group
  * @}
  */
-/**
- * @addtogroup VREFH_Group VREFH, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End VREFH_Group
- * @}
- */
-/**
- * @addtogroup VREFL_Group VREFL, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End VREFL_Group
- * @}
- */
-/**
- * @addtogroup VREG_IN0_Group VREG_IN0, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End VREG_IN0_Group
- * @}
- */
-/**
- * @addtogroup VREG_OUT_Group VREG_OUT, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End VREG_OUT_Group
- * @}
- */
-/**
- * @addtogroup VSSA_Group VSSA, Misc
- * @brief Pins used for Misc
- * @{
- */
-/** 
- * End VSSA_Group
- * @}
- */
 
 } // End namespace USBDM
 
@@ -3573,26 +4192,11 @@ public:
 namespace USBDM {
 
 /**
- * @addtogroup ADC_Group ADC, Analogue Input
- * @brief Pins used for Analogue Input
- * @{
- */
-using adc_A5               = const USBDM::Adc0Channel<12>;
-using adc_A4               = const USBDM::Adc0Channel<13>;
-using adc_A3               = const USBDM::Adc1Channel<10>;
-using adc_A2               = const USBDM::Adc1Channel<11>;
-using adc_A1               = const USBDM::Adc1Channel<12>;
-using adc_A0               = const USBDM::Adc1Channel<13>;
-/** 
- * End ADC_Group
- * @}
- */
-/**
  * @addtogroup FTM_Group FTM, PWM, Input capture and Output compare
  * @brief Pins used for PWM, Input capture and Output compare
  * @{
  */
-using ftm_LED_RED          = const USBDM::Ftm3Channel<5>;
+using ftm_SW3              = const USBDM::Ftm2Channel<0>;
 /** 
  * End FTM_Group
  * @}
@@ -3602,55 +4206,10 @@ using ftm_LED_RED          = const USBDM::Ftm3Channel<5>;
  * @brief Pins used for Digital Input/Output
  * @{
  */
-using gpio_SW3             = const USBDM::GpioA<10>;
+using gpio_LED_BLUE        = const USBDM::GpioA<11>;
 using gpio_D7              = const USBDM::GpioA<25>;
-using gpio_D27             = const USBDM::GpioB<10>;
-using gpio_D28             = const USBDM::GpioB<11>;
-using gpio_D8              = const USBDM::GpioB<18>;
-using gpio_D9              = const USBDM::GpioB<19>;
-using gpio_nRF_ce_n        = const USBDM::GpioB<20>;
-using gpio_A10             = const USBDM::GpioB<23>;
-using gpio_D29             = const USBDM::GpioC<0>;
-using gpio_D6              = const USBDM::GpioC<2>;
-using gpio_D0              = const USBDM::GpioC<3>;
-using gpio_D1              = const USBDM::GpioC<4>;
-using gpio_D5              = const USBDM::GpioC<5>;
-using gpio_D19             = const USBDM::GpioC<6>;
-using gpio_D21             = const USBDM::GpioC<7>;
-using gpio_D3              = const USBDM::GpioC<8>;
-using gpio_D15             = const USBDM::GpioC<10>;
-using gpio_D14             = const USBDM::GpioC<11>;
-using gpio_D4              = const USBDM::GpioC<12>;
-using gpio_D2              = const USBDM::GpioC<16>;
-using gpio_nRF_irq         = const USBDM::GpioC<18>;
-using gpio_D10             = const USBDM::GpioD<0>;
-using gpio_D13             = const USBDM::GpioD<1>;
-using gpio_D11             = const USBDM::GpioD<2>;
-using gpio_D12             = const USBDM::GpioD<3>;
-using gpio_nRF_cs_n        = const USBDM::GpioD<4>;
-using gpio_SW2             = const USBDM::GpioD<11>;
-using gpio_D33             = const USBDM::GpioD<12>;
-using gpio_D32             = const USBDM::GpioD<13>;
-using gpio_LED_GREEN       = const USBDM::GpioE<6>;
-using gpio_D23             = const USBDM::GpioE<7>;
-using gpio_D22             = const USBDM::GpioE<8>;
-using gpio_D20             = const USBDM::GpioE<9>;
-using gpio_D17             = const USBDM::GpioE<11>;
-using gpio_D16             = const USBDM::GpioE<12>;
-using gpio_D30             = const USBDM::GpioE<24>;
-using gpio_D31             = const USBDM::GpioE<25>;
 /** 
  * End GPIO_Group
- * @}
- */
-/**
- * @addtogroup TPM_Group TPM, PWM, Input capture and Output compare
- * @brief Pins used for PWM, Input capture and Output compare
- * @{
- */
-using tpm_LED_BLUE         = const USBDM::Tpm2Channel<1>;
-/** 
- * End TPM_Group
  * @}
  */
 /**
@@ -3679,15 +4238,15 @@ extern void mapAllPins();
  *  PTA1                     | JTAG_TDI                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
- *  PTA4                     | FTM0_CH1                                    |                           | -       
- *  PTA5                     | GPIOA_5                                     |                           | -       
+ *  PTA4                     | NMI_b                                       |                           | -       
+ *  PTA5                     | Disabled                                    |                           | -       
  *  PTA6                     | Disabled                                    |                           | -       
  *  PTA7                     | ADC0_SE10                                   |                           | -       
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTA9                     | Disabled                                    |                           | -       
- *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
- *  PTA11                    | FTM2_QD_PHB/TPM2_CH1                        | LED_BLUE                  | -       
- *  PTA12                    | FTM1_QD_PHA/TPM1_CH0                        |                           | -       
+ *  PTA10                    | FTM2_CH0                                    | SW3                       | Switch       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | Blue LED       
+ *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA14                    | Disabled                                    |                           | -       
  *  PTA15                    | CMP3_IN1                                    |                           | -       
@@ -3696,7 +4255,7 @@ extern void mapAllPins();
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  PTA19                    | XTAL0                                       |                           | -       
  *  PTA24                    | CMP3_IN4                                    |                           | -       
- *  PTA25                    | GPIOA_25                                    | D7                        | -       
+ *  PTA25                    | GPIOA_25                                    | D7                        | D7       
  *  PTA26                    | Disabled                                    |                           | -       
  *  PTA27                    | Disabled                                    |                           | -       
  *  PTA28                    | Disabled                                    |                           | -       
@@ -3711,50 +4270,50 @@ extern void mapAllPins();
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
  *  PTB8                     | Disabled                                    |                           | -       
  *  PTB9                     | Disabled                                    |                           | -       
- *  PTB10                    | GPIOB_10                                    | D27                       | -       
- *  PTB11                    | GPIOB_11                                    | D28                       | -       
- *  PTB16                    | UART0_RX                                    | ConRx                     | -       
- *  PTB17                    | UART0_TX                                    | ConTx                     | -       
- *  PTB18                    | GPIOB_18                                    | D8                        | -       
- *  PTB19                    | GPIOB_19                                    | D9                        | -       
- *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
+ *  PTB10                    | ADC1_SE14                                   | D27                       | -       
+ *  PTB11                    | ADC1_SE15                                   | D28                       | -       
+ *  PTB16                    | TSI0_CH9                                    | ConRx                     | -       
+ *  PTB17                    | TSI0_CH10                                   | ConTx                     | -       
+ *  PTB18                    | TSI0_CH11                                   | D8                        | -       
+ *  PTB19                    | TSI0_CH12                                   | D9                        | -       
+ *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
  *  PTB21                    | Disabled                                    |                           | -       
  *  PTB22                    | Disabled                                    |                           | -       
- *  PTB23                    | GPIOB_23                                    | A10                       | -       
- *  PTC0                     | GPIOC_0                                     | D29                       | -       
- *  PTC1                     | I2S0_TXD0                                   | D18                       | -       
- *  PTC2                     | GPIOC_2                                     | D6                        | -       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
- *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
- *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
- *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
- *  PTC7                     | GPIOC_7                                     | D21                       | -       
- *  PTC8                     | GPIOC_8                                     | D3                        | -       
- *  PTC9                     | FTM3_CH5                                    | LED_RED                   | -       
- *  PTC10                    | GPIOC_10                                    | D15                       | -       
- *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
- *  PTC12                    | GPIOC_12                                    | D4                        | -       
+ *  PTB23                    | Disabled                                    | A10                       | -       
+ *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
+ *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
+ *  PTC3                     | CMP1_IN1                                    | D0                        | -       
+ *  PTC4                     | Disabled                                    | D1                        | -       
+ *  PTC5                     | Disabled                                    | D5                        | -       
+ *  PTC6                     | CMP0_IN0                                    | D19                       | -       
+ *  PTC7                     | CMP0_IN1                                    | D21                       | -       
+ *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
+ *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
+ *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
+ *  PTC12                    | Disabled                                    | D4                        | -       
  *  PTC13                    | Disabled                                    |                           | -       
- *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
- *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
- *  PTC16                    | GPIOC_16                                    | D2                        | -       
+ *  PTC14                    | Disabled                                    | BLUETOOTH_Rx              | -       
+ *  PTC15                    | Disabled                                    | BLUETOOTH_Tx              | -       
+ *  PTC16                    | Disabled                                    | D2                        | -       
  *  PTC17                    | Disabled                                    |                           | -       
- *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
+ *  PTC18                    | Disabled                                    | nRF_irq                   | -       
  *  PTC19                    | Disabled                                    |                           | -       
- *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
- *  PTD1                     | GPIOD_1                                     | D13                       | -       
- *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
- *  PTD3                     | GPIOD_3                                     | D12                       | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
- *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
- *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
- *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
- *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
- *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
+ *  PTD0                     | Disabled                                    | D10                       | -       
+ *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
+ *  PTD2                     | Disabled                                    | D11                       | -       
+ *  PTD3                     | Disabled                                    | D12                       | -       
+ *  PTD4                     | Disabled                                    | nRF_cs_n                  | -       
+ *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
+ *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
+ *  PTD7                     | Disabled                                    | nRF_miso                  | -       
+ *  PTD8                     | Disabled                                    | ONBOARD_SCL               | -       
+ *  PTD9                     | Disabled                                    | ONBOARD_SDA               | -       
  *  PTD10                    | Disabled                                    |                           | -       
- *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
- *  PTD12                    | GPIOD_12                                    | D33                       | -       
- *  PTD13                    | GPIOD_13                                    | D32                       | -       
+ *  PTD11                    | Disabled                                    | SW2                       | -       
+ *  PTD12                    | Disabled                                    | D33                       | -       
+ *  PTD13                    | Disabled                                    | D32                       | -       
  *  PTD14                    | Disabled                                    |                           | -       
  *  PTD15                    | Disabled                                    |                           | -       
  *  PTE0                     | ADC1_SE4a                                   |                           | -       
@@ -3763,25 +4322,25 @@ extern void mapAllPins();
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
  *  PTE4                     | Disabled                                    |                           | -       
  *  PTE5                     | Disabled                                    |                           | -       
- *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
- *  PTE7                     | GPIOE_7                                     | D23                       | -       
- *  PTE8                     | GPIOE_8                                     | D22                       | -       
- *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
+ *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
+ *  PTE7                     | Disabled                                    | D23                       | -       
+ *  PTE8                     | Disabled                                    | D22                       | -       
+ *  PTE9                     | Disabled                                    | D20                       | -       
  *  PTE10                    | Disabled                                    |                           | -       
- *  PTE11                    | GPIOE_11                                    | D17                       | -       
- *  PTE12                    | GPIOE_12                                    | D16                       | -       
- *  PTE24                    | GPIOE_24                                    | D30                       | -       
- *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
+ *  PTE11                    | Disabled                                    | D17                       | -       
+ *  PTE12                    | Disabled                                    | D16                       | -       
+ *  PTE24                    | ADC0_SE17                                   | D30                       | -       
+ *  PTE25                    | ADC0_SE18                                   | D31                       | -       
  *  PTE26                    | Disabled                                    |                           | -       
  *  PTE27                    | Disabled                                    |                           | -       
  *  PTE28                    | Disabled                                    |                           | -       
  *  RESET_b                  | RESET_b                                     |                           | -       
  *  USB0_DM                  | USB0_DM                                     |                           | -       
  *  USB0_DP                  | USB0_DP                                     |                           | -       
- *  USB1_DM                  | Disabled                                    |                           | -       
- *  USB1_DP                  | Disabled                                    |                           | -       
- *  USB1_VBUS                | Disabled                                    |                           | -       
- *  USB1_VSS                 | Disabled                                    |                           | -       
+ *  USB1_DM                  | USB1_DM                                     |                           | -       
+ *  USB1_DP                  | USB1_DP                                     |                           | -       
+ *  USB1_VBUS                | USB1_VBUS                                   |                           | -       
+ *  USB1_VSS                 | USB1_VSS                                    |                           | -       
  *  VBAT                     | VBAT                                        |                           | -       
  *  VDD1                     | VDD1                                        |                           | -       
  *  VDD2                     | VDD2                                        |                           | -       
@@ -3797,7 +4356,7 @@ extern void mapAllPins();
  *  VREFL                    | VREFL                                       |                           | -       
  *  VREF_OUT                 | VREF_OUT/CMP1_IN5/CMP0_IN5/ADC1_SE18        |                           | -       
  *  VREG_IN0                 | VREG_IN0                                    |                           | -       
- *  VREG_IN1                 | Disabled                                    |                           | -       
+ *  VREG_IN1                 | VREG_IN1                                    |                           | -       
  *  VREG_OUT                 | VREG_OUT                                    |                           | -       
  *  VSS1                     | VSS1                                        |                           | -       
  *  VSS2a                    | VSS2a                                       |                           | -       
@@ -3823,55 +4382,55 @@ extern void mapAllPins();
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
- *  PTB23                    | GPIOB_23                                    | A10                       | -       
- *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
- *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
- *  PTB16                    | UART0_RX                                    | ConRx                     | -       
- *  PTB17                    | UART0_TX                                    | ConTx                     | -       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
- *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
- *  PTC16                    | GPIOC_16                                    | D2                        | -       
- *  PTC8                     | GPIOC_8                                     | D3                        | -       
- *  PTC12                    | GPIOC_12                                    | D4                        | -       
- *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
- *  PTC2                     | GPIOC_2                                     | D6                        | -       
- *  PTA25                    | GPIOA_25                                    | D7                        | -       
- *  PTB18                    | GPIOB_18                                    | D8                        | -       
- *  PTB19                    | GPIOB_19                                    | D9                        | -       
- *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
- *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
- *  PTD3                     | GPIOD_3                                     | D12                       | -       
- *  PTD1                     | GPIOD_1                                     | D13                       | -       
- *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
- *  PTC10                    | GPIOC_10                                    | D15                       | -       
- *  PTE12                    | GPIOE_12                                    | D16                       | -       
- *  PTE11                    | GPIOE_11                                    | D17                       | -       
- *  PTC1                     | I2S0_TXD0                                   | D18                       | -       
- *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
- *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
- *  PTC7                     | GPIOC_7                                     | D21                       | -       
- *  PTE8                     | GPIOE_8                                     | D22                       | -       
- *  PTE7                     | GPIOE_7                                     | D23                       | -       
- *  PTB10                    | GPIOB_10                                    | D27                       | -       
- *  PTB11                    | GPIOB_11                                    | D28                       | -       
- *  PTC0                     | GPIOC_0                                     | D29                       | -       
- *  PTE24                    | GPIOE_24                                    | D30                       | -       
- *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
- *  PTD13                    | GPIOD_13                                    | D32                       | -       
- *  PTD12                    | GPIOD_12                                    | D33                       | -       
- *  PTA11                    | FTM2_QD_PHB/TPM2_CH1                        | LED_BLUE                  | -       
- *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
- *  PTC9                     | FTM3_CH5                                    | LED_RED                   | -       
- *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
- *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
- *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
- *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
- *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
- *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
- *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
- *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
- *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
+ *  PTB23                    | Disabled                                    | A10                       | -       
+ *  PTC14                    | Disabled                                    | BLUETOOTH_Rx              | -       
+ *  PTC15                    | Disabled                                    | BLUETOOTH_Tx              | -       
+ *  PTB16                    | TSI0_CH9                                    | ConRx                     | -       
+ *  PTB17                    | TSI0_CH10                                   | ConTx                     | -       
+ *  PTC3                     | CMP1_IN1                                    | D0                        | -       
+ *  PTC4                     | Disabled                                    | D1                        | -       
+ *  PTC16                    | Disabled                                    | D2                        | -       
+ *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
+ *  PTC12                    | Disabled                                    | D4                        | -       
+ *  PTC5                     | Disabled                                    | D5                        | -       
+ *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
+ *  PTA25                    | GPIOA_25                                    | D7                        | D7       
+ *  PTB18                    | TSI0_CH11                                   | D8                        | -       
+ *  PTB19                    | TSI0_CH12                                   | D9                        | -       
+ *  PTD0                     | Disabled                                    | D10                       | -       
+ *  PTD2                     | Disabled                                    | D11                       | -       
+ *  PTD3                     | Disabled                                    | D12                       | -       
+ *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
+ *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
+ *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
+ *  PTE12                    | Disabled                                    | D16                       | -       
+ *  PTE11                    | Disabled                                    | D17                       | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
+ *  PTC6                     | CMP0_IN0                                    | D19                       | -       
+ *  PTE9                     | Disabled                                    | D20                       | -       
+ *  PTC7                     | CMP0_IN1                                    | D21                       | -       
+ *  PTE8                     | Disabled                                    | D22                       | -       
+ *  PTE7                     | Disabled                                    | D23                       | -       
+ *  PTB10                    | ADC1_SE14                                   | D27                       | -       
+ *  PTB11                    | ADC1_SE15                                   | D28                       | -       
+ *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
+ *  PTE24                    | ADC0_SE17                                   | D30                       | -       
+ *  PTE25                    | ADC0_SE18                                   | D31                       | -       
+ *  PTD13                    | Disabled                                    | D32                       | -       
+ *  PTD12                    | Disabled                                    | D33                       | -       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | Blue LED       
+ *  PTE6                     | Disabled                                    | LED_GREEN                 | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
+ *  PTD8                     | Disabled                                    | ONBOARD_SCL               | -       
+ *  PTD9                     | Disabled                                    | ONBOARD_SDA               | -       
+ *  PTD11                    | Disabled                                    | SW2                       | -       
+ *  PTA10                    | FTM2_CH0                                    | SW3                       | Switch       
+ *  PTB20                    | Disabled                                    | nRF_ce_n                  | -       
+ *  PTD4                     | Disabled                                    | nRF_cs_n                  | -       
+ *  PTC18                    | Disabled                                    | nRF_irq                   | -       
+ *  PTD7                     | Disabled                                    | nRF_miso                  | -       
+ *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
+ *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
  *
  *
  * @section PinsByFunction Pins by Function
@@ -3879,93 +4438,71 @@ extern void mapAllPins();
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  ADC0_DM0                 | ADC0_DM0/ADC1_DM3                           |                           | -       
+ *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
+ *  PTD1                     | ADC0_SE5b                                   | D13                       | -       
+ *  PTD5                     | ADC0_SE6b                                   | nRF_sck                   | -       
+ *  PTD6                     | ADC0_SE7b                                   | nRF_mosi                  | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
  *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
  *  PTA7                     | ADC0_SE10                                   |                           | -       
  *  PTA8                     | ADC0_SE11                                   |                           | -       
  *  PTB2                     | ADC0_SE12/TSI0_CH7                          | A5                        | -       
  *  PTB3                     | ADC0_SE13/TSI0_CH8                          | A4                        | -       
+ *  PTC0                     | ADC0_SE14/TSI0_CH13                         | D29                       | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | D18                       | -       
  *  ADC0_SE16                | ADC0_SE16/CMP1_IN2/ADC0_SE21                |                           | -       
+ *  PTE24                    | ADC0_SE17                                   | D30                       | -       
+ *  PTE25                    | ADC0_SE18                                   | D31                       | -       
  *  ADC1_DM0                 | ADC1_DM0/ADC0_DM3                           |                           | -       
  *  ADC1_DP0                 | ADC1_DP0/ADC0_DP3                           |                           | -       
  *  PTE0                     | ADC1_SE4a                                   |                           | -       
+ *  PTC8                     | ADC1_SE4b/CMP0_IN2                          | D3                        | -       
  *  PTE1                     | ADC1_SE5a                                   |                           | -       
+ *  PTC9                     | ADC1_SE5b/CMP0_IN3                          | LED_RED                   | -       
  *  PTE2                     | ADC1_SE6a                                   |                           | -       
+ *  PTC10                    | ADC1_SE6b                                   | D15                       | -       
  *  PTE3                     | ADC1_SE7a                                   |                           | -       
+ *  PTC11                    | ADC1_SE7b                                   | D14                       | -       
  *  PTB4                     | ADC1_SE10                                   | A3                        | -       
  *  PTB5                     | ADC1_SE11                                   | A2                        | -       
  *  PTB6                     | ADC1_SE12                                   | A1                        | -       
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
+ *  PTB10                    | ADC1_SE14                                   | D27                       | -       
+ *  PTB11                    | ADC1_SE15                                   | D28                       | -       
  *  ADC1_SE16                | ADC1_SE16/CMP2_IN2/ADC0_SE22                |                           | -       
  *  PTA17                    | ADC1_SE17                                   |                           | -       
+ *  PTC6                     | CMP0_IN0                                    | D19                       | -       
+ *  PTC7                     | CMP0_IN1                                    | D21                       | -       
+ *  PTC3                     | CMP1_IN1                                    | D0                        | -       
+ *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA15                    | CMP3_IN1                                    |                           | -       
  *  PTA16                    | CMP3_IN2                                    |                           | -       
  *  PTA24                    | CMP3_IN4                                    |                           | -       
  *  DAC0_OUT                 | DAC0_OUT/CMP1_IN3/ADC0_SE23                 |                           | -       
  *  DAC1_OUT                 | DAC1_OUT/CMP0_IN4/CMP2_IN3/ADC1_SE23        |                           | -       
- *  VREG_IN1                 | Disabled                                    |                           | -       
+ *  PTE28                    | Disabled                                    |                           | -       
  *  PTA18                    | EXTAL0                                      |                           | -       
  *  EXTAL32                  | EXTAL32                                     |                           | -       
- *  PTA4                     | FTM0_CH1                                    |                           | -       
- *  PTA12                    | FTM1_QD_PHA/TPM1_CH0                        |                           | -       
- *  PTA11                    | FTM2_QD_PHB/TPM2_CH1                        | LED_BLUE                  | -       
- *  PTC9                     | FTM3_CH5                                    | LED_RED                   | -       
- *  PTA5                     | GPIOA_5                                     |                           | -       
- *  PTA10                    | GPIOA_10/LLWU_P22                           | SW3                       | -       
- *  PTA25                    | GPIOA_25                                    | D7                        | -       
- *  PTB10                    | GPIOB_10                                    | D27                       | -       
- *  PTB11                    | GPIOB_11                                    | D28                       | -       
- *  PTB18                    | GPIOB_18                                    | D8                        | -       
- *  PTB19                    | GPIOB_19                                    | D9                        | -       
- *  PTB20                    | GPIOB_20                                    | nRF_ce_n                  | -       
- *  PTB23                    | GPIOB_23                                    | A10                       | -       
- *  PTC0                     | GPIOC_0                                     | D29                       | -       
- *  PTC2                     | GPIOC_2                                     | D6                        | -       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
- *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
- *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
- *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
- *  PTC7                     | GPIOC_7                                     | D21                       | -       
- *  PTC8                     | GPIOC_8                                     | D3                        | -       
- *  PTC10                    | GPIOC_10                                    | D15                       | -       
- *  PTC11                    | GPIOC_11/LLWU_P11                           | D14                       | -       
- *  PTC12                    | GPIOC_12                                    | D4                        | -       
- *  PTC16                    | GPIOC_16                                    | D2                        | -       
- *  PTC18                    | GPIOC_18                                    | nRF_irq                   | -       
- *  PTD0                     | GPIOD_0/LLWU_P12                            | D10                       | -       
- *  PTD1                     | GPIOD_1                                     | D13                       | -       
- *  PTD2                     | GPIOD_2/LLWU_P13                            | D11                       | -       
- *  PTD3                     | GPIOD_3                                     | D12                       | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | nRF_cs_n                  | -       
- *  PTD11                    | GPIOD_11/LLWU_P25                           | SW2                       | -       
- *  PTD12                    | GPIOD_12                                    | D33                       | -       
- *  PTD13                    | GPIOD_13                                    | D32                       | -       
- *  PTE6                     | GPIOE_6/LLWU_P16                            | LED_GREEN                 | -       
- *  PTE7                     | GPIOE_7                                     | D23                       | -       
- *  PTE8                     | GPIOE_8                                     | D22                       | -       
- *  PTE9                     | GPIOE_9/LLWU_P17                            | D20                       | -       
- *  PTE11                    | GPIOE_11                                    | D17                       | -       
- *  PTE12                    | GPIOE_12                                    | D16                       | -       
- *  PTE24                    | GPIOE_24                                    | D30                       | -       
- *  PTE25                    | GPIOE_25/LLWU_P21                           | D31                       | -       
- *  PTD8                     | I2C0_SCL                                    | ONBOARD_SCL               | -       
- *  PTD9                     | I2C0_SDA                                    | ONBOARD_SDA               | -       
- *  PTC1                     | I2S0_TXD0                                   | D18                       | -       
+ *  PTA10                    | FTM2_CH0                                    | SW3                       | Switch       
+ *  PTA11                    | GPIOA_11/LLWU_P23                           | LED_BLUE                  | Blue LED       
+ *  PTA25                    | GPIOA_25                                    | D7                        | D7       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           |                           | -       
  *  PTA1                     | JTAG_TDI                                    |                           | -       
  *  PTA2                     | JTAG_TDO/TRACE_SWO                          |                           | -       
  *  PTA3                     | JTAG_TMS/SWD_DIO                            |                           | -       
+ *  PTA4                     | NMI_b                                       |                           | -       
  *  RESET_b                  | RESET_b                                     |                           | -       
- *  PTD5                     | SPI1_SCK                                    | nRF_sck                   | -       
- *  PTD7                     | SPI1_SIN                                    | nRF_miso                  | -       
- *  PTD6                     | SPI1_SOUT                                   | nRF_mosi                  | -       
- *  PTB16                    | UART0_RX                                    | ConRx                     | -       
- *  PTB17                    | UART0_TX                                    | ConTx                     | -       
- *  PTC14                    | UART4_RX                                    | BLUETOOTH_Rx              | -       
- *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
+ *  PTB16                    | TSI0_CH9                                    | ConRx                     | -       
+ *  PTB17                    | TSI0_CH10                                   | ConTx                     | -       
+ *  PTB18                    | TSI0_CH11                                   | D8                        | -       
+ *  PTB19                    | TSI0_CH12                                   | D9                        | -       
  *  USB0_DM                  | USB0_DM                                     |                           | -       
  *  USB0_DP                  | USB0_DP                                     |                           | -       
+ *  USB1_DM                  | USB1_DM                                     |                           | -       
+ *  USB1_DP                  | USB1_DP                                     |                           | -       
+ *  USB1_VBUS                | USB1_VBUS                                   |                           | -       
+ *  USB1_VSS                 | USB1_VSS                                    |                           | -       
  *  VBAT                     | VBAT                                        |                           | -       
  *  VDD1                     | VDD1                                        |                           | -       
  *  VDD2                     | VDD2                                        |                           | -       
@@ -3981,6 +4518,7 @@ extern void mapAllPins();
  *  VREFL                    | VREFL                                       |                           | -       
  *  VREF_OUT                 | VREF_OUT/CMP1_IN5/CMP0_IN5/ADC1_SE18        |                           | -       
  *  VREG_IN0                 | VREG_IN0                                    |                           | -       
+ *  VREG_IN1                 | VREG_IN1                                    |                           | -       
  *  VREG_OUT                 | VREG_OUT                                    |                           | -       
  *  VSS1                     | VSS1                                        |                           | -       
  *  VSS2a                    | VSS2a                                       |                           | -       

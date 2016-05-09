@@ -79,7 +79,6 @@ public class TreeEditor {
             return event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION;
          }
       };
-      
       TreeViewerEditor.create(fViewer, actSupport, ColumnViewerEditor.DEFAULT);
 
       fColumns = new TreeViewerColumn[3];

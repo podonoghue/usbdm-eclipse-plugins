@@ -113,8 +113,12 @@ public class MappingInfo extends ObservableModel {
     * @param selected
     */
    public void select(Origin origin, boolean selected) {
+      if (this == MappingInfo.DISABLED_MAPPING) {
+         return;
+      }
+//      System.err.println("MappingIofo.select("+selected+") == "+fSelected);
       if (fSelected == selected) {
-//       System.err.println(toString() + " No Change");
+//         System.err.println(toString() + " No Change");
          return;
       }
       if (fBusy) {
@@ -123,7 +127,7 @@ public class MappingInfo extends ObservableModel {
       fBusy = true;
       setRefreshPending(true);
       fSelected = selected;
-//         System.err.println(toString() + " Changed, " + (fSelected?"Selected":"Disabled" ));
+//      System.err.println(toString() + " Changed, " + (fSelected?"Selected":"Disabled" ));
       notifyListeners();
       fBusy = false;   
    }

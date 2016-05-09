@@ -591,7 +591,6 @@ public class DocumentUtilities {
     * @throws IOException
     */
    public void writeWizardOptionSelectionPreamble(
-         
          String comment, 
          int offset, 
          WizardAttribute[] attributes, 
@@ -599,6 +598,7 @@ public class DocumentUtilities {
          String hint) throws IOException {
       writeWizardOptionSelectionPreamble(comment, offset, attributes, title, hint, null);
    }
+   
    /**
     * Write wizard selection preamble e.g.
     * <pre><code>

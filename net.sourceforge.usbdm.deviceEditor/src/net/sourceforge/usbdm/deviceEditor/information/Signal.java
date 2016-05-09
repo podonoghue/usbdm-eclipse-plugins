@@ -63,9 +63,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
 
-   /** Current mapping for this signal */
-   private MappingInfo fCurrentMapping = MappingInfo.DISABLED_MAPPING;
-
    /**
     * 
     * @param name          Name of signal e.g. FTM0_CH3 
@@ -133,7 +130,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * 
     * @param mapInfo
     */
-   public void addMapping(MappingInfo mapInfo) {
+   public void addMappedPin(MappingInfo mapInfo) {
       if (this == DISABLED_SIGNAL) {
 //       throw new RuntimeException("Adding mapping to disabled pin");
          return;
@@ -154,7 +151,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get ordered set of pin mappings for this signal 
+    * Get ordered set of possible pin mappings for this signal 
     * 
     * @return
     */
@@ -186,17 +183,15 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public MappingInfo getResetMapping() {
       return fResetMapping;
    }
-   
-   /* (non-Javadoc)
-    * @see java.lang.Object#toString()
-    */
+
+   @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
-      sb.append("PF    = "+fName);
-      sb.append("\n  P   = "+fPeripheral);
-      sb.append("\n  RM  = "+fResetMapping);
+      sb.append("Signal("+fName+")");
+      sb.append("\n  fP   = "+fPeripheral);
+      sb.append("\n  fRM  = "+fResetMapping);
       for(MappingInfo mapping:fPinMappings) {
-         sb.append("\n  PMi = "+mapping);
+         sb.append("\n  fPMi = "+mapping);
       }
       return sb.toString();
    }
@@ -219,61 +214,43 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
+    * Get current pin mapping for this signal
+    * 
+    * @return
+    */
+   public MappingInfo getMappedPin() {
+      for (MappingInfo mappingInfo:fPinMappings) {
+         if (mappingInfo.isSelected()) {
+            return mappingInfo;
+         }
+      }
+      return MappingInfo.DISABLED_MAPPING;
+   }
+   
+   /**
     * Map the function to a pin using the given mapping
     * 
     * @param mappingInfo
     */
-   public void setPin(MappingInfo mappingInfo) {
+   public void setMappedPin(MappingInfo mappingInfo) {
+      System.err.println("Signal.setPin("+mappingInfo+")");
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
             continue;
          }
          mapping.select(Origin.signal, false);
       }
-      if (fCurrentMapping == mappingInfo) {
-         // Already mapped - No change
-         return;
-      }
-//      fCurrentMapping.select(Origin.signal, false);
       mappingInfo.select(Origin.signal, true);
+      notifyListeners();
    }
 
    @Override
    public void modelElementChanged(ObservableModel model) {
-      
       if (model instanceof MappingInfo) {
-         MappingInfo mappingInfo = (MappingInfo) model;
-         if (mappingInfo.isSelected()) {
-            // Signal mapped value
-            if (fCurrentMapping == mappingInfo) {
-               // Already mapped - no change
-               return;
-            }
-            fCurrentMapping = mappingInfo;
-            // New pin has been mapped
-         }
-         else {
-            // Signal unmapped from pin
-            if (mappingInfo != fCurrentMapping) {
-               // Already unmapped - no change
-               return;
-            }
-            // Currently pin has been unmapped
-            fCurrentMapping = MappingInfo.DISABLED_MAPPING;
-         }
          notifyListeners();
       }
    }
 
-   /**
-    * Get current pin mapping for this signal
-    * 
-    * @return
-    */
-   public MappingInfo getCurrentMapping() {
-      return fCurrentMapping;
-   }
-   
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
       // Not used

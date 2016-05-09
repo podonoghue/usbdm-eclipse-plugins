@@ -10,11 +10,9 @@ import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of GPIO
  */
 public class WriterForGpio extends Peripheral {
-
-   static final String ALIAS_PREFIX       = "gpio_";
 
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -25,21 +23,15 @@ public class WriterForGpio extends Peripheral {
       return"Digital Input/Output";
    }
 
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_PREFIX+alias;
-   }
-
    @Override
-   public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
-      return getClassName()+instance+"_"+signal;
+   public String getAliasName(String signalName, String alias) {
+      return getBaseName().toLowerCase()+"_"+alias;
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      StringBuffer sb = new StringBuffer();
+      int          signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
+      StringBuffer sb     = new StringBuffer();
       sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
       return sb.toString();
    }

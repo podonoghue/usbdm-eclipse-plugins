@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -420,9 +419,8 @@ public abstract class Peripheral {
     * @return  String 
     */
    public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
       String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
-      return getClassName()+instance+"_"+signal;
+      return getClassName().toLowerCase()+"_"+signal;
    }
    
    /**
@@ -483,28 +481,13 @@ public abstract class Peripheral {
     * @param mappingInfo    Mapping information (pin and signal)
     * @param fnIndex        Index into list of signals mapped to pin
     * @param cppFile        Where to write
+    * 
     * @throws IOException 
     */
    public String getDefinition(MappingInfo mappingInfo, int fnIndex) throws IOException {
       return getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
    }
    
-   /** 
-    * Write component declaration e.g. 
-    * <pre>
-    * extern const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> gpio<b><i>A</b></i>_<b><i>0</b></i>;
-    * extern const USBDM::Adc<b><i>0</i></b>&lt;<b><i>19</i></b>&gt adc<b><i>A</b></i>_ch<b><i>0</b></i>;
-    * extern const USBDM::Ftm<b><i>1</b></i>&lt;<i><b>17</i></b>> ftm<b><i>1</i></b>_ch<b><i>17</i></b>;
-    * </pre>
-    * @param mappingInfo   Mapping information (pin and signal)
-    * @param fnIndex       Index into list of signals mapped to pin
-    * @param cppFile       Where to write
-    * @throws Exception 
-    */
-   public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
-      return "extern " +  getDefinition(mappingInfo, fnIndex);
-   }
-
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
     * Default implementation checks the size of the signal table
@@ -518,15 +501,6 @@ public abstract class Peripheral {
    }
 
    /**
-    * Provides C template
-    * 
-    * @return Template
-    */
-   public String getCTemplate() {
-      return null;
-   }
-   
-   /**
     * Gets the numeric index of the signal for use in PCR tables\n
     * e.g. FTM3_Ch2 => 2 etc.
     * 
@@ -537,7 +511,10 @@ public abstract class Peripheral {
     * @throws Exception if signal doesn't match template
     */
    public int getSignalIndex(Signal signal) {
-      throw new RuntimeException("Method should not be called");
+      if (signal.getResetMapping().getMux() == MuxSelection.fixed) {
+         return  -1;
+      }
+      throw new RuntimeException("Method should not be called, signal = " + signal);
    }
 
    /**
@@ -551,11 +528,10 @@ public abstract class Peripheral {
     * @return String
     */
    public String getPcrDefinition() {
-      return String.format(
+      return 
             "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t pcrValue  = DEFAULT_PCR;\n\n"
-            );
-      }
+            "   static constexpr uint32_t pcrValue  = DEFAULT_PCR;\n\n";
+   }
 
    /**
     * Returns a string containing definitions to be included in the information class describing the peripheral
@@ -583,8 +559,9 @@ public abstract class Peripheral {
             getName()+"_BasePtr;"
             ));
 
-      sb.append(getPcrDefinition());
-      
+      if (needPCRTable()) {
+         sb.append(getPcrDefinition());
+      }
       if (getClockMask() != null) {
          sb.append(String.format(
                "   //! Clock mask for peripheral\n"+
@@ -615,9 +592,6 @@ public abstract class Peripheral {
       pinMappingHeaderFile.write(sb.toString());
    }
 
-   public void writeExtraDefinitions(DocumentUtilities pinMappingHeaderFile) throws IOException {
-   }
-   
    public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
@@ -666,11 +640,11 @@ public abstract class Peripheral {
       return rv;
    }
    
-   private static final String INVALID_TEMPLATE  = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
-   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
-   private static final String FIXED_TEMPLATE    = "         /* %3d: %-15s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-15s = %-30s */  { %s PORT_PCR_MUX(%d)|pcrValue  },\n";
-   private static final String HEADING_TEMPLATE  = "         //      %-15s   %-30s   %s\n";
+   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
+   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
+   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s PORT_PCR_MUX(%d)|pcrValue  },\n";
+   private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
       if (signalTable.table.size() == 0) {
@@ -828,8 +802,6 @@ public abstract class Peripheral {
       // Close class
       pinMappingHeaderFile.write(String.format("};\n\n"));
       
-      // Write extra definitions
-      writeExtraDefinitions(pinMappingHeaderFile);
    }
 
    public void writeCSettings(DocumentUtilities headerFile) throws IOException {
@@ -955,10 +927,26 @@ public abstract class Peripheral {
    /**
     * Adds variables to map for C++ generation
     * 
-    * @param variableMap
     * @param vectorTable 
     */
-   public void getVariables(Map<String, String> variableMap, VectorTable vectorTable) {
+   public void modifyVectorTable(VectorTable vectorTable) {
    }
-
+   
+   /**
+    * Searches array for match for signal
+    * 
+    * @param signal        Signal to search for
+    * @param signalNames   Array of regular expressions to match against
+    * 
+    * @return              Index of match
+    * @throws RuntimeException if not found
+    */
+   protected static int getSignalIndex(Signal signal, String[] signalNames) {
+      for (int signalIndex=0; signalIndex<signalNames.length; signalIndex++) {
+         if (signal.getSignalName().matches(signalNames[signalIndex])) {
+            return signalIndex;
+         }
+      }
+      throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
+   }
 }

@@ -214,7 +214,6 @@
       
       </menu>
    </menu>
-   
    <validate
       class="net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_MKxx">
       <param type="int" value="120000000" /> <!-- Core -->
@@ -223,6 +222,7 @@
       <param type="int" value="60000000" />  <!-- Flexbus -->
    </validate>
    <template>
-      \t//! Indicates interrupt handler has been installed
+      \t//! Clock Mode\n
+      \tstatic constexpr uint32_t CLOCK_MODE = $(clock_mode);\n\n
    </template>
 </root>

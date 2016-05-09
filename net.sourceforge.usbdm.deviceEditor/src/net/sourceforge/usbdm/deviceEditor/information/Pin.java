@@ -392,6 +392,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public void setPinUseDescription(String pinUseDescription) {
       fPinUseDescription = pinUseDescription;
+      
+      // Update watchers of active mapping
+      MappingInfo mappingInfo = getMappedSignal();
+      mappingInfo.notifyListeners();
+
       fDeviceInfo.setDirty(true);
       notifyListeners();
    }
@@ -403,6 +408,28 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return fPinUseDescription;
    }
 
+   /**
+    * Get the currently mapped signal for this pin
+    * 
+    * @return Mapped signal or <b>MappingInfo.DISABLED_MAPPING</b> if none
+    */
+   public MappingInfo getMappedSignal() {
+      MappingInfo rv = fMappedSignals.get(fMuxValue);
+      if (rv == null) {
+         rv = MappingInfo.DISABLED_MAPPING;
+      }
+      return rv;
+   }
+
+   /**
+    * Sets the signal mapped to this pin
+    * 
+    * @param mappingInfo
+    */
+   public void setMappedSignal(MappingInfo mappingInfo) {
+      setMuxSelection(mappingInfo.getMux());
+   }
+   
    /** 
     * Set current pin multiplexor setting 
     * 
@@ -416,16 +443,20 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (newMuxValue == fMuxValue) {
          return;
       }
-      fDeviceInfo.setDirty(true);
-      MappingInfo mapInfo = fMappedSignals.get(fMuxValue);
       fMuxValue = newMuxValue;
-      if (mapInfo != null) {
-         mapInfo.select(MappingInfo.Origin.pin, false);
+      MappingInfo newMappingInfo = null;
+      for (MuxSelection muxValue:fMappedSignals.keySet()) {
+         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+         if (muxValue == newMuxValue) {
+            newMappingInfo = mappingInfo;
+            continue;
+         }
+         mappingInfo.select(null, false);
       }
-      mapInfo = fMappedSignals.get(fMuxValue);
-      if (mapInfo != null) {
-         mapInfo.select(MappingInfo.Origin.pin, true);
+      if (newMappingInfo != null) {
+         newMappingInfo.select(null, true);
       }
+      fDeviceInfo.setDirty(true);
    }
 
    /** 
@@ -455,7 +486,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          fMappedSignals.put(muxValue, mapInfo);
       }
       mapInfo.addSignal(signal);
-      signal.addMapping(mapInfo);
+      signal.addMappedPin(mapInfo);
       return mapInfo;
    }
 
@@ -488,7 +519,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param settings Settings object
     */
    public void saveSettings(DialogSettings settings) {
-      if ((fMuxValue != fDefaultMuxValue) && (fMuxValue != MuxSelection.fixed)) {
+      if ((fMuxValue != MuxSelection.reset) && (fMuxValue != MuxSelection.fixed)) {
          settings.put(fName+MUX_SETTINGS_KEY, fMuxValue.name());
       }
       String desc = getPinUseDescription();
@@ -497,21 +528,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
 
-   /**
-    * Get the currently mapped signal for this pin
-    * 
-    * @return Mapped signal or <b>MappingInfo.DISABLED_MAPPING</b> if none
-    */
-   public MappingInfo getMappedSignal() {
-      MappingInfo rv = fMappedSignals.get(fMuxValue);
-      if (rv == null) {
-         rv = MappingInfo.DISABLED_MAPPING;
-      }
-      return rv;
-   }
-
    @Override
    public void modelElementChanged(ObservableModel model) {
+//      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
       if (model instanceof MappingInfo) {
          MappingInfo mappingInfo = (MappingInfo) model;
          if (mappingInfo.isSelected()) {
@@ -538,7 +557,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 //               System.err.println("Pin("+fName+").modelElementChanged("+mappingInfo+") - Unselection Ignored");
                return;
             }
-            fMuxValue = fResetMuxValue;
+            fMuxValue = MuxSelection.reset;
             fDeviceInfo.setDirty(true);
          }
       }
@@ -553,15 +572,4 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void modelStructureChanged(ObservableModel model) {
       notifyStructureChangeListeners();
    }
-   
-//   public String isValid() {
-//      int mapCount = 0;
-//      for (MuxSelection key:fMappedSignals.keySet()) {
-//         MappingInfo mappedSignal = fMappedSignals.get(key);
-//         if (mappedSignal.isSelected()) {
-//            mapCount++;
-//         }
-//      }
-//      return (mapCount>1)?"Conflict":null;
-//   }
 }

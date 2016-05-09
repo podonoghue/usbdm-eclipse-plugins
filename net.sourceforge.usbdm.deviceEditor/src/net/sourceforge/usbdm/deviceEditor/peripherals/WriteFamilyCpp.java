@@ -44,7 +44,7 @@ public class WriteFamilyCpp {
    private final static String HARDWARE_BASEFILENAME      = "hardware";
 
    /** Name of function to do pin mapping */
-   private static final String DO_PIN_MAPPING_FUNCTION = "mapAllPins";
+   private static final String DO_PIN_MAPPING_FUNCTION    = "mapAllPins";
 
    /** Fixed GPIO multiplexor function */
    private int      gpioFunctionMuxValue          = 1; 
@@ -193,7 +193,7 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Write templates for simple peripheral functions (e.g. GPIO,ADC,PWM) mapped to locations  e.g.
+    * Get declarations for simple peripheral signals (e.g. GPIO,ADC,PWM) that are mapped to pins  e.g.
     * 
     * <pre>
     *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
@@ -201,29 +201,28 @@ public class WriteFamilyCpp {
     * </pre>
     * 
     * @param peripheral       Peripheral information
-    * @param mappedFunction   Information about the pin and function being declared
-    * @param fnIndex          Index into list of functions mapped to pin
-    * @param writer           Where to write
+    * @param mappedSignal     Information about the mapped signal being declared
+    * @param fnIndex          Index into list of multiple functions mapped to pin
     * 
     * @throws IOException 
     */
-   private String writeFunctionCTemplates(Peripheral peripheral, MappingInfo mappedFunction, int fnIndex) throws IOException {
+   private String getMappedSignals(Peripheral peripheral, MappingInfo mappedSignal, int fnIndex) throws IOException {
       StringBuffer sb = null;
       
-      if (!mappedFunction.isSelected()) {// && (mappedFunction.getMux()!=MuxSelection.mux1)) {
+      if (!mappedSignal.isSelected()) {// && (mappedFunction.getMux()!=MuxSelection.mux1)) {
          return null;
       }
-      String definition = peripheral.getDefinition(mappedFunction, fnIndex);
+      String definition = peripheral.getDefinition(mappedSignal, fnIndex);
       if (definition == null) {
          return null;
       }
-      String signalName = peripheral.getInstanceName(mappedFunction, fnIndex);
-      String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedFunction.getPin());
+      String signalName = peripheral.getInstanceName(mappedSignal, fnIndex);
+      String locations = fDeviceInfo.getDeviceVariant().getPackage().getLocation(mappedSignal.getPin());
       if ((locations != null) && (!locations.isEmpty())) {
          for (String location:locations.split("/")) {
             String aliasName = peripheral.getAliasName(signalName, location);
             if (aliasName!= null) {
-               String declaration = peripheral.getAliasDeclaration(aliasName, mappedFunction, fnIndex);
+               String declaration = peripheral.getAliasDeclaration(aliasName, mappedSignal, fnIndex);
                if (declaration != null) {
                   if (sb == null) {
                      sb = new StringBuffer();
@@ -268,6 +267,18 @@ public class WriteFamilyCpp {
       }
    }
    
+   /**
+    * Writes #includes for classes that have simple signal declarations e.g. ADC, GPIO etc.<br>
+    * 
+    * Example:
+    * <pre>
+    *    #include "adc.h"
+    *    #include "ftm.h"
+    * </pre>
+    * 
+    * @param writer
+    * @throws IOException
+    */
    private void writeIncludes(DocumentUtilities writer) throws IOException {
       if (fDeviceInfo.getPeripherals().containsKey("ADC0")||fDeviceInfo.getPeripherals().containsKey("ADC1")) {
          writer.writeHeaderFileInclude("adc.h");
@@ -283,31 +294,9 @@ public class WriteFamilyCpp {
    }
    
    /**
-    * Write C templates for peripherals and peripheral functions
+    * Write declarations for simple peripheral signals (e.g. GPIO,ADC,PWM) that are mapped to pins  e.g.
     * 
     * <pre>
-    *    /**
-    *     * Convenience template class representing an ADC
-    *     *
-    *     * Example
-    *     * @code
-    *     *  // Instantiate ADC0 single-ended channel #8
-    *     *  const adc0&lt;8&gt; adc0_se8;
-    *     *
-    *     *  // Initialise ADC
-    *     *  adc0_se8.initialiseADC(USBDM::resolution_12bit_se);
-    *     *
-    *     *  // Set as analogue input
-    *     *  adc0_se8.setAnalogueInput();
-    *     *
-    *     *  // Read input
-    *     *  uint16_t value = adc0_se8.readAnalogue();
-    *     *  @endcode
-    *     *
-    *     * @tparam adcChannel    ADC channel
-    *     * /
-    *    template&lt;uint8_t channel&gt; using Adc1 = Adc_T&lt;Adc1Info, channel&gt;;
-    *    
     *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
     *    using adc_p54              = const USBDM::Adc1&lt;5&gt;;
     * </pre>
@@ -316,7 +305,7 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception 
     */
-   private void writePeripheralCTemplates(DocumentUtilities writer) throws IOException {
+   private void writeMappedSignals(DocumentUtilities writer) throws IOException {
 
       writeIncludes(writer);
       
@@ -324,28 +313,22 @@ public class WriteFamilyCpp {
 
       DocumentationGroups startGroup = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
-
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         String declaration = peripheral.getCTemplate();
-         if (declaration != null) {
-            startGroup.openGroup(peripheral);
-            writer.write(declaration);
-         }
          for (String pinName:fDeviceInfo.getPins().keySet()) {
             Pin pin = fDeviceInfo.getPins().get(pinName);
-            Map<MuxSelection, MappingInfo> mappedFunctions = pin.getMappedSignals();
-            if (mappedFunctions == null) {
+            Map<MuxSelection, MappingInfo> mappedSignals = pin.getMappedSignals();
+            if (mappedSignals == null) {
                continue;
             }
-            for (MuxSelection index:mappedFunctions.keySet()) {
+            for (MuxSelection index:mappedSignals.keySet()) {
                if (index == MuxSelection.reset) {
                   continue;
                }
-               MappingInfo mappedFunction = mappedFunctions.get(index);
-               for (int fnIndex=0; fnIndex<mappedFunction.getSignals().size(); fnIndex++) {
-                  Signal function = mappedFunction.getSignals().get(fnIndex);
+               MappingInfo mappedSignal = mappedSignals.get(index);
+               for (int fnIndex=0; fnIndex<mappedSignal.getSignals().size(); fnIndex++) {
+                  Signal function = mappedSignal.getSignals().get(fnIndex);
                   if (function.getPeripheral() == peripheral) {
-                     String template = writeFunctionCTemplates(peripheral, mappedFunction, fnIndex);
+                     String template = getMappedSignals(peripheral, mappedSignal, fnIndex);
                      if (template != null) {
                         startGroup.openGroup(peripheral);
                         writer.write(template);
@@ -397,7 +380,7 @@ public class WriteFamilyCpp {
             String signal   = m.replaceAll("$2");
             usedPcrs.add(instance);
             writer.write(String.format(
-                  " /* %-10s ==> %-25s */  { PORT_PCR_MUX(%d)|%s::DEFAULT_PCR, &PORT%s->%-8s },\n",
+                  " /* %-10s ==> %-30s */  { PORT_PCR_MUX(%d)|%s::DEFAULT_PCR, &PORT%s->%-8s },\n",
                   pin.getName(),
                   pin.getMappedSignal().getSignalList(),
                   mux.value, 
@@ -438,24 +421,6 @@ public class WriteFamilyCpp {
       writer.write("}\n");
    }
 
-//   /**
-//    * Checks if a function is mapped to a pin
-//    * 
-//    * @param peripheral
-//    * @param mappedFunction
-//    * 
-//    * @return True if mapped.
-//    */
-//   private boolean isFunctionMappedToPin(Peripheral peripheral, MappingInfo mappedFunction) {
-//      if (mappedFunction.getMux() == MuxSelection.fixed) {
-//         // Fixed mapping are always available
-//         return true;
-//      }
-//      Pin pin = mappedFunction.getPin();
-//      return (pin.getMuxValue() == mappedFunction.getMux());
-//   }
-
-   
    private final String DOCUMENTATION_OPEN = 
          "/**\n"+
          " *\n"+
@@ -583,7 +548,7 @@ public class WriteFamilyCpp {
       writeClockMacros(writer);
       writePeripheralInformationClasses(writer);
 
-      writePeripheralCTemplates(writer);
+      writeMappedSignals(writer);
 
       writeDocumentation(writer);
       
@@ -607,7 +572,6 @@ public class WriteFamilyCpp {
             HARDWARE_BASEFILENAME+".cpp", fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION, 
             "Pin declarations for "+fDeviceInfo.getDeviceVariantName());
-
 
       writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME+".h");
       writer.write("\n");

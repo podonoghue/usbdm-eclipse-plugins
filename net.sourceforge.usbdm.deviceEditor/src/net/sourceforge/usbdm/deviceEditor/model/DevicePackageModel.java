@@ -22,7 +22,10 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
-         setValue(deviceInfo.getDeviceVariant().getPackage().getName());
+         String packageName = deviceInfo.getDeviceVariant().getPackage().getName();
+         if (getValueAsString() != packageName) {
+            setValue(deviceInfo.getDeviceVariant().getPackage().getName());
+         }
       }
    }
 

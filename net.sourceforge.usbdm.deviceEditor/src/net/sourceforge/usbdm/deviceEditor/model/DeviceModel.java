@@ -1,5 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+/**
+ * Model describing the device
+ */
 public final class DeviceModel extends RootModel {
 
    /**
@@ -7,8 +10,8 @@ public final class DeviceModel extends RootModel {
     * 
     * @param modelFactory  Factory owning model
     * @param columnLabels  Labels to use for columns
-    * @param string2 
-    * @param string 
+    * @param title 
+    * @param toolTip 
     */
    public DeviceModel(ModelFactory modelFactory, String[] columnLabels, String title, String toolTip) {
       super(modelFactory, columnLabels, title, toolTip);

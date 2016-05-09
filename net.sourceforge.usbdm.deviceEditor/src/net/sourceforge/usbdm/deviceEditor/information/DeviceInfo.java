@@ -27,7 +27,14 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmt;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForControl;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEnet;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
@@ -36,14 +43,22 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMisc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdram;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -92,21 +107,21 @@ public class DeviceInfo extends ObservableModel {
    /** File name extension for hardware description file (CSV format) */
    public static final String HARDWARE_CSV_FILE_EXTENSION = ".csv";
 
-   /** Key for device variant persistence */
-   public static final String DEVICE_VARIANT_SETTINGS_KEY  = "DeviceInfo_deviceVariant"; 
-
-   /** Key for device variant persistence */
-   public static final String DEVICE_NAME_SETTINGS_KEY  = "DeviceInfo_Target_Device"; 
-
-   /** Key for hardware source file persistence */
-   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
-
    /** Name of default USBDM project file in Eclipse project */
    public static final String USBDM_PROJECT_FILENAME = "Configure";
    
    /** Relative location of hardware files in USBDM installation */
-   public static final String USBDM_HARDWARE_LOCATION = "Stationery/Packages/180.ARM_Peripherals/Hardware";
+   public static final String USBDM_HARDWARE_LOCATION  = "Stationery/Packages/180.ARM_Peripherals/Hardware";
    
+   /** Key for device variant persistence */
+   public static final String DEVICE_VARIANT_SETTINGS_KEY   = "DeviceInfo_Device_Variant"; 
+
+   /** Key for target device persistence */
+   public static final String DEVICE_NAME_SETTINGS_KEY      = "DeviceInfo_Target_Device"; 
+
+   /** Key for hardware source file persistence */
+   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
+
    public static class Variable extends ObservableModel {
       String fName;
       String fValue;
@@ -235,6 +250,7 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception
     */
    public static DeviceInfo create(Path filePath) throws Exception {
+      
       String filename  = filePath.getFileName().toString();
 
       if (filename.endsWith(HARDWARE_FILE_EXTENSION)) {
@@ -859,25 +875,9 @@ public class DeviceInfo extends ObservableModel {
 
    /**
     * 
-    * @param namePattern            Pattern to extract peripheral base name e.g. FTM2 => Ftm
+    * @param namePattern            Pattern to extract peripheral base name e.g. FTM2 => FTM
     * @param instancePattern        Pattern to extract instance e.g. FTM2 => "2"
-    * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
-    * @param deviceFamily           Device family
-    * @param instanceWriter         InstanceWriter to use
-    */
-   private SignalTemplate createPeripheralTemplateInformation(
-         String        namePattern,   
-         String        instancePattern, 
-         String        matchTemplate, 
-         DeviceFamily  deviceFamily, 
-         Class<?>      instanceWriterClass) {
-      return createPeripheralTemplateInformation(namePattern, instancePattern, "$3", matchTemplate, deviceFamily, instanceWriterClass);
-   }
-
-   /**
-    * 
-    * @param namePattern            Pattern to extract peripheral base name e.g. FTM2 => Ftm
-    * @param instancePattern        Pattern to extract instance e.g. FTM2 => "2"
+    * @param signalPattern          Pattern to extract signal e.g. FTM2_CH3 => "CH3"
     * @param matchTemplate          Pattern to select use of this template e.g. "FTM\\d+_CH\\d+"
     * @param deviceFamily           Device family
     * @param instanceWriter         InstanceWriter to use
@@ -911,125 +911,123 @@ public class DeviceInfo extends ObservableModel {
             "^(GPIO|PORT)([A-I])(_(\\d+))?$",
             getDeviceFamily(),
             WriterForGpio.class);
+      
+      createPeripheralTemplateInformation(
+            "POWER", "", "$0",
+            "(VOUT33|VBAT|VREFL|VREFH|VSS(A|B)?|VDD(A|B)?|VREG(IN|_IN0|_IN1|_OUT))(\\d*(a|b|c)?)",
+            getDeviceFamily(),
+            WriterForPower.class);
+      
+      createPeripheralTemplateInformation(
+            "CONTROL", "", "$0",
+            "(JTAG|EZP|SWD|CLKOUT|NMI_b|RESET_b|TRACE)_?(.*)",
+            getDeviceFamily(),
+            WriterForControl.class);
+
       if (getDeviceFamily() != DeviceFamily.mkm) {
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
                "(ADC)([0-3])_((SE|DM|DP)\\d+(a|b)?)",
                getDeviceFamily(),
                WriterForAdc.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
                "(CMP)([0-3])?_(.*)",
                getDeviceFamily(),
                WriterForCmp.class);
          createPeripheralTemplateInformation(
-               "DmaMux", "0",  
-               null,
+               "$1", "$2", "$3",
+               "(CMT0?)_()(IRO)",
+               getDeviceFamily(),
+               WriterForCmt.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(DAC)(\\d+)?_(OUT)",
+               getDeviceFamily(),
+               WriterForDac.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(DMAMUX)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForDmaMux.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "ENET", "", "$3",
+               "(ENET)(0)?_(.*)",
+               getDeviceFamily(),
+               WriterForEnet.class);
+         createPeripheralTemplateInformation(
+               "ENET", "", "$1$3",
+               "(R?MII)(0)?(_.*)",
+               getDeviceFamily(),
+               WriterForEnet.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(EWM)_()(IN|OUT(_b)?)",
+               getDeviceFamily(),
+               WriterForEwm.class);
+         createPeripheralTemplateInformation(
+               "FB", "", "$2",
+               "(FB|FLEXBUS)_(.*)",
+               getDeviceFamily(),
+               WriterForFlexBus.class);
+         createPeripheralTemplateInformation(
+               "CAN", "$2", "$3",
+               "(CAN)([0-5])_(RX|TX)",
+               getDeviceFamily(),
+               WriterForFlexCan.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
                "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
                getDeviceFamily(),
                WriterForFtm.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
                "(I2C)([0-3])_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
                getDeviceFamily(),
                WriterForI2c.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
                "(I2S)([0-3])_(MCLK|(RXD(\\d+))|RX_BCLK|RX_FS|(TXD(\\d+))|TX_BCLK|TX_FS|xxx|(RW(_b)?)|(TS(_b)?)|(AD\\d+))",
                getDeviceFamily(),
                WriterForI2s.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
+               "$1", "$2", "$3",
+               "(LLWU)()_(P\\d+)",
+               getDeviceFamily(),
+               WriterForLlwu.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
                "(LPTMR)(0)_(ALT\\d+)",
                getDeviceFamily(),
                WriterForLptmr.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(PIT)(\\d)?(.*)",
-               getDeviceFamily(),
-               WriterForPit.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(LLWU)()_(P\\d+)",
-               getDeviceFamily(),
-               WriterForLlwu.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
-               getDeviceFamily(),
-               WriterForSpi.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
-               getDeviceFamily(),
-               WriterForFtm.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(TSI)([0-3])_(CH\\d+)",
-               getDeviceFamily(),
-               WriterForTsi.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(UART)(\\d+)_(TX|RX|CTS_b|RTS_b|COL_b)",
-               getDeviceFamily(),
-               WriterForUart.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
                "(LPUART)([0-6])_(TX|RX|CTS_b|RTS_b)",
                getDeviceFamily(),
                WriterForLpuart.class);
          createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(VREF)()_(OUT)",
+               "$1", "", "",
+               "(MCG)",
                getDeviceFamily(),
-               WriterForVref.class);
-         createPeripheralTemplateInformation(
-               "FB", "", "",
-               "(FB|FLEXBUS).*",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "SDRAM", "", "",
-               "(SDRAM).*",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "FLEXIO", "", "",
-               "(FXIO|FLEXIO).*",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
-               "(CAN)([0-3])_(RX|TX)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(CAN)([0-5])_(RX|TX)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(JTAG|EZP|SWD|CLKOUT|NMI_b|RESET_b|TRACE|VOUT33|VREGIN|EXTRG)_?()(.*)",
-               getDeviceFamily(),
-               WriterForNull.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(EWM)_()(IN|OUT_b)",
-               getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForMcg.class);
          createPeripheralTemplateInformation(
                "OSC", "0", "$1",
                "(E?XTAL)(0)?",
                getDeviceFamily(),
                WriterForOsc.class);
          createPeripheralTemplateInformation(
-               "RTC", "", "$3",
-               "(RTC)_?()(CLKOUT|CLKIN|WAKEUP_b)",
+               "$1", "$2", "$3",
+               "(PIT)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForPit.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(PDB)(0?)_(EXTRG)",
+               getDeviceFamily(),
+               WriterForPdb.class);
+         createPeripheralTemplateInformation(
+               "RTC", "", "$2",
+               "(RTC)_?(CLKOUT|CLKIN|WAKEUP_b)",
                getDeviceFamily(),
                WriterForRtc.class);
          createPeripheralTemplateInformation(
@@ -1037,111 +1035,138 @@ public class DeviceInfo extends ObservableModel {
                "(E?XTAL32)",
                getDeviceFamily(),
                WriterForRtc.class);
-         // Note USBOTG is used for clock name
-         createPeripheralTemplateInformation(
-               "USBDCD", "",
-               "(USBDCD)_?(.*)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         // Note USBOTG is used for clock name
-         createPeripheralTemplateInformation(
-               "USB", "0",
-               "((audio)?(USB)(OTG)?0?)_?(.*)",
-               getDeviceFamily(),
-               WriterForMisc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(DAC)(\\d+)?_(OUT)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(CMT0?)_()(IRO)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(PDB)(0?)_(EXTRG)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(FTM)_()(CLKIN\\d+)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2",
-               "(TPM)_()(CLKIN\\d+)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "", "",
-               "(ENET)(0_)?(.*)",
-               getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2", "",
                "(SDHC)(\\d+)?_(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForSdhc.class);
+         createPeripheralTemplateInformation(
+               "SDRAMC", "$2", "$3",
+               "(SDRAMC?)(\\d+)?_(.*)",
+               getDeviceFamily(),
+               WriterForSdram.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "R?(MII)([0-3])_(.*)",
+               "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForSpi.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(TPM)([0-3])_(CH\\d+|QD_PH[A|B]|CLKIN\\d)",
+               getDeviceFamily(),
+               WriterForFtm.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(TSI)([0-3])_(CH\\d+)",
+               getDeviceFamily(),
+               WriterForTsi.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(UART)(\\d+)_(TX|RX|CTS_b|RTS_b|COL_b)",
+               getDeviceFamily(),
+               WriterForUart.class);
+         createPeripheralTemplateInformation(
+               "USB", "0", "$5",
+               "((audio)?USB(OTG)?(0)?)_(.*)",
+               getDeviceFamily(),
+               WriterForUsb.class);
+         createPeripheralTemplateInformation(
+               "USBHS", "", "$2",
+               "USB1(_)?(.*)",
+               getDeviceFamily(),
+               WriterForUsbhs.class);
+         createPeripheralTemplateInformation(
+               "USBDCD", "", "$3",
+               "(USBDCD)_?(.*)",
+               getDeviceFamily(),
+               WriterForUsbdcd.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "$3",
+               "(VREF)(\\d*)_(OUT)",
+               getDeviceFamily(),
+               WriterForVref.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(VREF)\\d*",
+               getDeviceFamily(),
+               WriterForVref.class);
+
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(FTM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForShared.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(TPM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForShared.class);
+         
+         
+         
+         createPeripheralTemplateInformation(
+               "FLEXIO", "", "",
+               "(FXIO|FLEXIO).*",
+               getDeviceFamily(),
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "", "$3",
                "S?(LCD)(\\d)?_?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "LCD_POWER", "", "$0",
+               "(VCAP|VLL)\\d+",
+               getDeviceFamily(),
+               WriterForPower.class);
          createPeripheralTemplateInformation(
                "$1", "", "$3",
                "(CRC)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
-               "(DMAMUX)(\\d)?(.*)",
-               getDeviceFamily(),
-               WriterForDmaMux.class);
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "0", "$3",
                "(DMA)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(MPU)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
-         createPeripheralTemplateInformation(
-               "FTFE", "$2", "$3",
-               "(FTFE)(\\d)?(.*)",
-               getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "FTFA", "$2", "$3",
                "(FTFA)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "FTFE", "$2", "$3",
+               "(FTFE)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "FTFL", "$2", "$3",
+               "(FTFL)(\\d)?(.*)",
+               getDeviceFamily(),
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(RNGA)(\\d)?(.*)",
+               "(RNG(A)?)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForMisc.class);
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "Miscellaneous", "", "$0",
+               "(EXTRG_IN)",
+               getDeviceFamily(),
+               WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
-               "(MCG)",
+               "(USBHSPHY)",
                getDeviceFamily(),
-               WriterForMcg.class);
+               WriterForToDo.class);
       }
       createPeripheralTemplateInformation(
-            "POWER", "", "$2",
-            "(VDD|VSS|VBAT|VSSA|VSSB)(\\d+?(a|b|c)?)",
-            getDeviceFamily(),
-            WriterForMisc.class);
-      createPeripheralTemplateInformation(
-            "$1", "$2",
+            "$1", "$2", "$3",
             "(.*)()()",
             getDeviceFamily(),
             WriterForNull.class);
@@ -1411,14 +1436,18 @@ public class DeviceInfo extends ObservableModel {
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       settings.put(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY, fHardwarePath.getFileName().toString());
+      
+      // Save settings from pins e.g. pin mapping and descriptions
       for (String pinName:fPins.keySet()) {
          Pin pin = fPins.get(pinName);
          pin.saveSettings(settings);
       }
+      // Save custom items from peripherals
       for (String peripheralName:fPeripheralsMap.keySet()) {
          Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
          peripheral.saveSettings(settings);
       }
+      // Save variables
       for (String key:fVariables.keySet()) {
          settings.put(key, getVariableValue(key));
       }
@@ -1501,12 +1530,11 @@ public class DeviceInfo extends ObservableModel {
       }
       // Update vector table
       VectorTable vectorTable = devicePeripherals.getVectorTable();
-      variableMap.put("VectorsIncludeFiles", "");
       for (String peripheralName:getPeripherals().keySet()) {
-         Peripheral peripheral = getPeripherals().get(peripheralName);
-         peripheral.getVariables(variableMap, vectorTable);
+         getPeripherals().get(peripheralName).modifyVectorTable(vectorTable);
       }
       // Add information to variable map
+      variableMap.put(UsbdmConstants.C_VECTOR_TABLE_INCLUDES_KEY, vectorTable.getCIncludeFiles());
       variableMap.put(UsbdmConstants.C_VECTOR_TABLE_KEY, vectorTable.getCVectorTableEntries());
    }
    

@@ -13,7 +13,6 @@ Device,FRDM_KL27Z,KL27P64M48SF2RM,FRDM,,,,,,,,,,,,,,,,,,,
 Key,Pin,Pkg FRDM,Pkg LQFP_64,Pkg QFN_32,Pkg QFN_48,Pkg BGA_64,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,64 LQFP,32 QFN,48 QFN,64 BGA,36 BGA
 Pin,PTE17,*,*,*,*,*,ADC0_DM1/ADC0_SE5a,,ADC0_DM1/ADC0_SE5a,GPIOE_17,SPI0_SCK,UART2_RX,TPM_CLKIN1,LPTMR0_ALT3,FXIO0_D1,,1,*,*,*,*,C1
 Pin,PTE18,*,*,*,*,*,ADC0_DP2/ADC0_SE2,,ADC0_DP2/ADC0_SE2,GPIOE_18,SPI0_MOSI,,I2C0_SDA,SPI0_MISO,FXIO0_D2,,2,*,*,*,*,D1
-Pin,VREF0,*,*,p9,*,*,VREF0_B,,VREF0_B,,,,,,,,3,*,9,*,*,F2
 Pin,PTE0,,p1,p1,*,A1,DISABLED,,,GPIOE_0/CLKOUT32K,SPI1_MISO,LPUART1_TX,RTC_CLKOUT,CMP0_OUT,I2C1_SDA,,4,1,1,*,A1,A1
 Pin,PTE1,,p2,*,*,B1,DISABLED,,,GPIOE_1,SPI1_MOSI,LPUART1_RX,,SPI1_MISO,I2C1_SCL,,5,2,*,*,B1,*
 Pin,VDD1,,p3,*,p1,*,VDD1,,,,,,,,,,6,3,*,1,*,*
@@ -28,7 +27,7 @@ Pin,PTE22,,p11,*,*,G2,ADC0_DP3/ADC0_SE3,,ADC0_DP3/ADC0_SE3,GPIOE_22,,TPM2_CH0,UA
 Pin,PTE23,,p12,*,*,F2,ADC0_DM3/ADC0_SE7a,,ADC0_DM3/ADC0_SE7a,GPIOE_23,,TPM2_CH1,UART2_RX,,FXIO0_D7,,15,12,*,*,F2,F1
 Pin,VDDA,,p13,p7,p9,F4,VDDA,,,,,,,,,,16,13,7,9,F4,D3
 Pin,VREFH,,p14,p7,p10,G4,VREFH,,,,,,,,,,17,14,7,10,G4,D3
-Pin,VREFO,,p14,*,p10,G4,VREFO_A,,,,,,,,,,18,14,*,10,G4,*
+Pin,VREF_OUT,,p14,p9,p10,G4,VREF_OUT,,,,,,,,,,18,14,*,10,G4,*
 Pin,VREFL,,p15,p8,p11,G3,VREFL,,,,,,,,,,19,15,8,11,G3,D4
 Pin,VSSA,,p16,p8,p12,F3,VSSA,,,,,,,,,,20,16,8,12,F3,D4
 Pin,PTE29,,p17,*,p13,H1,CMP0_IN5/ADC0_SE4b,,CMP0_IN5/ADC0_SE4b,GPIOE_29,,TPM0_CH2,TPM_CLKIN0,,,,21,17,*,13,H1,*
@@ -85,13 +84,11 @@ Peripheral,MCG,,,,,,,,,,,,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,I2C1,SIM->SCGC4,,,I2C1_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,UART2,SIM->SCGC4,,,UART2_FLEXIO_IRQn,,,,,,,,,,,,,,,,,
-Peripheral,USB,SIM->SCGC4,SIM_SCGC4_USBOTG_MASK,,USB0_IRQn,,,,,,,,,,,,,,,,,
+Peripheral,USB0,SIM->SCGC4,SIM_SCGC4_USBOTG_MASK,,USB0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,CMP0,SIM->SCGC4,,,CMP0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,VREF,SIM->SCGC4,,,,,,,,,,,,,,,,,,,,
 Peripheral,SPI0,SIM->SCGC4,,,SPI0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,SPI1,SIM->SCGC4,,,SPI1_IRQn,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,
 Peripheral,LPTMR0,SIM->SCGC5,SIM_SCGC5_LPTMR_MASK,,LPTMR0_IRQn,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,

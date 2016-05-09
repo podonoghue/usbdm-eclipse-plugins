@@ -145,6 +145,9 @@ public class ValueColumnEditingSupport extends EditingSupport {
    static class ChoiceCellEditor extends ComboBoxCellEditor {
       public ChoiceCellEditor(Composite tree, String[] choices) {
          super(tree, choices, SWT.READ_ONLY);
+         setActivationStyle(
+               ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
+               ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
          setValueValid(true);
       }
       

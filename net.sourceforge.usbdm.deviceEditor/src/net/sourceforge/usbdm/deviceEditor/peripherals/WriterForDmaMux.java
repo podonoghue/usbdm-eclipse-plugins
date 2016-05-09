@@ -4,9 +4,7 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
@@ -18,9 +16,6 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  */
 public class WriterForDmaMux extends Peripheral {
 
-   static final String CLASS_BASE_NAME       = "Dma";
-   static final String INSTANCE_BASE_NAME    = "dma";
-
    public WriterForDmaMux(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
@@ -28,29 +23,6 @@ public class WriterForDmaMux extends Peripheral {
    @Override
    public String getTitle() {
       return "Direct Memory Access (DMA)";
-   }
-
-   @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal       = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      StringBuffer sb = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
-      return sb.toString();
-   }
-   
-   @Override
-   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   @Override
-   public String getDefinition(MappingInfo mappingInfo, int fnIndex) {
-      return super.getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
-   }
-
-   @Override
-   public String getExternDeclaration(MappingInfo mappingInfo, int fnIndex) throws Exception {
-      return "extern " + getDefinition(mappingInfo, fnIndex);
    }
 
    @Override
@@ -122,10 +94,4 @@ public class WriterForDmaMux extends Peripheral {
       sb.append("   };\n");
       documentUtilities.write(sb.toString());
    }
-
-   @Override
-   public int getSignalIndex(Signal function) {
-      return 0;
-   }
-
 }

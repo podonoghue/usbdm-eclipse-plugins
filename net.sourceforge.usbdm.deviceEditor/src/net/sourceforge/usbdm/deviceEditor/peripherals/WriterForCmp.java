@@ -3,16 +3,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of CMP
  */
 public class WriterForCmp extends Peripheral {
-   
-   static final String ALIAS_PREFIX       = "cmp_";
 
    public WriterForCmp(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -24,31 +21,13 @@ public class WriterForCmp extends Peripheral {
    }
 
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return ALIAS_PREFIX+alias;
-   }
-
-   @Override
-   public String getInstanceName(MappingInfo mappingInfo, int fnIndex) {
-      String instance = mappingInfo.getSignals().get(fnIndex).getPeripheral().getInstance();
-      String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
-      return getClassName()+instance+"_"+signal;
-   }
- 
-   @Override
    public int getSignalIndex(Signal function) {
-    Pattern p = Pattern.compile("IN(\\d+)");
-    Matcher m = p.matcher(function.getSignalName());
-    if (m.matches()) {
-       return Integer.parseInt(m.group(1));
-    }
-    final String signalNames[] = {"OUT"};
-    for (int signal=0; signal<signalNames.length; signal++) {
-       if (function.getSignalName().matches(signalNames[signal])) {
-          return 8+signal;
-       }
-    }
-    throw new RuntimeException("function '" + function.getSignalName() + "' does not match expected pattern");
+      Pattern p = Pattern.compile("IN(\\d+)");
+      Matcher m = p.matcher(function.getSignalName());
+      if (m.matches()) {
+         return Integer.parseInt(m.group(1));
+      }
+      final String signalNames[] = {"OUT"};
+      return 8+super.getSignalIndex(function, signalNames);
    }
-   
 }

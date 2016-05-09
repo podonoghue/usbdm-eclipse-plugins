@@ -21,65 +21,9 @@ struct PinInit {
 };
 
 static constexpr PinInit pinInit[] = {
- /* PTA4       ==> FTM0_CH1                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTA->PCR[4],  },
- /* PTA5       ==> GPIOA_5                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[5],  },
- /* PTA10      ==> GPIOA_10/LLWU_P22         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[10], },
- /* PTA11      ==> FTM2_QD_PHB/TPM2_CH1      */  { PORT_PCR_MUX(6)|USBDM::DEFAULT_PCR, &PORTA->PCR[11], },
- /* PTA12      ==> FTM1_QD_PHA/TPM1_CH0      */  { PORT_PCR_MUX(7)|USBDM::DEFAULT_PCR, &PORTA->PCR[12], },
- /* PTA25      ==> GPIOA_25                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[25], },
- /* PTB2       ==> ADC0_SE12/TSI0_CH7        */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[2],  },
- /* PTB3       ==> ADC0_SE13/TSI0_CH8        */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[3],  },
- /* PTB4       ==> ADC1_SE10                 */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[4],  },
- /* PTB5       ==> ADC1_SE11                 */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[5],  },
- /* PTB6       ==> ADC1_SE12                 */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[6],  },
- /* PTB7       ==> ADC1_SE13                 */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[7],  },
- /* PTB10      ==> GPIOB_10                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[10], },
- /* PTB11      ==> GPIOB_11                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[11], },
- /* PTB16      ==> UART0_RX                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTB->PCR[16], },
- /* PTB17      ==> UART0_TX                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTB->PCR[17], },
- /* PTB18      ==> GPIOB_18                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[18], },
- /* PTB19      ==> GPIOB_19                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[19], },
- /* PTB20      ==> GPIOB_20                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[20], },
- /* PTB23      ==> GPIOB_23                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTB->PCR[23], },
- /* PTC0       ==> GPIOC_0                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[0],  },
- /* PTC1       ==> I2S0_TXD0                 */  { PORT_PCR_MUX(6)|USBDM::DEFAULT_PCR, &PORTC->PCR[1],  },
- /* PTC2       ==> GPIOC_2                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[2],  },
- /* PTC3       ==> GPIOC_3/LLWU_P7           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[3],  },
- /* PTC4       ==> GPIOC_4/LLWU_P8           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[4],  },
- /* PTC5       ==> GPIOC_5/LLWU_P9           */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[5],  },
- /* PTC6       ==> GPIOC_6/LLWU_P10          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[6],  },
- /* PTC7       ==> GPIOC_7                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[7],  },
- /* PTC8       ==> GPIOC_8                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[8],  },
- /* PTC9       ==> FTM3_CH5                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTC->PCR[9],  },
- /* PTC10      ==> GPIOC_10                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[10], },
- /* PTC11      ==> GPIOC_11/LLWU_P11         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[11], },
- /* PTC12      ==> GPIOC_12                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[12], },
- /* PTC14      ==> UART4_RX                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTC->PCR[14], },
- /* PTC15      ==> UART4_TX                  */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTC->PCR[15], },
- /* PTC16      ==> GPIOC_16                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[16], },
- /* PTC18      ==> GPIOC_18                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTC->PCR[18], },
- /* PTD0       ==> GPIOD_0/LLWU_P12          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[0],  },
- /* PTD1       ==> GPIOD_1                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[1],  },
- /* PTD2       ==> GPIOD_2/LLWU_P13          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[2],  },
- /* PTD3       ==> GPIOD_3                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[3],  },
- /* PTD4       ==> GPIOD_4/LLWU_P14          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[4],  },
- /* PTD5       ==> SPI1_SCK                  */  { PORT_PCR_MUX(7)|USBDM::DEFAULT_PCR, &PORTD->PCR[5],  },
- /* PTD6       ==> SPI1_SOUT                 */  { PORT_PCR_MUX(7)|USBDM::DEFAULT_PCR, &PORTD->PCR[6],  },
- /* PTD7       ==> SPI1_SIN                  */  { PORT_PCR_MUX(7)|USBDM::DEFAULT_PCR, &PORTD->PCR[7],  },
- /* PTD8       ==> I2C0_SCL                  */  { PORT_PCR_MUX(2)|USBDM::DEFAULT_PCR, &PORTD->PCR[8],  },
- /* PTD9       ==> I2C0_SDA                  */  { PORT_PCR_MUX(2)|USBDM::DEFAULT_PCR, &PORTD->PCR[9],  },
- /* PTD11      ==> GPIOD_11/LLWU_P25         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[11], },
- /* PTD12      ==> GPIOD_12                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[12], },
- /* PTD13      ==> GPIOD_13                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTD->PCR[13], },
- /* PTD14      ==> Disabled                  */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTD->PCR[14], },
- /* PTE6       ==> GPIOE_6/LLWU_P16          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[6],  },
- /* PTE7       ==> GPIOE_7                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[7],  },
- /* PTE8       ==> GPIOE_8                   */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[8],  },
- /* PTE9       ==> GPIOE_9/LLWU_P17          */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[9],  },
- /* PTE11      ==> GPIOE_11                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[11], },
- /* PTE12      ==> GPIOE_12                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[12], },
- /* PTE24      ==> GPIOE_24                  */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[24], },
- /* PTE25      ==> GPIOE_25/LLWU_P21         */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTE->PCR[25], },
+ /* PTA10      ==> FTM2_CH0                       */  { PORT_PCR_MUX(3)|USBDM::DEFAULT_PCR, &PORTA->PCR[10], },
+ /* PTA11      ==> GPIOA_11/LLWU_P23              */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[11], },
+ /* PTA25      ==> GPIOA_25                       */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[25], },
 };
 
 /**
@@ -87,7 +31,7 @@ static constexpr PinInit pinInit[] = {
  */
 void mapAllPins() {
 
-   SIM->FIXED_PORT_CLOCK_REG |= PORTA_CLOCK_MASK|PORTB_CLOCK_MASK|PORTC_CLOCK_MASK|PORTD_CLOCK_MASK|PORTE_CLOCK_MASK;
+   SIM->FIXED_PORT_CLOCK_REG |= PORTA_CLOCK_MASK;
 
    for (const PinInit *p=pinInit; p<(pinInit+(sizeof(pinInit)/sizeof(pinInit[0]))); p++) {
       *(p->pcr) = p->pcrValue;

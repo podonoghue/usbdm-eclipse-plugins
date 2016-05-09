@@ -1,6 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.dialogs.DialogSettings;
 
@@ -9,11 +12,14 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener{
 
@@ -51,6 +57,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       fData = ParseMenuXML.parseFile(name, null, this);
    }
    
+   @Override
+   public BaseModel[] getModels(BaseModel parent) {
+      fData.fModels[0].setParent(parent);
+      return fData.fModels;
+   }
+
+   @Override
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+      super.writeInfoConstants(pinMappingHeaderFile);
+      pinMappingHeaderFile.write(substitute(fData.fTemplate));
+   }
+
    /**
     * Create a variable
     * 
@@ -117,13 +135,47 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return
     */
    public boolean isCTrueValue(String key) {
-      String value = getVariableValue(key);
+      String value = null;
+      try {
+         value = getVariableValue(key);
+      } catch (Exception e1) {
+      }
+      if (value == null) {
+         return false;
+      }
       try {
          return Long.decode(value) != 0;
       }
       catch (NumberFormatException e){
       }
       return value.equalsIgnoreCase("true");
+   }
+
+   public void modifyVectorTable(VectorTable vectorTable, String pattern) {
+      final String headerFileName = getBaseName().toLowerCase()+".h";
+      boolean handlerSet = false;
+      Pattern p = Pattern.compile(pattern);
+      for (InterruptEntry entry:vectorTable.getEntries()) {
+         if (entry != null) {
+            Matcher m = p.matcher(entry.getName());
+            if (m.matches()) {
+               if (isCTrueValue("IRQ"+m.group(1)+"_HANDLER")) {
+                  entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
+                  entry.setClassMemberUsedAsHandler(true);
+                  handlerSet = true;
+               }
+            }
+         }
+         if (handlerSet) {
+            // Add include file
+            vectorTable.addIncludeFile(headerFileName);
+         }
+      }
+   }
+   
+   @Override
+   public void modifyVectorTable(VectorTable vectorTable) {
+      modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
    }
 
    @Override
