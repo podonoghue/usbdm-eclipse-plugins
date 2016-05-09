@@ -39,6 +39,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
 
       public ChoiceCellEditor(Tree tree, String[] choices) {
          super(tree, choices, SWT.READ_ONLY);
+         setActivationStyle(ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION | ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
          setValueValid(true);
       }
       
