@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.constants.ToolInformationData;
-//import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
@@ -56,10 +55,10 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  *  USBDM New Project Wizard page "USBDM Project"
  *
  */
-public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmProjectTypeSelection {
+public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProjectTypeSelection {
 
    static final String PAGE_NAME  = "UsbdmProjectParametersPage";
-   static final String PAGE_TITLE = "USBDM Project Parameters";
+   static final String PAGE_TITLE = "USBDM Device Selection";
 
    private InterfaceType         fInterfaceType;
    private Combo                 fBuildToolsCombo;
@@ -70,7 +69,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
    private String                fBuildToolId = null;
    Map<String, String>           fPageData    = null;
 
-   public UsbdmProjectParametersPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
+   public UsbdmDeviceSelectionPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
       fInterfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
       setTitle(PAGE_TITLE);
@@ -86,7 +85,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
     */
    void updateState() {
       final UsbdmNewProjectWizard wizard = (UsbdmNewProjectWizard) getWizard();
-      final UsbdmProjectParametersPage_2 page = this;
+      final UsbdmDeviceSelectionPage_2 page = this;
 
       if (wizard != null) {
          Job job = new Job("Updating configuration") {
@@ -112,12 +111,14 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
     *  Validates control & sets error message
     */
    private void validate() {
-//      System.err.println("UsbdmProjectParametersPage_2.validate()");
       fHasChanged = true;
       setPageComplete(false);
       String message = null;
       if (fDeviceSelector != null) {
          message = fDeviceSelector.validate();
+         if (message != null) {
+            message = message+" (Matching devices: "+fDeviceSelector.getMatchingDevices()+")";
+         }
       }
 //      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
       setErrorMessage(message);
@@ -310,13 +311,13 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
          }
          fileName = m.replaceAll("$1$2");
          filePath = resourceFolder.append(fileName);
-         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && filePath.toFile().isDirectory()) {
             success = true;
             continue;
          }
          filePath = filePath.addFileExtension(preferredExtension);
-         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && !filePath.toFile().isDirectory()) {
             success = true;
             continue;
@@ -784,7 +785,7 @@ public class UsbdmProjectParametersPage_2 extends WizardPage implements IUsbdmPr
       Composite composite = new Composite(shell, SWT.NONE);
       composite.setLayout(new FillLayout());
 
-      UsbdmProjectParametersPage_2 page = new UsbdmProjectParametersPage_2(null, null);
+      UsbdmDeviceSelectionPage_2 page = new UsbdmDeviceSelectionPage_2(null, null);
       page.createControl(composite);
 
       shell.open();

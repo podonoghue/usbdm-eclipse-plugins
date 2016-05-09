@@ -47,7 +47,7 @@ import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnableWithProgress {
    
    private UsbdmNewProjectPage_1                fUsbdmNewProjectPage_1 = null;
-   private UsbdmProjectParametersPage_2         fUsbdmProjectParametersPage_2 = null;
+   private UsbdmDeviceSelectionPage_2         fUsbdmProjectParametersPage_2 = null;
    private ArrayList<UsbdmDynamicOptionPage_N>  fDynamicWizardPages  = null;
    private ArrayList<WizardPageInformation>     fWizardPageInformation = new ArrayList<WizardPageInformation>();
    private ProjectActionList                    fProjectActionList = null;
@@ -256,7 +256,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          if (hasChanged(currentPage) || (fUsbdmProjectParametersPage_2 == null)) {
             fBaseParamMap = new HashMap<String, String>();
             fUsbdmNewProjectPage_1.getPageData(fBaseParamMap);
-            fUsbdmProjectParametersPage_2 = new UsbdmProjectParametersPage_2(fBaseParamMap, this);
+            fUsbdmProjectParametersPage_2 = new UsbdmDeviceSelectionPage_2(fBaseParamMap, this);
             fDynamicWizardPages = null;
          }
          return fUsbdmProjectParametersPage_2;

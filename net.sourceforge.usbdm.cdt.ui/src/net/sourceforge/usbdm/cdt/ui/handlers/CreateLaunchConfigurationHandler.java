@@ -164,14 +164,6 @@ public class CreateLaunchConfigurationHandler implements IHandler {
          System.err.println("Folder " + folder + " doesn't exist, creating launch config in root directory");
          folder = project;
       }
-//      try {
-//         String[] natures = project.getDescription().getNatureIds();
-//         for (String nature:natures) {
-//            System.err.println(nature);
-//         }
-//      } catch (CoreException e1) {
-//         e1.printStackTrace();
-//      }
       IFile launchFile = folder.getFile(new Path(project.getName()+"_Debug_USBDM.launch"));
 
       if (launchFile.exists()) {
@@ -219,26 +211,4 @@ public class CreateLaunchConfigurationHandler implements IHandler {
    @Override
    public void removeHandlerListener(IHandlerListener handlerListener) {
    }
-
-//   public static void main(String[] args) throws IOException {
-//      Display display = new Display();
-//      Shell shell = new Shell(display);
-//
-//      FileInputStream f = new FileInputStream("test-kea_Debug.launch");
-//      Matcher m = scrapeFile(f, ".*DEVICE_NAME.*\"Freescale_.*_(.*)\".*");
-//      String targetDeviceName = null;
-//      if (m != null) {
-//         targetDeviceName = m.group(1);
-//      }
-//      System.err.println("Matched target = " + targetDeviceName);
-//      DeviceSelector deviceSelector = new DeviceSelector(shell, TargetType.T_ARM, targetDeviceName);
-//      int rc = deviceSelector.open();
-//      System.out.println("rc = " + rc);
-//      if (rc == Window.OK) {
-//         System.out.println("Device = " + deviceSelector.getDevice().getName());
-//      }
-//      f.close();
-//      display.dispose();
-//   }
-
 }
