@@ -3,7 +3,7 @@
 <!-- ftm.xml -->
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
-   <menu name="_instance" description="Programmable Interrupt Timer">
+   <menu name="_instance" description="Analogue to Digital Converter">
 
       <choiceOption name="CFG1_ADICLK" description="Clock Source"
          toolTip="Selects the clock source for the module">

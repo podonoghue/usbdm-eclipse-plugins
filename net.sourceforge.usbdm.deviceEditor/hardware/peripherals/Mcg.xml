@@ -223,6 +223,6 @@
    </validate>
    <template>
       \t//! Clock Mode\n
-      \tstatic constexpr uint32_t CLOCK_MODE = $(clock_mode);\n\n
+      \tstatic constexpr uint32_t CLOCK_MODE_ = $(clock_mode);\n\n
    </template>
 </root>

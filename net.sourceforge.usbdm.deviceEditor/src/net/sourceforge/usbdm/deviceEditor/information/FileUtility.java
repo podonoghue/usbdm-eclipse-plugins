@@ -63,7 +63,7 @@ public class FileUtility {
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
     * @param input        String to replace macros in
-    * @param map  Map of key->value pairs for substitution
+    * @param map          Map of key->value pairs for substitution
     * @param keyMaker     Interface providing a method to create a key from a variable name
     * 
     * @return      String with substitutions (or original if none)
