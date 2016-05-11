@@ -7,7 +7,7 @@
 	<item value="Blue LED" key="PTA11_descriptionSetting"/>
 	<item value="120000000" key="MCG_system_core_clock"/>
 	<item value="0" key="OSC0_CR_ERCLKEN"/>
-	<item value="2" key="OSC0_CR_SCP"/>
+	<item value="5" key="OSC0_CR_SCP"/>
 	<item value="0" key="I2C3_IRQ_LEVEL"/>
 	<item value="1" key="TPM2_SC_CMOD"/>
 	<item value="0" key="ADC0_CFG1_ADLSMP"/>
@@ -30,12 +30,12 @@
 	<item value="0" key="SPI2_IRQ_HANDLER"/>
 	<item value="mux3" key="PTA10_muxSetting"/>
 	<item value="0" key="ADC1_CFG1_ADLPC"/>
-	<item value="0" key="ADC0_CFG2_ADLSTS"/>
+	<item value="2" key="ADC0_CFG2_ADLSTS"/>
 	<item value="0" key="FTM2_SC_CPWMS"/>
 	<item value="0" key="TPM1_IRQ_LEVEL"/>
 	<item value="0" key="PIT_IRQ0_HANDLER"/>
-	<item value="0" key="SPI0_IRQ_HANDLER"/>
-	<item value="0" key="OSC0_CR_EREFSTEN"/>
+	<item value="1" key="SPI0_IRQ_HANDLER"/>
+	<item value="1" key="OSC0_CR_EREFSTEN"/>
 	<item value="0" key="SPI1_IRQ_HANDLER"/>
 	<item value="0" key="FTM1_SC_TOIE"/>
 	<item value="96000000" key="MCG_fllTargetFrequency"/>
@@ -52,17 +52,20 @@
 	<item value="120000000" key="MCG_pllTargetFrequency"/>
 	<item value="0" key="ADC1_SC2_ADTRG"/>
 	<item value="0" key="MCG_sim_clkdiv1_outdiv1"/>
+	<item value="3" key="OSC0_DIV_ERPS"/>
 	<item value="4" key="MCG_sim_clkdiv1_outdiv4"/>
 	<item value="1" key="MCG_sim_clkdiv1_outdiv2"/>
 	<item value="1" key="MCG_sim_clkdiv1_outdiv3"/>
 	<item value="0" key="ADC0_CFG1_ADIV"/>
-	<item value="0" key="FTM0_SC_PS"/>
+	<item value="7" key="FTM0_SC_PS"/>
 	<item value="0" key="TPM1_IRQ_HANDLER"/>
 	<item value="0" key="FTM1_SC_CPWMS"/>
 	<item value="0" key="MCG_mcg_c1_irefs"/>
 	<item value="0" key="SPI1_IRQ_LEVEL"/>
+	<item value="false" key="RTC_IRQ_HANDLER"/>
 	<item value="0" key="LPTMR0_PSR_PBYP"/>
 	<item value="0" key="ADC1_CFG2_ADACKEN"/>
+	<item value="0" key="RTC_IRQ_LEVEL"/>
 	<item value="0" key="PIT_IRQ1_HANDLER"/>
 	<item value="0" key="ADC1_SC2_DMAEN"/>
 	<item value="0" key="I2C2_IRQ_LEVEL"/>
@@ -70,7 +73,7 @@
 	<item value="10000" key="TPM1_PERIOD"/>
 	<item value="10000" key="FTM3_PERIOD"/>
 	<item value="2" key="ADC0_CFG1_MODE"/>
-	<item value="0" key="ADC0_IRQ_LEVEL"/>
+	<item value="6" key="ADC0_IRQ_LEVEL"/>
 	<item value="0" key="MCG_mcg_c1_frdiv"/>
 	<item value="0" key="RTC_CR_OSCE"/>
 	<item value="32768" key="MCG_rtcclk_clock"/>
@@ -82,7 +85,7 @@
 	<item value="0" key="FTM1_SC_PS"/>
 	<item value="0" key="LPTMR0_CSR_TFC"/>
 	<item value="0" key="FTM0_SC_TOIE"/>
-	<item value="0" key="I2C0_IRQ_HANDLER"/>
+	<item value="1" key="I2C0_IRQ_HANDLER"/>
 	<item value="1" key="FTM3_SC_CLKS"/>
 	<item value="60000000" key="MCG_system_bus_clock"/>
 	<item value="0" key="SPI2_LSBFE"/>
@@ -109,7 +112,7 @@
 	<item value="0" key="SPI0_LSBFE"/>
 	<item value="0" key="ADC0_SC2_ADTRG"/>
 	<item value="0b000" key="ADC0_SC2_COMPARE"/>
-	<item value="false" key="ADC0_IRQ_HANDLER"/>
+	<item value="true" key="ADC0_IRQ_HANDLER"/>
 	<item value="0" key="I2C1_IRQ_LEVEL"/>
 	<item value="0" key="LPTMR0_PSR_PCS"/>
 	<item value="100000" key="SPI1_SPEED"/>
@@ -117,7 +120,7 @@
 	<item value="0" key="ADC0_SC2_REFSEL"/>
 	<item value="0" key="ADC0_SC2_DMAEN"/>
 	<item value="0b000" key="ADC1_SC2_COMPARE"/>
-	<item value="0" key="FTM3_SC_PS"/>
+	<item value="5" key="FTM3_SC_PS"/>
 	<item value="0" key="FTM3_IRQ_LEVEL"/>
 	<item value="mux1" key="PTA11_muxSetting"/>
 	<item value="32768" key="MCG_system_mcgir_clock"/>

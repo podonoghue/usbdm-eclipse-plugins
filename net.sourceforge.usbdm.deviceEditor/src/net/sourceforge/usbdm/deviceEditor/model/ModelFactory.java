@@ -60,6 +60,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          }
          return rv;
       }
+      
       /**
        * Get name of category
        * 
@@ -68,6 +69,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       String getName() {
          return name;
       }
+      
       /**
        * Get pins in this category
        * 
@@ -78,10 +80,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
    }
 
-   static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",          "Mux:Signals",    "Description"};
-   static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal",     "Mux:Pin",        "Description"};
-   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name",                  "Value",          "Description"};
-   static final private String[] OTHER_COLUMN_LABELS       = {"Peripheral.Parameter",  "Value",          "Description"};
+   static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",      "Mux:Signals", "Description"};
+   static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal", "Mux:Pin",     "Description"};
+   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name",              "Value",       "Description"};
 
    /*
     * =============================================================================================
@@ -90,7 +91,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    private final DeviceInfo   fDeviceInfo;
 
    /** List of all models */
-   ArrayList<RootModel> fModels = new ArrayList<RootModel>();
+   ArrayList<PeripheralPageModel> fModels = new ArrayList<PeripheralPageModel>();
 
    /** List of all pin mapping entries to scan for mapping conflicts */
    protected ArrayList<MappingInfo> fMappingInfos = null;
@@ -101,7 +102,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return Model
     */
-   private DeviceModel createPinModel() {
+   private DevicePinsModel createPinModel() {
       fMappingInfos = new ArrayList<MappingInfo>();
 
       final ArrayList<PinCategory> categories = new ArrayList<PinCategory>();
@@ -126,7 +127,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          }
       }
       // Construct model
-      DeviceModel deviceModel = new DeviceModel(this, PIN_COLUMN_LABELS, "Pin View", "Pin mapping organized by pin");
+      DevicePinsModel deviceModel = new DevicePinsModel(this, PIN_COLUMN_LABELS, "Pin View", "Pin mapping organized by pin");
       for (PinCategory pinCategory:categories) {
          if (pinCategory.getPins().isEmpty()) {
             continue;
@@ -156,12 +157,12 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return Model
     */
-   private DeviceModel createPeripheralModel() {
-      DeviceModel deviceModel = new DeviceModel(this, PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
+   private DevicePinsModel createPeripheralModel() {
+      DevicePinsModel deviceModel = new DevicePinsModel(this, PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
          if (peripheral.hasMappableSignals()) {
-            PeripheralModel.createPeripheralModel(deviceModel, peripheral);
+            new PeripheralModel(deviceModel, peripheral);
          }
       }
       return deviceModel;
@@ -173,7 +174,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return Model
     */
    private DeviceInformationModel createPackageModel() {
-      DeviceInformationModel packageModel = new DeviceInformationModel(this, PACKAGE_COLUMN_LABELS, "Project", "Project Settings");
+      DeviceInformationModel packageModel = new DeviceInformationModel(PACKAGE_COLUMN_LABELS, "Project", "Project Settings");
       fDeviceInfo.getModels(packageModel);
       return packageModel;
    }
@@ -183,8 +184,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return
     */
-   private RootModel createParameterModels() {
-      RootModel root = new PeripheralConfigurationModel(this, OTHER_COLUMN_LABELS, "Peripheral Parameters", "These are usually the default values for parameters");
+   private TreeViewModel createParameterModels() {
+      TreeViewModel root = new PeripheralConfigurationModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
@@ -209,6 +210,12 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * This page does not get re-generated
     */
    private DeviceInformationModel fPackageModel= null;
+   
+   /**
+    * The model for the image page of the editor<br>
+    * This page does not get re-generated
+    */
+   PackageImageModel fPackageImageModel ;
    
    /** The current device variant - if this changes the models are rebuilt */
    private DeviceVariantInformation fCurrentDeviceVariant = null;
@@ -365,9 +372,11 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             }
          }
       }
-      for (RootModel model:fModels) {
+      for (BaseModel model:fModels) {
          if (model != null) {
-            model.refresh();
+            if (model != null) {
+               model.refresh();
+            }
          }
       }
    }
@@ -386,7 +395,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fDeviceInfo.addListener(this);
 
-      fPackageModel = createPackageModel();
+      fPackageModel      = createPackageModel();
+      fPackageImageModel = new PackageImageModel(this);
+
       createModels();
       
       underConstruction     = false;
@@ -412,12 +423,12 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             model.removeListeners();
          }
       }
-      fModels =  new ArrayList<RootModel>();
-      fModels.add((RootModel)fPackageModel);
-      fModels.add((RootModel)createPeripheralModel());
-      fModels.add((RootModel)createPinModel());
+      fModels = new ArrayList<PeripheralPageModel>();
+      fModels.add(fPackageModel);
+      fModels.add(createPeripheralModel());
+      fModels.add(createPinModel());
       fModels.add(createParameterModels());
-      fModels.add(PackageImageModel.createModel(this));
+      fModels.add(fPackageImageModel);
 
 //      report();
       
@@ -429,7 +440,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return
     */
-   public ArrayList<RootModel> getModels() {
+   public ArrayList<PeripheralPageModel> getModels() {
       return fModels;
    }
    

@@ -2,15 +2,42 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import net.sourceforge.usbdm.deviceEditor.editor.ImageCanvas;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.jni.Usbdm;
 
-public class PackageImageModel extends RootModel {
-   
+public class PackageImageModel extends PeripheralPageModel implements EditorPage {
+
+   private ImageCanvas        fImageCanvas = null;
+   private PackageImageModel  fPackageImageModel;
+   private final ModelFactory fModelFactory;
+
    public PackageImageModel(ModelFactory modelFactory) {
-      super(modelFactory, null, "Device Image", "");
+      super(null, "Package Image", "");
+      fModelFactory = modelFactory;
+   }
+
+   @Override
+   protected void removeMyListeners() {
+   }
+
+   @Override
+   public Control createComposite(Composite parent) {
+      fImageCanvas = new ImageCanvas(parent, fPackageImageModel);
+      return fImageCanvas;
+   }
+
+   @Override
+   public void update(PeripheralPageModel model) {
+      if (model != this) {
+         // Only supports updating the image - not the entire model
+         throw new RuntimeException("Model differs from this!");
+      }
+      fImageCanvas.setImage(createImage());
    }
 
    /**
@@ -18,7 +45,7 @@ public class PackageImageModel extends RootModel {
     * 
     * @return Image created (transfers ownership!)
     */
-   public Image createImage() {
+   private Image createImage() {
       try {
          DeviceVariantInformation deviceVariant = fModelFactory.getDeviceInfo().getDeviceVariant();
          IPath path = Usbdm.getResourcePath().append("Stationery/Packages/Images/"+deviceVariant.getPackage().getName()+".png");
@@ -30,11 +57,7 @@ public class PackageImageModel extends RootModel {
    }
 
    @Override
-   protected void removeMyListeners() {
+   public EditorPage createEditorPage() {
+      return this;
    }
-
-   public static RootModel createModel(ModelFactory modelFactory) {
-      return new PackageImageModel(modelFactory);
-   }
-   
 }

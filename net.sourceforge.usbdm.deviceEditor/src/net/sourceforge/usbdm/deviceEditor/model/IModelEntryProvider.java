@@ -8,7 +8,7 @@ public interface IModelEntryProvider {
     * @param parent
     * @return
     */
-   public BaseModel[] getModels(BaseModel parent);
+   public BaseModel getModels(BaseModel parent);
    
    /**
     * Set value of variable

@@ -49,7 +49,6 @@ public class ImageCanvas extends Canvas {
    
    ArrayList<Region> fRegions = new ArrayList<Region>();
 
-   private PackageImageModel  fModel;
    private Image              sourceImage; /* original image */
    private Image              screenImage; /* screen image */
    private AffineTransform    fTransform = new AffineTransform();
@@ -63,7 +62,6 @@ public class ImageCanvas extends Canvas {
     */
    public ImageCanvas(Composite parent, PackageImageModel model) {
       super(parent, SWT.BORDER|SWT.NO_BACKGROUND|SWT.H_SCROLL|SWT.V_SCROLL);
-      fModel = model;
 
       debugMode = false;
       
@@ -120,12 +118,11 @@ public class ImageCanvas extends Canvas {
     * 
     * @param model
     */
-   void setModel(PackageImageModel model) {
-      fModel = model;
+   public void setImage(Image image) {
       if (sourceImage != null) {
          sourceImage.dispose();
       }
-      sourceImage = fModel.createImage();
+      sourceImage = image;
       fitCanvas();
    }
    

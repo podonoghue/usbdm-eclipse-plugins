@@ -95,48 +95,40 @@
          <choice name="PLL Bypassed External (PBE)" value="7" />
          <choice name="PLL Engaged External (PEE)" value="8" />
       </choiceOption>
-   
-      <intOption name="pllTargetFrequency"
-         description="PLL Output clock frequency (Hz)"
+
+      <intOption name="pllTargetFrequency" description="PLL Output clock frequency (Hz)"
          toolTip="Used for MCGPLLCLK system clock\nUsed for main MCGOUTCLK system clock if PEE mode is selected"
          value="120000000" constant="true" />
 
-      <intOption name="fllTargetFrequency"
-         description="FLL Output clock frequency (Hz)"
+      <intOption name="fllTargetFrequency" description="FLL Output clock frequency (Hz)"
          toolTip="Used for MCGFLLCLK system clock\nUsed for main MCGOUTCLK system clock if FEI or FEE mode is selected"
          value="96000000" constant="true" />
 
-      <intOption name="system_mcgout_clock"
-         description="System MCGOUT Clock (Hz)"
+      <intOption name="system_mcgout_clock" description="System MCGOUT Clock (Hz)"
          toolTip="MCG Main clock output\nDerived from slow IRC, fast IRC, ERC, FLL or PLL"
          value="120000000" constant="true" />
-         
-      <intOption name="system_mcgir_clock"
-         description="System MCGIR Clock (Hz)"
+
+      <intOption name="system_mcgir_clock" description="System MCGIR Clock (Hz)"
          toolTip="MCG Internal Reference Clock\nDerived from slow IRC or fast IRC"
          value="32768" constant="true" />
 
-      <intOption name="system_core_clock"
-         description="System Core Clock (Hz)"
+      <intOption name="system_core_clock" description="System Core Clock (Hz)"
          toolTip="Clocks the ARM Cortex-M4 core and bus masters\nDerived from MCGOUT Clock after division by OUTDIV1"
          value="120000000" constant="true" />
 
-      <intOption name="system_bus_clock"
-         description="System Bus Clock (Hz)"
+      <intOption name="system_bus_clock" description="System Bus Clock (Hz)"
          toolTip="Clocks the bus slaves and peripherals\n
             Derived from MCGOUT Clock after division by OUTDIV2\n
             Must be &lt;= Core Clock frequency and an integer divisor"
          value="60000000" constant="true" />
 
-      <intOption name="system_flexbus_clock"
-         description="System Flexbus Clock (Hz)"
+      <intOption name="system_flexbus_clock" description="System Flexbus Clock (Hz)"
          toolTip="Clocks the flexbus interface\n
             Derived from MCGOUT clock after division by OUTDIV3.\n
             Must be &lt;= Bus Clock frequency"
          value="60000000" constant="true" />
 
-      <intOption name="system_flash_clock"
-         description="System Flash Clock (Hz)"
+      <intOption name="system_flash_clock" description="System Flash Clock (Hz)"
          toolTip="Clocks the flash memory
             Derived from MCGOUT clock after division by OUTDIV4.\n
             Must be an integer divisor of the Core Clock.\n
@@ -166,9 +158,10 @@
          toolTip="Clocks the flash memory [SIM_CLKDIV1_OUTDIV4]\n
             MCGOUTCLK clock is source. Default /4"
          value="4" constant="true" />
-         
+
       <menu name="MCG_C1" description="MCG Control Register 1">
-         <choiceOption name="mcg_c1_clks" description="MCGOUTCLK Clock Source Select (CLKS) [0-2]"
+         <choiceOption name="mcg_c1_clks"
+            description="MCGOUTCLK Clock Source Select (CLKS) [0-2]"
             toolTip="Selects the clock source for MCGOUTCLK [MCG_C1_CLKS]\n
                This option is determined by the Clock Mode selection">
             <choice value="0" name="Output of FLL or PLL is selected" />
@@ -176,8 +169,9 @@
             <choice value="2" name="External reference clock is selected" />
             <choice value="0" name="Default" />
          </choiceOption>
-         
-         <choiceOption name="mcg_c1_frdiv" description="FLL External Reference Divider (FRDIV)"
+
+         <choiceOption name="mcg_c1_frdiv"
+            description="FLL External Reference Divider (FRDIV)"
             toolTip="Selects the amount to divide down the external reference clock for the FLL. [MCG_C1_FRDIV]\n
                The resulting frequency must be in the range 31.25 kHz to 39.0625 kHz\n
                Division factor depends on Clock Range [MGC_C2_RANGE0]\n
@@ -189,29 +183,32 @@
             <choice value="4" name="if RANGE0 = 0 divide by 16, else 512" />
             <choice value="5" name="if RANGE0 = 0 divide by 32, else 1024" />
             <choice value="6" name="if RANGE0 = 0 divide by 64, else 1280" />
-            <choice value="7" name="if RANGE0 = 0 divide by 128, else 1536" />
+            <choice value="7"
+               name="if RANGE0 = 0 divide by 128, else 1536" />
             <choice value="0" name="Default" />
          </choiceOption>
-         
-         <binaryOption name="mcg_c1_irefs" description="Internal Reference Select (IREFS)"
+
+         <binaryOption name="mcg_c1_irefs"
+            description="Internal Reference Select (IREFS)"
             toolTip="Selects the reference clock source for the FLL [MCG_C1_IREFS]\n
                This option is determined by the Clock Mode selection">
             <choice value="0" name="External Reference Clock" />
             <choice value="1" name="Slow Internal Clock" />
          </binaryOption>
-         
-         <binaryOption name="IRCLKEN" description="Internal Reference Clock Enable"
+
+         <binaryOption name="IRCLKEN"
+            description="Internal Reference Clock Enable"
             toolTip="Enables the internal reference clock for use as MCGIRCLK">
             <choice value="0" name="Inactive" />
             <choice value="1" name="Active" />
          </binaryOption>
-      
-         <binaryOption name="IREFSTEN" description=" Internal Reference Stop Enable"
-            toolTip="Determines if IRS is enabled in Stop mode">
+
+         <binaryOption name="IREFSTEN"
+            description=" Internal Reference Stop Enable" toolTip="Determines if IRS is enabled in Stop mode">
             <choice value="0" name="IR disabled in STOP" />
             <choice value="1" name="IR enabled in STOP" />
          </binaryOption>
-      
+
       </menu>
    </menu>
    <validate
@@ -223,6 +220,7 @@
    </validate>
    <template>
       \t//! Clock Mode\n
-      \tstatic constexpr uint32_t CLOCK_MODE_ = $(clock_mode);\n\n
+      \tstatic constexpr uint32_t CLOCK_MODE_ =
+      $(clock_mode);\n\n
    </template>
 </root>

@@ -13,9 +13,11 @@ import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralPageModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
@@ -58,9 +60,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    @Override
-   public BaseModel[] getModels(BaseModel parent) {
-      fData.fModels[0].setParent(parent);
-      return fData.fModels;
+   public BaseModel getModels(BaseModel parent) {
+      fData.fRootModel.setParent(parent);
+      return fData.fRootModel;
    }
 
    @Override

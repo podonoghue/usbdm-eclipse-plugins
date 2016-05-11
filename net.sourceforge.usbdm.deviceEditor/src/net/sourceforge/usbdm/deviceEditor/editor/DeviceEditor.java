@@ -22,7 +22,6 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -40,8 +39,9 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.model.PackageImageModel;
-import net.sourceforge.usbdm.deviceEditor.model.RootModel;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralPageModel;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.EditorPage;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
@@ -54,7 +54,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Folder containing all the tabs */
    private CTabFolder    fTabFolder          = null;
 
-   private Object[] fTreeEditors             = null;
+   private EditorPage[] fEditors          = null;
 
    /** Actions to add to pop-up menus */
    ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
@@ -93,18 +93,11 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
     * Page 0 is assumed unchanged
     * 
     */
-   private void setModels() {
-      ArrayList<RootModel> models = fFactory.getModels();
-      for (int index=1; index<models.size(); index++) {
-         RootModel model = models.get(index);
-         if (model instanceof PackageImageModel) {
-            ImageCanvas canvas = (ImageCanvas) fTreeEditors[index];
-            canvas.setModel((PackageImageModel)model);
-         }
-         else {
-            TreeEditor editor = (TreeEditor) fTreeEditors[index];
-            editor.setModel(models.get(index));
-         }
+   private void refreshModels() {
+      ArrayList<PeripheralPageModel> models = fFactory.getModels();
+      int index = 0;
+      for (EditorPage page:fEditors) {
+         page.update(models.get(index++));
       }
    }
 
@@ -135,7 +128,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       // Create the containing tab folder
       fTabFolder   = new CTabFolder(parent, SWT.BOTTOM);
       fTabFolder.setSimple(false);
-      ArrayList<Object> treeEditors = new ArrayList<Object>();
       fTabFolder.setBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_WHITE),
             display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)}, 
@@ -145,28 +137,20 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             display.getSystemColor(SWT.COLOR_WHITE)}, 
             new int[]{100}, true);
 
-      for (RootModel model:fFactory.getModels()) {
+      ArrayList<EditorPage> editors = new ArrayList<EditorPage>();
+      for (PeripheralPageModel model:fFactory.getModels()) {
          // Pin view
          CTabItem tabItem;
          tabItem = new CTabItem(fTabFolder, SWT.NONE);
          tabItem.setText(model.getName());
-         tabItem.setToolTipText(model.getToolTip());       
-         if (model instanceof PackageImageModel) {
-            Canvas canvas = new ImageCanvas(fTabFolder, (PackageImageModel) model);
-//            Canvas canvas = new ImageCanvas_FRDM_K22F(fTabFolder, (PackageImageModel) model);
-            treeEditors.add(canvas);
-            tabItem.setControl(canvas);
-         }
-         else {
-            TreeEditor treeEditor = new TreeEditor();
-            treeEditors.add(treeEditor);
-            tabItem.setControl(treeEditor.createControls(fTabFolder).getControl());
-         }
+         tabItem.setToolTipText(model.getToolTip());
+         EditorPage editorPage = model.createEditorPage();
+         editors.add(editorPage);
+         tabItem.setControl(editorPage.createComposite(fTabFolder));
       }
-      fTreeEditors = treeEditors.toArray(new Object[treeEditors.size()]);
+      fEditors = editors.toArray(new EditorPage[editors.size()]);
 
-      ((TreeEditor)fTreeEditors[0]).setModel(fFactory.getModels().get(0));
-      setModels();
+      refreshModels();
 
       fFactory.addListener(this);
 
@@ -368,7 +352,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    @Override
    public void modelStructureChanged(ObservableModel model) {
       if (model == fFactory) {
-         setModels();
+         refreshModels();
       }
       firePropertyChange(PROP_DIRTY);      
    }

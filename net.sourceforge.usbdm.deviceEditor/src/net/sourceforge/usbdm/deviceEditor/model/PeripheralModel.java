@@ -5,26 +5,28 @@ import java.util.TreeMap;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
+/**
+ * Model representing a peripheral in the Pin Mapping by Peripheral tree view
+ */
 public final class PeripheralModel extends CategoryModel {
 
-   public PeripheralModel(BaseModel parent, Peripheral peripheral) {
-      super(parent, peripheral.getName(), peripheral.getDescription());
-   }
-
-   /*
-    * =============================================================================================
+   /**
+    * Constructor <br>
+    * Constructs peripheral and associated signals
+    * 
+    * @param parent        Parent
+    * @param peripheral    Peripheral associated with this model
     */
-   public static PeripheralModel createPeripheralModel(BaseModel parent, Peripheral peripheral) {
+   PeripheralModel(BaseModel parent, Peripheral peripheral) {
+      super(parent, peripheral.getName(), peripheral.getDescription());
       
-      PeripheralModel peripheralModel = new PeripheralModel(parent, peripheral);
       TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
       for (String signalName:peripheralSignals.keySet()) {
          Signal signal = peripheralSignals.get(signalName);
          if (signal.isAvailableInPackage()) {
-            new SignalModel(peripheralModel, signal);
+            new SignalModel(this, signal);
          }
       }
-      return peripheralModel;
    }
 
    @Override

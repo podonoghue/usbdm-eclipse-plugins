@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 /**
  * Model describing the Device
  */
-public final class DeviceInformationModel extends RootModel {
+public final class DeviceInformationModel extends TreeViewModel {
 
    /**
     * Constructor
@@ -13,11 +13,17 @@ public final class DeviceInformationModel extends RootModel {
     * @param title 
     * @param toolTip 
     */
-   public DeviceInformationModel(ModelFactory modelFactory, String[] columnLabels, String title, String toolTip) {
-      super(modelFactory, columnLabels, title, toolTip);
+   public DeviceInformationModel(String[] columnLabels, String title, String toolTip) {
+      super(columnLabels, title, toolTip);
    }
 
    @Override
    protected void removeMyListeners() {
    }
+
+   @Override
+   public EditorPage createEditorPage() {
+      return new TreeEditorPage();
+   }
+   
 }

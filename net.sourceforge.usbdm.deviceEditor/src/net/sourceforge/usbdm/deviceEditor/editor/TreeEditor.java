@@ -19,12 +19,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
-import net.sourceforge.usbdm.deviceEditor.model.RootModel;
+import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
 public class TreeEditor {
 
    TreeViewer       fViewer      = null;
-   RootModel        fDeviceModel = null;
+   TreeViewModel        fDeviceModel = null;
    TreeViewerColumn fColumns[];
    
    public TreeViewer getViewer() {
@@ -34,7 +34,7 @@ public class TreeEditor {
    public TreeEditor() {
    }
 
-   public void setModel(RootModel deviceModel) {
+   public void setModel(TreeViewModel deviceModel) {
       fDeviceModel = deviceModel;
       fViewer.setInput(deviceModel);
       deviceModel.addViewer(fViewer);

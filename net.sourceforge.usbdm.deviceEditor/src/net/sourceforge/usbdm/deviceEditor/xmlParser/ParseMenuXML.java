@@ -13,8 +13,8 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -22,12 +22,12 @@ import net.sourceforge.usbdm.jni.Usbdm;
 public class ParseMenuXML extends XML_BaseParser {
 
    public static class Data {
-      public final BaseModel[]          fModels;
+      public final BaseModel        fRootModel;
       public final String               fTemplate;
       public final ArrayList<Validator> fValidators;
       
-      public Data(BaseModel[] models, String template, ArrayList<Validator> validators) {
-         fModels     = models;
+      public Data(BaseModel model, String template, ArrayList<Validator> validators) {
+         fRootModel  = model;
          fTemplate   = template;
          fValidators = validators;
       }
@@ -238,15 +238,21 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @throws Exception 
     */
-   private BaseModel parseMenu(BaseModel parent, Element menuElement) throws Exception {
+   private BaseModel parsePageOrMenu(BaseModel parent, Element menuElement) throws Exception {
+
+      BaseModel rootModel = null;
 
       String name = menuElement.getAttribute("name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
       String description = menuElement.getAttribute("description");
-      CategoryModel model = new CategoryModel(parent, name, description);
-      
+      if (menuElement.getTagName() == "page") {
+         rootModel = new PeripheralConfigurationModel(parent, name, description);
+      }
+      else {
+         rootModel = new CategoryModel(parent, name, description);
+      }
       for (Node node = menuElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -255,22 +261,22 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "menu") {
-            parseMenu(model, element);
+            parsePageOrMenu(rootModel, element);
          }
          else if (element.getTagName() == "intOption") {
-            parseLongOption(model, element);
+            parseLongOption(rootModel, element);
          }
          else if (element.getTagName() == "binaryOption") {
-            parseBinaryOption(model, element);
+            parseBinaryOption(rootModel, element);
          }
          else if (element.getTagName() == "choiceOption") {
-            parseChoiceOption(model, element);
+            parseChoiceOption(rootModel, element);
          }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
          }
       }
-      return model;
+      return rootModel;
    }
 
    /**
@@ -290,16 +296,18 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static Data parse(Document document, BaseModel parent, PeripheralWithState provider) throws Exception {
+      
       Element documentElement = document.getDocumentElement();
 
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
       }
       
-      String template = null;
+      BaseModel            rootModel   = null;
+      String               template    = null;
+      ArrayList<Validator> validators  = new ArrayList<Validator>();
+
       ParseMenuXML parser = new ParseMenuXML(provider);
-      ArrayList<BaseModel> models = new ArrayList<BaseModel>();
-      ArrayList<Validator> validators = new ArrayList<Validator>();
       for (Node node = documentElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -307,8 +315,11 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "menu") {
-            models.add(parser.parseMenu(parent, element));
+         if ((element.getTagName() == "page") || (element.getTagName() == "menu")) {
+            if (rootModel != null) {
+               throw new RuntimeException("Multiple <page> or <menu> elements");
+            }
+            rootModel = parser.parsePageOrMenu(parent, element);
          }
          else if (element.getTagName() == "validate") {
             parseValidate(element);
@@ -320,7 +331,7 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }
-      return new Data(models.toArray(new BaseModel[models.size()]), template, validators);
+      return new Data(rootModel, template, validators);
    }
    
    /**
@@ -365,16 +376,15 @@ public class ParseMenuXML extends XML_BaseParser {
       try {
          return parseFile(path, parent, provider);
       } catch (Exception e) {
+         BaseModel model = new BaseModel(null, name, "Failed to parse "+path) {
+            @Override
+            protected void removeMyListeners() {
+            }
+         };
          e.printStackTrace();
-         BaseModel models[] = {
-               new CategoryModel(null, "Unknown", "Error"),
-            };
-         Data data = new Data(models, "", new ArrayList<Validator>());
-         new ConstantModel(models[0], "Error", "Failed to parse "+path, "");
-         return data;
+         return new Data(model, null, null);
       }
    }
-
 
    /**
     * Parses document from top element
@@ -387,9 +397,4 @@ public class ParseMenuXML extends XML_BaseParser {
    public static Data parseString(String xmlString, BaseModel parent, PeripheralWithState provider) throws Exception {
       return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
    }
-
-//   public static void main(String[] args) throws Exception {
-//      Path p = Paths.get("hardware/menu.xml");
-//      parseFile(p, null, null);
-//   }
 }
