@@ -471,8 +471,8 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    /**
-    * Writes a set of macros to allow convenient access to the register field
-    * e.g. "#define PERIPHERAL_FIELD(x)  (((x)<<FIELD_OFFSET)&FIELD_MASK)"
+    * Writes a set of macros to allow convenient access to the register field<br>
+    * e.g. "#define PERIPHERAL_FIELD(x)  (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)"
     * 
     * @param  writer    Where to write 
     * @param  baseName  Basename of the peripheral
@@ -507,7 +507,7 @@ public class Field extends ModeControl implements Cloneable {
             String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),      
             String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Position")));      
 
-      if (getBitwidth()>1) {
+//      if (getBitwidth()>1) {
          String width = getCWidth(fOwner.getWidth());
          writer.write(String.format("%-100s%s",
                String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
@@ -516,7 +516,7 @@ public class Field extends ModeControl implements Cloneable {
 //            String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", posName, mskName), 
 //            String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
 //         String.format(BitfieldFormatComment,    baseName+": "+getBaseName()+" Field"))); 
-      }
+//      }
    }
 
    public void setDerivedFrom(Field oField) {
