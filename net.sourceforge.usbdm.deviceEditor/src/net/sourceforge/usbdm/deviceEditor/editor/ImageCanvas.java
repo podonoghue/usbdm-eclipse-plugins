@@ -149,7 +149,7 @@ public class ImageCanvas extends Canvas {
          messageBox.setMessage("Position: X= " + location.x + ", Y=" + location.y);
          messageBox.open();         
          int numRegions = (int) Math.round((secondPoint.y-firstPoint.y)/32.0);
-         System.err.println("numRegions =" + numRegions );
+//         System.err.println("numRegions =" + numRegions );
          float verticalIncrement = ((float)(secondPoint.y-firstPoint.y))/numRegions;
          for (int index=0; index<numRegions; index++) {
             int x1 = firstPoint.x;

@@ -19,7 +19,8 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
-   boolean underConstruction;
+   TreeViewModel fParameterModels = null;
+   boolean       underConstruction;
    
    /**
     * Used to sort the pins into categories for display
@@ -36,7 +37,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       /**
        * Constructor <br>
-       * Used to sort the pins into categories for display
+       * Used to group the pins into categories for display
        * 
        * @param name       Name of category 
        * @param pattern    Pattern used to select pins to include in this category 
@@ -185,14 +186,17 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return
     */
    private TreeViewModel createParameterModels() {
-      TreeViewModel root = new PeripheralConfigurationModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
+      if (fParameterModels != null) {
+         return fParameterModels;
+      }
+      fParameterModels = new PeripheralConfigurationModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
-            ((IModelEntryProvider) device).getModels(root);
+            ((IModelEntryProvider) device).getModels(fParameterModels);
          }
       }
-      return root;
+      return fParameterModels;
    }
 
    /**
@@ -482,7 +486,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    }
 
    public void setHardwareFile(String value) {
-      System.err.println("setHardwareFile("+value+")");
+      // TODO
+//      System.err.println("setHardwareFile("+value+")");
    }
 
 }

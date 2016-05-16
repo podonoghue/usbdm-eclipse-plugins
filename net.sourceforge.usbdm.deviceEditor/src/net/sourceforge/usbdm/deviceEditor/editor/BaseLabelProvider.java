@@ -12,7 +12,6 @@ import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 
 abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelProvider, IToolTipProvider{
 
@@ -28,6 +27,14 @@ abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelPr
       public void applyStyles(TextStyle textStyle) {
          textStyle.font = JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT);
          textStyle.foreground = Display.getDefault().getSystemColor(SWT.COLOR_RED);
+      }
+   };
+   
+   protected static final Styler WARNING_STYLER  = new Styler() {
+      @Override
+      public void applyStyles(TextStyle textStyle) {
+         textStyle.font = JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT);
+         textStyle.foreground = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
       }
    };
    
@@ -55,18 +62,22 @@ abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelPr
       if ((text == null)||(text.length() == 0)) {
          return new StyledString("");
       }
+      if (baseModel.isError()) {
+         return new StyledString(text, ERROR_STYLER);
+      }
+      if (baseModel.isWarning()) {
+         return new StyledString(text, WARNING_STYLER);
+      }
       if (baseModel.isReset()) {
          return new StyledString(text, DISABLED_STYLER);
       }
-      else if (baseModel.isError()) {
-         return new StyledString(text, ERROR_STYLER);
+      if (!baseModel.isEnabled()) {
+         return new StyledString(text, DISABLED_STYLER);
       }
-      else if ((element instanceof CategoryModel)) {
+      if (baseModel.hasChildren()) {
          return new StyledString(text, CATEGORY_STYLER);
       }
-      else {
-         return new StyledString(text, DEFAULT_STYLER);
-      }
+      return new StyledString(text, DEFAULT_STYLER);
    }
 
    @Override

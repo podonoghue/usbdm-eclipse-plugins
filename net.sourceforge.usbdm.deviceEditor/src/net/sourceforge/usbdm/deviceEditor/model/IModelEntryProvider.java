@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
+
 public interface IModelEntryProvider {
 
    /**
@@ -26,5 +28,23 @@ public interface IModelEntryProvider {
     * @return Value for variable
     */
    public String getVariableValue(String key);
+
+   /**
+    * Get variable with given key
+    * 
+    * @param key
+    * @return
+    * @throws Exception if variable doesn't exist
+    */
+   public Variable getVariable(String key);
+
+   /**
+    * Get variable with given key
+    * 
+    * @param key
+    * 
+    * @return variable or null if not found
+    */
+   Variable safeGetVariable(String key);
 
 }

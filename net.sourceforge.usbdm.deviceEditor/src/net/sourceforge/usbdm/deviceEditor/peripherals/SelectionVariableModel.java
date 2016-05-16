@@ -85,6 +85,7 @@ public class SelectionVariableModel extends VariableModel {
    public void setValueAsString(String value) {
       int selection = findChoice(value);
       if (selection<0) {
+         System.err.println("Illegal index, resetting to "+fValues[0]);
          // Invalid - reset to first element
          selection = 0;
       }
@@ -94,7 +95,13 @@ public class SelectionVariableModel extends VariableModel {
    @Override
    public String getValueAsString() {
       String value = super.getValueAsString();
-      return fChoices[findValue(value)];
+      int index = findValue(value);
+      if (index<0) {
+         System.err.println("Illegal index, resetting to "+fChoices[0]);
+         // Invalid - reset to first element
+         index = 0;
+      }
+      return fChoices[index];
    }
    
    @Override

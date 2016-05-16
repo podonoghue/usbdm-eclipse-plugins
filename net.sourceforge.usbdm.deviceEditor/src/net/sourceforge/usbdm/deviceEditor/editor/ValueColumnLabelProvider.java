@@ -27,7 +27,7 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public Image getImage(BaseModel baseModel) {
-      if (baseModel.isLocked()) {
+      if (!baseModel.canEdit()) {
          return lockedImage;
       }
       if (baseModel instanceof BinaryVariableModel) {
@@ -36,20 +36,6 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
       return null;
    }
 
-   @Override
-   public Image getImage(Object element) {
-      if (element instanceof BaseModel) {
-         BaseModel model = (BaseModel) element;
-         if (model.isLocked()) {
-            return lockedImage;
-         }
-      }
-      if (element instanceof BinaryVariableModel) {
-         return ((Boolean)((BinaryVariableModel)element).getBooleanValue())?checkedImage:uncheckedImage;
-      }
-      return null;
-   }
-   
    @Override
    public void dispose() {
       super.dispose();

@@ -1,13 +1,16 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
+
 /**
  * Model for a variable maintained by a provider
  */
-public class VariableModel extends EditableModel {
+public class VariableModel extends EditableModel implements IModelChangeListener {
 
-   private final IModelEntryProvider fProvider;
-   private final String              fKey;
-
+   protected final IModelEntryProvider fProvider;
+   protected final String              fKey;
+   protected final Variable            fVariable;
+   
    /**
     * Create model
     * 
@@ -20,22 +23,22 @@ public class VariableModel extends EditableModel {
       super(parent, key, description);
       fProvider      = provider;
       fKey           = key;
+      fVariable      = fProvider.getVariable(key);
+      fVariable.addListener(this);
    }
 
    @Override
    public String getValueAsString() {
-      return fProvider.getVariableValue(fKey);
+      String value =  fProvider.getVariableValue(fKey);
+      System.err.println("VariableModel.getValueAsString("+fName+"=> "+value+")");
+      return value;
    }
 
    @Override
    public void setValueAsString(String value) {
+      System.err.println("VariableModel.setValueAsString("+fName+", "+value+")");
       fProvider.setVariableValue(fKey, value);
       viewerUpdate(getParent(), null);
-   }
-
-   @Override
-   public boolean canEdit() {
-      return true;
    }
 
    @Override
@@ -51,6 +54,35 @@ public class VariableModel extends EditableModel {
     */
    public String isValid(String value) {
       return null;
+   }
+
+   @Override
+   Message getMessage() {
+      Message msg = fVariable.getMessage();
+      if (msg != null) {
+         return msg;
+      }
+      return super.getMessage();
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModel observableModel) {
+      viewerUpdate(this, null);
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel observableModel) {
+      viewerUpdate(this, null);
+   }
+
+   @Override
+   public boolean isEnabled() {
+      return (!(fParent instanceof BinaryVariableModel) || ((BinaryVariableModel)fParent).getBooleanValue());
+   }
+
+   @Override
+   public boolean canEdit() {
+      return super.canEdit() && isEnabled();
    }
    
 }

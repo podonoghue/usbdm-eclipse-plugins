@@ -15,6 +15,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
@@ -36,12 +37,11 @@ import org.eclipse.ui.part.EditorPart;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.model.EditorPage;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralPageModel;
-import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.EditorPage;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
@@ -126,7 +126,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
       Display display = Display.getCurrent();
       // Create the containing tab folder
-      fTabFolder   = new CTabFolder(parent, SWT.BOTTOM);
+      fTabFolder   = new CTabFolder(parent, SWT.NONE);
       fTabFolder.setSimple(false);
       fTabFolder.setBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_WHITE),
@@ -160,6 +160,17 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       hookContextMenu();
       // Add selected actions to menu bar
       //      contributeToActionBars();
+
+      try {
+         Activator activator = Activator.getDefault();
+         if (activator != null) {
+            IDialogSettings dialogSettings = activator.getDialogSettings();
+            if (dialogSettings != null) {
+               fTabFolder.setSelection(dialogSettings.getInt("ActiveTab"));
+            }
+         }
+      } catch (NumberFormatException e) {
+      }
    }
 
    //   @Override
@@ -328,6 +339,13 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          return;
       }
       deviceInfo.saveSettings(fProject);
+      Activator activator = Activator.getDefault();
+      if (activator != null) {
+         IDialogSettings dialogSettings = activator.getDialogSettings();
+         if (dialogSettings != null) {
+            dialogSettings.put("ActiveTab", fTabFolder.getSelectionIndex());
+         }
+      }
    }
 
    @Override

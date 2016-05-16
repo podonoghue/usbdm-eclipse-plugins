@@ -233,7 +233,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @param mappingInfo
     */
    public void setMappedPin(MappingInfo mappingInfo) {
-      System.err.println("Signal.setPin("+mappingInfo+")");
+//      System.err.println("Signal.setPin("+mappingInfo+")");
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
             continue;

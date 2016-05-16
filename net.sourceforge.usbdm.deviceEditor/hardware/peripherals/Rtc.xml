@@ -3,7 +3,7 @@
 <!-- ftm.xml -->
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
-   <menu name="_instance" description="Flex timer">
+   <page name="_instance" description="Real-time Clock">
 
       <choiceOption name="CR_SCP" description="Oscillator load capacitance"
          toolTip="Configures the oscillator load capacitance">
@@ -66,7 +66,7 @@
          toolTip="Sets the priority level used to configure the NVIC"
          value="0" min="0" max="15" />
       
-   </menu>
+   </page>
    
    <template>
       \t//! Indicates interrupt handler has been installed
@@ -75,11 +75,11 @@
       \tstatic constexpr uint32_t irqLevel =  $(IRQ_LEVEL);\n\n
       \t//! Oscillator control register\n
       \tstatic constexpr uint32_t RTC_CR =
-      \t\t($(CR_OSCE)&lt;&lt;RTC_CR_OSCE_SHIFT)|
-      \t\t($(CR_CLKO)&lt;&lt;RTC_CR_CLKO_SHIFT)|
-      \t\t($(CR_UM)&lt;&lt;RTC_CR_UM_SHIFT)|
-      \t\t($(CR_SUP)&lt;&lt;RTC_CR_SUP_SHIFT)|
-      \t\t($(CR_WPE)&lt;&lt;RTC_CR_WPE_SHIFT)|
-      \t\t($(CR_SCP)&lt;&lt;RTC_CR_SC16P_SHIFT);\n\n
+      \t   ($(CR_OSCE)&lt;&lt;RTC_CR_OSCE_SHIFT)|
+      \t   ($(CR_CLKO)&lt;&lt;RTC_CR_CLKO_SHIFT)|
+      \t   ($(CR_UM)&lt;&lt;RTC_CR_UM_SHIFT)|
+      \t   ($(CR_SUP)&lt;&lt;RTC_CR_SUP_SHIFT)|
+      \t   ($(CR_WPE)&lt;&lt;RTC_CR_WPE_SHIFT)|
+      \t   ($(CR_SCP)&lt;&lt;RTC_CR_SC16P_SHIFT);\n\n
    </template>
 </root>

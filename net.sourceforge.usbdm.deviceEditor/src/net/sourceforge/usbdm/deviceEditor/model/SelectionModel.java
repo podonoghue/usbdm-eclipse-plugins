@@ -23,12 +23,7 @@ public abstract class SelectionModel extends EditableModel {
 
    @Override
    public boolean canEdit() {
-      return fChoices.length>1;
-   }
-
-   @Override
-   public boolean isLocked() {
-      return !canEdit();
+      return super.canEdit() && (fChoices.length>1);
    }
 
    /**

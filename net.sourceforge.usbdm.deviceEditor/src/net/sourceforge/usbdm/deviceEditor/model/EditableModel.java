@@ -7,6 +7,9 @@ package net.sourceforge.usbdm.deviceEditor.model;
  */
 public abstract class EditableModel extends BaseModel {
 
+   /** USed to mark model as a constant i.e. can't be changed by editor */
+   boolean fIsConstant = false;
+   
    /**
     * Constructor
     * 
@@ -22,14 +25,23 @@ public abstract class EditableModel extends BaseModel {
    
    @Override
    public boolean canEdit() {
-      return true;
+      return !fIsConstant;
    }
 
+   /**
+    * Used to set the items as a constant
+    * 
+    * @param value true to make item a constant (i.e. canEdit() => false)
+    */
+   public void setConstant(boolean value) {
+      fIsConstant = value;
+   }
+   
    /** 
     * Set value of underlying data<br>
-    * The string value given may need to be converted to suitable type 
+    * The string value given is the GUI displayed value and may need to be converted to suitable type 
     * 
-    * @param value
+    * @param value Value used by GUI/Model. Will be converted for data.
     */
    public abstract void setValueAsString(String value);
 }

@@ -18,7 +18,7 @@ public abstract class BaseModel {
    protected       String            fDescription;
    
    /** Parent node */
-   protected BaseModel         fParent;
+   protected BaseModel               fParent;
    
    /** Child nodes */
    protected       ArrayList<Object> fChildren = null;
@@ -131,13 +131,7 @@ public abstract class BaseModel {
     * @return string
     */
    public String toString() {
-      if (fName != null) {
-         return fName;
-      }
-      if (fDescription != null) {
-         return fDescription;
-      }
-      return super.toString();
+      return "BaseModel("+fName+", "+fDescription+")";
    }
 
    /**
@@ -210,16 +204,6 @@ public abstract class BaseModel {
       return false;
    }
 
-   /** 
-    * Indicates that model value is locked and a icon should be displayed
-    * 
-    * @return
-    */
-   public boolean isLocked() {
-      return false;
-   }
-
-
    /**
     * Set node message as error
     * 
@@ -228,7 +212,7 @@ public abstract class BaseModel {
    public void setMessage(String message) {
       Message msg = null;
       if ((message != null) && !message.isEmpty()) {
-         msg = new Message(message, Message.Severity.ERROR, this);
+         msg = new Message(message, Message.Severity.ERROR);
       }
       setMessage(msg);
    }

@@ -41,7 +41,11 @@ public class Message {
          return true;
       }
       Message other = (Message) obj;
-      return (fSeverity == other.fSeverity) && (fMessage.compareTo(other.fMessage) == 0);
+      return (fSeverity == other.fSeverity) && (fMessage.equalsIgnoreCase(other.fMessage));
+   }
+
+   public boolean equals(String msg) {
+      return fMessage.equalsIgnoreCase(msg);
    }
 
    @Override
@@ -58,7 +62,7 @@ public class Message {
     * 
     * @param message Message text
     */
-   public Message(String message, BaseModel source) {
+   public Message(String message) {
       this.fMessage = message;
       this.fSeverity = Severity.ERROR;
    }
@@ -69,7 +73,7 @@ public class Message {
     * @param message    Message text
     * @param severity   Severity level
     */
-   public Message(String message, Severity severity, BaseModel source) {
+   public Message(String message, Severity severity) {
       this.fMessage  = message;
       this.fSeverity = severity;
    }

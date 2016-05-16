@@ -43,7 +43,7 @@ public abstract class TreeViewModel extends PeripheralPageModel {
 
    @Override
    protected void viewerUpdate(BaseModel element, String[] properties) {
-      System.err.println("BaseModel("+fName+").viewerUpdate("+element.getName()+")");
+//      System.err.println("BaseModel("+fName+").viewerUpdate("+element.getName()+")");
       if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
          fViewer.update(element,  properties);
       }

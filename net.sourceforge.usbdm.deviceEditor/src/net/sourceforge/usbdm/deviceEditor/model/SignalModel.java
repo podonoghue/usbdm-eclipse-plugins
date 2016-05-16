@@ -81,11 +81,11 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 
    @Override
    public void setValueAsString(String value) {
-      System.err.println("===================================================================");
-      System.err.println("SignalModel("+fName+")::setValue("+value+")");
+//      System.err.println("===================================================================");
+//      System.err.println("SignalModel("+fName+")::setValue("+value+")");
       super.setValueAsString(value);
       fSignal.setMappedPin(fMappingInfos[fSelection]);
-      System.err.println("===================================================================");
+//      System.err.println("===================================================================");
    }
    
    @Override

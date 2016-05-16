@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,16 +9,15 @@ import java.util.regex.Pattern;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.model.PeripheralPageModel;
+import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
@@ -79,11 +79,23 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @throws Exception if variable already exists
     */
-   public void createVariable(String key, String value) {
+   public Variable createVariable(String key, String value) {
       Variable variable = fDeviceInfo.createVariable(keyMaker.makeKey(key), value);
       variable.addListener(this);
+      return variable;
    }
 
+   /**
+    * Create a variable
+    * 
+    * @param key     Key identifying variable
+    * 
+    * @throws Exception if variable already exists
+    */
+   public Variable createVariable(String key) {
+      return createVariable(key, "");
+   }
+   
    @Override
    public void setVariableValue(String key, String value) {
       fDeviceInfo.setVariableValue(keyMaker.makeKey(key), value);
@@ -92,6 +104,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public String getVariableValue(String key) {
       return fDeviceInfo.getVariableValue(keyMaker.makeKey(key));
+   }
+
+   @Override
+   public Variable getVariable(String key) {
+      return fDeviceInfo.getVariable(keyMaker.makeKey(key));
+   }
+
+   @Override
+   public Variable safeGetVariable(String key) {
+      try {
+         return fDeviceInfo.getVariable(keyMaker.makeKey(key));
+      } catch (Exception e) {
+         return null;
+      }
    }
 
    @Override
@@ -107,8 +133,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /**
     * Does variable substitution in a string
     * 
-    * @param input         String to process
-    * @param map   Map of key->replacement values
+    * @param input   String to process
+    * @param map     Map of key->replacement values
     * 
     * @return Modified string or original if no changes
     * @throws Exception 
@@ -180,8 +206,23 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
    }
 
+   ArrayList<Validator> validators = new ArrayList<Validator>();
+   
+   public void addValidator(Validator validator) {
+      validators.add(validator);
+   }
+   private void variableChanged(Variable variable) {
+//      System.err.println("variableChanged()" + variable.toString());
+      for (Validator v:validators) {
+         v.variableChanged(variable);
+      }
+   }
+   
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
+      if (observableModel instanceof Variable) {
+         variableChanged((Variable)observableModel);
+      }
    }
 
    @Override

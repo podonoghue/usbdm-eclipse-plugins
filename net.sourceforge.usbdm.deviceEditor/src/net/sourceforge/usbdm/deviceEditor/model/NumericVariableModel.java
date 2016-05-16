@@ -4,16 +4,12 @@ import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class NumericVariableModel extends VariableModel {
 
-   private long fMin  = Long.MIN_VALUE;
-   private long fMax  = Long.MAX_VALUE;
-   private long fStep = 1;
-
    /**
-    * Constructor
     * 
     * @param parent        Parent model
-    * @param name          Display name
-    * @param description   Display description
+    * @param provider      Associated variable provider
+    * @param key           Variable key
+    * @param description   Description for model
     * 
     * @note Added as child of parent if not null
     */
@@ -27,34 +23,16 @@ public class NumericVariableModel extends VariableModel {
     * @return
     */
    public long getMin() {
-      return fMin;
+      return fVariable.getMin();
    }
 
-   /**
-    * Set minimum permitted value
-    * 
-    * @param min Value to set
-    */
-   public void setMin(long min) {
-      fMin = min;
-   }
-   
    /**
     * Get maximum permitted value
     * 
     * @return
     */
    public long getMax() {
-      return fMax;
-   }
-   
-   /**
-    * Set maximum permitted value
-    * 
-    * @param max Value to set
-    */
-   public void setMax(long max) {
-      fMax = max;
+      return fVariable.getMax();
    }
    
    /**
@@ -64,16 +42,17 @@ public class NumericVariableModel extends VariableModel {
     * @return
     */
    public long getStep() {
-      return fStep;
+      return fVariable.getStep();
    }
    
    /**
-    * Set step size
+    * Get offset size for value<br>
+    * i.e. offset to add when applying this value in template
     * 
-    * @param max Value to set
+    * @return
     */
-   public void setStep(long step) {
-      fStep = step;
+   public long getOffset() {
+      return fVariable.getOffset();
    }
    
    /**
@@ -82,29 +61,41 @@ public class NumericVariableModel extends VariableModel {
     * @return Description of error or null if valid
     */
    public String isValid(Long value) {
-      if (value<fMin) {
+      if (value<getMin()) {
          return "Value too small";
       }
-      if (value>fMax) {
+      if (value>getMax()) {
          return "Value too large";
       }
-      long remainder = value % fStep;
+      long remainder = value % getStep();
       if (remainder != 0) {
-         return "Value not a multiple of " + fStep;
+         return "Value not a multiple of " + getStep();
       }
       return null;
    }
 
+   /**
+    * Convert string to long
+    * 
+    * @param value
+    * @return
+    */
+   static long toLong(String value) {
+      long lValue = 0;
+      String s = value.toString().trim();
+      if (s.startsWith("0b")) {
+         lValue = Long.parseLong(s.substring(2, s.length()), 2);
+      } else {
+         lValue = Long.decode(s);
+      }
+      return lValue;
+   }
+   
    @Override
    public String isValid(String value) {
       long lValue = 0;
       try {
-         String s = value.toString().trim();
-         if (s.startsWith("0b")) {
-            lValue = Long.parseLong(s.substring(2, s.length()), 2);
-         } else {
-            lValue = Long.decode(s);
-         }
+         lValue = toLong(value);
       }
       catch (NumberFormatException e) {
          return "Illegal number";
@@ -113,19 +104,20 @@ public class NumericVariableModel extends VariableModel {
    }
 
    @Override
-   public String getValueAsString() {
-      String value = super.getValueAsString();
-      setMessage(isValid(value));
-      if (fLogging) {
-         System.err.println("getValueAsString() "+value);
-      }
-      return value;
+   public void setValueAsString(String sValue) {
+      Long value = toLong(sValue);
+      value += getOffset();
+      super.setValueAsString(value.toString());
    }
 
    @Override
-   public void setValueAsString(String value) {
-      setMessage(isValid(value));
-      super.setValueAsString(value);
+   public String getValueAsString() {
+      Long value = toLong(super.getValueAsString());
+      value -= getOffset();
+      if (fLogging) {
+         System.err.println("getValueAsString() "+value);
+      }
+      return value.toString();
    }
 
    @Override
@@ -136,8 +128,40 @@ public class NumericVariableModel extends VariableModel {
       }
       String message = isValid(getValueAsString());
       if (message != null) {
-         msg = new Message(message, this);
+         msg = new Message(message);
       }
       return msg;
    }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.model.BaseModel#getToolTip()
+    */
+   @Override
+   public String getToolTip() {
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getToolTip());
+      boolean firstOne = true;
+      
+      if (getMin() != Long.MIN_VALUE) {
+         sb.append("\n");
+         firstOne = false;
+         sb.append("min="+getMin()+" ");
+      }
+      if (getMax() != Long.MAX_VALUE) {
+         if (firstOne) {
+            sb.append("\n");
+         }
+         firstOne = false;
+         sb.append("max="+getMax()+" ");
+      }
+      if (getStep() != 1) {
+         if (firstOne) {
+            sb.append("\n");
+         }
+         firstOne = false;
+         sb.append("step="+getStep()+" ");
+      }
+      return sb.toString();
+   }
+   
 }

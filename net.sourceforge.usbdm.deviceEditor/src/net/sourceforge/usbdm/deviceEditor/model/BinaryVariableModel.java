@@ -6,9 +6,16 @@ public class BinaryVariableModel extends VariableModel {
     * Class to hold the Name/Value pair
     */
    static class Pair {
+      /** Name used by GUI/model */
       final String name;
+      /** Value used by data */
       final String value;
       
+      /**
+       * 
+       * @param name  Name used by GUI/model
+       * @param value Value used by data
+       */
       Pair(String name, String value) {
          this.name  = name;
          this.value = value;
@@ -53,10 +60,28 @@ public class BinaryVariableModel extends VariableModel {
    @Override
    public String getValueAsString() {
       String value = super.getValueAsString();
+      String name;
       if (value1.value.equalsIgnoreCase(value)) {
-         return value1.name;
+         name = value1.name;
       }
-      return value0.name;
+      else {
+         name = value0.name;
+      }
+      System.err.println("BinaryVariableModel.getValueAsString("+fName+", "+value+"->"+name+")");
+      return name;
+   }
+
+   @Override
+   public void setValueAsString(String name) {
+      String value;
+      if (value1.name.equalsIgnoreCase(name)) {
+         value = value1.value;
+      }
+      else {
+         value = value0.value;
+      }
+      System.err.println("BinaryVariableModel.setValueAsString("+fName+", "+name+"->"+value+")");
+      super.setValueAsString(value);
    }
 
    /**
@@ -65,7 +90,10 @@ public class BinaryVariableModel extends VariableModel {
     * @return
     */
    public Boolean getBooleanValue() {
-      return value1.value.equalsIgnoreCase(super.getValueAsString());
+      String value = super.getValueAsString();
+      boolean bValue = value1.value.equalsIgnoreCase(value);
+      System.err.println("BinaryVariableModel.getBooleanValue("+fName+", "+value+"->"+bValue+")");
+      return bValue;
    }
 
    /**
@@ -73,13 +101,30 @@ public class BinaryVariableModel extends VariableModel {
     * 
     * @param value
     */
-   public void setBooleanValue(Boolean value) {
-      if (value) {
-         setValueAsString(value1.value);
+   public void setBooleanValue(Boolean bValue) {
+      String value;
+      if (bValue) {
+         value = value1.value;
       }
       else {
-         setValueAsString(value0.value);
+         value = value0.value;
       }
+      System.err.println("BinaryVariableModel.setBooleanValue("+fName+", "+bValue+"->"+value+")");
+      super.setValueAsString(value);
+      
+      // Refresh children in case boolean category
+      refreshChildren();
    }
 
+   private void refreshChildren() {
+      if (fChildren != null) {
+         for (Object obj:fChildren) {
+            if (obj instanceof VariableModel) {
+               VariableModel child = (VariableModel) obj;
+               viewerUpdate(child, null);
+            }
+         }
+      }
+   }
+   
 }

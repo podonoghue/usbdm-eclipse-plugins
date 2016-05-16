@@ -10,11 +10,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
+import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -33,7 +35,19 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    };
    
+   /** Provider providing the variables used by the menu */
    private final PeripheralWithState fProvider;
+   
+   /**
+    * Gets the toolTip attribute from the element and applies some simple transformations
+    *  
+    * @param element
+    * 
+    * @return Formatted toolTip
+    */
+   String getToolTip(Element element) {
+      return element.getAttribute("toolTip").replaceAll("\\\\n( +)", "\n");
+   }
    
    /**
     * Parse &lt;intOption&gt; element<br>
@@ -42,193 +56,138 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseLongOption(BaseModel parent, Element longElement) {
 
-      String name        = longElement.getAttribute("name");
-      String description = longElement.getAttribute("description");
-      String toolTip     = longElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
-      long   min         = getLongAttribute(longElement, "min");
-      long   max         = getLongAttribute(longElement, "max");
-      long   step        = getLongAttribute(longElement, "step");
-      String value       = longElement.getAttribute("value");
+      String  name        = longElement.getAttribute("name");
+      boolean isConstant  = Boolean.valueOf(longElement.getAttribute("constant"));
+      String  description = longElement.getAttribute("description");
+      String  toolTip     = getToolTip(longElement);
+      long    step        = getLongAttribute(longElement, "step");
+      long    offset      = getLongAttribute(longElement, "offset");
+      String  value       = longElement.getAttribute("value");
+      String  key         = longElement.getAttribute("key");
+      boolean isAlias     = Boolean.valueOf(longElement.getAttribute("alias"));
+      if (key.isEmpty()) {
+         key = name;
+      }
+      Variable variable;
+      if (isAlias) {
+         variable = fProvider.getVariable(key);
+      }
+      else {
+         variable = fProvider.createVariable(key);
+      }
       
-      fProvider.createVariable(name, value);
-      NumericVariableModel model = new NumericVariableModel(parent, fProvider, name, description);
+      NumericVariableModel model = new NumericVariableModel(parent, fProvider, key, description);
+      model.setName(name);
+      model.setConstant(isConstant);
       model.setToolTip(toolTip);
-      model.setMin(min);
-      model.setMax(max);
-      model.setStep(step);
+      try {
+         variable.setMin(getLongAttribute(longElement, "min"));
+      } catch( NumberFormatException e) {
+      }
+      try {
+         variable.setMax(getLongAttribute(longElement, "max"));
+      } catch( NumberFormatException e) {
+      }
+      variable.setValue(value);
+      variable.setStep(step);
+      variable.setOffset(offset);
    }
 
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
     * @param choiceElement
+    * @throws Exception 
     */
-   private void parseChoiceOption(BaseModel parent, Element choiceElement) {
+   private void parseChoiceOption(BaseModel parent, Element choiceElement) throws Exception {
       String  name        = choiceElement.getAttribute("name");
+      boolean isConstant  = Boolean.valueOf(choiceElement.getAttribute("constant"));
       String  description = choiceElement.getAttribute("description");
-      String  toolTip     = choiceElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
+      String  toolTip     = getToolTip(choiceElement);
+      String  key         = choiceElement.getAttribute("key");
+      boolean isAlias     = Boolean.valueOf(choiceElement.getAttribute("alias"));
+      if (key.isEmpty()) {
+         key = name;
+      }
+      Variable variable;
+      if (isAlias) {
+         variable = fProvider.getVariable(key);
+      }
+      else {
+         variable = fProvider.createVariable(key);
+      }
 
-      ArrayList<String> choices = new ArrayList<String>();
-      ArrayList<String> values  = new ArrayList<String>();
-      String defaultValue = null;
-      for (Node node = choiceElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element element = (Element) node;
-         if (element.getTagName() == "choice") {
-            String value = element.getAttribute("value");
-            choices.add(element.getAttribute("name"));
-            values.add(value);
-            if (defaultValue == null) {
-               defaultValue = value;
-            }
-            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
-               defaultValue = value;
-            }
-         }
-         else {
-            throw new RuntimeException("Unexpected field in <choiceOption>, value = \'"+element.getTagName()+"\'");
-         }
-      }
-      fProvider.createVariable(name, defaultValue);
-      String theChoices[] = choices.toArray(new String[choices.size()]);
-      String theValues[]  = values.toArray(new String[values.size()]);
-      SelectionVariableModel model = new SelectionVariableModel(parent, fProvider, name, description);
-      model.setToolTip(toolTip);;
-      model.setChoices(theChoices);
-      model.setValues(theValues);
+      SelectionVariableModel model = new SelectionVariableModel(parent, fProvider, key, description);
+      model.setName(name);
+      model.setToolTip(toolTip);
+      model.setConstant(isConstant);
+
+      String defaultValue = parseChildren(model, choiceElement);
+      variable.setValue(defaultValue);
    }
    
    /**
-    * Class representing a validator parameter
-    */
-   static class Param {
-   };
-   
-   static class LongParam extends Param {
-      long   fValue;
-      /**
-       * COnstruct parameter with Long value
-       * @param value
-       */
-      public LongParam(long value) {
-         fValue = value;
-      }
-   };
-   
-   static class StringParam extends Param {
-      String   fValue;
-      /**
-       * COnstruct parameter with String value
-       * @param value
-       */
-      public StringParam(String value) {
-         fValue = value;
-      }
-   };
-   
-   static class Validator {
-      String fClassName;
-      ArrayList<Param> params = new ArrayList<Param>();
-      /**
-       * Construct validator
-       * 
-       * @param className Name of class
-       */
-      public Validator(String className) {
-         fClassName = className;
-      }
-      /**
-       * Add parameter to validator
-       * 
-       * @param param
-       */
-      void addParam(Param param) {
-         params.add(param);
-      }
-   }
-   
-   /**
-    * Parse &lt;validate&gt; element<br>
+    * Parse &lt;choiceOption&gt; element<br>
     * 
-    * @param validateElement
+    * @param stringElement
+    * @throws Exception 
     */
-   private static Validator parseValidate(Element validateElement) {
-      Validator validator = new Validator(validateElement.getAttribute("class"));
-      for (Node node = validateElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element element = (Element) node;
-         if (element.getTagName() == "param") {
-            String  type   = element.getAttribute("type");
-            if (type.equalsIgnoreCase("int")) {
-               validator.addParam(new LongParam(getLongAttribute(element, "value")));
-            }
-            else if (type.equalsIgnoreCase("string")) {
-               validator.addParam(new LongParam(getLongAttribute(element, "value")));
-            }
-            else {
-               throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
-            }
-         }
-         else {
-            throw new RuntimeException("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
-         }
+   private void parseStringOption(BaseModel parent, Element stringElement) throws Exception {
+      String  name        = stringElement.getAttribute("name");
+      boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
+      String  description = stringElement.getAttribute("description");
+      String  value       = stringElement.getAttribute("value");
+      String  toolTip     = getToolTip(stringElement);
+      String  key         = stringElement.getAttribute("key");
+      boolean isAlias     = Boolean.valueOf(stringElement.getAttribute("alias"));
+      if (key.isEmpty()) {
+         key = name;
       }
-      return validator;
+      Variable variable;
+      if (isAlias) {
+         variable = fProvider.getVariable(key);
+      }
+      else {
+         variable = fProvider.createVariable(key);
+      }
+      StringVariableModel model = new StringVariableModel(parent, fProvider, key, description);
+      model.setName(name);
+      model.setToolTip(toolTip);
+      model.setConstant(isConstant);
+      
+      variable.setValue(value);
    }
-
+   
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
     * @param binaryElement
+    * @throws Exception 
     */
-   private void parseBinaryOption(BaseModel parent, Element binaryElement) {
-      String name        = binaryElement.getAttribute("name");
-      String description = binaryElement.getAttribute("description");
-      String toolTip     = binaryElement.getAttribute("toolTip").replaceAll("\\\\n", "\n");
-
-      ArrayList<String> choices = new ArrayList<String>();
-      ArrayList<String> values  = new ArrayList<String>();
-      String defaultValue = null;
-      for (Node node = binaryElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element element = (Element) node;
-         if (element.getTagName() == "choice") {
-            String value = element.getAttribute("value");
-            choices.add(element.getAttribute("name"));
-            values.add(value);
-            if (defaultValue == null) {
-               defaultValue = value;
-            }
-            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
-               defaultValue = value;
-            }
-         }
-         else {
-            throw new RuntimeException("Unexpected field in <binaryOption>, value = \'"+element.getTagName()+"\'");
-         }
+   private void parseBinaryOption(BaseModel parent, Element binaryElement) throws Exception {
+      String  name        = binaryElement.getAttribute("name");
+      boolean isConstant  = Boolean.valueOf(binaryElement.getAttribute("constant"));
+      String  description = binaryElement.getAttribute("description");
+      String  toolTip     = getToolTip(binaryElement);
+      String  key         = binaryElement.getAttribute("key");
+      boolean isAlias     = Boolean.valueOf(binaryElement.getAttribute("alias"));
+      if (key.isEmpty()) {
+         key = name;
       }
-      if ((choices.size()==0)||(choices.size()>2)) {
-         throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+choices.size());
+      Variable variable;
+      if (isAlias) {
+         variable = fProvider.getVariable(key);
       }
-      fProvider.createVariable(name, defaultValue);
-      
-      BinaryVariableModel model = new BinaryVariableModel(parent, fProvider, name, description);
+      else {
+         variable = fProvider.createVariable(key);
+      }
+      BinaryVariableModel model = new BinaryVariableModel(parent, fProvider, key, description);
       model.setName(name);
+      model.setConstant(isConstant);
       model.setToolTip(toolTip);
-      model.setValue0(choices.get(0), values.get(0));
-      model.setValue1(choices.get(1), values.get(1));
+      
+      String defaultValue = parseChildren(model, binaryElement);
+      variable.setValue(defaultValue);
    }
 
    /**
@@ -247,12 +206,32 @@ public class ParseMenuXML extends XML_BaseParser {
          name = fProvider.getName();
       }
       String description = menuElement.getAttribute("description");
+      String toolTip     = getToolTip(menuElement);
+      
       if (menuElement.getTagName() == "page") {
          rootModel = new PeripheralConfigurationModel(parent, name, description);
       }
       else {
          rootModel = new CategoryModel(parent, name, description);
       }
+      rootModel.setToolTip(toolTip);
+      parseChildren(rootModel, menuElement);
+      return rootModel;
+   }
+
+   /**
+    * Parses the children of this element
+    * 
+    * @param  parentModel  Model to attach children to
+    * @param  menuElement  Menu element to parse
+    * 
+    * @throws Exception
+    */
+   String parseChildren(BaseModel parentModel, Element menuElement) throws Exception {
+      ArrayList<String> choices = new ArrayList<String>();
+      ArrayList<String> values  = new ArrayList<String>();
+      String defaultValue = null;
+
       for (Node node = menuElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -261,24 +240,53 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "menu") {
-            parsePageOrMenu(rootModel, element);
+            parsePageOrMenu(parentModel, element);
          }
          else if (element.getTagName() == "intOption") {
-            parseLongOption(rootModel, element);
+            parseLongOption(parentModel, element);
          }
          else if (element.getTagName() == "binaryOption") {
-            parseBinaryOption(rootModel, element);
+            parseBinaryOption(parentModel, element);
          }
          else if (element.getTagName() == "choiceOption") {
-            parseChoiceOption(rootModel, element);
+            parseChoiceOption(parentModel, element);
+         }
+         else if (element.getTagName() == "stringOption") {
+            parseStringOption(parentModel, element);
+         }
+         else if (element.getTagName() == "choice") {
+            String value = element.getAttribute("value");
+            choices.add(element.getAttribute("name"));
+            values.add(value);
+            if (defaultValue == null) {
+               defaultValue = value;
+            }
+            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+               defaultValue = value;
+            }
          }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
          }
       }
-      return rootModel;
+      if (parentModel instanceof BinaryVariableModel) {
+         if ((choices.size()==0)||(choices.size()>2)) {
+            throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+choices.size());
+         }
+         BinaryVariableModel model = (BinaryVariableModel) parentModel;
+         model.setValue0(choices.get(0), values.get(0));
+         model.setValue1(choices.get(1), values.get(1));
+      }
+      else if (parentModel instanceof SelectionVariableModel) {      
+         String theChoices[] = choices.toArray(new String[choices.size()]);
+         String theValues[]   = values.toArray(new String[values.size()]);
+         SelectionVariableModel model = (SelectionVariableModel)parentModel;
+         model.setChoices(theChoices);
+         model.setValues(theValues);
+      }
+      return defaultValue;
    }
-
+   
    /**
     * 
     * @param provider
@@ -397,4 +405,89 @@ public class ParseMenuXML extends XML_BaseParser {
    public static Data parseString(String xmlString, BaseModel parent, PeripheralWithState provider) throws Exception {
       return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
    }
+   
+   /**
+    * Class representing a validator parameter
+    */
+   static class Param {
+   };
+   
+   static class LongParam extends Param {
+      long   fValue;
+      /**
+       * COnstruct parameter with Long value
+       * @param value
+       */
+      public LongParam(long value) {
+         fValue = value;
+      }
+   };
+   
+   static class StringParam extends Param {
+      String   fValue;
+      /**
+       * COnstruct parameter with String value
+       * @param value
+       */
+      public StringParam(String value) {
+         fValue = value;
+      }
+   };
+   
+   static class Validator {
+      String fClassName;
+      ArrayList<Param> params = new ArrayList<Param>();
+      /**
+       * Construct validator
+       * 
+       * @param className Name of class
+       */
+      public Validator(String className) {
+         fClassName = className;
+      }
+      /**
+       * Add parameter to validator
+       * 
+       * @param param
+       */
+      void addParam(Param param) {
+         params.add(param);
+      }
+   }
+   
+   /**
+    * Parse &lt;validate&gt; element<br>
+    * 
+    * @param validateElement
+    */
+   private static Validator parseValidate(Element validateElement) {
+      Validator validator = new Validator(validateElement.getAttribute("class"));
+      for (Node node = validateElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "param") {
+            String  type   = element.getAttribute("type");
+            if (type.equalsIgnoreCase("int")) {
+               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+            }
+            else if (type.equalsIgnoreCase("string")) {
+               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+            }
+            else {
+               throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
+            }
+         }
+         else {
+            throw new RuntimeException("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
+         }
+      }
+      return validator;
+   }
+
+
+   
 }

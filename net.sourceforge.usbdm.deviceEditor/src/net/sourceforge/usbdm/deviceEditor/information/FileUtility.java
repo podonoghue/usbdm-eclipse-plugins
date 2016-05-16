@@ -218,7 +218,7 @@ public class FileUtility {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source);
       Path targetPath = projectDirectory.resolve(target);
-      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
+//      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy File", 100);
          IFile iFile = project.getFile(targetPath.toString());
@@ -249,9 +249,9 @@ public class FileUtility {
     * @throws Exception
     */
    private static void copyFile(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
-      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
+//      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       if (!targetPath.getParent().toFile().exists()) {
-         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
+//         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
          targetPath.getParent().toFile().mkdirs();
       }
       copy(sourcePath, targetPath, variableMap);
@@ -329,7 +329,7 @@ public class FileUtility {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source).toAbsolutePath();
       Path targetPath = projectDirectory.resolve(target).toAbsolutePath();
-      System.err.println(String.format("FileUtility.copyDirectory()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
+//      System.err.println(String.format("FileUtility.copyDirectory()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy Files", 100);
          copyDirectory(project, sourcePath, targetPath, variableMap, monitor);

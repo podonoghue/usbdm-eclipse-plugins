@@ -122,16 +122,6 @@ public class DeviceInfo extends ObservableModel {
    /** Key for hardware source file persistence */
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
 
-   public static class Variable extends ObservableModel {
-      String fName;
-      String fValue;
-      
-      Variable(String name, String value) {
-         fName  = name;
-         fValue = value;
-      }
-   }
-
    /** Map of variables for this peripheral */
    private final HashMap<String, Variable> fVariables = new HashMap<String, Variable>();
 
@@ -275,7 +265,7 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception
     */
    private void parse(Path hardwarePath) throws Exception {
-      System.err.println("Loading "+hardwarePath.toAbsolutePath());
+      System.err.println("DeviceInfo.parse(" + hardwarePath.toAbsolutePath() + ")");
       fHardwarePath = hardwarePath;
       String filename = fHardwarePath.getFileName().toString();
       if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
@@ -1376,7 +1366,7 @@ public class DeviceInfo extends ObservableModel {
     * @throws IOException 
     */
    public DialogSettings getSettings(Path path) throws IOException {
-      System.err.println("Getting settings from " + path.toAbsolutePath());
+      System.err.println("DeviceInfo.getSettings(" + path.toAbsolutePath() + ")");
       fProjectSettingsPath = path;
       if (path.toFile().isFile()) {
          DialogSettings settings = new DialogSettings("USBDM");
@@ -1430,7 +1420,7 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings to the given path
     */
    public void saveSettingsAs(Path path) {
-      System.err.println("Saving settings to :"+path.toAbsolutePath());
+      System.err.println("DeviceInfo.saveSettingsAsSaving("+path.toAbsolutePath()+")");
       fProjectSettingsPath = path;
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
@@ -1686,11 +1676,26 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if variable doesn't exist
     */
    public String getVariableValue(String key) {
-      Variable value = fVariables.get(key);
-      if (value == null) {
+      Variable variable = fVariables.get(key);
+      if (variable == null) {
          throw new RuntimeException("Variable does not exist \'"+key+"\'");
       };
-      return value.fValue;
+      return variable.getValue();
+   }
+
+   /**
+    * Get variable
+    * 
+    * @param key  Key used to identify variable
+    * 
+    * @throws Exception if variable doesn't exist
+    */
+   public Variable getVariable(String key) {
+      Variable variable = fVariables.get(key);
+      if (variable == null) {
+         throw new RuntimeException("Variable does not exist \'"+key+"\'");
+      };
+      return variable;
    }
 
    /**
@@ -1702,17 +1707,17 @@ public class DeviceInfo extends ObservableModel {
     */
    public void setVariableValue(String key, String value) {
       Variable variable = fVariables.get(key);
-      if (variable.fValue.equals(value)) {
+      if (variable.getValue().equals(value)) {
          return;
       }
-      variable.fValue = value;
+      variable.setValue(value);
       setDirty(true);
    }
 
    public Map<String, String> getSimpleMap() {
       HashMap<String, String>map = new HashMap<String, String>();
       for (String key:fVariables.keySet()) {
-         map.put(key, fVariables.get(key).fValue);
+         map.put(key, fVariables.get(key).getValue());
       }
       return map;
    }
