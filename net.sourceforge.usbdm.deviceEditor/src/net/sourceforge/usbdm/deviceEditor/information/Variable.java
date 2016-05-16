@@ -8,6 +8,9 @@ public class Variable extends ObservableModel {
    private         String  fValue;
    private         Message fMessage = null;
    
+   /** Indicates that the variable is locked and cannot be edited by user */
+   private boolean fLocked = false;
+   
    // Minimum permitted value
    private long fMin    = Long.MIN_VALUE;
    
@@ -20,6 +23,7 @@ public class Variable extends ObservableModel {
    // Offset used when applying value
    private long fOffset = 0;
 
+   private String[] fChoices = null;
    
    Variable(String name, String value) {
       fName  = name;
@@ -132,6 +136,20 @@ public class Variable extends ObservableModel {
       return fOffset;
    }
 
+   /**
+    * @return the choices
+    */
+   public String[] getChoices() {
+      return fChoices;
+   }
+
+   /**
+    * @param choices the choices to set
+    */
+   public void setChoices(String[] choices) {
+      this.fChoices = choices;
+   }
+
    public boolean getValueAsBoolean() {
       return (fValue.equalsIgnoreCase("1") || 
             fValue.equalsIgnoreCase("true")|| 
@@ -141,6 +159,22 @@ public class Variable extends ObservableModel {
 
    public void setBinaryValue(Boolean b) {
       setValue(b.toString());
+   }
+
+   /** Set if the variable is locked and cannot be edited by user
+    * 
+    * @return the locked
+    */
+   public boolean isLocked() {
+      return fLocked;
+   }
+
+   /** Indicates if the variable is locked and cannot be edited by user
+    * 
+    * @param locked the locked to set
+    */
+   public void setLocked(boolean locked) {
+      fLocked = locked;
    }
 
 }

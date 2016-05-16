@@ -9,24 +9,22 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public class FLLValidator extends BaseClockValidator {
 
+//   static class FllPair {
+//      final int  mcg_c1_frdiv;
+//      final long inputFrequency;
+//      
+//      FllPair(int  mcg_c1_frdiv, long inputFrequency) {
+//         this.mcg_c1_frdiv = mcg_c1_frdiv;
+//         this.inputFrequency = inputFrequency;
+//      }
+//   }
+   
    public FLLValidator(PeripheralWithState peripheral) {
       super(peripheral);
    }
 
-   private static final long FLL_CLOCK_RANGE1_MIN = 32000L;
-   private static final long FLL_CLOCK_RANGE1_MAX = 40000L;
-   
-   private static final long FLL_CLOCK_RANGE2_MIN = 3000000L;
-   private static final long FLL_CLOCK_RANGE2_MAX = 8000000L;
-   
-   private static final long FLL_CLOCK_RANGE3_MIN = 8000000L;
-   private static final long FLL_CLOCK_RANGE3_MAX = 32000000L;
-   
    private static final long FLL_CLOCK_NARROW_MIN = 32768L-100;
    private static final long FLL_CLOCK_NARROW_MAX = 32768L+100;
-   
-   private static final long FLL_CLOCK_WIDE_MIN = 31250L;
-   private static final long FLL_CLOCK_WIDE_MAX = 39063L;
    
    @Override
    protected void validate() {
@@ -81,6 +79,24 @@ public class FLLValidator extends BaseClockValidator {
          break;
       }
       
+      boolean fllInUse = false;
+      switch(clockMode) {
+      case ClockMode_FEI:
+      case ClockMode_FEE:
+      fllInUse = true;
+      break;
+
+      case ClockMode_None:
+      case ClockMode_FBI:
+      case ClockMode_BLPI:
+      case ClockMode_BLPE:
+      case ClockMode_FBE:
+      case ClockMode_PBE:
+      case ClockMode_PEE:
+      default:
+         break;
+      }
+      
       // Name of External Reference Clock
       String system_erc_clock_name = "External clock or crystal";
       if (mcg_c7_oscselNode != null) {
@@ -106,109 +122,21 @@ public class FLLValidator extends BaseClockValidator {
       //    - Clock range of oscillator
       //    - Affects FLL prescale
       //
-      long    mcg_c2_range         = -1;
+      long    mcg_c2_range         = mcg_c2_rangeNode.getValueAsLong();
       Message mcg_c2_erefs_message = null;
 
-      if ((system_erc_clock >= FLL_CLOCK_RANGE1_MIN) && (system_erc_clock <= FLL_CLOCK_RANGE1_MAX)) {
-         mcg_c2_range = 0;
-      }
-      else if ((system_erc_clock >= FLL_CLOCK_RANGE2_MIN) && (system_erc_clock <= FLL_CLOCK_RANGE2_MAX)) {
-         mcg_c2_range = 1;
-      }
-      else if ((system_erc_clock >= FLL_CLOCK_RANGE3_MIN) && (system_erc_clock <= FLL_CLOCK_RANGE3_MAX)) {
-         mcg_c2_range = 2;
-      }
-      if (mcg_c2_range < 0) {
-         String msgText;
-         // Not suitable frequency for FLL
-         msgText = String.format("Frequency of %s (%d) is not suitable for use as FLL input\n", 
-               system_erc_clock_name, system_erc_clock);
-         msgText += String.format("Permitted ranges [%d-%d], [%d-%d] or [%d-%d]", 
-               FLL_CLOCK_RANGE1_MIN, FLL_CLOCK_RANGE1_MAX, FLL_CLOCK_RANGE2_MIN, FLL_CLOCK_RANGE2_MAX, FLL_CLOCK_RANGE3_MIN, FLL_CLOCK_RANGE3_MAX);
-         mcg_c2_erefs_message = new Message(msgText, mcg_c2_erefsNode.getValueAsBoolean()?Severity.ERROR:Severity.WARNING);
-         // Set compromise value
-         if (system_erc_clock <= FLL_CLOCK_RANGE2_MIN) {
-            mcg_c2_range = 0;
-         }
-         else if (system_erc_clock <= FLL_CLOCK_RANGE2_MAX) {
-            mcg_c2_range = 1;
-         }
-         else {
-            mcg_c2_range = 2;
-         }
-      }
-
-      //=================================================
-      // Determine External FLL reference after dividers
-      //
-      double externalfllInputFrequencyAfterDivider = 0.0;
-      if (mcg_c2_range == 0) {
-         externalfllInputFrequencyAfterDivider = system_erc_clock;
-      }
-      else {
-         externalfllInputFrequencyAfterDivider = system_erc_clock / (1<<5);
-      }
-//      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider (after predivider) = " + externalfllInputFrequencyAfterDivider);
-
-      Message mcg_c1_frdivMessage  = null;
-      int     mcg_c1_frdiv         = 0;
-
-      // Assume no errors
-      boolean validFllInputClock  = true;
+      BaseClockValidator.FllDivider check = new FllDivider(system_erc_clock, mcg_c2_erefsNode.getValueAsLong(), system_erc_clockNode.getValueAsLong());
+      mcg_c1_frdivNode.setMessage(check.mcg_c1_frdiv_clockMessage);
+      mcg_c1_frdivNode.setValue(check.mcg_c1_frdiv);
       
-      if      (((externalfllInputFrequencyAfterDivider/1)>=FLL_CLOCK_WIDE_MIN)   && ((externalfllInputFrequencyAfterDivider/1)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  0; externalfllInputFrequencyAfterDivider /= 1;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/2)>=FLL_CLOCK_WIDE_MIN)   && ((externalfllInputFrequencyAfterDivider/2)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  1; externalfllInputFrequencyAfterDivider /= 2;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/4)>=FLL_CLOCK_WIDE_MIN)   && ((externalfllInputFrequencyAfterDivider/4)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  2; externalfllInputFrequencyAfterDivider /= 4;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/8)>=FLL_CLOCK_WIDE_MIN)   && ((externalfllInputFrequencyAfterDivider/8)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  3; externalfllInputFrequencyAfterDivider /= 8;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/16)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/16)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  4; externalfllInputFrequencyAfterDivider /= 16;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/32)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/32)<=FLL_CLOCK_WIDE_MAX)) {
-         mcg_c1_frdiv =  5; externalfllInputFrequencyAfterDivider /= 32;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/64)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/64)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range == 0)) {
-         mcg_c1_frdiv =  6; externalfllInputFrequencyAfterDivider /= 64;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/40)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/40)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range != 0)) {
-         mcg_c1_frdiv =  6; externalfllInputFrequencyAfterDivider /= 40;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/128)>=FLL_CLOCK_WIDE_MIN) && ((externalfllInputFrequencyAfterDivider/128)<=FLL_CLOCK_WIDE_MAX) && (mcg_c2_range == 0)) {
-         mcg_c1_frdiv =  7; externalfllInputFrequencyAfterDivider /= 128;
-      }
-      else if (((externalfllInputFrequencyAfterDivider/48)>=FLL_CLOCK_WIDE_MIN)  && ((externalfllInputFrequencyAfterDivider/48)<=FLL_CLOCK_WIDE_MAX)  && (mcg_c2_range != 0)) {
-         mcg_c1_frdiv =  7; externalfllInputFrequencyAfterDivider /= 48;
-      }
-      else {
-         validFllInputClock = false;
-         mcg_c1_frdivMessage = new Message(
-               String.format("Unable to find suitable divider for external reference clock frequency = %d Hz", system_erc_clock),
-               Severity.WARNING);
-         mcg_c1_frdiv =  7;
-      }
-      mcg_c1_frdivNode.setValue(mcg_c1_frdiv);
-      mcg_c1_frdivNode.setMessage(mcg_c1_frdivMessage);
-
 //      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
-
-      //=================
-      // Determine FLL input frequency.  From:
-      //  - External reference (after dividers)
-      //  - Internal (slow) reference
-      Message fllTargetFrequencyMessage = null;
-      double fllInputFrequency = 0;
+      boolean validFllInputClock;
+      double fllInputFrequency;
+      
       if (!irefs) {
          // Using external reference clock
-         if (validFllInputClock) {
-            fllInputFrequency = externalfllInputFrequencyAfterDivider;
-         }
+         validFllInputClock = (check.mcg_c1_frdiv_clockMessage == null);
+         fllInputFrequency = check.fllInputFrequency;
       }
       else {
          // Using internal (low frequency) reference
@@ -232,16 +160,10 @@ public class FLLValidator extends BaseClockValidator {
             validFllInputClock = false;
          }
       }
-      
+      boolean fllOutputValid = validFllInputClock;
+      Message fllTargetFrequencyMessage = null;
       if (!validFllInputClock) {
          fllTargetFrequencyMessage = new Message("FLL not usable with input clock frequency", Severity.WARNING);
-//         fllTargetFrequencyNode.setEnabled(false);
-
-         // Check if trying to use FLL 
-         if (ClockMode.valueOf(primaryClockModeNode.getValue()) == ClockMode.ClockMode_FEE) {
-            // Done inside an IF as another validator may set this error message
-            primaryClockModeNode.setMessage("FLL input reference is out of acceptable ranges. FLL may not be used");
-         }
       }
       else {
 //         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
@@ -269,19 +191,24 @@ public class FLLValidator extends BaseClockValidator {
             }         
          }
          if (mcg_c4_drst_drs < 0) {
+            fllOutputValid = false;
             mcg_c4_drst_drs = 0;
-            StringBuilder buff = new StringBuilder("Not possible to generate desired FLL frequency from input clock. \nPossible values (Hz) = ");
+            StringBuilder sb = new StringBuilder("Not possible to generate desired FLL frequency from input clock. \nPossible values (Hz) = ");
             boolean needComma = false;
             for (Long freq : fllFrequencies) {
                if (needComma) {
-                  buff.append(", ");
+                  sb.append(", ");
                }
                needComma = true;
-               buff.append(String.format("%d", freq));
+               sb.append(String.format("%d", freq));
             }
-            fllTargetFrequencyMessage = new Message(buff.toString(), Severity.WARNING);
+            fllTargetFrequencyMessage = new Message(sb.toString(), Severity.WARNING);
          }
 //         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
+      }
+      // Check if trying to use FLL when not available
+      if (fllInUse && !fllOutputValid) {
+         primaryClockModeNode.setMessage("FLL incorrectly configured, FLL may not be used");
       }
       mcg_c2_rangeNode.setValue(mcg_c2_range);
       mcg_c4_drst_drsNode.setValue(mcg_c4_drst_drs);

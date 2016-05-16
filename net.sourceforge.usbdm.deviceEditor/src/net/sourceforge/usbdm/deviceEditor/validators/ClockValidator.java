@@ -50,8 +50,8 @@ public class ClockValidator extends BaseClockValidator {
       Variable slow_irc_clockNode         =  fPeripheral.getVariable("system_slow_irc_clock");
       Variable fast_irc_clockNode         =  fPeripheral.getVariable("system_fast_irc_clock");
       Variable mcg_sc_fcrdivNode          =  fPeripheral.safeGetVariable("mcg_sc_fcrdiv");
-      Variable mcg_c1_irclkenNode         =  fPeripheral.getVariable("mcg_c1_irclken");
-      Variable mcg_c1_irefstenNode        =  fPeripheral.getVariable("mcg_c1_irefsten");
+//      Variable mcg_c1_irclkenNode         =  fPeripheral.getVariable("mcg_c1_irclken");
+//      Variable mcg_c1_irefstenNode        =  fPeripheral.getVariable("mcg_c1_irefsten");
       Variable mcg_c2_ircsNode            =  fPeripheral.getVariable("mcg_c2_ircs");
       Variable system_mcgir_clockNode     =  fPeripheral.getVariable("system_mcgir_clock");
 
@@ -60,7 +60,8 @@ public class ClockValidator extends BaseClockValidator {
 //      Variable osc_cr_erclkenNode         =  fPeripheral.getVariable("osc_cr_erclken");
       Variable oscclk_clockNode           =  fPeripheral.getVariable("oscclk_clock");
       Variable mcg_c2_erefs0Node          =  fPeripheral.getVariable("mcg_c2_erefs0");
-      Variable mcg_c2_hgo0Node            =  fPeripheral.getVariable("mcg_c2_hgo0");
+//      Variable mcg_c2_hgo0Node            =  fPeripheral.getVariable("mcg_c2_hgo0");
+      Variable mcg_c2_rangeNode               =  fPeripheral.getVariable("mcg_c2_range0");
 //      Variable osc_cr_scpNode             =  fPeripheral.getVariable("osc_cr_scp");
 //      Variable osc_cr_erefstenNode        =  fPeripheral.getVariable("osc_cr_erefsten");
 //      Variable osc_div_erpsNode           =  fPeripheral.getVariable("osc_div_erps");
@@ -153,6 +154,15 @@ public class ClockValidator extends BaseClockValidator {
 
       System.err.println("ClockValidate.validate() system_mcgir_clock = " + system_mcgir_clock+ ", system_erc_clock = " + system_erc_clock);
 
+      //=========================================
+      // Check input clock/oscillator ranges
+      //   - Determine mcg_c2_range
+      //   - Affects FLL prescale
+      //
+      FllDivider check = new FllDivider(system_erc_clock, mcg_c2_erefs0Node.getValueAsLong(), oscclk_clockNode.getValueAsLong());
+      oscclk_clockNode.setMessage(check.oscclk_clockMessage);
+      mcg_c2_rangeNode.setValue(check.mcg_c2_range);
+
       ClockMode primaryClockMode = ClockMode.valueOf(clock_modeNode.getValue());
 
       int     mcg_c1_clks                = 0;
@@ -164,6 +174,10 @@ public class ClockValidator extends BaseClockValidator {
       long    pllTargetFrequency         = pllTargetFrequencyNode.getValueAsLong();
       long    system_mcgout_clock        = 0;
       Message primaryClockModeMessage    = null;
+
+
+      fll_enabled_node.setLocked(true);
+      pll_enabled_node.setLocked(true);
 
       String mcgOutputClock = "Unknown";
       switch (primaryClockMode) {
@@ -186,7 +200,7 @@ public class ClockValidator extends BaseClockValidator {
          system_mcgout_clock = fllTargetFrequency;
          mcgOutputClock = "FLL";
          fll_enabled_node.setValue("1");
-         pll_enabled_node.setValue("0");
+         pll_enabled_node.setLocked(false); // optional PLL
          break;
       case ClockMode_FEE:
          mcg_c1_clks         = 0;
@@ -196,7 +210,7 @@ public class ClockValidator extends BaseClockValidator {
          system_mcgout_clock = fllTargetFrequency;
          mcgOutputClock = "FLL";
          fll_enabled_node.setValue("1");
-         pll_enabled_node.setValue("0");
+         pll_enabled_node.setLocked(false); // optional PLL
          break;
       case ClockMode_FBI:
          mcg_c1_clks         = 1;
@@ -206,17 +220,7 @@ public class ClockValidator extends BaseClockValidator {
          system_mcgout_clock = system_mcgir_clock;
          mcgOutputClock = "MCGIRCLK";
          fll_enabled_node.setValue("1");
-         pll_enabled_node.setValue("0");
-         break;
-      case ClockMode_BLPI:
-         mcg_c1_clks         = 1;
-         mcg_c1_irefs        = 1;
-         mcg_c6_plls         = 0;
-         mcg_c2_lp           = 1;
-         system_mcgout_clock = system_mcgir_clock;
-         mcgOutputClock = "MCGIRCLK";
-         fll_enabled_node.setValue("1");
-         pll_enabled_node.setValue("0");
+         pll_enabled_node.setLocked(false); // optional PLL
          break;
       case ClockMode_FBE:
          mcg_c1_clks         = 2;
@@ -226,6 +230,16 @@ public class ClockValidator extends BaseClockValidator {
          system_mcgout_clock = system_erc_clock;
          mcgOutputClock = "MCGERCLK";
          fll_enabled_node.setValue("1");
+         pll_enabled_node.setLocked(false); // optional PLL
+         break;
+      case ClockMode_BLPI:
+         mcg_c1_clks         = 1;
+         mcg_c1_irefs        = 1;
+         mcg_c6_plls         = 0;
+         mcg_c2_lp           = 1;
+         system_mcgout_clock = system_mcgir_clock;
+         mcgOutputClock = "MCGIRCLK";
+         fll_enabled_node.setValue("0");
          pll_enabled_node.setValue("0");
          break;
       case ClockMode_BLPE:
@@ -235,7 +249,7 @@ public class ClockValidator extends BaseClockValidator {
          mcg_c2_lp           = 1;
          system_mcgout_clock = system_erc_clock;
          mcgOutputClock = "MCGERCLK";
-         fll_enabled_node.setValue("1");
+         fll_enabled_node.setValue("0");
          pll_enabled_node.setValue("0");
          break;
       case ClockMode_PBE:
@@ -245,8 +259,8 @@ public class ClockValidator extends BaseClockValidator {
          mcg_c2_lp           = 0;
          system_mcgout_clock = system_erc_clock;
          mcgOutputClock = "MCGERCLK";
-         fll_enabled_node.setValue("1");
-         pll_enabled_node.setValue("0");
+         fll_enabled_node.setValue("0");
+         pll_enabled_node.setValue("1");
          break;
       case ClockMode_PEE:
          mcg_c1_clks         = 0;

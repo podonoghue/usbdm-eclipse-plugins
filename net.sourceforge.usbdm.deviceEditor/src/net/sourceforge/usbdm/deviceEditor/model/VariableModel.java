@@ -82,7 +82,7 @@ public class VariableModel extends EditableModel implements IModelChangeListener
 
    @Override
    public boolean canEdit() {
-      return super.canEdit() && isEnabled();
+      return super.canEdit() && isEnabled() && !fVariable.isLocked();
    }
    
 }

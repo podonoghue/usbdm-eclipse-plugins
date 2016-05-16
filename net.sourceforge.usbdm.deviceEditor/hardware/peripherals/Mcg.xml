@@ -89,7 +89,7 @@
          <intOption name="oscclk_clock"
             description="Frequency of OSC Clock or Crystal (Hz)"
             toolTip="Frequency of external crystal or clock on XTAL/EXTAL"
-            value="8000000" min="32000" max="32000000" />
+            value="8000000" />
    
          <binaryOption name="mcg_c2_erefs0"
             description="External Reference Select" 
@@ -143,6 +143,19 @@
             <choice value="3"  name="/8" />
             <choice value="0"  name="Default" />
          </choiceOption>
+
+         <choiceOption name="mcg_c2_range0"
+            constant="true"
+            description="Frequency Range Select"
+            toolTip="Selects the frequency range for the crystal oscillator or external clock source\n
+                     May affect the choice of divider for FLL input clock\n
+                     This value is calculated from the external clock frequency">
+            <choice value="0" name="Low range" />
+            <choice value="1" name="High range" />
+            <choice value="2" name="Very High range" />
+            <choice value="0" name="Default" />
+         </choiceOption>
+         
       </menu>
 
       <menu name="ERCLK"  
@@ -276,23 +289,11 @@
          <binaryOption name="fll_enabled"
             constant="true" 
             description="Enabled"
-            toolTip="Detmined from clock mode selected" >
+            toolTip="Determined from clock mode selected" >
             <choice value="0" name="Inactive" />
             <choice value="1" name="Active" />
          </binaryOption>
 
-         <choiceOption name="mcg_c2_range0"
-            constant="true"
-            description="Frequency Range Select"
-            toolTip="Selects the frequency range for the crystal oscillator or external clock source\n
-                     Affects the choice of divider for FLL input clock\n
-                     This value is calculated from the FLL input clock frequency">
-            <choice value="0" name="Low range" />
-            <choice value="1" name="High range" />
-            <choice value="2" name="Very High range" />
-            <choice value="0" name="Default" />
-         </choiceOption>
-         
          <choiceOption name="mcg_c1_frdiv"
             constant="true"
             description="FLL External Reference Divider"
@@ -318,29 +319,52 @@
             Derived from ERCLK or IRC"
             value="12000000" />
       
+         <binaryOption 
+            name="mcg_c4_dmx32"
+            description="DMX32 DCO lock range" 
+            toolTip="Allows the FLL parameters to be optimised for maximum output frequency\n
+            with a 32.768 kHz FLL input clock" >
+            <choice value="0" name="Wide lock range 31.25-39.06 kHz" />
+            <choice value="1" name="Optimised for 32.768 kHz reference" />
+         </binaryOption>
+   
+         <choiceOption name="mcg_c4_drst_drs"
+            constant="true"
+            description="DCO Range Select"
+            toolTip="Frequency range for the FLL output, DCOOUT\n
+                     This is determined from the FLL input and output clock frequencies" >
+            <choice value="0" name="Low (x640/x732, 20-25/24 MHz)" />
+            <choice value="1" name="Mid (x1280/x1464, 40-50/48 MHz)" />
+            <choice value="2" name="Mid-high (x1920/x2197, 60-75/72 MHz)" />
+            <choice value="3" name="High (x2560/x2929, 80-100/96 MHz)" />
+         </choiceOption>
+   
          <intOption name="fllTargetFrequency" 
             description="FLL Output clock frequency (Hz)"
             toolTip="Used for main MCGOUTCLK system clock if FEI or FEE mode is selected"
-            value="96000000" 
-            constant="true" />
+            value="96000000" />
    
       </menu>
       
       <menu name="PLL" description="PLL Settings">
          <binaryOption name="pll_enabled"
-            constant="true" 
             description="Enabled"
-            toolTip="Detmined from clock mode selected" >
+            toolTip="Determined from clock mode selected" >
             <choice value="0" name="Inactive" />
             <choice value="1" name="Active" />
          </binaryOption>
-      </menu>
       
       <intOption name="pllTargetFrequency" 
-         constant="true"  
          description="PLL Output clock frequency (Hz)"
          toolTip="Used for main MCGOUTCLK system clock if PEE mode is selected"
          value="120000000"/>
+      </menu>
+   
+      <intOption name="system_mcgout_clock" 
+         description="System MCGOUT Clock (Hz)"
+         toolTip="MCG Main clock output\n
+                  Derived from slow IRC, fast IRC, ERC, FLL or PLL"
+         value="120000000" constant="true" />
    
       <intOption name="system_core_clock" 
          description="System Core Clock (Hz)"
@@ -423,7 +447,6 @@
       </menu>
       
       <menu name="MCG_C2" description="MCG Control Register 2">
-      
          <binaryOption name="mcg_c2_locre0"
             constant="true"
             description="Action on Loss of Clock" 
@@ -480,14 +503,15 @@
       
       <menu name="MCG_C4" description="MCG Control Register 4">
          <binaryOption 
-            name="mcg_c4_dmx32"
+            constant="true"
+            name="mcg_c4_dmx32" alias="true"
             description="DMX32 DCO lock range" 
             toolTip="Optimise for 32.768 kHz Reference" >
             <choice value="0" name="Wide lock range 31.25-39.06 kHz" />
             <choice value="1" name="Optimised for 32.768 kHz reference" />
          </binaryOption>
    
-         <choiceOption name="mcg_c4_drst_drs"
+         <choiceOption name="mcg_c4_drst_drs" alias="true"
             constant="true"
             description="DCO Range Select"
             toolTip="Frequency range for the FLL output, DCOOUT\n
@@ -533,6 +557,7 @@
          </binaryOption>
          
          <binaryOption name="mcg_c6_plls" 
+            constant="true"
             description="FLL/PLL selected as Clock source when CLKS=0"
             toolTip="Selects PLL or FLL output" >
             <choice value="0" name="FLL is selected" />
@@ -548,6 +573,7 @@
          </binaryOption>
          
          <intOption name="mcg_c6_vdiv0" 
+            constant="true"
             description="VCO Divider (VDIV0)"
             toolTip="Determines the multiplication factor for the reference clock of the PLL.\n
                      This value is calculated from PLL input and output clock frequencies"
@@ -560,6 +586,7 @@
       
       <menu name="MCG_SC" description="MCG Status and Control Register" >
          <choiceOption name="mcg_sc_fcrdiv" alias="true"
+            constant="true"
             description="Fast Internal Clock Reference Divider"
             toolTip="Selects the amount to divide down the fast internal reference clock\n
                      The FIR clock is available for use as MCGIRCLK or MCGOUTCLK">
@@ -576,6 +603,7 @@
       
       <menu name="MCG_C7" description="MCG Control Register 7">
          <choiceOption name="mcg_c7_oscsel" alias="true" 
+            constant="true"
             description="MCG OSC Clock Select"
             toolTip="Selects the MCG FLL/PLL external reference clock source">
             <choice value="0" name="Main System Oscillator (OSCCLK)" />
@@ -631,7 +659,7 @@
     
       <menu name="MCG_C11" description="MCG Control Register 11">
       <binaryOption name="mcg_c11_pllcs" 
-         description="PLL Clock Select"
+         description="PLL Clock Select (Some targets only)"
          toolTip="Controls whether the PLL0 output or MCG External PLL input is selected as the MCG
                   source when CLKS are programmed in PLL Engaged External (PEE) mode (CLKS[1:0]=00 and IREFS=0 and PLLS=1).">
          <choice value="0" name="PLL0 output clock is selected" />
@@ -641,6 +669,7 @@
 
       <menu name="RTC CR" description="Real Time Clock">
          <binaryOption name="rtc_cr_osce"  alias="true"
+            constant="true"
             description="RTC Oscillator Enable"
             toolTip="Enables external 32.768 kHz RTC oscillator" >
             <choice value="0" name="Disabled" />
@@ -655,12 +684,6 @@
             toolTip="Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL), \n 
                      RTC_CLOCK(XTAL32/EXTAL32) or IRC48M(Internal 48MHz)"
             value="12000000" />
-      
-         <intOption name="system_mcgout_clock" 
-            description="System MCGOUT Clock (Hz)"
-            toolTip="MCG Main clock output\n
-                     Derived from slow IRC, fast IRC, ERC, FLL or PLL"
-            value="120000000" constant="true" />
       
          <intOption name="sim_clkdiv1_outdiv1" 
             constant="true"
@@ -677,7 +700,8 @@
                MCGOUTCLK clock is source. Default /2"
             value="1" offset="-1" min="1" max="16" />
       
-         <intOption name="sim_clkdiv1_outdiv3" constant="true"
+         <intOption name="sim_clkdiv1_outdiv3" 
+            constant="true"
             description="Flexbus Clock Divider (OUTDIV3) - Divide by [1-16]"
             toolTip="Clocks the flexbus interface [SIM_CLKDIV1_OUTDIV3]\n
                      Divides MCGOUT Clock to generate system_flexbus_clock\n
