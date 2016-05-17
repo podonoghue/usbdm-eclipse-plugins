@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 public class Message {
 
    public enum Severity {
-      OK, INFORMATION, WARNING, ERROR;
+      OK, INFO, WARNING, ERROR;
 
       /**
        * Checks if the level is less than the given level
@@ -106,6 +106,13 @@ public class Message {
     */
    public String getMessage() {
       return fSeverity.name() + ": " + fMessage;
+   }
+   /**
+    * Returns message text
+    * @return
+    */
+   public String getRawMessage() {
+      return fMessage;
    }
    /**
     * Returns severity level of message

@@ -49,9 +49,16 @@ public class PllClockValidater extends BaseClockValidator {
       VDIV_MIN                  = (int) vDivMin;
       VDIV_MAX                  = (int) vDivMax;
       PLL_POST_DIV              = (int) pllPostDiv;
+      
       Variable pllTargetFrequencyNode = fPeripheral.getVariable("pllTargetFrequency");
       pllTargetFrequencyNode.setMin(pllOutMin);
       pllTargetFrequencyNode.setMax(pllOutMax);
+      Variable mcg_c5_prdiv0Node      = fPeripheral.getVariable("mcg_c5_prdiv0");
+      mcg_c5_prdiv0Node.setMin(prDivMin);
+      mcg_c5_prdiv0Node.setMax(prDivMax);
+      Variable mcg_c6_vdiv0Node       = fPeripheral.getVariable("mcg_c6_vdiv0");
+      mcg_c6_vdiv0Node.setMin(vDivMin);
+      mcg_c6_vdiv0Node.setMax(vDivMax);
    }
    
    @Override
@@ -143,8 +150,6 @@ public class PllClockValidater extends BaseClockValidator {
             System.err.println(String.format("PllClockValidater.validater(): "+pllTargetFrequencyMessage.getMessage()));
          }
          else {
-            // OK to allows changing value
-//            pllTargetFrequencyNode.setEnabled(true);
             StringBuilder buff = new StringBuilder("Not possible to generate desired PLL frequency from input clock.\n Possible values (Hz) = \n");
             boolean needComma = false;
             int lineCount = -1;
@@ -162,10 +167,6 @@ public class PllClockValidater extends BaseClockValidator {
             pllTargetFrequencyMessage = new Message(buff.toString(), Severity.WARNING);
             System.err.println(String.format("PllClockValidater.validater(): "+pllTargetFrequencyMessage.getMessage()));
          }
-      }
-      else {
-         // OK to allows changing value
-//         pllTargetFrequencyNode.setEnabled(true);
       }
       pllTargetFrequencyNode.setMessage(pllTargetFrequencyMessage);
    }

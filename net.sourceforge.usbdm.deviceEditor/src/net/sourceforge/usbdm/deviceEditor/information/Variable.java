@@ -48,7 +48,7 @@ public class Variable extends ObservableModel {
     * @param value The value to set
     */
    public void setValue(String value) {
-      System.err.println("Variable.setValue("+fName+", "+value+")");
+//      System.err.println("Variable.setValue("+fName+", "+value+")");
       if (fValue.equals(value)) {
          return;
       }

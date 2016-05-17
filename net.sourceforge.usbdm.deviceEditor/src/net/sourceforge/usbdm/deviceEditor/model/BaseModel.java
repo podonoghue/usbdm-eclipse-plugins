@@ -269,7 +269,7 @@ public abstract class BaseModel {
     */
    public boolean isWarning() {
       Message msg = getMessage();
-      return (msg != null) && (msg.greaterThan(Message.Severity.INFORMATION));
+      return (msg != null) && (msg.greaterThan(Message.Severity.INFO));
    }
 
    /** 
@@ -304,8 +304,8 @@ public abstract class BaseModel {
       if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
          tip += (tip.isEmpty()?"":"\n")+message.getMessage();
       }
-      else if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
+      else if (message != null) {
+         tip += (tip.isEmpty()?"":"\n")+message.getRawMessage();
       }
       return (tip.isEmpty())?null:tip;
    }

@@ -67,7 +67,7 @@ public class BinaryVariableModel extends VariableModel {
       else {
          name = value0.name;
       }
-      System.err.println("BinaryVariableModel.getValueAsString("+fName+", "+value+"->"+name+")");
+//      System.err.println("BinaryVariableModel.getValueAsString("+fName+", "+value+"->"+name+")");
       return name;
    }
 
@@ -80,7 +80,7 @@ public class BinaryVariableModel extends VariableModel {
       else {
          value = value0.value;
       }
-      System.err.println("BinaryVariableModel.setValueAsString("+fName+", "+name+"->"+value+")");
+//      System.err.println("BinaryVariableModel.setValueAsString("+fName+", "+name+"->"+value+")");
       super.setValueAsString(value);
    }
 
@@ -92,7 +92,7 @@ public class BinaryVariableModel extends VariableModel {
    public Boolean getBooleanValue() {
       String value = super.getValueAsString();
       boolean bValue = value1.value.equalsIgnoreCase(value);
-      System.err.println("BinaryVariableModel.getBooleanValue("+fName+", "+value+"->"+bValue+")");
+//      System.err.println("BinaryVariableModel.getBooleanValue("+fName+", "+value+"->"+bValue+")");
       return bValue;
    }
 
@@ -109,7 +109,7 @@ public class BinaryVariableModel extends VariableModel {
       else {
          value = value0.value;
       }
-      System.err.println("BinaryVariableModel.setBooleanValue("+fName+", "+bValue+"->"+value+")");
+//      System.err.println("BinaryVariableModel.setBooleanValue("+fName+", "+bValue+"->"+value+")");
       super.setValueAsString(value);
       
       // Refresh children in case boolean category

@@ -4,7 +4,7 @@
 	<item value="0" key="MCG_mcg_c4_dmx32"/>
 	<item value="0" key="RTC_CR_CLKO"/>
 	<item value="4000000" key="MCG_system_fast_irc_clock"/>
-	<item value="10485760" key="MCG_system_core_clock"/>
+	<item value="50000000" key="MCG_system_core_clock"/>
 	<item value="2" key="OSC0_CR_SCP"/>
 	<item value="Touch 2" key="PTB19_descriptionSetting"/>
 	<item value="mux1" key="PTC8_muxSetting"/>
@@ -30,12 +30,12 @@
 	<item value="mux0" key="PTB1_muxSetting"/>
 	<item value="0" key="RTC_CR_SUP"/>
 	<item value="3" key="MCG_mcg_sc_fcrdiv"/>
-	<item value="FLL" key="MCG_mcgOutputClock"/>
+	<item value="PLL" key="MCG_mcgOutputClock"/>
 	<item value="Reserved(SWD)" key="PTA0_descriptionSetting"/>
 	<item value="0" key="LPTMR0_CSR_TPS"/>
 	<item value="10000" key="PIT_LDVAL"/>
 	<item value="0" key="LPTMR0_CSR_TPP"/>
-	<item value="80000000" key="MCG_pllTargetFrequency"/>
+	<item value="100000000" key="MCG_pllTargetFrequency"/>
 	<item value="0" key="MCG_mcg_c9_pll_locre"/>
 	<item value="1" key="MCG_sim_clkdiv1_outdiv1"/>
 	<item value="USB_serial" key="PTB16_descriptionSetting"/>
@@ -61,7 +61,7 @@
 	<item value="0" key="ADC0_IRQ_LEVEL"/>
 	<item value="0" key="RTC_CR_OSCE"/>
 	<item value="32769" key="MCG_rtcclk_clock"/>
-	<item value="1" key="MCG_fll_enabled"/>
+	<item value="0" key="MCG_fll_enabled"/>
 	<item value="LCD_backlight" key="PTC2_descriptionSetting"/>
 	<item value="0" key="ADC0_CFG1_ADLPC"/>
 	<item value="0" key="FTM1_SC_PS"/>
@@ -76,27 +76,27 @@
 	<item value="mux1" key="PTA12_muxSetting"/>
 	<item value="LCD_sin" key="PTD2_descriptionSetting"/>
 	<item value="0" key="I2C0_IRQ_LEVEL"/>
-	<item value="32768" key="MCG_system_mcgffclk_clock"/>
+	<item value="31250" key="MCG_system_mcgffclk_clock"/>
 	<item value="0" key="ADC0_CFG1_ADICLK"/>
 	<item value="mux7" key="PTA3_muxSetting"/>
-	<item value="4194304" key="MCG_system_flash_clock"/>
+	<item value="20000000" key="MCG_system_flash_clock"/>
 	<item value="0" key="PIT_MCR_FRZ"/>
 	<item value="mux4" key="PTA18_muxSetting"/>
-	<item value="3" key="MCG_mcg_c5_prdiv0"/>
+	<item value="1" key="MCG_mcg_c5_prdiv0"/>
 	<item value="0" key="MCG_mcg_c1_irefsten"/>
 	<item value="2" key="MCG_rtc_cr_scp"/>
 	<item value="mux1" key="PTC3_muxSetting"/>
 	<item value="0" key="ADC0_SC2_ADTRG"/>
 	<item value="LCD_Reset*" key="PTA12_descriptionSetting"/>
 	<item value="0b000" key="ADC0_SC2_COMPARE"/>
-	<item value="16" key="MCG_mcg_c6_vdiv0"/>
+	<item value="1" key="MCG_mcg_c6_vdiv0"/>
 	<item value="mux1" key="PTD4_muxSetting"/>
 	<item value="mux1" key="PTC11_muxSetting"/>
 	<item value="0" key="ADC0_SC2_REFSEL"/>
 	<item value="LCD_sck" key="PTD1_descriptionSetting"/>
 	<item value="Reserved(XTAL32)" key="XTAL32_descriptionSetting"/>
 	<item value="48000000" key="MCG_irc48m_clock"/>
-	<item value="ClockMode_FEI" key="MCG_clock_mode"/>
+	<item value="ClockMode_PEE" key="MCG_clock_mode"/>
 	<item value="mux1" key="PTC9_muxSetting"/>
 	<item value="0" key="PIT_IRQ3_HANDLER"/>
 	<item value="0" key="FTM1_IRQ_HANDLER"/>
@@ -130,15 +130,15 @@
 	<item value="0" key="PIT_IRQ0_HANDLER"/>
 	<item value="0" key="OSC0_CR_EREFSTEN"/>
 	<item value="0" key="FTM1_SC_TOIE"/>
-	<item value="20971520" key="MCG_fllTargetFrequency"/>
+	<item value="20000000" key="MCG_fllTargetFrequency"/>
 	<item value="$(targetDevice)" key="DeviceInfo_Target_Device"/>
 	<item value="Touch 1" key="PTB18_descriptionSetting"/>
 	<item value="0" key="LPTMR0_IRQ_LEVEL"/>
 	<item value="0" key="ADC0_CFG1_ADIV"/>
-	<item value="0" key="MCG_mcg_c6_plls"/>
+	<item value="1" key="MCG_mcg_c6_plls"/>
 	<item value="0" key="OSC0_RTC_CR_CLKO"/>
 	<item value="Reserved(USB_DP)" key="USB0_DP_descriptionSetting"/>
-	<item value="1" key="MCG_mcg_c1_irefs"/>
+	<item value="0" key="MCG_mcg_c1_irefs"/>
 	<item value="mux3" key="PTB16_muxSetting"/>
 	<item value="0" key="LPTMR0_PSR_PBYP"/>
 	<item value="mux1" key="PTB0_muxSetting"/>
@@ -152,10 +152,10 @@
 	<item value="USB_serial" key="PTB17_descriptionSetting"/>
 	<item value="2" key="MCG_osc_div_erps"/>
 	<item value="0" key="I2C0_IRQ_HANDLER"/>
-	<item value="10485760" key="MCG_system_bus_clock"/>
+	<item value="50000000" key="MCG_system_bus_clock"/>
 	<item value="mux3" key="PTB17_muxSetting"/>
 	<item value="mux1" key="PTE0_muxSetting"/>
-	<item value="20971520" key="MCG_system_mcgout_clock"/>
+	<item value="100000000" key="MCG_system_mcgout_clock"/>
 	<item value="0" key="LPTMR0_PSR_PRESCALE"/>
 	<item value="1" key="MCG_mcg_c6_cme0"/>
 	<item value="0" key="FTM0_IRQ_LEVEL"/>
@@ -182,7 +182,7 @@
 	<item value="32768" key="MCG_system_mcgir_clock"/>
 	<item value="mux1" key="PTC4_muxSetting"/>
 	<item value="0" key="FTM0_IRQ_HANDLER"/>
-	<item value="10485760" key="MCG_system_flexbus_clock"/>
+	<item value="50000000" key="MCG_system_flexbus_clock"/>
 	<item value="1" key="FTM0_SC_CLKS"/>
 	<item value="0" key="MCG_rtc_cr_clko"/>
 	<item value="1000" key="MCG_system_low_power_clock"/>

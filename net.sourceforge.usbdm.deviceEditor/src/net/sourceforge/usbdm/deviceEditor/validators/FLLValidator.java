@@ -29,16 +29,17 @@ public class FLLValidator extends BaseClockValidator {
    @Override
    protected void validate() {
 
-      // External
+      // Internal
       Variable internalReferenceClockNode     =  fPeripheral.getVariable("system_slow_irc_clock");
-      Variable system_erc_clockNode           =  fPeripheral.getVariable("system_erc_clock");
-      if (system_erc_clockNode == null) {
+      
+      Variable system_clockNode               =  fPeripheral.getVariable("system_erc_clock");
+      if (system_clockNode == null) {
          // Try oscillator 0 clock
-         system_erc_clockNode                 =  fPeripheral.getVariable("oscclk0_clock");
+         system_clockNode                     =  fPeripheral.getVariable("oscclk0_clock");
       }
-      if (system_erc_clockNode == null) {
+      if (system_clockNode == null) {
          // Try oscillator clock
-         system_erc_clockNode                 =  fPeripheral.getVariable("oscclk_clock");
+         system_clockNode                     =  fPeripheral.getVariable("oscclk_clock");
       }
       Variable mcg_c2_erefsNode               =  fPeripheral.getVariable("mcg_c2_erefs0");
       
@@ -52,12 +53,6 @@ public class FLLValidator extends BaseClockValidator {
       Variable mcg_c4_drst_drsNode            =  fPeripheral.getVariable("mcg_c4_drst_drs");
 
       Variable fllTargetFrequencyNode         =  fPeripheral.getVariable("fllTargetFrequency");
-
-
-
-      
-      // For reference on only!
-      Variable mcg_c7_oscselNode              =  fPeripheral.getVariable("mcg_c7_oscsel");
 
       ClockMode clockMode = ClockMode.valueOf(primaryClockModeNode.getValue());
       
@@ -97,25 +92,8 @@ public class FLLValidator extends BaseClockValidator {
          break;
       }
       
-      // Name of External Reference Clock
-      String system_erc_clock_name = "External clock or crystal";
-      if (mcg_c7_oscselNode != null) {
-         switch ((int)mcg_c7_oscselNode.getValueAsLong()) {
-         default:
-         case 0: // ERC = OSCCLK
-            break;
-         case 1: // ERC = OSC32KCLK
-            system_erc_clock_name = "RTC External clock or crystal";
-            break;
-         case 2: // ERC = IRC48M
-            system_erc_clock_name = "Internal 48MHz clock";
-            break;
-         }
-      }
-      System.err.println("FLLValidator() ERC = " + system_erc_clock_name);
-      
       // Main clock used by FLL
-      long system_erc_clock = system_erc_clockNode.getValueAsLong();
+      long system_erc_clock = system_clockNode.getValueAsLong();
 
       //=========================================
       // Determine mcg_c2_range
@@ -125,7 +103,7 @@ public class FLLValidator extends BaseClockValidator {
       long    mcg_c2_range         = mcg_c2_rangeNode.getValueAsLong();
       Message mcg_c2_erefs_message = null;
 
-      BaseClockValidator.FllDivider check = new FllDivider(system_erc_clock, mcg_c2_erefsNode.getValueAsLong(), system_erc_clockNode.getValueAsLong());
+      BaseClockValidator.FllDivider check = new FllDivider(system_erc_clock, mcg_c2_erefsNode.getValueAsLong(), system_clockNode.getValueAsLong());
       mcg_c1_frdivNode.setMessage(check.mcg_c1_frdiv_clockMessage);
       mcg_c1_frdivNode.setValue(check.mcg_c1_frdiv);
       
@@ -186,24 +164,40 @@ public class FLLValidator extends BaseClockValidator {
          ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
          for (probe=1; probe<=4; probe++) {
             fllFrequencies.add(fllOutFrequency*probe);
-            if ((fllOutFrequency*probe) == fllTargetFrequency) {
+            // Accept value within ~10% of desired
+            if (Math.abs((fllOutFrequency*probe) - fllTargetFrequency) < (fllTargetFrequency/10)) {
                mcg_c4_drst_drs = probe-1;
             }         
          }
-         if (mcg_c4_drst_drs < 0) {
+
+         StringBuilder sb = new StringBuilder();
+         Severity severity = Severity.OK;
+         if (mcg_c4_drst_drs >= 0) {
+            if (fllTargetFrequency != (fllOutFrequency*(mcg_c4_drst_drs+1))) {
+               // Adjust rounded value
+               fllTargetFrequency = (fllOutFrequency*(mcg_c4_drst_drs+1));
+               fllTargetFrequencyNode.setValue(fllTargetFrequency);
+//               fllTargetFrequencyNode.setMessage(new Message("Value rounded to nearest possible value", Severity.OK));
+            }
+         }
+         else {
             fllOutputValid = false;
             mcg_c4_drst_drs = 0;
-            StringBuilder sb = new StringBuilder("Not possible to generate desired FLL frequency from input clock. \nPossible values (Hz) = ");
-            boolean needComma = false;
-            for (Long freq : fllFrequencies) {
-               if (needComma) {
-                  sb.append(", ");
-               }
-               needComma = true;
-               sb.append(String.format("%d", freq));
-            }
-            fllTargetFrequencyMessage = new Message(sb.toString(), Severity.WARNING);
+            sb.append("Not possible to generate desired FLL frequency from input clock. \n");
+            severity = Severity.WARNING;
          }
+         boolean needComma = false;
+         for (Long freq : fllFrequencies) {
+            if (needComma) {
+               sb.append(", ");
+            }
+            else {
+               sb.append("Possible values (Hz) = ");
+            }
+            needComma = true;
+            sb.append(String.format("%d", freq));
+         }
+         fllTargetFrequencyMessage = new Message(sb.toString(), severity);
 //         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
       }
       // Check if trying to use FLL when not available

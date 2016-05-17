@@ -30,13 +30,13 @@ public class VariableModel extends EditableModel implements IModelChangeListener
    @Override
    public String getValueAsString() {
       String value =  fProvider.getVariableValue(fKey);
-      System.err.println("VariableModel.getValueAsString("+fName+"=> "+value+")");
+//      System.err.println("VariableModel.getValueAsString("+fName+"=> "+value+")");
       return value;
    }
 
    @Override
    public void setValueAsString(String value) {
-      System.err.println("VariableModel.setValueAsString("+fName+", "+value+")");
+//      System.err.println("VariableModel.setValueAsString("+fName+", "+value+")");
       fProvider.setVariableValue(fKey, value);
       viewerUpdate(getParent(), null);
    }

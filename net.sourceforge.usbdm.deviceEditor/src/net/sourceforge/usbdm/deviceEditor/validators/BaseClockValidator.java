@@ -79,7 +79,7 @@ public abstract class BaseClockValidator extends Validator {
                   nearestFrequency = _fllInputFrequency;
                   nearestError     = FLL_CLOCK_WIDE_MIN-_fllInputFrequency;
                   nearest_frdiv    = _mcg_c1_frdiv;
-                  System.err.println(String.format("+%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+//                  System.err.println(String.format("+%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
                }
             }
             else if (_fllInputFrequency>FLL_CLOCK_WIDE_MAX) {
@@ -87,14 +87,14 @@ public abstract class BaseClockValidator extends Validator {
                   nearestFrequency = _fllInputFrequency;
                   nearestError     = _fllInputFrequency-FLL_CLOCK_WIDE_MAX;
                   nearest_frdiv    = _mcg_c1_frdiv;
-                  System.err.println(String.format("-%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+//                  System.err.println(String.format("-%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
                }
             }
             else {
                nearestFrequency = _fllInputFrequency;
                nearestError     = 0.0;
                nearest_frdiv    = _mcg_c1_frdiv;
-               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
+//               System.err.println(String.format("=%5.2f %5.2f %2d", nearestFrequency, nearestError, nearest_frdiv));
                found = true;
                break;
             }
