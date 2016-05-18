@@ -5,6 +5,7 @@ import org.eclipse.swt.graphics.Image;
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 
 class ValueColumnLabelProvider extends BaseLabelProvider {
    
@@ -27,7 +28,7 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
 
    @Override
    public Image getImage(BaseModel baseModel) {
-      if (!baseModel.canEdit()) {
+      if ((baseModel instanceof EditableModel) && !baseModel.canEdit()) {
          return lockedImage;
       }
       if (baseModel instanceof BinaryVariableModel) {
