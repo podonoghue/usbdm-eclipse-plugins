@@ -82,14 +82,14 @@
 	<item value="20000000" key="MCG_system_flash_clock"/>
 	<item value="0" key="PIT_MCR_FRZ"/>
 	<item value="mux4" key="PTA18_muxSetting"/>
-	<item value="1" key="MCG_mcg_c5_prdiv0"/>
+	<item value="3" key="MCG_mcg_c5_prdiv0"/>
 	<item value="0" key="MCG_mcg_c1_irefsten"/>
 	<item value="2" key="MCG_rtc_cr_scp"/>
 	<item value="mux1" key="PTC3_muxSetting"/>
 	<item value="0" key="ADC0_SC2_ADTRG"/>
 	<item value="LCD_Reset*" key="PTA12_descriptionSetting"/>
 	<item value="0b000" key="ADC0_SC2_COMPARE"/>
-	<item value="1" key="MCG_mcg_c6_vdiv0"/>
+	<item value="26" key="MCG_mcg_c6_vdiv0"/>
 	<item value="mux1" key="PTD4_muxSetting"/>
 	<item value="mux1" key="PTC11_muxSetting"/>
 	<item value="0" key="ADC0_SC2_REFSEL"/>
