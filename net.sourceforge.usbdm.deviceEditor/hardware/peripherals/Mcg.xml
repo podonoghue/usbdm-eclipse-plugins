@@ -354,12 +354,31 @@
             <choice value="1" name="Active" />
          </binaryOption>
       
-      <intOption name="pllTargetFrequency" 
-         description="PLL Output clock frequency (Hz)"
-         toolTip="Used for main MCGOUTCLK system clock if PEE mode is selected"
-         value="120000000"/>
+         <intOption name="pllTargetFrequency" 
+            description="PLL Output clock frequency (Hz)"
+            toolTip="Used for main MCGOUTCLK system clock if PEE mode is selected"
+            value="120000000"/>
+            
+         <intOption name="mcg_c5_prdiv0"
+            constant="true" 
+            description="PLL External Reference Divider"
+            toolTip="Determines the amount to divide down the external reference clock for the PLL\n
+                     This value is calculated from PLL input and output clock frequencies"
+            value="1" 
+            offset="-1" />
+            
+         <intOption name="mcg_c6_vdiv0" 
+            constant="true"
+            description="VCO Divider (VDIV0)"
+            toolTip="Determines the multiplication factor for the reference clock of the PLL.\n
+                     This value is calculated from PLL input and output clock frequencies"
+            value="16" 
+            offset="-24"
+            min="24"
+            max="55"
+            />
       </menu>
-   
+
       <intOption name="system_mcgout_clock" 
          description="System MCGOUT Clock (Hz)"
          toolTip="MCG Main clock output\n
@@ -539,7 +558,7 @@
                <choice value="1" name="MCGPLLCLK is enabled in Normal Stop mode" />
             </binaryOption>
             
-            <intOption name="mcg_c5_prdiv0"
+            <intOption name="mcg_c5_prdiv0" alias="true"
                constant="true" 
                description="PLL External Reference Divider"
                toolTip="Determines the amount to divide down the external reference clock for the PLL\n
@@ -573,7 +592,7 @@
                <choice value="1" name="Clock monitor is enabled" />
             </binaryOption>
             
-            <intOption name="mcg_c6_vdiv0" 
+            <intOption name="mcg_c6_vdiv0" alias="true" 
                constant="true"
                description="VCO Divider (VDIV0)"
                toolTip="Determines the multiplication factor for the reference clock of the PLL.\n

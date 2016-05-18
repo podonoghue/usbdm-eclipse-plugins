@@ -34,6 +34,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -117,7 +118,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          System.err.println(failureReason);
          e.printStackTrace();
       }
-
       if (fFactory == null) {
          Label label = new Label(parent, SWT.NONE);
          label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
@@ -373,6 +373,21 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
          refreshModels();
       }
       firePropertyChange(PROP_DIRTY);      
+   }
+
+   DeviceEditorOutlinePage fOutlinePage = null;
+   
+   @SuppressWarnings("rawtypes")
+   @Override
+   public Object getAdapter(Class required) {      
+      if (IContentOutlinePage.class.equals(required)) {
+         if (fOutlinePage == null) {
+            fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
+            fOutlinePage.setInput(getEditorInput());
+         }
+         return fOutlinePage;
+      }
+      return super.getAdapter(required);
    }
 
 }
