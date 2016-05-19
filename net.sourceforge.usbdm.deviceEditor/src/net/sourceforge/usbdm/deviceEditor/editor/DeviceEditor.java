@@ -13,6 +13,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -63,6 +64,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Associated project */
    private IProject fProject = null;
 
+   /** Eclipse status line manager */
+   IStatusLineManager fStatusLineManager = null;
+   
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
       super.setSite(editorSite);
@@ -74,6 +78,8 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       fPath = Paths.get(input.getLocation().toPortableString());
 
       setPartName(input.getName());
+      IActionBars bars = getEditorSite().getActionBars();
+      fStatusLineManager = bars.getStatusLineManager();
    }
 
    /** Initialise the editor for testing */
@@ -205,6 +211,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
    }
 
+   /**
+    * Generate C code files
+    */
    public void generateCode() {
       if (fFactory == null) {
          MessageDialog.openError(null, "Failed", "Regenerated code files failed");
@@ -219,7 +228,12 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             // Used for testing
             fFactory.getDeviceInfo().generateCppFiles();
          }
-         MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
+         if (fStatusLineManager != null) {
+            fStatusLineManager.setMessage("File generation complete");
+         }
+         else {
+            MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
+         }
       } catch (Exception e) {
          e.printStackTrace();
          MessageDialog.openError(null, "Regenerate Code Failed", "Failed to regenerate code.\nReason:\n"+e.getMessage());

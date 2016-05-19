@@ -211,7 +211,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public void addValidator(Validator validator) {
       validators.add(validator);
    }
-   private void variableChanged(Variable variable) {
+   
+   protected void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
       for (Validator v:validators) {
          v.variableChanged(variable);

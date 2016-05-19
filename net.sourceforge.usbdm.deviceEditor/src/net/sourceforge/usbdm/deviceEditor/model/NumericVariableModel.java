@@ -59,11 +59,29 @@ public class NumericVariableModel extends VariableModel {
    }
    
    /**
+    * Convert string to long
+    * 
+    * @param value
+    * @return
+    */
+   static long toLong(String value) {
+//      if (fVariable.getUnits() == Units.Hz) {
+      long lValue = 0;
+      String s = value.toString().trim();
+      if (s.startsWith("0b")) {
+         lValue = Long.parseLong(s.substring(2, s.length()), 2);
+      } else {
+         lValue = Long.decode(s);
+      }
+      return lValue;
+   }
+   
+   /**
     * Checks if the value is valid for this variable
     * 
     * @return Description of error or null if valid
     */
-   public String isValid(Long value) {
+   private String isValid(Long value) {
       if (value<getMin()) {
          return "Value too small";
       }
@@ -77,29 +95,11 @@ public class NumericVariableModel extends VariableModel {
       return null;
    }
 
-   /**
-    * Convert string to long
-    * 
-    * @param value
-    * @return
-    */
-   static long toLong(String value) {
-      long lValue = 0;
-      String s = value.toString().trim();
-      if (s.startsWith("0b")) {
-         lValue = Long.parseLong(s.substring(2, s.length()), 2);
-      } else {
-         lValue = Long.decode(s);
-      }
-      return lValue;
-   }
-   
-   @Override
    public String isValid(String value) {
+//      System.err.println("NumericVariableModel.isValid("+fName+", "+value+")");
       long lValue = 0;
       try {
          lValue = Math.round(EngineeringNotation.parse(value));
-//         lValue = toLong(value);
       }
       catch (NumberFormatException e) {
          return "Illegal number";
@@ -109,19 +109,35 @@ public class NumericVariableModel extends VariableModel {
 
    @Override
    public void setValueAsString(String sValue) {
-      Long value = toLong(sValue);
+//      System.err.println("NumericVariableModel.setValueAsString("+fName+", "+sValue+")");
+      Long value;
+      if (fVariable.getUnits() == Units.Hz) {
+         value = Math.round(EngineeringNotation.parse(sValue));
+      }      
+      else {
+         value = Long.parseLong(sValue);
+      }
       value += getOffset();
-      super.setValueAsString(value.toString());
+      super.setValueAsString(Long.toString(value));
    }
 
    @Override
    public String getValueAsString() {
-      Long value = toLong(super.getValueAsString());
-      value -= getOffset();
-      if (fLogging) {
-         System.err.println("getValueAsString() "+value);
-      }
-      return normalize(value);
+      return getValueAsString(toLong(super.getValueAsString())-fVariable.getOffset());
+   }
+
+   /**
+    * Converts the given string into a form appropriate for this  model
+    * 
+    * @param value Value to format
+    * 
+    * @return String in appropriate form e.g. 24.56MHz
+    */
+   public String getValueAsString(Long value) {
+      if (fVariable.getUnits() == Units.Hz) {
+         return EngineeringNotation.convert(value, SIGNIFICANT_DIGITS)+"Hz";
+      }      
+      return Long.toString(value);
    }
 
    @Override
@@ -137,13 +153,6 @@ public class NumericVariableModel extends VariableModel {
       return msg;
    }
 
-   String normalize(Long value) {
-      if (fVariable.getUnits() != Units.Hz) {
-         return value.toString();
-      }
-      return EngineeringNotation.convert(value, SIGNIFICANT_DIGITS) + "Hz";
-   }
-   
    @Override
    public String getToolTip() {
       StringBuffer sb = new StringBuffer();
@@ -153,21 +162,21 @@ public class NumericVariableModel extends VariableModel {
       if (getMin() != Long.MIN_VALUE) {
          sb.append("\n");
          firstOne = false;
-         sb.append("min="+normalize(getMin())+" ");
+         sb.append("min="+getValueAsString(getMin())+" ");
       }
       if (getMax() != Long.MAX_VALUE) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("max="+normalize(getMax())+" ");
+         sb.append("max="+getValueAsString(getMax())+" ");
       }
       if (getStep() != 1) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("step="+normalize(getStep())+" ");
+         sb.append("step="+getValueAsString(getStep())+" ");
       }
       return sb.toString();
    }

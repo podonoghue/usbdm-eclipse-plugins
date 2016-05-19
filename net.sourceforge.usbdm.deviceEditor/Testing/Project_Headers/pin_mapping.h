@@ -1473,19 +1473,19 @@ public:
    };
 
    //! Clock Mode
-   static constexpr ClockMode clockMode = ClockMode_None;
+   static constexpr ClockMode clockMode = ClockMode_PEE;
 
    //! Control Register 1
    static constexpr uint32_t MCG_C1 =
-      MCG_C1_FRDIV(3)   | // FRDIV    FLL External Reference Divider
+      MCG_C1_FRDIV(0)   | // FRDIV    FLL External Reference Divider
       MCG_C1_IRCLKEN(0) | // IRCLEN   Internal Reference Clock Enable
       MCG_C1_IREFSTEN(0); // IREFSTEN Internal Reference Stop Enable
 
    //! Control Register 2
    static constexpr uint32_t MCG_C2 =
       MCG_C2_LOCRE0(0) | // LOLRE0  Loss of Clock Reset Enable
-      MCG_C2_RANGE0(1) | // RANGE   Frequency Range Select
-      MCG_C2_HGO0(0)   | // HGO     High Gain Oscillator Select
+      MCG_C2_RANGE0(0) | // RANGE   Frequency Range Select
+      MCG_C2_HGO0(1)   | // HGO     High Gain Oscillator Select
       MCG_C2_EREFS0(0) | // EREFS   External Reference Select
       MCG_C2_IRCS(0);    // IRCS    Internal Reference Clock Select
 
@@ -1498,21 +1498,21 @@ public:
    static constexpr uint32_t MCG_C5 =
       MCG_C5_PLLCLKEN0(0)  | // PLLCLKEN0 PLL Clock Enable
       MCG_C5_PLLSTEN0(0)   | // PLLSTEN0  PLL Stop Enable
-      MCG_C5_PRDIV0(1);     // PRDIV0    PLL External Reference Divider
+      MCG_C5_PRDIV0(11);     // PRDIV0    PLL External Reference Divider
 
    //! Control Register 6
    static constexpr uint32_t MCG_C6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
-      MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(6);   // VDIV0  PLL VCO Divider
+      MCG_C6_CME0(1)   | // CME0   Clock Monitor Enable
+      MCG_C6_VDIV0(1);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
    static constexpr uint32_t MCG_SC =
-      MCG_SC_FCRDIV(0); // FCRDIV Internal Clock Reference Divider
+      MCG_SC_FCRDIV(4); // FCRDIV Internal Clock Reference Divider
 
    //! Control Register 7
    static constexpr uint32_t MCG_C7 =
-      MCG_C7_OSCSEL(0); // OSCSEL MCG OSC Clock Select
+      MCG_C7_OSCSEL(1); // OSCSEL MCG OSC Clock Select
 
    //! Control Register 8
    static constexpr uint32_t MCG_C8 =
@@ -1534,11 +1534,13 @@ public:
    #endif
 
    //! Clock divider
-   SIM_CLKDIV1 = 
-      (SIM_CLKDIV1_OUTDIV4(4) | // SIM_CLKDIV1_OUTDIV4       
-      (SIM_CLKDIV1_OUTDIV3(1) | // SIM_CLKDIV1_OUTDIV3           
-      (SIM_CLKDIV1_OUTDIV2(1) | // SIM_CLKDIV1_OUTDIV2           
-      (SIM_CLKDIV1_OUTDIV1(1);  // SIM_CLKDIV1_OUTDIV1    
+   static constexpr uint32_t SIM_CLKDIV1 = 
+      SIM_CLKDIV1_OUTDIV4(9) | // SIM_CLKDIV1_OUTDIV4
+   #ifdef SIM_CLKDIV1_OUTDIV3
+      SIM_CLKDIV1_OUTDIV3(1) | // SIM_CLKDIV1_OUTDIV3
+   #endif
+      SIM_CLKDIV1_OUTDIV2(1) | // SIM_CLKDIV1_OUTDIV2
+      SIM_CLKDIV1_OUTDIV1(0);  // SIM_CLKDIV1_OUTDIV1
 };
 
 /** 

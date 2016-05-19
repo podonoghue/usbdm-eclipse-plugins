@@ -13,6 +13,6 @@ public abstract class Validator {
 
    protected abstract void validate();
    
-   public abstract void variableChanged(Variable variable); 
+   public abstract boolean variableChanged(Variable variable); 
 
 }

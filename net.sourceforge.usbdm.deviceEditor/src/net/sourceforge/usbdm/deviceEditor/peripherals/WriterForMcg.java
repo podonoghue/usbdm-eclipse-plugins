@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.validators.ClockValidator;
 import net.sourceforge.usbdm.deviceEditor.validators.FLLValidator;
 import net.sourceforge.usbdm.deviceEditor.validators.PllClockValidater;
@@ -37,6 +38,9 @@ public class WriterForMcg extends PeripheralWithState {
       super.loadModels();
    }
 
-   
+   @Override
+   protected void variableChanged(Variable variable) {
+      super.variableChanged(variable);
+   }
 
 }

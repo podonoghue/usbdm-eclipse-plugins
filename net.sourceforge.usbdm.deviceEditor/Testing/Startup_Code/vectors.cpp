@@ -46,7 +46,7 @@ typedef struct {
     <o7>  Backdoor Comparison Key 7.  <0x0-0xFF>
   </h>
  */
-#define BACKDOOR_VALUE {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, }
+#define BACKDOOR_VALUE {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, }
 /*
    <h> Program Flash Region Protect (NV_FPROT0-3)
       <i> Each program flash region can be protected from program and erase operation by clearing the associated PROT bit.
@@ -203,6 +203,7 @@ typedef void( *const intfunc )( void );
  * Most of the vector table is initialised to point at this handler.
  *
  * If you end up here it probably means:
+ *   - Failed to enable the interrupt handler in the USBDM device configuration
  *   - You have accidently enabled an interrupt source in a peripheral
  *   - Enabled the wrong interrupt source
  *   - Failed to install or create a handler for an interrupt you intended using e.g. mis-spelled the name.

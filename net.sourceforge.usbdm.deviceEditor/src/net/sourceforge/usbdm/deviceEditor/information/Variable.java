@@ -76,6 +76,11 @@ public class Variable extends ObservableModel {
       return Long.decode(fValue);
    }
 
+   /**
+    * Sets variable value
+    * 
+    * @param value
+    */
    public void setValue(long value) {
       setValue(Long.toString(value));
    }

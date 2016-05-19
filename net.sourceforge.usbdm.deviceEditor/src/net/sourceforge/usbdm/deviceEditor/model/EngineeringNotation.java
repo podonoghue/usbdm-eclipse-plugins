@@ -27,7 +27,7 @@ public class EngineeringNotation {
    public static String convert(double value, int sigDigits) {
       if (value == 0) {
          // Always return 0
-         return "0";
+         return "0.0";
       }
       int    pow10 = (int)Math.floor(Math.log10(value));
 
@@ -35,7 +35,8 @@ public class EngineeringNotation {
       int index = ((pow10+3*PREFIX_OFFSET)/3);
 //      System.err.println("index = "+index);
       if ((index<0) || (index>PREFIX_ARRAY.length)) {
-         throw new NumberFormatException("Number out of range :" + value + "@" + sigDigits);
+         return Double.toString(value);
+//         throw new NumberFormatException("Number out of range :" + value + "@" + sigDigits);
       }
       suffix = PREFIX_ARRAY[index];
       

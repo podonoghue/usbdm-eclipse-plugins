@@ -163,16 +163,16 @@ public abstract class BaseClockValidator extends Validator {
    /**
     * =============================================================
     */
-   private static       boolean  busy           = false;
-   private static       boolean  recursed       = false;
-   private static final int      MAX_ITERATION  = 100;
+   private        boolean  busy           = false;
+   private        boolean  recursed       = false;
+   private  final int      MAX_ITERATION  = 100;
 
    @Override
-   public void variableChanged(Variable variable) {
-      
+   public boolean variableChanged(Variable variable) {
       if (busy) {
          recursed = true;
-         return;
+         System.err.println(getClass().getName()+".variableChanged():Recursed");
+         return true;
       }
       busy = true;
       int iterationCount = 0;
@@ -180,11 +180,12 @@ public abstract class BaseClockValidator extends Validator {
          recursed = false;
          validate();
          if (iterationCount++>MAX_ITERATION) {
-            System.err.println("BaseClockValidator() Iteration limit reached");
+            System.err.println(getClass().getName()+".variableChanged() Iteration limit reached");
             break;
          }
       } while (recursed);
       busy = false;
+      return false;
    }
 
 }

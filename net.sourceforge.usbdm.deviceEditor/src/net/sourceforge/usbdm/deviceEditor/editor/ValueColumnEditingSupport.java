@@ -97,28 +97,22 @@ public class ValueColumnEditingSupport extends EditingSupport {
    static class NumericTextCellEditor extends TextCellEditor {
 
       class Validator implements ICellEditorValidator {
+         NumericVariableModel fModel;
          
-         Validator() {
+         Validator(NumericVariableModel model) {
+            fModel = model;
          }
          
          @Override
          public String isValid(Object value) {
-            String rv = null;
-            try {
-               String s = value.toString().trim();
-               Long.decode(s);
-            }
-            catch (NumberFormatException e) {
-               rv = "Illegal number";
-            }
-            return rv;
+            return fModel.isValid(value.toString());
          }
       }
       
       public NumericTextCellEditor(Tree parent, NumericVariableModel model) {
          super(parent, SWT.SINGLE);
          setValueValid(true);
-         Validator validator =  new Validator();
+         Validator validator =  new Validator(model);
          setValidator(validator);
       }
 

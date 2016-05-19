@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -39,6 +40,50 @@ public class ClockValidator extends BaseClockValidator {
       this(peripheral, maxCoreClockfrequency, maxBusClockFrequency, maxFlashClockFrequency, 50000000);
    }
    
+   private abstract static class FindDivisor {
+      public final long   nearestTargetFrequency;
+      public final int    divisor;
+      public final String divisors;
+      /**
+       * Creates table of acceptable frequencies and determines the nearest to target frequency
+       * 
+       * @param inputFrequency   Input frequency being divided
+       * @param targetFrequency  Desired frequency
+       */
+      public FindDivisor(long inputFrequency, long targetFrequency) {
+         double nearestValue = Double.MAX_VALUE;
+         int    nearestDivisor = 0;
+         StringBuilder sb = new StringBuilder();
+         sb.append("Possible values:");
+         int values = 0;
+         for (int divisor=16; divisor>0; divisor--) {
+            double frequency = inputFrequency/divisor;
+            if (!okValue(divisor, frequency)) {
+               continue;
+            }
+            if (values++ == 7) {
+               sb.append("\n");
+            }
+            sb.append(" "+EngineeringNotation.convert(frequency, 3)+"Hz");
+            if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
+               nearestValue = frequency;
+               nearestDivisor = divisor;
+            }
+         }
+         nearestTargetFrequency = Math.round(nearestValue);
+         divisor = nearestDivisor;
+         divisors = sb.toString();
+      }
+      /**
+       * Used to accept or reject proposed target frequencies/divisors
+       * 
+       * @param divisor    Current divisor being considered
+       * @param frequency  Current frequency being considered
+       * @return
+       */
+      abstract boolean okValue(int divisor, double frequency);
+   }
+
    @Override
    protected void validate() {
       
@@ -87,8 +132,6 @@ public class ClockValidator extends BaseClockValidator {
       // PLL
       //=================================
       Variable pll_enabled_node     =  fPeripheral.getVariable("pll_enabled");
-
-      
       
       Variable pllTargetFrequencyNode     =  fPeripheral.getVariable("pllTargetFrequency");
       Variable fllTargetFrequencyNode     =  fPeripheral.getVariable("fllTargetFrequency");
@@ -96,9 +139,6 @@ public class ClockValidator extends BaseClockValidator {
       Variable system_bus_clockNode       =  fPeripheral.getVariable("system_bus_clock");
       Variable system_flexbus_clockNode   =  fPeripheral.safeGetVariable("system_flexbus_clock");
       Variable system_flash_clockNode     =  fPeripheral.getVariable("system_flash_clock");
-      
-      
-      
       
       Variable mcg_c1_clksNode            =  fPeripheral.getVariable("mcg_c1_clks");
       
@@ -277,76 +317,91 @@ public class ClockValidator extends BaseClockValidator {
       
       // Core Clock
       //===========================================
-      long sim_clkdiv1_outdiv1 = sim_clkdiv1_outdiv1Node.getValueAsLong()+1;
-      long system_core_clock   = system_mcgout_clock / sim_clkdiv1_outdiv1;
-      Message system_core_clockMessage = 
-         new Message(String.format("Must be <= %2.1f MHz.", MAX_CORE_CLOCK_FREQ/1000000.0), Severity.OK);
-      if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
-         system_core_clockMessage = new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0));
+      final FindDivisor coreDivisor = new FindDivisor(system_mcgout_clock, system_core_clockNode.getValueAsLong()) {
+         @Override
+         boolean okValue(int divisor, double frequency) {
+            return frequency<=MAX_CORE_CLOCK_FREQ;
+         }
+      };
+      Severity severity = Severity.OK;
+      StringBuilder sb = new StringBuilder();
+      if (coreDivisor.divisor == 0) {
+         severity = Severity.ERROR;
+         sb.append("Illegal Frequency\n");
       }
-      system_core_clockNode.setValue(system_core_clock);
-      system_core_clockNode.setMessage(system_core_clockMessage);
+      sb.append(coreDivisor.divisors);
+      system_core_clockNode.setValue(coreDivisor.nearestTargetFrequency);
+      system_core_clockNode.setMessage(new Message(sb.toString(), severity));
+      sim_clkdiv1_outdiv1Node.setValue(coreDivisor.divisor-1);
 
       // Bus Clock
       //===========================================
-      long sim_clkdiv1_outdiv2 = sim_clkdiv1_outdiv2Node.getValueAsLong()+1;
-      long system_bus_clock = system_mcgout_clock / sim_clkdiv1_outdiv2;
-      Message system_bus_clockMessage = 
-            new Message(String.format("Must be <= %2.1f MHz.", MAX_BUS_CLOCK_FREQ/1000000.0), Severity.OK);
-      if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
-         system_bus_clockMessage = 
-               new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_BUS_CLOCK_FREQ/1000000.0));
-      }
-      else if (system_bus_clock>system_core_clock) {
-         system_bus_clockMessage = new Message("Clock is too high. (Req. <= Core clock)");
-      }
-      else if ((sim_clkdiv1_outdiv2 % sim_clkdiv1_outdiv1) != 0) {
-         system_bus_clockMessage = new Message("Frequency must be an integer divisor of Core clock frequency");
-      }
-      system_bus_clockNode.setValue(system_bus_clock);
-      system_bus_clockNode.setMessage(system_bus_clockMessage);
+      final FindDivisor busDivisor = new FindDivisor(system_mcgout_clock, system_bus_clockNode.getValueAsLong()) {
+         @Override
+         boolean okValue(int divisor, double frequency) {
+            return (frequency<=MAX_BUS_CLOCK_FREQ) &&
+                   ((divisor % coreDivisor.divisor) == 0);
 
-      long system_flexbus_clock = 0;
+         }
+      };
+      severity = Severity.OK;
+      sb = new StringBuilder();
+      if (busDivisor.divisor == 0) {
+         severity = Severity.ERROR;
+         sb.append("Illegal Frequency\n");
+      }
+      sb.append(busDivisor.divisors);
+      system_bus_clockNode.setValue(busDivisor.nearestTargetFrequency);
+      system_bus_clockNode.setMessage(new Message(sb.toString(), severity));
+      sim_clkdiv1_outdiv2Node.setValue(busDivisor.divisor-1);
+
+      
+      // Flexbus Clock
+      //===========================================
       if ((sim_clkdiv1_outdiv3Node != null) && system_flexbus_clockNode != null) {
-         // Flexbus Clock
-         //===========================================
-         long sim_clkdiv1_outdiv3 = sim_clkdiv1_outdiv3Node.getValueAsLong()+1;
-         system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
-         Message system_flexbus_clockMessage = 
-               new Message(String.format("Must <= %2.1f MHz.", MAX_FLEXBUS_CLOCK_FREQ/1000000.0), Severity.OK);
-         if (system_flexbus_clock > MAX_FLEXBUS_CLOCK_FREQ) {
-            system_flexbus_clockMessage = 
-                  new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000.0));
+         final FindDivisor flexDivisor = new FindDivisor(system_mcgout_clock, system_flexbus_clockNode.getValueAsLong()) {
+            @Override
+            boolean okValue(int divisor, double frequency) {
+               return (frequency<=MAX_FLEXBUS_CLOCK_FREQ) &&
+                      (frequency<=busDivisor.nearestTargetFrequency) &&
+                      ((divisor % coreDivisor.divisor) == 0);
+
+            }
+         };
+         severity = Severity.OK;
+         sb = new StringBuilder();
+         if (flexDivisor.divisor == 0) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
          }
-         else if ((sim_clkdiv1_outdiv3 % sim_clkdiv1_outdiv1) != 0) {
-            system_flexbus_clockMessage = new Message("Frequency must be an integer divisor of Core clock frequency");
-         }
-         else if (system_flexbus_clock>system_bus_clock) {
-            system_flexbus_clockMessage = new Message("Clock is too high. (Req. <= Bus clock)");
-         }
-         system_flexbus_clockNode.setValue(system_flexbus_clock);
-         system_flexbus_clockNode.setMessage(system_flexbus_clockMessage);
+         sb.append(flexDivisor.divisors);
+         system_flexbus_clockNode.setValue(flexDivisor.nearestTargetFrequency);
+         system_flexbus_clockNode.setMessage(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv3Node.setValue(flexDivisor.divisor-1);
       }
       
       // Flash Clock
       //===========================================
-      long sim_clkdiv1_outdiv4 = sim_clkdiv1_outdiv4Node.getValueAsLong()+1;
-      long system_flash_clock = system_mcgout_clock / sim_clkdiv1_outdiv4;
-      Message system_flash_clockMessage = 
-            new Message(String.format("Must be <= %2.1f MHz.", MAX_FLASH_CLOCK_FREQ/1000000.0), Severity.OK);
-      if (system_flash_clock > MAX_FLASH_CLOCK_FREQ) {
-         system_flash_clockMessage = 
-               new Message(String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_CLOCK_FREQ/1000000.0));
+      final FindDivisor flashDivisor = new FindDivisor(system_mcgout_clock, system_flash_clockNode.getValueAsLong()) {
+         @Override
+         boolean okValue(int divisor, double frequency) {
+            return (frequency<=MAX_FLASH_CLOCK_FREQ) &&
+                   (frequency<=busDivisor.nearestTargetFrequency) &&
+                   ((divisor % coreDivisor.divisor) == 0);
+
+         }
+      };
+      severity = Severity.OK;
+      sb = new StringBuilder();
+      if (flashDivisor.divisor == 0) {
+         severity = Severity.ERROR;
+         sb.append("Illegal Frequency\n");
       }
-      else if (system_flash_clock>system_bus_clock) {
-         system_flash_clockMessage = new Message("Clock is too high. (Req. <= Bus clock)");
-      }
-      else if ((sim_clkdiv1_outdiv4 % sim_clkdiv1_outdiv1) != 0) {
-         system_flash_clockMessage = new Message("Frequency must be an integer divisor of Core clock frequency");
-      }
-      system_flash_clockNode.setValue(system_flash_clock);
-      system_flash_clockNode.setMessage(system_flash_clockMessage);
-      
+      sb.append(flashDivisor.divisors);
+      system_flash_clockNode.setValue(flashDivisor.nearestTargetFrequency);
+      system_flash_clockNode.setMessage(new Message(sb.toString(), severity));
+      sim_clkdiv1_outdiv4Node.setValue(flashDivisor.divisor-1);
+
       clock_modeNode.setMessage(primaryClockModeMessage);
 
       system_erc_clockNode.setValue(system_erc_clock);

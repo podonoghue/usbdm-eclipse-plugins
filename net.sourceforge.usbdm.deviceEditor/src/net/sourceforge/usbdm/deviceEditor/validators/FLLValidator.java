@@ -134,15 +134,16 @@ public class FLLValidator extends BaseClockValidator {
                ((fllInputFrequency < FLL_CLOCK_NARROW_MIN) || (fllInputFrequency > FLL_CLOCK_NARROW_MAX))) {
             // Internal reference selected with narrow FLL bandwidth
             mcg_c4_dmx32NodeMessage = new Message (
-                  String.format("FLL reference clock must be 32.768 kHz when (MCG_C4_DMX32 = 1) (currently = %3.3f kHz)", 
-                  ((double)fllInputFrequency)/1000.0), Severity.WARNING);
+               "FLL reference clock must be 32.768 kHz: Currently = "+
+               EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", Severity.WARNING);
             validFllInputClock = false;
          }
       }
       boolean fllOutputValid = validFllInputClock;
       Message fllTargetFrequencyMessage = null;
       if (!validFllInputClock) {
-         fllTargetFrequencyMessage = new Message("FLL not usable with input clock frequency", Severity.WARNING);
+         fllTargetFrequencyMessage = new Message("FLL not usable with input clock frequency: "+
+                 EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", Severity.WARNING);
       }
       else {
 //         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);

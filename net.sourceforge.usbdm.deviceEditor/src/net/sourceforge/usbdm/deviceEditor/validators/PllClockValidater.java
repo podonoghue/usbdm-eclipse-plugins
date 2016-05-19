@@ -79,7 +79,7 @@ public class PllClockValidater extends BaseClockValidator {
 
       long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
 
-      System.err.println(String.format("\nPllClockValidater.validater(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
+      System.err.println(String.format("\nPllClockValidater.validate(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
 
       int  mcg_prdiv = 0;
       int  mcg_vdiv  = 0;
@@ -114,11 +114,11 @@ public class PllClockValidater extends BaseClockValidator {
             long pllOutFrequency = Math.round((mcg_vdiv_probe*pllInFrequency)/PLL_POST_DIV);
             sb.append(pllOutFrequency);
             if (pllOutFrequency<PLL_OUT_MINIMUM_FREQUENCY) {
-               System.err.print("<, ");
+               sb.append("<, ");
                continue;
             }
             if (pllOutFrequency>PLL_OUT_MAXIMUM_FREQUENCY) {
-               System.err.print(">, ");
+               sb.append(">, ");
                break;
             }
             sb.append("*,");
@@ -145,7 +145,7 @@ public class PllClockValidater extends BaseClockValidator {
          mcg_c6_vdiv0Node.setValue(mcg_vdiv-VDIV_MIN);
          if (pllTargetFrequency != nearestPllOutFrequency) {
             pllTargetFrequency = nearestPllOutFrequency;
-            pllTargetFrequencyNode.setValue(nearestPllOutFrequency);
+            pllTargetFrequencyNode.setValue(pllTargetFrequency);
          }
          System.err.println(String.format("PllClockValidater.validater(): Valid - prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
       }
