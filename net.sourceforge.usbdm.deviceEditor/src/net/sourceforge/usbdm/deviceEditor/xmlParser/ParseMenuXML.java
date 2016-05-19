@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
@@ -63,6 +64,7 @@ public class ParseMenuXML extends XML_BaseParser {
       long    step        = getLongAttribute(longElement, "step");
       long    offset      = getLongAttribute(longElement, "offset");
       String  value       = longElement.getAttribute("value");
+      String  units       = longElement.getAttribute("units");
       String  key         = longElement.getAttribute("key");
       boolean isAlias     = Boolean.valueOf(longElement.getAttribute("alias"));
       if (key.isEmpty()) {
@@ -89,6 +91,7 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
       }
       variable.setValue(value);
+      variable.setUnits(Units.valueOf(units));
       variable.setStep(step);
       variable.setOffset(offset);
    }
@@ -105,6 +108,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String  description = choiceElement.getAttribute("description");
       String  toolTip     = getToolTip(choiceElement);
       String  key         = choiceElement.getAttribute("key");
+      String  units       = choiceElement.getAttribute("units");
       boolean isAlias     = Boolean.valueOf(choiceElement.getAttribute("alias"));
       if (key.isEmpty()) {
          key = name;
@@ -124,6 +128,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String defaultValue = parseChildren(model, choiceElement);
       variable.setValue(defaultValue);
+      variable.setUnits(Units.valueOf(units));
    }
    
    /**

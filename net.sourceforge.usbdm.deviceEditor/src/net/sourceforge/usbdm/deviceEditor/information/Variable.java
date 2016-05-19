@@ -4,6 +4,9 @@ import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 public class Variable extends ObservableModel {
+   
+   public enum Units {None, Hz, Seconds};
+   
    private final   String  fName;
    private         String  fValue;
    private         Message fMessage = null;
@@ -24,6 +27,9 @@ public class Variable extends ObservableModel {
    private long fOffset = 0;
 
    private String[] fChoices = null;
+   
+   /** Units of the quantity the variable represents e.g. Frequency => Hz*/
+   private Units fUnits;
    
    Variable(String name, String value) {
       fName  = name;
@@ -175,6 +181,20 @@ public class Variable extends ObservableModel {
     */
    public void setLocked(boolean locked) {
       fLocked = locked;
+   }
+
+   /**
+    * @return the units
+    */
+   public Units getUnits() {
+      return fUnits;
+   }
+
+   /**
+    * @param units The units to set
+    */
+   public void setUnits(Units units) {
+      fUnits = units;
    }
 
 }

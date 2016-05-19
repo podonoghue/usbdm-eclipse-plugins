@@ -1,9 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class NumericVariableModel extends VariableModel {
 
+   private static final int SIGNIFICANT_DIGITS = 5;
+   
    /**
     * 
     * @param parent        Parent model
@@ -95,7 +98,8 @@ public class NumericVariableModel extends VariableModel {
    public String isValid(String value) {
       long lValue = 0;
       try {
-         lValue = toLong(value);
+         lValue = Math.round(EngineeringNotation.parse(value));
+//         lValue = toLong(value);
       }
       catch (NumberFormatException e) {
          return "Illegal number";
@@ -117,7 +121,7 @@ public class NumericVariableModel extends VariableModel {
       if (fLogging) {
          System.err.println("getValueAsString() "+value);
       }
-      return value.toString();
+      return normalize(value);
    }
 
    @Override
@@ -133,9 +137,13 @@ public class NumericVariableModel extends VariableModel {
       return msg;
    }
 
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.model.BaseModel#getToolTip()
-    */
+   String normalize(Long value) {
+      if (fVariable.getUnits() != Units.Hz) {
+         return value.toString();
+      }
+      return EngineeringNotation.convert(value, SIGNIFICANT_DIGITS) + "Hz";
+   }
+   
    @Override
    public String getToolTip() {
       StringBuffer sb = new StringBuffer();
@@ -145,21 +153,21 @@ public class NumericVariableModel extends VariableModel {
       if (getMin() != Long.MIN_VALUE) {
          sb.append("\n");
          firstOne = false;
-         sb.append("min="+getMin()+" ");
+         sb.append("min="+normalize(getMin())+" ");
       }
       if (getMax() != Long.MAX_VALUE) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("max="+getMax()+" ");
+         sb.append("max="+normalize(getMax())+" ");
       }
       if (getStep() != 1) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("step="+getStep()+" ");
+         sb.append("step="+normalize(getStep())+" ");
       }
       return sb.toString();
    }

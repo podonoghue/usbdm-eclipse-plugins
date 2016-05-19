@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -172,7 +173,7 @@ public class PllClockValidater extends BaseClockValidator {
             lineCount = 0;
          }
          needComma = true;
-         sb.append(String.format("%d", freq));
+         sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
       Message pllTargetFrequencyMessage = new Message(sb.toString(), severity);
 //      System.err.println(String.format("PllClockValidater.validater(): "+pllTargetFrequencyMessage.getMessage()));

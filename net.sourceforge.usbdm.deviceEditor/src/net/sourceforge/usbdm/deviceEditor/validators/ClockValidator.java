@@ -280,7 +280,7 @@ public class ClockValidator extends BaseClockValidator {
       long sim_clkdiv1_outdiv1 = sim_clkdiv1_outdiv1Node.getValueAsLong()+1;
       long system_core_clock   = system_mcgout_clock / sim_clkdiv1_outdiv1;
       Message system_core_clockMessage = 
-         new Message(String.format("Must be <= %2.1f MHz.", MAX_CORE_CLOCK_FREQ/1000000.0), Severity.INFO);
+         new Message(String.format("Must be <= %2.1f MHz.", MAX_CORE_CLOCK_FREQ/1000000.0), Severity.OK);
       if (system_core_clock > MAX_CORE_CLOCK_FREQ) {
          system_core_clockMessage = new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_CORE_CLOCK_FREQ/1000000.0));
       }
@@ -292,7 +292,7 @@ public class ClockValidator extends BaseClockValidator {
       long sim_clkdiv1_outdiv2 = sim_clkdiv1_outdiv2Node.getValueAsLong()+1;
       long system_bus_clock = system_mcgout_clock / sim_clkdiv1_outdiv2;
       Message system_bus_clockMessage = 
-            new Message(String.format("Must be <= %2.1f MHz.", MAX_BUS_CLOCK_FREQ/1000000.0), Severity.INFO);
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_BUS_CLOCK_FREQ/1000000.0), Severity.OK);
       if (system_bus_clock > MAX_BUS_CLOCK_FREQ) {
          system_bus_clockMessage = 
                new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_BUS_CLOCK_FREQ/1000000.0));
@@ -313,7 +313,7 @@ public class ClockValidator extends BaseClockValidator {
          long sim_clkdiv1_outdiv3 = sim_clkdiv1_outdiv3Node.getValueAsLong()+1;
          system_flexbus_clock = system_mcgout_clock / sim_clkdiv1_outdiv3;
          Message system_flexbus_clockMessage = 
-               new Message(String.format("Must <= %2.1f MHz.", MAX_FLEXBUS_CLOCK_FREQ/1000000.0), Severity.INFO);
+               new Message(String.format("Must <= %2.1f MHz.", MAX_FLEXBUS_CLOCK_FREQ/1000000.0), Severity.OK);
          if (system_flexbus_clock > MAX_FLEXBUS_CLOCK_FREQ) {
             system_flexbus_clockMessage = 
                   new Message(String.format("Frequency is too high. (Req. <= %2.2f MHz)", MAX_FLEXBUS_CLOCK_FREQ/1000000.0));
@@ -333,7 +333,7 @@ public class ClockValidator extends BaseClockValidator {
       long sim_clkdiv1_outdiv4 = sim_clkdiv1_outdiv4Node.getValueAsLong()+1;
       long system_flash_clock = system_mcgout_clock / sim_clkdiv1_outdiv4;
       Message system_flash_clockMessage = 
-            new Message(String.format("Must be <= %2.1f MHz.", MAX_FLASH_CLOCK_FREQ/1000000.0), Severity.INFO);
+            new Message(String.format("Must be <= %2.1f MHz.", MAX_FLASH_CLOCK_FREQ/1000000.0), Severity.OK);
       if (system_flash_clock > MAX_FLASH_CLOCK_FREQ) {
          system_flash_clockMessage = 
                new Message(String.format("Clock frequency is too high. (Req. clock <= %2.2f MHz)", MAX_FLASH_CLOCK_FREQ/1000000.0));

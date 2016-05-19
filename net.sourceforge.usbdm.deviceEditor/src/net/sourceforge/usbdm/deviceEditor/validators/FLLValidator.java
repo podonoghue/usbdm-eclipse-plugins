@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -195,7 +196,7 @@ public class FLLValidator extends BaseClockValidator {
                sb.append("Possible values (Hz) = ");
             }
             needComma = true;
-            sb.append(String.format("%d", freq));
+            sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
          }
          fllTargetFrequencyMessage = new Message(sb.toString(), severity);
 //         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);

@@ -7,29 +7,34 @@
    
       <menu name="Internal" description="Internal Clock Sources" >
          <intOption name="irc48m_clock" 
+            units="Hz"
             description="Frequency of Internal 48MHz Clock [IRC48MCLK]"
             toolTip="48 MHz Internal Oscillator [Trimmed against USB bus]"
             value="48000000" 
             constant="true" />
    
          <intOption name="system_usb_clkin_clock" 
+            units="Hz"
             description="Frequency of External USB Clock (Hz)"
             toolTip="Externally provided clock for USB on USB_CLKIN" 
             value="48000000"
             constant="true" />
 
          <intOption name="system_low_power_clock"
+            units="Hz"
             description="Frequency of Internal Low Power Oscillator [LPO] Clock (Hz)"
             toolTip="Dependent on device. [Typically ~1kHz]" 
             value="1000"
             constant="true" />
    
          <intOption name="system_slow_irc_clock"
+            units="Hz"
             description="Frequency of Slow Internal Reference [SIRC] Clock (Hz)"
             toolTip="Dependent on device and clock Trim. [Typically ~32kHz]"
             value="32768" />
    
          <intOption name="system_fast_irc_clock"
+            units="Hz"
             description="Frequency of Fast Internal Reference [FIRC] Clock (Hz)"
             toolTip="Dependent on device and clock Trim. [Typically ~4MHz]"
             value="4000000" 
@@ -87,6 +92,7 @@
          </binaryOption>
    
          <intOption name="oscclk_clock"
+            units="Hz"
             description="Frequency of OSC Clock or Crystal (Hz)"
             toolTip="Frequency of external crystal or clock on XTAL/EXTAL"
             value="8000000" />
@@ -167,6 +173,7 @@
          </binaryOption>
          
          <intOption name="rtcclk_clock"
+            units="Hz"
             description="Frequency of RTC External Clock or Crystal (Hz)"
             toolTip="Frequency of external crystal or clock on XTAL32/EXTAL32 [Typically 32768 Hz]"
             value="32768" min="30000" max="35000" step="1" />
@@ -279,6 +286,7 @@
       </choiceOption>
    
       <intOption name="system_erc_clock" 
+         units="Hz"
          constant="true"  
          description="MCG External Reference Clock (Hz)"
          toolTip="Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL), \n 
@@ -313,6 +321,7 @@
          </choiceOption>
    
          <intOption name="system_mcgffclk_clock" 
+            units="Hz"
             constant="true"  
             description="MCG Fixed Frequency Clock [MCGFFCLK] (Hz)"
             toolTip="Used as input clock to FLL and available to some peripherals\n
@@ -340,6 +349,7 @@
          </choiceOption>
    
          <intOption name="fllTargetFrequency" 
+            units="Hz"
             description="FLL Output clock frequency (Hz)"
             toolTip="Used for main MCGOUTCLK system clock if FEI or FEE mode is selected"
             value="96000000" />
@@ -355,6 +365,7 @@
          </binaryOption>
       
          <intOption name="pllTargetFrequency" 
+            units="Hz"
             description="PLL Output clock frequency (Hz)"
             toolTip="Used for main MCGOUTCLK system clock if PEE mode is selected"
             value="120000000"/>
@@ -380,29 +391,34 @@
       </menu>
 
       <intOption name="system_mcgout_clock" 
+         units="Hz"
          description="System MCGOUT Clock (Hz)"
          toolTip="MCG Main clock output\n
                   Derived from slow IRC, fast IRC, ERC, FLL or PLL"
          value="120000000" constant="true" />
    
       <intOption name="system_core_clock" 
+         units="Hz"
          description="System Core Clock (Hz)"
          toolTip="Clocks the ARM Cortex-M4 core and bus masters"
          value="120000000" />
    
       <intOption name="system_bus_clock" 
+         units="Hz"
          description="System Bus Clock (Hz)"
          toolTip="Clocks the bus slaves and peripherals\n
                   Must be &lt;= Core Clock frequency and an integer divisor"
          value="60000000" />
    
       <intOption name="system_flexbus_clock" 
+         units="Hz"
          description="System Flexbus Clock (Hz)"
          toolTip="Clocks the flexbus interface\n
                   Must be &lt;= Bus Clock frequency"
          value="60000000" />
    
       <intOption name="system_flash_clock" 
+         units="Hz"
          description="System Flash Clock (Hz)"
          toolTip="Clocks the flash memory\n
                   Must be an integer divisor of the Core Clock.\n
