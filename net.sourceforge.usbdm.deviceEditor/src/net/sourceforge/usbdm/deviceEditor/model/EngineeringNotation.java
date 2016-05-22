@@ -67,7 +67,6 @@ public class EngineeringNotation {
     * 
     * @return Parsed value of string
     */
-   
    private static final String  BINARY_PATTERN   = "(0b([0-1]+))";
    private static final String  HEX_PATTERN      = "(0x([0-9|a-f|A-F]+))";
    private static final String  DEC_PATTERN      = "([0-9]+\\.?[0-9]*)";
@@ -119,4 +118,24 @@ public class EngineeringNotation {
 //      System.err.println();
       return value;
    }
+   
+   /**
+    * Parse a number including Engineering notation e.g. 120MHz<br>
+    * The number is rounded to a Long
+    * 
+    * @param str String to parse
+    * 
+    * @return Parsed value of string
+    */
+   public static long parseAsLong(String num) {
+      double value = parse(num);
+      if ((value<Long.MIN_VALUE) || (value>Long.MAX_VALUE)) {
+         throw new NumberFormatException("Illegal number as Long: " + num);
+      }
+      if ((value - Math.round(value))> .001) {
+         throw new NumberFormatException("Illegal number as Long: " + num);
+      }
+      return Math.round(value);
+   }
+
  }

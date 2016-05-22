@@ -8,7 +8,6 @@ public final class DeviceInformationModel extends TreeViewModel {
    /**
     * Constructor
     * 
-    * @param modelFactory  Factory owning model
     * @param columnLabels  Labels to use for columns
     * @param title 
     * @param toolTip 

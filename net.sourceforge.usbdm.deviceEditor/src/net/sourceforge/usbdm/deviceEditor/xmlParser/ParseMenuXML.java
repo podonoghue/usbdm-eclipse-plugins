@@ -9,9 +9,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable.Units;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
+import net.sourceforge.usbdm.deviceEditor.model.AliasVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
@@ -25,7 +31,7 @@ import net.sourceforge.usbdm.jni.Usbdm;
 public class ParseMenuXML extends XML_BaseParser {
 
    public static class Data {
-      public final BaseModel        fRootModel;
+      public final BaseModel            fRootModel;
       public final String               fTemplate;
       public final ArrayList<Validator> fValidators;
       
@@ -66,22 +72,19 @@ public class ParseMenuXML extends XML_BaseParser {
       String  value       = longElement.getAttribute("value");
       String  units       = longElement.getAttribute("units");
       String  key         = longElement.getAttribute("key");
-      boolean isAlias     = Boolean.valueOf(longElement.getAttribute("alias"));
       if (key.isEmpty()) {
          key = name;
       }
-      Variable variable;
-      if (isAlias) {
-         variable = fProvider.getVariable(key);
-      }
-      else {
-         variable = fProvider.createVariable(key);
-      }
       
-      NumericVariableModel model = new NumericVariableModel(parent, fProvider, key, description);
+      LongVariable variable;
+      variable = new LongVariable(key);
+      fProvider.addVariable(key, variable);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+
+      NumericVariableModel model = new NumericVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(isConstant);
-      model.setToolTip(toolTip);
       try {
          variable.setMin(getLongAttribute(longElement, "min"));
       } catch( NumberFormatException e) {
@@ -108,27 +111,21 @@ public class ParseMenuXML extends XML_BaseParser {
       String  description = choiceElement.getAttribute("description");
       String  toolTip     = getToolTip(choiceElement);
       String  key         = choiceElement.getAttribute("key");
-      String  units       = choiceElement.getAttribute("units");
-      boolean isAlias     = Boolean.valueOf(choiceElement.getAttribute("alias"));
       if (key.isEmpty()) {
          key = name;
       }
       Variable variable;
-      if (isAlias) {
-         variable = fProvider.getVariable(key);
-      }
-      else {
-         variable = fProvider.createVariable(key);
-      }
+      variable = new ChoiceVariable(key);
+      fProvider.addVariable(key, variable);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
 
-      SelectionVariableModel model = new SelectionVariableModel(parent, fProvider, key, description);
+      SelectionVariableModel model = new SelectionVariableModel(parent, variable, key);
       model.setName(name);
-      model.setToolTip(toolTip);
       model.setConstant(isConstant);
 
       String defaultValue = parseChildren(model, choiceElement);
       variable.setValue(defaultValue);
-      variable.setUnits(Units.valueOf(units));
    }
    
    /**
@@ -144,23 +141,38 @@ public class ParseMenuXML extends XML_BaseParser {
       String  value       = stringElement.getAttribute("value");
       String  toolTip     = getToolTip(stringElement);
       String  key         = stringElement.getAttribute("key");
-      boolean isAlias     = Boolean.valueOf(stringElement.getAttribute("alias"));
       if (key.isEmpty()) {
          key = name;
       }
       Variable variable;
-      if (isAlias) {
-         variable = fProvider.getVariable(key);
-      }
-      else {
-         variable = fProvider.createVariable(key);
-      }
-      StringVariableModel model = new StringVariableModel(parent, fProvider, key, description);
+      variable = new StringVariable(key);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+
+      fProvider.addVariable(key, variable);
+      StringVariableModel model = new StringVariableModel(parent, variable, key);
       model.setName(name);
-      model.setToolTip(toolTip);
       model.setConstant(isConstant);
       
       variable.setValue(value);
+   }
+   
+   /**
+    * Parse &lt;choiceOption&gt; element<br>
+    * 
+    * @param stringElement
+    * @throws Exception 
+    */
+   private void parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
+      String  name        = stringElement.getAttribute("name");
+      String  key         = stringElement.getAttribute("key");
+      if (key.isEmpty()) {
+         key = name;
+      }
+      Variable variable = fProvider.getVariable(key);
+      StringVariableModel model = new AliasVariableModel(parent, variable, key);
+      model.setName(name);
+      model.setConstant(true);
    }
    
    /**
@@ -175,21 +187,18 @@ public class ParseMenuXML extends XML_BaseParser {
       String  description = binaryElement.getAttribute("description");
       String  toolTip     = getToolTip(binaryElement);
       String  key         = binaryElement.getAttribute("key");
-      boolean isAlias     = Boolean.valueOf(binaryElement.getAttribute("alias"));
       if (key.isEmpty()) {
          key = name;
       }
-      Variable variable;
-      if (isAlias) {
-         variable = fProvider.getVariable(key);
-      }
-      else {
-         variable = fProvider.createVariable(key);
-      }
-      BinaryVariableModel model = new BinaryVariableModel(parent, fProvider, key, description);
+      BooleanVariable variable;
+      variable = new BooleanVariable(key);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+
+      fProvider.addVariable(key, variable);
+      BinaryVariableModel model = new BinaryVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(isConstant);
-      model.setToolTip(toolTip);
       
       String defaultValue = parseChildren(model, binaryElement);
       variable.setValue(defaultValue);
@@ -214,7 +223,7 @@ public class ParseMenuXML extends XML_BaseParser {
       String toolTip     = getToolTip(menuElement);
       
       if (menuElement.getTagName() == "page") {
-         rootModel = new PeripheralConfigurationModel(parent, name, description);
+         rootModel = new PeripheralConfigurationModel(null, parent, name, description);
       }
       else {
          rootModel = new CategoryModel(parent, name, description);
@@ -233,8 +242,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    String parseChildren(BaseModel parentModel, Element menuElement) throws Exception {
-      ArrayList<String> choices = new ArrayList<String>();
-      ArrayList<String> values  = new ArrayList<String>();
+      ArrayList<Pair> entries = new ArrayList<Pair>();
       String defaultValue = null;
 
       for (Node node = menuElement.getFirstChild();
@@ -259,15 +267,17 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (element.getTagName() == "stringOption") {
             parseStringOption(parentModel, element);
          }
+         else if (element.getTagName() == "aliasOption") {
+            parseAliasOption(parentModel, element);
+         }
          else if (element.getTagName() == "choice") {
-            String value = element.getAttribute("value");
-            choices.add(element.getAttribute("name"));
-            values.add(value);
+            Pair entry = new Pair(element.getAttribute("name"), element.getAttribute("value"));
+            entries.add(entry);
             if (defaultValue == null) {
-               defaultValue = value;
+               defaultValue = entry.name;
             }
             if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
-               defaultValue = value;
+               defaultValue = entry.name;
             }
          }
          else {
@@ -275,19 +285,17 @@ public class ParseMenuXML extends XML_BaseParser {
          }
       }
       if (parentModel instanceof BinaryVariableModel) {
-         if ((choices.size()==0)||(choices.size()>2)) {
-            throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+choices.size());
+         if ((entries.size()==0)||(entries.size()>2)) {
+            throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+entries.size());
          }
          BinaryVariableModel model = (BinaryVariableModel) parentModel;
-         model.setValue0(choices.get(0), values.get(0));
-         model.setValue1(choices.get(1), values.get(1));
+         model.getVariable().setFalseValue(entries.get(0));
+         model.getVariable().setTrueValue(entries.get(1));
       }
       else if (parentModel instanceof SelectionVariableModel) {      
-         String theChoices[] = choices.toArray(new String[choices.size()]);
-         String theValues[]   = values.toArray(new String[values.size()]);
+         Pair theEntries[] = entries.toArray(new Pair[entries.size()]);
          SelectionVariableModel model = (SelectionVariableModel)parentModel;
-         model.setChoices(theChoices);
-         model.setValues(theValues);
+         model.getVariable().setData(theEntries);
       }
       return defaultValue;
    }

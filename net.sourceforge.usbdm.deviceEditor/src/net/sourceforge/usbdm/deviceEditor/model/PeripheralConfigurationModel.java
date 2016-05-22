@@ -9,7 +9,7 @@ public final class PeripheralConfigurationModel extends TreeViewModel {
 
    static final private String[] OTHER_COLUMN_LABELS = {"Peripheral.Parameter", "Value", "Description"};
 
-   public PeripheralConfigurationModel(BaseModel parent, String title, String toolTip) {
+   public PeripheralConfigurationModel(ModelFactory factory, BaseModel parent, String title, String toolTip) {
       super(OTHER_COLUMN_LABELS, title, toolTip);
    }
 

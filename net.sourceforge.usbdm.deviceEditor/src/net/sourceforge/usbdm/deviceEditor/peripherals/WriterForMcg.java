@@ -42,5 +42,4 @@ public class WriterForMcg extends PeripheralWithState {
    protected void variableChanged(Variable variable) {
       super.variableChanged(variable);
    }
-
 }

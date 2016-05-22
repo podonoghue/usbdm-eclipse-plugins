@@ -3,37 +3,59 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
-public class Variable extends ObservableModel {
+public abstract class Variable extends ObservableModel {
    
-   public enum Units {None, Hz, Seconds};
-   
+   /**
+    * Class to hold the Name/Value pair
+    */
+   public static class Pair {
+      
+      /** Name used by GUI/model */
+      public final String name;
+      
+      /** Value used by substitution */
+      public final String value;
+      
+      /**
+       * 
+       * @param name  Name used by GUI/model
+       * @param value Value used by data
+       */
+      public Pair(String name, String value) {
+         this.name  = name;
+         this.value = value;
+      }
+   }
+
+   /** Name of variable visible to user */
    private final   String  fName;
-   private         String  fValue;
+   
+   /** Name of variable visible to user */
+   private         String  fKey;
+   
+   /** Message (status) of variable */
    private         Message fMessage = null;
    
    /** Indicates that the variable is locked and cannot be edited by user */
    private boolean fLocked = false;
-   
-   // Minimum permitted value
-   private long fMin    = Long.MIN_VALUE;
-   
-   // Maximum permitted value
-   private long fMax    = Long.MAX_VALUE;
 
-   // Step size value
-   private long fStep   = 1;
-   
-   // Offset used when applying value
-   private long fOffset = 0;
+   /** Indicates the variable is disabled */
+   private boolean fEnabled = true;
 
-   private String[] fChoices = null;
+   /** Description of variable */
+   private String fDescription = null;
+
+   /** Tool tip for this variable */
+   private String fToolTip = null;
    
-   /** Units of the quantity the variable represents e.g. Frequency => Hz*/
-   private Units fUnits;
-   
-   Variable(String name, String value) {
-      fName  = name;
-      fValue = value;
+   /**
+    * Constructor
+    * 
+    * @param name Name to display to user. Also used as default key.
+    */
+   public Variable(String name) {
+      fName = name;
+      fKey  = name;
    }
 
    /**
@@ -44,45 +66,50 @@ public class Variable extends ObservableModel {
    }
 
    /**
+    * @return the key
+    */
+   public String getKey() {
+      return fKey;
+   }
+
+   /**
+    * @param key The key to set
+    */
+   public void setKey(String key) {
+      this.fKey = key;
+   }
+
+   /**
+    * Get the variable value as a string for use in substitutions
+    * 
     * @return the Value
     */
-   public String getValue() {
-      return fValue;
-   }
+   public abstract String getSubstitutionValue();
 
    /**
-    * @param value The value to set
-    */
-   public void setValue(String value) {
-//      System.err.println("Variable.setValue("+fName+", "+value+")");
-      if (fValue.equals(value)) {
-         return;
-      }
-      fValue = value;
-      notifyListeners();
-   }
-
-   @Override
-   public String toString() {
-      return "Variable(Name=" + fName + ", value=" + fValue + ")";
-   }
-
-   /**
-    * Get the variable value interpreted as a Long
-    * 
+    * Get variable value as a string suitable for user display
     * @return
     */
-   public long getValueAsLong() {
-      return Long.decode(fValue);
-   }
-
+   public abstract String getValueAsString();
+   
    /**
     * Sets variable value
     * 
-    * @param value
+    * @param value The value to set
+    * 
+    * @return True if variable actually changed value
     */
-   public void setValue(long value) {
-      setValue(Long.toString(value));
+   public abstract boolean setValue(Object value);
+
+   private String getSimpleClassName() {
+      String s = getClass().toString();
+      int index = s.lastIndexOf(".");
+      return s.substring(index+1, s.length());
+   }
+   
+   @Override
+   public String toString() {
+      return String.format(getSimpleClassName()+"(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
    }
 
    public void setMessage(String message) {
@@ -107,69 +134,13 @@ public class Variable extends ObservableModel {
          // No significant change
          return;
       }
+//      System.err.println(this+"setMessage("+message+")");
       fMessage = message;
       notifyListeners();
    }
    
    public Message getMessage() {
       return fMessage;
-   }
-
-   public void setMin(long min) {
-      fMin = min;
-   }
-
-   public void setMax(long max) {
-      fMax = max;
-   }
-
-   public void setStep(long step) {
-      fStep = step;
-   }
-
-   public void setOffset(long offset) {
-      fOffset = offset;
-   }
-
-   public long getMin() {
-      return fMin;
-   }
-
-   public long getMax() {
-      return fMax;
-   }
-
-   public long getStep() {
-      return fStep;
-   }
-
-   public long getOffset() {
-      return fOffset;
-   }
-
-   /**
-    * @return the choices
-    */
-   public String[] getChoices() {
-      return fChoices;
-   }
-
-   /**
-    * @param choices the choices to set
-    */
-   public void setChoices(String[] choices) {
-      this.fChoices = choices;
-   }
-
-   public boolean getValueAsBoolean() {
-      return (fValue.equalsIgnoreCase("1") || 
-            fValue.equalsIgnoreCase("true")|| 
-            fValue.equalsIgnoreCase("active")|| 
-            fValue.equalsIgnoreCase("enabled"));
-   }
-
-   public void setBinaryValue(Boolean b) {
-      setValue(b.toString());
    }
 
    /** Set if the variable is locked and cannot be edited by user
@@ -182,24 +153,117 @@ public class Variable extends ObservableModel {
 
    /** Indicates if the variable is locked and cannot be edited by user
     * 
-    * @param locked the locked to set
+    * @param locked The locked state to set
+    * 
+    * @return True if variable actually changed lock state
     */
-   public void setLocked(boolean locked) {
+   public boolean setLocked(boolean locked) {
+      if (fLocked == locked) {
+         return false;
+      }
       fLocked = locked;
+      notifyListeners();
+      return true;
    }
 
    /**
-    * @return the units
+    * Get value as a boolean
+    * 
+    * @return Value as boolean
     */
-   public Units getUnits() {
-      return fUnits;
+   public boolean getValueAsBoolean() {
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with boolean" );
    }
 
    /**
-    * @param units The units to set
+    * Get the variable value as a long
+    * 
+    * @return Value in user format as long
     */
-   public void setUnits(Units units) {
-      fUnits = units;
+   public long getValueAsLong() {
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with long" );
+      }
+
+   /**
+    * Checks if the value is valid for assignment to this variable
+    * 
+    * @param value
+    * 
+    * @return Error message or null if valid
+    */
+   public String isValid(String value) {
+      return null;
    }
+
+   /**
+    * Set the enabled state of variable
+    * 
+    * @param enabled State to set
+    * 
+    * @return true if the enabled state changed
+    */
+   public boolean enable(boolean enabled) {
+      if (fEnabled == enabled) {
+         return false;
+      }
+      fEnabled = enabled;
+      notifyListeners();
+      return true;
+   }
+
+   /**
+    * @return The enabled state of variable
+    */
+   public boolean isEnabled() {
+      return fEnabled;
+   }
+
+   /**
+    * Gets description of variable
+    * 
+    * @return string
+    */
+   public String getDescription() {
+      return fDescription;
+   }
+
+   /**
+    * Set description of variable
+    * 
+    * @param description
+    */
+   public void setDescription(String description) {
+      fDescription = description;
+   }
+
+   /**
+    * Get tool tip
+    * 
+    * @return
+    */
+   public String getToolTip() {
+      String tip = fToolTip;
+      if (tip == null) {
+         tip = "";
+      }
+      Message message = getMessage();
+      if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
+         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
+      }
+      else if (message != null) {
+         tip += (tip.isEmpty()?"":"\n")+message.getRawMessage();
+      }
+      return (tip.isEmpty())?null:tip;
+   }
+
+   /**
+    * Set tool tip
+    * 
+    * @param toolTip
+    */
+   public void setToolTip(String toolTip) {
+      fToolTip = toolTip;
+   }
+
 
 }

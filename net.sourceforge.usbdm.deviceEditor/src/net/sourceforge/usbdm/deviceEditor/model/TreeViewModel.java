@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 
 /**
@@ -15,6 +16,7 @@ public abstract class TreeViewModel extends PeripheralPageModel {
    
    /**
     * Constructor
+    * @param factory 
     * 
     * @param columnLabels  Labels to use for columns
     * @param title         Title
@@ -36,28 +38,6 @@ public abstract class TreeViewModel extends PeripheralPageModel {
       return fColumnLabels;
    }
    
-   @Override
-   protected BaseModel getRoot() {
-      return this;
-   }
-
-   @Override
-   protected void viewerUpdate(BaseModel element, String[] properties) {
-//      System.err.println("BaseModel("+fName+").viewerUpdate("+element.getName()+")");
-      if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
-         fViewer.update(element,  properties);
-      }
-   }
-
-   /**
-    * Refresh the tree
-    */
-   protected void refresh() {
-      if ((fViewer != null) && !fViewer.getTree().isDisposed()) {
-         fViewer.refresh();
-      }
-   }
-   
    /**
     * Add a view to the model
     * 
@@ -69,4 +49,10 @@ public abstract class TreeViewModel extends PeripheralPageModel {
       }
       fViewer = viewer;
    }
+
+   @Override
+   protected StructuredViewer getViewer() {
+      return fViewer;
+   }
+   
 }

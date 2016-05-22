@@ -70,13 +70,10 @@ public class ValueColumnEditingSupport extends EditingSupport {
    @Override
    protected Object getValue(Object element) {
       if (element instanceof BinaryVariableModel) {
-         BinaryVariableModel model = (BinaryVariableModel)element;
-         boolean rv = model.getBooleanValue();
-         return rv;
+         return ((BinaryVariableModel)element).getValueAsBoolean();
       }
       if (element instanceof BaseModel) {
-         BaseModel model = (BaseModel)element;
-         return model.getValueAsString();
+         return ((BaseModel)element).getValueAsString();
       }
       return "";
    }
@@ -84,12 +81,10 @@ public class ValueColumnEditingSupport extends EditingSupport {
    @Override
    protected void setValue(Object element, Object value) {
       if (element instanceof BinaryVariableModel) {
-         BinaryVariableModel model = (BinaryVariableModel)element;
-         model.setBooleanValue((Boolean) value);
+         ((BinaryVariableModel)element).setBooleanValue((Boolean) value);
       }
       else if (element instanceof EditableModel) {
-         EditableModel model = (EditableModel)element;
-         model.setValueAsString((String) value);
+         ((EditableModel)element).setValueAsString((String) value);
       }
       viewer.update(element, null);
    }

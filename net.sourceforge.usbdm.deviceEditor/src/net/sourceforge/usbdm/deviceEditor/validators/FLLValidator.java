@@ -10,16 +10,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public class FLLValidator extends BaseClockValidator {
 
-//   static class FllPair {
-//      final int  mcg_c1_frdiv;
-//      final long inputFrequency;
-//      
-//      FllPair(int  mcg_c1_frdiv, long inputFrequency) {
-//         this.mcg_c1_frdiv = mcg_c1_frdiv;
-//         this.inputFrequency = inputFrequency;
-//      }
-//   }
-   
    public FLLValidator(PeripheralWithState peripheral) {
       super(peripheral);
    }
@@ -30,40 +20,57 @@ public class FLLValidator extends BaseClockValidator {
    @Override
    protected void validate() {
 
-      // Internal
-      Variable internalReferenceClockNode     =  fPeripheral.getVariable("system_slow_irc_clock");
+      // Warning level to use (depend on whether FLL is enabled)
+      boolean  fll_enabled                     = getVariable("fll_enabled").getValueAsBoolean();
+      Severity warningLevel                    = fll_enabled?Severity.WARNING:Severity.OK;
       
-      Variable system_clockNode               =  fPeripheral.getVariable("system_erc_clock");
-      if (system_clockNode == null) {
+      // Internal
+      Variable internalReferenceClockNode     =  getVariable("system_slow_irc_clock");
+      
+      Variable system_erc_clockNode           =  getVariable("mcg_erc_clock");
+      if (system_erc_clockNode == null) {
          // Try oscillator 0 clock
-         system_clockNode                     =  fPeripheral.getVariable("oscclk0_clock");
+         system_erc_clockNode                 =  getVariable("oscclk0_clock");
       }
-      if (system_clockNode == null) {
+      if (system_erc_clockNode == null) {
          // Try oscillator clock
-         system_clockNode                     =  fPeripheral.getVariable("oscclk_clock");
+         system_erc_clockNode                 =  getVariable("oscclk_clock");
       }
-      Variable mcg_c2_erefsNode               =  fPeripheral.getVariable("mcg_c2_erefs0");
+      Variable mcg_c2_erefsNode               =  getVariable("mcg_c2_erefs0");
       
       // FLL
-      Variable primaryClockModeNode           =  fPeripheral.getVariable("clock_mode");
-      Variable mcg_c2_rangeNode               =  fPeripheral.getVariable("mcg_c2_range0");
-      Variable mcg_c1_frdivNode               =  fPeripheral.getVariable("mcg_c1_frdiv");
-      Variable system_mcgffclk_clockNode      =  fPeripheral.getVariable("system_mcgffclk_clock");
+      Variable clock_modeNode                 =  getVariable("clock_mode");
+      Variable mcg_c2_rangeNode               =  getVariable("mcg_c2_range0");
+      Variable mcg_c1_frdivNode               =  getVariable("mcg_c1_frdiv");
+      Variable system_mcgffclk_clockNode      =  getVariable("system_mcgffclk_clock");
 
-      Variable mcg_c4_dmx32Node               =  fPeripheral.getVariable("mcg_c4_dmx32");
-      Variable mcg_c4_drst_drsNode            =  fPeripheral.getVariable("mcg_c4_drst_drs");
+      Variable mcg_c4_dmx32Node               =  getVariable("mcg_c4_dmx32");
+      Variable mcg_c4_drst_drsNode            =  getVariable("mcg_c4_drst_drs");
 
-      Variable fllTargetFrequencyNode         =  fPeripheral.getVariable("fllTargetFrequency");
+      Variable fllTargetFrequencyNode         =  getVariable("fllTargetFrequency");
 
-      ClockMode clockMode = ClockMode.valueOf(primaryClockModeNode.getValue());
+      Variable mcg_c1_irefsNode               =  getVariable("mcg_c1_irefs");
+
+      Variable system_mcgout_clockNode        =  getVariable("system_mcgout_clock");
       
-      boolean irefs = false;
+      Variable mcg_c7_oscselNode              =  safeGetVariable("mcg_c7_oscsel");
+
+      ClockMode clockMode;
+      try {
+         clockMode = ClockMode.valueOf(clock_modeNode.getSubstitutionValue());
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+         clockMode = ClockMode.ClockMode_None;
+//         clock_modeNode.setValue(clockMode.toString());
+      }
+
+      boolean mcg_c1_irefs = false;
       switch(clockMode) {
       case ClockMode_None:
       case ClockMode_FEI:
       case ClockMode_FBI:
       case ClockMode_BLPI:
-         irefs = true;
+         mcg_c1_irefs = true;
          break;
       
       case ClockMode_BLPE:
@@ -92,9 +99,10 @@ public class FLLValidator extends BaseClockValidator {
       default:
          break;
       }
-      
+      mcg_c1_irefsNode.setValue(mcg_c1_irefs);
+
       // Main clock used by FLL
-      long system_erc_clock = system_clockNode.getValueAsLong();
+      long mcg_erc_clock = system_erc_clockNode.getValueAsLong();
 
       //=========================================
       // Determine mcg_c2_range
@@ -104,26 +112,41 @@ public class FLLValidator extends BaseClockValidator {
       long    mcg_c2_range         = mcg_c2_rangeNode.getValueAsLong();
       Message mcg_c2_erefs_message = null;
 
-      BaseClockValidator.FllDivider check = new FllDivider(system_erc_clock, mcg_c2_erefsNode.getValueAsLong(), system_clockNode.getValueAsLong());
+      BaseClockValidator.FllDivider check = new FllDivider(
+            mcg_erc_clock, 
+            mcg_c2_erefsNode.getValueAsBoolean(), 
+            mcg_c7_oscselNode.getValueAsLong(),
+            system_erc_clockNode.getValueAsLong());
       mcg_c1_frdivNode.setMessage(check.mcg_c1_frdiv_clockMessage);
       mcg_c1_frdivNode.setValue(check.mcg_c1_frdiv);
       
 //      System.err.println("FllClockValidate.validate() externalfllInputFrequencyAfterDivider = " + externalfllInputFrequencyAfterDivider);
       boolean validFllInputClock;
       double fllInputFrequency;
-      
-      if (!irefs) {
+
+      StringBuilder fllMessage = new StringBuilder();
+      if (mcg_c1_irefs) {
+         // Using slow internal reference clock
+         validFllInputClock = true;
+         fllInputFrequency = internalReferenceClockNode.getValueAsLong();
+         fllMessage.append("Origin = Slow IRC");
+      }
+      else {
          // Using external reference clock
          validFllInputClock = (check.mcg_c1_frdiv_clockMessage == null);
          fllInputFrequency = check.fllInputFrequency;
+         fllMessage.append("Origin = External reference clock after scaling");
+      }
+      long system_mcgout_clock = system_mcgout_clockNode.getValueAsLong();
+      if (fllInputFrequency>(system_mcgout_clock/8.0)) {
+         // Too high a frequency - disabled
+         system_mcgffclk_clockNode.setValue(0);
+         fllMessage.append("\nDisabled as freq>(MCGOUTCLK/8)");
       }
       else {
-         // Using internal (low frequency) reference
-         validFllInputClock = true;
-         fllInputFrequency = internalReferenceClockNode.getValueAsLong();
+         system_mcgffclk_clockNode.setValue(Math.round(fllInputFrequency));
       }
-      system_mcgffclk_clockNode.setValue(Math.round(fllInputFrequency));
-      
+//      system_mcgffclk_clockNode.setMessage(new Message(fllMessage.toString(), Severity.OK));
       // Default values
       long mcg_c4_drst_drs = 0;
       Message mcg_c4_dmx32NodeMessage = null;
@@ -135,7 +158,7 @@ public class FLLValidator extends BaseClockValidator {
             // Internal reference selected with narrow FLL bandwidth
             mcg_c4_dmx32NodeMessage = new Message (
                "FLL reference clock must be 32.768 kHz: Currently = "+
-               EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", Severity.WARNING);
+               EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", warningLevel);
             validFllInputClock = false;
          }
       }
@@ -143,7 +166,7 @@ public class FLLValidator extends BaseClockValidator {
       Message fllTargetFrequencyMessage = null;
       if (!validFllInputClock) {
          fllTargetFrequencyMessage = new Message("FLL not usable with input clock frequency: "+
-                 EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", Severity.WARNING);
+                 EngineeringNotation.convert(fllInputFrequency, 5)+"Hz", warningLevel);
       }
       else {
 //         System.err.println("FllClockValidate.validate() fllInputFrequency = " + fllInputFrequency);
@@ -186,7 +209,7 @@ public class FLLValidator extends BaseClockValidator {
             fllOutputValid = false;
             mcg_c4_drst_drs = 0;
             sb.append("Not possible to generate desired FLL frequency from input clock. \n");
-            severity = Severity.WARNING;
+            severity = warningLevel;
          }
          boolean needComma = false;
          for (Long freq : fllFrequencies) {
@@ -201,10 +224,6 @@ public class FLLValidator extends BaseClockValidator {
          }
          fllTargetFrequencyMessage = new Message(sb.toString(), severity);
 //         System.err.println("FllClockValidate.validate() fllOutFrequency = " + fllOutFrequency);
-      }
-      // Check if trying to use FLL when not available
-      if (fllInUse && !fllOutputValid) {
-         primaryClockModeNode.setMessage("FLL incorrectly configured, FLL may not be used");
       }
       mcg_c2_rangeNode.setValue(mcg_c2_range);
       mcg_c4_drst_drsNode.setValue(mcg_c4_drst_drs);

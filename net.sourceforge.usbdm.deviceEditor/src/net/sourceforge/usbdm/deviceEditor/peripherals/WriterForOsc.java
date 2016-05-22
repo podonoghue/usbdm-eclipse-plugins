@@ -23,4 +23,13 @@ public class WriterForOsc extends PeripheralWithState {
       final String signalNames[] = {"^XTAL(32)?$", "^EXTAL(32)?$", };
       return getSignalIndex(function, signalNames);
    }
+   
+   @Override
+   public String getPcrDefinition() {
+      return String.format(
+            "   //! Base value for PCR (excluding MUX value)\n"+
+            "   static constexpr uint32_t pcrValue  = 0;\n\n"
+            );
+   }
+
 }

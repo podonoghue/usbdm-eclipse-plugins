@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -128,7 +129,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          }
       }
       // Construct model
-      DevicePinsModel deviceModel = new DevicePinsModel(this, PIN_COLUMN_LABELS, "Pin View", "Pin mapping organized by pin");
+      DevicePinsModel deviceModel = new DevicePinsModel(PIN_COLUMN_LABELS, "Pin View", "Pin mapping organized by pin");
       for (PinCategory pinCategory:categories) {
          if (pinCategory.getPins().isEmpty()) {
             continue;
@@ -159,7 +160,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return Model
     */
    private DevicePinsModel createPeripheralModel() {
-      DevicePinsModel deviceModel = new DevicePinsModel(this, PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
+      DevicePinsModel deviceModel = new DevicePinsModel(PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
          if (peripheral.hasMappableSignals()) {
@@ -189,7 +190,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       if (fParameterModels != null) {
          return fParameterModels;
       }
-      fParameterModels = new PeripheralConfigurationModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
+      fParameterModels = new PeripheralConfigurationModel(this, null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
@@ -377,11 +378,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          }
       }
       for (BaseModel model:fModels) {
-         if (model != null) {
-            if (model != null) {
-               model.refresh();
-            }
-         }
+         model.update();
       }
    }
 
@@ -405,6 +402,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       createModels();
       
       underConstruction     = false;
+      
+      BaseModel.setFactory(this);
    }
 
    void report() {
@@ -486,8 +485,53 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    }
 
    public void setHardwareFile(String value) {
-      // TODO
-//      System.err.println("setHardwareFile("+value+")");
    }
 
+   /** Viewers associated with this factory */
+   private final ArrayList<StructuredViewer> fViewers = new ArrayList<StructuredViewer>();
+
+   /**
+    * Add viewer associated with this factory
+    * 
+    * @param viewer Viewer to add
+    */
+   void addViewer(StructuredViewer viewer) {
+      fViewers.add(viewer);
+   }
+   
+   /**
+    * Remove viewer associated with this factory
+    * 
+    * @param viewer Viewer to remove
+    */
+   void removeViewer(StructuredViewer viewer) {
+      fViewers.remove(viewer);
+   }
+
+   /**
+    * Update viewers associated with this factory
+    * 
+    * @param element
+    * @param properties
+    */
+   public void update(BaseModel element, String[] properties) {
+      System.err.println("ModelFactory.update("+element+")");
+      for (StructuredViewer viewer:fViewers) {
+         if ((viewer != null) && !viewer.getControl().isDisposed()) {
+            viewer.update(element, properties);
+         };
+      }
+   }
+   
+   /**
+    * Refresh viewers associated with this factory
+    */
+   public void refresh() {
+      System.err.println("ModelFactory.refresh()");
+      for (StructuredViewer viewer:fViewers) {
+         if ((viewer != null) && !viewer.getControl().isDisposed()) {
+            viewer.refresh();
+         };
+      }
+   }
 }

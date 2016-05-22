@@ -1,6 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class NumericVariableModel extends VariableModel {
@@ -16,48 +18,15 @@ public class NumericVariableModel extends VariableModel {
     * 
     * @note Added as child of parent if not null
     */
-   public NumericVariableModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
-      super(parent, provider, key, description);
+   public NumericVariableModel(BaseModel parent, Variable variable, String key) {
+      super(parent, variable, key);
    }
    
-   /**
-    * Get minimum permitted value
-    * 
-    * @return
-    */
-   public long getMin() {
-      return fVariable.getMin();
+   @Override
+   public LongVariable getVariable() {
+      return (LongVariable)super.getVariable();
    }
 
-   /**
-    * Get maximum permitted value
-    * 
-    * @return
-    */
-   public long getMax() {
-      return fVariable.getMax();
-   }
-   
-   /**
-    * Get step size of value<br>
-    * i.e. the value must always be a multiple of this value
-    * 
-    * @return
-    */
-   public long getStep() {
-      return fVariable.getStep();
-   }
-   
-   /**
-    * Get offset size for value<br>
-    * i.e. offset to add when applying this value in template
-    * 
-    * @return
-    */
-   public long getOffset() {
-      return fVariable.getOffset();
-   }
-   
    /**
     * Convert string to long
     * 
@@ -76,54 +45,26 @@ public class NumericVariableModel extends VariableModel {
       return lValue;
    }
    
-   /**
-    * Checks if the value is valid for this variable
-    * 
-    * @return Description of error or null if valid
-    */
-   private String isValid(Long value) {
-      if (value<getMin()) {
-         return "Value too small";
-      }
-      if (value>getMax()) {
-         return "Value too large";
-      }
-      long remainder = value % getStep();
-      if (remainder != 0) {
-         return "Value not a multiple of " + getStep();
-      }
-      return null;
-   }
-
    public String isValid(String value) {
-//      System.err.println("NumericVariableModel.isValid("+fName+", "+value+")");
-      long lValue = 0;
-      try {
-         lValue = Math.round(EngineeringNotation.parse(value));
-      }
-      catch (NumberFormatException e) {
-         return "Illegal number";
-      }
-      return isValid(lValue);
+      return getVariable().isValid(value);
    }
 
    @Override
    public void setValueAsString(String sValue) {
 //      System.err.println("NumericVariableModel.setValueAsString("+fName+", "+sValue+")");
       Long value;
-      if (fVariable.getUnits() == Units.Hz) {
+      if (getVariable().getUnits() == Units.Hz) {
          value = Math.round(EngineeringNotation.parse(sValue));
       }      
       else {
          value = Long.parseLong(sValue);
       }
-      value += getOffset();
-      super.setValueAsString(Long.toString(value));
+      getVariable().setValue(value);
    }
 
    @Override
    public String getValueAsString() {
-      return getValueAsString(toLong(super.getValueAsString())-fVariable.getOffset());
+      return getVariable().getValueAsString();
    }
 
    /**
@@ -134,7 +75,7 @@ public class NumericVariableModel extends VariableModel {
     * @return String in appropriate form e.g. 24.56MHz
     */
    public String getValueAsString(Long value) {
-      if (fVariable.getUnits() == Units.Hz) {
+      if (getVariable().getUnits() == Units.Hz) {
          return EngineeringNotation.convert(value, SIGNIFICANT_DIGITS)+"Hz";
       }      
       return Long.toString(value);
@@ -159,24 +100,24 @@ public class NumericVariableModel extends VariableModel {
       sb.append(super.getToolTip());
       boolean firstOne = true;
       
-      if (getMin() != Long.MIN_VALUE) {
+      if (getVariable().getMin() != Long.MIN_VALUE) {
          sb.append("\n");
          firstOne = false;
-         sb.append("min="+getValueAsString(getMin())+" ");
+         sb.append("min="+getValueAsString(getVariable().getMin())+" ");
       }
-      if (getMax() != Long.MAX_VALUE) {
+      if (getVariable().getMax() != Long.MAX_VALUE) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("max="+getValueAsString(getMax())+" ");
+         sb.append("max="+getValueAsString(getVariable().getMax())+" ");
       }
-      if (getStep() != 1) {
+      if (getVariable().getStep() != 1) {
          if (firstOne) {
             sb.append("\n");
          }
          firstOne = false;
-         sb.append("step="+getValueAsString(getStep())+" ");
+         sb.append("step="+getValueAsString(getVariable().getStep())+" ");
       }
       return sb.toString();
    }

@@ -32,8 +32,10 @@ public interface IModelEntryProvider {
    /**
     * Get variable with given key
     * 
-    * @param key
-    * @return
+    * @param key     Key to lookup variable
+    * 
+    * @return Variable
+    * 
     * @throws Exception if variable doesn't exist
     */
    public Variable getVariable(String key);
@@ -41,10 +43,10 @@ public interface IModelEntryProvider {
    /**
     * Get variable with given key
     * 
-    * @param key
+    * @param key     Key to lookup variable
     * 
     * @return variable or null if not found
     */
-   Variable safeGetVariable(String key);
+   public Variable safeGetVariable(String key);
 
 }

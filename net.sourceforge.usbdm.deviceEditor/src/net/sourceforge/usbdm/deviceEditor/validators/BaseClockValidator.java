@@ -23,7 +23,8 @@ public abstract class BaseClockValidator extends Validator {
    protected static final long FLL_CLOCK_WIDE_MIN = 31250L;
    protected static final long FLL_CLOCK_WIDE_MAX = 39063L;
 
-   public enum ClockMode {ClockMode_None, ClockMode_FEI, ClockMode_FEE, ClockMode_FBI, ClockMode_FBE, ClockMode_PBE,  ClockMode_PEE, ClockMode_BLPI, ClockMode_BLPE}
+   public enum ClockMode {ClockMode_None, ClockMode_FEI, ClockMode_FEE, ClockMode_FBI,
+      ClockMode_FBE, ClockMode_PBE,  ClockMode_PEE, ClockMode_BLPI, ClockMode_BLPE}
 
    protected BaseClockValidator(PeripheralWithState peripheral) {
       super(peripheral);
@@ -102,46 +103,70 @@ public abstract class BaseClockValidator extends Validator {
          return found;
       }
 
-      public FllDivider(long system_erc_clock, long mcg_c2_erefs0, long oscclk_clock) {
+      public FllDivider(long system_erc_clock, boolean mcg_c2_erefs0, long mcg_c7_oscsel, long oscclk_clock) {
 
          //=========================================
          // Check input clock/oscillator ranges
          //   - Determine mcg_c2_range
          //   - Affects FLL prescale
          //
-         int range;
+         int range = 0;
          Message clockMessage = null;
          boolean found = false;
-         if (mcg_c2_erefs0 != 0) {
+         int[] divisors = null;
+         
+         if (mcg_c2_erefs0) {
             // Using oscillator - range is determine by Crystal frequency
-            if ((system_erc_clock >= EXTERNAL_EXTAL_RANGE1_MIN) && (system_erc_clock <= EXTERNAL_EXTAL_RANGE1_MAX)) {
-               found = findDivider(system_erc_clock, LOW_RANGE_DIVISORS);
+            if ((oscclk_clock >= EXTERNAL_EXTAL_RANGE1_MIN) && (oscclk_clock <= EXTERNAL_EXTAL_RANGE1_MAX)) {
                range = 0;
+               divisors = LOW_RANGE_DIVISORS;
             }
-            else if ((system_erc_clock >= EXTERNAL_EXTAL_RANGE2_MIN) && (system_erc_clock <= EXTERNAL_EXTAL_RANGE2_MAX)) {
-               found = findDivider(system_erc_clock/(1<<5), HIGH_RANGE_DIVISORS);
+            else if ((oscclk_clock >= EXTERNAL_EXTAL_RANGE2_MIN) && (oscclk_clock <= EXTERNAL_EXTAL_RANGE2_MAX)) {
                range = 1;
+               divisors = HIGH_RANGE_DIVISORS;
             }
-            else if ((system_erc_clock >= EXTERNAL_EXTAL_RANGE3_MIN) && (system_erc_clock <= EXTERNAL_EXTAL_RANGE3_MAX)) {
-               found = findDivider(system_erc_clock/(1<<5), HIGH_RANGE_DIVISORS);
+            else if ((oscclk_clock >= EXTERNAL_EXTAL_RANGE3_MIN) && (oscclk_clock <= EXTERNAL_EXTAL_RANGE3_MAX)) {
                range = 2;
+               divisors = HIGH_RANGE_DIVISORS;
             }
             else {
+               // Not suitable for OSC
                clockMessage = FLL_CLOCK_ERROR_MSG;
+               
+               // Set a more useful divisor even though none are suitable
                findDivider(system_erc_clock/(1<<5), LOW_RANGE_DIVISORS);
-               range = 0;
             }
          }
          else {
-            // Using external clock - try all possibilities
-            found = findDivider(system_erc_clock, LOW_RANGE_DIVISORS);
-            range = 0;
-            if (!found) {
-               range = 1;
+            // Using external clock
+            if (oscclk_clock>EXTERNAL_CLOCK_MAX) {
+               clockMessage = CLOCK_RANGE_ERROR_MSG;
+            }
+         }
+         if (mcg_c7_oscsel == 1) {
+            // Forced to LOW_RANGE_DIVISORS irrespective of range
+            divisors = LOW_RANGE_DIVISORS;
+         }
+         if (clockMessage == null) {
+            // Clock OK - try to find divisor
+            if (divisors == LOW_RANGE_DIVISORS) {
+               found = findDivider(system_erc_clock, LOW_RANGE_DIVISORS);
+            }
+            else if (divisors == HIGH_RANGE_DIVISORS) {
                found = findDivider(system_erc_clock/(1<<5), HIGH_RANGE_DIVISORS);
             }
-            if ((mcg_c2_erefs0 == 0) && (oscclk_clock>EXTERNAL_CLOCK_MAX)) {
-               clockMessage = CLOCK_RANGE_ERROR_MSG;
+            else {
+               // No divider set - try all possible ranges divisors
+               found = findDivider(system_erc_clock, LOW_RANGE_DIVISORS);
+               if (found) {
+                  range = 0;
+               }
+               else {
+                  found = findDivider(system_erc_clock/(1<<5), HIGH_RANGE_DIVISORS);
+                  if (found) {
+                     range = 1;
+                  }
+               }
             }
          }
          if (found) {
@@ -160,6 +185,12 @@ public abstract class BaseClockValidator extends Validator {
       }
    }
 
+   private String getSimpleClassName() {
+      String s = getClass().toString();
+      int index = s.lastIndexOf(".");
+      return s.substring(index+1, s.length());
+   }
+   
    /**
     * =============================================================
     */
@@ -169,9 +200,11 @@ public abstract class BaseClockValidator extends Validator {
 
    @Override
    public boolean variableChanged(Variable variable) {
+//      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       if (busy) {
          recursed = true;
-         System.err.println(getClass().getName()+".variableChanged():Recursed");
+//         System.err.println(getSimpleClassName()+".variableChanged("+variable+"):Recursed");
+//         new Throwable().printStackTrace(System.err);
          return true;
       }
       busy = true;
@@ -179,13 +212,27 @@ public abstract class BaseClockValidator extends Validator {
       do {
          recursed = false;
          validate();
+//         System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iterating " + iterationCount);
          if (iterationCount++>MAX_ITERATION) {
-            System.err.println(getClass().getName()+".variableChanged() Iteration limit reached");
+            System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iteration limit reached");
             break;
          }
       } while (recursed);
       busy = false;
       return false;
+   }
+   
+   /**
+    * Check if a value is within a range
+    * 
+    * @param value   Value to check
+    * @param min     Smallest allowed value
+    * @param max     Largest allowed value
+    * 
+    * @return        true is value in [min,max]
+    */
+   boolean checkRange(long value, long min, long max) {
+      return (value>=min) && (value<=max);
    }
 
 }

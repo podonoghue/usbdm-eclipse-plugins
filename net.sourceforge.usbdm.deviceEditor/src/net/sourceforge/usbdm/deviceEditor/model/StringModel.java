@@ -16,7 +16,7 @@ public abstract class StringModel extends BaseModel {
    
    public void setValue(String value) {
       fValue = value;
-      super.viewerUpdate(this, null); 
+      update(); 
    }
 
 }

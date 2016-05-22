@@ -91,7 +91,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof Signal) {
-         viewerUpdate(this, null);
+         update();
       }
    }
 

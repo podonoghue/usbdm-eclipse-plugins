@@ -104,14 +104,14 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          fSelection = fDefaultSelection;
       }
       fPin.setMappedSignal(fMappingInfos[fSelection]);
-      ((DevicePinsModel)getRoot()).checkConflicts();
+      checkConflicts();
    }
 
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof Pin) {
-         viewerUpdate(this, null);
-         ((DevicePinsModel)getRoot()).checkConflicts();
+         update();
+         checkConflicts();
       }
    }
 

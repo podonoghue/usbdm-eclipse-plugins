@@ -7,38 +7,38 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
  */
 public class VariableModel extends EditableModel implements IModelChangeListener {
 
-   protected final IModelEntryProvider fProvider;
    protected final String              fKey;
    protected final Variable            fVariable;
    
    /**
-    * Create model
     * 
     * @param parent        Parent model
     * @param provider      Provider that owns the variable
     * @param key           Key used to access the variable
     * @param description   Description for the display
     */
-   public VariableModel(BaseModel parent, IModelEntryProvider provider, String key, String description) {
-      super(parent, key, description);
-      fProvider      = provider;
+   public VariableModel(BaseModel parent, Variable variable, String key) {
+      super(parent, key, null);
       fKey           = key;
-      fVariable      = fProvider.getVariable(key);
+      fVariable      = variable;
       fVariable.addListener(this);
+   }
+
+   /**
+    * @return the Variable associated with this model
+    */
+   public Variable getVariable() {
+      return fVariable;
    }
 
    @Override
    public String getValueAsString() {
-      String value =  fProvider.getVariableValue(fKey);
-//      System.err.println("VariableModel.getValueAsString("+fName+"=> "+value+")");
-      return value;
+      return fVariable.getValueAsString();
    }
 
    @Override
    public void setValueAsString(String value) {
-//      System.err.println("VariableModel.setValueAsString("+fName+", "+value+")");
-      fProvider.setVariableValue(fKey, value);
-      viewerUpdate(getParent(), null);
+      fVariable.setValue(value);
    }
 
    @Override
@@ -67,22 +67,41 @@ public class VariableModel extends EditableModel implements IModelChangeListener
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-      viewerUpdate(this, null);
+      update();
    }
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
-      viewerUpdate(this, null);
+      update();
    }
 
    @Override
    public boolean isEnabled() {
-      return (!(fParent instanceof BinaryVariableModel) || ((BinaryVariableModel)fParent).getBooleanValue());
+      return fVariable.isEnabled() && 
+            (!(fParent instanceof BinaryVariableModel) || ((BinaryVariableModel)fParent).getValueAsBoolean());
    }
 
    @Override
    public boolean canEdit() {
       return super.canEdit() && isEnabled() && !fVariable.isLocked();
+   }
+
+   @Override
+   public String getDescription() {
+      String description = super.getDescription();
+      if (description == null) {
+         description = fVariable.getDescription();
+      }
+      return description;
+   }
+
+   @Override
+   public String getToolTip() {
+      String toolTip = super.getToolTip();
+      if (toolTip == null) {
+         toolTip = fVariable.getToolTip();
+      }
+      return toolTip;
    }
    
 }

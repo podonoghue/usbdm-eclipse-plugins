@@ -1420,7 +1420,7 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings to the given path
     */
    public void saveSettingsAs(Path path) {
-      System.err.println("DeviceInfo.saveSettingsAsSaving("+path.toAbsolutePath()+")");
+      System.err.println("DeviceInfo.saveSettingsAs("+path.toAbsolutePath()+")");
       fProjectSettingsPath = path;
       DialogSettings settings = new DialogSettings("USBDM");
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
@@ -1660,12 +1660,10 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if variable already exists
     */
-   public Variable createVariable(String key, String value) {
-      Variable variable = new Variable(key, value);
+   public void addVariable(String key, Variable variable) {
       if (fVariables.put(key, variable) != null) {
          throw new RuntimeException("Variable already exists \'"+key+"\'");
       };
-      return variable;
    }
    
    /**
@@ -1676,11 +1674,7 @@ public class DeviceInfo extends ObservableModel {
     * @throws Exception if variable doesn't exist
     */
    public String getVariableValue(String key) {
-      Variable variable = fVariables.get(key);
-      if (variable == null) {
-         throw new RuntimeException("Variable does not exist \'"+key+"\'");
-      };
-      return variable.getValue();
+      return getVariable(key).getValueAsString();
    }
 
    /**
@@ -1693,8 +1687,8 @@ public class DeviceInfo extends ObservableModel {
    public Variable getVariable(String key) {
       Variable variable = fVariables.get(key);
       if (variable == null) {
-         throw new RuntimeException("Variable does not exist \'"+key+"\'");
-      };
+         throw new RuntimeException("Variable does not exist for key \'"+key+"\'");
+      }
       return variable;
    }
 
@@ -1707,17 +1701,17 @@ public class DeviceInfo extends ObservableModel {
     */
    public void setVariableValue(String key, String value) {
       Variable variable = fVariables.get(key);
-      if (variable.getValue().equals(value)) {
-         return;
+      if (variable == null) {
+         System.err.println(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
+         throw new RuntimeException(String.format("setVariableValue(k=%s, v=%s): Variable not found", key, value));
       }
-      variable.setValue(value);
-      setDirty(true);
+      setDirty(variable.setValue(value));
    }
 
    public Map<String, String> getSimpleMap() {
       HashMap<String, String>map = new HashMap<String, String>();
       for (String key:fVariables.keySet()) {
-         map.put(key, fVariables.get(key).getValue());
+         map.put(key, fVariables.get(key).getSubstitutionValue());
       }
       return map;
    }

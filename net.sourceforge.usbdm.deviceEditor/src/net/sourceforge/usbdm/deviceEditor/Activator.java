@@ -72,6 +72,8 @@ public class Activator extends AbstractUIPlugin {
       Bundle bundle = Platform.getBundle(PLUGIN_ID);
 
       ImageDescriptor imageDescriptor;
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/disabled.png"), null));
+      registry.put(ID_DISABLED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
       registry.put(ID_COG_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-checked.png"), null));
@@ -89,6 +91,7 @@ public class Activator extends AbstractUIPlugin {
    }
 
    public final static String ID_COG_IMAGE                 = "cog";
+   public final static String ID_DISABLED_IMAGE            = "disabled";
    public final static String ID_CHECKBOX_CHECKED_IMAGE    = "checkbox-checked";
    public final static String ID_CHECKBOX_UNCHECKED_IMAGE  = "checkbox-unchecked";
    public final static String ID_ERROR_NODE_IMAGE          = "error";

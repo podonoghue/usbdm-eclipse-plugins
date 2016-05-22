@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
@@ -51,35 +52,32 @@ public class PllClockValidater extends BaseClockValidator {
       VDIV_MAX                  = (int) vDivMax;
       PLL_POST_DIV              = (int) pllPostDiv;
       
-      Variable pllTargetFrequencyNode = fPeripheral.getVariable("pllTargetFrequency");
+      LongVariable pllTargetFrequencyNode = getLongVariable("pllTargetFrequency");
       pllTargetFrequencyNode.setMin(pllOutMin);
       pllTargetFrequencyNode.setMax(pllOutMax);
-      Variable mcg_c5_prdiv0Node      = fPeripheral.getVariable("mcg_c5_prdiv0");
+      
+      LongVariable mcg_c5_prdiv0Node      = getLongVariable("mcg_c5_prdiv0");
       mcg_c5_prdiv0Node.setMin(prDivMin);
       mcg_c5_prdiv0Node.setMax(prDivMax);
-      Variable mcg_c6_vdiv0Node       = fPeripheral.getVariable("mcg_c6_vdiv0");
+      
+      LongVariable mcg_c6_vdiv0Node       = getLongVariable("mcg_c6_vdiv0");
       mcg_c6_vdiv0Node.setMin(vDivMin);
       mcg_c6_vdiv0Node.setMax(vDivMax);
    }
    
    @Override
    protected void validate() {
-      Variable system_erc_clockNode   = fPeripheral.getVariable("system_erc_clock");
-      Variable pllTargetFrequencyNode = fPeripheral.getVariable("pllTargetFrequency");
-      Variable mcg_c5_prdiv0Node      = fPeripheral.getVariable("mcg_c5_prdiv0");
-      Variable mcg_c6_vdiv0Node       = fPeripheral.getVariable("mcg_c6_vdiv0");
-
-      if (system_erc_clockNode == null) {
-         // Default to oscillator clock
-         system_erc_clockNode =  fPeripheral.getVariable("oscclk_clock");
-      }
+      Variable system_erc_clockNode   = getVariable("mcg_erc_clock");
+      Variable pllTargetFrequencyNode = getVariable("pllTargetFrequency");
+      Variable mcg_c5_prdiv0Node      = getVariable("mcg_c5_prdiv0");
+      Variable mcg_c6_vdiv0Node       = getVariable("mcg_c6_vdiv0");
 
       // Main clock used by FLL
-      long system_erc_clock = system_erc_clockNode.getValueAsLong();
+      long mcg_erc_clock = system_erc_clockNode.getValueAsLong();
 
       long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
 
-      System.err.println(String.format("\nPllClockValidater.validate(): system_erc_clock = %d, pllTargetFrequency = %d", system_erc_clock, pllTargetFrequency));
+//      System.err.println(String.format("\nPllClockValidater.validate(): mcg_erc_clock = %d, pllTargetFrequency = %d", mcg_erc_clock, pllTargetFrequency));
 
       int  mcg_prdiv = 0;
       int  mcg_vdiv  = 0;
@@ -97,7 +95,7 @@ public class PllClockValidater extends BaseClockValidator {
 //            System.err.println(sb.toString());
             sb = new StringBuilder();
          }
-         double pllInFrequency = system_erc_clock/mcg_prdiv_probe;
+         double pllInFrequency = mcg_erc_clock/mcg_prdiv_probe;
          sb.append(String.format("(prdiv = %d, pllIn=%f) => ", mcg_prdiv_probe, pllInFrequency));
          if (pllInFrequency>PLL_IN_MAXIMUM_FREQUENCY) {
             // Invalid as input to PLL
@@ -141,25 +139,25 @@ public class PllClockValidater extends BaseClockValidator {
       }
       if (valid) {
          // Valid - update
-         mcg_c5_prdiv0Node.setValue(mcg_prdiv-PRDIV_MIN);
-         mcg_c6_vdiv0Node.setValue(mcg_vdiv-VDIV_MIN);
+         mcg_c5_prdiv0Node.setValue(mcg_prdiv);
+         mcg_c6_vdiv0Node.setValue(mcg_vdiv);
          if (pllTargetFrequency != nearestPllOutFrequency) {
             pllTargetFrequency = nearestPllOutFrequency;
             pllTargetFrequencyNode.setValue(pllTargetFrequency);
          }
-         System.err.println(String.format("PllClockValidater.validater(): Valid - prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
+//         System.err.println(String.format("PllClockValidater.validater(): Valid - prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
       }
       sb = new StringBuilder();
       Message.Severity severity = Severity.OK;
       if (!valid) {
          if (pllFrequencies.isEmpty()) {
             // No possible output frequencies indicates that the input frequency was not suitable
-            sb.append(String.format("PLL not usable with input clock frequency %d Hz\n", system_erc_clock));
+            sb.append(String.format("PLL not usable with input clock frequency %d Hz\n", mcg_erc_clock));
          }
          else {
             sb.append("Not possible to generate desired PLL frequency from input clock\n");
          }
-         System.err.println("PllClockValidater.validater(): "+sb.toString());
+//         System.err.println("PllClockValidater.validater(): "+sb.toString());
       }
       sb.append("Possible values (Hz) = \n");
       boolean needComma = false;

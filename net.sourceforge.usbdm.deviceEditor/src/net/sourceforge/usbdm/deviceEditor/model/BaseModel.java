@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jface.viewers.StructuredViewer;
+
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.peripherals.model.MemoryException;
 
@@ -11,6 +13,75 @@ import net.sourceforge.usbdm.peripherals.model.MemoryException;
  * Base Model for tree item
  */
 public abstract class BaseModel {
+   
+   /** Factory owning these models */
+   static private ModelFactory fFactory = null;
+
+   /** 
+    * Set the Factory using these models 
+    * 
+    * @param factory
+    */
+   static void setFactory(ModelFactory factory) {
+      fFactory = factory;
+   }
+   
+   /**
+    * Check for mapping conflicts<br>
+    * This is done on a delayed thread for efficiency
+    */
+   static void checkConflicts() {
+      if (fFactory != null) {
+         fFactory.checkConflicts();
+      }
+   }
+   
+   /**
+    * Get viewer associated with this model
+    * 
+    * @return
+    */
+   protected StructuredViewer getViewer() {
+      if (fParent != null) {
+         return fParent.getViewer();
+      }
+      return null;
+   }
+   
+   /**
+    * Refresh the viewer for this model
+    */
+   protected void refresh() {
+      StructuredViewer viewer = getViewer();
+      if ((viewer != null) && (!viewer.getControl().isDisposed())) {
+         viewer.refresh();
+      }
+   }
+   
+   /**
+    * Updates the model's presentation when one or more of its properties change
+    */
+   protected void update() {
+      StructuredViewer viewer = getViewer();
+      if (viewer != null) {
+         viewer.update(this, null);
+      }
+   }
+   
+   /**
+    * Updates the given element's and all ancestor's presentation when one or more of its properties change
+    */
+   protected void updateAncestors() {
+      StructuredViewer viewer = getViewer();
+      if (viewer != null) {
+         BaseModel element = this;
+         while (element != null) {
+            viewer.update(element, null);
+            element = element.getParent();
+         }
+      }
+   }
+   
    /** Name of model */
    protected       String            fName;
    
@@ -44,9 +115,6 @@ public abstract class BaseModel {
    public BaseModel(BaseModel parent, String name, String description) {
       if (name == null) {
          name = "No name";
-      }
-      if (description == null) {
-         description = "No description";
       }
       fParent      = parent;
       fName        = name;
@@ -153,7 +221,6 @@ public abstract class BaseModel {
    }
    
    /**
-    * 
     * Gets description of element
     * 
     * @return string
@@ -320,18 +387,6 @@ public abstract class BaseModel {
    }
 
    /**
-    * Get root node of tree
-    * 
-    * @return
-    */
-   protected BaseModel getRoot() {
-      if (fParent != null) {
-         return fParent.getRoot();
-      }
-      return null;
-   }
-   
-   /**
     * Check if this node's function mapping conflicts with set of already mapped nodes
     * 
     * @param mappedNodes
@@ -341,30 +396,33 @@ public abstract class BaseModel {
       return null;
    }
 
-   /**
-    * Update the node given
-    * 
-    * @param element
-    * @param properties
-    */
-   protected void viewerUpdate(BaseModel element, String[] properties) {
-      if (element != null) {
-         BaseModel root = getRoot();
-         if (root != null) {
-            root.viewerUpdate(element, properties);
-         }
-      }
-   }
+//   /**
+//    * Update the node given
+//    * 
+//    * @param element
+//    * @param properties
+//    */
+//   protected void viewerUpdate(BaseModel element, String[] properties) {
+//      if (element != null) {
+//         BaseModel root = getRoot();
+//         if (root != null) {
+//            root.viewerUpdate(element, properties);
+//         }
+//         if (getParent() != null) {
+//            root.viewerUpdate(getParent(), null);
+//         }
+//      }
+//   }
 
-   /**
-    * Refresh all views from the model from the root node
-    */
-   protected void refresh() {
-      BaseModel root = getRoot();
-      if (root != null) {
-         getRoot().refresh();
-      }
-   }
+//   /**
+//    * Refresh all views from the model from the root node
+//    */
+//   protected void refresh() {
+//      BaseModel root = getRoot();
+//      if (root != null) {
+//         getRoot().refresh();
+//      }
+//   }
 
    /**
     * Remove any listeners created by this model<br>

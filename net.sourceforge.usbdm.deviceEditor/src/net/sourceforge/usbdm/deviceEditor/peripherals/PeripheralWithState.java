@@ -79,23 +79,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @throws Exception if variable already exists
     */
-   public Variable createVariable(String key, String value) {
-      Variable variable = fDeviceInfo.createVariable(keyMaker.makeKey(key), value);
+   public void addVariable(String key, Variable variable) {
+      fDeviceInfo.addVariable(keyMaker.makeKey(key), variable);
       variable.addListener(this);
-      return variable;
    }
 
-   /**
-    * Create a variable
-    * 
-    * @param key     Key identifying variable
-    * 
-    * @throws Exception if variable already exists
-    */
-   public Variable createVariable(String key) {
-      return createVariable(key, "");
-   }
-   
    @Override
    public void setVariableValue(String key, String value) {
       fDeviceInfo.setVariableValue(keyMaker.makeKey(key), value);
@@ -214,6 +202,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    protected void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
+      fDeviceInfo.setDirty(true);
       for (Validator v:validators) {
          v.variableChanged(variable);
       }
