@@ -62,6 +62,9 @@ abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelPr
       if ((text == null)||(text.length() == 0)) {
          return new StyledString("");
       }
+      if (!baseModel.isEnabled()) {
+         return new StyledString(text, DISABLED_STYLER);
+      }
       if (baseModel.isError()) {
          return new StyledString(text, ERROR_STYLER);
       }
@@ -69,9 +72,6 @@ abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelPr
          return new StyledString(text, WARNING_STYLER);
       }
       if (baseModel.isReset()) {
-         return new StyledString(text, DISABLED_STYLER);
-      }
-      if (!baseModel.isEnabled()) {
          return new StyledString(text, DISABLED_STYLER);
       }
       if (baseModel.hasChildren()) {

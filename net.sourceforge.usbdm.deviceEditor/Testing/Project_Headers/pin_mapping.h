@@ -2652,7 +2652,7 @@ public:
    };
 
    //! Clock Mode
-   static constexpr ClockMode clockMode = ClockMode_None;
+   static constexpr ClockMode clockMode = ClockMode_PEE;
 
    //! Frequency of OSC Clock or Crystal
    static constexpr uint32_t oscclk_clock = 8000000UL;
@@ -2664,7 +2664,7 @@ public:
    static constexpr uint32_t irc48m_clock = 48000000UL;
 
    //! Frequency of Slow Internal Reference Clock [~32kHz])
-   static constexpr uint32_t system_slow_irc_clock = 1000UL;
+   static constexpr uint32_t system_slow_irc_clock = 32768UL;
 
    //! Frequency of Fast Internal Reference Clock [~4MHz])
    static constexpr uint32_t system_fast_irc_clock = 4000000UL;
@@ -2672,20 +2672,20 @@ public:
    //! Control Register 1
    static constexpr uint32_t MCG_C1 =
       MCG_C1_FRDIV(3)   | // FRDIV    FLL External Reference Divider
-      MCG_C1_IRCLKEN(0) | // IRCLEN   Internal Reference Clock Enable
-      MCG_C1_IREFSTEN(0); // IREFSTEN Internal Reference Stop Enable
+      MCG_C1_IRCLKEN(1) | // IRCLEN   Internal Reference Clock Enable
+      MCG_C1_IREFSTEN(1); // IREFSTEN Internal Reference Stop Enable
 
    //! Control Register 2
    static constexpr uint32_t MCG_C2 =
       MCG_C2_LOCRE0(0) | // LOLRE0  Loss of Clock Reset Enable
       MCG_C2_RANGE0(1) | // RANGE   Frequency Range Select
-      MCG_C2_HGO0(0)   | // HGO     High Gain Oscillator Select
+      MCG_C2_HGO0(1)   | // HGO     High Gain Oscillator Select
       MCG_C2_EREFS0(0) | // EREFS   External Reference Select
-      MCG_C2_IRCS(0);    // IRCS    Internal Reference Clock Select
+      MCG_C2_IRCS(1);    // IRCS    Internal Reference Clock Select
 
    //! Control Register 4
    static constexpr uint32_t MCG_C4 =
-      MCG_C4_DMX32(0)     | // DMX32    DCO lock range
+      MCG_C4_DMX32(1)     | // DMX32    DCO lock range
       MCG_C4_DRST_DRS(0);   // DRST_DRS DCO Range Select
 
    //! Control Register 5
@@ -2702,7 +2702,7 @@ public:
 
    //! Status and Control Register
    static constexpr uint32_t MCG_SC =
-      MCG_SC_FCRDIV(0); // FCRDIV Internal Clock Reference Divider
+      MCG_SC_FCRDIV(1); // FCRDIV Internal Clock Reference Divider
 
    //! Control Register 7
    static constexpr uint32_t MCG_C7 =
@@ -2729,11 +2729,11 @@ public:
 
    //! Clock divider
    static constexpr uint32_t SIM_CLKDIV1 = 
-      SIM_CLKDIV1_OUTDIV4(5) | // SIM_CLKDIV1_OUTDIV4
+      SIM_CLKDIV1_OUTDIV4(6) | // SIM_CLKDIV1_OUTDIV4
    #ifdef SIM_CLKDIV1_OUTDIV3
-      SIM_CLKDIV1_OUTDIV3(3) | // SIM_CLKDIV1_OUTDIV3
+      SIM_CLKDIV1_OUTDIV3(6) | // SIM_CLKDIV1_OUTDIV3
    #endif
-      SIM_CLKDIV1_OUTDIV2(3) | // SIM_CLKDIV1_OUTDIV2
+      SIM_CLKDIV1_OUTDIV2(6) | // SIM_CLKDIV1_OUTDIV2
       SIM_CLKDIV1_OUTDIV1(2);  // SIM_CLKDIV1_OUTDIV1
 };
 
@@ -2797,7 +2797,7 @@ public:
    static constexpr uint32_t OSC_CR =
       (0<<OSC_CR_ERCLKEN_SHIFT)|
       (0<<OSC_CR_EREFSTEN_SHIFT)|
-      (0<<OSC_CR_SC16P_SHIFT);
+      (2<<OSC_CR_SC16P_SHIFT);
 
 #ifdef OSC_DIV_ERPS_MASK
    //! OSC Clock divider register
@@ -2924,7 +2924,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Default value for PIT->SC register
-   static constexpr uint32_t loadValue  = 65535;
+   static constexpr uint32_t loadValue  = 10000;
 
    //! PIT operation in debug mode
    static constexpr uint32_t mcrValue = (0<<PIT_MCR_FRZ_SHIFT);
@@ -3083,7 +3083,7 @@ public:
       (0<<RTC_CR_UM_SHIFT)|
       (0<<RTC_CR_SUP_SHIFT)|
       (0<<RTC_CR_WPE_SHIFT)|
-      (0<<RTC_CR_SC16P_SHIFT);
+      (2<<RTC_CR_SC16P_SHIFT);
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 5;
@@ -3605,7 +3605,7 @@ public:
    //! Default value for SC register
    static constexpr uint32_t SC  = 
        (0<<TPM_SC_TOIE_SHIFT)|
-       TPM_SC_CMOD(0)|
+       TPM_SC_CMOD(1)|
        TPM_SC_PS(0);
 
    //! Default Timer Period
@@ -3669,7 +3669,7 @@ public:
    //! Default value for SC register
    static constexpr uint32_t SC  = 
        (0<<TPM_SC_TOIE_SHIFT)|
-       TPM_SC_CMOD(0)|
+       TPM_SC_CMOD(1)|
        TPM_SC_PS(0);
 
    //! Default Timer Period

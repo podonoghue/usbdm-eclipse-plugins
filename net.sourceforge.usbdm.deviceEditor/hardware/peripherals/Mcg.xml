@@ -5,29 +5,7 @@
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
    <page name="_instance" description="Multipurpose Clock Generator" >
    
-      <menu name="Internal" description="Internal Clock Sources"
-         toolTip="[IRCLK48MCLK, LPO, Slow IRC, Fast IRC, MCGIRCLK]" >
-         <intOption name="system_irc48m_clock" 
-            units="Hz"
-            description="Frequency of Internal 48MHz Clock [IRC48MCLK]"
-            toolTip="48 MHz Internal Oscillator [Trimmed against USB bus]"
-            value="48000000" 
-            constant="true" />
-   
-         <intOption name="system_usb_clkin_clock" 
-            units="Hz"
-            description="Frequency of External USB Clock"
-            toolTip="Externally provided clock for USB on USB_CLKIN" 
-            value="48000000"
-            constant="true" />
-
-         <intOption name="system_low_power_clock"
-            units="Hz"
-            description="Frequency of Internal Low Power Oscillator [LPO] Clock"
-            toolTip="Dependent on device. [Typically ~1kHz]" 
-            value="1000"
-            constant="true" />
-   
+      <menu name="MCGIR" description="Internal Reference Clock Sources [MCGIRCLK]" >
          <intOption name="system_slow_irc_clock"
             units="Hz"
             description="Frequency of Slow Internal Reference [SIRC] Clock"
@@ -54,6 +32,13 @@
             <choice value="7" name="Divide by 128" />
          </choiceOption>
 
+         <binaryOption name="mcg_c2_ircs"
+            description="Internal Reference [MCGIRCLK] Clock Source" 
+            toolTip="Clock Source for MCGIRCLK" >
+            <choice value="0" name="Slow internal reference clock" isDefault="true"/>
+            <choice value="1" name="Fast internal reference clock" />
+         </binaryOption>
+
          <binaryOption name="mcg_c1_irclken"
             description="Internal Reference [MCGIRCLK] Clock Enable "
             toolTip="Enables the internal reference clock for use by peripherals as MCGIRCLK">
@@ -67,14 +52,38 @@
             <choice value="0" name="IR disabled in STOP" />
             <choice value="1" name="IR enabled in STOP" />
          </binaryOption>
-         
-         <binaryOption name="mcg_c2_ircs"
-            description="Internal Reference [MCGIRCLK] Clock Source" 
-            toolTip="Clock Source for MCGIRCLK" >
-            <choice value="0" name="Slow internal reference clock" isDefault="true"/>
-            <choice value="1" name="Fast internal reference clock" />
-         </binaryOption>
 
+      <intOption name="system_mcgir_clock" 
+         units="Hz"
+         description="Frequency of Internal Reference [MCGIRCLK] "
+         toolTip="Derive from system_slow_irc_clock or system_fast_irc_clock/fcrdiv"
+         value="48000000" 
+         constant="true" />
+      </menu>
+      
+      <menu name="Internal" description="Internal Clock Sources"
+         toolTip="[IRCLK48MCLK, LPO, Slow IRC, Fast IRC, MCGIRCLK]" >
+         <intOption name="system_irc48m_clock" 
+            units="Hz"
+            description="Frequency of Internal 48MHz Clock [IRC48MCLK]"
+            toolTip="48 MHz Internal Oscillator [Trimmed against USB bus]"
+            value="48000000" 
+            constant="true" />
+   
+         <intOption name="system_usb_clkin_clock" 
+            units="Hz"
+            description="Frequency of External USB Clock"
+            toolTip="Externally provided clock for USB on USB_CLKIN" 
+            value="48000000"
+            constant="true" />
+
+         <intOption name="system_low_power_clock"
+            units="Hz"
+            description="Frequency of Internal Low Power Oscillator [LPO] Clock"
+            toolTip="Dependent on device. [Typically ~1kHz]" 
+            value="1000"
+            constant="true" />
+   
       </menu>  
       
       <menu name="OSC" description="OSC External Reference Clock/Oscillator [OSCCLK]" >
@@ -135,16 +144,6 @@
             <choice value="1" name="Enabled in Stop mode" />
          </binaryOption>
    
-         <choiceOption name="osc_div_erps" 
-            description="ERCLK prescaler"
-            toolTip="Divides down the ERCLK output" >
-            <choice value="0"  name="Divide by 1" isDefault="true" />
-            <choice value="1"  name="Divide by 2" />
-            <choice value="2"  name="Divide by 4" />
-            <choice value="3"  name="Divide by 8" />
-            <choice value="0"  name="Default" />
-         </choiceOption>
-
          <choiceOption name="mcg_c2_range0"
             constant="true"
             description="Frequency Range Select"
@@ -157,6 +156,30 @@
             <choice value="0" name="Default" />
          </choiceOption>
          
+         <intOption name="system_oscerclk_undiv_clock"
+            units="Hz"
+            description="Oscillator clock to some peripherals [OSCERCLK_UNDIV]"
+            toolTip="Generated from OSCCLK without division"
+            value="8000000"  
+            constant="true" />
+   
+         <choiceOption name="osc_div_erps" 
+            description="ERCLK prescaler"
+            toolTip="Divides down the ERCLK output" >
+            <choice value="0"  name="Divide by 1" isDefault="true" />
+            <choice value="1"  name="Divide by 2" />
+            <choice value="2"  name="Divide by 4" />
+            <choice value="3"  name="Divide by 8" />
+            <choice value="0"  name="Default" />
+         </choiceOption>
+   
+         <intOption name="system_oscerclk_clock"
+            units="Hz"
+            description="Oscillator clock to peripherals [OSCERCLK]"
+            toolTip="Generated from OSCCLK after division by osc_div_erps"
+            value="8000000"  
+            constant="true" />
+
       </menu>
 
       <menu name="RTC" description="RTC External Reference Clock/Oscillator [ERCLK32K]">
@@ -213,6 +236,13 @@
             <choice value="2"  name="Default" />
          </choiceOption>
 
+         <intOption name="system_erclk32k_clock" 
+            units="Hz"
+            description="Frequency of External 32k Reference Clock [ERCLK32K]"
+            toolTip="Derived from OSC32KCLK, RTCCLK, LPO" 
+            value="32000"
+            constant="true" />
+   
          <binaryOption name="sim_sopt2_rtcclkoutsel" 
             description="RTC clock out select [RTC_CLKOUT pin]"
             toolTip="Clock output on the RTC_CLKOUT pin">
@@ -283,20 +313,6 @@
          <choice name="Bypassed low power external (BLPE)"  value="ClockMode_BLPE" />
       </choiceOption>
 
-      <intOption name="system_mcgir_clock" 
-         units="Hz"
-         description="Frequency of Internal Reference [MCGIRCLK] "
-         toolTip="Derive from system_slow_irc_clock or system_fast_irc_clock/fcrdiv"
-         value="48000000" 
-         constant="true" />
-
-      <intOption name="system_oscerclk_clock"
-         units="Hz"
-         description="Oscillator clock to peripherals [OSCERCLK]"
-         toolTip="Generated from OSCCLK"
-         value="8000000"  
-         constant="true" />
-
       <choiceOption name="mcg_c7_oscsel" 
          description="MCG External Reference Clock source [OSCSEL]"
          toolTip="Selects the MCG FLL/PLL external reference clock source">
@@ -314,13 +330,6 @@
                   RTC_CLOCK(XTAL32/EXTAL32) or IRC48M(Internal 48MHz)"
          value="12000000" />
    
-      <intOption name="system_erclk32k_clock" 
-         units="Hz"
-         description="Frequency of External 32k Reference Clock [ERCLK32K]"
-         toolTip="Derived from OSC32KCLK, RTCCLK, LPO" 
-         value="32000"
-         constant="true" />
-
       <menu name="FLL" description="FLL Settings">
          <binaryOption name="fll_enabled"
             constant="true" 
@@ -330,6 +339,13 @@
             <choice value="1" name="Active" />
          </binaryOption>
 
+         <intOption name="fllInputFrequency" 
+            constant="true"
+            units="Hz"
+            description="FLL Input clock frequency"
+            toolTip="Frequency of input to FLL"
+            value="32000" />
+   
          <intOption name="fllTargetFrequency" 
             units="Hz"
             description="FLL Output clock frequency"
@@ -374,6 +390,14 @@
             <choice value="3" name="High (x2560/x2929, 80-100/96 MHz)" />
          </choiceOption>
    
+         <intOption name="system_mcgffclk_clock"
+            units="Hz"
+            constant="true"  
+            description="MCG Fixed Frequency Clock [MCGFFCLK]"
+            toolTip="Used as input clock to FLL and available to some peripherals\n
+            Derived from ERCLK or IRC"
+            value="12000000" />
+      
       </menu>
       
       <menu name="PLL" description="PLL Settings">
@@ -384,6 +408,13 @@
             <choice value="1" name="Active" />
          </binaryOption>
       
+         <intOption name="pllInputFrequency" 
+            constant="true"
+            units="Hz"
+            description="PLL Input clock frequency"
+            toolTip="Frequency of input to PLL"
+            value="32000" />
+   
          <intOption name="pllTargetFrequency" 
             units="Hz"
             description="PLL Output clock frequency"
@@ -410,16 +441,18 @@
             />
       </menu>
 
-      <intOption name="system_mcgffclk_clock"
-         units="Hz"
-         constant="true"  
-         description="MCG Fixed Frequency Clock [MCGFFCLK]"
-         toolTip="Used as input clock to FLL and available to some peripherals\n
-         Derived from ERCLK or IRC"
-         value="12000000" />
-   
+      <aliasOption name="system_mcgir_clock" />
+      <aliasOption name="system_mcgffclk_clock" />
+      <aliasOption name="system_irc48m_clock" />
+      <aliasOption name="system_oscerclk_undiv_clock" />
+      <aliasOption name="system_oscerclk_clock" />
+      <aliasOption name="system_erclk32k_clock" />
+      <aliasOption name="system_low_power_clock" />
+      <aliasOption name="system_rtc_clkout" />
+
       <choiceOption name="mcgOutputClockSource"
-         toolTip="Source of MCG Output Clock"
+         toolTip="Source of MCG Output Clock\n
+         Determined by current clock mode"
          constant="true" 
          description="MCG Output Clock" >
             <choice value="0" name="PLL output" />
@@ -704,7 +737,7 @@
       \tstatic constexpr uint32_t rtcclk_clock = $(rtcclk_clock)UL;\n\n
       
       \t//! Frequency of Frequency of Internal 48MHz Clock\n
-      \tstatic constexpr uint32_t irc48m_clock = $(irc48m_clock)UL;\n\n
+      \tstatic constexpr uint32_t irc48m_clock = $(system_irc48m_clock)UL;\n\n
       
       \t//! Frequency of Slow Internal Reference Clock [~32kHz])\n
       \tstatic constexpr uint32_t system_slow_irc_clock = $(system_slow_irc_clock)UL;\n\n

@@ -12,7 +12,7 @@ public class Message {
        * 
        * @return this&lt;other?
        */
-      boolean lessThan(Severity other) {
+      public boolean lessThan(Severity other) {
          return this.ordinal() < other.ordinal();
       }
 
@@ -23,7 +23,7 @@ public class Message {
        * 
        * @return this&gt;other?
        */
-      boolean greaterThan(Severity other) {
+      public boolean greaterThan(Severity other) {
          return this.ordinal() > other.ordinal();
       }
 
