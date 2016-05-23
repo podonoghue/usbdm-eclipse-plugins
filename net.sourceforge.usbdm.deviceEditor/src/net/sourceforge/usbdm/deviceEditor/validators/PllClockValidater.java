@@ -71,6 +71,7 @@ public class PllClockValidater extends BaseClockValidator {
       Variable pllTargetFrequencyNode = getVariable("pllTargetFrequency");
       Variable mcg_c5_prdiv0Node      = getVariable("mcg_c5_prdiv0");
       Variable mcg_c6_vdiv0Node       = getVariable("mcg_c6_vdiv0");
+      Variable pllInputFrequencyNode  =  getVariable("pllInputFrequency");
 
       // Main clock used by FLL
       long mcg_erc_clock = system_erc_clockNode.getValueAsLong();
@@ -141,6 +142,7 @@ public class PllClockValidater extends BaseClockValidator {
          // Valid - update
          mcg_c5_prdiv0Node.setValue(mcg_prdiv);
          mcg_c6_vdiv0Node.setValue(mcg_vdiv);
+         pllInputFrequencyNode.setValue(mcg_erc_clock/mcg_prdiv);
          if (pllTargetFrequency != nearestPllOutFrequency) {
             pllTargetFrequency = nearestPllOutFrequency;
             pllTargetFrequencyNode.setValue(pllTargetFrequency);

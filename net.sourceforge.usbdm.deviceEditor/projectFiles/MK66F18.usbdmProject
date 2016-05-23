@@ -6,7 +6,7 @@
 	<item value="The 32kHz clock is output to other peripherals" key="RTC_CR_CLKO"/>
 	<item value="Disabled" key="FTM2_SC_TOIE"/>
 	<item value="4.0MHz" key="MCG_system_fast_irc_clock"/>
-	<item value="120.0MHz" key="MCG_system_core_clock"/>
+	<item value="8.0MHz" key="MCG_system_core_clock"/>
 	<item value="mux1" key="PTC18_muxSetting"/>
 	<item value="8 pF" key="OSC0_CR_SCP"/>
 	<item value="0" key="I2C3_IRQ_LEVEL"/>
@@ -46,10 +46,10 @@
 	<item value="Interrupt request" key="MCG_mcg_c9_pll_locre"/>
 	<item value="1" key="MCG_sim_clkdiv1_outdiv1"/>
 	<item value="/1" key="OSC0_DIV_ERPS"/>
-	<item value="5" key="MCG_sim_clkdiv1_outdiv4"/>
+	<item value="1" key="MCG_sim_clkdiv1_outdiv4"/>
 	<item value="8.0MHz" key="MCG_mcg_erc_clock"/>
-	<item value="5" key="MCG_sim_clkdiv1_outdiv2"/>
-	<item value="5" key="MCG_sim_clkdiv1_outdiv3"/>
+	<item value="1" key="MCG_sim_clkdiv1_outdiv2"/>
+	<item value="1" key="MCG_sim_clkdiv1_outdiv3"/>
 	<item value="Divide by 1" key="FTM0_SC_PS"/>
 	<item value="mux1" key="PTD1_muxSetting"/>
 	<item value="No handler installed" key="TPM1_IRQ_HANDLER"/>
@@ -88,7 +88,7 @@
 	<item value="mux1" key="PTE9_muxSetting"/>
 	<item value="Bus clock" key="ADC0_CFG1_ADICLK"/>
 	<item value="0" key="FTM2_IRQ_LEVEL"/>
-	<item value="24.0MHz" key="MCG_system_flash_clock"/>
+	<item value="8.0MHz" key="MCG_system_flash_clock"/>
 	<item value="mux1" key="PTE12_muxSetting"/>
 	<item value="mux1" key="PTD12_muxSetting"/>
 	<item value="Timers continue to run in debug mode" key="PIT_MCR_FRZ"/>
@@ -113,7 +113,7 @@
 	<item value="+20 ADCK cycles; 24 ADCK total" key="ADC1_CFG2_ADLSTS"/>
 	<item value="No handler installed" key="ADC1_IRQ_HANDLER"/>
 	<item value="8.0MHz" key="MCG_system_oscerclk_clock"/>
-	<item value="PLL Engaged External (PEE)" key="MCG_clock_mode"/>
+	<item value="PLL Bypassed External (PBE)" key="MCG_clock_mode"/>
 	<item value="mux1" key="PTC9_muxSetting"/>
 	<item value="32.768kHz" key="MCG_system_rtc_clkout"/>
 	<item value="No handler installed" key="FTM3_IRQ_HANDLER"/>
@@ -128,9 +128,9 @@
 	<item value="Divide by 1" key="FTM2_SC_PS"/>
 	<item value="mux1" key="PTE25_muxSetting"/>
 	<item value="mux3" key="PTC15_muxSetting"/>
-	<item value="32.0kHz" key="MCG_pllInputFrequency"/>
+	<item value="4.0MHz" key="MCG_pllInputFrequency"/>
 	<item value="Enabled" key="MCG_mcg_c1_irclken"/>
-	<item value="PLL output" key="MCG_mcgOutputClockSource"/>
+	<item value="MCGERCLK" key="MCG_mcgOutputClockSource"/>
 	<item value="10000" key="FTM1_PERIOD"/>
 	<item value="Mode 0: CPOL=0, CPHA=0" key="SPI2_MODE"/>
 	<item value="Input clock" key="ADC1_CFG1_ADIV"/>
@@ -189,10 +189,10 @@
 	<item value="Divide by 1" key="MCG_osc_div_erps"/>
 	<item value="Use polling" key="I2C0_IRQ_HANDLER"/>
 	<item value="Disabled" key="FTM3_SC_CLKS"/>
-	<item value="24.0MHz" key="MCG_system_bus_clock"/>
+	<item value="8.0MHz" key="MCG_system_bus_clock"/>
 	<item value="MSB first" key="SPI2_LSBFE"/>
 	<item value="mux3" key="PTB17_muxSetting"/>
-	<item value="120.0MHz" key="MCG_system_mcgout_clock"/>
+	<item value="8.0MHz" key="MCG_system_mcgout_clock"/>
 	<item value="Prescaler = 2, no glitch filter" key="LPTMR0_PSR_PRESCALE"/>
 	<item value="Clock monitor is disabled" key="MCG_mcg_c6_cme0"/>
 	<item value="0" key="FTM0_IRQ_LEVEL"/>
@@ -206,7 +206,7 @@
 	<item value="10000" key="FTM2_PERIOD"/>
 	<item value="32.768kHz" key="MCG_system_slow_irc_clock"/>
 	<item value="10000" key="FTM0_PERIOD"/>
-	<item value="Output of FLL or PLL is selected" key="MCG_mcg_c1_clks"/>
+	<item value="External reference clock is selected" key="MCG_mcg_c1_clks"/>
 	<item value="MSB first" key="SPI0_LSBFE"/>
 	<item value="mux0" key="PTB3_muxSetting"/>
 	<item value="mux1" key="PTD3_muxSetting"/>
@@ -224,7 +224,7 @@
 	<item value="8-bit single/9-bit differential" key="ADC1_CFG1_MODE"/>
 	<item value="System clock" key="TPM1_SC_CMOD"/>
 	<item value="No handler installed" key="FTM0_IRQ_HANDLER"/>
-	<item value="24.0MHz" key="MCG_system_flexbus_clock"/>
+	<item value="8.0MHz" key="MCG_system_flexbus_clock"/>
 	<item value="Bus clock" key="ADC1_CFG1_ADICLK"/>
 	<item value="System clock" key="FTM0_SC_CLKS"/>
 	<item value="The 32kHz clock is output to other peripherals" key="MCG_rtc_cr_clko"/>

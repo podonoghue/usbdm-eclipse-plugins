@@ -35,7 +35,7 @@ public class LongVariable extends Variable {
 
    @Override
    public String getSubstitutionValue() {
-      return Long.toString(fValue-fOffset);
+      return Long.toString(fValue+fOffset);
    }
 
    @Override
