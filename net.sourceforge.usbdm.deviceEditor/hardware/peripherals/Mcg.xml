@@ -289,8 +289,8 @@
          <binaryOption name="rtc_cr_clko" 
             description="RTC 32kHz Clock Output"
             toolTip="Determines if RTC 32kHz Clock is available to peripherals" >
-            <choice value="0" name="The 32kHz clock is output to other peripherals" isDefault="true" />
             <choice value="1" name="The 32kHz clock is not output to other peripherals" />
+            <choice value="0" name="The 32kHz clock is output to other peripherals" isDefault="true" />
          </binaryOption>
          
          <choiceOption name="sim_sopt1_osc32ksel" 
@@ -538,7 +538,6 @@
       <aliasOption name="system_oscerclk_clock" />
       <aliasOption name="system_erclk32k_clock" />
       <aliasOption name="system_low_power_clock" />
-      <aliasOption name="system_rtc_clkout" />
 
       <choiceOption name="system_mcgout_clock_source"
          description="System MCG Output Clock source [MCGOUTCLK]"
@@ -817,6 +816,14 @@
       \t//! Control Register 11\n
       \tstatic constexpr uint32_t MCG_C11 =
       \t   MCG_C11_PLLCS($(mcg_c11_pllcs)); // PLLCS PLL Clock Select
+      \t#endif\n\n
+
+      \t#ifdef RTC_CR_CLKO
+      \t//! Control Register 11\n
+      \tstatic constexpr uint32_t RTC_CR =
+      \t   RTC_CR_OSCE($(rtc_cr_osce)) | // Enable 32kHz oscillator [RTC_32K]
+      \t   RTC_CR_CLKO($(rtc_cr_clko)) | // RTC 32kHz Clock Output
+      \t   ($(rtc_cr_scp)&lt;&lt;RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
       \t#endif\n\n
 
       \t//! Clock divider\n

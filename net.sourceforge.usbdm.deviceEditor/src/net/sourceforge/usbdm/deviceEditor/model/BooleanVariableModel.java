@@ -42,7 +42,7 @@ public class BooleanVariableModel extends VariableModel {
       // Refresh children in case boolean category
       refreshChildren();
    }
-
+   
    /**
     * Refreshes children
     */
@@ -56,5 +56,5 @@ public class BooleanVariableModel extends VariableModel {
          }
       }
    }
-   
+
 }

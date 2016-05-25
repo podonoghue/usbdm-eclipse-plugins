@@ -77,36 +77,36 @@ public class BooleanVariable extends Variable {
    }
 
    /**
-    * Get the string representing the TRUE value
+    * Get the name/value representing the TRUE value
     * 
-    * @return String for TRUE value
+    * @return name/value for TRUE value
     */
    public Pair getTrueValue() {
       return fTrue;
    }
 
    /**
-    * Sets the string representing the TRUE value
+    * Set the name/value representing the TRUE value
     * 
-    * @param trueValue String for TRUE value
+    * @param trueValue name/value for TRUE value
     */
    public void setTrueValue(Pair trueValue) {
       this.fTrue = trueValue;
    }
 
    /**
-    * Get the string representing the FALSE value
+    * Get the name/value representing the FALSE value
     * 
-    * @return the String for FALSE value
+    * @return the name/value for FALSE value
     */
    public Pair getFalseValue() {
       return fFalse;
    }
 
    /**
-    * Sets the string representing the FALSE value
+    * Set the name/value representing the FALSE value
     * 
-    * @return String for FALSE value
+    * @param name/value for FALSE value
     */
    public void setFalseValue(Pair falseValue) {
       this.fFalse = falseValue;

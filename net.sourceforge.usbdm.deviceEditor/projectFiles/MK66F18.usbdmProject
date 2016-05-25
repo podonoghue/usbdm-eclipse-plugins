@@ -47,7 +47,7 @@
 	<item value="11" key="MCG_sim_clkdiv1_outdiv1"/>
 	<item value="/1" key="OSC0_DIV_ERPS"/>
 	<item value="11" key="MCG_sim_clkdiv1_outdiv4"/>
-	<item value="32.768kHz" key="MCG_mcg_erc_clock"/>
+	<item value="12.0MHz" key="MCG_mcg_erc_clock"/>
 	<item value="11" key="MCG_sim_clkdiv1_outdiv2"/>
 	<item value="11" key="MCG_sim_clkdiv1_outdiv3"/>
 	<item value="Divide by 1" key="FTM0_SC_PS"/>
@@ -76,7 +76,7 @@
 	<item value="Divide by 1" key="FTM1_SC_PS"/>
 	<item value="Reset request" key="MCG_mcg_c8_lolre"/>
 	<item value="Low power" key="MCG_mcg_c2_hgo0"/>
-	<item value="32 kHz RTC Oscillator (RTC_32K)" key="MCG_mcg_c7_oscsel"/>
+	<item value="Main System Oscillator (OSCCLK)" key="MCG_mcg_c7_oscsel"/>
 	<item value="RTC clock monitor disabled" key="MCG_mcg_c8_cme1"/>
 	<item value="mux1" key="PTD0_muxSetting"/>
 	<item value="CNR is reset whenever TCF is set" key="LPTMR0_CSR_TFC"/>
@@ -93,14 +93,14 @@
 	<item value="mux1" key="PTD12_muxSetting"/>
 	<item value="Timers continue to run in debug mode" key="PIT_MCR_FRZ"/>
 	<item value="Disabled" key="FTM3_SC_TOIE"/>
-	<item value="1" key="MCG_mcg_c5_prdiv0"/>
+	<item value="3" key="MCG_mcg_c5_prdiv0"/>
 	<item value="IR enabled in STOP" key="MCG_mcg_c1_irefsten"/>
 	<item value="8 pF" key="MCG_rtc_cr_scp"/>
 	<item value="mux1" key="PTC3_muxSetting"/>
 	<item value="Software trigger (write to SC1A)" key="ADC0_SC2_ADTRG"/>
 	<item value="Disabled" key="ADC0_SC2_COMPARE"/>
 	<item value="0" key="I2C1_IRQ_LEVEL"/>
-	<item value="24" key="MCG_mcg_c6_vdiv0"/>
+	<item value="30" key="MCG_mcg_c6_vdiv0"/>
 	<item value="100000" key="SPI1_SPEED"/>
 	<item value="mux1" key="PTD4_muxSetting"/>
 	<item value="mux1" key="PTC11_muxSetting"/>
@@ -116,7 +116,7 @@
 	<item value="3.0MHz" key="MCG_system_oscerclk_clock"/>
 	<item value="FLL Engaged Internal (FEI)" key="MCG_clock_mode"/>
 	<item value="mux1" key="PTC9_muxSetting"/>
-	<item value="32.768kHz" key="MCG_system_rtc_clkout"/>
+	<item value="0.0Hz" key="MCG_system_rtc_clkout"/>
 	<item value="No handler installed" key="FTM3_IRQ_HANDLER"/>
 	<item value="mux0" key="PTB6_muxSetting"/>
 	<item value="No handler installed" key="PIT_IRQ3_HANDLER"/>
@@ -149,7 +149,7 @@
 	<item value="48.0MHz" key="MCG_system_irc48m_clock"/>
 	<item value="Interrupt request" key="MCG_mcg_c2_locre0"/>
 	<item value="Disabled" key="OSC0_RTC_CR_OSCE"/>
-	<item value="Enabled" key="MCG_rtc_cr_osce"/>
+	<item value="Disabled" key="MCG_rtc_cr_osce"/>
 	<item value="No handler installed" key="LPTMR0_IRQ_HANDLER"/>
 	<item value="mux0" key="PTB5_muxSetting"/>
 	<item value="0" key="PIT_IRQ_LEVEL"/>

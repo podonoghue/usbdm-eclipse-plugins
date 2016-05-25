@@ -103,11 +103,11 @@ public class ClockValidator extends BaseClockValidator {
       Variable     mcg_c9_pll_cmeNode              =  getVariable("mcg_c9_pll_cme");
       Variable     mcg_c9_pll_locreNode            =  getVariable("mcg_c9_pll_locre");
       
-      Variable     mcg_c6_lolie0Node               =  getVariable("mcg_c6_lolie0");
-      
-      Variable     mcg_c8_lolreNode                =  getVariable("mcg_c8_lolre");
-      
-      Variable     mcg_c11_pllcsNode               =  getVariable("mcg_c11_pllcs");
+//      Variable     mcg_c6_lolie0Node               =  getVariable("mcg_c6_lolie0");
+//      
+//      Variable     mcg_c8_lolreNode                =  getVariable("mcg_c8_lolre");
+//      
+//      Variable     mcg_c11_pllcsNode               =  getVariable("mcg_c11_pllcs");
       
       mcg_c2_locre0Node.enable(mcg_c6_cme0Node.getValueAsBoolean());
       mcg_c8_locre1Node.enable(mcg_c8_cme1Node.getValueAsBoolean());
@@ -306,7 +306,7 @@ public class ClockValidator extends BaseClockValidator {
       // 32K clock from RTC gated by rtc_cr_clko
       long rtcclk_clock_gated           = rtcclk_clock;
       Message rtcclk_clock_gatedMessage = rtcclk_clock_Message;
-      if (rtc_cr_clkoNode.getValueAsBoolean()) {
+      if (!rtc_cr_clkoNode.getValueAsBoolean()) { // Active low!
          // RTCCLK not enabled - illegal as clock choice
          rtcclk_clock_gated = 0;
          rtcclk_clock_gatedMessage = new Message("Origin: rtcclk_clock, disabled by rtc_cr_clko", Severity.WARNING);

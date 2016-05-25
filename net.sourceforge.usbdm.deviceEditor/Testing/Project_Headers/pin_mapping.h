@@ -86,7 +86,7 @@ public:
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
        (0<<ADC_CFG1_ADICLK_SHIFT)|
-       (0<<ADC_CFG1_MODE_SHIFT)|
+       (2<<ADC_CFG1_MODE_SHIFT)|
        (0<<ADC_CFG1_ADLSMP_SHIFT)|
        (0<<ADC_CFG1_ADIV_SHIFT)|
        (0<<ADC_CFG1_ADLPC_SHIFT);
@@ -249,7 +249,7 @@ public:
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
        (0<<ADC_CFG1_ADICLK_SHIFT)|
-       (0<<ADC_CFG1_MODE_SHIFT)|
+       (2<<ADC_CFG1_MODE_SHIFT)|
        (0<<ADC_CFG1_ADLSMP_SHIFT)|
        (0<<ADC_CFG1_ADIV_SHIFT)|
        (0<<ADC_CFG1_ADLPC_SHIFT);
@@ -1730,7 +1730,7 @@ public:
    static constexpr uint32_t SC  = 
        (0<<FTM_SC_CPWMS_SHIFT)|
        ((0|0)<<FTM_SC_TOIE_SHIFT)|
-       FTM_SC_CLKS(0)|
+       FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
@@ -1848,7 +1848,7 @@ public:
    static constexpr uint32_t SC  = 
        (0<<FTM_SC_CPWMS_SHIFT)|
        ((0|0)<<FTM_SC_TOIE_SHIFT)|
-       FTM_SC_CLKS(0)|
+       FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
@@ -2652,10 +2652,10 @@ public:
    };
 
    //! Clock Mode
-   static constexpr ClockMode clockMode = ClockMode_PEE;
+   static constexpr ClockMode clockMode = ClockMode_FEI;
 
    //! Frequency of OSC Clock or Crystal
-   static constexpr uint32_t oscclk_clock = 8000000UL;
+   static constexpr uint32_t oscclk_clock = 12000000UL;
 
    //! Frequency of RTC External Clock or Crystal
    static constexpr uint32_t rtcclk_clock = 32768UL;
@@ -2671,47 +2671,47 @@ public:
 
    //! Control Register 1
    static constexpr uint32_t MCG_C1 =
-      MCG_C1_FRDIV(3)   | // FRDIV    FLL External Reference Divider
+      MCG_C1_FRDIV(0)   | // FRDIV    FLL External Reference Divider
       MCG_C1_IRCLKEN(1) | // IRCLEN   Internal Reference Clock Enable
       MCG_C1_IREFSTEN(1); // IREFSTEN Internal Reference Stop Enable
 
    //! Control Register 2
    static constexpr uint32_t MCG_C2 =
       MCG_C2_LOCRE0(0) | // LOLRE0  Loss of Clock Reset Enable
-      MCG_C2_RANGE0(1) | // RANGE   Frequency Range Select
-      MCG_C2_HGO0(1)   | // HGO     High Gain Oscillator Select
-      MCG_C2_EREFS0(0) | // EREFS   External Reference Select
+      MCG_C2_RANGE0(2) | // RANGE   Frequency Range Select
+      MCG_C2_HGO0(0)   | // HGO     High Gain Oscillator Select
+      MCG_C2_EREFS0(1) | // EREFS   External Reference Select
       MCG_C2_IRCS(1);    // IRCS    Internal Reference Clock Select
 
    //! Control Register 4
    static constexpr uint32_t MCG_C4 =
-      MCG_C4_DMX32(1)     | // DMX32    DCO lock range
-      MCG_C4_DRST_DRS(0);   // DRST_DRS DCO Range Select
+      MCG_C4_DMX32(0)     | // DMX32    DCO lock range
+      MCG_C4_DRST_DRS(3);   // DRST_DRS DCO Range Select
 
    //! Control Register 5
    static constexpr uint32_t MCG_C5 =
       MCG_C5_PLLCLKEN0(0)  | // PLLCLKEN0 PLL Clock Enable
-      MCG_C5_PLLSTEN0(0)   | // PLLSTEN0  PLL Stop Enable
-      MCG_C5_PRDIV0(3);     // PRDIV0    PLL External Reference Divider
+      MCG_C5_PLLSTEN0(1)   | // PLLSTEN0  PLL Stop Enable
+      MCG_C5_PRDIV0(0);     // PRDIV0    PLL External Reference Divider
 
    //! Control Register 6
    static constexpr uint32_t MCG_C6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
       MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(54);   // VDIV0  PLL VCO Divider
+      MCG_C6_VDIV0(0);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
    static constexpr uint32_t MCG_SC =
-      MCG_SC_FCRDIV(1); // FCRDIV Internal Clock Reference Divider
+      MCG_SC_FCRDIV(0); // FCRDIV Internal Clock Reference Divider
 
    //! Control Register 7
    static constexpr uint32_t MCG_C7 =
-      MCG_C7_OSCSEL(0); // OSCSEL MCG OSC Clock Select
+      MCG_C7_OSCSEL(1); // OSCSEL MCG OSC Clock Select
 
    //! Control Register 8
    static constexpr uint32_t MCG_C8 =
       MCG_C8_LOCRE1(0) | // LOCRE1 RTC Loss of Clock Reset Enable
-      MCG_C8_LOLRE(0)  | // LOLRE  PLL Loss of Lock Reset Enable
+      MCG_C8_LOLRE(1)  | // LOLRE  PLL Loss of Lock Reset Enable
       MCG_C8_CME1(0);    // CME1   Clock Monitor Enable 1
 
    #ifdef MCG_C9_PLL_CME
@@ -2724,17 +2724,25 @@ public:
    #ifdef MCG_C11_PLLCS
    //! Control Register 11
    static constexpr uint32_t MCG_C11 =
-      MCG_C11_PLLCS(0); // PLLCS PLL Clock Select
+      MCG_C11_PLLCS(1); // PLLCS PLL Clock Select
+   #endif
+
+   #ifdef RTC_CR_CLKO
+   //! Control Register 11
+   static constexpr uint32_t RTC_CR =
+      RTC_CR_OSCE(1) | // Enable 32kHz oscillator [RTC_32K]
+      RTC_CR_CLKO(0) | // RTC 32kHz Clock Output
+      (2<<RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
    #endif
 
    //! Clock divider
    static constexpr uint32_t SIM_CLKDIV1 = 
-      SIM_CLKDIV1_OUTDIV4(6) | // SIM_CLKDIV1_OUTDIV4
+      SIM_CLKDIV1_OUTDIV4(10) | // SIM_CLKDIV1_OUTDIV4
    #ifdef SIM_CLKDIV1_OUTDIV3
-      SIM_CLKDIV1_OUTDIV3(6) | // SIM_CLKDIV1_OUTDIV3
+      SIM_CLKDIV1_OUTDIV3(10) | // SIM_CLKDIV1_OUTDIV3
    #endif
-      SIM_CLKDIV1_OUTDIV2(6) | // SIM_CLKDIV1_OUTDIV2
-      SIM_CLKDIV1_OUTDIV1(2);  // SIM_CLKDIV1_OUTDIV1
+      SIM_CLKDIV1_OUTDIV2(10) | // SIM_CLKDIV1_OUTDIV2
+      SIM_CLKDIV1_OUTDIV1(10);  // SIM_CLKDIV1_OUTDIV1
 };
 
 /** 
