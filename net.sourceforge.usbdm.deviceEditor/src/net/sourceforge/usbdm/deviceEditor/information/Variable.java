@@ -142,7 +142,7 @@ public abstract class Variable extends ObservableModel {
       notifyListeners();
    }
    
-   public Message getMessage() {
+   public Message getStatus() {
       return fStatus;
    }
 

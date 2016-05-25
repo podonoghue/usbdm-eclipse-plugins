@@ -98,7 +98,7 @@ public class VariableModel extends EditableModel implements IModelChangeListener
       if ((rv != null) && rv.greaterThan(Severity.INFO)) {
          return rv;
       }
-      return fVariable.getMessage();
+      return fVariable.getStatus();
    }
    
 }

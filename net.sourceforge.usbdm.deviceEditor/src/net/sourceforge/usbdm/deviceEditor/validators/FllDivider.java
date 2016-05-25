@@ -130,7 +130,7 @@ class FllDivider {
       }
       else {
          fllOrigin      = mcg_erc_clockNode.getOrigin();
-         status         = mcg_erc_clockNode.getMessage();
+         status         = mcg_erc_clockNode.getStatus();
          availableClock = mcg_erc_clockNode.getValueAsLong();
       }
       fllTargetFrequencyNode.setOrigin(fllOrigin+" via FLL");

@@ -4,7 +4,73 @@
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
    <page name="_instance" description="Multipurpose Clock Generator" >
+      <menu name="Clock monitors" description="Clock monitors">
+      
+         <binaryOption name="mcg_c6_cme0" 
+            description="Clock Monitor Enable"
+            toolTip="Enables the loss of clock monitoring circuit for the OSC0 external reference.\n
+                     C2.LOCRE0 determines if a interrupt or a reset request is generated.\n
+                     The CME0 bit must only be when using an external clock mode (FEE, FBE, PEE, PBE, or BLPE)." >
+            <choice value="0" name="OSC0 clock monitor disabled" />
+            <choice value="1" name="OSC0 clock monitor enabled" />
+         </binaryOption>
+
+         <binaryOption name="mcg_c2_locre0"
+            description="Action on Loss of Clock" 
+            toolTip="Determines if an Interrupt or Reset occurs on loss of OSC0 external reference\n
+                     This option only has effect if the clock monitor is first enabled bye C6.CME0">
+            <choice value="0" name="Interrupt request" />
+            <choice value="1" name="Reset request" />
+         </binaryOption>
+
+         <binaryOption name="mcg_c8_cme1" 
+            description="RTC Clock Monitor Enable"
+            toolTip="Determines if the clock monitor is enabled for the RTC external clock.\n
+                     CME1 bit must be set to a logic 0 before the MCG enters any Stop mode">
+            <choice value="0" name="RTC clock monitor disabled" />
+            <choice value="1" name="RTC clock monitor enabled" />
+         </binaryOption>
+         
+         <binaryOption name="mcg_c8_locre1" 
+            description="RTC Loss of Clock Reset Enable"
+            toolTip="Determines if a interrupt or a reset request is made following a loss of RTC external reference clock.\n 
+                     Only has an affect when CME1 is set." >
+            <choice value="0" name="Interrupt request" />
+            <choice value="1" name="Reset request" />
+         </binaryOption>
    
+         <binaryOption name="mcg_c9_pll_cme" 
+            description="MCG External PLL Clock Monitor Enable"
+            toolTip="Enables the loss of clock monitoring circuit for the MCG External PLL (EXT_PLL) reference clock">
+            <choice value="0" name="PLL clock monitor disabled" />
+            <choice value="1" name="PLL clock monitor enabled" />
+         </binaryOption>
+   
+         <binaryOption name="mcg_c9_pll_locre" 
+            description="MCG External PLL Loss of Clock Reset Enable"
+            toolTip="Determines wheather an interrupt or a reset request is made following a loss of the\n
+                     MCG External PLL clock when the MCG is running in PEE mode">
+            <choice value="0" name="Interrupt request" />
+            <choice value="1" name="Reset request" />
+         </binaryOption>
+         
+         <binaryOption name="mcg_c6_lolie0" 
+            description="Loss of Lock Interrupt Enable"
+            toolTip="Determines if an interrupt request is made following a PLL loss of lock indication.\n
+                     This bit has effect when S.LOLS0 is set">
+            <choice value="0" name="No interrupt request" />
+            <choice value="1" name="Interrupt request on LOL" />
+         </binaryOption>
+         
+         <binaryOption name="mcg_c8_lolre" 
+            description="PLL Loss of Lock Reset Enable"
+            toolTip="Determines if an interrupt or a reset request is made following a PLL loss of lock.\n
+                     Only has an affect when CME1 is set">
+            <choice value="0" name="Interrupt request" />
+            <choice value="1" name="Reset request" />
+         </binaryOption>
+      </menu>
+
       <menu name="MCGIR" description="Internal Reference Clock Sources [MCGIRCLK]" >
          <intOption name="system_slow_irc_clock"
             units="Hz"
@@ -264,7 +330,7 @@
          toolTip="Selects the MCG FLL/PLL external reference clock source">
          <choice value="0" name="Main System Oscillator (OSCCLK)" />
          <choice value="1" name="32 kHz RTC Oscillator (RTC_32K)" />
-         <choice value="2" name="48 MHz Internal Oscillator (IRC48M)" />
+         <choice value="2" name="48 MHz Internal Oscillator (IRC48MCLK)" />
          <choice value="0" name="Default" />
       </choiceOption>
    
@@ -402,6 +468,14 @@
       </menu>
       
       <menu name="PLL" description="PLL Settings">
+         <binaryOption name="mcg_c11_pllcs" 
+            description="PLL Clock Select (Some targets only)"
+            toolTip="Controls whether the PLL0 output or MCG External PLL input is selected as the MCG\n
+                     source when CLKS are programmed in PLL Engaged External (PEE) mode.">
+            <choice value="0" name="PLL0 output clock is selected" />
+            <choice value="1" name="External PLL clock is selected" />
+         </binaryOption>
+
          <binaryOption name="pll_enabled"
             constant="true"
             description="PLL State"
@@ -537,29 +611,18 @@
             </binaryOption>
       
             <aliasOption name="mcg_c1_irclken" />
-      
             <aliasOption name="mcg_c1_irefsten" />
          </menu>
          
          <menu name="MCG_C2" description="MCG Control Register 2">
-            <binaryOption name="mcg_c2_locre0"
-               constant="true"
-               description="Action on Loss of Clock" 
-               toolTip="Determines if an Interrupt or Reset occurs on loss of OSC0 external reference\n
-                        This option only has effect if the clock monitor is first enabled CME0">
-               <choice value="0" name="Interrupt" />
-               <choice value="1" name="Reset" />
-            </binaryOption>
-      
+            <aliasOption name="mcg_c2_locre0" />
             <aliasOption name="mcg_c2_range0" />
-            
             <aliasOption name="mcg_c2_hgo0" />
-      
             <aliasOption name="mcg_c2_erefs0" />
       
             <binaryOption name="mcg_c2_lp"
                constant="true"
-               description="Low Power Selectk" 
+               description="Low Power Select" 
                toolTip="Whether FLL or PLL continues operation when bypassed\n
                         This option is determined by the Clock Mode selection">
                <choice value="0" name="FLL/PLL is enabled in bypass modes" />
@@ -581,13 +644,8 @@
          </menu>
          
          <menu name="MCG_C6" description="MCG Control Register 6">
-            <binaryOption name="mcg_c6_lolie0" 
-               description="Loss of Lock interrupt Enable"
-               toolTip="Determines if an interrupt request is made following a loss of lock indication.\n
-                        This bit only has an effect when LOLS0 is set.">
-               <choice value="0" name="No interrupt request" />
-               <choice value="1" name="Interrupt request on LOL" />
-            </binaryOption>
+
+            <aliasOption name="mcg_c6_lolie0" />
             
             <binaryOption name="mcg_c6_plls" 
                constant="true"
@@ -597,14 +655,7 @@
                <choice value="1" name="PLL is selected" />
             </binaryOption>
             
-            <binaryOption name="mcg_c6_cme0" 
-               description="Clock Monitor Enable"
-               toolTip="Determines if a reset request is made following a loss of external clock indication.\n
-                        This field must be set to a logic 1 only when the ICS is in an operational mode that uses the external clock" >
-               <choice value="0" name="Clock monitor is disabled" />
-               <choice value="1" name="Clock monitor is enabled" />
-            </binaryOption>
-            
+            <aliasOption name="mcg_c6_cme0" />
             <aliasOption name="mcg_c6_vdiv0" />
          </menu>
          
@@ -617,57 +668,18 @@
          </menu>
       
          <menu name="MCG_C8" description="MCG Control Register 8">
-            <binaryOption name="mcg_c8_locre1" 
-               description="RTC Loss of Clock Reset Enable"
-               toolTip="Determines if a interrupt or a reset request is made following a loss of RTC external reference clock.\n 
-                        Only has an affect when CME1 is set." >
-               <choice value="0" name="Interrupt request" />
-               <choice value="1" name="Reset request" />
-            </binaryOption>
-      
-            <binaryOption name="mcg_c8_lolre" 
-               description="PLL Loss of Lock Reset Enable"
-               toolTip="Determines if an interrupt or a reset request is made following a PLL loss of lock.\n
-                        Only has an affect when CME1 is set">
-               <choice value="0" name="Interrupt request" />
-               <choice value="1" name="Reset request" />
-            </binaryOption>
-      
-            <binaryOption name="mcg_c8_cme1" 
-               description="Clock Monitor Enable"
-               toolTip="Determines if the clock monitor is enabled for the RTC external clock.\n
-                        CME1 bit must be set to a logic 0 before the MCG enters any Stop mode">
-               <choice value="0" name="Clock monitor is disabled for RTC" />
-               <choice value="1" name="Clock monitor is enabled for RTC" />
-            </binaryOption>
+            <aliasOption name="mcg_c8_locre1" />
+            <aliasOption name="mcg_c8_lolre" />
+            <aliasOption name="mcg_c8_cme1" />
          </menu>
       
          <menu name="MCG_C9" description="MCG Control Register 9">
-            <binaryOption name="mcg_c9_pll_cme" 
-               description="MCG External PLL Clock Monitor Enable"
-               toolTip="Enables the loss of clock monitoring circuit for the MCG External PLL (EXT_PLL) reference clock">
-               <choice value="0" name="Disabled" />
-               <choice value="1" name="Enabled" />
-            </binaryOption>
-      
-            <binaryOption name="mcg_c9_pll_locre" 
-               description="MCG External PLL Loss of Clock Reset Enable"
-               toolTip="Determines wheather an interrupt or a reset request is made following a loss of the\n
-                        MCG External PLL clock when the MCG is running in PEE mode">
-               <choice value="0" name="Interrupt request" />
-               <choice value="1" name="Reset request" />
-            </binaryOption>
-      
-            </menu>
+            <aliasOption name="mcg_c9_pll_cme" /> 
+            <aliasOption name="mcg_c9_pll_locre" />
+         </menu>
        
          <menu name="MCG_C11" description="MCG Control Register 11">
-            <binaryOption name="mcg_c11_pllcs" 
-               description="PLL Clock Select (Some targets only)"
-               toolTip="Controls whether the PLL0 output or MCG External PLL input is selected as the MCG\n
-                        source when CLKS are programmed in PLL Engaged External (PEE) mode (CLKS[1:0]=00 and IREFS=0 and PLLS=1).">
-               <choice value="0" name="PLL0 output clock is selected" />
-               <choice value="1" name="External PLL clock is selected" />
-            </binaryOption>
+            <aliasOption name="mcg_c11_pllcs" />
          </menu>
 
          <menu name="RTC CR" description="Real Time Clock">
