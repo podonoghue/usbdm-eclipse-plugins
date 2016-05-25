@@ -33,9 +33,6 @@ public abstract class Variable extends ObservableModel {
    /** Name of variable visible to user */
    private         String  fKey;
    
-   /** Message (status) of variable */
-   private         Message fMessage = null;
-   
    /** Indicates that the variable is locked and cannot be edited by user */
    private boolean fLocked = false;
 
@@ -47,6 +44,12 @@ public abstract class Variable extends ObservableModel {
 
    /** Tool tip for this variable */
    private String fToolTip = null;
+   
+   /** Status of variable */
+   private Message fStatus = null;
+   
+   /** Origin of variable value */
+   private String fOrigin = null;
    
    /**
     * Constructor
@@ -112,35 +115,62 @@ public abstract class Variable extends ObservableModel {
       return String.format(getSimpleClassName()+"(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
    }
 
-   public void setMessage(String message) {
-      if ((fMessage != null) && (message != null) && fMessage.equals(message)) {
+   public void setStatus(String message) {
+      if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
          // No significant change
          return;
       }
       if (message == null) {
-         setMessage((Message)null);
+         setStatus((Message)null);
       }
       else {
-         setMessage(new Message(message));
+         setStatus(new Message(message));
       }
    }
 
-   public void setMessage(Message message) {
-      if ((fMessage == null) && (message == null)) {
+   public void setStatus(Message message) {
+      if ((fStatus == null) && (message == null)) {
          // No change
          return;
       }
-      if ((fMessage != null) && (message != null) && fMessage.equals(message)) {
+      if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
          // No significant change
          return;
       }
 //      System.err.println(this+"setMessage("+message+")");
-      fMessage = message;
+      fStatus = message;
       notifyListeners();
    }
    
    public Message getMessage() {
-      return fMessage;
+      return fStatus;
+   }
+
+   /**
+    * Get the origin of signal value
+    * 
+    * @return The origin
+    */
+   public String getOrigin() {
+      return fOrigin;
+   }
+
+   /**
+    * Set the origin of signal value
+    * 
+    * @param origin The origin to set
+    */
+   public void setOrigin(String origin) {
+      if ((fOrigin == null) && (origin == null)) {
+         // No change
+         return;
+      }
+      if ((fOrigin != null) && (fOrigin.equalsIgnoreCase(origin))) {
+         // No significant change
+         return;
+      }
+      fOrigin = origin;
+      notifyListeners();
    }
 
    /** Set if the variable is locked and cannot be edited by user
@@ -237,26 +267,6 @@ public abstract class Variable extends ObservableModel {
    }
 
    /**
-    * Get tool tip
-    * 
-    * @return
-    */
-   public String getToolTip() {
-      String tip = fToolTip;
-      if (tip == null) {
-         tip = "";
-      }
-      Message message = getMessage();
-      if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
-         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
-      }
-      else if (message != null) {
-         tip += (tip.isEmpty()?"":"\n")+message.getRawMessage();
-      }
-      return (tip.isEmpty())?null:tip;
-   }
-
-   /**
     * Set tool tip
     * 
     * @param toolTip
@@ -265,5 +275,36 @@ public abstract class Variable extends ObservableModel {
       fToolTip = toolTip;
    }
 
+   /**
+    * Get tool tip
+    * 
+    * @return
+    */
+   public String getToolTip() {
+      StringBuilder sb = new StringBuilder();
+      if (fStatus != null) {
+         if (fStatus.greaterThan(Message.Severity.WARNING)) {
+            sb.append(fStatus.getMessage());
+         }
+         else if (fStatus != null) {
+            sb.append(fStatus.getRawMessage());
+         }
+      }
+      if (fToolTip != null) {
+         if (sb.length() != 0) {
+            sb.append('\n');
+         }
+         sb.append(fToolTip);
+      }
+      if (fOrigin != null) {
+         if (sb.length() != 0) {
+            sb.append('\n');
+         }
+         sb.append("Origin: ");
+         sb.append(fOrigin);
+      }
+      return (sb.length()==0)?null:sb.toString();
+   }
+   
 
 }

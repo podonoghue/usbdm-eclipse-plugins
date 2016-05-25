@@ -3,17 +3,18 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IToolTipProvider;
-import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
-abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelProvider, IToolTipProvider{
+abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider, IToolTipProvider{
 
    protected static final Styler CATEGORY_STYLER  = new Styler() {
       @Override
@@ -96,6 +97,11 @@ abstract class BaseLabelProvider extends LabelProvider implements IStyledLabelPr
       return null;
    }
 
+   @Override
+   public Point getToolTipShift(Object object) {
+     return new Point(55, 55);
+   }   
+   
    public abstract String getText(BaseModel model);
    public abstract Image getImage(BaseModel model);
 }

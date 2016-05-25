@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 /**
  * Model for a variable maintained by a provider
@@ -57,15 +58,6 @@ public class VariableModel extends EditableModel implements IModelChangeListener
    }
 
    @Override
-   Message getMessage() {
-      Message msg = fVariable.getMessage();
-      if (msg != null) {
-         return msg;
-      }
-      return super.getMessage();
-   }
-
-   @Override
    public void modelElementChanged(ObservableModel observableModel) {
       update();
    }
@@ -78,7 +70,7 @@ public class VariableModel extends EditableModel implements IModelChangeListener
    @Override
    public boolean isEnabled() {
       return fVariable.isEnabled() && 
-            (!(fParent instanceof BinaryVariableModel) || ((BinaryVariableModel)fParent).getValueAsBoolean());
+            (!(fParent instanceof BooleanVariableModel) || ((BooleanVariableModel)fParent).getValueAsBoolean());
    }
 
    @Override
@@ -97,11 +89,16 @@ public class VariableModel extends EditableModel implements IModelChangeListener
 
    @Override
    public String getToolTip() {
-      String toolTip = super.getToolTip();
-      if (toolTip == null) {
-         toolTip = fVariable.getToolTip();
+      return fVariable.getToolTip();
+   }
+
+   @Override
+   Message getMessage() {
+      Message rv =  super.getMessage();
+      if ((rv != null) && rv.greaterThan(Severity.INFO)) {
+         return rv;
       }
-      return toolTip;
+      return fVariable.getMessage();
    }
    
 }

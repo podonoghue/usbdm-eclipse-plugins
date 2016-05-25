@@ -90,6 +90,6 @@ public class FLLValidator extends BaseClockValidator {
       //      mcg_c2_rangeNode.setValue(mcg_c2_range);
       mcg_c4_drst_drsNode.setValue(mcg_c4_drst_drs);
       mcg_c4_drst_drsNode.enable(fll_enabled);
-      fllTargetFrequencyNode.setMessage(fllTargetFrequencyMessage);
+      fllTargetFrequencyNode.setStatus(fllTargetFrequencyMessage);
    }
 }

@@ -19,12 +19,12 @@ import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
-import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
-import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 
@@ -46,19 +46,19 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if (element instanceof BinaryVariableModel) {
+      if (element instanceof BooleanVariableModel) {
          return new BooleanCellEditor(viewer.getTree());
       }
       if (element instanceof SelectionModel) {
          SelectionModel model = (SelectionModel)element;
          return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
       }      
-      if (element instanceof SelectionVariableModel) {
-         SelectionVariableModel model = (SelectionVariableModel)element;
+      if (element instanceof ChoiceVariableModel) {
+         ChoiceVariableModel model = (ChoiceVariableModel)element;
          return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
       }      
-      if (element instanceof NumericVariableModel) {
-         NumericVariableModel model = (NumericVariableModel)element;
+      if (element instanceof LongVariableModel) {
+         LongVariableModel model = (LongVariableModel)element;
          return new NumericTextCellEditor(viewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
@@ -69,8 +69,8 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof BinaryVariableModel) {
-         return ((BinaryVariableModel)element).getValueAsBoolean();
+      if (element instanceof BooleanVariableModel) {
+         return ((BooleanVariableModel)element).getValueAsBoolean();
       }
       if (element instanceof BaseModel) {
          return ((BaseModel)element).getValueAsString();
@@ -80,8 +80,8 @@ public class ValueColumnEditingSupport extends EditingSupport {
 
    @Override
    protected void setValue(Object element, Object value) {
-      if (element instanceof BinaryVariableModel) {
-         ((BinaryVariableModel)element).setBooleanValue((Boolean) value);
+      if (element instanceof BooleanVariableModel) {
+         ((BooleanVariableModel)element).setBooleanValue((Boolean) value);
       }
       else if (element instanceof EditableModel) {
          ((EditableModel)element).setValueAsString((String) value);
@@ -92,9 +92,9 @@ public class ValueColumnEditingSupport extends EditingSupport {
    static class NumericTextCellEditor extends TextCellEditor {
 
       class Validator implements ICellEditorValidator {
-         NumericVariableModel fModel;
+         LongVariableModel fModel;
          
-         Validator(NumericVariableModel model) {
+         Validator(LongVariableModel model) {
             fModel = model;
          }
          
@@ -104,7 +104,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
          }
       }
       
-      public NumericTextCellEditor(Tree parent, NumericVariableModel model) {
+      public NumericTextCellEditor(Tree parent, LongVariableModel model) {
          super(parent, SWT.SINGLE);
          setValueValid(true);
          Validator validator =  new Validator(model);

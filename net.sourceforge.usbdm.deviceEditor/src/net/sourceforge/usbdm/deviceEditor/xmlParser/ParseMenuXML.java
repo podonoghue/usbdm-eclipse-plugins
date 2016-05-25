@@ -19,13 +19,13 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
 import net.sourceforge.usbdm.deviceEditor.model.AliasVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.NumericVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
-import net.sourceforge.usbdm.deviceEditor.peripherals.SelectionVariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 import net.sourceforge.usbdm.jni.Usbdm;
 
 public class ParseMenuXML extends XML_BaseParser {
@@ -82,7 +82,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setDescription(description);
       variable.setToolTip(toolTip);
 
-      NumericVariableModel model = new NumericVariableModel(parent, variable, key);
+      LongVariableModel model = new LongVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(isConstant);
       try {
@@ -120,7 +120,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setDescription(description);
       variable.setToolTip(toolTip);
 
-      SelectionVariableModel model = new SelectionVariableModel(parent, variable, key);
+      ChoiceVariableModel model = new ChoiceVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(isConstant);
 
@@ -170,7 +170,7 @@ public class ParseMenuXML extends XML_BaseParser {
          key = name;
       }
       Variable variable = fProvider.getVariable(key);
-      StringVariableModel model = new AliasVariableModel(parent, variable, key);
+      AliasVariableModel model = new AliasVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(true);
    }
@@ -196,7 +196,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setToolTip(toolTip);
 
       fProvider.addVariable(key, variable);
-      BinaryVariableModel model = new BinaryVariableModel(parent, variable, key);
+      BooleanVariableModel model = new BooleanVariableModel(parent, variable, key);
       model.setName(name);
       model.setConstant(isConstant);
       
@@ -284,17 +284,17 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
          }
       }
-      if (parentModel instanceof BinaryVariableModel) {
+      if (parentModel instanceof BooleanVariableModel) {
          if ((entries.size()==0)||(entries.size()>2)) {
             throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+entries.size());
          }
-         BinaryVariableModel model = (BinaryVariableModel) parentModel;
+         BooleanVariableModel model = (BooleanVariableModel) parentModel;
          model.getVariable().setFalseValue(entries.get(0));
          model.getVariable().setTrueValue(entries.get(1));
       }
-      else if (parentModel instanceof SelectionVariableModel) {      
+      else if (parentModel instanceof ChoiceVariableModel) {      
          Pair theEntries[] = entries.toArray(new Pair[entries.size()]);
-         SelectionVariableModel model = (SelectionVariableModel)parentModel;
+         ChoiceVariableModel model = (ChoiceVariableModel)parentModel;
          model.getVariable().setData(theEntries);
       }
       return defaultValue;

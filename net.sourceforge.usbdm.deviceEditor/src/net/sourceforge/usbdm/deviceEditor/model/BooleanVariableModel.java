@@ -3,7 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
-public class BinaryVariableModel extends VariableModel {
+public class BooleanVariableModel extends VariableModel {
 
    /**
     * Create model
@@ -13,7 +13,7 @@ public class BinaryVariableModel extends VariableModel {
     * @param key           Key used to access the variable
     * @param description   Description for the display
     */
-   public BinaryVariableModel(BaseModel parent, Variable variable, String key) {
+   public BooleanVariableModel(BaseModel parent, Variable variable, String key) {
       super(parent, variable, key);
    }
 

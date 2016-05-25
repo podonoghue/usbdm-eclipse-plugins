@@ -4,7 +4,7 @@ import org.eclipse.swt.graphics.Image;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BinaryVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 
 class ValueColumnLabelProvider extends BaseLabelProvider {
@@ -36,8 +36,8 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
       if ((baseModel instanceof EditableModel) && !baseModel.canEdit()) {
          return lockedImage;
       }
-      if (baseModel instanceof BinaryVariableModel) {
-         return ((Boolean)((BinaryVariableModel)baseModel).getVariable().getValueAsBoolean())?checkedImage:uncheckedImage;
+      if (baseModel instanceof BooleanVariableModel) {
+         return ((Boolean)((BooleanVariableModel)baseModel).getVariable().getValueAsBoolean())?checkedImage:uncheckedImage;
       }
       return null;
    }

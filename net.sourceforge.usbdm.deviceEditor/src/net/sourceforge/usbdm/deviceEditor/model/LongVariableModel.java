@@ -5,7 +5,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
-public class NumericVariableModel extends VariableModel {
+public class LongVariableModel extends VariableModel {
 
    private static final int SIGNIFICANT_DIGITS = 5;
    
@@ -18,7 +18,7 @@ public class NumericVariableModel extends VariableModel {
     * 
     * @note Added as child of parent if not null
     */
-   public NumericVariableModel(BaseModel parent, Variable variable, String key) {
+   public LongVariableModel(BaseModel parent, Variable variable, String key) {
       super(parent, variable, key);
    }
    
@@ -98,28 +98,30 @@ public class NumericVariableModel extends VariableModel {
    public String getToolTip() {
       StringBuffer sb = new StringBuffer();
       sb.append(super.getToolTip());
-      boolean firstOne = true;
+      boolean newLineNeeded = sb.length()>0;
       
       if (getVariable().getMin() != Long.MIN_VALUE) {
-         sb.append("\n");
-         firstOne = false;
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
          sb.append("min="+getValueAsString(getVariable().getMin())+" ");
       }
       if (getVariable().getMax() != Long.MAX_VALUE) {
-         if (firstOne) {
+         if (newLineNeeded) {
             sb.append("\n");
+            newLineNeeded = false;
          }
-         firstOne = false;
          sb.append("max="+getValueAsString(getVariable().getMax())+" ");
       }
       if (getVariable().getStep() != 1) {
-         if (firstOne) {
+         if (newLineNeeded) {
             sb.append("\n");
+            newLineNeeded = false;
          }
-         firstOne = false;
          sb.append("step="+getValueAsString(getVariable().getStep())+" ");
       }
-      return sb.toString();
+      return (sb.length() == 0)?null:sb.toString();
    }
    
 }

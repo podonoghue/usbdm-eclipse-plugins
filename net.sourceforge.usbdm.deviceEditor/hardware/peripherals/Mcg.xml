@@ -53,12 +53,13 @@
             <choice value="1" name="IR enabled in STOP" />
          </binaryOption>
 
-      <intOption name="system_mcgir_clock" 
-         units="Hz"
-         description="Frequency of Internal Reference [MCGIRCLK] "
-         toolTip="Derive from system_slow_irc_clock or system_fast_irc_clock/fcrdiv"
-         value="48000000" 
-         constant="true" />
+         <intOption name="system_mcgir_clock" 
+            units="Hz"
+            description="Frequency of Internal Reference [MCGIRCLK] "
+            toolTip="Derived from system_slow_irc_clock or system_fast_irc_clock/fcrdiv"
+            value="48000000" 
+            constant="true" />
+            
       </menu>
       
       <menu name="Internal" description="Internal Clock Sources"
@@ -239,7 +240,7 @@
          <intOption name="system_erclk32k_clock" 
             units="Hz"
             description="Frequency of External 32k Reference Clock [ERCLK32K]"
-            toolTip="Derived from OSC32KCLK, RTCCLK, LPO" 
+            toolTip="Derived from OSC32KCLK, RTCCLK or LPO" 
             value="32000"
             constant="true" />
    
@@ -258,6 +259,23 @@
             
       </menu>
 
+      <choiceOption name="mcg_c7_oscsel" 
+         description="MCG External Reference Clock source [OSCSEL]"
+         toolTip="Selects the MCG FLL/PLL external reference clock source">
+         <choice value="0" name="Main System Oscillator (OSCCLK)" />
+         <choice value="1" name="32 kHz RTC Oscillator (RTC_32K)" />
+         <choice value="2" name="48 MHz Internal Oscillator (IRC48M)" />
+         <choice value="0" name="Default" />
+      </choiceOption>
+   
+      <intOption name="mcg_erc_clock" 
+         units="Hz"
+         constant="true"  
+         description="MCG External Reference Clock [OSCSELCLK]"
+         toolTip="Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL), \n 
+                  RTC_CLOCK(XTAL32/EXTAL32) or IRC48M(Internal 48MHz)"
+         value="12000000" />
+   
       <choiceOption name="clock_mode" 
          description="Default Clock Mode"
          toolTip="FLL Engaged Internal(FEI)\n
@@ -313,29 +331,13 @@
          <choice name="Bypassed low power external (BLPE)"  value="ClockMode_BLPE" />
       </choiceOption>
 
-      <choiceOption name="mcg_c7_oscsel" 
-         description="MCG External Reference Clock source [OSCSEL]"
-         toolTip="Selects the MCG FLL/PLL external reference clock source">
-         <choice value="0" name="Main System Oscillator (OSCCLK)" />
-         <choice value="1" name="32 kHz RTC Oscillator (RTC_32K)" />
-         <choice value="2" name="48 MHz Internal Oscillator (IRC48M)" />
-         <choice value="0" name="Default" />
-      </choiceOption>
-   
-      <intOption name="mcg_erc_clock" 
-         units="Hz"
-         constant="true"  
-         description="MCG External Reference Clock [OSCSELCLK]"
-         toolTip="Derived from the OSCCLK0 (external crystal or clock source on XTAL/EXTAL), \n 
-                  RTC_CLOCK(XTAL32/EXTAL32) or IRC48M(Internal 48MHz)"
-         value="12000000" />
-   
       <menu name="FLL" description="FLL Settings">
          <binaryOption name="fll_enabled"
-            description="Enable state of FLL"
+            constant="true"
+            description="FLL State"
             toolTip="Determined from clock mode selected" >
-            <choice value="0" name="Inactive" />
-            <choice value="1" name="Active" />
+            <choice value="0" name="FLL Inactive" />
+            <choice value="1" name="FLL Active" />
          </binaryOption>
 
          <intOption name="fllInputFrequency" 
@@ -394,19 +396,27 @@
             constant="true"  
             description="MCG Fixed Frequency Clock [MCGFFCLK]"
             toolTip="Used as input clock to FLL and available to some peripherals\n
-            Derived from ERCLK or IRC"
+            Derived from External Reference Clock or Slow IRC"
             value="12000000" />
       
       </menu>
       
       <menu name="PLL" description="PLL Settings">
          <binaryOption name="pll_enabled"
-            description="Enable state of PLL"
-            toolTip="Determined from clock mode selected or manually enabled" >
-            <choice value="0" name="Inactive" />
-            <choice value="1" name="Active" />
+            constant="true"
+            description="PLL State"
+            toolTip="Determined from clock mode selected or enabled by mcg_c5_pllclken" >
+            <choice value="0" name="PLL Inactive" />
+            <choice value="1" name="PLL Active" />
          </binaryOption>
       
+         <binaryOption name="mcg_c5_pllclken" 
+            description="PLL Enable"
+            toolTip="Enables the PLL independent of PLLS and enables the PLL clock for use as MCGPLLCLK">
+            <choice value="0" name="PLL active as needed" />
+            <choice value="1" name="PLL forced active" />
+         </binaryOption>
+
          <intOption name="pllInputFrequency" 
             constant="true"
             units="Hz"
@@ -420,6 +430,13 @@
             toolTip="Used for main MCGOUTCLK system clock if PEE mode is selected"
             value="120000000"/>
             
+         <binaryOption name="mcg_c5_pllsten" 
+            description="PLL Stop Enable"
+            toolTip="Enables the PLL Clock during Normal Stop">
+            <choice value="0" name="PLL is disabled in any Stop mode" />
+            <choice value="1" name="PLL is enabled in Normal Stop mode" />
+         </binaryOption>
+
          <intOption name="mcg_c5_prdiv0"
             constant="true" 
             description="PLL External Reference Divider"
@@ -449,11 +466,11 @@
       <aliasOption name="system_low_power_clock" />
       <aliasOption name="system_rtc_clkout" />
 
-      <choiceOption name="mcgOutputClockSource"
+      <choiceOption name="system_mcgout_clock_source"
+         description="System MCG Output Clock source [MCGOUTCLK]"
          toolTip="Source of MCG Output Clock\n
          Determined by current clock mode"
-         constant="true" 
-         description="MCG Output Clock" >
+         constant="true" >
             <choice value="0" name="PLL output" />
             <choice value="1" name="FLL output" />
             <choice value="1" name="MCGIRCLK" />
@@ -462,7 +479,7 @@
       
       <intOption name="system_mcgout_clock" 
          units="Hz"
-         description="System MCG output Clock [MCGOUTCLK]"
+         description="System MCG Output Clock [MCGOUTCLK]"
          toolTip="MCG Main clock output\n
                   Derived from slow IRC, fast IRC, ERC, FLL or PLL"
          value="120000000" constant="true" />
@@ -558,20 +575,8 @@
          </menu>
          
          <menu name="MCG_C5" description="MCG Control Register 5">
-            <binaryOption name="mcg_c5_pllclken" 
-               description="PLL Clock Enable"
-               toolTip="Enables the PLL independent of PLLS and enables the PLL clock for use as MCGPLLCLK">
-               <choice value="0" name="MCGPLLCLK is inactive" />
-               <choice value="1" name="MCGPLLCLK is active" />
-            </binaryOption>
-      
-            <binaryOption name="mcg_c5_pllsten" 
-               description="PLL Stop Enable"
-               toolTip="Enables the PLL Clock during Normal Stop">
-               <choice value="0" name="MCGPLLCLK is disabled in any Stop mode" />
-               <choice value="1" name="MCGPLLCLK is enabled in Normal Stop mode" />
-            </binaryOption>
-            
+            <aliasOption name="mcg_c5_pllclken" />
+            <aliasOption name="mcg_c5_pllsten" /> 
             <aliasOption name="mcg_c5_prdiv0" />
          </menu>
          

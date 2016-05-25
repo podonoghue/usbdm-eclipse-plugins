@@ -5,7 +5,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
-public class SelectionVariableModel extends VariableModel {
+public class ChoiceVariableModel extends VariableModel {
 
    /**
     * Create model
@@ -15,7 +15,7 @@ public class SelectionVariableModel extends VariableModel {
     * @param key           Key used to access the variable
     * @param description   Description for the display
     */
-   public SelectionVariableModel(BaseModel parent, Variable variable, String key) {
+   public ChoiceVariableModel(BaseModel parent, Variable variable, String key) {
       super(parent, variable, key);
    }
 
