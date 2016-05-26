@@ -12,18 +12,29 @@ import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
  */
 class FllDivider {
 
+   // Range for FLL input - Wide
    private static final long FLL_CLOCK_WIDE_MIN   = 31250L;
    private static final long FLL_CLOCK_WIDE_MAX   = 39063L;
+   
+   // Range for FLL input - Narrow
    private static final long FLL_CLOCK_NARROW_MIN = 32768L-100;
    private static final long FLL_CLOCK_NARROW_MAX = 32768L+100;
 
-   // Choose range and divisor based on suitable FLL input frequency
+   // Low range FLL divisors
    private static final int[] LOW_RANGE_DIVISORS  = {
          1, 2, 4, 8, 16, 32, 64, 128
    };
+
+   // High range FLL divisors
    private static final int[] HIGH_RANGE_DIVISORS = {
          1*(1<<5), 2*(1<<5), 4*(1<<5), 8*(1<<5), 16*(1<<5), 32*(1<<5), 40*(1<<5), 48*(1<<5)
    };
+
+   // FLL multiplication factor for narrow range
+   private static final long FLL_NARROW_FACTOR = 732;
+
+   // FLL multiplication factor for wide range
+   private static final long FLL_WIDE_FACTOR   = 640;
 
    private double nearestError     = Double.MAX_VALUE;
    private double nearestFrequency = 0.0;
@@ -44,17 +55,17 @@ class FllDivider {
     * Find suitable FLL divider (frdiv)
     * 
     * @param fllInputClock       Input clock to be divided
-    * @param mcg_c4_dmx32Node    Clock mode (affects input range)
+    * @param mcg_c4_dmx32Var    Clock mode (affects input range)
     * @param rangeDivisors       Possible dividers to select
     * 
     * @return True => Found suitable divider
     */
-   boolean findDivider(long fllInputClock, boolean mcg_c4_dmx32Node, int[] rangeDivisors) { 
+   boolean findDivider(long fllInputClock, boolean mcg_c4_dmx32Var, int[] rangeDivisors) { 
 
       long fllInMin;
       long fllInMax;
       
-      if (mcg_c4_dmx32Node) {
+      if (mcg_c4_dmx32Var) {
          fllInMin = FLL_CLOCK_NARROW_MIN;
          fllInMax = FLL_CLOCK_NARROW_MAX;
       }
@@ -100,27 +111,27 @@ class FllDivider {
     * Determines the FLL divider values
     * 
     * @param mcg_c2_rangeIn         [in]     Range
-    * @param mcg_c1_irefs           [in]     irefs value (affect clock source)
-    * @param mcg_erc_clockNode      [in]     mcg_erc_clock variable
+    * @param mcg_c1_irefs           [in]     irefs value (affects clock source)
+    * @param mcg_erc_clockVar      [in]     mcg_erc_clock variable
     * @param slow_irc_clock         [in]     Frequency of slow IRC
     * @param mcg_c7_oscsel          [in]     OSCSEL value used to constrain dividers
-    * @param mcg_c4_dmx32Node       [in]     Affects input range accepted 
-    * @param fllInputFrequencyNode  [in/out] Input to FLL
-    * @param fllTargetFrequencyNode [out]    Output from FLL
+    * @param mcg_c4_dmx32Var       [in]     Affects input range accepted 
+    * @param fllInputFrequencyVar  [in/out] Input to FLL
+    * @param fllTargetFrequencyVar [out]    Output from FLL
     */
    public FllDivider(
          int mcg_c2_rangeIn, boolean mcg_c1_irefs, 
-         final Variable mcg_erc_clockNode, 
+         final Variable mcg_erc_clockVar, 
          long  slow_irc_clock, 
          long  mcg_c7_oscsel, boolean mcg_c4_dmx32, 
-         final Variable fllInputFrequencyNode, 
-         final Variable fllTargetFrequencyNode) {
+         final Variable fllInputFrequencyVar, 
+         final Variable fllTargetFrequencyVar) {
 
       boolean found = false;
-      
+
       String  fllOrigin;
       Message status;
-      
+
       long availableClock;
       if (mcg_c1_irefs) {
          // Slow internal clock selected
@@ -129,11 +140,29 @@ class FllDivider {
          availableClock = slow_irc_clock;
       }
       else {
-         fllOrigin      = mcg_erc_clockNode.getOrigin();
-         status         = mcg_erc_clockNode.getStatus();
-         availableClock = mcg_erc_clockNode.getValueAsLong();
+         fllOrigin      = mcg_erc_clockVar.getOrigin();
+         status         = mcg_erc_clockVar.getStatus();
+         availableClock = mcg_erc_clockVar.getValueAsLong();
       }
-      fllTargetFrequencyNode.setOrigin(fllOrigin+" via FLL");
+      fllInputFrequencyVar.setOrigin(fllOrigin);
+      fllTargetFrequencyVar.setOrigin(fllOrigin+" via FLL");
+
+      if ((status != null) && (status.getSeverity().greaterThan(Severity.OK))) {
+         // Invalid input
+         status = new Message(status.getRawMessage()+": Invalid FLL input", Severity.WARNING);
+         fllInputFrequencyVar.setStatus(status);
+         fllTargetFrequencyVar.setStatus(status);
+         if (mcg_c2_rangeIn<0) {
+            mcg_c2_rangeIn = 0;
+         }
+         mcg_c2_range    = mcg_c2_rangeIn;
+         mcg_c4_drst_drs = 0;
+         mcg_c1_frdiv    = 0;
+         return;
+      }
+
+      // Find input divisor
+      //==============================
       if (mcg_c1_irefs) {
          // No dividers - direct from Slow IRC
          found = true;
@@ -177,38 +206,36 @@ class FllDivider {
       }
       // Record range in use
       mcg_c2_range = mcg_c2_rangeIn;
-      
+
       long inputFrequency;
-      if (found) {
-         inputFrequency  = Math.round(fllInputFrequency_calc);
-         mcg_c1_frdiv       = mcg_c1_frdiv_calc;
+      if (!found) {
+         // No suitable divisor - Set invalid and use defaults
+         fllInputFrequencyVar.setValue(Math.round(nearestFrequency));
+         String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s", 
+               EngineeringNotation.convert(availableClock, 3));
+         status = new Message(msgText, Severity.WARNING);
+         fllInputFrequencyVar.setStatus(status);
+         fllTargetFrequencyVar.setStatus(status);
+         mcg_c1_frdiv    = nearest_frdiv;
+         mcg_c4_drst_drs = 0;
+         return;
       }
-      else {
-         inputFrequency  = Math.round(nearestFrequency);
-         mcg_c1_frdiv       = nearest_frdiv;
-         if (status == null) {
-            String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s", 
-                  EngineeringNotation.convert(availableClock, 3));
-            status = new Message(msgText, Severity.WARNING);
-         }
-      }
+
+      inputFrequency  = Math.round(fllInputFrequency_calc);
+      mcg_c1_frdiv    = mcg_c1_frdiv_calc;
+
       // Record FLL input details
-      fllInputFrequencyNode.setValue(inputFrequency);
-      fllInputFrequencyNode.setStatus(status);
-      fllInputFrequencyNode.setOrigin(fllOrigin);
-      
+      fllInputFrequencyVar.setValue(inputFrequency);
+      fllInputFrequencyVar.setStatus((Message)null);
+
       // Determine possible output frequencies & check against desired value
       //=======================================================================
-      long fllOutFrequency;
-      if (mcg_c4_dmx32) {
-         fllOutFrequency = inputFrequency * 732;
-      }
-      else {
-         fllOutFrequency = inputFrequency * 640;
-      }
       int mcg_c4_drst_drs_calc = -1;
 
-      Long fllTargetFrequency = fllTargetFrequencyNode.getValueAsLong();
+      long fllOutFrequency = inputFrequency * (mcg_c4_dmx32?FLL_NARROW_FACTOR:FLL_WIDE_FACTOR);
+
+      Long fllTargetFrequency = fllTargetFrequencyVar.getValueAsLong();
+
       ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
       for (int probe=1; probe<=4; probe++) {
          fllFrequencies.add(fllOutFrequency*probe);
@@ -218,7 +245,7 @@ class FllDivider {
          }         
       }
       StringBuilder sb = new StringBuilder();
-      Severity severity;;
+      Severity severity;
       if (mcg_c4_drst_drs_calc >= 0) {
          // Adjust rounded value
          fllTargetFrequency = fllOutFrequency*(mcg_c4_drst_drs_calc+1);
@@ -235,15 +262,14 @@ class FllDivider {
             sb.append(", ");
          }
          else {
-            sb.append("Possible values (Hz) = ");
+            sb.append("Possible values = ");
          }
          needComma = true;
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
       status = new Message (sb.toString(), severity);
-      fllTargetFrequencyNode.setValue(fllTargetFrequency);
-      fllTargetFrequencyNode.setStatus(status);
-      
+      fllTargetFrequencyVar.setValue(fllTargetFrequency);
+      fllTargetFrequencyVar.setStatus(status);
       mcg_c4_drst_drs = mcg_c4_drst_drs_calc;
    }
 }

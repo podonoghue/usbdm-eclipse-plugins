@@ -23,6 +23,8 @@ struct PinInit {
 static constexpr PinInit pinInit[] = {
  /* PTA10      ==> GPIOA_10/LLWU_P22              */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[10], },
  /* PTA11      ==> GPIOA_11/LLWU_P23              */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[11], },
+ /* PTA18      ==> EXTAL0                         */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTA->PCR[18], },
+ /* PTA19      ==> XTAL0                          */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTA->PCR[19], },
  /* PTA25      ==> GPIOA_25                       */  { PORT_PCR_MUX(1)|USBDM::DEFAULT_PCR, &PORTA->PCR[25], },
  /* PTB2       ==> ADC0_SE12/TSI0_CH7             */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[2],  },
  /* PTB3       ==> ADC0_SE13/TSI0_CH8             */  { PORT_PCR_MUX(0)|USBDM::DEFAULT_PCR, &PORTB->PCR[3],  },

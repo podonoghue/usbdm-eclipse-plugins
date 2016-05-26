@@ -1,7 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public abstract class Variable extends ObservableModel {
    
@@ -50,15 +52,29 @@ public abstract class Variable extends ObservableModel {
    
    /** Origin of variable value */
    private String fOrigin = null;
+
+   /** Default value for variable */
+//   private String fDefaultValue;
    
+//   /**
+//    * Constructor
+//    * 
+//    * @param name Name to display to user. Also used as default key.
+//    */
+//   public Variable(String name) {
+//      fName = name;
+//      fKey  = name;
+//   }
+
    /**
     * Constructor
     * 
-    * @param name Name to display to user. Also used as default key.
+    * @param name Name to display to user.
+    * @param key  Key for variable
     */
-   public Variable(String name) {
+   public Variable(String name, String key) {
       fName = name;
-      fKey  = name;
+      fKey  = key;
    }
 
    /**
@@ -104,6 +120,13 @@ public abstract class Variable extends ObservableModel {
     */
    public abstract boolean setValue(Object value);
 
+   /**
+    * Sets variable default value
+    * 
+    * @param value The value to set
+    */
+   public abstract void setDefault(Object value);
+
    private String getSimpleClassName() {
       String s = getClass().toString();
       int index = s.lastIndexOf(".");
@@ -112,7 +135,7 @@ public abstract class Variable extends ObservableModel {
    
    @Override
    public String toString() {
-      return String.format(getSimpleClassName()+"(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
+      return String.format(getSimpleClassName()+"(Name=%s, Key=%s, value=%s (%s)", getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    public void setStatus(String message) {
@@ -305,6 +328,25 @@ public abstract class Variable extends ObservableModel {
       }
       return (sb.length()==0)?null:sb.toString();
    }
-   
+
+   public abstract VariableModel createModel(BaseModel parent);
+
+//   /**
+//    * Sets default value for variable
+//    * 
+//    * @param defaultValue
+//    */
+//   public void setDefaultValue(String defaultValue) {
+//      fDefaultValue = defaultValue;
+//   }
+//
+//   /**
+//    * Sets default value for variable
+//    * 
+//    * @param defaultValue
+//    */
+//   public String getDefaultValue(String defaultValue) {
+//      return fDefaultValue;
+//   }
 
 }

@@ -8,20 +8,17 @@ import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
  */
 public class VariableModel extends EditableModel implements IModelChangeListener {
 
-   protected final String              fKey;
-   protected final Variable            fVariable;
+   protected final Variable fVariable;
    
    /**
+    * Constructor - Create model from variable
     * 
-    * @param parent        Parent model
-    * @param provider      Provider that owns the variable
-    * @param key           Key used to access the variable
-    * @param description   Description for the display
+    * @param parent     Parent model
+    * @param variable   Variable being modelled
     */
-   public VariableModel(BaseModel parent, Variable variable, String key) {
-      super(parent, key, null);
-      fKey           = key;
-      fVariable      = variable;
+   public VariableModel(BaseModel parent, Variable variable) {
+      super(parent, variable.getName(), variable.getDescription());
+      fVariable = variable;
       fVariable.addListener(this);
    }
 

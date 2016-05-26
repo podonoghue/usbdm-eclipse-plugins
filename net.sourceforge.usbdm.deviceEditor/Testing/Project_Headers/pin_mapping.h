@@ -2639,6 +2639,12 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   //! Indicates interrupt handler has been installed
+   static constexpr bool irqHandlerInstalled = true;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel = 0;
+
    enum ClockMode {
       ClockMode_None = -1,
       ClockMode_FEI  = 0,
@@ -2652,13 +2658,7 @@ public:
    };
 
    //! Clock Mode
-   static constexpr ClockMode clockMode = ClockMode_FEI;
-
-   //! Frequency of OSC Clock or Crystal
-   static constexpr uint32_t oscclk_clock = 12000000UL;
-
-   //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = 32768UL;
+   static constexpr ClockMode clockMode = ClockMode_PEE;
 
    //! Frequency of Frequency of Internal 48MHz Clock
    static constexpr uint32_t irc48m_clock = 48000000UL;
@@ -2671,34 +2671,34 @@ public:
 
    //! Control Register 1
    static constexpr uint32_t MCG_C1 =
-      MCG_C1_FRDIV(0)   | // FRDIV    FLL External Reference Divider
+      MCG_C1_FRDIV(7)   | // FRDIV    FLL External Reference Divider
       MCG_C1_IRCLKEN(1) | // IRCLEN   Internal Reference Clock Enable
-      MCG_C1_IREFSTEN(1); // IREFSTEN Internal Reference Stop Enable
+      MCG_C1_IREFSTEN(0); // IREFSTEN Internal Reference Stop Enable
 
    //! Control Register 2
    static constexpr uint32_t MCG_C2 =
       MCG_C2_LOCRE0(0) | // LOLRE0  Loss of Clock Reset Enable
-      MCG_C2_RANGE0(2) | // RANGE   Frequency Range Select
+      MCG_C2_RANGE0(1) | // RANGE   Frequency Range Select
       MCG_C2_HGO0(0)   | // HGO     High Gain Oscillator Select
       MCG_C2_EREFS0(1) | // EREFS   External Reference Select
-      MCG_C2_IRCS(1);    // IRCS    Internal Reference Clock Select
+      MCG_C2_IRCS(0);    // IRCS    Internal Reference Clock Select
 
    //! Control Register 4
    static constexpr uint32_t MCG_C4 =
-      MCG_C4_DMX32(0)     | // DMX32    DCO lock range
-      MCG_C4_DRST_DRS(3);   // DRST_DRS DCO Range Select
+      MCG_C4_DMX32(1)     | // DMX32    DCO lock range
+      MCG_C4_DRST_DRS(0);   // DRST_DRS DCO Range Select
 
    //! Control Register 5
    static constexpr uint32_t MCG_C5 =
       MCG_C5_PLLCLKEN0(0)  | // PLLCLKEN0 PLL Clock Enable
-      MCG_C5_PLLSTEN0(1)   | // PLLSTEN0  PLL Stop Enable
-      MCG_C5_PRDIV0(0);     // PRDIV0    PLL External Reference Divider
+      MCG_C5_PLLSTEN0(0)   | // PLLSTEN0  PLL Stop Enable
+      MCG_C5_PRDIV0(11);     // PRDIV0    PLL External Reference Divider
 
    //! Control Register 6
    static constexpr uint32_t MCG_C6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
       MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(0);   // VDIV0  PLL VCO Divider
+      MCG_C6_VDIV0(6);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
    static constexpr uint32_t MCG_SC =
@@ -2706,12 +2706,12 @@ public:
 
    //! Control Register 7
    static constexpr uint32_t MCG_C7 =
-      MCG_C7_OSCSEL(1); // OSCSEL MCG OSC Clock Select
+      MCG_C7_OSCSEL(2); // OSCSEL MCG OSC Clock Select
 
    //! Control Register 8
    static constexpr uint32_t MCG_C8 =
       MCG_C8_LOCRE1(0) | // LOCRE1 RTC Loss of Clock Reset Enable
-      MCG_C8_LOLRE(1)  | // LOLRE  PLL Loss of Lock Reset Enable
+      MCG_C8_LOLRE(0)  | // LOLRE  PLL Loss of Lock Reset Enable
       MCG_C8_CME1(0);    // CME1   Clock Monitor Enable 1
 
    #ifdef MCG_C9_PLL_CME
@@ -2724,25 +2724,18 @@ public:
    #ifdef MCG_C11_PLLCS
    //! Control Register 11
    static constexpr uint32_t MCG_C11 =
-      MCG_C11_PLLCS(1); // PLLCS PLL Clock Select
-   #endif
-
-   #ifdef RTC_CR_CLKO
-   //! Control Register 11
-   static constexpr uint32_t RTC_CR =
-      RTC_CR_OSCE(1) | // Enable 32kHz oscillator [RTC_32K]
-      RTC_CR_CLKO(0) | // RTC 32kHz Clock Output
-      (2<<RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
+      MCG_C11_PLLCS(0); // PLLCS PLL Clock Select
    #endif
 
    //! Clock divider
    static constexpr uint32_t SIM_CLKDIV1 = 
-      SIM_CLKDIV1_OUTDIV4(10) | // SIM_CLKDIV1_OUTDIV4
+      SIM_CLKDIV1_OUTDIV4(4) | // SIM_CLKDIV1_OUTDIV4
    #ifdef SIM_CLKDIV1_OUTDIV3
-      SIM_CLKDIV1_OUTDIV3(10) | // SIM_CLKDIV1_OUTDIV3
+      SIM_CLKDIV1_OUTDIV3(2) | // SIM_CLKDIV1_OUTDIV3
    #endif
-      SIM_CLKDIV1_OUTDIV2(10) | // SIM_CLKDIV1_OUTDIV2
-      SIM_CLKDIV1_OUTDIV1(10);  // SIM_CLKDIV1_OUTDIV1
+      SIM_CLKDIV1_OUTDIV2(2) | // SIM_CLKDIV1_OUTDIV2
+      SIM_CLKDIV1_OUTDIV1(0);  // SIM_CLKDIV1_OUTDIV1
+
 };
 
 /** 
@@ -2801,16 +2794,19 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   //! Frequency of OSC Clock or Crystal
+   static constexpr uint32_t oscclk_clock = 8000000UL;
+
    //! Oscillator control register
    static constexpr uint32_t OSC_CR =
-      (0<<OSC_CR_ERCLKEN_SHIFT)|
-      (0<<OSC_CR_EREFSTEN_SHIFT)|
-      (2<<OSC_CR_SC16P_SHIFT);
+      OSC_CR_ERCLKEN(0) |
+      OSC_CR_EREFSTEN(0) |
+      OSC_CR_SCP(2);
 
 #ifdef OSC_DIV_ERPS_MASK
    //! OSC Clock divider register
    static constexpr uint32_t OSC_DIV =
-      (0<<OSC_DIV_ERPS_SHIFT);   
+      OSC_DIV_ERPS(3);   
 #endif
 
    //! Number of signals available in info table
@@ -2820,20 +2816,24 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: XTAL0                = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: EXTAL0               = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   0: XTAL0                = PTA19                          */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  19,  PORT_PCR_MUX(0)|pcrValue  },
+         /*   1: EXTAL0               = PTA18                          */  { PORTA_CLOCK_MASK, PORTA_BasePtr,  GPIOA_BasePtr,  18,  PORT_PCR_MUX(0)|pcrValue  },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
+      PcrTable_T<Osc0Info,  0>::setPCR(); // XTAL0           = PTA19                         
+      PcrTable_T<Osc0Info,  1>::setPCR(); // EXTAL0          = PTA18                         
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
+      PcrTable_T<Osc0Info,  0>::setPCR(0); // XTAL0           = PTA19                         
+      PcrTable_T<Osc0Info,  1>::setPCR(0); // EXTAL0          = PTA18                         
    }
 
 };
@@ -3084,14 +3084,17 @@ public:
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
+   //! Frequency of RTC External Clock or Crystal
+   static constexpr uint32_t rtcclk_clock = 32768UL;
+
    //! Oscillator control register
    static constexpr uint32_t RTC_CR =
-      (0<<RTC_CR_OSCE_SHIFT)|
-      (0<<RTC_CR_CLKO_SHIFT)|
-      (0<<RTC_CR_UM_SHIFT)|
-      (0<<RTC_CR_SUP_SHIFT)|
-      (0<<RTC_CR_WPE_SHIFT)|
-      (2<<RTC_CR_SC16P_SHIFT);
+      RTC_CR_OSCE(1) | // Enables 32kHz oscillator [RTC_32K]
+      RTC_CR_CLKO(0) | // Enables RTC 32kHz Clock Output
+      RTC_CR_UM(0)   | // Update Mode
+      RTC_CR_SUP(0)  | // Supervisor access
+      RTC_CR_WPE(0)  | // Wakeup Pin Enable
+      (2<<RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 5;

@@ -18,8 +18,8 @@ public class LongVariableModel extends VariableModel {
     * 
     * @note Added as child of parent if not null
     */
-   public LongVariableModel(BaseModel parent, Variable variable, String key) {
-      super(parent, variable, key);
+   public LongVariableModel(BaseModel parent, Variable variable) {
+      super(parent, variable);
    }
    
    @Override

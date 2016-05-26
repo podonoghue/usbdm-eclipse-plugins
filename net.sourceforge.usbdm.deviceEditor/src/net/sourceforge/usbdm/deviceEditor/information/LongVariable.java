@@ -1,6 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class LongVariable extends Variable {
    
@@ -22,38 +25,42 @@ public class LongVariable extends Variable {
    private Units fUnits;
 
    /** Value in user format */
-   private long  fValue;
+   private long fValue = 0;
+
+   /** Default value of variable */
+   private long fDefault = 0;
    
    /**
-    * Create a variable representing along quantity
+    * Constructor
     * 
-    * @param name
+    * @param name Name to display to user.
+    * @param key  Key for variable
     */
-   public LongVariable(String name) {
-      super(name);
+   public LongVariable(String name, String key) {
+      super(name, key);
+   }
+
+   @Override
+   public long getValueAsLong() {
+      return isEnabled()?fValue:fDefault;
    }
 
    @Override
    public String getSubstitutionValue() {
-      return Long.toString(fValue+fOffset);
+      return Long.toString(getValueAsLong()+fOffset);
    }
 
    @Override
    public String getValueAsString() {
       if (getUnits() != Units.None) {
-         return EngineeringNotation.convert(fValue, 5)+getUnits().toString();
+         return EngineeringNotation.convert(getValueAsLong(), 5)+getUnits().toString();
       }
-      return Long.toString(fValue);
-   }
-
-   @Override
-   public long getValueAsLong() {
-      return fValue;
+      return Long.toString(getValueAsLong());
    }
 
    @Override
    public boolean getValueAsBoolean() {
-      return fValue != 0;
+      return getValueAsLong() != 0;
    }
 
    /**
@@ -73,22 +80,31 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public boolean setValue(Object value) {
+   public void setDefault(Object value) {
+      fDefault = translate(value);
+   }
+
+   public long translate(Object value) {
       if (value instanceof Long) {
-         return setValue((Long) value);
+         return (Long) value;
       }
       if (value instanceof Integer) {
-         return setValue((long)(Integer) value);
+         return (long)(Integer) value;
       }
       if (value instanceof String) {
-         return setValue(EngineeringNotation.parseAsLong((String) value));
+         return EngineeringNotation.parseAsLong((String) value);
       }
       if ((value instanceof Boolean) && (fOffset == 0)) {
-         return setValue(((Boolean) value)?1L:0L);
+         return ((Boolean) value)?1L:0L;
       }
       throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
    }
 
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(translate(value));
+   }
+   
    @Override
    public String toString() {
       return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
@@ -101,6 +117,9 @@ public class LongVariable extends Variable {
     */
    public void setMin(long min) {
       fMin = min;
+      if (fDefault<fMin) {
+         fDefault = fMin;
+      }
    }
 
    /**
@@ -110,6 +129,9 @@ public class LongVariable extends Variable {
     */
    public void setMax(long max) {
       fMax = max;
+      if (fDefault>fMax) {
+         fDefault = fMax;
+      }
    }
 
    /**
@@ -212,4 +234,10 @@ public class LongVariable extends Variable {
     }
     return isValid(lValue);
  }
+   
+   @Override
+   public VariableModel createModel(BaseModel parent) {
+      return new LongVariableModel(parent, this);
+   }
+
 }

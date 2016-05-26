@@ -131,26 +131,26 @@ public class ClockValidator extends BaseClockValidator {
 
       // OSC
       //=================================
-      Variable     osc_cr_erclkenNode               =  getVariable("osc_cr_erclken");
-      Variable     oscclk_clockNode                 =  getVariable("oscclk_clock");
+      Variable     osc_cr_erclkenNode               =  getSharedVariable("OSC0_osc_cr_erclken");
+      Variable     oscclk_clockNode                 =  getSharedVariable("OSC0_oscclk_clock");
       Variable     mcg_c2_erefs0Node                =  getVariable("mcg_c2_erefs0");
 //    Variable mcg_c2_hgo0Node                      =  getLongVariable("mcg_c2_hgo0");
 //    Variable osc_cr_scpNode                       =  getVariable("osc_cr_scp");
 //    Variable osc_cr_erefstenNode                  =  getVariable("osc_cr_erefsten");
       Variable     mcg_c2_range0Node                =  getVariable("mcg_c2_range0");
-      Variable     system_oscerclk_undiv_clockNode  =  safeGetVariable("system_oscerclk_undiv_clock");
+      Variable     system_oscerclk_undiv_clockNode  =  safeGetSharedVariable("OSC0_system_oscerclk_undiv_clock");
       if (system_oscerclk_undiv_clockNode == null) {
-         system_oscerclk_undiv_clockNode = new LongVariable("system_oscerclk_undiv_clock");
+         system_oscerclk_undiv_clockNode = new LongVariable("system_oscerclk_undiv_clock", null);
       }
-      Variable     osc_div_erpsNode                 =  getVariable("osc_div_erps");
-      Variable     system_oscerclk_clockNode        =  getVariable("system_oscerclk_clock");
+      Variable     osc_div_erpsNode                 =  getSharedVariable("OSC0_osc_div_erps");
+      Variable     system_oscerclk_clockNode        =  getSharedVariable("OSC0_system_oscerclk_clock");
 
       // RTC
       //=================================
-      Variable     rtc_cr_osceNode                  =  getBooleanVariable("rtc_cr_osce");
-      Variable     rtcclk_clockNode                 =  getVariable("rtcclk_clock");
-      Variable     rtc_cr_scpNode                   =  getVariable("rtc_cr_scp");
-      Variable     rtc_cr_clkoNode                  =  getVariable("rtc_cr_clko");
+      Variable     rtc_cr_osceNode                  =  getSharedVariable("RTC_rtc_cr_osce");
+      Variable     rtcclk_clockNode                 =  getSharedVariable("RTC_rtcclk_clock");
+      Variable     rtc_cr_scpNode                   =  getSharedVariable("RTC_rtc_cr_scp");
+      Variable     rtc_cr_clkoNode                  =  getSharedVariable("RTC_rtc_cr_clko");
       Variable     sim_sopt1_osc32kselNode          =  getVariable("sim_sopt1_osc32ksel");
       Variable     system_erclk32k_clockNode        =  getVariable("system_erclk32k_clock");
       Variable     sim_sopt2_rtcclkoutselNode       =  getVariable("sim_sopt2_rtcclkoutsel");
@@ -182,7 +182,7 @@ public class ClockValidator extends BaseClockValidator {
       Variable     mcg_c6_vdiv0Node                 =  getVariable("mcg_c6_vdiv0");
 
       //=================================
-      Variable     system_mcgout_clock_sourceNode         =  getVariable("system_mcgout_clock_source");
+      Variable     system_mcgout_clock_sourceNode   =  getVariable("system_mcgout_clock_source");
       Variable     system_mcgout_clockNode          =  getVariable("system_mcgout_clock");
       Variable     system_core_clockNode            =  getVariable("system_core_clock");
       Variable     system_bus_clockNode             =  getVariable("system_bus_clock");
@@ -248,7 +248,7 @@ public class ClockValidator extends BaseClockValidator {
       
       // Determine MCGIRCLK (not gated/undivided and gated)
       //========================================
-      Variable system_mcgir_ungated_clock = new LongVariable("system_mcgir_ungated");
+      Variable system_mcgir_ungated_clock = new LongVariable("system_mcgir_ungated", null);
       if (mcg_c2_ircsNode.getValueAsBoolean()) {
          // Fast IRC selected
          if (mcg_sc_fcrdivNode != null) {

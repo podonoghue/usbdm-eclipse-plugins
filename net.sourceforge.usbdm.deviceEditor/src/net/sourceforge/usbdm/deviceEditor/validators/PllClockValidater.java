@@ -178,7 +178,7 @@ public class PllClockValidater extends BaseClockValidator {
                pllTargetFrequencyNode.setValue(pllTargetFrequency);
             }
          }
-         status.append("Possible values (Hz) = \n");
+         status.append("Possible values = \n");
          boolean needComma = false;
          int lineCount = -1;
          for (Long freq : pllFrequencies) {

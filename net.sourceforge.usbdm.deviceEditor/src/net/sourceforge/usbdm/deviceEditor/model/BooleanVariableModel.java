@@ -6,15 +6,13 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 public class BooleanVariableModel extends VariableModel {
 
    /**
-    * Create model
+    * Constructor - Create model from variable
     * 
-    * @param parent        Parent model
-    * @param provider      Provider that owns the variable
-    * @param key           Key used to access the variable
-    * @param description   Description for the display
+    * @param parent     Parent model
+    * @param variable   Variable being modelled
     */
-   public BooleanVariableModel(BaseModel parent, Variable variable, String key) {
-      super(parent, variable, key);
+   public BooleanVariableModel(BaseModel parent, Variable variable) {
+      super(parent, variable);
    }
 
    @Override

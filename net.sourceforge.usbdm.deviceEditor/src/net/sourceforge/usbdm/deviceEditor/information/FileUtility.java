@@ -26,20 +26,32 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 public class FileUtility {
 
    public interface IKeyMaker {
-      public String makeKey(String name);
-   }
-
-   public static class KeyMaker implements IKeyMaker {
       /**
        * Generate variable key from name
        * 
-       * @param  name NAme used to create key
+       * @param  name Name used to create key
        * @return Key generated from name
        */
+      public String makeKey(String name);
+   }
+
+   public static final class PublicKeyMaker implements IKeyMaker {
+      /**
+       * Generate variable key from name
+       * 
+       * @param  name Name used to create key
+       * @return Key generated from name
+       */
+      @Override
       public String makeKey(String name) {
          return name;
       }
    }
+
+   /**
+    * Key mapper for public symbols
+    */
+   public static final PublicKeyMaker publicKeyMaker = new PublicKeyMaker();
    
    /**
     * Finds all $(..) patterns in string
@@ -54,7 +66,7 @@ public class FileUtility {
       Matcher matcher = pattern.matcher(input);
       while (matcher.find()) {
          patterns.add(matcher.group(1));
-//         System.err.println("p = \'"+matcher.group(1)+"\'");
+         //         System.err.println("p = \'"+matcher.group(1)+"\'");
       }
       return patterns;
    }
@@ -87,7 +99,7 @@ public class FileUtility {
          if (matcher.find()) {
             key          = matcher.group(1);
             defaultValue = matcher.group(2);
-//          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
+            //          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
          }
          String replaceWith = map.get(keyMaker.makeKey(key));
          if (replaceWith == null) {
@@ -111,7 +123,7 @@ public class FileUtility {
     * @return      String with substitutions (or original if none)
     */
    public static String substitute(String input, Map<String,String> variableMap) {
-      return substitute(input, variableMap, new KeyMaker());
+      return substitute(input, variableMap, publicKeyMaker);
    }
 
    /**
@@ -138,7 +150,7 @@ public class FileUtility {
       BufferedReader reader = null;
       BufferedWriter writer = null;
       final Pattern startPattern = Pattern.compile("/\\*.*\\$start\\((.*)\\).*\\*/");
-      
+
       try {
          reader = Files.newBufferedReader(inFilePath, StandardCharsets.UTF_8);
          writer = Files.newBufferedWriter(outFilePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -172,8 +184,8 @@ public class FileUtility {
                if (value == null) {
                   throw new Exception(
                         "Variable not defined, \""+variable+"\"\n"+
-                        "within file \""+filename+"\""
-                  );
+                              "within file \""+filename+"\""
+                        );
                }
                writer.write(variableMap.get(variable));
                variable = null;
@@ -185,7 +197,7 @@ public class FileUtility {
             Files.delete(backupFilePath);
          }
       } catch (Exception e) {
-//         e.printStackTrace();
+         //         e.printStackTrace();
          System.err.println("Failed to process " + inFilePath.toString());
          if (writer != null) {
             writer.close();
@@ -218,7 +230,7 @@ public class FileUtility {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source);
       Path targetPath = projectDirectory.resolve(target);
-//      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
+      //      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy File", 100);
          IFile iFile = project.getFile(targetPath.toString());
@@ -228,7 +240,7 @@ public class FileUtility {
          copy(sourcePath, targetPath, variableMap);
          iFile.refreshLocal(IResource.DEPTH_ONE, null);
          iFile.setDerived(true, monitor);
-//         project.refreshLocal(IResource.DEPTH_INFINITE, null);
+         //         project.refreshLocal(IResource.DEPTH_INFINITE, null);
       } catch (CoreException e) {
          throw new Exception("Failed" + e.getMessage(), e); //$NON-NLS-1$
       } finally {
@@ -249,9 +261,9 @@ public class FileUtility {
     * @throws Exception
     */
    private static void copyFile(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
-//      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
+      //      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       if (!targetPath.getParent().toFile().exists()) {
-//         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
+         //         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
          targetPath.getParent().toFile().mkdirs();
       }
       copy(sourcePath, targetPath, variableMap);
@@ -312,7 +324,7 @@ public class FileUtility {
    public static void copyDirectory(Path sourcePath, Path targetPath, Map<String, String> variableMap) throws Exception {
       copyDirectory(null, sourcePath, targetPath, variableMap, null);
    }
-   
+
    /**
     * Copy directory within a project<br>
     * Project changes are refreshed
@@ -329,7 +341,7 @@ public class FileUtility {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source).toAbsolutePath();
       Path targetPath = projectDirectory.resolve(target).toAbsolutePath();
-//      System.err.println(String.format("FileUtility.copyDirectory()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
+      //      System.err.println(String.format("FileUtility.copyDirectory()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy Files", 100);
          copyDirectory(project, sourcePath, targetPath, variableMap, monitor);
@@ -362,11 +374,11 @@ public class FileUtility {
          }
       }
    }
-   
+
    public static void refreshFile(Path path, Map<String, String> variableMap) throws Exception {
       copyFile(null, path, path, variableMap, null);
    }
-   
+
    public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor progressMonitor) throws Exception {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(path);

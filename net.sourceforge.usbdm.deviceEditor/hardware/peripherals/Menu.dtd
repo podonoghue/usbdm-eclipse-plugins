@@ -18,7 +18,7 @@
    
 <!ELEMENT intOption EMPTY >
    <!ATTLIST intOption constant     (false|true) "false">
-   <!ATTLIST intOption name         CDATA        #REQUIRED>
+   <!ATTLIST intOption name         ID          #REQUIRED>
    <!ATTLIST intOption key          CDATA        #IMPLIED>
    <!ATTLIST intOption description  CDATA        #REQUIRED>
    <!ATTLIST intOption toolTip      CDATA        "">
@@ -33,11 +33,13 @@
    <!ATTLIST intOption offset       CDATA        "0">
   
 <!ELEMENT aliasOption EMPTY >
-   <!ATTLIST aliasOption name         CDATA        #REQUIRED>
+   <!ATTLIST aliasOption name        IDREF        #IMPLIED>
+   <!ATTLIST aliasOption key         CDATA        #IMPLIED>
+   <!ATTLIST aliasOption constant    (false|true) "true">
 
 <!ELEMENT stringOption EMPTY >
    <!ATTLIST stringOption constant     (false|true) "false">
-   <!ATTLIST stringOption name         CDATA        #REQUIRED>
+   <!ATTLIST stringOption name         ID           #REQUIRED>
    <!ATTLIST stringOption key          CDATA        #IMPLIED>
    <!ATTLIST stringOption description  CDATA        #REQUIRED>
    <!ATTLIST stringOption toolTip      CDATA        "">
@@ -45,7 +47,7 @@
   
 <!ELEMENT choiceOption (choice)+ >
    <!ATTLIST choiceOption constant     (false|true) "false">
-   <!ATTLIST choiceOption name         CDATA        #REQUIRED>
+   <!ATTLIST choiceOption name         ID           #REQUIRED>
    <!ATTLIST choiceOption key          CDATA        #IMPLIED>
    <!ATTLIST choiceOption description  CDATA        #REQUIRED>
    <!ATTLIST choiceOption toolTip      CDATA        "">
@@ -58,7 +60,7 @@
 
 <!ELEMENT binaryOption (choice, choice, (intOption|choiceOption|binaryOption|stringOption|aliasOption|xi:include|menu)*) >
    <!ATTLIST binaryOption constant     (false|true) "false">
-   <!ATTLIST binaryOption name         CDATA        #REQUIRED>
+   <!ATTLIST binaryOption name         ID           #REQUIRED>
    <!ATTLIST binaryOption key          CDATA        #IMPLIED>
    <!ATTLIST binaryOption description  CDATA        #REQUIRED>
    <!ATTLIST binaryOption toolTip      CDATA        "">

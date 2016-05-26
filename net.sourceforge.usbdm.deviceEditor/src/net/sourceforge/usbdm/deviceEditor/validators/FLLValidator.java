@@ -80,7 +80,7 @@ public class FLLValidator extends BaseClockValidator {
             sb.append(", ");
          }
          else {
-            sb.append("Possible values (Hz) = ");
+            sb.append("Possible values = ");
          }
          needComma = true;
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");

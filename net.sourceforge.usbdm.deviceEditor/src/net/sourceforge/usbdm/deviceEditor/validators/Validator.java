@@ -58,7 +58,7 @@ public abstract class Validator {
     * @return
     */
    LongVariable getLongVariable(String key) {
-      Variable variable = fPeripheral.getVariable(key);
+      Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
       if (!(variable instanceof LongVariable)) {
          throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
       }
@@ -90,8 +90,13 @@ public abstract class Validator {
     * 
     * @return
     */
-   Variable getVariable(String key) {
-      return fPeripheral.getVariable(key);
+   Variable safeGetVariable(String key) {
+      try {
+         return getVariable(key);
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
+      return null;
    }
 
    /**
@@ -101,12 +106,36 @@ public abstract class Validator {
     * 
     * @return
     */
-   Variable safeGetVariable(String key) {
+   Variable getVariable(String key) {
+      return fPeripheral.getVariable(fPeripheral.makeKey(key));
+   }
+
+   /**
+    * Get shared Variable
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    */
+   Variable safeGetSharedVariable(String key) {
       try {
-         return fPeripheral.getVariable(key);
+         return getSharedVariable(key);
       } catch (Exception e) {
          System.err.println(e.getMessage());
       }
       return null;
    }
+
+   /**
+    * Get shared Variable 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    */
+   Variable getSharedVariable(String key) {
+      return fPeripheral.getVariable(key);
+   }
+
+
 }

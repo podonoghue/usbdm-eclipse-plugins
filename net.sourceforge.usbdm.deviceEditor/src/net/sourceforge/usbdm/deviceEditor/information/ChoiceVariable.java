@@ -1,5 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
+
 public class ChoiceVariable extends Variable {
 
    /** Name/choice pairs */
@@ -10,9 +14,18 @@ public class ChoiceVariable extends Variable {
 
    /** Current value (user format) */
    String fValue = null;
+
+   /** Default value of variable */
+   private String fdefault = null;
    
-   public ChoiceVariable(String name) {
-      super(name);
+   /**
+    * Constructor
+    * 
+    * @param name Name to display to user.
+    * @param key  Key for variable
+    */
+   public ChoiceVariable(String name, String key) {
+      super(name, key);
    }
 
    /**
@@ -36,23 +49,32 @@ public class ChoiceVariable extends Variable {
    }
 
    @Override
-   public boolean setValue(Object value) {
+   public void setDefault(Object value) {
+      fdefault = translate(value); 
+   }
+   
+   public String translate(Object value) {
       if (value instanceof String) {
-         return setValue((String)value);
+         return (String)value;
       }
       if (value instanceof Long) {
          // Treat as index into values
-         return setValue(fData[((Long)value).intValue()].name);
+         return fData[((Long)value).intValue()].name;
       }
       if (value instanceof Integer) {
          // Treat as index into values
-         return setValue(fData[(Integer)value].name);
+         return fData[(Integer)value].name;
       }
       if (value instanceof Boolean) {
          // Treat as index into first two values
-         return setValue(fData[(Boolean)value?1:0].name);
+         return fData[(Boolean)value?1:0].name;
       }
       throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable");
+   }
+
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(translate(value));
    }
 
    /**
@@ -76,7 +98,8 @@ public class ChoiceVariable extends Variable {
          }
          if (fValue == null) {
             // Value not set yet - set default
-            fValue = fChoices[0];
+            fValue   = fChoices[0];
+            fdefault = fValue;
          }
       }
       return fChoices;
@@ -96,6 +119,11 @@ public class ChoiceVariable extends Variable {
       this.fData = entries;
    }
 
+   @Override
+   public String getValueAsString() {
+      return isEnabled()?fValue:fdefault;
+   }
+
    /**
     * Get index of current value in choice entries
     * 
@@ -103,7 +131,7 @@ public class ChoiceVariable extends Variable {
     */
    private int getIndex() {
       for (int index=0; index<fData.length; index++) {
-         if (fData[index].name.equalsIgnoreCase(fValue)) {
+         if (fData[index].name.equalsIgnoreCase(getValueAsString())) {
             return index;
          }
       }
@@ -114,14 +142,9 @@ public class ChoiceVariable extends Variable {
    public String getSubstitutionValue() {
       int index = getIndex();
       if (index<0) {
-         return "["+fValue+" not found]";
+         return "["+getValueAsString()+" not found]";
       }
       return fData[index].value;
-   }
-
-   @Override
-   public String getValueAsString() {
-      return fValue;
    }
 
    @Override
@@ -137,5 +160,10 @@ public class ChoiceVariable extends Variable {
       }
       return "Value is not valid";
    }
-   
+
+   @Override
+   public VariableModel createModel(BaseModel parent) {
+      return new ChoiceVariableModel(parent, this);
+   }
+
 }

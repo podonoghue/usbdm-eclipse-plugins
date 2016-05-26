@@ -12,7 +12,8 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
    private  Image lockedImage    = null;
    private  Image checkedImage   = null;
    private  Image uncheckedImage = null;
-   private  Image disabledImage = null;
+   private  Image disabledImage  = null;
+   private  Image emptyImage     = null;
 
    ValueColumnLabelProvider(TreeEditor viewer) {
       if (Activator.getDefault() != null) {
@@ -20,6 +21,7 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
          checkedImage   = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
          uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
          disabledImage  = Activator.getDefault().getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
+         emptyImage     = Activator.getDefault().getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
       }
    }
 
@@ -39,7 +41,7 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
       if (baseModel instanceof BooleanVariableModel) {
          return ((Boolean)((BooleanVariableModel)baseModel).getVariable().getValueAsBoolean())?checkedImage:uncheckedImage;
       }
-      return null;
+      return emptyImage;
    }
 
    @Override
@@ -60,6 +62,10 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
       if (disabledImage != null) {
          disabledImage.dispose();
          disabledImage = null;
+      }
+      if (emptyImage != null) {
+         emptyImage.dispose();
+         emptyImage = null;
       }
    }
 

@@ -3,99 +3,33 @@
 <!-- Osc.xml -->
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
-   <page name="Clock Sources" description="Oscillator" >
-
-   <menu name="Main OSC" description="System Oscillator" >
-      <binaryOption name="CR_ERCLKEN" description="External Reference Enable"
-         toolTip="Enables external reference clock\n
-         The oscillator will also " >
-         <choice value="0" name="Disabled" />
-         <choice value="1" name="Enabled" />
-      </binaryOption>
-
-      <choiceOption name="CR_SCP" description="Oscillator load capacitance"
-         toolTip="Configures the oscillator load capacitance" >
-         <choice value="0"  name="0 pF" />
-         <choice value="8"  name="2 pF" />
-         <choice value="4"  name="4 pF" />
-         <choice value="12" name="6 pF" />
-         <choice value="2"  name="8 pF" isDefault="true" />
-         <choice value="10" name="10 pF" />
-         <choice value="6"  name="12 pF" />
-         <choice value="14" name="14 pF" />
-         <choice value="1"  name="16 pF" />
-         <choice value="9"  name="18 pF" />
-         <choice value="5"  name="20 pF" />
-         <choice value="13" name="22 pF" />
-         <choice value="3"  name="24 pF" />
-         <choice value="11" name="26 pF" />
-         <choice value="7"  name="28 pF" />
-         <choice value="15" name="30 pF" />
-         <choice value="2"  name="Default" />
-      </choiceOption>
-
-      <binaryOption name="CR_EREFSTEN" description="External Reference Stop Enable"
-         toolTip="Determines if external reference clock is enabled in Stop mode" >
-         <choice value="0" name="Disabled in Stop mode" />
-         <choice value="1" name="Enabled in Stop mode" />
-      </binaryOption>
-
-      <choiceOption name="DIV_ERPS" description="ERCLK prescaler"
-         toolTip="Divides down the ERCLK output" >
-         <choice value="0"  name="/1" isDefault="true" />
-         <choice value="1"  name="/2" />
-         <choice value="2"  name="/4" />
-         <choice value="3"  name="/8" />
-         <choice value="0"  name="Default" />
-      </choiceOption>
-   </menu>
-   <menu name="32 kHz OSC" description="RTC Oscillator" >
-      <choiceOption name="RTC_CR_SCP" description="Oscillator load capacitance"
-         toolTip="Configures the oscillator load capacitance">
-         <choice value="0"  name="0 pF" />
-         <choice value="8"  name="2 pF" />
-         <choice value="4"  name="4 pF" />
-         <choice value="12" name="6 pF" />
-         <choice value="2"  name="8 pF" isDefault="true" />
-         <choice value="10" name="10 pF" />
-         <choice value="6"  name="12 pF" />
-         <choice value="14" name="14 pF" />
-         <choice value="1"  name="16 pF" />
-         <choice value="9"  name="18 pF" />
-         <choice value="5"  name="20 pF" />
-         <choice value="13" name="22 pF" />
-         <choice value="3"  name="24 pF" />
-         <choice value="11" name="26 pF" />
-         <choice value="7"  name="28 pF" />
-         <choice value="15" name="30 pF" />
-         <choice value="0"  name="Default" />
-      </choiceOption>
-
-      <binaryOption name="RTC_CR_OSCE" description="RTC Oscillator Enable"
-         toolTip="Enables external 32.768 kHz RTC oscillator" >
-         <choice value="0" name="Disabled" />
-         <choice value="1" name="Enabled" />
-      </binaryOption>
-
-      <binaryOption name="RTC_CR_CLKO" description="RTC 32kHz Clock Output"
-         toolTip="Determines if RTC 32kHz Clock is available to peripherals" >
-         <choice value="0" name="The 32kHz clock is output to other peripherals" />
-         <choice value="1" name="The 32kHz clock is not output to other peripherals" />
-      </binaryOption>
-   </menu>
-   
+   <page name="OSC0" description="Oscillator">
+      <aliasOption key="OSC0_osc_cr_erclken"              constant="false" />
+      <aliasOption key="OSC0_oscclk_clock"                constant="false" />
+      <aliasOption key="MCG_mcg_c2_erefs0"                constant="false" />
+      <aliasOption key="MCG_mcg_c2_hgo0"                  constant="false" />
+      <aliasOption key="OSC0_osc_cr_scp"                  constant="false" />
+      <aliasOption key="OSC0_osc_cr_erefsten"             constant="false" />
+      <aliasOption key="MCG_mcg_c2_range0"                constant="true" />
+      <aliasOption key="OSC0_system_oscerclk_undiv_clock" constant="true" />
+      <aliasOption key="OSC0_osc_div_erps"                constant="false" />
+      <aliasOption key="OSC0_system_oscerclk_clock"       constant="true" />
    </page>
+
    <template>
+      \t//! Frequency of OSC Clock or Crystal\n
+      \tstatic constexpr uint32_t oscclk_clock = $(oscclk_clock)UL;\n\n
+      
       \t//! Oscillator control register\n
       \tstatic constexpr uint32_t OSC_CR =
-      \t   ($(CR_ERCLKEN)&lt;&lt;OSC_CR_ERCLKEN_SHIFT)|
-      \t   ($(CR_EREFSTEN)&lt;&lt;OSC_CR_EREFSTEN_SHIFT)|
-      \t   ($(CR_SCP)&lt;&lt;OSC_CR_SC16P_SHIFT);\n\n      
+      \t   OSC_CR_ERCLKEN($(osc_cr_erclken)) |
+      \t   OSC_CR_EREFSTEN($(osc_cr_erefsten)) |
+      \t   OSC_CR_SCP($(osc_cr_scp));\n\n      
 
       #ifdef OSC_DIV_ERPS_MASK
       \t//! OSC Clock divider register\n
       \tstatic constexpr uint32_t OSC_DIV =
-      \t   ($(DIV_ERPS)&lt;&lt;OSC_DIV_ERPS_SHIFT);   
+      \t   OSC_DIV_ERPS($(osc_div_erps));   
       #endif\n\n
    </template>
 </root>

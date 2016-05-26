@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE root SYSTEM "Menu.dtd" >
-<!-- ftm.xml -->
+<!-- Pit.xml -->
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
    <page name="_instance" description="Programmable Interrupt Timer">
@@ -28,25 +28,29 @@
       </binaryOption>
 
       <binaryOption name="IRQ0_HANDLER" description="Handler for channel 0"
-         toolTip="The interrupt handler may be a static member function or\nmay be set by use of the setCallback() method">
+         toolTip="The interrupt handler may be a static member function or\n
+         may be set by use of the setCallback() method">
          <choice value="0" name="No handler installed" />
          <choice value="1" name="Handler installed" />
       </binaryOption>
 
       <binaryOption name="IRQ1_HANDLER" description="Handler for channel 1"
-         toolTip="The interrupt handler may be a static member function or\nmay be set by use of the setCallback() method">
+         toolTip="The interrupt handler may be a static member function or\n
+         may be set by use of the setCallback() method">
          <choice value="0" name="No handler installed" />
          <choice value="1" name="Handler installed" />
       </binaryOption>
 
       <binaryOption name="IRQ2_HANDLER" description="Handler for channel 2"
-         toolTip="The interrupt handler may be a static member function or\nmay be set by use of the setCallback() method">
+         toolTip="The interrupt handler may be a static member function or\n
+         may be set by use of the setCallback() method">
          <choice value="0" name="No handler installed" />
          <choice value="1" name="Handler installed" />
       </binaryOption>
 
       <binaryOption name="IRQ3_HANDLER" description="Handler for channel 3"
-         toolTip="The interrupt handler may be a static member function or\nmay be set by use of the setCallback() method">
+         toolTip="The interrupt handler may be a static member function or\n
+         may be set by use of the setCallback() method">
          <choice value="0" name="No handler installed" />
          <choice value="1" name="Handler installed" />
       </binaryOption>

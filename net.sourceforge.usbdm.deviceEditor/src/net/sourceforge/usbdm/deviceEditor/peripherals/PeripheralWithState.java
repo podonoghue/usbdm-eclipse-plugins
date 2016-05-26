@@ -32,14 +32,24 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       super(basename, instance, deviceInfo);
    }
 
-   private class KeyMaker implements IKeyMaker {
+   private final class KeyMaker implements IKeyMaker {
       @Override
       public String makeKey(String name) {
          return getName()+"_"+name;
       }
    }
    
-   private KeyMaker keyMaker = new KeyMaker();
+   private final KeyMaker keyMaker = new KeyMaker();
+
+   /**
+    * Get key for variable owned by this peripheral
+    * 
+    * @param name
+    * @return
+    */
+   public String makeKey(String name) {
+      return keyMaker.makeKey(name);
+   }
 
    /**
     * Load the models for this class of peripheral
@@ -79,35 +89,43 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @throws Exception if variable already exists
     */
-   public void addVariable(String key, Variable variable) {
-      fDeviceInfo.addVariable(keyMaker.makeKey(key), variable);
+   public void addVariable(Variable variable) {
+      fDeviceInfo.addVariable(variable.getKey(), variable);
       variable.addListener(this);
    }
 
    @Override
    public void setVariableValue(String key, String value) {
-      fDeviceInfo.setVariableValue(keyMaker.makeKey(key), value);
+      fDeviceInfo.setVariableValue(key, value);
    }
 
    @Override
    public String getVariableValue(String key) {
-      return fDeviceInfo.getVariableValue(keyMaker.makeKey(key));
+      return fDeviceInfo.getVariableValue(key);
    }
 
    @Override
    public Variable getVariable(String key) {
-      return fDeviceInfo.getVariable(keyMaker.makeKey(key));
+      return fDeviceInfo.getVariable(key);
    }
 
    @Override
    public Variable safeGetVariable(String key) {
       try {
-         return fDeviceInfo.getVariable(keyMaker.makeKey(key));
+         return fDeviceInfo.getVariable(key);
       } catch (Exception e) {
          return null;
       }
    }
 
+   public Variable getPublicVariable(String key) {
+      try {
+         return fDeviceInfo.getVariable(FileUtility.publicKeyMaker.makeKey(key));
+      } catch (Exception e) {
+         return null;
+      }
+   }
+   
    @Override
    public void loadSettings(DialogSettings settings) {
       super.loadSettings(settings);
@@ -153,7 +171,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public boolean isCTrueValue(String key) {
       String value = null;
       try {
-         value = getVariableValue(key);
+         value = getVariable(keyMaker.makeKey(key)).getSubstitutionValue();
       } catch (Exception e1) {
       }
       if (value == null) {

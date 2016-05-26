@@ -1,11 +1,19 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+
 public class BooleanVariable extends Variable {
    
    private Pair fTrue  = new Pair("true",  "true");
    private Pair fFalse = new Pair("false", "false");
    
-   private boolean fValue;
+   /** Value of variable */
+   private boolean fValue = false;
+   
+   /** Default value of variable */
+   private boolean fDefault = false;
    
    /**
     * Construct a variable representing a boolean value
@@ -13,9 +21,8 @@ public class BooleanVariable extends Variable {
     * @param name
     * @param value
     */
-   public BooleanVariable(String name) {
-      super(name);
-      fValue = false;
+   public BooleanVariable(String name, String key) {
+      super(name, key);
    }
 
    /**
@@ -35,45 +42,53 @@ public class BooleanVariable extends Variable {
       return true;
    }
    
-   @Override
-   public boolean setValue(Object value) {
+   private boolean translate(Object value) {
       if (value instanceof Boolean) {
-         return setValue((Boolean)value);
+         return (Boolean)value;
       }
       if (value instanceof Integer) {
-         return setValue((Integer)value != 0);
+         return (Integer)value != 0;
       }
       if (value instanceof Long) {
-         return setValue((Long)value != 0);
+         return (Long)value != 0;
       }
       if (value instanceof String) {
          String sValue = value.toString();
-         return setValue(
-               (sValue.equalsIgnoreCase(fTrue.name))||
-               (sValue.equalsIgnoreCase("true"))||
-               (sValue.equalsIgnoreCase("1")));
+         return (sValue.equalsIgnoreCase(fTrue.name))||
+                (sValue.equalsIgnoreCase("true"))||
+                (sValue.equalsIgnoreCase("1"));
       }
       throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with BooleanVariable");
+   }
+   
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(translate(value));
+   }
+
+   @Override
+   public void setDefault(Object value) {
+      fDefault = translate(value);
+   }
+   
+   @Override
+   public boolean getValueAsBoolean() {
+      return isEnabled()?fValue:fDefault;
    }
 
    @Override
    public String getSubstitutionValue() {
-      return fValue?fTrue.value:fFalse.value;
+      return getValueAsBoolean()?fTrue.value:fFalse.value;
    }
 
    @Override
    public String getValueAsString() {
-      return fValue?fTrue.name:fFalse.name;
-   }
-
-   @Override
-   public boolean getValueAsBoolean() {
-      return fValue;
+      return getValueAsBoolean()?fTrue.name:fFalse.name;
    }
 
    @Override
    public long getValueAsLong() {
-      return fValue?1:0;
+      return getValueAsBoolean()?1:0;
    }
 
    /**
@@ -111,5 +126,10 @@ public class BooleanVariable extends Variable {
    public void setFalseValue(Pair falseValue) {
       this.fFalse = falseValue;
    }
-   
+
+   @Override
+   public VariableModel createModel(BaseModel parent) {
+      return new BooleanVariableModel(parent, this);
+   }
+
 }

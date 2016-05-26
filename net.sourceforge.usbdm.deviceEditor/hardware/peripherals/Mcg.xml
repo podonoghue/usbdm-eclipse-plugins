@@ -3,7 +3,7 @@
 <!-- Mgc.xml -->
 
 <root xmlns:xi="http://www.w3.org/2001/XInclude">
-   <page name="_instance" description="Multipurpose Clock Generator" >
+   <page name="MCG" description="Multipurpose Clock Generator" >
       <menu name="Clock monitors" description="Clock monitors">
       
          <binaryOption name="mcg_c6_cme0" 
@@ -155,14 +155,15 @@
       
       <menu name="OSC" description="OSC External Reference Clock/Oscillator [OSCCLK]" >
       
-         <binaryOption name="osc_cr_erclken" description="External Reference Enable"
+         <binaryOption name="osc_cr_erclken"  key="OSC0_osc_cr_erclken"
+            description="External Reference Enable"
             toolTip="Enables and makes available the clock as OSCERCLK peripheral clock source\n
             The oscillator will also be enabled if used by MCG" >
             <choice value="0" name="Disabled" />
             <choice value="1" name="Enabled" isDefault="true"/>
          </binaryOption>
    
-         <intOption name="oscclk_clock"
+         <intOption name="oscclk_clock"  key="OSC0_oscclk_clock"
             units="Hz"
             description="Frequency of OSC Clock or Crystal"
             toolTip="Frequency of external crystal or clock on XTAL/EXTAL"
@@ -182,7 +183,7 @@
             <choice value="1" name="High gain" />
          </binaryOption>
    
-         <choiceOption name="osc_cr_scp" 
+         <choiceOption name="osc_cr_scp"   key="OSC0_osc_cr_scp"
             description="Oscillator load capacitance"
             toolTip="Configures the oscillator load capacitance" >
             <choice value="0"  name="0 pF" />
@@ -204,14 +205,14 @@
             <choice value="2"  name="Default" />
          </choiceOption>
    
-         <binaryOption name="osc_cr_erefsten" 
+         <binaryOption name="osc_cr_erefsten"   key="OSC0_osc_cr_erefsten"
             description="External Reference Stop Enable"
             toolTip="Determines if external reference clock is enabled in Stop mode" >
             <choice value="0" name="Disabled in Stop mode" />
             <choice value="1" name="Enabled in Stop mode" />
          </binaryOption>
    
-         <choiceOption name="mcg_c2_range0"
+         <choiceOption name="mcg_c2_range0" 
             constant="true"
             description="Frequency Range Select"
             toolTip="Selects the frequency range for the crystal oscillator or external clock source\n
@@ -223,14 +224,14 @@
             <choice value="0" name="Default" />
          </choiceOption>
          
-         <intOption name="system_oscerclk_undiv_clock"
+         <intOption name="system_oscerclk_undiv_clock"  key="OSC0_system_oscerclk_undiv_clock"
             units="Hz"
             description="Oscillator clock to some peripherals [OSCERCLK_UNDIV]"
             toolTip="Generated from OSCCLK without division"
             value="8000000"  
             constant="true" />
    
-         <choiceOption name="osc_div_erps" 
+         <choiceOption name="osc_div_erps"   key="OSC0_osc_div_erps"
             description="ERCLK prescaler"
             toolTip="Divides down the ERCLK output" >
             <choice value="0"  name="Divide by 1" isDefault="true" />
@@ -240,7 +241,7 @@
             <choice value="0"  name="Default" />
          </choiceOption>
    
-         <intOption name="system_oscerclk_clock"
+         <intOption name="system_oscerclk_clock"  key="OSC0_system_oscerclk_clock"
             units="Hz"
             description="Oscillator clock to peripherals [OSCERCLK]"
             toolTip="Generated from OSCCLK after division by osc_div_erps"
@@ -251,20 +252,20 @@
 
       <menu name="RTC" description="RTC External Reference Clock/Oscillator [ERCLK32K]">
          
-         <binaryOption name="rtc_cr_osce"
+         <binaryOption name="rtc_cr_osce" key="RTC_rtc_cr_osce"
             description="Enable 32kHz oscillator [RTC_32K]"
             toolTip="Enable 32kHz oscillator">
             <choice value="0" name="Disabled" />
             <choice value="1" name="Enabled" />
          </binaryOption>
          
-         <intOption name="rtcclk_clock"
+         <intOption name="rtcclk_clock" key="RTC_rtcclk_clock"
             units="Hz"
             description="Frequency of RTC External Clock or Crystal"
             toolTip="Frequency of external crystal or clock on XTAL32/EXTAL32 [Typically 32768 Hz]"
             value="32768" min="30000" max="35000" step="1" />
             
-         <choiceOption name="rtc_cr_scp" 
+         <choiceOption name="rtc_cr_scp" key="RTC_rtc_cr_scp" 
             description="Oscillator load capacitance"
             toolTip="Configures the oscillator load capacitance">
             <choice value="0"  name="0 pF" />
@@ -286,7 +287,7 @@
             <choice value="0"  name="Default" />
          </choiceOption>
    
-         <binaryOption name="rtc_cr_clko" 
+         <binaryOption name="rtc_cr_clko" key="RTC_rtc_cr_clko"
             description="RTC 32kHz Clock Output"
             toolTip="Determines if RTC 32kHz Clock is available to peripherals" >
             <choice value="1" name="The 32kHz clock is not output to other peripherals" />
@@ -534,8 +535,8 @@
       <aliasOption name="system_mcgir_clock" />
       <aliasOption name="system_mcgffclk_clock" />
       <aliasOption name="system_irc48m_clock" />
-      <aliasOption name="system_oscerclk_undiv_clock" />
-      <aliasOption name="system_oscerclk_clock" />
+      <aliasOption key="OSC0_system_oscerclk_undiv_clock" />
+      <aliasOption key="OSC0_system_oscerclk_clock" />
       <aliasOption name="system_erclk32k_clock" />
       <aliasOption name="system_low_power_clock" />
 
@@ -682,7 +683,7 @@
          </menu>
 
          <menu name="RTC CR" description="Real Time Clock">
-            <aliasOption name="rtc_cr_osce" />
+            <aliasOption key="RTC_rtc_cr_osce" />
          </menu>   
 
          <menu name="SIM_CLKDIV1" description="Clock Dividers">
@@ -719,6 +720,17 @@
          </menu>
       </menu>
       
+      <binaryOption name="IRQ_HANDLER" description="Handler for IRQ"
+         toolTip="The interrupt handler may be a static member function or\n
+         may be set by use of the setCallback() method">
+         <choice value="false" name="No handler installed" />
+         <choice value="true" name="Handler installed" />
+      </binaryOption>
+
+      <intOption name="IRQ_LEVEL" description="IRQ Level in NVIC [0-15]"
+         toolTip="Sets the priority level used to configure the NVIC"
+         value="0" min="0" max="15" />
+
    </page>
 
    <validate
@@ -730,6 +742,12 @@
    </validate>
 
    <template>
+      \t//! Indicates interrupt handler has been installed
+      \tstatic constexpr bool irqHandlerInstalled = $(IRQ_HANDLER);\n\n
+
+      \t//! Default IRQ level\n
+      \tstatic constexpr uint32_t irqLevel = $(IRQ_LEVEL);\n\n
+
       \tenum ClockMode {
       \t   ClockMode_None = -1,
       \t   ClockMode_FEI  = 0,
@@ -745,12 +763,6 @@
       \t//! Clock Mode\n
       \tstatic constexpr ClockMode clockMode = $(clock_mode);\n\n
 
-      \t//! Frequency of OSC Clock or Crystal\n
-      \tstatic constexpr uint32_t oscclk_clock = $(oscclk_clock)UL;\n\n
-      
-      \t//! Frequency of RTC External Clock or Crystal\n
-      \tstatic constexpr uint32_t rtcclk_clock = $(rtcclk_clock)UL;\n\n
-      
       \t//! Frequency of Frequency of Internal 48MHz Clock\n
       \tstatic constexpr uint32_t irc48m_clock = $(system_irc48m_clock)UL;\n\n
       
@@ -818,14 +830,6 @@
       \t   MCG_C11_PLLCS($(mcg_c11_pllcs)); // PLLCS PLL Clock Select
       \t#endif\n\n
 
-      \t#ifdef RTC_CR_CLKO
-      \t//! Control Register 11\n
-      \tstatic constexpr uint32_t RTC_CR =
-      \t   RTC_CR_OSCE($(rtc_cr_osce)) | // Enable 32kHz oscillator [RTC_32K]
-      \t   RTC_CR_CLKO($(rtc_cr_clko)) | // RTC 32kHz Clock Output
-      \t   ($(rtc_cr_scp)&lt;&lt;RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
-      \t#endif\n\n
-
       \t//! Clock divider\n
       \tstatic constexpr uint32_t SIM_CLKDIV1 = 
       \t   SIM_CLKDIV1_OUTDIV4($(sim_clkdiv1_outdiv4)) | // SIM_CLKDIV1_OUTDIV4
@@ -833,7 +837,7 @@
       \t   SIM_CLKDIV1_OUTDIV3($(sim_clkdiv1_outdiv3)) | // SIM_CLKDIV1_OUTDIV3
       \t#endif
       \t   SIM_CLKDIV1_OUTDIV2($(sim_clkdiv1_outdiv2)) | // SIM_CLKDIV1_OUTDIV2
-      \t   SIM_CLKDIV1_OUTDIV1($(sim_clkdiv1_outdiv1));  // SIM_CLKDIV1_OUTDIV1
+      \t   SIM_CLKDIV1_OUTDIV1($(sim_clkdiv1_outdiv1));  // SIM_CLKDIV1_OUTDIV1\n\n
       
    </template>
 </root>
