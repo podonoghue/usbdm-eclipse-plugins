@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Root fileElement -->
-<!ELEMENT root ((page|menu*),validate*,template) >
+<!ELEMENT root (xi:include|((page|menu*),validate*,template)) >
    <!ATTLIST root xmlns:xi CDATA #IMPLIED>
 
-<!ELEMENT page ((intOption|choiceOption|binaryOption|stringOption|aliasOption|xi:include|menu)*) >
+<!ELEMENT page ((intOption|choiceOption|binaryOption|stringOption|aliasOption|xi:include|menu)*, pins?) >
    <!ATTLIST page xmlns:xi CDATA #IMPLIED>
    <!ATTLIST page name         CDATA        #REQUIRED>
    <!ATTLIST page description  CDATA        #REQUIRED>
@@ -73,7 +73,8 @@
    <!ATTLIST validate class CDATA #REQUIRED>
    
 <!ELEMENT param EMPTY >
-   <!ATTLIST param type  (int|string) #REQUIRED>
-   <!ATTLIST param value CDATA        #REQUIRED>
+   <!ATTLIST param type  (long|string) #REQUIRED>
+   <!ATTLIST param value CDATA         #REQUIRED>
 
+<!ELEMENT pins EMPTY >
    

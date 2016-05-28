@@ -51,4 +51,8 @@ public class StringVariable extends Variable {
       fDefault = value.toString();
    }
 
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = value.toString();
+   }
 }

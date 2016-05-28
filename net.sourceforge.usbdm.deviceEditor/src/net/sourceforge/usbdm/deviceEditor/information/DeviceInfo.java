@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,6 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.model.DevicePackageModel;
 import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
@@ -275,6 +277,29 @@ public class DeviceInfo extends ObservableModel {
       else if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseFile(this, fHardwarePath);
+         ArrayList<PeripheralWithState> PeripheralWithStateList = new ArrayList<PeripheralWithState>();
+         
+         // Construct list of all PeripheralWithState
+         for (String name:fPeripheralsMap.keySet()) {
+            Peripheral p = fPeripheralsMap.get(name);
+            if (p instanceof PeripheralWithState) {
+               PeripheralWithStateList.add((PeripheralWithState) fPeripheralsMap.get(name));
+            }
+         }
+         // Sort in priority order
+         Collections.sort(PeripheralWithStateList, new Comparator<PeripheralWithState>() {
+            @Override
+            public int compare(PeripheralWithState o1, PeripheralWithState o2) {
+               return o2.getPriority()-o1.getPriority();
+            }
+         });
+         // Construct
+         for (PeripheralWithState p:PeripheralWithStateList) {
+            if (p instanceof PeripheralWithState) {
+               System.err.println("Constructing " + p);
+               ((PeripheralWithState) p).loadModels();
+            }
+         }
       }
       else {
          throw new Exception("Unexpected file type for " + hardwarePath);
@@ -1400,7 +1425,13 @@ public class DeviceInfo extends ObservableModel {
          for (String key:fVariables.keySet()) {
             String value = settings.get(key);
             if (value != null) {
-               setVariableValue(key, value);
+               fVariables.get(key).setValueQuietly(value);
+            }
+         }
+         for (String peripheralName:fPeripheralsMap.keySet()) {
+            Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
+            if (peripheral instanceof PeripheralWithState) {
+               ((PeripheralWithState)peripheral).variableChanged(null);
             }
          }
       } catch (Exception e) {
@@ -1708,6 +1739,11 @@ public class DeviceInfo extends ObservableModel {
       setDirty(variable.setValue(value));
    }
 
+   /**
+    * Get Simple map of variables
+    * 
+    * @return Map of Variables
+    */
    public Map<String, String> getSimpleMap() {
       HashMap<String, String>map = new HashMap<String, String>();
       for (String key:fVariables.keySet()) {

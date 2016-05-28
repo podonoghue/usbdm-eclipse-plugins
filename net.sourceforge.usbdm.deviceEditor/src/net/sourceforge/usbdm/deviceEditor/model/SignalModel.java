@@ -15,7 +15,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    /** List of mapping info choices - Used to map selections to mappingInfo value for signal */
    private final MappingInfo[] fMappingInfos;
    
-   public SignalModel(PeripheralModel parent, Signal signal) {
+   public SignalModel(BaseModel parent, Signal signal) {
       super(parent, signal.getName(), "");
 
       fSignal = signal;

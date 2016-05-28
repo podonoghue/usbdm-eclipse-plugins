@@ -10,7 +10,6 @@ public class WriterForLptmr extends PeripheralWithState {
 
    public WriterForLptmr(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override

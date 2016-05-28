@@ -52,21 +52,38 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Load the models for this class of peripheral
+    * Load the models and valudators for this class of peripheral
     * 
     * @return
     */
    public void loadModels() {
       loadModels(getVersion());
+      for (ParseMenuXML.Validator v:fData.fValidators) {
+         try {
+            String className = v.getClassName();
+            // Get validator class
+            Class<?> clazz = Class.forName(className);
+            Validator validatorClass = (Validator) clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass()).newInstance(this, v.getParams());
+            addValidator(validatorClass);
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
    }
    
+
    /**
     * Load the models for this class of peripheral
     * 
     * @return
     */
    public final void loadModels(String name) {
-      fData = ParseMenuXML.parseFile(name, null, this);
+      try {
+         fData = ParseMenuXML.parseFile(name, null, this);
+      } catch (Exception e) {
+         System.err.println("Failed to load models for " + getName());
+         e.printStackTrace();
+      }
    }
    
    @Override
@@ -218,7 +235,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       validators.add(validator);
    }
    
-   protected void variableChanged(Variable variable) {
+   public void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
       fDeviceInfo.setDirty(true);
       for (Validator v:validators) {
@@ -235,6 +252,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
+   }
+
+   /**
+    * Get priority - a number used to order the instantiation of peripherals
+    * 
+    * @return Priority, larger is higher priority.
+    */
+   public int getPriority() {
+      return 0;
+   }
+
+   @Override
+   public String toString() {
+      return this.getClassName()+"("+getName()+", "+getVersion()+")";
    }
 
 }

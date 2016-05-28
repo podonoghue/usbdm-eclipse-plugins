@@ -121,6 +121,15 @@ public abstract class Variable extends ObservableModel {
    public abstract boolean setValue(Object value);
 
    /**
+    * Sets variable value without affecting listeners
+    * 
+    * @param value The value to set
+    * 
+    * @return True if variable actually changed value
+    */
+   public abstract void setValueQuietly(Object value);
+
+   /**
     * Sets variable default value
     * 
     * @param value The value to set

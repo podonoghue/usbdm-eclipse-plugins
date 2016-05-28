@@ -10,7 +10,6 @@ public class WriterForRtc extends PeripheralWithState {
 
    public WriterForRtc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override
@@ -22,5 +21,10 @@ public class WriterForRtc extends PeripheralWithState {
    public int getSignalIndex(Signal function) {
       final String signalNames[] = {"XTAL32", "EXTAL32", "CLKOUT", "CLKIN", "WAKEUP_b"};
       return getSignalIndex(function, signalNames);
+   }
+
+   @Override
+   public int getPriority() {
+      return 1000;
    }
 }

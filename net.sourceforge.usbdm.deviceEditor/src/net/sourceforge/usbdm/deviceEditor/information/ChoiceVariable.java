@@ -166,4 +166,9 @@ public class ChoiceVariable extends Variable {
       return new ChoiceVariableModel(parent, this);
    }
 
+
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
+   }
 }

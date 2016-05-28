@@ -22,7 +22,7 @@ public class LongVariable extends Variable {
    private long fOffset = 0;
 
    /** Units of the quantity the variable represents e.g. Frequency => Hz */
-   private Units fUnits;
+   private Units fUnits = Units.None;
 
    /** Value in user format */
    private long fValue = 0;
@@ -73,6 +73,9 @@ public class LongVariable extends Variable {
    public boolean setValue(Long value) {
       if (fValue == value) {
          return false;
+      }
+      if (getName().equalsIgnoreCase("pllTargetFrequency")) {
+         System.err.println(String.format("pllTargetFrequency old=%d, new=%d", fValue, value));
       }
       fValue = value;
       notifyListeners();
@@ -240,4 +243,8 @@ public class LongVariable extends Variable {
       return new LongVariableModel(parent, this);
    }
 
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
+   }
 }

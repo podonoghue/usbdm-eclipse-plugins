@@ -10,7 +10,6 @@ public class WriterForI2c extends PeripheralWithState {
 
    public WriterForI2c(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override

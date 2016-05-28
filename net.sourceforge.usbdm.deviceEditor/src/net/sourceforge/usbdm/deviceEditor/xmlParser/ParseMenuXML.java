@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -14,14 +15,17 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable.Units;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
@@ -43,8 +47,8 @@ public class ParseMenuXML extends XML_BaseParser {
    };
    
    /** Provider providing the variables used by the menu */
-   private final PeripheralWithState fProvider;
-   
+   private final PeripheralWithState  fProvider;
+
    /**
     * Gets the toolTip attribute from the element and applies some simple transformations
     *  
@@ -228,6 +232,7 @@ public class ParseMenuXML extends XML_BaseParser {
       
       if (menuElement.getTagName() == "page") {
          rootModel = new PeripheralConfigurationModel(null, parent, name, description);
+         new ConstantModel(rootModel, "Peripheral file", "", fProvider.getVersion());
       }
       else {
          rootModel = new CategoryModel(parent, name, description);
@@ -273,12 +278,32 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "choice") {
          }
+         else if (element.getTagName() == "pins") {
+            parsePinsOption(parentModel, element);
+         }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
          }
       }
    }
    
+   /**
+    * Parse the pin associated with the peripheral
+    * 
+    * @param parentModel
+    * @param element
+    */
+   private void parsePinsOption(BaseModel parentModel, Element element) {
+      BaseModel model = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
+      TreeMap<String, Signal> peripheralSignals = fProvider.getSignals();
+      for (String signalName:peripheralSignals.keySet()) {
+         Signal signal = peripheralSignals.get(signalName);
+         if (signal.isAvailableInPackage()) {
+            new SignalModel(model, signal);
+         }
+      }
+   }
+
    /**
     * Parses the children of this element
     * 
@@ -320,6 +345,8 @@ public class ParseMenuXML extends XML_BaseParser {
                defaultValue = entry.name;
             }
          }
+         else if (element.getTagName() == "pins") {
+         }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
          }
@@ -348,6 +375,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider = provider;
    }
    
+   
    /**
     * 
     * @param document
@@ -357,44 +385,72 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    private static Data parse(Document document, BaseModel parent, PeripheralWithState provider) throws Exception {
-      
       Element documentElement = document.getDocumentElement();
-
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
       }
-      
+      for (Node node = document.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         ParseMenuXML parser = new ParseMenuXML(provider);
+         return parser.parseRoot(parent, (Element)node, provider);
+      }      
+      return null;
+   }
+   
+   private Data parseRoot(BaseModel parent, Element root, PeripheralWithState provider) throws Exception {
       BaseModel            rootModel   = null;
       String               template    = null;
       ArrayList<Validator> validators  = new ArrayList<Validator>();
 
-      ParseMenuXML parser = new ParseMenuXML(provider);
-      for (Node node = documentElement.getFirstChild();
+      Data data = null;
+      for (Node node = root.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
          Element element = (Element) node;
-         if ((element.getTagName() == "page") || (element.getTagName() == "menu")) {
+         if (element.getTagName() == "root") {
+            if (data != null) {
+               throw new RuntimeException("Multiple <root> elements");
+            }
+            data = parseRoot(parent, element, provider);
+         }
+         else if ((element.getTagName() == "page") || (element.getTagName() == "menu")) {
+            if (data != null) {
+               throw new RuntimeException("Cannot have other elements with <root> element");
+            }
             if (rootModel != null) {
                throw new RuntimeException("Multiple <page> or <menu> elements");
             }
-            rootModel = parser.parsePageOrMenu(parent, element);
+            rootModel = parsePageOrMenu(parent, element);
          }
          else if (element.getTagName() == "validate") {
-            parseValidate(element);
+            if (data != null) {
+               throw new RuntimeException("Cannot have other elemnts with <root> element");
+            }
+            validators.add(parseValidate(element));
          }
          else if (element.getTagName() == "template") {
+            if (data != null) {
+               throw new RuntimeException("Cannot have other elemnts with <root> element");
+            }
             template = element.getTextContent().replaceAll("^\n\\s*","").replaceAll("(\\\\n|\\n)\\s*", "\n").replaceAll("\\\\t","   ");
          }
          else {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }
+      if (data != null) {
+         return data;
+      }
       return new Data(rootModel, template, validators);
    }
-   
+
    /**
     * Parses document from top element
     * @param models 
@@ -459,43 +515,16 @@ public class ParseMenuXML extends XML_BaseParser {
       return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
    }
    
-   /**
-    * Class representing a validator parameter
-    */
-   static class Param {
-   };
-   
-   static class LongParam extends Param {
-      long   fValue;
-      /**
-       * COnstruct parameter with Long value
-       * @param value
-       */
-      public LongParam(long value) {
-         fValue = value;
-      }
-   };
-   
-   static class StringParam extends Param {
-      String   fValue;
-      /**
-       * COnstruct parameter with String value
-       * @param value
-       */
-      public StringParam(String value) {
-         fValue = value;
-      }
-   };
-   
-   static class Validator {
-      String fClassName;
-      ArrayList<Param> params = new ArrayList<Param>();
+   public static class Validator {
+      private String            fClassName;
+      private ArrayList<Object> fParams = new ArrayList<Object>();
+      
       /**
        * Construct validator
        * 
        * @param className Name of class
        */
-      public Validator(String className) {
+      Validator(String className) {
          fClassName = className;
       }
       /**
@@ -503,8 +532,26 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @param param
        */
-      void addParam(Param param) {
-         params.add(param);
+      void addParam(Object param) {
+         fParams.add(param);
+      }
+ 
+      /**
+       * Get list of parameters
+       * 
+       * @return
+       */
+      public ArrayList<Object> getParams() {
+         return fParams;
+      }
+      
+      /** 
+       * Get class name of validator
+       * 
+       * @return
+       */
+      public String getClassName() {
+         return fClassName;
       }
    }
    
@@ -524,11 +571,11 @@ public class ParseMenuXML extends XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == "param") {
             String  type   = element.getAttribute("type");
-            if (type.equalsIgnoreCase("int")) {
-               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+            if (type.equalsIgnoreCase("long")) {
+               validator.addParam(getLongAttribute(element, "value"));
             }
             else if (type.equalsIgnoreCase("string")) {
-               validator.addParam(new LongParam(getLongAttribute(element, "value")));
+               validator.addParam(element.getAttribute("value"));
             }
             else {
                throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");

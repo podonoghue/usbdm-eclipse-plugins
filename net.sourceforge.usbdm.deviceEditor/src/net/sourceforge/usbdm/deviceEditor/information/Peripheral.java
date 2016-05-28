@@ -9,8 +9,10 @@ import java.util.Vector;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
+
 
 /**
  * Represents a peripheral.<br>
@@ -62,6 +64,9 @@ public abstract class Peripheral {
 
    /** Clock source for peripheral. Usually SystemCoreClock or SystemBusClock. */
    private String fClockSource;
+
+   /** Version of the peripheral e.g. adc0_diff_a */
+   private String fVersion;
 
    /**
     * Create peripheral
@@ -140,7 +145,7 @@ public abstract class Peripheral {
     * Defaults to name based on peripheral e.g. Ftm
     */
    public String getVersion() {
-      return getClassBaseName();
+      return (fVersion!=null)?fVersion:getClassBaseName();
    }
 
    /**
@@ -270,6 +275,10 @@ public abstract class Peripheral {
       documentUtilities.writeAttribute("baseName", fBaseName);
       documentUtilities.writeAttribute("instance", fInstance);
 
+      String versioName = WriteFamilyXML.getPeripheralMap().get(fName);
+      if (versioName != null) {
+         documentUtilities.writeAttribute("version", versioName);
+      }
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
       documentUtilities.closeTag();
@@ -948,5 +957,9 @@ public abstract class Peripheral {
          }
       }
       throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
+   }
+
+   public void setVersion(String version) {
+     fVersion = version;
    }
 }

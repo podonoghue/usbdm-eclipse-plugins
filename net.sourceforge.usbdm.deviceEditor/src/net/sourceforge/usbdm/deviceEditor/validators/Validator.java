@@ -94,7 +94,7 @@ public abstract class Validator {
       try {
          return getVariable(key);
       } catch (Exception e) {
-         System.err.println(e.getMessage());
+//         System.err.println(e.getMessage());
       }
       return null;
    }
@@ -121,7 +121,7 @@ public abstract class Validator {
       try {
          return getSharedVariable(key);
       } catch (Exception e) {
-         System.err.println(e.getMessage());
+//         System.err.println(e.getMessage());
       }
       return null;
    }

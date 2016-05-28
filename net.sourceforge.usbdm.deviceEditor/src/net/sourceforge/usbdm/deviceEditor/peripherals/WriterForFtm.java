@@ -24,7 +24,6 @@ public class WriterForFtm extends PeripheralWithState {
 
    public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override

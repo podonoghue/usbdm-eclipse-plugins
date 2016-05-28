@@ -21,7 +21,6 @@ public class WriterForAdc extends PeripheralWithState {
 
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override

@@ -132,4 +132,8 @@ public class BooleanVariable extends Variable {
       return new BooleanVariableModel(parent, this);
    }
 
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
+   }
 }

@@ -10,7 +10,6 @@ public class WriterForOsc extends PeripheralWithState {
 
    public WriterForOsc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override
@@ -30,6 +29,11 @@ public class WriterForOsc extends PeripheralWithState {
             "   //! Base value for PCR (excluding MUX value)\n"+
             "   static constexpr uint32_t pcrValue  = 0;\n\n"
             );
+   }
+
+   @Override
+   public int getPriority() {
+      return 1000;
    }
 
 }

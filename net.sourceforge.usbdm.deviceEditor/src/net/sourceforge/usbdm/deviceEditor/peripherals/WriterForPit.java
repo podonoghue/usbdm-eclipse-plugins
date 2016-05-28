@@ -10,7 +10,6 @@ public class WriterForPit extends PeripheralWithState {
 
    public WriterForPit(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override

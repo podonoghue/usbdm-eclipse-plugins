@@ -214,6 +214,7 @@ public class ParseFamilyXML extends XML_BaseParser {
       }
       String baseName = peripheralElement.getAttribute("baseName");
       String instance = peripheralElement.getAttribute("instance");
+      String version  = peripheralElement.getAttribute("version");
 
       Peripheral peripheral = null;
       
@@ -249,6 +250,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
          }
       }
+      peripheral.setVersion(version);
    }
 
    private void parseDma(Element dmaElement, Peripheral peripheral) {

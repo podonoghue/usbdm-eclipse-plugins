@@ -10,7 +10,6 @@ public class WriterForSpi extends PeripheralWithState {
    
    public WriterForSpi(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
-      loadModels();
    }
 
    @Override
