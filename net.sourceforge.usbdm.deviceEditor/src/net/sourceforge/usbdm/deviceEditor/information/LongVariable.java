@@ -74,9 +74,6 @@ public class LongVariable extends Variable {
       if (fValue == value) {
          return false;
       }
-      if (getName().equalsIgnoreCase("pllTargetFrequency")) {
-         System.err.println(String.format("pllTargetFrequency old=%d, new=%d", fValue, value));
-      }
       fValue = value;
       notifyListeners();
       return true;

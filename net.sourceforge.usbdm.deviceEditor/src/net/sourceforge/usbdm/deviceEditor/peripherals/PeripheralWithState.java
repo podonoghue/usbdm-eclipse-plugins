@@ -35,7 +35,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    private final class KeyMaker implements IKeyMaker {
       @Override
       public String makeKey(String name) {
-         return getName()+"_"+name;
+         if (name.charAt(0) == '/') {
+            return name;
+         }
+         return "/"+getName()+"/"+name;
       }
    }
    
@@ -52,12 +55,16 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    /**
-    * Load the models and valudators for this class of peripheral
+    * Load the models and validators for this class of peripheral
     * 
     * @return
+    * @throws Exception 
     */
-   public void loadModels() {
-      loadModels(getVersion());
+   public void loadModels() throws Exception {
+      fData = loadModels(getVersion());
+      if (fData == null) {
+         return;
+      }
       for (ParseMenuXML.Validator v:fData.fValidators) {
          try {
             String className = v.getClassName();
@@ -66,7 +73,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             Validator validatorClass = (Validator) clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass()).newInstance(this, v.getParams());
             addValidator(validatorClass);
          } catch (Exception e) {
-            e.printStackTrace();
+            throw new Exception("Failed to add validator "+v.getClassName()+" for Peripheral " + getName(), e);
          }
       }
    }
@@ -76,13 +83,13 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Load the models for this class of peripheral
     * 
     * @return
+    * @throws Exception 
     */
-   public final void loadModels(String name) {
+   private final Data loadModels(String name) throws Exception {
       try {
-         fData = ParseMenuXML.parseFile(name, null, this);
+         return ParseMenuXML.parseFile(name, null, this);
       } catch (Exception e) {
-         System.err.println("Failed to load models for " + getName());
-         e.printStackTrace();
+         throw new Exception("Failed to load model "+name+" for Peripheral " + getName(), e);
       }
    }
    
@@ -95,6 +102,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
+      pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
       pinMappingHeaderFile.write(substitute(fData.fTemplate));
    }
 
@@ -135,14 +143,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
-   public Variable getPublicVariable(String key) {
-      try {
-         return fDeviceInfo.getVariable(FileUtility.publicKeyMaker.makeKey(key));
-      } catch (Exception e) {
-         return null;
-      }
-   }
-   
    @Override
    public void loadSettings(DialogSettings settings) {
       super.loadSettings(settings);

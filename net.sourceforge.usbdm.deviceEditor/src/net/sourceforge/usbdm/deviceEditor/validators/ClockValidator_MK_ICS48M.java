@@ -39,14 +39,14 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
    private final long  PLL_POST_DIV;
 
    private final static String[] names = {
-         "RTC_rtc_cr_osce",
-         "RTC_rtcclk_clock",
-         "RTC_rtc_cr_scp",
-         "RTC_rtc_cr_clko",
-         "OSC0_oscclk_clock",
-         "OSC0_osc32kclk_clock",
-         "OSC0_"+OscValidate.OSC_RANGE_KEY,
-         "OSC0_range",
+         "/RTC/rtc_cr_osce",
+         "/RTC/rtcclk_clock",
+         "/RTC/rtc_cr_scp",
+         "/RTC/rtc_cr_clko",
+         "/OSC0/oscclk_clock",
+         "/OSC0/osc32kclk_clock",
+         OscValidate.OSC_RANGE_KEY,
+         "/OSC0/range",
    };
 
    public ClockValidator_MK_ICS48M(PeripheralWithState peripheral, ArrayList<Object> values) {
@@ -93,15 +93,17 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       pllTargetFrequencyNode.setMax(PLL_OUT_MAX);
 
       LongVariable mcg_c5_prdiv0Node = getLongVariable("mcg_c5_prdiv0");
+      mcg_c5_prdiv0Node.setOffset(-PRDIV_MIN);
       mcg_c5_prdiv0Node.setMin(PRDIV_MIN);
       mcg_c5_prdiv0Node.setMax(PRDIV_MAX);
 
       LongVariable mcg_c6_vdiv0Node = getLongVariable("mcg_c6_vdiv0");
+      mcg_c6_vdiv0Node.setOffset(-VDIV_MIN);
       mcg_c6_vdiv0Node.setMin(VDIV_MIN);
       mcg_c6_vdiv0Node.setMax(VDIV_MAX);
       
       for (String name:names) {
-         Variable var = safeGetSharedVariable(name);
+         Variable var = safeGetVariable(name);
          if (var != null) {
             var.addListener(fPeripheral);
          }
@@ -195,8 +197,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
 
       // RTC
       //=================================
-      Variable     rtcclk_clockNode                 =  getSharedVariable("RTC_rtcclk_clock");
-      Variable     rtc_cr_clkoNode                  =  getSharedVariable("RTC_rtc_cr_clko");
+      Variable     rtcclk_clockNode                 =  getVariable("/RTC/rtcclk_clock");
+      Variable     rtc_cr_clkoNode                  =  getVariable("/RTC/rtc_cr_clko");
       Variable     sim_sopt1_osc32kselNode          =  getVariable("sim_sopt1_osc32ksel");
       Variable     system_erclk32k_clockNode        =  getVariable("system_erclk32k_clock");
       Variable     sim_sopt2_rtcclkoutselNode       =  getVariable("sim_sopt2_rtcclkoutsel");
@@ -204,13 +206,13 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
 
       // Clocks and information from main oscillator
       //=================================
-      Variable     oscclk_clockNode                 =  getSharedVariable("OSC0_oscclk_clock");
-      Variable     osc32kclk_clockNode              =  getSharedVariable("OSC0_osc32kclk_clock");
-      Variable     osc_cr_erclkenNode               =  getSharedVariable("OSC0_osc_cr_erclken");
-      Variable     osc0_rangeNode                   =  getSharedVariable("OSC0_"+OscValidate.OSC_RANGE_KEY);
+      Variable     oscclk_clockNode                 =  getVariable("/OSC0/oscclk_clock");
+      Variable     osc32kclk_clockNode              =  getVariable("/OSC0/osc32kclk_clock");
+      Variable     osc_cr_erclkenNode               =  getVariable("/OSC0/osc_cr_erclken");
+      Variable     osc0_rangeNode                   =  getVariable(OscValidate.OSC_RANGE_KEY);
 
       //===================
-      Variable     mcg_c2_range0Node                =  getSharedVariable("OSC0_range");
+      Variable     mcg_c2_range0Node                =  getVariable("/OSC0/range");
 
       //=================================
       Variable     clock_modeNode                   =  getVariable("clock_mode");

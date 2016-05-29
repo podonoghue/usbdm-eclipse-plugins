@@ -131,22 +131,23 @@
       </menu>  
       
       <menu name="OSC" description="OSC External Reference Clock/Oscillator [OSCCLK]" >
-         <aliasOption key="OSC0_osc_cr_erclken" constant="false" />
-         <aliasOption key="OSC0_oscclk_clock" constant="false" />
-         <aliasOption key="OSC0_erefs0" constant="false" />
-         <aliasOption key="OSC0_hgo0"   constant="false" />
-         <aliasOption key="OSC0_osc_cr_scp" constant="false" />
-         <aliasOption key="OSC0_osc_cr_erefsten" constant="false" />
-         <aliasOption key="OSC0_range" constant="true" />
-         <aliasOption key="OSC0_system_oscerclk_clock" constant="true" />
+         <aliasOption key="/OSC0/osc_cr_erclken" constant="false" />
+         <aliasOption key="/OSC0/oscclk_clock" constant="false" />
+         <aliasOption key="/OSC0/erefs0" constant="false" />
+         <aliasOption key="/OSC0/hgo0"   constant="false" />
+         <aliasOption key="/OSC0/osc_cr_scp" constant="false" />
+         <aliasOption key="/OSC0/osc_cr_erefsten" constant="false" />
+         <aliasOption key="/OSC0/range" constant="true" />
+         <aliasOption key="/OSC0/osc_div_erps" constant="false" optional="true" />
+         <aliasOption key="/OSC0/system_oscerclk_undiv_clock" constant="true"  optional="true" />
+         <aliasOption key="/OSC0/system_oscerclk_clock" constant="true" />
       </menu>
 
       <menu name="RTC" description="RTC External Reference Clock/Oscillator [ERCLK32K]">
-         
-         <aliasOption key="RTC_rtc_cr_osce"  constant="false" />
-         <aliasOption key="RTC_rtcclk_clock" constant="false" />
-         <aliasOption key="RTC_rtc_cr_scp"   constant="false" /> 
-         <aliasOption key="RTC_rtc_cr_clko"  constant="false" />
+         <aliasOption key="/RTC/rtc_cr_osce"  constant="false" />
+         <aliasOption key="/RTC/rtcclk_clock" constant="false" />
+         <aliasOption key="/RTC/rtc_cr_scp"   constant="false" /> 
+         <aliasOption key="/RTC/rtc_cr_clko"  constant="false" />
    
          <choiceOption name="sim_sopt1_osc32ksel" 
             description="ERCLK32K source"
@@ -182,7 +183,7 @@
       <choiceOption name="mcg_c7_oscsel" 
          description="MCG External Reference Clock source [OSCSEL]"
          toolTip="Selects the MCG FLL/PLL external reference clock source">
-         <choice value="0" name="Main System Oscillator (OSCCLK)" />
+         <choice value="0" name="Main System Oscillator (OSCCLK0)" />
          <choice value="1" name="32 kHz RTC Oscillator (RTC_32K)" />
       </choiceOption>
    
@@ -359,24 +360,20 @@
             description="PLL External Reference Divider"
             toolTip="Determines the amount to divide down the external reference clock for the PLL\n
                      This value is calculated from PLL input and output clock frequencies"
-            value="1" 
-            offset="-1" />
+            value="1" />
             
          <intOption name="mcg_c6_vdiv0" 
             constant="true"
             description="VCO Divider (VDIV0)"
             toolTip="Determines the multiplication factor for the reference clock of the PLL.\n
                      This value is calculated from PLL input and output clock frequencies"
-            value="16" 
-            offset="-24"
-            min="24"
-            max="55"
-            />
+            value="24" />
       </menu>
 
       <aliasOption name="system_mcgir_clock" />
       <aliasOption name="system_mcgffclk_clock" />
-      <aliasOption key="OSC0_system_oscerclk_clock" />
+      <aliasOption key="/OSC0/system_oscerclk_undiv_clock" optional="true" />
+      <aliasOption key="/OSC0/system_oscerclk_clock" />
       <aliasOption name="system_erclk32k_clock" />
       <aliasOption name="system_low_power_clock" />
 
@@ -455,9 +452,9 @@
          
          <menu name="MCG_C2" description="MCG Control Register 2">
             <aliasOption name="mcg_c2_locre0" />
-            <aliasOption key="OSC0_range" />
-            <aliasOption key="OSC0_hgo0" />
-            <aliasOption key="OSC0_erefs0" />
+            <aliasOption key="/OSC0/range" />
+            <aliasOption key="/OSC0/hgo0" />
+            <aliasOption key="/OSC0/erefs0" />
       
             <binaryOption name="mcg_c2_lp"
                constant="true"
@@ -512,10 +509,6 @@
             <aliasOption name="mcg_c8_cme1" />
          </menu>
       
-         <menu name="RTC CR" description="Real Time Clock">
-            <aliasOption key="RTC_rtc_cr_osce" />
-         </menu>   
-
          <menu name="SIM_CLKDIV1" description="Clock Dividers">
             <intOption name="sim_clkdiv1_outdiv1" 
                constant="true"
@@ -530,6 +523,14 @@
                toolTip="Clocks the bus slaves and peripheral [SIM_CLKDIV1_OUTDIV2]\n
                   Divides MCGOUT Clock to generate system_bus_clock\n
                   MCGOUTCLK clock is source. Default /2"
+               value="1" offset="-1" min="1" max="16" />
+         
+            <intOption name="sim_clkdiv1_outdiv3" 
+               constant="true"
+               description="Flexbus Clock Divider (OUTDIV3) - Divide by [1-16]"
+               toolTip="Clocks the flexbus interface [SIM_CLKDIV1_OUTDIV3]\n
+                        Divides MCGOUT Clock to generate system_flexbus_clock\n
+                        MCGOUTCLK clock is source. Default /2"
                value="1" offset="-1" min="1" max="16" />
          
             <intOption name="sim_clkdiv1_outdiv4" 
@@ -608,9 +609,9 @@
       \t//! Control Register 2\n
       \tstatic constexpr uint32_t MCG_C2 =
       \t   MCG_C2_LOCRE0($(mcg_c2_locre0)) | // LOLRE0  Loss of Clock Reset Enable
-      \t   MCG_C2_RANGE0($(mcg_c2_range0)) | // RANGE   Frequency Range Select
-      \t   MCG_C2_HGO0($(mcg_c2_hgo0))   | // HGO     High Gain Oscillator Select
-      \t   MCG_C2_EREFS0($(mcg_c2_erefs0)) | // EREFS   External Reference Select
+      \t   MCG_C2_RANGE0($(/OSC0/range)) | // RANGE   Frequency Range Select
+      \t   MCG_C2_HGO0($(/OSC0/hgo0))   | // HGO     High Gain Oscillator Select
+      \t   MCG_C2_EREFS0($(/OSC0/erefs0)) | // EREFS   External Reference Select
       \t   MCG_C2_IRCS($(mcg_c2_ircs));    // IRCS    Internal Reference Clock Select\n\n
       
       \t//! Control Register 4\n

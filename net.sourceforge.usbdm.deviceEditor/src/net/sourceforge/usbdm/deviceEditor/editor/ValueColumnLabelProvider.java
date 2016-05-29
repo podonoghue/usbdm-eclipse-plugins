@@ -2,27 +2,14 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import org.eclipse.swt.graphics.Image;
 
-import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 
 class ValueColumnLabelProvider extends BaseLabelProvider {
    
-   private  Image lockedImage    = null;
-   private  Image checkedImage   = null;
-   private  Image uncheckedImage = null;
-   private  Image disabledImage  = null;
-   private  Image emptyImage     = null;
-
    ValueColumnLabelProvider(TreeEditor viewer) {
-      if (Activator.getDefault() != null) {
-         lockedImage    = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
-         checkedImage   = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
-         uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
-         disabledImage  = Activator.getDefault().getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
-         emptyImage     = Activator.getDefault().getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
-      }
+      super(viewer);
    }
 
    @Override
@@ -42,31 +29,6 @@ class ValueColumnLabelProvider extends BaseLabelProvider {
          return ((Boolean)((BooleanVariableModel)baseModel).getVariable().getValueAsBoolean())?checkedImage:uncheckedImage;
       }
       return emptyImage;
-   }
-
-   @Override
-   public void dispose() {
-      super.dispose();
-      if (lockedImage != null) {
-         lockedImage.dispose();
-         lockedImage = null;
-      }
-      if (checkedImage != null) {
-         checkedImage.dispose();
-         checkedImage = null;
-      }
-      if (uncheckedImage != null) {
-         uncheckedImage.dispose();
-         uncheckedImage = null;
-      }
-      if (disabledImage != null) {
-         disabledImage.dispose();
-         disabledImage = null;
-      }
-      if (emptyImage != null) {
-         emptyImage.dispose();
-         emptyImage = null;
-      }
    }
 
 }

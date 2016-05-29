@@ -53,7 +53,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdram;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
@@ -296,6 +296,7 @@ public class DeviceInfo extends ObservableModel {
          // Construct
          for (PeripheralWithState p:PeripheralWithStateList) {
             if (p instanceof PeripheralWithState) {
+               // TODO remove
                System.err.println("Constructing " + p);
                ((PeripheralWithState) p).loadModels();
             }
@@ -1059,7 +1060,7 @@ public class DeviceInfo extends ObservableModel {
                "SDRAMC", "$2", "$3",
                "(SDRAMC?)(\\d+)?_(.*)",
                getDeviceFamily(),
-               WriterForSdram.class);
+               WriterForSdramc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
@@ -1176,7 +1177,7 @@ public class DeviceInfo extends ObservableModel {
                WriterForToDo.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
-               "(USBHSPHY)",
+               "(USBHS)",
                getDeviceFamily(),
                WriterForToDo.class);
       }

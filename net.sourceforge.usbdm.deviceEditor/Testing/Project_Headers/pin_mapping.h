@@ -80,29 +80,31 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:adc0_diff_a
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
-       (0<<ADC_CFG1_ADICLK_SHIFT)|
-       (2<<ADC_CFG1_MODE_SHIFT)|
-       (0<<ADC_CFG1_ADLSMP_SHIFT)|
-       (0<<ADC_CFG1_ADIV_SHIFT)|
-       (0<<ADC_CFG1_ADLPC_SHIFT);
+       ADC_CFG1_ADICLK(0)|
+       ADC_CFG1_MODE(2)|
+       ADC_CFG1_ADLSMP(0)|
+       ADC_CFG1_ADIV(0)|
+       ADC_CFG1_ADLPC(0);
 
    //! Default value for ADCx_CFG2 register
     static constexpr uint32_t CFG2  = 
-        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
-       (0<<ADC_CFG2_ADLSTS_SHIFT)|
-       (0<<ADC_CFG2_ADHSC_SHIFT)|
-       (0<<ADC_CFG2_ADACKEN_SHIFT);
+       ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
+       ADC_CFG2_ADLSTS(0)|
+       ADC_CFG2_ADHSC(0)|
+       ADC_CFG2_ADACKEN(0);
 
    static constexpr uint32_t SC2  =
-       (0<<ADC_SC2_REFSEL_SHIFT)|
-       (0<<ADC_SC2_DMAEN_SHIFT)|
-       (0b000<<ADC_SC2_ACREN_SHIFT)|
-       (0<<ADC_SC2_ADTRG_SHIFT);
+       ADC_SC2_REFSEL(0)|
+       ADC_SC2_DMAEN(0)|
+       ADC_SC2_ACREN(0b000)|
+       ADC_SC2_ADTRG(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -118,7 +120,7 @@ public:
          /*   1: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*   2: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*   3: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   4: ADC0_SE4b            = PTC2 (D6)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   4: ADC0_SE4b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: ADC0_SE5b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: ADC0_SE6b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   7: ADC0_SE7b            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
@@ -144,7 +146,6 @@ public:
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Adc0Info,  4>::setPCR(); // ADC0_SE4b       = PTC2 (D6)                     
       PcrTable_T<Adc0Info, 12>::setPCR(); // ADC0_SE12       = PTB2 (A5)                     
       PcrTable_T<Adc0Info, 13>::setPCR(); // ADC0_SE13       = PTB3 (A4)                     
    }
@@ -153,7 +154,6 @@ public:
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Adc0Info,  4>::setPCR(0); // ADC0_SE4b       = PTC2 (D6)                     
       PcrTable_T<Adc0Info, 12>::setPCR(0); // ADC0_SE12       = PTB2 (A5)                     
       PcrTable_T<Adc0Info, 13>::setPCR(0); // ADC0_SE13       = PTB3 (A4)                     
    }
@@ -245,29 +245,31 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:adc0_diff_a
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default value for ADCx_CFG1 register
    static constexpr uint32_t CFG1  = 
-       (0<<ADC_CFG1_ADICLK_SHIFT)|
-       (2<<ADC_CFG1_MODE_SHIFT)|
-       (0<<ADC_CFG1_ADLSMP_SHIFT)|
-       (0<<ADC_CFG1_ADIV_SHIFT)|
-       (0<<ADC_CFG1_ADLPC_SHIFT);
+       ADC_CFG1_ADICLK(0)|
+       ADC_CFG1_MODE(2)|
+       ADC_CFG1_ADLSMP(0)|
+       ADC_CFG1_ADIV(0)|
+       ADC_CFG1_ADLPC(0);
 
    //! Default value for ADCx_CFG2 register
     static constexpr uint32_t CFG2  = 
-        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
-       (0<<ADC_CFG2_ADLSTS_SHIFT)|
-       (0<<ADC_CFG2_ADHSC_SHIFT)|
-       (0<<ADC_CFG2_ADACKEN_SHIFT);
+       ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
+       ADC_CFG2_ADLSTS(0)|
+       ADC_CFG2_ADHSC(0)|
+       ADC_CFG2_ADACKEN(0);
 
    static constexpr uint32_t SC2  =
-       (0<<ADC_SC2_REFSEL_SHIFT)|
-       (0<<ADC_SC2_DMAEN_SHIFT)|
-       (0b000<<ADC_SC2_ACREN_SHIFT)|
-       (0<<ADC_SC2_ADTRG_SHIFT);
+       ADC_SC2_REFSEL(0)|
+       ADC_SC2_DMAEN(0)|
+       ADC_SC2_ACREN(0b000)|
+       ADC_SC2_ADTRG(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -541,26 +543,25 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:cmp0_pstm_trigm
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = ---Symbol not found for substitution '$(rtcclk_clock)'UL;
-
    //! CMP Control Register 0
    static constexpr uint32_t CMP_CR0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
-      CMP_CR0_FILTER_HYSTCTR(0);  // Comparator hard block hysteresis control
+      CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
    //! CMP Control Register 1
    static constexpr uint32_t CMP_CR1 =
       CMP_CR1_SE(0)    | // Sample Enable
       CMP_CR1_WE(0)    | // Windowing Enable
       CMP_CR1_TRIGM(0) | // Trigger Mode Enable
-      CMP_CR1_PMODE(1) | // Power mode Select
+      CMP_CR1_PMODE(0) | // Power mode Select
       CMP_CR1_INV(0)   | // Comparator Invert
       CMP_CR1_COS(0)   | // Comparator Output Select
       CMP_CR1_OPE(0)   | // Comparator Output Pin Enable
@@ -617,19 +618,18 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   // Template:cmp0_pstm_trigm
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = ---Symbol not found for substitution '$(rtcclk_clock)'UL;
-
    //! CMP Control Register 0
    static constexpr uint32_t CMP_CR0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
-      CMP_CR0_FILTER_HYSTCTR(0);  // Comparator hard block hysteresis control
+      CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
    //! CMP Control Register 1
    static constexpr uint32_t CMP_CR1 =
@@ -653,33 +653,27 @@ public:
    static constexpr PcrInfo  info[] = {
 
          //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: CMP1_IN0             = PTC2 (D6)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
-         /*   1: CMP1_IN1             = PTC3 (D0)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,   PORT_PCR_MUX(0)|pcrValue  },
+         /*   0: CMP1_IN0             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   1: CMP1_IN1             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   2: CMP1_IN2             = ADC0_SE16                      */  { 0, 0, 0, FIXED_NO_PCR, 0 },
          /*   3: CMP1_IN3             = DAC0_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
          /*   4: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*   5: CMP1_IN5             = VREF_OUT                       */  { 0, 0, 0, FIXED_NO_PCR, 0 },
          /*   6: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
          /*   7: --                   = --                             */  { 0, 0, 0, INVALID_PCR,  0 },
-         /*   8: CMP1_OUT             = PTC4 (D1)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,   PORT_PCR_MUX(6)|pcrValue  },
+         /*   8: CMP1_OUT             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
     * Initialise pins used by peripheral
     */
    static void initPCRs() {
-      PcrTable_T<Cmp1Info,  0>::setPCR(); // CMP1_IN0        = PTC2 (D6)                     
-      PcrTable_T<Cmp1Info,  1>::setPCR(); // CMP1_IN1        = PTC3 (D0)                     
-      PcrTable_T<Cmp1Info,  8>::setPCR(); // CMP1_OUT        = PTC4 (D1)                     
    }
 
    /**
     * Initialise pins used by peripheral
     */
    static void clearPCRs() {
-      PcrTable_T<Cmp1Info,  0>::setPCR(0); // CMP1_IN0        = PTC2 (D6)                     
-      PcrTable_T<Cmp1Info,  1>::setPCR(0); // CMP1_IN1        = PTC3 (D0)                     
-      PcrTable_T<Cmp1Info,  8>::setPCR(0); // CMP1_OUT        = PTC4 (D1)                     
    }
 
 };
@@ -699,19 +693,18 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   // Template:cmp0_pstm_trigm
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = ---Symbol not found for substitution '$(rtcclk_clock)'UL;
-
    //! CMP Control Register 0
    static constexpr uint32_t CMP_CR0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
-      CMP_CR0_FILTER_HYSTCTR(0);  // Comparator hard block hysteresis control
+      CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
    //! CMP Control Register 1
    static constexpr uint32_t CMP_CR1 =
@@ -775,19 +768,18 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   // Template:cmp0_pstm_trigm
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = ---Symbol not found for substitution '$(rtcclk_clock)'UL;
-
    //! CMP Control Register 0
    static constexpr uint32_t CMP_CR0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
-      CMP_CR0_FILTER_HYSTCTR(0);  // Comparator hard block hysteresis control
+      CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
    //! CMP Control Register 1
    static constexpr uint32_t CMP_CR1 =
@@ -1405,7 +1397,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC7_FB_MASK;
+   static constexpr uint32_t clockMask = SIM_SCGC7_FLEXBUS_MASK;
 
    //! Address of clock register for peripheral
    static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC7);
@@ -1632,10 +1624,12 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:ftm0_8ch
+
    //! Default value for SC register
    static constexpr uint32_t SC  = 
-       (0<<FTM_SC_CPWMS_SHIFT)|
-       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CPWMS(0)|
+       FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
@@ -1732,11 +1726,13 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:ftm1_2ch
+
    //! Default value for SC register
    static constexpr uint32_t SC  = 
-       (0<<FTM_SC_CPWMS_SHIFT)|
-       ((0|0)<<FTM_SC_TOIE_SHIFT)|
-       FTM_SC_CLKS(0)|
+       FTM_SC_CPWMS(0)|
+       FTM_SC_TOIE((0|0))|
+       FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
@@ -1850,10 +1846,12 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:ftm1_2ch
+
    //! Default value for SC register
    static constexpr uint32_t SC  = 
-       (0<<FTM_SC_CPWMS_SHIFT)|
-       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CPWMS(0)|
+       FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
@@ -1968,10 +1966,12 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:ftm0_8ch
+
    //! Default value for SC register
    static constexpr uint32_t SC  = 
-       (0<<FTM_SC_CPWMS_SHIFT)|
-       ((0|0)<<FTM_SC_TOIE_SHIFT)|
+       FTM_SC_CPWMS(0)|
+       FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
@@ -2228,6 +2228,8 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:i2c0_f12
+
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
@@ -2287,6 +2289,8 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:i2c0_f12
+
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
@@ -2342,6 +2346,8 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:i2c0_f12
+
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
@@ -2396,6 +2402,8 @@ public:
 
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   // Template:i2c0_f12
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -2531,8 +2539,8 @@ public:
          /*   4: LLWU_P4              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   5: LLWU_P5              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*   6: LLWU_P6              = PTC1 (D18)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  1,   PORT_PCR_MUX(1)|pcrValue  },
-         /*   7: LLWU_P7              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   8: LLWU_P8              = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
+         /*   7: LLWU_P7              = PTC3 (D0)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  3,   PORT_PCR_MUX(1)|pcrValue  },
+         /*   8: LLWU_P8              = PTC4 (D1)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  4,   PORT_PCR_MUX(1)|pcrValue  },
          /*   9: LLWU_P9              = PTC5 (D5)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  5,   PORT_PCR_MUX(1)|pcrValue  },
          /*  10: LLWU_P10             = PTC6 (D19)                     */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  6,   PORT_PCR_MUX(1)|pcrValue  },
          /*  11: LLWU_P11             = PTC11 (D14)                    */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  11,  PORT_PCR_MUX(1)|pcrValue  },
@@ -2557,6 +2565,8 @@ public:
     */
    static void initPCRs() {
       PcrTable_T<LlwuInfo,  6>::setPCR(); // LLWU_P6         = PTC1 (D18)                    
+      PcrTable_T<LlwuInfo,  7>::setPCR(); // LLWU_P7         = PTC3 (D0)                     
+      PcrTable_T<LlwuInfo,  8>::setPCR(); // LLWU_P8         = PTC4 (D1)                     
       PcrTable_T<LlwuInfo,  9>::setPCR(); // LLWU_P9         = PTC5 (D5)                     
       PcrTable_T<LlwuInfo, 10>::setPCR(); // LLWU_P10        = PTC6 (D19)                    
       PcrTable_T<LlwuInfo, 11>::setPCR(); // LLWU_P11        = PTC11 (D14)                   
@@ -2576,6 +2586,8 @@ public:
     */
    static void clearPCRs() {
       PcrTable_T<LlwuInfo,  6>::setPCR(0); // LLWU_P6         = PTC1 (D18)                    
+      PcrTable_T<LlwuInfo,  7>::setPCR(0); // LLWU_P7         = PTC3 (D0)                     
+      PcrTable_T<LlwuInfo,  8>::setPCR(0); // LLWU_P8         = PTC4 (D1)                     
       PcrTable_T<LlwuInfo,  9>::setPCR(0); // LLWU_P9         = PTC5 (D5)                     
       PcrTable_T<LlwuInfo, 10>::setPCR(0); // LLWU_P10        = PTC6 (D19)                    
       PcrTable_T<LlwuInfo, 11>::setPCR(0); // LLWU_P11        = PTC11 (D14)                   
@@ -2628,19 +2640,20 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:lptmr0_0
+
    //! Default PSR value
    static constexpr uint32_t PSR = 
       LPTMR_PSR_PRESCALE(0)|
-      LPTMR_PSR_PCS(0)|
-      (0<<LPTMR_PSR_PBYP_SHIFT)|
-      (0<<LPTMR_PSR_PCS_SHIFT);
+      LPTMR_PSR_PBYP(0)|
+      LPTMR_PSR_PCS(0);
 
    //! Default CSR value
    static constexpr uint32_t CSR = 
-      (0<<LPTMR_CSR_TIE_SHIFT)|
-      (0<<LPTMR_CSR_TMS_SHIFT)|
-      (0<<LPTMR_CSR_TFC_SHIFT)|
-      (0<<LPTMR_CSR_TPP_SHIFT)|
+      LPTMR_CSR_TIE(0)|
+      LPTMR_CSR_TMS(0)|
+      LPTMR_CSR_TFC(0)|
+      LPTMR_CSR_TPP(0)|
       LPTMR_CSR_TPS(0);
 
    //! Default Timer period
@@ -2759,8 +2772,10 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   // Template:mcg_mk65f18
+
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = true;
+   static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel = 0;
@@ -2810,15 +2825,15 @@ public:
 
    //! Control Register 5
    static constexpr uint32_t MCG_C5 =
-      MCG_C5_PLLCLKEN0(1)  | // PLLCLKEN0 PLL Clock Enable
+      MCG_C5_PLLCLKEN0(0)  | // PLLCLKEN0 PLL Clock Enable
       MCG_C5_PLLSTEN0(0)   | // PLLSTEN0  PLL Stop Enable
-      MCG_C5_PRDIV0(11);     // PRDIV0    PLL External Reference Divider
+      MCG_C5_PRDIV0(0);     // PRDIV0    PLL External Reference Divider
 
    //! Control Register 6
    static constexpr uint32_t MCG_C6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
       MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(6);   // VDIV0  PLL VCO Divider
+      MCG_C6_VDIV0(14);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
    static constexpr uint32_t MCG_SC =
@@ -2826,35 +2841,29 @@ public:
 
    //! Control Register 7
    static constexpr uint32_t MCG_C7 =
-      MCG_C7_OSCSEL(2); // OSCSEL MCG OSC Clock Select
+      MCG_C7_OSCSEL(0); // OSCSEL MCG OSC Clock Select
 
    //! Control Register 8
    static constexpr uint32_t MCG_C8 =
       MCG_C8_LOCRE1(0) | // LOCRE1 RTC Loss of Clock Reset Enable
-      MCG_C8_LOLRE(1)  | // LOLRE  PLL Loss of Lock Reset Enable
+      MCG_C8_LOLRE(0)  | // LOLRE  PLL Loss of Lock Reset Enable
       MCG_C8_CME1(0);    // CME1   Clock Monitor Enable 1
 
-   #ifdef MCG_C9_PLL_CME
    //! Control Register 9
    static constexpr uint32_t MCG_C9 =
       MCG_C9_PLL_CME(0)   | // PLL_CME MCG External PLL Clock Monitor Enable
       MCG_C9_PLL_LOCRE(0);  // PLL_LOCRE   MCG External PLL Loss of Clock Reset Enable
-   #endif
-
-   #ifdef MCG_C11_PLLCS
    //! Control Register 11
    static constexpr uint32_t MCG_C11 =
-      MCG_C11_PLLCS(1); // PLLCS PLL Clock Select
-   #endif
-
+      MCG_C11_PLLCS(0); // PLLCS PLL Clock Select
    //! Clock divider
    static constexpr uint32_t SIM_CLKDIV1 = 
-      SIM_CLKDIV1_OUTDIV4(15) | // SIM_CLKDIV1_OUTDIV4
+      SIM_CLKDIV1_OUTDIV4(5) | // SIM_CLKDIV1_OUTDIV4
    #ifdef SIM_CLKDIV1_OUTDIV3
-      SIM_CLKDIV1_OUTDIV3(15) | // SIM_CLKDIV1_OUTDIV3
+      SIM_CLKDIV1_OUTDIV3(1) | // SIM_CLKDIV1_OUTDIV3
    #endif
-      SIM_CLKDIV1_OUTDIV2(15) | // SIM_CLKDIV1_OUTDIV2
-      SIM_CLKDIV1_OUTDIV1(15);  // SIM_CLKDIV1_OUTDIV1
+      SIM_CLKDIV1_OUTDIV2(1) | // SIM_CLKDIV1_OUTDIV2
+      SIM_CLKDIV1_OUTDIV1(1);  // SIM_CLKDIV1_OUTDIV1
 
 };
 
@@ -2914,6 +2923,8 @@ public:
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
 
+   // Template:osc0_div
+
    //! Frequency of OSC Clock or Crystal
    static constexpr uint32_t oscclk_clock = 8000000UL;
 
@@ -2923,12 +2934,9 @@ public:
       OSC_CR_EREFSTEN(0) |
       OSC_CR_SCP(2);
 
-#ifdef OSC_DIV_ERPS_MASK
    //! OSC Clock divider register
    static constexpr uint32_t OSC_DIV =
-      OSC_DIV_ERPS(3);   
-#endif
-
+      OSC_DIV_ERPS(2);   
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 2;
 
@@ -3051,11 +3059,15 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:pit_4ch_ltmr64
+
    //! Default value for PIT->SC register
-   static constexpr uint32_t loadValue  = 10000;
+   static constexpr uint32_t loadValue  = 
+      10000;
 
    //! PIT operation in debug mode
-   static constexpr uint32_t mcrValue = (1<<PIT_MCR_FRZ_SHIFT);
+   static constexpr uint32_t mcrValue = 
+      PIT_MCR_FRZ(0);
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
@@ -3149,7 +3161,7 @@ public:
    static constexpr uint32_t basePtr   = RNG_BasePtr;
 
    //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC6_RNG_MASK;
+   static constexpr uint32_t clockMask = SIM_SCGC6_RNGA_MASK;
 
    //! Address of clock register for peripheral
    static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC6);
@@ -3198,6 +3210,8 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:rtc_tamper_wps
+
    //! Indicates interrupt handler has been installed
    static constexpr bool irqHandlerInstalled = false;
 
@@ -3205,16 +3219,16 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Frequency of RTC External Clock or Crystal
-   static constexpr uint32_t rtcclk_clock = 30000UL;
+   static constexpr uint32_t rtcclk_clock = 32768UL;
 
    //! Oscillator control register
    static constexpr uint32_t RTC_CR =
       RTC_CR_OSCE(1) | // Enables 32kHz oscillator [RTC_32K]
-      RTC_CR_CLKO(1) | // Enables RTC 32kHz Clock Output
-      RTC_CR_UM(1)   | // Update Mode
+      RTC_CR_CLKO(0) | // Enables RTC 32kHz Clock Output
+      RTC_CR_UM(0)   | // Update Mode
       RTC_CR_SUP(0)  | // Supervisor access
       RTC_CR_WPE(0)  | // Wakeup Pin Enable
-      (0<<RTC_CR_SC16P_SHIFT); // RTC Oscillator load capacitance
+      RTC_CR_SCP(2);   // RTC Oscillator load capacitance
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 5;
@@ -3482,13 +3496,17 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:spi0_mk65f18
+
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = (0<<SPI_CTAR_LSBFE_SHIFT)|(0<<SPI_CTAR_CPHA_SHIFT);
+   static constexpr uint32_t modeValue = 
+      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 100000;
+   static constexpr uint32_t speed = 
+      100000;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 9;
@@ -3549,13 +3567,17 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:spi0_mk65f18
+
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = (0<<SPI_CTAR_LSBFE_SHIFT)|(0<<SPI_CTAR_CPHA_SHIFT);
+   static constexpr uint32_t modeValue = 
+      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 100000;
+   static constexpr uint32_t speed = 
+      100000;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 7;
@@ -3620,13 +3642,17 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:spi0_mk65f18
+
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = (0<<SPI_CTAR_LSBFE_SHIFT)|(0<<SPI_CTAR_CPHA_SHIFT);
+   static constexpr uint32_t modeValue = 
+      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
 
 #endif
    //! Default speed (Hz)
-   static constexpr uint32_t speed = 100000;
+   static constexpr uint32_t speed = 
+      100000;
 
    //! Number of signals available in info table
    static constexpr int NUM_SIGNALS  = 5;
@@ -3735,6 +3761,8 @@ public:
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
+   // Template:tpm1_2ch_quad
+
    //! Default value for SC register
    static constexpr uint32_t SC  = 
        (0<<TPM_SC_TOIE_SHIFT)|
@@ -3798,6 +3826,8 @@ public:
 
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
+
+   // Template:tpm1_2ch_quad
 
    //! Default value for SC register
    static constexpr uint32_t SC  = 
@@ -3867,7 +3897,7 @@ public:
    static constexpr uint32_t irqCount  = 1;
 
    //! IRQ numbers for hardware
-   static constexpr IRQn_Type irqNums[]  = {TSI_IRQn};
+   static constexpr IRQn_Type irqNums[]  = {TSI0_IRQn};
 
    //! Clock source for peripheral
    static constexpr uint32_t &clockSource = SystemCoreClock;
@@ -3894,7 +3924,7 @@ public:
          /*  12: TSI0_CH12            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  13: TSI0_CH13            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
          /*  14: TSI0_CH14            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*  15: TSI0_CH15            = PTC2 (D6)                      */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,   PORT_PCR_MUX(0)|pcrValue  },
+         /*  15: TSI0_CH15            = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
    };
 
    /**
@@ -3903,7 +3933,6 @@ public:
    static void initPCRs() {
       PcrTable_T<Tsi0Info,  7>::setPCR(); // TSI0_CH7        = PTB2 (A5)                     
       PcrTable_T<Tsi0Info,  8>::setPCR(); // TSI0_CH8        = PTB3 (A4)                     
-      PcrTable_T<Tsi0Info, 15>::setPCR(); // TSI0_CH15       = PTC2 (D6)                     
    }
 
    /**
@@ -3912,7 +3941,6 @@ public:
    static void clearPCRs() {
       PcrTable_T<Tsi0Info,  7>::setPCR(0); // TSI0_CH7        = PTB2 (A5)                     
       PcrTable_T<Tsi0Info,  8>::setPCR(0); // TSI0_CH8        = PTB3 (A4)                     
-      PcrTable_T<Tsi0Info, 15>::setPCR(0); // TSI0_CH15       = PTC2 (D6)                     
    }
 
 };
@@ -4372,38 +4400,6 @@ public:
  * @}
  */
 /**
- * @addtogroup USBHSPHY_TODO_Group USBHSPHY, (Incomplete)
- * @brief Pins used for (Incomplete)
- * @{
- */
-#define USBDM_USBHSPHY_IS_DEFINED 
-/**
- * Peripheral information for USBHSPHY, (Incomplete)
- */
-class UsbhsphyInfo {
-public:
-   //! Hardware base pointer
-   static constexpr uint32_t basePtr   = USBHSPHY_BasePtr;
-
-   //! Clock mask for peripheral
-   static constexpr uint32_t clockMask = SIM_SCGC3_USBHSPHY_MASK;
-
-   //! Address of clock register for peripheral
-   static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,SCGC3);
-
-   //! Number of IRQs for hardware
-   static constexpr uint32_t irqCount  = 0;
-
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemCoreClock;
-
-};
-
-/** 
- * End USBHSPHY_TODO_Group
- * @}
- */
-/**
  * @addtogroup VREF_Group VREF, Voltage Reference
  * @brief Pins used for Voltage Reference
  * @{
@@ -4477,7 +4473,6 @@ namespace USBDM {
  */
 using adc_A5               = const USBDM::Adc0Channel<12>;
 using adc_A4               = const USBDM::Adc0Channel<13>;
-using adc_D6               = const USBDM::Adc0Channel<4>;
 using adc_A3               = const USBDM::Adc1Channel<10>;
 using adc_A2               = const USBDM::Adc1Channel<11>;
 using adc_A1               = const USBDM::Adc1Channel<12>;
@@ -4502,6 +4497,9 @@ using gpio_nRF_ce_n        = const USBDM::GpioB<20>;
 using gpio_A10             = const USBDM::GpioB<23>;
 using gpio_D29             = const USBDM::GpioC<0>;
 using gpio_D18             = const USBDM::GpioC<1>;
+using gpio_D6              = const USBDM::GpioC<2>;
+using gpio_D0              = const USBDM::GpioC<3>;
+using gpio_D1              = const USBDM::GpioC<4>;
 using gpio_D5              = const USBDM::GpioC<5>;
 using gpio_D19             = const USBDM::GpioC<6>;
 using gpio_D21             = const USBDM::GpioC<7>;
@@ -4602,9 +4600,9 @@ extern void mapAllPins();
  *  PTB23                    | GPIOB_23                                    | A10                       | -       
  *  PTC0                     | GPIOC_0                                     | D29                       | -       
  *  PTC1                     | GPIOC_1/LLWU_P6                             | D18                       | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
- *  PTC4                     | CMP1_OUT                                    | D1                        | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
  *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
  *  PTC7                     | GPIOC_7                                     | D21                       | -       
@@ -4707,13 +4705,13 @@ extern void mapAllPins();
  *  PTC15                    | UART4_TX                                    | BLUETOOTH_Tx              | -       
  *  PTB16                    | UART0_RX                                    | ConRx                     | -       
  *  PTB17                    | UART0_TX                                    | ConTx                     | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
- *  PTC4                     | CMP1_OUT                                    | D1                        | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
  *  PTC16                    | GPIOC_16                                    | D2                        | -       
  *  PTC8                     | GPIOC_8                                     | D3                        | -       
  *  PTC12                    | GPIOC_12                                    | D4                        | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
  *  PTA25                    | GPIOA_25                                    | D7                        | -       
  *  PTB18                    | GPIOB_18                                    | D8                        | -       
  *  PTB19                    | GPIOB_19                                    | D9                        | -       
@@ -4758,7 +4756,6 @@ extern void mapAllPins();
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  ADC0_DM0                 | ADC0_DM0/ADC1_DM3                           |                           | -       
- *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D6                        | -       
  *  PTB0                     | ADC0_SE8/ADC1_SE8/TSI0_CH0                  |                           | -       
  *  PTB1                     | ADC0_SE9/ADC1_SE9/TSI0_CH6                  |                           | -       
  *  PTA7                     | ADC0_SE10                                   |                           | -       
@@ -4777,8 +4774,6 @@ extern void mapAllPins();
  *  PTB7                     | ADC1_SE13                                   | A0                        | -       
  *  ADC1_SE16                | ADC1_SE16/CMP2_IN2/ADC0_SE22                |                           | -       
  *  PTA17                    | ADC1_SE17                                   |                           | -       
- *  PTC3                     | CMP1_IN1                                    | D0                        | -       
- *  PTC4                     | CMP1_OUT                                    | D1                        | -       
  *  PTA12                    | CMP2_IN0                                    |                           | -       
  *  PTA13                    | CMP2_IN1                                    |                           | -       
  *  PTA15                    | CMP3_IN1                                    |                           | -       
@@ -4800,6 +4795,9 @@ extern void mapAllPins();
  *  PTB23                    | GPIOB_23                                    | A10                       | -       
  *  PTC0                     | GPIOC_0                                     | D29                       | -       
  *  PTC1                     | GPIOC_1/LLWU_P6                             | D18                       | -       
+ *  PTC2                     | GPIOC_2                                     | D6                        | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D0                        | -       
+ *  PTC4                     | GPIOC_4/LLWU_P8                             | D1                        | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D5                        | -       
  *  PTC6                     | GPIOC_6/LLWU_P10                            | D19                       | -       
  *  PTC7                     | GPIOC_7                                     | D21                       | -       

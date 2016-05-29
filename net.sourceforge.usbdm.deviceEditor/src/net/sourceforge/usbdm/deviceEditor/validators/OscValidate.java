@@ -19,7 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 public class OscValidate extends BaseClockValidator {
    
    /** Used for preliminary range determination */
-   public static final String OSC_RANGE_KEY = "oscRange";
+   public static final String OSC_RANGE_KEY = "/_Temp_/OSC/oscRange";
    
    // Ranges for External Crystal
    private   static final long EXTERNAL_EXTAL_RANGE1_MIN = 32000L;

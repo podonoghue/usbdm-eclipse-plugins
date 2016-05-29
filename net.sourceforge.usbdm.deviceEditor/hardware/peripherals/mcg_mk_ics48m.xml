@@ -39,21 +39,6 @@
             <choice value="1" name="Reset request" />
          </binaryOption>
    
-         <binaryOption name="mcg_c9_pll_cme" 
-            description="MCG External PLL Clock Monitor Enable"
-            toolTip="Enables the loss of clock monitoring circuit for the MCG External PLL (EXT_PLL) reference clock">
-            <choice value="0" name="PLL clock monitor disabled" />
-            <choice value="1" name="PLL clock monitor enabled" />
-         </binaryOption>
-   
-         <binaryOption name="mcg_c9_pll_locre" 
-            description="MCG External PLL Loss of Clock Reset Enable"
-            toolTip="Determines wheather an interrupt or a reset request is made following a loss of the\n
-                     MCG External PLL clock when the MCG is running in PEE mode">
-            <choice value="0" name="Interrupt request" />
-            <choice value="1" name="Reset request" />
-         </binaryOption>
-         
          <binaryOption name="mcg_c6_lolie0" 
             description="Loss of Lock Interrupt Enable"
             toolTip="Determines if an interrupt request is made following a PLL loss of lock indication.\n
@@ -153,24 +138,23 @@
       </menu>  
       
       <menu name="OSC" description="OSC External Reference Clock/Oscillator [OSCCLK]" >
-         <aliasOption key="OSC0_osc_cr_erclken" constant="false" />
-         <aliasOption key="OSC0_oscclk_clock" constant="false" />
-         <aliasOption key="OSC0_erefs0" constant="false" />
-         <aliasOption key="OSC0_hgo0"   constant="false" />
-         <aliasOption key="OSC0_osc_cr_scp" constant="false" />
-         <aliasOption key="OSC0_osc_cr_erefsten" constant="false" />
-         <aliasOption key="OSC0_range" constant="true" />
-         <aliasOption key="OSC0_osc_div_erps" constant="false" />
-         <aliasOption key="OSC0_system_oscerclk_undiv_clock" constant="true" />
-         <aliasOption key="OSC0_system_oscerclk_clock" constant="true" />
+         <aliasOption key="/OSC0/osc_cr_erclken" constant="false" />
+         <aliasOption key="/OSC0/oscclk_clock" constant="false" />
+         <aliasOption key="/OSC0/erefs0" constant="false" />
+         <aliasOption key="/OSC0/hgo0"   constant="false" />
+         <aliasOption key="/OSC0/osc_cr_scp" constant="false" />
+         <aliasOption key="/OSC0/osc_cr_erefsten" constant="false" />
+         <aliasOption key="/OSC0/range" constant="true" />
+         <aliasOption key="/OSC0/osc_div_erps" constant="false" optional="true" />
+         <aliasOption key="/OSC0/system_oscerclk_undiv_clock" constant="true"  optional="true" />
+         <aliasOption key="/OSC0/system_oscerclk_clock" constant="true" />
       </menu>
 
       <menu name="RTC" description="RTC External Reference Clock/Oscillator [ERCLK32K]">
-         
-         <aliasOption key="RTC_rtc_cr_osce"  constant="false" />
-         <aliasOption key="RTC_rtcclk_clock" constant="false" />
-         <aliasOption key="RTC_rtc_cr_scp"   constant="false" /> 
-         <aliasOption key="RTC_rtc_cr_clko"  constant="false" />
+         <aliasOption key="/RTC/rtc_cr_osce"  constant="false" />
+         <aliasOption key="/RTC/rtcclk_clock" constant="false" />
+         <aliasOption key="/RTC/rtc_cr_scp"   constant="false" /> 
+         <aliasOption key="/RTC/rtc_cr_clko"  constant="false" />
    
          <choiceOption name="sim_sopt1_osc32ksel" 
             description="ERCLK32K source"
@@ -206,7 +190,7 @@
       <choiceOption name="mcg_c7_oscsel" 
          description="MCG External Reference Clock source [OSCSEL]"
          toolTip="Selects the MCG FLL/PLL external reference clock source">
-         <choice value="0" name="Main System Oscillator (OSCCLK)" />
+         <choice value="0" name="Main System Oscillator (OSCCLK0)" />
          <choice value="1" name="32 kHz RTC Oscillator (RTC_32K)" />
          <choice value="2" name="48 MHz Internal Oscillator (IRC48MCLK)" />
       </choiceOption>
@@ -344,14 +328,6 @@
       </menu>
       
       <menu name="PLL" description="PLL Settings">
-         <binaryOption name="mcg_c11_pllcs" 
-            description="PLL Clock Select (Some targets only)"
-            toolTip="Controls whether the PLL0 output or MCG External PLL input is selected as the MCG\n
-                     source when CLKS are programmed in PLL Engaged External (PEE) mode.">
-            <choice value="0" name="PLL0 output clock is selected" />
-            <choice value="1" name="External PLL clock is selected" />
-         </binaryOption>
-
          <binaryOption name="pll_enabled"
             constant="true"
             description="PLL State"
@@ -392,26 +368,21 @@
             description="PLL External Reference Divider"
             toolTip="Determines the amount to divide down the external reference clock for the PLL\n
                      This value is calculated from PLL input and output clock frequencies"
-            value="1" 
-            offset="-1" />
+            value="1" />
             
          <intOption name="mcg_c6_vdiv0" 
             constant="true"
             description="VCO Divider (VDIV0)"
             toolTip="Determines the multiplication factor for the reference clock of the PLL.\n
                      This value is calculated from PLL input and output clock frequencies"
-            value="16" 
-            offset="-24"
-            min="24"
-            max="55"
-            />
+            value="24" />
       </menu>
 
       <aliasOption name="system_mcgir_clock" />
       <aliasOption name="system_mcgffclk_clock" />
       <aliasOption name="system_irc48m_clock" />
-      <aliasOption key="OSC0_system_oscerclk_undiv_clock" />
-      <aliasOption key="OSC0_system_oscerclk_clock" />
+      <aliasOption key="/OSC0/system_oscerclk_undiv_clock" optional="true" />
+      <aliasOption key="/OSC0/system_oscerclk_clock" />
       <aliasOption name="system_erclk32k_clock" />
       <aliasOption name="system_low_power_clock" />
 
@@ -490,9 +461,9 @@
          
          <menu name="MCG_C2" description="MCG Control Register 2">
             <aliasOption name="mcg_c2_locre0" />
-            <aliasOption key="OSC0_range" />
-            <aliasOption key="OSC0_hgo0" />
-            <aliasOption key="OSC0_erefs0" />
+            <aliasOption key="/OSC0/range" />
+            <aliasOption key="/OSC0/hgo0" />
+            <aliasOption key="/OSC0/erefs0" />
       
             <binaryOption name="mcg_c2_lp"
                constant="true"
@@ -547,15 +518,6 @@
             <aliasOption name="mcg_c8_cme1" />
          </menu>
       
-         <menu name="MCG_C9" description="MCG Control Register 9">
-            <aliasOption name="mcg_c9_pll_cme" /> 
-            <aliasOption name="mcg_c9_pll_locre" />
-         </menu>
-       
-         <menu name="MCG_C11" description="MCG Control Register 11">
-            <aliasOption name="mcg_c11_pllcs" />
-         </menu>
-
          <menu name="SIM_CLKDIV1" description="Clock Dividers">
             <intOption name="sim_clkdiv1_outdiv1" 
                constant="true"
@@ -659,9 +621,9 @@
       \t//! Control Register 2\n
       \tstatic constexpr uint32_t MCG_C2 =
       \t   MCG_C2_LOCRE0($(mcg_c2_locre0)) | // LOLRE0  Loss of Clock Reset Enable
-      \t   MCG_C2_RANGE0($(mcg_c2_range0)) | // RANGE   Frequency Range Select
-      \t   MCG_C2_HGO0($(mcg_c2_hgo0))   | // HGO     High Gain Oscillator Select
-      \t   MCG_C2_EREFS0($(mcg_c2_erefs0)) | // EREFS   External Reference Select
+      \t   MCG_C2_RANGE0($(/OSC0/range)) | // RANGE   Frequency Range Select
+      \t   MCG_C2_HGO0($(/OSC0/hgo0))   | // HGO     High Gain Oscillator Select
+      \t   MCG_C2_EREFS0($(/OSC0/erefs0)) | // EREFS   External Reference Select
       \t   MCG_C2_IRCS($(mcg_c2_ircs));    // IRCS    Internal Reference Clock Select\n\n
       
       \t//! Control Register 4\n
@@ -695,19 +657,6 @@
       \t   MCG_C8_LOLRE($(mcg_c8_lolre))  | // LOLRE  PLL Loss of Lock Reset Enable
       \t   MCG_C8_CME1($(mcg_c8_cme1));    // CME1   Clock Monitor Enable 1\n\n
       
-      \t#ifdef MCG_C9_PLL_CME
-      \t//! Control Register 9\n
-      \tstatic constexpr uint32_t MCG_C9 =
-      \t   MCG_C9_PLL_CME($(mcg_c9_pll_cme))   | // PLL_CME MCG External PLL Clock Monitor Enable
-      \t   MCG_C9_PLL_LOCRE($(mcg_c9_pll_locre));  // PLL_LOCRE   MCG External PLL Loss of Clock Reset Enable
-      \t#endif\n\n
-      
-      \t#ifdef MCG_C11_PLLCS
-      \t//! Control Register 11\n
-      \tstatic constexpr uint32_t MCG_C11 =
-      \t   MCG_C11_PLLCS($(mcg_c11_pllcs)); // PLLCS PLL Clock Select
-      \t#endif\n\n
-
       \t//! Clock divider\n
       \tstatic constexpr uint32_t SIM_CLKDIV1 = 
       \t   SIM_CLKDIV1_OUTDIV4($(sim_clkdiv1_outdiv4)) | // SIM_CLKDIV1_OUTDIV4

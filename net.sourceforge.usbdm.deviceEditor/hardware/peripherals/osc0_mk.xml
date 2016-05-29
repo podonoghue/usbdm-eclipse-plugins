@@ -24,7 +24,7 @@
          toolTip="Frequency of external crystal or clock on XTAL/EXTAL"
          value="0" / -->
 
-      <choiceOption name="range" 
+      <choiceOption name="range"
          constant="true"
          description="Frequency Range Select"
          toolTip="Selects the frequency range for the crystal oscillator\n

@@ -36,6 +36,7 @@
    <!ATTLIST aliasOption name        IDREF        #IMPLIED>
    <!ATTLIST aliasOption key         CDATA        #IMPLIED>
    <!ATTLIST aliasOption constant    (false|true) "true">
+   <!ATTLIST aliasOption optional    (false|true) "false">
 
 <!ELEMENT stringOption EMPTY >
    <!ATTLIST stringOption constant     (false|true) "false">

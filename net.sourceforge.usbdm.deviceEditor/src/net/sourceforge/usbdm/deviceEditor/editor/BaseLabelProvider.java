@@ -12,9 +12,33 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 
+import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
 abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider, IToolTipProvider{
+
+   protected static Image errorImage     = null;
+   protected static Image warningImage   = null;
+   protected static Image lockedImage    = null;
+   protected static Image checkedImage   = null;
+   protected static Image uncheckedImage = null;
+   protected static Image disabledImage  = null;
+   protected static Image emptyImage     = null;
+   private   static int   referenceCount = 0;
+   
+   BaseLabelProvider(TreeEditor viewer) {
+      referenceCount++;
+//      System.err.println("BaseLabelProvider(), ref = " + referenceCount);
+      if ((errorImage == null) && (Activator.getDefault() != null)) {
+         errorImage     = Activator.getDefault().getImageDescriptor(Activator.ID_ERROR_NODE_IMAGE).createImage();
+         warningImage   = Activator.getDefault().getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
+         lockedImage    = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+         checkedImage   = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+         uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+         disabledImage  = Activator.getDefault().getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
+         emptyImage     = Activator.getDefault().getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
+      }
+   }
 
    protected static final Styler CATEGORY_STYLER  = new Styler() {
       @Override
@@ -102,6 +126,44 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
      return new Point(55, 55);
    }   
    
+   @Override
+   public void dispose() {
+      super.dispose();
+//      System.err.println("BaseLabelProvider.dispose(), ref = " + referenceCount);
+      if (--referenceCount>0) {
+         return;
+      }
+//      System.err.println("BaseLabelProvider.dispose(), disposing");
+      if (errorImage != null) {
+         errorImage.dispose();
+         errorImage = null;
+      }
+      if (warningImage != null) {
+         warningImage.dispose();
+         warningImage = null;
+      }
+      if (lockedImage != null) {
+         lockedImage.dispose();
+         lockedImage = null;
+      }
+      if (checkedImage != null) {
+         checkedImage.dispose();
+         checkedImage = null;
+      }
+      if (uncheckedImage != null) {
+         uncheckedImage.dispose();
+         uncheckedImage = null;
+      }
+      if (disabledImage != null) {
+         disabledImage.dispose();
+         disabledImage = null;
+      }
+      if (emptyImage != null) {
+         emptyImage.dispose();
+         emptyImage = null;
+      }
+   }
+
    public abstract String getText(BaseModel model);
    public abstract Image getImage(BaseModel model);
 }

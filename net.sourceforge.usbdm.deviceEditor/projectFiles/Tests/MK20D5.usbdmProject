@@ -103,7 +103,7 @@
 	<item value="Short sample time" key="ADC0_cfg1_adlsmp"/>
 	<item value="Trigger mode is disabled" key="CMP0_cmp_cr1_trigm"/>
 	<item value="VRefH and VRefl" key="ADC0_sc2_refsel"/>
-	<item value="0.0Hz" key="MCG_pllInputFrequency"/>
+	<item value="2.0MHz" key="MCG_pllInputFrequency"/>
 	<item value="Enabled" key="MCG_mcg_c1_irclken"/>
 	<item value="10000" key="FTM1_PERIOD"/>
 	<item value="Low-Speed (LS) Comparison mode" key="CMP0_cmp_cr1_pmode"/>

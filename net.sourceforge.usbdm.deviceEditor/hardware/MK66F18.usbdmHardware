@@ -162,7 +162,7 @@
       </peripheral>
       <peripheral baseName="FB"       instance=""         version="fb_0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus" />
-         <clock reg="SCGC7"         mask="SIM_SCGC7_FB_MASK" />
+         <clock reg="SCGC7"         mask="SIM_SCGC7_FLEXBUS_MASK" />
       </peripheral>
       <peripheral baseName="FTFE"     instance=""         version="ftfe_xacch">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo" />
@@ -284,7 +284,7 @@
       </peripheral>
       <peripheral baseName="RNG"      instance=""         version="rng_0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo" />
-         <clock reg="SCGC6"         mask="SIM_SCGC6_RNG_MASK" />
+         <clock reg="SCGC6"         mask="SIM_SCGC6_RNGA_MASK" />
       </peripheral>
       <peripheral baseName="RTC"      instance=""         version="rtc_tamper_wps">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc" />
@@ -292,13 +292,13 @@
          <irq num="RTC_Alarm_IRQn" />
          <irq num="RTC_Seconds_IRQn" />
       </peripheral>
-      <peripheral baseName="SDHC"     instance="0">
+      <peripheral baseName="SDHC"     instance="0"        version="sdhc0_mk65f18">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc" />
          <clock reg="SCGC3"         mask="SIM_SCGC3_SDHC_MASK" />
          <irq num="SDHC_IRQn" />
       </peripheral>
-      <peripheral baseName="SDRAMC"   instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdram" />
+      <peripheral baseName="SDRAMC"   instance=""         version="sdramc_0">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc" />
          <clock reg="SCGC7"         mask="SIM_SCGC7_SDRAMC_MASK" />
       </peripheral>
       <peripheral baseName="SPI"      instance="0"        version="spi0_mk65f18">
@@ -332,7 +332,7 @@
       <peripheral baseName="TSI"      instance="0"        version="tsi0_mk65f18">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi" />
          <clock reg="SCGC5"         mask="SIM_SCGC5_TSI0_MASK" />
-         <irq num="TSI_IRQn" />
+         <irq num="TSI0_IRQn" />
       </peripheral>
       <peripheral baseName="UART"     instance="0"        version="uart0_mk65f18_c7816">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart" />
@@ -378,10 +378,6 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs" />
          <clock reg="SCGC3"         mask="SIM_SCGC3_USBHS_MASK" />
          <irq num="USBHS_IRQn" />
-      </peripheral>
-      <peripheral baseName="USBHSPHY" instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo" />
-         <clock reg="SCGC3"         mask="SIM_SCGC3_USBHSPHY_MASK" />
       </peripheral>
       <peripheral baseName="VREF"     instance=""         version="vref_c">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref" />

@@ -13,7 +13,6 @@
 #include "pin_mapping.h"
 
 /*********** $start(VectorsIncludeFiles) *** Do not edit after this comment ****************/
-#include "i2c.h"
 /*********** $end(VectorsIncludeFiles)   *** Do not edit above this comment ***************/
 
 /*
@@ -323,6 +322,8 @@ void PMC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LLWU_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void RNG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
+void I2C0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void I2C1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2S0_Tx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
@@ -444,8 +445,8 @@ extern VectorTable const __vector_table = {
       LLWU_IRQHandler,               /*   37,   21  Low Leakage Wakeup                                                               */
       WDOG_IRQHandler,               /*   38,   22  External Watchdog Monitor                                                        */
       RNG_IRQHandler,                /*   39,   23  Random Number Generator                                                          */
-      USBDM::I2c0::irqHandler,       /*   40,   24  Inter-Integrated Circuit                                                         */
-      USBDM::I2c1::irqHandler,       /*   41,   25  Inter-Integrated Circuit                                                         */
+      I2C0_IRQHandler,               /*   40,   24  Inter-Integrated Circuit                                                         */
+      I2C1_IRQHandler,               /*   41,   25  Inter-Integrated Circuit                                                         */
       SPI0_IRQHandler,               /*   42,   26  Serial Peripheral Interface                                                      */
       SPI1_IRQHandler,               /*   43,   27  Serial Peripheral Interface                                                      */
       I2S0_Tx_IRQHandler,            /*   44,   28  Synchronous Serial Interface                                                     */

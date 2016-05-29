@@ -107,6 +107,7 @@ public class FileUtility {
             replaceWith = defaultValue;
          }
          if (replaceWith == null) {
+            System.err.println("---Symbol not found for substitution \'$("+pattern+")\'");
             replaceWith = "---Symbol not found for substitution \'$("+pattern+")\'";
          }
          input = input.replaceAll("\\$\\("+pattern+"\\)", Matcher.quoteReplacement(replaceWith));

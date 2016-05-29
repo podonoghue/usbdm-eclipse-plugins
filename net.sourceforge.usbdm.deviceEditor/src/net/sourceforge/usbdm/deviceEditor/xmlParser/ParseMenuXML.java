@@ -42,7 +42,13 @@ public class ParseMenuXML extends XML_BaseParser {
       public Data(BaseModel model, String template, ArrayList<Validator> validators) {
          fRootModel  = model;
          fTemplate   = template;
-         fValidators = validators;
+         if (validators == null) {
+            // Empty list rather than null
+            fValidators = new ArrayList<Validator>();
+         }
+         else {
+            fValidators = validators;
+         }
       }
    };
    
@@ -173,11 +179,14 @@ public class ParseMenuXML extends XML_BaseParser {
          key = fProvider.makeKey(name);
       }
       boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
-      Variable variable = fProvider.getVariable(key);
+      boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
+      Variable variable = fProvider.safeGetVariable(key);
       if (variable == null) {
-         throw new RuntimeException("Alias not found for " + name);
+         if (!isOptional) {
+            throw new RuntimeException("Alias not found for " + key);
+         }
+         return;
       }
-      
       VariableModel model = variable.createModel(parent);
       model.setConstant(isConstant);
    }
@@ -453,52 +462,61 @@ public class ParseMenuXML extends XML_BaseParser {
 
    /**
     * Parses document from top element
-    * @param models 
-    * @param deviceInfo 
-    * @return 
     * 
-    * @throws Exception
-    */
-   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) throws Exception {
-
-      if (!path.toFile().exists()) {
-         // Look in USBDM directory
-         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
-      }
-      if (!path.toFile().exists()) {
-         throw new RuntimeException("Unable to locate hardware description file " + path);
-      }
-      return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
-   }
-
-   /**
-    * Parses document from top element
-    * @param models 
-    * @param deviceInfo 
-    * @return 
+    * @param path       Path to model
+    * @param parent     Parent for model
+    * @param provider   Provider for variables used etc.
     * 
-    * @throws Exception
+    * @return Data from document
     */
-   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) {
-      
-      // For debug try local directory
-      Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
-      if (Files.isRegularFile(path)) {
-         path = path.toAbsolutePath();
-//         System.err.println("Opening debug file "+path);
-      }
-      else {
-         path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
-      }
+   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) {
       try {
-         return parseFile(path, parent, provider);
+         if (!path.toFile().exists()) {
+            // Look in USBDM directory
+            path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+         }
+         if (!path.toFile().exists()) {
+            throw new Exception("Unable to locate hardware description file " + path);
+         }
+         return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
       } catch (Exception e) {
-         BaseModel model = new BaseModel(null, name, "Failed to parse "+path) {
+         e.printStackTrace();
+         BaseModel model = new BaseModel(parent, "Failed to parse "+path, e.getMessage()) {
             @Override
             protected void removeMyListeners() {
             }
          };
+         return new Data(model, null, null);
+      }
+   }
+
+   /**
+    * Parses document from top element
+    * 
+    * @param name       Name of model (filename)
+    * @param parent     Parent for model
+    * @param provider   Provider for variables used etc.
+    * 
+    * @return  Data from model
+    */
+   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) {
+      try {
+         // For debug try local directory
+         Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
+         if (Files.isRegularFile(path)) {
+            path = path.toAbsolutePath();
+         }
+         else {
+            path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
+         }
+            return parseFile(path, parent, provider);
+      } catch (Exception e) {
          e.printStackTrace();
+         BaseModel model = new BaseModel(parent, "Failed to parse "+name, e.getMessage()) {
+            @Override
+            protected void removeMyListeners() {
+            }
+         };
          return new Data(model, null, null);
       }
    }

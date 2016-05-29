@@ -22,7 +22,6 @@
 	<item value="Disabled" key="FTM0_sc_toie"/>
 	<item value="Registers cannot be written when locked" key="RTC_rtc_cr_um"/>
 	<item value="0" key="MCG_IRQ_LEVEL"/>
-	<item value="PLL0 output clock is selected" key="MCG_mcg_c11_pllcs"/>
 	<item value="Windowing mode is disabled" key="CMP1_cmp_cr1_we"/>
 	<item value="0" key="PIT_IRQ_LEVEL"/>
 	<item value="100000" key="SPI0_SPEED"/>
@@ -55,7 +54,6 @@
 	<item value="48.0MHz" key="MCG_pllTargetFrequency"/>
 	<item value="Disabled" key="FTM3_sc_toie"/>
 	<item value="Enabled" key="RTC_rtc_cr_osce"/>
-	<item value="Interrupt request" key="MCG_mcg_c9_pll_locre"/>
 	<item value="14" key="MCG_sim_clkdiv1_outdiv1"/>
 	<item value="Level 0" key="CMP1_cmp_cr0_hystctr"/>
 	<item value="Divide by 1" key="FTM1_sc_ps"/>
@@ -68,7 +66,6 @@
 	<item value="+20 ADCK cycles; 24 ADCK total" key="ADC0_cfg2_adlsts"/>
 	<item value="FLL is selected" key="MCG_mcg_c6_plls"/>
 	<item value="PLL is disabled in any Stop mode" key="MCG_mcg_c5_pllsten"/>
-	<item value="PLL clock monitor enabled" key="MCG_mcg_c9_pll_cme"/>
 	<item value="External Reference Clock" key="MCG_mcg_c1_irefs"/>
 	<item value="Filter is disabled" key="CMP0_cmp_cr0_filter_cnt"/>
 	<item value="Filter is disabled" key="CMP1_cmp_cr0_filter_cnt"/>
@@ -184,7 +181,7 @@
 	<item value="Prescaler/glitch filter is enabled" key="LPTMR0_psr_pbyp"/>
 	<item value="PLL Inactive" key="MCG_pll_enabled"/>
 	<item value="Software trigger (write to SC1A)" key="ADC1_sc2_adtrg"/>
-	<item value="0.0Hz" key="MCG_pllInputFrequency"/>
+	<item value="2.0MHz" key="MCG_pllInputFrequency"/>
 	<item value="Enabled" key="MCG_mcg_c1_irclken"/>
 	<item value="Normal power configuration." key="ADC1_cfg1_adlpc"/>
 	<item value="10000" key="FTM1_PERIOD"/>

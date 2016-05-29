@@ -110,32 +110,4 @@ public abstract class Validator {
       return fPeripheral.getVariable(fPeripheral.makeKey(key));
    }
 
-   /**
-    * Get shared Variable
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
-    */
-   Variable safeGetSharedVariable(String key) {
-      try {
-         return getSharedVariable(key);
-      } catch (Exception e) {
-//         System.err.println(e.getMessage());
-      }
-      return null;
-   }
-
-   /**
-    * Get shared Variable 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
-    */
-   Variable getSharedVariable(String key) {
-      return fPeripheral.getVariable(key);
-   }
-
-
 }

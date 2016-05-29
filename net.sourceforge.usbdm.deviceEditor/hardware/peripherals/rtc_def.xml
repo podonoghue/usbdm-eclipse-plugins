@@ -18,7 +18,7 @@
          toolTip="Frequency of external crystal or clock on XTAL32/EXTAL32 [Typically 32768 Hz]"
          value="32768" />
          
-      <choiceOption name="rtc_cr_scp" key="RTC_rtc_cr_scp" 
+      <choiceOption name="rtc_cr_scp"
          description="Oscillator load capacitance"
          toolTip="Configures the oscillator load capacitance" >
          <choice value="0"  name="0 pF" />

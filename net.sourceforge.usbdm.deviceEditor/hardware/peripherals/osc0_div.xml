@@ -24,7 +24,7 @@
          toolTip="Frequency of external crystal or clock on XTAL/EXTAL"
          value="0" / -->
 
-      <choiceOption name="range" 
+      <choiceOption name="range"
          constant="true"
          description="Frequency Range Select"
          toolTip="Selects the frequency range for the crystal oscillator\n
@@ -76,14 +76,14 @@
          <choice value="1" name="Enabled in Stop mode" />
       </binaryOption>
       
-         <intOption name="system_oscerclk_undiv_clock"  key="OSC0_system_oscerclk_undiv_clock"
+         <intOption name="system_oscerclk_undiv_clock"  key="/OSC0/system_oscerclk_undiv_clock"
             units="Hz"
             description="Oscillator clock to some peripherals [OSCERCLK_UNDIV]"
             toolTip="Generated from OSCCLK without division"
             value="8000000"  
             constant="true" />
    
-         <choiceOption name="osc_div_erps"   key="OSC0_osc_div_erps"
+         <choiceOption name="osc_div_erps"   key="/OSC0/osc_div_erps"
             description="ERCLK prescaler"
             toolTip="Divides down the ERCLK output" >
             <choice value="0"  name="Divide by 1" isDefault="true" />
@@ -122,10 +122,8 @@
       \t   OSC_CR_EREFSTEN($(osc_cr_erefsten)) |
       \t   OSC_CR_SCP($(osc_cr_scp));\n\n      
 
-      #ifdef OSC_DIV_ERPS_MASK
       \t//! OSC Clock divider register\n
       \tstatic constexpr uint32_t OSC_DIV =
       \t   OSC_DIV_ERPS($(osc_div_erps));   
-      #endif\n\n
    </template>
 </root>

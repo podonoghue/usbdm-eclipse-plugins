@@ -111,13 +111,10 @@
       \t//! Default IRQ level\n
       \tstatic constexpr uint32_t irqLevel =  $(IRQ_LEVEL);\n\n
       
-      \t//! Frequency of RTC External Clock or Crystal\n
-      \tstatic constexpr uint32_t rtcclk_clock = $(rtcclk_clock)UL;\n\n
-      
       \t//! CMP Control Register 0\n
       \tstatic constexpr uint32_t CMP_CR0 =
       \t   CMP_CR0_FILTER_CNT($(cmp_cr0_filter_cnt))     | // Filter Sample Count
-      \t   CMP_CR0_FILTER_HYSTCTR($(cmp_cr0_hystctr));  // Comparator hard block hysteresis control\n\n
+      \t   CMP_CR0_HYSTCTR($(cmp_cr0_hystctr));         // Comparator hard block hysteresis control\n\n
       
       \t//! CMP Control Register 1\n
       \tstatic constexpr uint32_t CMP_CR1 =

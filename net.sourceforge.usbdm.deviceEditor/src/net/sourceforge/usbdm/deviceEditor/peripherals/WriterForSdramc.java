@@ -10,9 +10,9 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 /**
  * Class encapsulating the code for writing an instance of RTC
  */
-public class WriterForSdram extends Peripheral {
+public class WriterForSdramc extends Peripheral {
 
-   public WriterForSdram(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForSdramc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
 
