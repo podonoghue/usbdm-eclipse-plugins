@@ -21,8 +21,9 @@ public abstract class ArmVectorTable extends VectorTable {
          "} VectorTable;\n\n";
 
    static final String vectorTableOpen     = 
+         "extern VectorTable const __vector_table;\n\n"+
          "__attribute__ ((section(\".interrupt_vectors\")))\n"+
-         "extern VectorTable const __vector_table = {\n"+
+         "VectorTable const __vector_table = {\n"+
          "                                     /*  Exc# Irq# */\n"+
          "   &__StackTop,                      /*    0   -16  Initial stack pointer                                                            */\n"+
          "   {\n"+
