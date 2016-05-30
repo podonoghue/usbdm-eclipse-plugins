@@ -18,4 +18,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.cdt.tools,
- net.sourceforge.usbdm.cdt.tools.scanners
+ net.sourceforge.usbdm.cdt.tools.scanners,
+ net.sourceforge.usbdm.cdt.utilties
+Import-Package: net.sourceforge.usbdm.deviceDatabase,
+ net.sourceforge.usbdm.packageParser

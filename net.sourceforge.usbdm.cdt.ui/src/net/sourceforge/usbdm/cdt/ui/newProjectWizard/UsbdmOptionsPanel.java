@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.ApplyWhenCondition;
 import net.sourceforge.usbdm.packageParser.ProjectAction;

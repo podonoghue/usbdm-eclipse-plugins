@@ -6,7 +6,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.wizard.Wizard;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.ProjectUtilities;
+import net.sourceforge.usbdm.cdt.utilties.AddTargetFiles;
+import net.sourceforge.usbdm.cdt.utilties.ApplyOptions;
+import net.sourceforge.usbdm.cdt.utilties.DeleteResource;
+import net.sourceforge.usbdm.cdt.utilties.ProjectUtilities;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.CreateFolderAction;
 import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
@@ -48,16 +51,16 @@ public class ProcessProjectActions {
 //            System.err.println("ProjectCustomAction: "+action.toString());
             try {
                if (action instanceof FileAction) {
-                  new AddTargetFiles().process(projectHandle, device, variableMap, (FileAction)action, monitor);
+                  new AddTargetFiles().process(projectHandle, variableMap, (FileAction)action, monitor);
                }
                else if (action instanceof DeleteResourceAction) {
-                  new DeleteResource().process(projectHandle, device, variableMap, (DeleteResourceAction)action, monitor);
+                  new DeleteResource().process(projectHandle, variableMap, (DeleteResourceAction)action, monitor);
                }
                else if (action instanceof CreateFolderAction) {
-                  ProjectUtilities.createFolder(projectHandle, device, variableMap, (CreateFolderAction)action, monitor);
+                  ProjectUtilities.createFolder(projectHandle, variableMap, (CreateFolderAction)action, monitor);
                }
                else if (action instanceof ProjectOption) {
-                  applyOptions.process(device, variableMap, (ProjectOption)action, monitor);
+                  applyOptions.process(variableMap, (ProjectOption)action, monitor);
                }
                else if (action instanceof ExcludeAction) {
                   ProjectUtilities.excludeItem(projectHandle, (ExcludeAction)action, monitor);
@@ -74,7 +77,7 @@ public class ProcessProjectActions {
                   if (!(clsInstance instanceof CustomAction)) {
                      throw new Exception("Custom action does not implement required interface");
                   }
-                  ((CustomAction)clsInstance).action(wizard, projectHandle, device, variableMap, monitor, customAction.getValue());
+                  ((CustomAction)clsInstance).action(projectHandle, variableMap, monitor, customAction.getValue());
                }
                else if (action instanceof ProjectConstant) {
                   // Ignore as already added to paramMap

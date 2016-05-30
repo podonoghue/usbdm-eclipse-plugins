@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
+import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;

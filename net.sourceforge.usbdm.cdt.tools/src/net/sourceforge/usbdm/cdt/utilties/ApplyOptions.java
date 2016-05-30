@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.actions;
+package net.sourceforge.usbdm.cdt.utilties;
 
 import java.util.Map;
 
@@ -15,8 +15,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
-import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.ProjectOption;
 
 /**
@@ -33,7 +31,7 @@ public class ApplyOptions {
       this.projectHandle = projectHandle;
    }
 
-   public void process(Device device, Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor monitor) throws Exception {
+   public void process(Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor monitor) throws Exception {
 
 //      System.err.println("ApplyOptions.process() - "+projectOption.toString());
       String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);

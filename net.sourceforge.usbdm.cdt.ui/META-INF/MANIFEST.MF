@@ -17,8 +17,7 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools,
  org.eclipse.debug.ui,
  org.eclipse.cdt.dsf.ui,
  org.eclipse.ui.console,
- org.eclipse.jface,
- net.sourceforge.usbdm.deviceEditor
+ org.eclipse.jface
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.cdt.ui;
@@ -34,6 +33,7 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
    org.osgi.framework,
    org.eclipse.ui.dialogs,
    org.eclipse.swt.widgets",
+ net.sourceforge.usbdm.cdt.ui.actions,
  net.sourceforge.usbdm.cdt.ui.examplewizard;
   uses:="org.eclipse.jface.wizard,
    org.eclipse.core.runtime,
@@ -45,7 +45,8 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
    org.eclipse.jface.dialogs",
  net.sourceforge.usbdm.cdt.ui.handlers;uses:="net.sourceforge.usbdm.gdb,org.eclipse.core.commands,org.eclipse.swt.widgets",
  net.sourceforge.usbdm.cdt.ui.newProjectWizard
-Import-Package: org.eclipse.cdt.build.core.scannerconfig,
+Import-Package: net.sourceforge.usbdm.deviceEditor.information,
+ org.eclipse.cdt.build.core.scannerconfig,
  org.eclipse.cdt.core.model,
  org.eclipse.cdt.core.settings.model,
  org.eclipse.cdt.debug.gdbjtag.core,

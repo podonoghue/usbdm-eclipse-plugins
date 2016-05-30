@@ -431,6 +431,85 @@ public class PackageParser {
    }
 
    /**
+    * Parse a <projectActionList> element
+    * 
+    * @param    projectActionListElement <projectActionList> element
+    * @param    isTop Indicates this is the top <projectActionList> element
+    * 
+    * @return   Action list described 
+    * 
+    * @throws Exception 
+    */
+   public static ProjectActionList parseRestrictedProjectActionList(Element projectActionListElement, String path) throws Exception {
+
+      String id = null;
+      if (projectActionListElement.hasAttribute("id")) {
+         id = projectActionListElement.getAttribute("id");
+      }
+      ProjectActionList projectActionList = new ProjectActionList(id);
+      //    System.err.println("parseProjectActionListElement(): " +  id);
+
+      IPath root;
+      if (path.charAt(0) == '/') {
+         root = new Path(path);
+      }
+      else {
+         root = Usbdm.getResourcePath();
+         if (projectActionListElement.hasAttribute("root")) {
+            root = root.append("/"+projectActionListElement.getAttribute("root"));
+         }
+         else {
+            root = root.append("/"+path);
+         }
+      }
+      for (Node node = projectActionListElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         try {
+            // Child node for <projectActionList>
+            Element element = (Element) node;
+            if (element.getTagName() == "excludeSourceFile") {
+               projectActionList.add(parseExcludeSourceFileElement(element));
+            }
+            else if (element.getTagName() == "excludeSourceFolder") {
+               projectActionList.add(parseExcludeSourceFolderElement(element));
+            }
+            else if (element.getTagName() == "createFolder") {
+               CreateFolderAction createFolderAction = parseCreateFolderElement(element);
+               createFolderAction.setRoot(root.toPortableString());
+               projectActionList.add(createFolderAction);
+            }
+            else if (element.getTagName() == "copy") {
+               FileAction fileAction = parseCopyElement(element);
+               fileAction.setRoot(root.toPortableString());
+               projectActionList.add(fileAction);
+            }
+            else if (element.getTagName() == "deleteResource") {
+               DeleteResourceAction fileInfo = parseDeleteElement(element);
+               fileInfo.setRoot(root.toPortableString());
+               projectActionList.add(fileInfo);
+            }
+            else if (element.getTagName() == "customAction") {
+               projectActionList.add(parseCustomActionElement(element));
+            }
+            else if (element.getTagName() == "projectOption") {
+               projectActionList.add(parseProjectOptionElement(element));
+            }
+            else {
+               throw new Exception("Unexpected element \""+element.getTagName()+"\"");
+            }
+         } catch (Exception e) {
+            System.err.println("Exception while parsing <" + projectActionListElement.getNodeName() + ">");
+            throw (e);
+         }
+      }
+      return projectActionList;
+   }
+
+   /**
     * Parse a <applyWhen> element
     * @param    <applyWhen> element
     * 
@@ -723,7 +802,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private ExcludeAction parseExcludeSourceFileElement(Element element) throws Exception {
+   private static ExcludeAction parseExcludeSourceFileElement(Element element) throws Exception {
       // <excludeFile target="..." excluded="..."  >
       String target     = element.getAttribute("target");
       boolean isExcluded = true;
@@ -742,7 +821,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private ExcludeAction parseExcludeSourceFolderElement(Element element) throws Exception {
+   private static ExcludeAction parseExcludeSourceFolderElement(Element element) throws Exception {
       // <excludeFolder target="..." excluded="..."  >
       String target     = element.getAttribute("target");
       boolean isExcluded = true;
@@ -761,7 +840,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private CreateFolderAction parseCreateFolderElement(Element createFolderElement) {
+   private static CreateFolderAction parseCreateFolderElement(Element createFolderElement) {
       // <createFolder target="..." type="..." >
       String target  = createFolderElement.getAttribute("target");
       String type    = createFolderElement.getAttribute("type");
@@ -776,7 +855,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private FileAction parseCopyElement(Element element) throws Exception {
+   private static FileAction parseCopyElement(Element element) throws Exception {
       // <copy>
       String source          = element.getAttribute("source");
       String target          = element.getAttribute("target");
@@ -801,10 +880,13 @@ public class PackageParser {
       boolean doMacroReplacement = !element.getAttribute("macroReplacement").equalsIgnoreCase("false");
       // Default to false
       boolean doReplacement      =  element.getAttribute("replace").equalsIgnoreCase("true");
+      // Default to false
+      boolean doDerived          =  element.getAttribute("derived").equalsIgnoreCase("true");
       FileAction fileInfo        = new FileAction(source, target, fileType);
       fileInfo.setDoMacroReplacement(doMacroReplacement);
       fileInfo.setDoReplace(doReplacement);
       fileInfo.setSourcePathType(sourcePathType);
+      fileInfo.setDerived(doDerived);
       return fileInfo;
    }
 
@@ -816,7 +898,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private DeleteResourceAction parseDeleteElement(Element element) throws Exception {
+   private static DeleteResourceAction parseDeleteElement(Element element) throws Exception {
       // <deleteResource>
       String target     = element.getAttribute("target");
       if (target.isEmpty()) {
@@ -834,7 +916,7 @@ public class PackageParser {
     * 
     * @throws Exception 
     */
-   private ProjectOption parseProjectOptionElement(Element optionElement) throws Exception {
+   private static ProjectOption parseProjectOptionElement(Element optionElement) throws Exception {
       // <projectOption>
       String id       = optionElement.getAttribute("id");
       String path     = null;
@@ -882,7 +964,7 @@ public class PackageParser {
     * 
     * @throws Exception 
     */
-   private ProjectCustomAction parseCustomActionElement(Element customActionElement) throws Exception {
+   private static ProjectCustomAction parseCustomActionElement(Element customActionElement) throws Exception {
       // <projectOption>
       String className  = customActionElement.getAttribute("class");
       if (className.isEmpty()) {

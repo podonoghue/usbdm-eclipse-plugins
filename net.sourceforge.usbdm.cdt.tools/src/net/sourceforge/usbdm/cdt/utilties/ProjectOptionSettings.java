@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.actions;
+package net.sourceforge.usbdm.cdt.utilties;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

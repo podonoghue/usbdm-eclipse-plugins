@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 
 @SuppressWarnings({ "restriction", "unused" })

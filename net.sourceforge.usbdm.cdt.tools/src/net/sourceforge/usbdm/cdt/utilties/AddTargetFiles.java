@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.actions;
+package net.sourceforge.usbdm.cdt.utilties;
 /**
  * 
  */
@@ -16,13 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.ProjectUtilities;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.FileAction;
-import net.sourceforge.usbdm.packageParser.FileAction.PathType;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IPathVariableManager;
@@ -35,6 +28,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.core.variables.VariablesPlugin;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.packageParser.FileAction;
+import net.sourceforge.usbdm.packageParser.FileAction.PathType;
 
 /**
  * @author pgo
@@ -56,7 +53,7 @@ public class AddTargetFiles {
     * 
     * @throws Exception 
     */
-   private void copyFile(Path sourcePath, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
 //      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       InputStream contents = null;
       String fileContents;
@@ -65,7 +62,7 @@ public class AddTargetFiles {
       } catch (IOException e) {
          throw new Exception("\"" + sourcePath + "\" failed read"); //$NON-NLS-1$ //$NON-NLS-2$
       }
-      if (doMacroReplacement) {
+      if (fileAction.isDoMacroReplacement()) {
          fileContents = MacroSubstitute.substitute(fileContents, variableMap);
       }
       contents = new ByteArrayInputStream(fileContents.getBytes());
@@ -79,7 +76,7 @@ public class AddTargetFiles {
          }
          // Replace existing, more specific, file
          if (iFile.exists()) {
-            if (doReplacement) {
+            if (fileAction.isDoMacroReplacement()) {
 //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
                iFile.delete(true, new SubProgressMonitor(monitor, remainder));               
             }
@@ -88,6 +85,7 @@ public class AddTargetFiles {
             }
          }
          iFile.create(contents, true, null);
+         iFile.setDerived(fileAction.isDerived(), monitor);
          iFile.refreshLocal(IResource.DEPTH_ONE, null);
          projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
       } catch (CoreException e) {
@@ -135,7 +133,7 @@ public class AddTargetFiles {
     * 
     * @throws Exception
     */
-   private void copyFiles(Path sourcePath, Path targetPath, boolean doMacroReplacement, boolean doReplacement, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
       //      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
       //      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
       //      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
@@ -160,7 +158,7 @@ public class AddTargetFiles {
          try {
             monitor.beginTask("Copy Files", 100);
             for (java.nio.file.Path entry: stream) {
-               copyFiles(entry, targetPath.resolve(entry.getFileName()), doMacroReplacement, doReplacement, variableMap, projectHandle, new SubProgressMonitor(monitor, 1));
+               copyFiles(entry, targetPath.resolve(entry.getFileName()), fileInfo, variableMap, projectHandle, new SubProgressMonitor(monitor, 1));
             }
          } finally {
             monitor.done();
@@ -168,17 +166,10 @@ public class AddTargetFiles {
       }
       else {
          // Simple file copy
-         copyFile(sourcePath, targetPath, doMacroReplacement, doReplacement, variableMap, projectHandle, monitor);
+         copyFile(sourcePath, targetPath, fileInfo, variableMap, projectHandle, monitor);
       }
    }
-//   
-//   private URI resolveURI(URI uri) throws URISyntaxException {
-//      
-//      IWorkspace workspace = ResourcesPlugin.getWorkspace();
-//      IPathVariableManager pathMan = workspace.getPathVariableManager();
-//      return pathMan.resolveURI(uri);
-//   }
-   
+
    /**
     * Create link to file.  
     * Attempts to make it relative to usbdm_resource_path or usbdm_kds_path path variables
@@ -222,7 +213,7 @@ public class AddTargetFiles {
       }
    }
 
-   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
+   public void process(IProject projectHandle, Map<String,String> variableMap, FileAction fileInfo, IProgressMonitor monitor) throws Exception {
       /*
        * Do macro substitution on path using project wizard variables
        */
@@ -239,9 +230,12 @@ public class AddTargetFiles {
       /*
        * Do macro substitution on path using Eclipse Variables
        */
-      root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root,   false);
-      source = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(source, false);
-      target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target, false);
+      VariablesPlugin varPlugin = VariablesPlugin.getDefault();
+      if (varPlugin != null) {
+         root   = varPlugin.getStringVariableManager().performStringSubstitution(root,   false);
+         source = varPlugin.getStringVariableManager().performStringSubstitution(source, false);
+         target = varPlugin.getStringVariableManager().performStringSubstitution(target, false);
+      }
       /*
        * Make source path absolute if necessary 
        */
@@ -268,7 +262,7 @@ public class AddTargetFiles {
             break;
          }
          case NORMAL : {
-            copyFiles(sourcePath, targetPath, fileInfo.isDoMacroReplacement(), fileInfo.isDoReplace(), variableMap, projectHandle, monitor);
+            copyFiles(sourcePath, targetPath, fileInfo, variableMap, projectHandle, monitor);
             break;
          }
       }

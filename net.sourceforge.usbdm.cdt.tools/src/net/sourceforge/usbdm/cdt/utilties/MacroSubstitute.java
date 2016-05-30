@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
+package net.sourceforge.usbdm.cdt.utilties;
 
 import java.util.ArrayList;
 import java.util.HashMap;

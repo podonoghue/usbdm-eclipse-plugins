@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.actions;
+package net.sourceforge.usbdm.cdt.utilties;
 /**
  * 
  */
@@ -7,15 +7,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.MacroSubstitute;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.variables.VariablesPlugin;
+
+import net.sourceforge.usbdm.packageParser.DeleteResourceAction;
 
 /**
  * @author pgo
@@ -27,14 +25,13 @@ public class DeleteResource {
     * Process action
     * 
     * @param projectHandle       Handle for access to project
-    * @param device              Device
     * @param variableMap         
     * @param resourceInfo
     * @param monitor             Progress monitor
     * 
     * @throws Exception 
     */
-   public void process(IProject projectHandle, Device device, Map<String,String> variableMap, DeleteResourceAction resourceInfo, IProgressMonitor monitor) 
+   public void process(IProject projectHandle, Map<String,String> variableMap, DeleteResourceAction resourceInfo, IProgressMonitor monitor) 
       throws Exception {
       
       String root   = MacroSubstitute.substitute(resourceInfo.getRoot(),   variableMap);

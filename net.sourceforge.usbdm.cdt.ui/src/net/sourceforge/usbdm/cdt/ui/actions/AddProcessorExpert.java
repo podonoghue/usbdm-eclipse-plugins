@@ -4,8 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import net.sourceforge.usbdm.deviceDatabase.Device;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -14,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizard;
-import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
@@ -24,16 +21,15 @@ import org.eclipse.ui.wizards.IWizardRegistry;
 public class AddProcessorExpert implements CustomAction {
    @Override
    public boolean action(
-         final Wizard                 wizard, 
          final IProject               projectHandle, 
-         final Device                 device, 
          final Map<String, String>    variableMap, 
          final IProgressMonitor       progressMonitor, 
          final String[]               parameters) {
       
       PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
          public void run() {
-            executePeWizard(wizard.getShell(), projectHandle);
+            Shell activeShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+            executePeWizard(activeShell, projectHandle);
         }
      });
       return false;

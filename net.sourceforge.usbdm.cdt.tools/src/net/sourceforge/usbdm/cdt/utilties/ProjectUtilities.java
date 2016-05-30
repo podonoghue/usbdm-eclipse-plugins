@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
+package net.sourceforge.usbdm.cdt.utilties;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
-import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.CreateFolderAction;
 import net.sourceforge.usbdm.packageParser.ExcludeAction;
 
@@ -245,7 +244,7 @@ public class ProjectUtilities {
       cProject.setRawPathEntries(newEntries.toArray(new IPathEntry[newEntries.size()]), monitor);
    }
 
-   public static void createFolder(IProject projectHandle, Device device, Map<String, String> variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
+   public static void createFolder(IProject projectHandle, Map<String, String> variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
       String target = MacroSubstitute.substitute(action.getTarget(), variableMap);
       
       if (target.isEmpty()) {
