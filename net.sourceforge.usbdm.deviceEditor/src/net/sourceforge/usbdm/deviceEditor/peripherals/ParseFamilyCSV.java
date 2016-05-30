@@ -19,6 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
 
 public class ParseFamilyCSV {
    
@@ -409,6 +410,24 @@ public class ParseFamilyCSV {
          }
          parseDmaMuxInfoLine(line);
       }
+      for(String[] line:grid) {
+         if (line.length < 2) {
+            continue;
+         }
+         parseParamInfoLine(line);
+      }
+   }
+
+   private void parseParamInfoLine(String[] line) {
+      if (!line[0].equalsIgnoreCase("Param")) {
+         return;
+      }
+      if (line.length != 4) {
+         throw new RuntimeException("Illegal Param line");
+      }
+      
+      PeripheralWithState peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
+      peripheral.addParam(line[2], line[3]);
    }
 
    /**

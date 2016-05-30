@@ -114,7 +114,7 @@
 	<item value="FLL is selected" key="/MCG/mcg_c6_plls"/>
 	<item value="Software trigger (write to SC1A)" key="/ADC0/sc2_adtrg"/>
 	<item value="10000" key="/FTM0/PERIOD"/>
-	<item value="96.0MHz" key="/MCG/system_core_clock"/>
+	<item value="48.0MHz" key="/MCG/system_core_clock"/>
 	<item value="mux1" key="PTC7_muxSetting"/>
 	<item value="Windowing mode is disabled" key="/CMP1/cmp_cr1_we"/>
 	<item value="No setup (Reset default)" key="/MCG/clock_mode"/>
@@ -173,7 +173,7 @@
 	<item value="10000" key="/PIT/LDVAL"/>
 	<item value="2" key="/MCG/sim_clkdiv1_outdiv3"/>
 	<item value="2" key="/MCG/sim_clkdiv1_outdiv2"/>
-	<item value="1" key="/MCG/sim_clkdiv1_outdiv1"/>
+	<item value="2" key="/MCG/sim_clkdiv1_outdiv1"/>
 	<item value="Disabled" key="/ADC0/sc2_dmaen"/>
 	<item value="USB_serial" key="PTB17_descriptionSetting"/>
 	<item value="RTC 1 Hz clock" key="/MCG/sim_sopt2_rtcclkoutsel"/>

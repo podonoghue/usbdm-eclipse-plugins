@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public class ParseFamilyXML extends XML_BaseParser {
 
@@ -245,6 +246,12 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "dma") {
             parseDma(element, peripheral);
+         }
+         else if (element.getTagName() == "param") {
+            String key   = element.getAttribute("key");
+            String value = element.getAttribute("value");
+            PeripheralWithState p = (PeripheralWithState) peripheral;
+            p.addParam(key, value);
          }
          else {
             throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");

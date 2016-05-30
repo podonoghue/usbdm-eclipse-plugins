@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,6 +22,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -29,6 +31,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /** Data about model loaded from file */
    protected Data fData = null;
+   
+   /** Map of parameters for peripheral */
+   HashMap<String, String> fParamMap = new HashMap<String,String>();
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -115,9 +120,14 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
-      ProcessProjectActions.process(project, fData.fProjectActionList, fDeviceInfo.getSimpleMap(), monitor);
+      Map<String, String> map = fDeviceInfo.getSimpleMap();
+      for (String key:getParamMap().keySet()) {
+         String value = getParamMap().get(key);
+         map.put(keyMaker.makeKey(key),  value);
+      }
+      ProcessProjectActions.process(project, fData.fProjectActionList, map, monitor);
    }
-   
+
    /**
     * Create a variable
     * 
@@ -174,7 +184,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified string or original if no changes
     * @throws Exception 
     */
-   String substitute(String input, Map<String, String> map) {
+   public String substitute(String input, Map<String, String> map) {
       return FileUtility.substitute(input, map, keyMaker);
    }
 
@@ -278,6 +288,36 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public String toString() {
       return this.getClassName()+"("+getName()+", "+getVersion()+")";
+   }
+
+   /**
+    * Add parameter
+    * 
+    * @param key
+    * @param value
+    */
+   public void addParam(String key, String value) {
+      fParamMap.put(keyMaker.makeKey(key), value);
+   }
+
+   /**
+    * Get parameter map
+    * 
+    * @return
+    */
+   public Map<String, String> getParamMap() {
+      return fParamMap;
+   }
+   
+   @Override
+   protected void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+      for (String key:getParamMap().keySet()) {
+         String value = getParamMap().get(key);
+         documentUtilities.openTag("param");
+         documentUtilities.writeAttribute("key",   key);
+         documentUtilities.writeAttribute("value", value);
+         documentUtilities.closeTag();
+      }
    }
 
 }

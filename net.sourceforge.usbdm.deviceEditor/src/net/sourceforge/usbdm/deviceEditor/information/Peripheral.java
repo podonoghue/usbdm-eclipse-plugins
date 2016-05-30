@@ -604,7 +604,7 @@ public abstract class Peripheral {
    public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
-   public void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+   protected void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
    }
 
    /**

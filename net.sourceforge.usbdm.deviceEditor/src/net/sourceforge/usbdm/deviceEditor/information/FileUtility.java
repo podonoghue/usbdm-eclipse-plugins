@@ -101,7 +101,8 @@ public class FileUtility {
             defaultValue = matcher.group(2);
             //          System.out.println(String.format("p=\'%s\', d=\'%s\'", pattern, defaultValue));
          }
-         String replaceWith = map.get(keyMaker.makeKey(key));
+         String newKey = keyMaker.makeKey(key);
+         String replaceWith = map.get(newKey);
          if (replaceWith == null) {
             //           System.out.println("Using default \'" + defaultValue + "\'");
             replaceWith = defaultValue;

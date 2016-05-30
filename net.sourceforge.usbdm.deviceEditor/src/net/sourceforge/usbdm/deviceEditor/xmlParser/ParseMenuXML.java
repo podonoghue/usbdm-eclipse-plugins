@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.w3c.dom.Document;
@@ -23,6 +24,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -445,7 +447,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "validate") {
             if (data != null) {
-               throw new RuntimeException("Cannot have other elemnts with <root> element");
+               throw new RuntimeException("Cannot have other elements with <root> element");
             }
             validators.add(parseValidate(element));
          }
@@ -586,7 +588,13 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param validateElement
     */
-   private static Validator parseValidate(Element validateElement) {
+   private Validator parseValidate(Element validateElement) {
+//      System.err.println("================================");
+      Map<String, String> paramMap = fProvider.getParamMap();
+//      for (String k:paramMap.keySet()) {
+//         System.err.println(k + " => " + paramMap.get(k));
+//      }
+//      System.err.println("================================");
       Validator validator = new Validator(validateElement.getAttribute("class"));
       for (Node node = validateElement.getFirstChild();
             node != null;
@@ -596,12 +604,13 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "param") {
-            String  type   = element.getAttribute("type");
+            String  type = element.getAttribute("type");
+            String value = fProvider.substitute(element.getAttribute("value"), paramMap);
             if (type.equalsIgnoreCase("long")) {
-               validator.addParam(getLongAttribute(element, "value"));
+               validator.addParam(EngineeringNotation.parseAsLong(value));
             }
             else if (type.equalsIgnoreCase("string")) {
-               validator.addParam(element.getAttribute("value"));
+               validator.addParam(value);
             }
             else {
                throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");

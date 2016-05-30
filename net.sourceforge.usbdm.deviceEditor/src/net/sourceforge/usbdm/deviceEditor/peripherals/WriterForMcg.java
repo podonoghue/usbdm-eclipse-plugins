@@ -21,4 +21,9 @@ public class WriterForMcg extends PeripheralWithState {
       return 900;
    }
 
+   @Override
+   public String getVersion() {
+      return super.getVersion();
+   }
+
 }
