@@ -9,7 +9,7 @@ Bundle-NativeCode:
 Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 4.12.1
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.swt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
