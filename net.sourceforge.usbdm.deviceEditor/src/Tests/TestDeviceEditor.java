@@ -49,8 +49,8 @@ public class TestDeviceEditor {
 //       testEditor(Paths.get("projectFiles/Tests/MK22F12810.usbdmProject"));
 //       testEditor(Paths.get("projectFiles/Tests/MK22F51212.usbdmProject"));
 //         testEditor(Paths.get("projectFiles/Tests/MK22FA12.usbdmProject"));
-//         testEditor(Paths.get("projectFiles/Tests/MK64F12.usbdmProject"));
-       testEditor(Paths.get("projectFiles/Tests/MK66F18.usbdmProject"));
+         testEditor(Paths.get("projectFiles/Tests/MK64F12.usbdmProject"));
+//       testEditor(Paths.get("projectFiles/Tests/MK66F18.usbdmProject"));
       } catch (Exception e) {
          e.printStackTrace();
       }

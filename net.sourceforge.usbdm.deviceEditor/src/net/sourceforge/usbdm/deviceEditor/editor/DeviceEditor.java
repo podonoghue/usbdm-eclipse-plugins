@@ -56,16 +56,16 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Folder containing all the tabs */
    private CTabFolder    fTabFolder          = null;
 
-   private EditorPage[] fEditors          = null;
+   private EditorPage[] fEditors             = null;
 
    /** Actions to add to pop-up menus */
-   ArrayList<MyAction>  popupActions = new ArrayList<MyAction>();
+   ArrayList<MyAction>  popupActions         = new ArrayList<MyAction>();
 
    /** Associated project */
-   private IProject fProject = null;
+   private IProject fProject                 = null;
 
    /** Eclipse status line manager */
-   IStatusLineManager fStatusLineManager = null;
+   IStatusLineManager fStatusLineManager     = null;
    
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {

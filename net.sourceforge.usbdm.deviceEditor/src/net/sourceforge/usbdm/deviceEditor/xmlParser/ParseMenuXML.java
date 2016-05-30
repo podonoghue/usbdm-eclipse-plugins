@@ -31,15 +31,19 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.packageParser.PackageParser;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 public class ParseMenuXML extends XML_BaseParser {
+
+   public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
 
    public static class Data {
       public final BaseModel            fRootModel;
       public final String               fTemplate;
       public final ArrayList<Validator> fValidators;
-      
-      public Data(BaseModel model, String template, ArrayList<Validator> validators) {
+      public final ProjectActionList    fProjectActionList;
+      public Data(BaseModel model, String template, ArrayList<Validator> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
          fTemplate   = template;
          if (validators == null) {
@@ -49,6 +53,7 @@ public class ParseMenuXML extends XML_BaseParser {
          else {
             fValidators = validators;
          }
+         fProjectActionList = projectActionList;
       }
    };
    
@@ -384,7 +389,6 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider = provider;
    }
    
-   
    /**
     * 
     * @param document
@@ -411,10 +415,11 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    private Data parseRoot(BaseModel parent, Element root, PeripheralWithState provider) throws Exception {
-      BaseModel            rootModel   = null;
-      String               template    = null;
-      ArrayList<Validator> validators  = new ArrayList<Validator>();
-
+      BaseModel            rootModel      = null;
+      String               template       = null;
+      ArrayList<Validator> validators     = new ArrayList<Validator>();
+      ProjectActionList projectActionList = null;
+      
       Data data = null;
       for (Node node = root.getFirstChild();
             node != null;
@@ -450,6 +455,9 @@ public class ParseMenuXML extends XML_BaseParser {
             }
             template = element.getTextContent().replaceAll("^\n\\s*","").replaceAll("(\\\\n|\\n)\\s*", "\n").replaceAll("\\\\t","   ");
          }
+         else if (element.getTagName() == "projectActionList") {
+            projectActionList = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
+         }
          else {
             throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
@@ -457,7 +465,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (data != null) {
          return data;
       }
-      return new Data(rootModel, template, validators);
+      return new Data(rootModel, template, validators, projectActionList);
    }
 
    /**
@@ -486,7 +494,7 @@ public class ParseMenuXML extends XML_BaseParser {
             protected void removeMyListeners() {
             }
          };
-         return new Data(model, null, null);
+         return new Data(model, null, null, null);
       }
    }
 
@@ -517,7 +525,7 @@ public class ParseMenuXML extends XML_BaseParser {
             protected void removeMyListeners() {
             }
          };
-         return new Data(model, null, null);
+         return new Data(model, null, null, null);
       }
    }
 
@@ -605,7 +613,5 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       return validator;
    }
-
-
    
 }

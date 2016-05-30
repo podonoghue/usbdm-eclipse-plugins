@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -23,7 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
-public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener{
+public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
 
    /** Data about model loaded from file */
    protected Data fData = null;
@@ -106,6 +108,16 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       pinMappingHeaderFile.write(substitute(fData.fTemplate));
    }
 
+   /**
+    * @param project
+    * @param monitor
+    * 
+    * @throws Exception
+    */
+   public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
+      ProcessProjectActions.process(project, fData.fProjectActionList, fDeviceInfo.getSimpleMap(), monitor);
+   }
+   
    /**
     * Create a variable
     * 

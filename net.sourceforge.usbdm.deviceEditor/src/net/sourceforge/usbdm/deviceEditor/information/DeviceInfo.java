@@ -15,6 +15,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.DialogSettings;
 
@@ -1581,6 +1582,14 @@ public class DeviceInfo extends ObservableModel {
       Map<String, String> variableMap = new HashMap<String, String>();
       generateVectorTable(variableMap);
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
+      
+      for (String key:fPeripheralsMap.keySet()) {
+         Peripheral p = fPeripheralsMap.get(key);
+         if (p instanceof PeripheralWithState) {
+            ((PeripheralWithState) p).regenerateProjectFiles(null, new NullProgressMonitor());
+         }
+      }
+
    }
 
    /**
@@ -1601,6 +1610,13 @@ public class DeviceInfo extends ObservableModel {
       Map<String, String> variableMap = new HashMap<String, String>();
       generateVectorTable(variableMap);
       FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, monitor);
+      
+      for (String key:fPeripheralsMap.keySet()) {
+         Peripheral p = fPeripheralsMap.get(key);
+         if (p instanceof PeripheralWithState) {
+            ((PeripheralWithState) p).regenerateProjectFiles(project, monitor);
+         }
+      }
    }
 
    /**

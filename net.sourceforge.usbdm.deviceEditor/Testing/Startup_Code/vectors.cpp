@@ -354,6 +354,7 @@ void PDB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USBDCD_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void DAC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void MCG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LPTMR0_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void PORTA_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void PORTB_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
@@ -478,7 +479,7 @@ extern VectorTable const __vector_table = {
       USBDCD_IRQHandler,             /*   70,   54  USB Device Charger Detection                                                     */
       Default_Handler,               /*   71,   55                                                                                   */
       DAC0_IRQHandler,               /*   72,   56  Digital to Analogue Converter                                                    */
-      Default_Handler,               /*   73,   57                                                                                   */
+      MCG_IRQHandler,                /*   73,   57  Digital to Analogue Converter                                                    */
       LPTMR0_IRQHandler,             /*   74,   58  Low Power Timer                                                                  */
       PORTA_IRQHandler,              /*   75,   59  General Purpose Input/Output                                                     */
       PORTB_IRQHandler,              /*   76,   60  General Purpose Input/Output                                                     */

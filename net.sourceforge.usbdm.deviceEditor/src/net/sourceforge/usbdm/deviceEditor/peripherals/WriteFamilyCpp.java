@@ -183,9 +183,14 @@ public class WriteFamilyCpp {
 
       DocumentationGroups groups = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         groups.openGroup(peripheral);
-         peripheral.writeInfoClass(writer);
+         try {
+            Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+            groups.openGroup(peripheral);
+            peripheral.writeInfoClass(writer);
+         } catch (Exception e) {
+            System.err.println("Failed to write Info for " + key);
+            e.printStackTrace();
+         }
       }
       groups.closeGroup();
       writer.writeCloseNamespace();

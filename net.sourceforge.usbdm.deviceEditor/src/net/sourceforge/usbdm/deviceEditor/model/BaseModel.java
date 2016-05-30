@@ -7,7 +7,6 @@ import java.util.Map;
 import org.eclipse.jface.viewers.StructuredViewer;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.peripherals.model.MemoryException;
 
 /**
  * Base Model for tree item
