@@ -94,7 +94,6 @@ public class OscValidate extends BaseClockValidator {
       Variable     oscclk_clockNode                 =  getVariable("oscclk_clock");
       
       boolean  erefs0 = erefs0Node.getValueAsBoolean();
-      long     oscclk_clock  = oscclk_clockNode.getValueAsLong();
 
       hgo0Node.enable(erefs0);
       osc_cr_scpNode.enable(erefs0);
@@ -103,7 +102,7 @@ public class OscValidate extends BaseClockValidator {
       //==========================================
       
       Message oscclk_clockStatus    = null;
-      String  oscclk_clockOrg    = null;
+      String  oscclk_clockOrg       = null;
       
       Message osc32kclk_clockStatus = null;
       String  osc32kclk_clockOrg = "OSC32KCLK";
@@ -116,6 +115,7 @@ public class OscValidate extends BaseClockValidator {
       //   - Determine mcg_c2_range
       //
       long oscclk_clock_freq = oscclk_clockNode.getValueAsLong();
+      
       // Check suitability of OSC for OSC32KCLK
       if ((oscclk_clock_freq < EXTERNAL_EXTAL_RANGE1_MIN) || (oscclk_clock_freq > EXTERNAL_EXTAL_RANGE1_MAX)) {
          osc32kclk_clockStatus = OSCCLK32K_CLOCK_WARNING_MSG;
@@ -170,11 +170,12 @@ public class OscValidate extends BaseClockValidator {
       //==================================
       if (osc_cr_erclkenNode.getValueAsBoolean()) {
          // Oscillator/clock enabled
-         system_oscerclk_undiv_clockNode.setValue(oscclk_clock);
+         
+         system_oscerclk_undiv_clockNode.setValue(oscclk_clock_freq);
          system_oscerclk_undiv_clockNode.setStatus(oscclk_clockStatus);
          system_oscerclk_undiv_clockNode.setOrigin(oscclk_clockOrg);
          system_oscerclk_undiv_clockNode.enable(true);
-         long system_oscerclk = oscclk_clock;
+         long system_oscerclk = oscclk_clock_freq;
          if (osc_div_erpsNode != null) {
             // If divider exists
             system_oscerclk /= 1<<osc_div_erpsNode.getValueAsLong();

@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public class ParseFamilyXML extends XML_BaseParser {
@@ -237,9 +238,6 @@ public class ParseFamilyXML extends XML_BaseParser {
                peripheral = fDeviceInfo.createPeripheral(baseName, instance);
             }
             peripheral.setClockInfo(element.getAttribute("reg"), element.getAttribute("mask"));
-            if (element.hasAttribute("source")) {
-               peripheral.setClockSource(element.getAttribute("source"));
-            }
          }
          else if (element.getTagName() == "irq") {
             peripheral.addIrqNum(element.getAttribute("num"));
@@ -251,7 +249,10 @@ public class ParseFamilyXML extends XML_BaseParser {
             String key   = element.getAttribute("key");
             String value = element.getAttribute("value");
             PeripheralWithState p = (PeripheralWithState) peripheral;
-            p.addParam(key, value);
+            StringVariable v = new StringVariable(key, p.makeKey(key));
+            p.addVariable(v);
+            v.setValue(value);
+            p.addParam(p.makeKey(key), value);
          }
          else {
             throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");

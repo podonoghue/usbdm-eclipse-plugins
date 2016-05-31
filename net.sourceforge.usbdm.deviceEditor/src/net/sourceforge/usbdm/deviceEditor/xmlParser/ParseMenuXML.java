@@ -180,11 +180,18 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
+      // Key and name are interchangeable
+      // Name is an ID and can be used for validation checks within the file.
+      // Key is used to refer to external variable without validation error
       String  name         = stringElement.getAttribute("name");
       String  key          = stringElement.getAttribute("key");
       if (key.isEmpty()) {
-         key = fProvider.makeKey(name);
+         key = name;
       }
+      if (name.isEmpty()) {
+         name = key;
+      }
+      key = fProvider.makeKey(key);
       boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
       boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
       Variable variable = fProvider.safeGetVariable(key);

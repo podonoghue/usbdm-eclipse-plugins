@@ -84,13 +84,13 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       system_flexbus_clockNode.setMin(0);
       system_flexbus_clockNode.setMax(MAX_FLEXBUS_CLOCK_FREQ);
 
-      LongVariable pllInputFrequencyNode = getLongVariable("pllInputFrequency");
-      pllInputFrequencyNode.setMin(PLL_IN_MIN);
-      pllInputFrequencyNode.setMax(PLL_IN_MAX);
-      
-      LongVariable pllTargetFrequencyNode = getLongVariable("pllTargetFrequency");
-      pllTargetFrequencyNode.setMin(PLL_OUT_MIN);
-      pllTargetFrequencyNode.setMax(PLL_OUT_MAX);
+//      LongVariable pllInputFrequencyNode = getLongVariable("pllInputFrequency");
+//      pllInputFrequencyNode.setMin(PLL_IN_MIN);
+//      pllInputFrequencyNode.setMax(PLL_IN_MAX);
+//      
+//      LongVariable pllTargetFrequencyNode = getLongVariable("pllTargetFrequency");
+//      pllTargetFrequencyNode.setMin(PLL_OUT_MIN);
+//      pllTargetFrequencyNode.setMax(PLL_OUT_MAX);
 
       LongVariable mcg_c5_prdiv0Node = getLongVariable("mcg_c5_prdiv0");
       mcg_c5_prdiv0Node.setOffset(-PRDIV_MIN);
@@ -240,6 +240,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       Variable     mcg_c6_vdiv0Node                 =  getVariable("mcg_c6_vdiv0");
 
       //=================================
+      Variable     sim_sopt2_pllfllselNode          =  getVariable("sim_sopt2_pllfllsel");
+      Variable     system_peripheral_clockNode      =  getVariable("system_peripheral_clock");
       Variable     system_mcgout_clock_sourceNode   =  getVariable("system_mcgout_clock_source");
       Variable     system_mcgout_clockNode          =  getVariable("system_mcgout_clock");
       Variable     system_core_clockNode            =  getVariable("system_core_clock");
@@ -603,9 +605,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       
       boolean fll_enabled = fll_enabledNode.getValueAsBoolean();
       fllTargetFrequencyNode.enable(fll_enabled);
-      fllInputFrequencyNode.enable(fll_enabled);
       mcg_c4_dmx32Node.enable(fll_enabled);
-      mcg_c1_frdivNode.enable(fll_enabled);
       mcg_c4_drst_drsNode.enable(fll_enabled);
       
       // Find MCGFFCLK
@@ -620,6 +620,19 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       else {
          system_mcgffclk_clockNode.setValue(fllInputFrequency);
          system_mcgffclk_clockNode.setStatus((Message)null);
+      }
+      
+      // Find PLLFLLCLOCK
+      //=====================================
+      if (sim_sopt2_pllfllselNode.getValueAsBoolean()) {
+         system_peripheral_clockNode.setValue(pllTargetFrequencyNode.getValueAsLong());
+         system_peripheral_clockNode.setStatus(pllTargetFrequencyNode.getStatus());
+         system_peripheral_clockNode.setOrigin(pllTargetFrequencyNode.getOrigin());
+      }
+      else {
+         system_peripheral_clockNode.setValue(fllTargetFrequencyNode.getValueAsLong());
+         system_peripheral_clockNode.setStatus(fllTargetFrequencyNode.getStatus());
+         system_peripheral_clockNode.setOrigin(fllTargetFrequencyNode.getOrigin());
       }
       
       // Core Clock

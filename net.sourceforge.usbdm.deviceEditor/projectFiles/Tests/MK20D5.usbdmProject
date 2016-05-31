@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="USBDM">
+	<item value="MCGFLLCLK clock" key="/MCG/sim_sopt2_pllfllsel"/>
+	<item value="80.0MHz" key="/MCG/system_peripheral_clock"/>
 	<item value="Windowing mode is disabled" key="/CMP0/cmp_cr1_we"/>
 	<item value="Touch 2" key="PTB19_descriptionSetting"/>
 	<item value="mux1" key="PTC8_muxSetting"/>
@@ -11,21 +13,22 @@
 	<item value="0" key="/FTM1/IRQ_LEVEL"/>
 	<item value="Divide by 1" key="/FTM0/sc_ps"/>
 	<item value="Green LED" key="PTD4_descriptionSetting"/>
+	<item value="50MHz" key="/MCG/coreFreq"/>
 	<item value="Low power" key="/OSC0/hgo0"/>
 	<item value="No handler installed" key="/FTM0/IRQ_HANDLER"/>
 	<item value="Accelerometer" key="PTB1_descriptionSetting"/>
 	<item value="System clock" key="/FTM0/sc_clks"/>
 	<item value="Analog Comparator is disabled" key="/CMP0/cmp_cr1_en"/>
 	<item value="No handler installed" key="/FTM1/IRQ_HANDLER"/>
-	<item value="48.0MHz" key="/MCG/pllTargetFrequency"/>
+	<item value="0.0Hz" key="/MCG/pllTargetFrequency"/>
 	<item value="mux0" key="PTB19_muxSetting"/>
-	<item value="48.0MHz" key="/MCG/system_flexbus_clock"/>
+	<item value="5.0MHz" key="/MCG/system_flexbus_clock"/>
 	<item value="mux1" key="PTB2_muxSetting"/>
 	<item value="mux2" key="PTD2_muxSetting"/>
 	<item value="Reserved" key="PTA19_descriptionSetting"/>
 	<item value="mux0" key="PTA19_muxSetting"/>
 	<item value="mux1" key="PTC2_muxSetting"/>
-	<item value="48.0MHz" key="/MCG/system_bus_clock"/>
+	<item value="5.0MHz" key="/MCG/system_bus_clock"/>
 	<item value="Short sample time" key="/ADC0/cfg1_adlsmp"/>
 	<item value="Level 0" key="/CMP1/cmp_cr0_hystctr"/>
 	<item value="0" key="/CMP1/IRQ_LEVEL"/>
@@ -46,7 +49,7 @@
 	<item value="mux1" key="PTE1_muxSetting"/>
 	<item value="mux2" key="PTD1_muxSetting"/>
 	<item value="mux4" key="PTC1_muxSetting"/>
-	<item value="2.0MHz" key="/MCG/pllInputFrequency"/>
+	<item value="0.0Hz" key="/MCG/pllInputFrequency"/>
 	<item value="RTC clock monitor disabled" key="/MCG/mcg_c8_cme1"/>
 	<item value="Slow internal reference clock" key="/MCG/mcg_c2_ircs"/>
 	<item value="MCG Internal Reference Clock (MCGIRCLK)" key="/LPTMR0/psr_pcs"/>
@@ -63,7 +66,7 @@
 	<item value="CMPO is not available on CMPO pin" key="/CMP1/cmp_cr1_ope"/>
 	<item value="0" key="/FTM0/IRQ_LEVEL"/>
 	<item value="LCD_backlight" key="PTC2_descriptionSetting"/>
-	<item value="Slow Internal Clock" key="/MCG/mcg_c1_irefs"/>
+	<item value="External Reference Clock" key="/MCG/mcg_c1_irefs"/>
 	<item value="10000" key="/LPTMR0/PERIOD"/>
 	<item value="Input clock" key="/ADC0/cfg1_adiv"/>
 	<item value="Time Counter mode" key="/LPTMR0/csr_tms"/>
@@ -71,7 +74,7 @@
 	<item value="mux1" key="PTD0_muxSetting"/>
 	<item value="Sampling mode is disabled" key="/CMP0/cmp_cr1_se"/>
 	<item value="Oscillator" key="/OSC0/erefs0"/>
-	<item value="32.768kHz" key="/MCG/system_mcgffclk_clock"/>
+	<item value="31.250kHz" key="/MCG/system_mcgffclk_clock"/>
 	<item value="PLL active as needed" key="/MCG/mcg_c5_pllclken"/>
 	<item value="Analog Comparator is disabled" key="/CMP1/cmp_cr1_en"/>
 	<item value="mux1" key="PTA12_muxSetting"/>
@@ -80,44 +83,47 @@
 	<item value="mux7" key="PTA3_muxSetting"/>
 	<item value="Wide: [31.25-39.06] kHz" key="/MCG/mcg_c4_dmx32"/>
 	<item value="0" key="/RTC/IRQ_LEVEL"/>
-	<item value="96.0MHz" key="/MCG/fllTargetFrequency"/>
-	<item value="Low (x640/x732, 20-25/24 MHz)" key="/MCG/mcg_c4_drst_drs"/>
+	<item value="80.0MHz" key="/MCG/fllTargetFrequency"/>
+	<item value="High (x2560/x2929, 80-100/96 MHz)" key="/MCG/mcg_c4_drst_drs"/>
 	<item value="mux0" key="PTA18_muxSetting"/>
+	<item value="25MHz" key="/MCG/flashFreq"/>
 	<item value="OSC0 clock monitor disabled" key="/MCG/mcg_c6_cme0"/>
 	<item value="Prescaler/glitch filter is enabled" key="/LPTMR0/psr_pbyp"/>
 	<item value="Disabled in Stop mode" key="/OSC0/osc_cr_erefsten"/>
 	<item value="mux1" key="PTC3_muxSetting"/>
 	<item value="LCD_Reset*" key="PTA12_descriptionSetting"/>
-	<item value="24.0MHz" key="/MCG/system_flash_clock"/>
+	<item value="5.0MHz" key="/MCG/system_flash_clock"/>
 	<item value="mux1" key="PTD4_muxSetting"/>
 	<item value="0" key="/LPTMR0/IRQ_LEVEL"/>
 	<item value="mux1" key="PTC11_muxSetting"/>
 	<item value="Not inverted" key="/CMP0/cmp_cr1_inv"/>
-	<item value="if RANGE0 = low, divide by 1, else 32" key="/MCG/mcg_c1_frdiv"/>
+	<item value="if RANGE0 = low, divide by 8, else 256" key="/MCG/mcg_c1_frdiv"/>
 	<item value="LCD_sck" key="PTD1_descriptionSetting"/>
 	<item value="Reserved(XTAL32)" key="XTAL32_descriptionSetting"/>
 	<item value="High range" key="/OSC0/range"/>
+	<item value="SystemBusClock" key="/UART2/clockSource"/>
 	<item value="+20 ADCK cycles; 24 ADCK total" key="/ADC0/cfg2_adlsts"/>
 	<item value="0" key="/ADC0/IRQ_LEVEL"/>
 	<item value="1" key="/_Temp_/OSC/oscRange"/>
-	<item value="32.768kHz" key="/MCG/fllInputFrequency"/>
+	<item value="31.250kHz" key="/MCG/fllInputFrequency"/>
 	<item value="mux1" key="PTC9_muxSetting"/>
 	<item value="Prescaler = 2, no glitch filter" key="/LPTMR0/psr_prescaler"/>
 	<item value="Left-aligned (count up)" key="/FTM1/sc_cpwms"/>
+	<item value="SystemCoreClock" key="/UART0/clockSource"/>
 	<item value="48.0MHz" key="/MCG/system_usb_clkin_clock"/>
 	<item value="Active-high source, rising-edge increments CNR" key="/LPTMR0/csr_tpp"/>
 	<item value="32.768kHz" key="/MCG/system_slow_irc_clock"/>
 	<item value="CMP0 output" key="/LPTMR0/csr_tps"/>
-	<item value="96.0MHz" key="/MCG/system_mcgout_clock"/>
+	<item value="80.0MHz" key="/MCG/system_mcgout_clock"/>
 	<item value="Normal conversion sequence selected" key="/ADC0/cfg2_adhsc"/>
 	<item value="PLL is disabled in any Stop mode" key="/MCG/mcg_c5_pllsten"/>
 	<item value="FLL is selected" key="/MCG/mcg_c6_plls"/>
 	<item value="Software trigger (write to SC1A)" key="/ADC0/sc2_adtrg"/>
 	<item value="10000" key="/FTM0/PERIOD"/>
-	<item value="48.0MHz" key="/MCG/system_core_clock"/>
+	<item value="5.0MHz" key="/MCG/system_core_clock"/>
 	<item value="mux1" key="PTC7_muxSetting"/>
 	<item value="Windowing mode is disabled" key="/CMP1/cmp_cr1_we"/>
-	<item value="No setup (Reset default)" key="/MCG/clock_mode"/>
+	<item value="FLL Engaged External (FEE)" key="/MCG/clock_mode"/>
 	<item value="8 pF" key="/RTC/rtc_cr_scp"/>
 	<item value="0" key="/I2C0/IRQ_LEVEL"/>
 	<item value="Asynchronous clock output disabled" key="/ADC0/cfg2_adacken"/>
@@ -139,8 +145,8 @@
 	<item value="8.0MHz" key="/OSC0/system_oscerclk_clock"/>
 	<item value="8.0MHz" key="/MCG/mcg_erc_clock"/>
 	<item value="32.768kHz" key="/RTC/rtcclk_clock"/>
-	<item value="Timers are not chained" key="/PIT/tctrl_ch1"/>
-	<item value="Timers are not chained" key="/PIT/tctrl_ch3"/>
+	<item value="Timers are chained" key="/PIT/tctrl_ch1"/>
+	<item value="Timers are chained" key="/PIT/tctrl_ch3"/>
 	<item value="$(targetDevice)" key="DeviceInfo_Target_Device"/>
 	<item value="No handler installed" key="/ADC0/IRQ_HANDLER"/>
 	<item value="MSB first" key="/SPI0/LSBFE"/>
@@ -167,13 +173,13 @@
 	<item value="Low-Speed (LS) Comparison mode" key="/CMP0/cmp_cr1_pmode"/>
 	<item value="Reserved(EXTAL32)" key="EXTAL32_descriptionSetting"/>
 	<item value="Enabled" key="/OSC0/osc_cr_erclken"/>
-	<item value="4" key="/MCG/sim_clkdiv1_outdiv4"/>
+	<item value="16" key="/MCG/sim_clkdiv1_outdiv4"/>
 	<item value="Bus clock" key="/ADC0/cfg1_adiclk"/>
 	<item value="Level 0" key="/CMP0/cmp_cr0_hystctr"/>
 	<item value="10000" key="/PIT/LDVAL"/>
-	<item value="2" key="/MCG/sim_clkdiv1_outdiv3"/>
-	<item value="2" key="/MCG/sim_clkdiv1_outdiv2"/>
-	<item value="2" key="/MCG/sim_clkdiv1_outdiv1"/>
+	<item value="16" key="/MCG/sim_clkdiv1_outdiv3"/>
+	<item value="16" key="/MCG/sim_clkdiv1_outdiv2"/>
+	<item value="16" key="/MCG/sim_clkdiv1_outdiv1"/>
 	<item value="Disabled" key="/ADC0/sc2_dmaen"/>
 	<item value="USB_serial" key="PTB17_descriptionSetting"/>
 	<item value="RTC 1 Hz clock" key="/MCG/sim_sopt2_rtcclkoutsel"/>
@@ -188,6 +194,7 @@
 	<item value="10000" key="/FTM1/PERIOD"/>
 	<item value="FRDM_K20D5" key="DeviceInfo_Device_Variant"/>
 	<item value="1" key="/MCG/mcg_c5_prdiv0"/>
+	<item value="50MHz" key="/MCG/flexFreq"/>
 	<item value="Disabled" key="/ADC0/sc2_compare"/>
 	<item value="0" key="/MCG/IRQ_LEVEL"/>
 	<item value="VRefH and VRefl" key="/ADC0/sc2_refsel"/>
@@ -204,7 +211,9 @@
 	<item value="mux1" key="PTA4_muxSetting"/>
 	<item value="mux1" key="PTC4_muxSetting"/>
 	<item value="Timers continue to run in debug mode" key="/PIT/mcr_frz"/>
+	<item value="50MHz" key="/MCG/busFreq"/>
 	<item value="No handler installed" key="/PIT/IRQ0_HANDLER"/>
+	<item value="SystemCoreClock" key="/UART1/clockSource"/>
 	<item value="mux1" key="PTC6_muxSetting"/>
 	<item value="FLL Active" key="/MCG/fll_enabled"/>
 	<item value="mux7" key="PTA13_muxSetting"/>

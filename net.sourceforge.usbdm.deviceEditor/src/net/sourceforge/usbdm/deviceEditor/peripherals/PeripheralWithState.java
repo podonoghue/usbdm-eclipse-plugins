@@ -33,7 +33,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    protected Data fData = null;
    
    /** Map of parameters for peripheral */
-   HashMap<String, String> fParamMap = new HashMap<String,String>();
+   protected HashMap<String, String> fParamMap = new HashMap<String,String>();
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -121,10 +121,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
       Map<String, String> map = fDeviceInfo.getSimpleMap();
-      for (String key:getParamMap().keySet()) {
-         String value = getParamMap().get(key);
-         map.put(keyMaker.makeKey(key),  value);
-      }
+//      for (String key:getParamMap().keySet()) {
+//         String value = getParamMap().get(key);
+//         map.put(keyMaker.makeKey(key),  value);
+//      }
       ProcessProjectActions.process(project, fData.fProjectActionList, map, monitor);
    }
 
@@ -297,7 +297,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param value
     */
    public void addParam(String key, String value) {
-      fParamMap.put(keyMaker.makeKey(key), value);
+      fParamMap.put(key, value);
    }
 
    /**

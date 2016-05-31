@@ -62,9 +62,6 @@ public abstract class Peripheral {
    /** Information for signals that use this writer */
    protected InfoTable fInfoTable = new InfoTable(INFO_TABLE_NAME);
 
-   /** Clock source for peripheral. Usually SystemCoreClock or SystemBusClock. */
-   private String fClockSource;
-
    /** Version of the peripheral e.g. adc0_diff_a */
    private String fVersion;
 
@@ -291,9 +288,6 @@ public abstract class Peripheral {
          }
          if (fClockMask != null) {
             documentUtilities.writeAttribute("mask", fClockMask);
-         }
-         if (fClockSource != null) {
-            documentUtilities.writeAttribute("source", fClockSource);
          }
          documentUtilities.closeTag();
       }
@@ -592,11 +586,6 @@ public abstract class Peripheral {
                "   //! IRQ numbers for hardware\n"+
                "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
                getIrqNumsAsInitialiser()));
-      }
-      if (getClockSource() != null) {
-         sb.append(String.format(
-               "   //! Clock source for peripheral\n"+
-               "   static constexpr uint32_t &clockSource = %s;\n\n", getClockSource()));
       }
       pinMappingHeaderFile.write(sb.toString());
    }
@@ -912,27 +901,6 @@ public abstract class Peripheral {
       pinMappingHeaderFile.write(clearPcrbuffer.toString());
    }
    
-   /**
-    * Set clock source for peripheral. Usually SystemCoreClock or SystemBusClock. 
-    * 
-    * @param clockSource
-    */
-   public void setClockSource(String clockSource) {
-      if ((clockSource != null) && (clockSource.length()==0)) {
-         throw new RuntimeException("Illegal clock Source = " + clockSource);
-      }
-      fClockSource = clockSource;
-   }
-
-   /**
-    * Get clock source for peripheral. Usually SystemCoreClock or SystemBusClock. 
-    * 
-    * @return clockSource
-    */
-   public String getClockSource() {
-      return fClockSource;
-   }
-
    /**
     * Adds variables to map for C++ generation
     * 

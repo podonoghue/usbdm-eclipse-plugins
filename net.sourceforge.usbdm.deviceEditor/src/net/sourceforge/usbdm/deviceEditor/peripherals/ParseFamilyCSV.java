@@ -303,17 +303,10 @@ public class ParseFamilyCSV {
          return;
       }
       String peripheralClockReg   = line[CLOCK_REG_COL];
-      
+
       String peripheralClockMask = null;
       if (line.length > CLOCK_MASK_COL) {
          peripheralClockMask = line[CLOCK_MASK_COL];
-      }
-      String clockSource = null;
-      if ((line.length > CLOCK_SOURCE_COL) && (line[CLOCK_SOURCE_COL].length() > 0)) {
-         clockSource = line[CLOCK_SOURCE_COL];
-         if (!clockSource.equals("SystemCoreClock") && !clockSource.equals("SystemBusClock")) {
-            throw new RuntimeException("Unexpected Clock Source " + clockSource + " for " + peripheralName);
-         }
       }
       if ((peripheralClockMask==null) || (peripheralClockMask.isEmpty())) {
          peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
@@ -327,7 +320,7 @@ public class ParseFamilyCSV {
             }
          }
       }
-      
+
       Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
       Matcher matcher = pattern.matcher(peripheralClockReg);
       if (!matcher.matches()) {
@@ -337,13 +330,12 @@ public class ParseFamilyCSV {
       if (!peripheralClockMask.contains(peripheralClockReg)) {
          throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
       }
-         peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
-         peripheral.setClockSource(clockSource);
-         for (int index=0; index<irqNums.length; index++) {
-            if (irqNums[index] != null) {
-               peripheral.addIrqNum(irqNums[index]);
-            }
+      peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
+      for (int index=0; index<irqNums.length; index++) {
+         if (irqNums[index] != null) {
+            peripheral.addIrqNum(irqNums[index]);
          }
+      }
    }
 
    /**
