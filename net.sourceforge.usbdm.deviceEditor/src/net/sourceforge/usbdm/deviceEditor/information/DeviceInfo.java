@@ -56,6 +56,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForShared;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSim;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
@@ -1118,8 +1119,11 @@ public class DeviceInfo extends ObservableModel {
                "(TPM)_()(CLKIN\\d+)",
                getDeviceFamily(),
                WriterForShared.class);
-         
-         
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(SIM)",
+               getDeviceFamily(),
+               WriterForSim.class);
          
          createPeripheralTemplateInformation(
                "FLEXIO", "", "",
@@ -1472,7 +1476,8 @@ public class DeviceInfo extends ObservableModel {
       }
       // Save variables
       for (String key:fVariables.keySet()) {
-         settings.put(key, getVariableValue(key));
+         // TODO
+         settings.put(key, fVariables.get(key).getRawValueAsString());
       }
       try {
          settings.save(fProjectSettingsPath.toAbsolutePath().toString());

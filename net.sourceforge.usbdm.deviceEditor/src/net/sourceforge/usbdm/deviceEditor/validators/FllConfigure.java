@@ -271,17 +271,21 @@ class FllConfigure {
             mcg_c4_drst_drs_calc = probe-1;
          }         
       }
-      StringBuilder sb = new StringBuilder();
-      Severity severity;
+      StringBuilder sb       = new StringBuilder();
+      Severity      severity = Severity.OK;
       if (mcg_c4_drst_drs_calc >= 0) {
          // Adjust rounded value
          fllTargetFrequency = fllOutFrequency*(mcg_c4_drst_drs_calc+1);
-         severity = Severity.OK;
       }
       else {
          mcg_c4_drst_drs_calc = 0;
-         sb.append("Not possible to generate desired FLL frequency from input clock\n");
-         severity = Severity.WARNING;
+         if (fllTargetFrequencyVar.isEnabled()) {
+            sb.append("Not possible to generate desired FLL frequency from input clock\n");
+            severity = Severity.WARNING;
+         }
+      }
+      if (!fllTargetFrequencyVar.isEnabled()) {
+         sb.append("FLL is disabled\n");
       }
       boolean needComma = false;
       for (Long freq : fllFrequencies) {
@@ -295,7 +299,12 @@ class FllConfigure {
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
       status = new Message (sb.toString(), severity);
-      fllTargetFrequencyVar.setValue(fllTargetFrequency);
+      if (fllTargetFrequencyVar.isEnabled()) {
+         fllTargetFrequencyVar.setValue(fllTargetFrequency);
+      }
+      else {
+         
+      }
       fllTargetFrequencyVar.setStatus(status);
       mcg_c4_drst_drs = mcg_c4_drst_drs_calc;
    }

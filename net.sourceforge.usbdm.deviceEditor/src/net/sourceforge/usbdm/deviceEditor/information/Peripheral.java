@@ -661,7 +661,7 @@ public abstract class Peripheral {
       }
       pinMappingHeaderFile.write(String.format(
             indent+"   //! Number of signals available in info table\n"+
-            indent+"   static constexpr int NUM_SIGNALS  = %d;\n" +
+            indent+"   static constexpr int numSignals  = %d;\n" +
             "\n",
             signalTable.table.size()));
       pinMappingHeaderFile.write(String.format(

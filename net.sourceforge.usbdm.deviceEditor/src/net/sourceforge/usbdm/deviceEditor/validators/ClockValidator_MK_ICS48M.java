@@ -47,6 +47,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          "/OSC0/osc32kclk_clock",
          OscValidate.OSC_RANGE_KEY,
          "/OSC0/range",
+         "/SIM/sim_sopt2_pllfllsel"
    };
 
    public ClockValidator_MK_ICS48M(PeripheralWithState peripheral, ArrayList<Object> values) {
@@ -199,9 +200,9 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       //=================================
       Variable     rtcclk_clockNode                 =  getVariable("/RTC/rtcclk_clock");
       Variable     rtc_cr_clkoNode                  =  getVariable("/RTC/rtc_cr_clko");
-      Variable     sim_sopt1_osc32kselNode          =  getVariable("sim_sopt1_osc32ksel");
+      Variable     sim_sopt1_osc32kselNode          =  getVariable("/SIM/sim_sopt1_osc32ksel");
       Variable     system_erclk32k_clockNode        =  getVariable("system_erclk32k_clock");
-      Variable     sim_sopt2_rtcclkoutselNode       =  getVariable("sim_sopt2_rtcclkoutsel");
+      Variable     sim_sopt2_rtcclkoutselNode       =  getVariable("/SIM/sim_sopt2_rtcclkoutsel");
       Variable     system_rtc_clkoutNode            =  getVariable("system_rtc_clkout");
 
       // Clocks and information from main oscillator
@@ -240,7 +241,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       Variable     mcg_c6_vdiv0Node                 =  getVariable("mcg_c6_vdiv0");
 
       //=================================
-      Variable     sim_sopt2_pllfllselNode          =  getVariable("sim_sopt2_pllfllsel");
+      Variable     sim_sopt2_pllfllselNode          =  getVariable("/SIM/sim_sopt2_pllfllsel");
       Variable     system_peripheral_clockNode      =  getVariable("system_peripheral_clock");
       Variable     system_mcgout_clock_sourceNode   =  getVariable("system_mcgout_clock_source");
       Variable     system_mcgout_clockNode          =  getVariable("system_mcgout_clock");
@@ -256,10 +257,10 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       Variable     mcg_c2_lpNode                    =  getVariable("mcg_c2_lp");
       Variable     mcg_c6_pllsNode                  =  getVariable("mcg_c6_plls");
                                                         
-      Variable     sim_clkdiv1_outdiv1Node          =  getVariable("sim_clkdiv1_outdiv1");
-      Variable     sim_clkdiv1_outdiv2Node          =  getVariable("sim_clkdiv1_outdiv2");
-      Variable     sim_clkdiv1_outdiv3Node          =  safeGetVariable("sim_clkdiv1_outdiv3");
-      Variable     sim_clkdiv1_outdiv4Node          =  getVariable("sim_clkdiv1_outdiv4");
+      Variable     sim_clkdiv1_outdiv1Node          =  getVariable("/SIM/sim_clkdiv1_outdiv1");
+      Variable     sim_clkdiv1_outdiv2Node          =  getVariable("/SIM/sim_clkdiv1_outdiv2");
+      Variable     sim_clkdiv1_outdiv3Node          =  safeGetVariable("/SIM/sim_clkdiv1_outdiv3");
+      Variable     sim_clkdiv1_outdiv4Node          =  getVariable("/SIM/sim_clkdiv1_outdiv4");
       
       // Main clock mode
       //====================
@@ -624,15 +625,17 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       
       // Find PLLFLLCLOCK
       //=====================================
-      if (sim_sopt2_pllfllselNode.getValueAsBoolean()) {
-         system_peripheral_clockNode.setValue(pllTargetFrequencyNode.getValueAsLong());
-         system_peripheral_clockNode.setStatus(pllTargetFrequencyNode.getStatus());
-         system_peripheral_clockNode.setOrigin(pllTargetFrequencyNode.getOrigin());
-      }
-      else {
+      switch ((int)sim_sopt2_pllfllselNode.getValueAsLong()) {
+      case 0:
          system_peripheral_clockNode.setValue(fllTargetFrequencyNode.getValueAsLong());
          system_peripheral_clockNode.setStatus(fllTargetFrequencyNode.getStatus());
          system_peripheral_clockNode.setOrigin(fllTargetFrequencyNode.getOrigin());
+         break;
+      case 1:
+         system_peripheral_clockNode.setValue(pllTargetFrequencyNode.getValueAsLong());
+         system_peripheral_clockNode.setStatus(pllTargetFrequencyNode.getStatus());
+         system_peripheral_clockNode.setOrigin(pllTargetFrequencyNode.getOrigin());
+         break;
       }
       
       // Core Clock

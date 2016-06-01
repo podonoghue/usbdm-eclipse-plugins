@@ -130,6 +130,13 @@ public abstract class Variable extends ObservableModel {
    public abstract void setValueQuietly(Object value);
 
    /**
+    * Get the variable value as a string for use in saving state
+    * 
+    * @return the Value
+    */
+   public abstract String getRawValueAsString();
+
+   /**
     * Sets variable default value
     * 
     * @param value The value to set
@@ -147,6 +154,11 @@ public abstract class Variable extends ObservableModel {
       return String.format(getSimpleClassName()+"(Name=%s, Key=%s, value=%s (%s)", getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
+   /**
+    * Set error status of variable
+    * 
+    * @param message
+    */
    public void setStatus(String message) {
       if ((fStatus != null) && (message != null) && fStatus.equals(message)) {
          // No significant change
@@ -160,6 +172,11 @@ public abstract class Variable extends ObservableModel {
       }
    }
 
+   /**
+    * Set status of variable
+    * 
+    * @param message
+    */
    public void setStatus(Message message) {
       if ((fStatus == null) && (message == null)) {
          // No change
@@ -174,6 +191,11 @@ public abstract class Variable extends ObservableModel {
       notifyListeners();
    }
    
+   /**
+    * Get status of variable
+    * 
+    * @return
+    */
    public Message getStatus() {
       return fStatus;
    }
@@ -338,6 +360,12 @@ public abstract class Variable extends ObservableModel {
       return (sb.length()==0)?null:sb.toString();
    }
 
+   /**
+    * Creates model for displaying this variable
+    * 
+    * @param parent
+    * @return
+    */
    public abstract VariableModel createModel(BaseModel parent);
 
 //   /**

@@ -3,22 +3,22 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 
 /**
- * Class encapsulating the code for writing an instance of MCG
+ * Class encapsulating the code for writing an instance of UART
  */
-public class WriterForMcg extends PeripheralWithState {
+public class WriterForSim extends PeripheralWithState {
 
-   public WriterForMcg(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForSim(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
 
    @Override
    public String getTitle() {
-      return "Multipurpose Clock Generator";
+      return "System Integration Module";
    }
-   
+
    @Override
    public int getPriority() {
-      return 900;
+      return 1000;
    }
 
 }

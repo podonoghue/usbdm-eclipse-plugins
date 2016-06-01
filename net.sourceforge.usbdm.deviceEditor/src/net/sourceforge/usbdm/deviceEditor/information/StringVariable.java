@@ -55,4 +55,9 @@ public class StringVariable extends Variable {
    public void setValueQuietly(Object value) {
       fValue = value.toString();
    }
+
+   @Override
+   public String getRawValueAsString() {
+      return fValue;
+   }
 }

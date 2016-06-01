@@ -84,6 +84,12 @@ public class LongVariable extends Variable {
       fDefault = translate(value);
    }
 
+   /**
+    * Convert object to required type
+    * 
+    * @param value
+    * @return
+    */
    public long translate(Object value) {
       if (value instanceof Long) {
          return (Long) value;
@@ -243,5 +249,13 @@ public class LongVariable extends Variable {
    @Override
    public void setValueQuietly(Object value) {
       fValue = translate(value);
+   }
+
+   @Override
+   public String getRawValueAsString() {
+      if (getUnits() != Units.None) {
+         return EngineeringNotation.convert(fValue, 5)+getUnits().toString();
+      }
+      return Long.toString(fValue);
    }
 }

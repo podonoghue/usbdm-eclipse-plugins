@@ -66,7 +66,6 @@ public class ProcessProjectActions {
                   return new Result(projectActionList.applies(variableMap)?Status.CONTINUE:Status.PRUNE);
                }
                else if (action instanceof ProjectCustomAction) {
-                  
                   ProjectCustomAction customAction = (ProjectCustomAction) action;
                   Class<?> actionClass = Class.forName(customAction.getclassName());
                   Object clsInstance = actionClass.newInstance();

@@ -42,6 +42,12 @@ public class BooleanVariable extends Variable {
       return true;
    }
    
+   /**
+    * Convert object to required type
+    * 
+    * @param value
+    * @return
+    */
    private boolean translate(Object value) {
       if (value instanceof Boolean) {
          return (Boolean)value;
@@ -135,5 +141,10 @@ public class BooleanVariable extends Variable {
    @Override
    public void setValueQuietly(Object value) {
       fValue = translate(value);
+   }
+
+   @Override
+   public String getRawValueAsString() {
+      return Boolean.toString(fValue);
    }
 }

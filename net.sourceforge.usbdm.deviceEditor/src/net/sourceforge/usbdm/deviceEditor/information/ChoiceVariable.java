@@ -53,6 +53,12 @@ public class ChoiceVariable extends Variable {
       fdefault = translate(value); 
    }
    
+   /**
+    * Convert object to required type
+    * 
+    * @param value
+    * @return
+    */
    public String translate(Object value) {
       if (value instanceof String) {
          return (String)value;
@@ -170,5 +176,10 @@ public class ChoiceVariable extends Variable {
    @Override
    public void setValueQuietly(Object value) {
       fValue = translate(value);
+   }
+
+   @Override
+   public String getRawValueAsString() {
+      return fValue;
    }
 }

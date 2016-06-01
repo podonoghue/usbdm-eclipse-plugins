@@ -172,7 +172,9 @@ public class PllConfigure {
             if (pllTargetFrequency != nearest_PllOutFrequency) {
                // Update PLL as it was approximated
                pllTargetFrequency = nearest_PllOutFrequency;
-               pllTargetFrequencyNode.setValue(pllTargetFrequency);
+               if (pllTargetFrequencyNode.isEnabled()) {
+                  pllTargetFrequencyNode.setValue(pllTargetFrequency);
+               }
             }
          }
          status.append("Possible values = \n");

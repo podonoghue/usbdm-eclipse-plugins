@@ -171,10 +171,10 @@ public class WriteFamilyCpp {
             "/** Class to static check signal mapping is valid */\n"+
             "template<class Info, int signalNum> class CheckSignal {\n"+
             "#ifdef DEBUG_BUILD\n"+
-            "   static_assert((signalNum<Info::NUM_SIGNALS), \"Non-existent signal - Modify Configure.usbdm\");\n"+
-            "   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), \"Signal is not mapped to a pin - Modify Configure.usbdm\");\n"+
-            "   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != INVALID_PCR),  \"Signal doesn't exist in this device/package\");\n"+
-            "   static_assert((signalNum>=Info::NUM_SIGNALS)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), \"Illegal signal\");\n"+
+            "   static_assert((signalNum<Info::numSignals), \"Non-existent signal - Modify Configure.usbdm\");\n"+
+            "   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), \"Signal is not mapped to a pin - Modify Configure.usbdm\");\n"+
+            "   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != INVALID_PCR),  \"Signal doesn't exist in this device/package\");\n"+
+            "   static_assert((signalNum>=Info::numSignals)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), \"Illegal signal\");\n"+
             "#endif\n"+
             "};\n\n"
             );
