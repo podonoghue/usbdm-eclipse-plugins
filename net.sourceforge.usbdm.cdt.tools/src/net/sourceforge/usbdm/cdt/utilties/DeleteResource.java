@@ -33,7 +33,11 @@ public class DeleteResource {
     */
    public void process(IProject projectHandle, Map<String,String> variableMap, DeleteResourceAction resourceInfo, IProgressMonitor monitor) 
       throws Exception {
-      
+      if (projectHandle == null) {
+         // For debug
+         System.err.println("Debug: "+resourceInfo);
+         return;
+      }
       String root   = MacroSubstitute.substitute(resourceInfo.getRoot(),   variableMap);
       String target = MacroSubstitute.substitute(resourceInfo.getTarget(), variableMap);
       root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root);

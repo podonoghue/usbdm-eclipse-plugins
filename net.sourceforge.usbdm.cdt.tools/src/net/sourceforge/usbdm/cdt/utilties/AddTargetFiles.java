@@ -217,6 +217,11 @@ public class AddTargetFiles {
       /*
        * Do macro substitution on path using project wizard variables
        */
+      if (projectHandle == null) {
+         // For debug
+         System.err.println("Debug: "+fileInfo);
+         return;
+      }
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
