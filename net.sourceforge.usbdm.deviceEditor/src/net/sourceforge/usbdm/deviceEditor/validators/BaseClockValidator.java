@@ -18,6 +18,8 @@ public abstract class BaseClockValidator extends Validator {
       return s.substring(index+1, s.length());
    }
    
+//   HashSet<Variable> varModified = new HashSet<Variable>();
+   
    /**
     * =============================================================
     */
@@ -27,6 +29,10 @@ public abstract class BaseClockValidator extends Validator {
 
    @Override
    public boolean variableChanged(Variable variable) {
+      int iterationCount = 0;
+//      if (!varModified.add(variable)) {
+//         System.err.println(Integer.toString(iterationCount)+getSimpleClassName()+".variableChanged("+variable+") variable already changed " + variable);
+//      }
 //      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       if (busy) {
          recursed = true;
@@ -35,7 +41,6 @@ public abstract class BaseClockValidator extends Validator {
          return true;
       }
       busy = true;
-      int iterationCount = 0;
       do {
          recursed = false;
          validate();

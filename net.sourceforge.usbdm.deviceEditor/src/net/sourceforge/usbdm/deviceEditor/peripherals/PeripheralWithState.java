@@ -232,7 +232,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               if (isCTrueValue("IRQ"+m.group(1)+"_HANDLER")) {
+               if (isCTrueValue("irq"+m.group(1)+"Handler")) {
                   entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
                   entry.setClassMemberUsedAsHandler(true);
                   handlerSet = true;

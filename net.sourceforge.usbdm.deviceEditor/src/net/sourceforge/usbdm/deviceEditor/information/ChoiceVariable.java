@@ -16,7 +16,7 @@ public class ChoiceVariable extends Variable {
    String fValue = null;
 
    /** Default value of variable */
-   private String fdefault = null;
+   private String fDefault = null;
    
    /**
     * Constructor
@@ -43,6 +43,11 @@ public class ChoiceVariable extends Variable {
          System.err.println("Warning value is not valid "+this+", "+value);
          value = fChoices[0];
       }
+      if (value.equalsIgnoreCase("Reserved") ||
+          value.equalsIgnoreCase("Default")) {
+         // Quietly remove reserved values
+         value = fDefault;
+      }
       fValue = value;
       notifyListeners();
       return false;
@@ -50,7 +55,11 @@ public class ChoiceVariable extends Variable {
 
    @Override
    public void setDefault(Object value) {
-      fdefault = translate(value); 
+//      System.err.println("Setting default for " + getName() + " of " + value.toString());
+      if (fDefault != null) {
+         throw new RuntimeException("Default already set for " + getName() + ", " + value.toString());
+      }
+      fDefault = translate(value); 
    }
    
    /**
@@ -63,21 +72,44 @@ public class ChoiceVariable extends Variable {
       if (value instanceof String) {
          return (String)value;
       }
+      // Treat as index into values
+      int index = -1;
       if (value instanceof Long) {
-         // Treat as index into values
-         return fData[((Long)value).intValue()].name;
+         index = ((Long)value).intValue();
       }
-      if (value instanceof Integer) {
-         // Treat as index into values
-         return fData[(Integer)value].name;
+      else if (value instanceof Integer) {
+         index = (Integer)value;
       }
-      if (value instanceof Boolean) {
-         // Treat as index into first two values
-         return fData[(Boolean)value?1:0].name;
+      else if (value instanceof Boolean) {
+         index = (Boolean)value?1:0;
       }
-      throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable");
+      else {
+         throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Not compatible with ChoiceVariable " + getName());
+      }
+      if ((index<0) || (index>=fChoices.length)) {
+         throw new RuntimeException("Object "+ value + "(" + ((value!=null)?value.getClass():"null")+") Produces invalid index for ChoiceVariable " + getName());
+      }
+      return fData[index].name;
    }
 
+   /**
+    * Set value based on Raw value i.e. Substitution value rather than user value
+    */
+   public void setRawValue(int pllCalcValue) {
+      String value = Integer.toString(pllCalcValue);
+      int res = -1;
+      for (int index=0; index<fData.length; index++) {
+         if (fData[index].value.equalsIgnoreCase(value)) {
+            res = index;
+            break;
+         }
+      }
+      if (res<0) {
+         throw new RuntimeException(pllCalcValue + " is not compatible with ChoiceVariable " + getName());
+      }
+      fValue = fData[res].name;
+   }
+   
    @Override
    public boolean setValue(Object value) {
       return setValue(translate(value));
@@ -90,7 +122,7 @@ public class ChoiceVariable extends Variable {
     */
    @Override
    public long getValueAsLong() {
-      return getIndex();
+      return getIndex(getValueAsString());
    }
    
    /**
@@ -105,7 +137,10 @@ public class ChoiceVariable extends Variable {
          if (fValue == null) {
             // Value not set yet - set default
             fValue   = fChoices[0];
-            fdefault = fValue;
+         }
+         if (fDefault == null) {
+            // Default not set yet - set default
+            fDefault = fValue;
          }
       }
       return fChoices;
@@ -127,7 +162,7 @@ public class ChoiceVariable extends Variable {
 
    @Override
    public String getValueAsString() {
-      return isEnabled()?fValue:fdefault;
+      return isEnabled()?fValue:fDefault;
    }
 
    /**
@@ -135,9 +170,9 @@ public class ChoiceVariable extends Variable {
     * 
     * @return index or -1 if not found
     */
-   private int getIndex() {
+   private int getIndex(String name) {
       for (int index=0; index<fData.length; index++) {
-         if (fData[index].name.equalsIgnoreCase(getValueAsString())) {
+         if (fData[index].name.equalsIgnoreCase(name)) {
             return index;
          }
       }
@@ -146,7 +181,7 @@ public class ChoiceVariable extends Variable {
    
    @Override
    public String getSubstitutionValue() {
-      int index = getIndex();
+      int index = getIndex(getValueAsString());
       if (index<0) {
          return "["+getValueAsString()+" not found]";
       }

@@ -38,10 +38,10 @@ namespace USBDM {
 /** Class to static check signal mapping is valid */
 template<class Info, int signalNum> class CheckSignal {
 #ifdef DEBUG_BUILD
-   static_assert((signalNum<Info::NUM_SIGNALS), "Non-existent signal - Modify Configure.usbdm");
-   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), "Signal is not mapped to a pin - Modify Configure.usbdm");
-   static_assert((signalNum>=Info::NUM_SIGNALS)||(Info::info[signalNum].gpioBit != INVALID_PCR),  "Signal doesn't exist in this device/package");
-   static_assert((signalNum>=Info::NUM_SIGNALS)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), "Illegal signal");
+   static_assert((signalNum<Info::numSignals), "Non-existent signal - Modify Configure.usbdm");
+   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), "Signal is not mapped to a pin - Modify Configure.usbdm");
+   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != INVALID_PCR),  "Signal doesn't exist in this device/package");
+   static_assert((signalNum>=Info::numSignals)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), "Illegal signal");
 #endif
 };
 
@@ -80,10 +80,10 @@ public:
    // Template:adc0_diff_a
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = false;
+   static constexpr bool irqHandlerInstalled = true;
 
    //! Default value for ADCx_CFG1 register
-   static constexpr uint32_t CFG1  = 
+   static constexpr uint32_t cfg1  = 
        ADC_CFG1_ADICLK(0)|
        ADC_CFG1_MODE(2)|
        ADC_CFG1_ADLSMP(0)|
@@ -91,13 +91,14 @@ public:
        ADC_CFG1_ADLPC(0);
 
    //! Default value for ADCx_CFG2 register
-    static constexpr uint32_t CFG2  = 
+    static constexpr uint32_t cfg2  = 
        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
        ADC_CFG2_ADLSTS(0)|
        ADC_CFG2_ADHSC(0)|
        ADC_CFG2_ADACKEN(0);
 
-   static constexpr uint32_t SC2  =
+   //! Default value for ADCx_SC2 register
+   static constexpr uint32_t sc2  =
        ADC_SC2_REFSEL(0)|
        ADC_SC2_DMAEN(0)|
        ADC_SC2_ACREN(0b000)|
@@ -107,7 +108,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 24;
+   static constexpr int numSignals  = 24;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -158,7 +159,7 @@ public:
    class InfoDP {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 4;
+      static constexpr int numSignals  = 4;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -187,7 +188,7 @@ public:
    class InfoDM {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 4;
+      static constexpr int numSignals  = 4;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -245,7 +246,7 @@ public:
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default value for ADCx_CFG1 register
-   static constexpr uint32_t CFG1  = 
+   static constexpr uint32_t cfg1  = 
        ADC_CFG1_ADICLK(0)|
        ADC_CFG1_MODE(2)|
        ADC_CFG1_ADLSMP(0)|
@@ -253,13 +254,14 @@ public:
        ADC_CFG1_ADLPC(0);
 
    //! Default value for ADCx_CFG2 register
-    static constexpr uint32_t CFG2  = 
+    static constexpr uint32_t cfg2  = 
        ADC_CFG2_MUXSEL_MASK | // Choose 'b' channels
        ADC_CFG2_ADLSTS(0)|
        ADC_CFG2_ADHSC(0)|
        ADC_CFG2_ADACKEN(0);
 
-   static constexpr uint32_t SC2  =
+   //! Default value for ADCx_SC2 register
+   static constexpr uint32_t sc2  =
        ADC_SC2_REFSEL(0)|
        ADC_SC2_DMAEN(0)|
        ADC_SC2_ACREN(0b000)|
@@ -269,7 +271,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 40;
+   static constexpr int numSignals  = 40;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -340,7 +342,7 @@ public:
    class InfoDP {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 1;
+      static constexpr int numSignals  = 1;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -366,7 +368,7 @@ public:
    class InfoDM {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 4;
+      static constexpr int numSignals  = 4;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -425,7 +427,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -471,7 +473,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -531,13 +533,13 @@ public:
    // Template:cmp0_pstm_trigm
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = false;
+   static constexpr bool irqHandlerInstalled = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! CMP Control Register 0
-   static constexpr uint32_t CMP_CR0 =
+   static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
       CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
@@ -546,7 +548,7 @@ public:
    #endif
 
    //! CMP Control Register 1
-   static constexpr uint32_t CMP_CR1 =
+   static constexpr uint32_t cr1 =
       CMP_CR1_SE(0)    | // Sample Enable
       CMP_CR1_WE(0)    | // Windowing Enable
       CMP_CR1_TRIGM(0) | // Trigger Mode Enable
@@ -557,11 +559,11 @@ public:
       CMP_CR1_EN(0);     // Comparator Module Enable
 
    //! CMP Filter Period Register
-   static constexpr uint32_t CMP_FPR =
+   static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -610,13 +612,13 @@ public:
    // Template:cmp0_pstm_trigm
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = false;
+   static constexpr bool irqHandlerInstalled = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! CMP Control Register 0
-   static constexpr uint32_t CMP_CR0 =
+   static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
       CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
@@ -625,7 +627,7 @@ public:
    #endif
 
    //! CMP Control Register 1
-   static constexpr uint32_t CMP_CR1 =
+   static constexpr uint32_t cr1 =
       CMP_CR1_SE(0)    | // Sample Enable
       CMP_CR1_WE(0)    | // Windowing Enable
       CMP_CR1_TRIGM(0) | // Trigger Mode Enable
@@ -636,11 +638,11 @@ public:
       CMP_CR1_EN(0);     // Comparator Module Enable
 
    //! CMP Filter Period Register
-   static constexpr uint32_t CMP_FPR =
+   static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -689,13 +691,13 @@ public:
    // Template:cmp0_pstm_trigm
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = false;
+   static constexpr bool irqHandlerInstalled = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! CMP Control Register 0
-   static constexpr uint32_t CMP_CR0 =
+   static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
       CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
@@ -704,7 +706,7 @@ public:
    #endif
 
    //! CMP Control Register 1
-   static constexpr uint32_t CMP_CR1 =
+   static constexpr uint32_t cr1 =
       CMP_CR1_SE(0)    | // Sample Enable
       CMP_CR1_WE(0)    | // Windowing Enable
       CMP_CR1_TRIGM(0) | // Trigger Mode Enable
@@ -715,11 +717,11 @@ public:
       CMP_CR1_EN(0);     // Comparator Module Enable
 
    //! CMP Filter Period Register
-   static constexpr uint32_t CMP_FPR =
+   static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -768,13 +770,13 @@ public:
    // Template:cmp0_pstm_trigm
 
    //! Indicates interrupt handler has been installed
-   static constexpr bool irqHandlerInstalled = false;
+   static constexpr bool irqHandlerInstalled = 0;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! CMP Control Register 0
-   static constexpr uint32_t CMP_CR0 =
+   static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
       CMP_CR0_HYSTCTR(0);         // Comparator hard block hysteresis control
 
@@ -783,7 +785,7 @@ public:
    #endif
 
    //! CMP Control Register 1
-   static constexpr uint32_t CMP_CR1 =
+   static constexpr uint32_t cr1 =
       CMP_CR1_SE(0)    | // Sample Enable
       CMP_CR1_WE(0)    | // Windowing Enable
       CMP_CR1_TRIGM(0) | // Trigger Mode Enable
@@ -794,11 +796,11 @@ public:
       CMP_CR1_EN(0);     // Comparator Module Enable
 
    //! CMP Filter Period Register
-   static constexpr uint32_t CMP_FPR =
+   static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -860,7 +862,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 1;
+   static constexpr int numSignals  = 1;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -902,7 +904,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 16;
+   static constexpr int numSignals  = 16;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1003,7 +1005,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {DAC0_IRQn, DAC0_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 1;
+   static constexpr int numSignals  = 1;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1051,7 +1053,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {DAC1_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 1;
+   static constexpr int numSignals  = 1;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1239,7 +1241,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {ENET_Transmit_IRQn, ENET_Receive_IRQn, ENET_Error_IRQn, ENET_1588Timeout_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 36;
+   static constexpr int numSignals  = 36;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1328,7 +1330,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1383,7 +1385,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 82;
+   static constexpr int numSignals  = 82;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1535,7 +1537,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1595,20 +1597,20 @@ public:
    // Template:ftm0_8ch
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        FTM_SC_CPWMS(0)|
        FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 8;
+   static constexpr int numSignals  = 8;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1639,7 +1641,7 @@ public:
    class InfoFAULT {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 4;
+      static constexpr int numSignals  = 4;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -1694,20 +1696,20 @@ public:
    // Template:ftm1_2ch
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        FTM_SC_CPWMS(0)|
        FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1732,7 +1734,7 @@ public:
    class InfoFAULT {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 1;
+      static constexpr int numSignals  = 1;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -1758,7 +1760,7 @@ public:
    class InfoQUAD {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 2;
+      static constexpr int numSignals  = 2;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -1811,20 +1813,20 @@ public:
    // Template:ftm1_2ch
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        FTM_SC_CPWMS(0)|
        FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1849,7 +1851,7 @@ public:
    class InfoFAULT {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 1;
+      static constexpr int numSignals  = 1;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -1875,7 +1877,7 @@ public:
    class InfoQUAD {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 2;
+      static constexpr int numSignals  = 2;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -1928,20 +1930,20 @@ public:
    // Template:ftm0_8ch
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        FTM_SC_CPWMS(0)|
        FTM_SC_TOIE((0|0))|
        FTM_SC_CLKS(1)|
        FTM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 8;
+   static constexpr int numSignals  = 8;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -1972,7 +1974,7 @@ public:
    class InfoFAULT {
    public:
       //! Number of signals available in info table
-      static constexpr int NUM_SIGNALS  = 1;
+      static constexpr int numSignals  = 1;
 
       //! Information for each signal of peripheral
       static constexpr PcrInfo  info[] = {
@@ -2190,7 +2192,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2248,7 +2250,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2302,7 +2304,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2356,7 +2358,7 @@ public:
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2414,7 +2416,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {I2S0_Tx_IRQn, I2S0_Rx_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2470,7 +2472,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 26;
+   static constexpr int numSignals  = 26;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2584,13 +2586,13 @@ public:
    // Template:lptmr0_0
 
    //! Default PSR value
-   static constexpr uint32_t PSR = 
+   static constexpr uint32_t psr = 
       LPTMR_PSR_PRESCALE(0)|
       LPTMR_PSR_PBYP(0)|
       LPTMR_PSR_PCS(0);
 
    //! Default CSR value
-   static constexpr uint32_t CSR = 
+   static constexpr uint32_t csr = 
       LPTMR_CSR_TIE(0)|
       LPTMR_CSR_TMS(0)|
       LPTMR_CSR_TFC(0)|
@@ -2598,13 +2600,13 @@ public:
       LPTMR_CSR_TPS(0);
 
    //! Default Timer period
-   static constexpr uint32_t PERIOD = 10000;
+   static constexpr uint32_t period = 10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 3;
+   static constexpr int numSignals  = 3;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2665,10 +2667,10 @@ public:
    // Template:lpuart0_0x400c4000
 
    //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = DDDD;
+   static constexpr uint32_t &clockSource = SystemPeripheralClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2748,56 +2750,56 @@ public:
    static constexpr uint32_t system_fast_irc_clock = 4000000UL;
 
    //! Control Register 1
-   static constexpr uint32_t MCG_C1 =
+   static constexpr uint32_t c1 =
       MCG_C1_FRDIV(3)   | // FRDIV    FLL External Reference Divider
       MCG_C1_IRCLKEN(1) | // IRCLEN   Internal Reference Clock Enable
       MCG_C1_IREFSTEN(0); // IREFSTEN Internal Reference Stop Enable
 
    //! Control Register 2
-   static constexpr uint32_t MCG_C2 =
+   static constexpr uint32_t c2 =
       MCG_C2_LOCRE0(0) | // LOLRE0  Loss of Clock Reset Enable
-      MCG_C2_RANGE0(1) | // RANGE   Frequency Range Select
+      MCG_C2_RANGE0(2) | // RANGE   Frequency Range Select
       MCG_C2_HGO0(0)   | // HGO     High Gain Oscillator Select
       MCG_C2_EREFS0(1) | // EREFS   External Reference Select
       MCG_C2_IRCS(0);    // IRCS    Internal Reference Clock Select
 
    //! Control Register 4
-   static constexpr uint32_t MCG_C4 =
+   static constexpr uint32_t c4 =
       MCG_C4_DMX32(0)     | // DMX32    DCO lock range
       MCG_C4_DRST_DRS(0);   // DRST_DRS DCO Range Select
 
    //! Control Register 5
-   static constexpr uint32_t MCG_C5 =
+   static constexpr uint32_t c5 =
       MCG_C5_PLLCLKEN0(0)  | // PLLCLKEN0 PLL Clock Enable
       MCG_C5_PLLSTEN0(0)   | // PLLSTEN0  PLL Stop Enable
       MCG_C5_PRDIV0(0);     // PRDIV0    PLL External Reference Divider
 
    //! Control Register 6
-   static constexpr uint32_t MCG_C6 =
+   static constexpr uint32_t c6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
       MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(14);   // VDIV0  PLL VCO Divider
+      MCG_C6_VDIV0(0);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
-   static constexpr uint32_t MCG_SC =
+   static constexpr uint32_t sc =
       MCG_SC_FCRDIV(0); // FCRDIV Internal Clock Reference Divider
 
    //! Control Register 7
-   static constexpr uint32_t MCG_C7 =
+   static constexpr uint32_t c7 =
       MCG_C7_OSCSEL(0); // OSCSEL MCG OSC Clock Select
 
    //! Control Register 8
-   static constexpr uint32_t MCG_C8 =
+   static constexpr uint32_t c8 =
       MCG_C8_LOCRE1(0) | // LOCRE1 RTC Loss of Clock Reset Enable
       MCG_C8_LOLRE(0)  | // LOLRE  PLL Loss of Lock Reset Enable
       MCG_C8_CME1(0);    // CME1   Clock Monitor Enable 1
 
    //! Control Register 9
-   static constexpr uint32_t MCG_C9 =
+   static constexpr uint32_t c9 =
       MCG_C9_PLL_CME(0)   | // PLL_CME MCG External PLL Clock Monitor Enable
       MCG_C9_PLL_LOCRE(0);  // PLL_LOCRE   MCG External PLL Loss of Clock Reset Enable
    //! Control Register 11
-   static constexpr uint32_t MCG_C11 =
+   static constexpr uint32_t c11 =
       MCG_C11_PLLCS(0); // PLLCS PLL Clock Select
 };
 
@@ -2857,22 +2859,22 @@ public:
    // Template:osc0_div
 
    //! Frequency of OSC Clock or Crystal
-   static constexpr uint32_t oscclk_clock = 8000000UL;
+   static constexpr uint32_t oscclk_clock = 12000000UL;
 
    //! Frequency of 32K OSC Clock or Crystal (if applicable)
-   static constexpr uint32_t osc32kclk_clock = 8000000UL;
+   static constexpr uint32_t osc32kclk_clock = 0UL;
 
    //! Oscillator control register
-   static constexpr uint32_t OSC_CR =
+   static constexpr uint32_t cr =
       OSC_CR_ERCLKEN(1) |
       OSC_CR_EREFSTEN(0) |
       OSC_CR_SCP(2);
 
    //! OSC Clock divider register
-   static constexpr uint32_t OSC_DIV =
-      OSC_DIV_ERPS(2);   
+   static constexpr uint32_t div =
+      OSC_DIV_ERPS(0);   
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2934,7 +2936,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {PDB0_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 1;
+   static constexpr int numSignals  = 1;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -2994,7 +2996,7 @@ public:
       10000;
 
    //! PIT operation in debug mode
-   static constexpr uint32_t mcrValue = 
+   static constexpr uint32_t mcr = 
       PIT_MCR_FRZ(0);
 
    //! Default IRQ level
@@ -3021,7 +3023,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 27;
+   static constexpr int numSignals  = 27;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3144,7 +3146,7 @@ public:
    static constexpr uint32_t rtcclk_clock = 32768UL;
 
    //! Oscillator control register
-   static constexpr uint32_t RTC_CR =
+   static constexpr uint32_t cr =
       RTC_CR_OSCE(1) | // Enables 32kHz oscillator [RTC_32K]
       RTC_CR_CLKO(0) | // Disables RTC 32kHz Clock Output
       RTC_CR_UM(0)   | // Update Mode
@@ -3153,7 +3155,7 @@ public:
       RTC_CR_SCP(2);   // RTC Oscillator load capacitance
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 5;
+   static constexpr int numSignals  = 5;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3216,7 +3218,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {SDHC_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 11;
+   static constexpr int numSignals  = 11;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3280,7 +3282,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 74;
+   static constexpr int numSignals  = 74;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3400,33 +3402,31 @@ public:
    // Template:sim_mk65f18
 
    //! System Options Register 1
-   static constexpr uint32_t sim_sopt1 = 
-      SIM_SOPT1_OSC32KSEL(3); // 32K oscillator clock select
+   static constexpr uint32_t sopt1 = 
+      SIM_SOPT1_OSC32KSEL(2); // 32K oscillator clock select
 
    //! System Options Register 2
-   static constexpr uint32_t sim_sopt2 = 
-      SIM_SOPT2_RTCCLKOUTSEL(0) | // RTC clock out select
+   static constexpr uint32_t sopt2 = 
+      SIM_SOPT2_RTCCLKOUTSEL(1) | // RTC clock out select
       SIM_SOPT2_LPUARTSRC(1) |    // LPUART clock source select
       SIM_SOPT2_TPMSRC(1) |       // TPM clock source select
-      SIM_SOPT2_USBSRC(1) |       // USB clock source select
-      SIM_SOPT2_PLLFLLSEL(3);     // PLL/FLL clock select
+      SIM_SOPT2_USBSRC(0) |       // USB clock source select
+      SIM_SOPT2_PLLFLLSEL(1);     // PLL/FLL clock select
 
    //! System Clock Divider Register 1
-   static constexpr uint32_t sim_clkdiv1 = 
-      SIM_CLKDIV1_OUTDIV4(5)|  // Core/system clock
-   #ifdef SIM_CLKDIV1_OUTDIV3
-      SIM_CLKDIV1_OUTDIV3(1)|  // FlexBus clock (if present)
-   #endif
-      SIM_CLKDIV1_OUTDIV2(1)|  // Bus clock
-      SIM_CLKDIV1_OUTDIV1(1);  // Core/system clock 
+   static constexpr uint32_t clkdiv1 = 
+      SIM_CLKDIV1_OUTDIV4(15)|  // Core/system clock
+      SIM_CLKDIV1_OUTDIV3(15)|  // FlexBus clock
+      SIM_CLKDIV1_OUTDIV2(15)|  // Bus clock
+      SIM_CLKDIV1_OUTDIV1(15);  // Core/system clock 
 
    //! System Clock Divider Register 2
-   static constexpr uint32_t sim_clkdiv2 = 
-      6;  // USB clock divider divisor & fraction 
+   static constexpr uint32_t clkdiv2 = 
+      1;  // USB clock divider divisor & fraction 
 
    //! System Clock Divider Register 3
-   static constexpr uint32_t sim_clkdiv3 = 
-      14;  // PLLFLL clock divider divisor & fraction 
+   static constexpr uint32_t clkdiv3 = 
+      12;  // PLLFLL clock divider divisor & fraction 
 
 };
 
@@ -3467,16 +3467,17 @@ public:
 
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = 
-      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
-
+   static constexpr uint32_t ctar = 
+      SPI_CTAR_LSBFE(0)| // LSB or MSB first
+      SPI_CTAR_CPHA(1);   // Mode (CPOL+CPHA)
 #endif
+
    //! Default speed (Hz)
    static constexpr uint32_t speed = 
       100000;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 9;
+   static constexpr int numSignals  = 9;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3535,16 +3536,17 @@ public:
 
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = 
-      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
-
+   static constexpr uint32_t ctar = 
+      SPI_CTAR_LSBFE(0)| // LSB or MSB first
+      SPI_CTAR_CPHA(2);   // Mode (CPOL+CPHA)
 #endif
+
    //! Default speed (Hz)
    static constexpr uint32_t speed = 
       100000;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 7;
+   static constexpr int numSignals  = 7;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3607,16 +3609,17 @@ public:
 
 #ifdef SPI_CTAR_LSBFE_SHIFT
    //! Default communication mode: order, clock phase and clock polarity
-   static constexpr uint32_t modeValue = 
-      (0<<SPI_CTAR_LSBFE_SHIFT)|(1<<SPI_CTAR_CPHA_SHIFT);
-
+   static constexpr uint32_t ctar = 
+      SPI_CTAR_LSBFE(0)| // LSB or MSB first
+      SPI_CTAR_CPHA(1);   // Mode (CPOL+CPHA)
 #endif
+
    //! Default speed (Hz)
    static constexpr uint32_t speed = 
       100000;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 5;
+   static constexpr int numSignals  = 5;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3662,7 +3665,7 @@ public:
    static constexpr uint32_t pcrValue  = DEFAULT_PCR;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3722,19 +3725,19 @@ public:
    // Template:tpm1_2ch_quad
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        (0<<TPM_SC_TOIE_SHIFT)|
        TPM_SC_CMOD(1)|
        TPM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3785,19 +3788,19 @@ public:
    // Template:tpm1_2ch_quad
 
    //! Default value for SC register
-   static constexpr uint32_t SC  = 
+   static constexpr uint32_t sc  = 
        (0<<TPM_SC_TOIE_SHIFT)|
        TPM_SC_CMOD(1)|
        TPM_SC_PS(0);
 
    //! Default Timer Period
-   static constexpr uint32_t PERIOD =  10000;
+   static constexpr uint32_t period =  10000;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 2;
+   static constexpr int numSignals  = 2;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3855,7 +3858,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {TSI0_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 16;
+   static constexpr int numSignals  = 16;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3936,7 +3939,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 5;
+   static constexpr int numSignals  = 5;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -3997,7 +4000,7 @@ public:
    static constexpr uint32_t &clockSource = SystemCoreClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4053,7 +4056,7 @@ public:
    static constexpr uint32_t &clockSource = SystemBusClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4109,7 +4112,7 @@ public:
    static constexpr uint32_t &clockSource = SystemBusClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4165,7 +4168,7 @@ public:
    static constexpr uint32_t &clockSource = SystemBusClock;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4229,7 +4232,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {USB0_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 4;
+   static constexpr int numSignals  = 4;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4321,7 +4324,7 @@ public:
    static constexpr IRQn_Type irqNums[]  = {USBHS_IRQn};
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 5;
+   static constexpr int numSignals  = 5;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {
@@ -4379,7 +4382,7 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    //! Number of signals available in info table
-   static constexpr int NUM_SIGNALS  = 1;
+   static constexpr int numSignals  = 1;
 
    //! Information for each signal of peripheral
    static constexpr PcrInfo  info[] = {

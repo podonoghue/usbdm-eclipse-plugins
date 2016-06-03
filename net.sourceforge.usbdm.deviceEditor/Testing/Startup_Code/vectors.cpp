@@ -13,6 +13,7 @@
 #include "pin_mapping.h"
 
 /*********** $start(VectorsIncludeFiles) *** Do not edit after this comment ****************/
+#include "adc.h"
 /*********** $end(VectorsIncludeFiles)   *** Do not edit above this comment ***************/
 
 /*
@@ -337,7 +338,6 @@ void UART2_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART2_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void UART3_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART3_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
-void ADC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -463,7 +463,7 @@ VectorTable const __vector_table = {
       UART2_ERR_IRQHandler,          /*   52,   36  Serial Communication Interface                                                   */
       UART3_RX_TX_IRQHandler,        /*   53,   37  Serial Communication Interface                                                   */
       UART3_ERR_IRQHandler,          /*   54,   38  Serial Communication Interface                                                   */
-      ADC0_IRQHandler,               /*   55,   39  Analogue to Digital Converter                                                    */
+      USBDM::Adc0::irqHandler,       /*   55,   39  Analogue to Digital Converter                                                    */
       CMP0_IRQHandler,               /*   56,   40  High-Speed Comparator                                                            */
       CMP1_IRQHandler,               /*   57,   41  High-Speed Comparator                                                            */
       FTM0_IRQHandler,               /*   58,   42  FlexTimer Module                                                                 */

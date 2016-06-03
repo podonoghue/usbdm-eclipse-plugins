@@ -76,33 +76,36 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parse &lt;intOption&gt; element<br>
     * 
-    * @param longElement
+    * @param varElement
     */
-   private void parseLongOption(BaseModel parent, Element longElement) {
+   private void parseLongOption(BaseModel parent, Element varElement) {
 
-      String  name        = longElement.getAttribute("name");
-      String  key         = longElement.getAttribute("key");
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
-      boolean isConstant  = Boolean.valueOf(longElement.getAttribute("constant"));
-      String  description = longElement.getAttribute("description");
-      String  toolTip     = getToolTip(longElement);
-      long    step        = getLongAttribute(longElement, "step");
-      long    offset      = getLongAttribute(longElement, "offset");
-      String  value       = longElement.getAttribute("value");
-      String  units       = longElement.getAttribute("units");
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  toolTip     = getToolTip(varElement);
+      long    step        = getLongAttribute(varElement, "step");
+      long    offset      = getLongAttribute(varElement, "offset");
+      String  value       = varElement.getAttribute("value");
+      String  units       = varElement.getAttribute("units");
       
       LongVariable variable = new LongVariable(name, key);
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
       try {
-         variable.setMin(getLongAttribute(longElement, "min"));
+         variable.setMin(getLongAttribute(varElement, "min"));
       } catch( NumberFormatException e) {
       }
       try {
-         variable.setMax(getLongAttribute(longElement, "max"));
+         variable.setMax(getLongAttribute(varElement, "max"));
       } catch( NumberFormatException e) {
       }
       variable.setValue(value);
@@ -117,54 +120,59 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
-    * @param choiceElement
+    * @param varElement
     * @throws Exception 
     */
-   private void parseChoiceOption(BaseModel parent, Element choiceElement) throws Exception {
-      String  name        = choiceElement.getAttribute("name");
-      String  key         = choiceElement.getAttribute("key");
+   private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
-      boolean isConstant  = Boolean.valueOf(choiceElement.getAttribute("constant"));
-      String  description = choiceElement.getAttribute("description");
-      String  toolTip     = getToolTip(choiceElement);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  toolTip     = getToolTip(varElement);
 
       Variable variable = new ChoiceVariable(name, key);
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
-      parseChoices(variable, choiceElement);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      parseChoices(variable, varElement);
 
       ChoiceVariableModel model = new ChoiceVariableModel(parent, variable);
       model.setName(name);
       model.setConstant(isConstant);
 
 
-      parseChildModels(model, choiceElement);
+      parseChildModels(model, varElement);
    }
    
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
-    * @param stringElement
+    * @param varElement
     * @throws Exception 
     */
-   private void parseStringOption(BaseModel parent, Element stringElement) throws Exception {
-      String  name        = stringElement.getAttribute("name");
-      String  key         = stringElement.getAttribute("key");
+   private void parseStringOption(BaseModel parent, Element varElement) throws Exception {
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
-      boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
-      String  description = stringElement.getAttribute("description");
-      String  value       = stringElement.getAttribute("value");
-      String  toolTip     = getToolTip(stringElement);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  value       = varElement.getAttribute("value");
+      String  toolTip     = getToolTip(varElement);
 
       Variable variable = new StringVariable(name, key);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
-
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
       fProvider.addVariable(variable);
       StringVariableModel model = new StringVariableModel(parent, variable);
       model.setName(name);
@@ -208,23 +216,26 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
-    * @param binaryElement
+    * @param varElement
     * @throws Exception 
     */
-   private void parseBinaryOption(BaseModel parent, Element binaryElement) throws Exception {
-      String  name        = binaryElement.getAttribute("name");
-      String  key         = binaryElement.getAttribute("key");
+   private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
-      boolean isConstant  = Boolean.valueOf(binaryElement.getAttribute("constant"));
-      String  description = binaryElement.getAttribute("description");
-      String  toolTip     = getToolTip(binaryElement);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  toolTip     = getToolTip(varElement);
       
       BooleanVariable variable = new BooleanVariable(name, key);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
-      parseChoices(variable, binaryElement);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      parseChoices(variable, varElement);
       
       
       
@@ -232,7 +243,7 @@ public class ParseMenuXML extends XML_BaseParser {
       BooleanVariableModel model = new BooleanVariableModel(parent, variable);
       model.setConstant(isConstant);
       
-      parseChildModels(model, binaryElement);
+      parseChildModels(model, varElement);
    }
 
    /**
@@ -387,6 +398,7 @@ public class ParseMenuXML extends XML_BaseParser {
          ChoiceVariable var = (ChoiceVariable)variable;
          var.setData(theEntries);
       }
+      variable.setDefault(defaultValue);
       variable.setValue(defaultValue);
    }
    

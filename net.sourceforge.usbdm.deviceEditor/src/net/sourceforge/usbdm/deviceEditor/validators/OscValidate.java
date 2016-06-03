@@ -18,8 +18,10 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class OscValidate extends BaseClockValidator {
    
-   /** Used for preliminary range determination */
-   public static final String OSC_RANGE_KEY = "/_Temp_/OSC/oscRange";
+   public static final String OSC_RANGE_KEY       = "range_out";
+   
+   /** Used to indicate range is unconstrained by oscillator */
+   public static final int    UNCONSTRAINED_RANGE = 3; 
    
    // Ranges for External Crystal
    private   static final long EXTERNAL_EXTAL_RANGE1_MIN = 32000L;
@@ -63,8 +65,9 @@ public class OscValidate extends BaseClockValidator {
    
    public OscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
-      
-      fPeripheral.addVariable(new LongVariable(OSC_RANGE_KEY, fPeripheral.makeKey(OSC_RANGE_KEY)));
+      if (safeGetVariable(OSC_RANGE_KEY) == null) {
+         fPeripheral.addVariable(new LongVariable(OSC_RANGE_KEY, fPeripheral.makeKey(OSC_RANGE_KEY)));
+      }
    }
 
    /**
@@ -75,29 +78,30 @@ public class OscValidate extends BaseClockValidator {
       
       // OSC
       //=================================
-      Variable     osc_cr_erclkenNode               =  getVariable("osc_cr_erclken");
-      Variable     erefs0Node                       =  getVariable("erefs0");
-      Variable     hgo0Node                         =  getVariable("hgo0");
-      Variable     osc_cr_scpNode                   =  getVariable("osc_cr_scp");
-//    Variable     osc_cr_erefstenNode              =  getVariable("osc_cr_erefsten");
-      Variable     rangeNode                        =  getVariable(OSC_RANGE_KEY);
-      Variable     system_oscerclk_undiv_clockNode  =  safeGetVariable("system_oscerclk_undiv_clock");
-      Variable     system_oscerclk_clockNode        =  null;
-      if (system_oscerclk_undiv_clockNode == null) {
-         system_oscerclk_undiv_clockNode            = getVariable("system_oscerclk_clock");
+      Variable     osc_cr_erclkenVar               =  getVariable("osc_cr_erclken");
+      Variable     erefs0Var                       =  getVariable("erefs0");
+      Variable     hgo0Var                         =  getVariable("hgo0");
+      Variable     osc_cr_scpVar                   =  getVariable("osc_cr_scp");
+      Variable     osc_cr_erefstenVar              =  getVariable("osc_cr_erefsten");
+      Variable     rangeOutVar                     =  getVariable(OSC_RANGE_KEY);
+//      Variable     rangeVar                        =  getVariable("range");
+      Variable     system_oscerclk_undiv_clockVar  =  safeGetVariable("system_oscerclk_undiv_clock");
+      Variable     system_oscerclk_clockVar        =  null;
+      if (system_oscerclk_undiv_clockVar == null) {
+         system_oscerclk_undiv_clockVar            = getVariable("system_oscerclk_clock");
       }
       else {
-         system_oscerclk_clockNode                  =  getVariable("system_oscerclk_clock");
+         system_oscerclk_clockVar                  =  getVariable("system_oscerclk_clock");
       }
-      Variable     osc_div_erpsNode                 =  safeGetVariable("osc_div_erps");
-      Variable     osc32kclk_clockNode              =  getVariable("osc32kclk_clock");
-      Variable     oscclk_clockNode                 =  getVariable("oscclk_clock");
+      Variable     osc_div_erpsVar                 =  safeGetVariable("osc_div_erps");
+      Variable     osc32kclk_clockVar              =  getVariable("osc32kclk_clock");
+      Variable     oscclk_clockVar                 =  getVariable("oscclk_clock");
+      Variable     osc_input_freqVar               =  getVariable("osc_input_freq");
       
-      boolean  erefs0 = erefs0Node.getValueAsBoolean();
+      boolean  erefs0 = erefs0Var.getValueAsBoolean();
 
-      hgo0Node.enable(erefs0);
-      osc_cr_scpNode.enable(erefs0);
-      rangeNode.enable(erefs0);
+      hgo0Var.enable(erefs0);
+      osc_cr_scpVar.enable(erefs0);
       
       //==========================================
       
@@ -105,23 +109,22 @@ public class OscValidate extends BaseClockValidator {
       String  oscclk_clockOrg       = null;
       
       Message osc32kclk_clockStatus = null;
-      String  osc32kclk_clockOrg = "OSC32KCLK";
+      String  osc32kclk_clockOrg    = "OSC32KCLK";
       
-      int     range        = -1;
-      String  rangeOrigin  = null;
+      int     range        = UNCONSTRAINED_RANGE;
+      String  rangeOrigin  = "Unused";
       
       //=========================================
       // Check input clock/oscillator ranges
       //   - Determine mcg_c2_range
       //
-      long oscclk_clock_freq = oscclk_clockNode.getValueAsLong();
+      long oscclk_clock_freq = osc_input_freqVar.getValueAsLong();
       
       // Check suitability of OSC for OSC32KCLK
       if ((oscclk_clock_freq < EXTERNAL_EXTAL_RANGE1_MIN) || (oscclk_clock_freq > EXTERNAL_EXTAL_RANGE1_MAX)) {
          osc32kclk_clockStatus = OSCCLK32K_CLOCK_WARNING_MSG;
          osc32kclk_clockOrg = "OSC32KCLK (invalid range)";
       }
-      // Using oscillator - range is chosen to suit crystal frequency
       if (erefs0) {
          // Using oscillator - range is chosen to suit crystal frequency
          if ((oscclk_clock_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (oscclk_clock_freq <= EXTERNAL_EXTAL_RANGE1_MAX)) {
@@ -143,7 +146,7 @@ public class OscValidate extends BaseClockValidator {
             // Not suitable as OSC Crystal frequency
             oscclk_clockOrg     = "OSCCLK (invalid range)";
             oscclk_clockStatus  = FLL_CLOCK_ERROR_MSG;
-            range           = -1;
+            range               = UNCONSTRAINED_RANGE;
          }
       }
       else {
@@ -151,7 +154,7 @@ public class OscValidate extends BaseClockValidator {
          oscclk_clockOrg = "OSCCLK (External clock)";
          
          // Range has no effect on Oscillator
-         range           = -1;
+         range           = UNCONSTRAINED_RANGE;
          
          // Check suitable clock range
          if (oscclk_clock_freq>EXTERNAL_CLOCK_MAX) {
@@ -159,53 +162,59 @@ public class OscValidate extends BaseClockValidator {
             oscclk_clockStatus = CLOCK_RANGE_ERROR_MSG;
          }
       }
-      oscclk_clockNode.setOrigin(oscclk_clockOrg);
-      oscclk_clockNode.setStatus(oscclk_clockStatus);
+//      rangeVar.enable(range<=MAX_RANGE);
+      oscclk_clockVar.setOrigin(oscclk_clockOrg);
+      oscclk_clockVar.setStatus(oscclk_clockStatus);
+      oscclk_clockVar.setValue((oscclk_clockStatus==null)?oscclk_clock_freq:0);
+      oscclk_clockVar.enable(oscclk_clockStatus==null);
       
-      erefs0Node.setStatus(oscclk_clockStatus);
-      rangeNode.setValue(range);
-      rangeNode.setOrigin(rangeOrigin);
+      rangeOutVar.setValue(range);
+      rangeOutVar.setOrigin(rangeOrigin);
       
       // Determine OSCERCLK, OSCERCLK_UNDIV 
       //==================================
-      if (osc_cr_erclkenNode.getValueAsBoolean()) {
+      if (osc_cr_erclkenVar.getValueAsBoolean()) {
          // Oscillator/clock enabled
          
-         system_oscerclk_undiv_clockNode.setValue(oscclk_clock_freq);
-         system_oscerclk_undiv_clockNode.setStatus(oscclk_clockStatus);
-         system_oscerclk_undiv_clockNode.setOrigin(oscclk_clockOrg);
-         system_oscerclk_undiv_clockNode.enable(true);
+         system_oscerclk_undiv_clockVar.setValue(oscclk_clock_freq);
+         system_oscerclk_undiv_clockVar.setStatus(oscclk_clockStatus);
+         system_oscerclk_undiv_clockVar.setOrigin(oscclk_clockOrg);
+         system_oscerclk_undiv_clockVar.enable(true);
+         osc_cr_erefstenVar.enable(true);
          long system_oscerclk = oscclk_clock_freq;
-         if (osc_div_erpsNode != null) {
+         if (osc_div_erpsVar != null) {
             // If divider exists
-            system_oscerclk /= 1<<osc_div_erpsNode.getValueAsLong();
+            system_oscerclk /= 1<<osc_div_erpsVar.getValueAsLong();
             oscclk_clockOrg += "/osc_div_erps";
-            system_oscerclk_clockNode.setValue(system_oscerclk);
-            system_oscerclk_clockNode.setStatus(oscclk_clockStatus);
-            system_oscerclk_clockNode.setOrigin(oscclk_clockOrg);
-            system_oscerclk_clockNode.enable(true);
+            system_oscerclk_clockVar.setValue(system_oscerclk);
+            system_oscerclk_clockVar.setStatus(oscclk_clockStatus);
+            system_oscerclk_clockVar.setOrigin(oscclk_clockOrg);
+            system_oscerclk_clockVar.enable(true);
+            osc_div_erpsVar.enable(true);
          }
-         osc32kclk_clockNode.setValue((osc32kclk_clockStatus != null)?0:oscclk_clock_freq);
-         osc32kclk_clockNode.setStatus(osc32kclk_clockStatus);
-         osc32kclk_clockNode.setOrigin(osc32kclk_clockOrg);
-         osc32kclk_clockNode.enable(true);
+         osc32kclk_clockVar.setValue((osc32kclk_clockStatus != null)?0:oscclk_clock_freq);
+         osc32kclk_clockVar.setStatus(osc32kclk_clockStatus);
+         osc32kclk_clockVar.setOrigin(osc32kclk_clockOrg);
+         osc32kclk_clockVar.enable(osc32kclk_clockStatus==null);
       }
       else {
          Message osc_crMessage = new Message("Disabled by osc_cr_erclken", Severity.OK);
          // Oscillator/clock disabled
-//         system_oscerclk_undiv_clockNode.setValue(0);
-         system_oscerclk_undiv_clockNode.setStatus(osc_crMessage);
-         system_oscerclk_undiv_clockNode.setOrigin(oscclk_clockOrg);
-         system_oscerclk_undiv_clockNode.enable(false);
-         if (osc_div_erpsNode != null) {
-//            system_oscerclk_clockNode.setValue(0);
-            system_oscerclk_clockNode.setStatus(osc_crMessage);
-            system_oscerclk_clockNode.setOrigin(oscclk_clockOrg);
-            system_oscerclk_clockNode.enable(false);
+//         system_oscerclk_undiv_clockVar.setValue(0);
+         system_oscerclk_undiv_clockVar.setStatus(osc_crMessage);
+         system_oscerclk_undiv_clockVar.setOrigin(oscclk_clockOrg);
+         system_oscerclk_undiv_clockVar.enable(false);
+         osc_cr_erefstenVar.enable(false);
+         if (osc_div_erpsVar != null) {
+//            system_oscerclk_clockVar.setValue(0);
+            system_oscerclk_clockVar.setStatus(osc_crMessage);
+            system_oscerclk_clockVar.setOrigin(oscclk_clockOrg);
+            system_oscerclk_clockVar.enable(false);
+            osc_div_erpsVar.enable(false);
          }
-         osc32kclk_clockNode.setStatus(osc_crMessage);
-         osc32kclk_clockNode.setOrigin(osc32kclk_clockOrg);
-         osc32kclk_clockNode.enable(false);
+         osc32kclk_clockVar.setStatus(osc_crMessage);
+         osc32kclk_clockVar.setOrigin(osc32kclk_clockOrg);
+         osc32kclk_clockVar.enable(false);
       }
    }
 }

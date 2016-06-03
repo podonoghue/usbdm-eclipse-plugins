@@ -252,6 +252,11 @@ public class LongVariable extends Variable {
    }
 
    @Override
+   public long getRawValueAsLong() {
+      return  fValue;
+   }
+
+   @Override
    public String getRawValueAsString() {
       if (getUnits() != Units.None) {
          return EngineeringNotation.convert(fValue, 5)+getUnits().toString();

@@ -1554,7 +1554,7 @@ public class DeviceInfo extends ObservableModel {
       // Get description of all peripherals for this device
       DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);
       if (devicePeripherals == null) {
-         throw new Exception ("Failed to create DevicePeripherals for "+ deviceName);
+         throw new Exception ("Failed to create devicePeripherals when writing Vector Table for "+ deviceName);
       }
       // Update vector table
       VectorTable vectorTable = devicePeripherals.getVectorTable();

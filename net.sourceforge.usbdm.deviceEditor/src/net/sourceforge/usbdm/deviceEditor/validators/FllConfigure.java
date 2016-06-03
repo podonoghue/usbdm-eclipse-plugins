@@ -49,6 +49,9 @@ class FllConfigure {
    /** MCG_C4_DRST_DRS value corresponding to fllTargetFrequency */
    public final int mcg_c4_drst_drs;
    
+   /** Returns the status of the FLL i.e. whether input and output values are valid */
+   private Message fllStatus;
+   
    /**
     * Find suitable FLL divider (frdiv)
     * 
@@ -108,16 +111,17 @@ class FllConfigure {
    /**
     * Determines the FLL divider values
     * 
-    * @param osc_cr_erclkenVar      [in]     Indicates if Oscillator is in use
-    * @param rangeVarIn             [in]     Range in from oscillator
-    * @param rangeVarOut            [out]    Range out after modification by FLL
-    * @param mcg_c1_irefs           [in]     irefs value (affects clock source)
-    * @param mcg_erc_clockVar       [in]     mcg_erc_clock variable
-    * @param slow_irc_clock         [in]     Frequency of slow IRC
-    * @param mcg_c7_oscsel          [in]     OSCSEL value used to constrain dividers
-    * @param mcg_c4_dmx32Var        [in]     Affects input range accepted 
-    * @param fllInputFrequencyVar   [in/out] Input to FLL
-    * @param fllTargetFrequencyVar  [out]    Output from FLL
+    * @param osc_cr_erclkenVar          [in]     Indicates if Oscillator is in use
+    * @param rangeVarIn                 [in]     Range in from oscillator
+    * @param rangeVarOut                [out]    Range out after modification by FLL
+    * @param mcg_c1_irefs               [in]     irefs value (affects clock source)
+    * @param mcg_erc_clockVar           [in]     mcg_erc_clock source
+    * @param slow_irc_clock             [in]     Frequency of slow IRC
+    * @param mcg_c7_oscsel              [in]     OSCSEL value used to constrain dividers
+    * @param mcg_c4_dmx32Var            [in]     Affects input range accepted 
+    * @param fllInputFrequencyVar       [in/out] Input to FLL
+    * @param system_mcgfllclk_clockVar  [out]    Output from FLL
+    * @param system_mcgffclk_clockVar   [out]    MCGFFCLK 
     */
    public FllConfigure(
          final Variable osc_cr_erclkenNode, 
@@ -129,40 +133,43 @@ class FllConfigure {
          long           mcg_c7_oscsel, 
          boolean        mcg_c4_dmx32, 
          final Variable fllInputFrequencyVar, 
-         final Variable fllTargetFrequencyVar) {
+         final Variable system_mcgfllclk_clockVar, 
+         final Variable system_mcgffclk_clockVar) {
 
       // Tentative range - may be overridden by FLL constraints
       int     osc0_range       = (int)rangeVarIn.getValueAsLong();
       String  osc0_rangeOrigin = rangeVarIn.getOrigin();
       boolean osc_cr_erclken   = osc_cr_erclkenNode.getValueAsBoolean();
       String  fllOrigin;
-      Message status;
-      
+      String  fllInputOrigin;
+
       long availableClock;
       if (mcg_c1_irefs) {
          // Slow IRC selected [32kHz]
          fllOrigin      = "Slow internal reference clock";
-         status         = null;
+         fllInputOrigin = fllOrigin;
+         fllStatus      = null;
          availableClock = slow_irc_clock;
       }
       else {
          // ERCLK selected [OSCCLK, RTCCLK, IRC48MCLK]
          fllOrigin      = mcg_erc_clockVar.getOrigin();
-         status         = mcg_erc_clockVar.getStatus();
+         fllInputOrigin = fllOrigin+" / FRDIV";
+         fllStatus      = mcg_erc_clockVar.getStatus();
          availableClock = mcg_erc_clockVar.getValueAsLong();
       }
-      fllInputFrequencyVar.setOrigin(fllOrigin);
-      fllTargetFrequencyVar.setOrigin(fllOrigin+" via FLL");
+      fllInputFrequencyVar.setOrigin(fllInputOrigin);
+      system_mcgffclk_clockVar.setOrigin(fllInputOrigin);
+      system_mcgfllclk_clockVar.setOrigin(fllOrigin+" via FLL");
 
-      if ((status != null) && (status.getSeverity().greaterThan(Severity.OK))) {
+      if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.OK))) {
          // Invalid input
-         status = new Message(status.getRawMessage()+": Invalid FLL input", Severity.WARNING);
-         fllInputFrequencyVar.setStatus(status);
-         fllTargetFrequencyVar.setStatus(status);
+         fllStatus = new Message(fllStatus.getRawMessage()+": Invalid FLL input", Severity.WARNING);
+         fllInputFrequencyVar.setStatus(fllStatus);
+         fllInputFrequencyVar.setValue(0);
+         system_mcgffclk_clockVar.setStatus(fllStatus);
+         system_mcgffclk_clockVar.setValue(0);
          // Use mcg_c2_rangeIn unless invalid
-         if (osc0_range<0) {
-            osc0_range = 0;
-         }
          mcg_c4_drst_drs = 0;
          mcg_c1_frdiv    = 0;
          rangeVarOut.setValue(osc0_range);
@@ -170,31 +177,25 @@ class FllConfigure {
          return;
       }
 
-      // Find input divisor
+      // Find input range & divisor
       //==============================
       boolean found = false;
       if (mcg_c1_irefs) {
-         // [Slow IRC] - No dividers, Range unconstrained by FLL
+         // [Slow IRC] - No dividers, Range value unconstrained by FLL
          found = true;
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          // Use mcg_c2_rangeIn unless invalid
-         if (osc0_range<0) {
-            osc0_range = 0;
-         }
       }
       else if (mcg_c7_oscsel == 1) {
-         // [RTCCLK] - Forced to LOW_RANGE_DIVISORS,  Range unconstrained FLL
+         // [RTCCLK] - Forced to LOW_RANGE_DIVISORS,  Range value unconstrained FLL
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          fllOrigin += " after scaling by (Low range FRDIV)";
          // Use mcg_c2_rangeIn unless invalid
-         if (osc0_range<0) {
-            osc0_range = 0;
-         }
       }
       else if ((mcg_c7_oscsel != 0) && !osc_cr_erclken) {
          // ![OSCCLK] and not enabled for peripherals 
          // Unconstrained - try both sets of dividers
-         // Use whichever  mcg_c2_rangeIn works
+         // Use whichever mcg_c2_rangeIn works
          osc0_range = 0;
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          if (!found) {
@@ -216,7 +217,7 @@ class FllConfigure {
             found = findDivider(availableClock, mcg_c4_dmx32, HIGH_RANGE_DIVISORS);
             fllOrigin += " after scaling (High range FRDIV)";
             break;
-         case -1: 
+         default: 
             // Unconstrained - try both sets of dividers
             // Use whichever  mcg_c2_rangeIn works
             osc0_range = 0;
@@ -233,25 +234,28 @@ class FllConfigure {
       // Record range in use
       rangeVarOut.setValue(osc0_range);
       rangeVarOut.setOrigin(osc0_rangeOrigin);
-
-      long inputFrequency;
+      
       if (!found) {
          // No suitable divisor - Set invalid and use defaults
          fllInputFrequencyVar.setValue(Math.round(nearestFrequency));
          String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s", 
                EngineeringNotation.convert(availableClock, 3));
-         status = new Message(msgText, Severity.WARNING);
-         fllInputFrequencyVar.setStatus(status);
-         fllTargetFrequencyVar.setStatus(status);
+         fllStatus = new Message(msgText, Severity.WARNING);
+         fllInputFrequencyVar.setStatus(fllStatus);
          mcg_c1_frdiv    = nearest_frdiv;
          mcg_c4_drst_drs = 0;
+         system_mcgffclk_clockVar.setValue(Math.round(nearestFrequency));
+         system_mcgffclk_clockVar.setStatus((Message)null);
          return;
       }
 
-      inputFrequency  = Math.round(fllInputFrequency_calc);
-      mcg_c1_frdiv    = mcg_c1_frdiv_calc;
+      long inputFrequency  = Math.round(fllInputFrequency_calc);
+      mcg_c1_frdiv         = mcg_c1_frdiv_calc;
 
       // Record FLL input details
+      system_mcgffclk_clockVar.setValue(inputFrequency);
+      system_mcgffclk_clockVar.setStatus((Message)null);
+
       fllInputFrequencyVar.setValue(inputFrequency);
       fllInputFrequencyVar.setStatus((Message)null);
 
@@ -261,13 +265,13 @@ class FllConfigure {
 
       long fllOutFrequency = inputFrequency * (mcg_c4_dmx32?FLL_NARROW_FACTOR:FLL_WIDE_FACTOR);
 
-      Long fllTargetFrequency = fllTargetFrequencyVar.getValueAsLong();
+      Long fllTargetFrequency = system_mcgfllclk_clockVar.getRawValueAsLong();
 
       ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
       for (int probe=1; probe<=4; probe++) {
          fllFrequencies.add(fllOutFrequency*probe);
          // Accept value within ~10% of desired
-         if (Math.abs((fllOutFrequency*probe) - fllTargetFrequency) < (fllTargetFrequency/10)) {
+         if (Math.abs((fllOutFrequency*probe) - fllTargetFrequency) < (fllTargetFrequency/50)) {
             mcg_c4_drst_drs_calc = probe-1;
          }         
       }
@@ -279,13 +283,8 @@ class FllConfigure {
       }
       else {
          mcg_c4_drst_drs_calc = 0;
-         if (fllTargetFrequencyVar.isEnabled()) {
-            sb.append("Not possible to generate desired FLL frequency from input clock\n");
-            severity = Severity.WARNING;
-         }
-      }
-      if (!fllTargetFrequencyVar.isEnabled()) {
-         sb.append("FLL is disabled\n");
+         sb.append("Not possible to generate desired FLL frequency from input clock\n");
+         severity = Severity.WARNING;
       }
       boolean needComma = false;
       for (Long freq : fllFrequencies) {
@@ -298,14 +297,19 @@ class FllConfigure {
          needComma = true;
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
-      status = new Message (sb.toString(), severity);
-      if (fllTargetFrequencyVar.isEnabled()) {
-         fllTargetFrequencyVar.setValue(fllTargetFrequency);
+      fllStatus = new Message (sb.toString(), severity);
+      if (system_mcgfllclk_clockVar.isEnabled()) {
+         system_mcgfllclk_clockVar.setValue(fllTargetFrequency);
       }
-      else {
-         
-      }
-      fllTargetFrequencyVar.setStatus(status);
       mcg_c4_drst_drs = mcg_c4_drst_drs_calc;
+   }
+
+   /**
+    * Returns the status of the FLL i.e. range of values, whether input and output values are valid
+    * 
+    * @return Message 
+    */
+   public Message getFllStatus() {
+      return fllStatus;
    }
 }

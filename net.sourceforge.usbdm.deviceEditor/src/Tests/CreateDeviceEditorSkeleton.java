@@ -49,6 +49,7 @@ public class CreateDeviceEditorSkeleton {
       }
    }
 
+   @SuppressWarnings("unused") // Experiment
    private static void createPeripheralModel(Peripheral peripheral) {
       System.err.println("Peripheral = " + peripheral.getName());
       for (Cluster cluster : peripheral.getRegisters()) {

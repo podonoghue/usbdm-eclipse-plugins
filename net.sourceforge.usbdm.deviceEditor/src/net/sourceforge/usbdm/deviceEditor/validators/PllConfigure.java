@@ -22,6 +22,9 @@ public class PllConfigure {
    private final int  VDIV_MAX;
 
    private final int  PLL_POST_DIV;
+   
+   /** Status of PLL i.e. whether a divider etc could be calculated */
+   private Message pllStatus;
 
    /**
     * Validates PLL related variables
@@ -61,21 +64,16 @@ public class PllConfigure {
 
    protected void validate(Variable mcg_erc_clockNode, 
          Variable pllInputFrequencyNode, 
-         Variable pllTargetFrequencyNode, 
+         Variable system_mcgpllclk_clockVar, 
          Variable mcg_c5_prdiv0Node, 
          Variable mcg_c6_vdiv0Node ) {
-//      Variable mcg_erc_clockNode      = getVariable("mcg_erc_clock");
-//      Variable pllInputFrequencyNode  = getVariable("pllInputFrequency");
-//      Variable pllTargetFrequencyNode = getVariable("pllTargetFrequency");
-//      Variable mcg_c5_prdiv0Node      = getVariable("mcg_c5_prdiv0");
-//      Variable mcg_c6_vdiv0Node       = getVariable("mcg_c6_vdiv0");
 
       // Main clock used by FLL
       long mcg_erc_clock = mcg_erc_clockNode.getValueAsLong();
 
-      long pllTargetFrequency = pllTargetFrequencyNode.getValueAsLong();
+      long pllTargetFrequency = system_mcgpllclk_clockVar.getRawValueAsLong();
 
-      //      System.err.println(String.format("\nPllClockValidater.validate(): mcg_erc_clock = %d, pllTargetFrequency = %d", mcg_erc_clock, pllTargetFrequency));
+//      System.err.println(String.format("\nPllClockValidater.validate(): mcg_erc_clock = %d, pllTargetFrequency = %d", mcg_erc_clock, pllTargetFrequency));
 
       int  mcg_prdiv = PRDIV_MIN;
       int  mcg_vdiv  = VDIV_MIN;
@@ -144,7 +142,7 @@ public class PllConfigure {
 
       pllInputFrequencyNode.setValue(mcg_erc_clock/mcg_prdiv);
       pllInputFrequencyNode.setOrigin("("+mcg_erc_clockNode.getOrigin()+" via MCG_ERC)/PRDIV");
-      pllTargetFrequencyNode.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
+      system_mcgpllclk_clockVar.setOrigin(mcg_erc_clockNode.getOrigin()+" via PLL");
 
       if (!pllInputValid) {
          String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 
@@ -152,7 +150,7 @@ public class PllConfigure {
                EngineeringNotation.convert(PLL_IN_MIN,3),EngineeringNotation.convert(PLL_IN_MAX,3));
          Message status = new Message(msg, Severity.WARNING);
          pllInputFrequencyNode.setStatus(status);
-         pllTargetFrequencyNode.setStatus(status);
+         pllStatus = status;
       }
       else {
          // PLL in is valid
@@ -172,8 +170,8 @@ public class PllConfigure {
             if (pllTargetFrequency != nearest_PllOutFrequency) {
                // Update PLL as it was approximated
                pllTargetFrequency = nearest_PllOutFrequency;
-               if (pllTargetFrequencyNode.isEnabled()) {
-                  pllTargetFrequencyNode.setValue(pllTargetFrequency);
+               if (system_mcgpllclk_clockVar.isEnabled()) {
+                  system_mcgpllclk_clockVar.setValue(pllTargetFrequency);
                }
             }
          }
@@ -191,7 +189,16 @@ public class PllConfigure {
             needComma = true;
             status.append(EngineeringNotation.convert(freq, 5)+"Hz");
          }
-         pllTargetFrequencyNode.setStatus(new Message(status.toString(), severity));
+         pllStatus = new Message(status.toString(), severity);
       }
+   }
+
+   /**
+    * Status of PLL i.e. whether a divider etc could be calculated
+    * 
+    * @return
+    */
+   public Message getPllStatus() {
+      return pllStatus;
    }
 }

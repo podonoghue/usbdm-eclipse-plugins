@@ -25,6 +25,6 @@ public class WriterForRtc extends PeripheralWithState {
 
    @Override
    public int getPriority() {
-      return 1000;
+      return 900;
    }
 }

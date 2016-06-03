@@ -3,6 +3,8 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.Message;
+import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public abstract class Validator {
@@ -108,6 +110,23 @@ public abstract class Validator {
     */
    Variable getVariable(String key) {
       return fPeripheral.getVariable(fPeripheral.makeKey(key));
+   }
+
+   /**
+    * Add to watched variables
+    * 
+    * @param externalVariables Variables to add
+    */
+   protected void addToWatchedVariables(String[] externalVariables) {
+      for (String name:externalVariables) {
+         Variable var = safeGetVariable(name);
+         if (var == null) {
+            System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+         }
+         if (var != null) {
+            var.addListener(fPeripheral);
+         }
+      }
    }
 
 }

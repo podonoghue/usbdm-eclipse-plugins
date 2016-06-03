@@ -4,6 +4,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.Message;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public abstract class Variable extends ObservableModel {
    
@@ -130,11 +131,21 @@ public abstract class Variable extends ObservableModel {
    public abstract void setValueQuietly(Object value);
 
    /**
-    * Get the variable value as a string for use in saving state
+    * Get the variable value as a string for use in saving state<br>
+    * It is not influenced by whether the variable is enabled.
     * 
     * @return the Value
     */
    public abstract String getRawValueAsString();
+
+   /**
+    * Get variable value as long without reference to whether it is enabled
+    * 
+    * @return
+    */
+   public long getRawValueAsLong() {
+      throw new RuntimeException("Variable " + getName() + "doesn't have a Long representation");
+   }
 
    /**
     * Sets variable default value
@@ -198,6 +209,19 @@ public abstract class Variable extends ObservableModel {
     */
    public Message getStatus() {
       return fStatus;
+   }
+
+   /**
+    * Get status of variable
+    * Filters out status messages with less than INFO severity
+    * 
+    * @return
+    */
+   public Message getFilteredStatus() {
+      if ((fStatus != null) && (fStatus.getSeverity().greaterThan(Severity.INFO))) {
+         return fStatus;
+      }
+      return null;
    }
 
    /**

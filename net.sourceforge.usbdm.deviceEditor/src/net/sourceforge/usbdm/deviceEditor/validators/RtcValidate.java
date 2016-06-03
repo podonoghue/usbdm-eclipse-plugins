@@ -17,9 +17,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class RtcValidate extends BaseClockValidator {
    
-   /** Used for preliminary range determination */
-   public static final String OSC_RANGE_KEY = "oscRange";
-   
    // Ranges for External Crystal
    private   static final long EXTERNAL_EXTAL_RANGE_MIN = 32000L;
    private   static final long EXTERNAL_EXTAL_RANGE_MAX = 40000L;
@@ -38,55 +35,86 @@ public class RtcValidate extends BaseClockValidator {
 
    /**
     * Class to determine RTC oscillator settings
+    * 
+    * Outputs rtcclk_clock, rtcclk_gated_clock, 
     */
    @Override
    public void validate() {
       
       // OSC
       //=================================
-      Variable     rtc_cr_osceNode                  =  getVariable("rtc_cr_osce");
-      Variable     rtcclk_clockNode                 =  getVariable("rtcclk_clock");
-      Variable     rtc_cr_clkoNode                  =  getVariable("rtc_cr_clko");
-      Variable     rtc_cr_scpNode                   =  getVariable("rtc_cr_scp");
-      Variable     rtc_cr_umNode                    =  getVariable("rtc_cr_um");
-      Variable     rtc_cr_supNode                   =  getVariable("rtc_cr_sup");
-      Variable     rtc_cr_wpeNode                   =  getVariable("rtc_cr_wpe");
-      Variable     rtc_IRQ_HANDLERNode              =  getVariable("IRQ_HANDLER");
-      
-//      Variable     sim_sopt1_osc32kselNode          =  getVariable("sim_sopt1_osc32ksel");
-//      Variable     system_erclk32k_clockNode        =  getVariable("system_erclk32k_clock");
-//      Variable     sim_sopt2_rtcclkoutselNode       =  getVariable("sim_sopt2_rtcclkoutsel");
-//      Variable     system_rtc_clkoutNode            =  getVariable("system_rtc_clkout");
+      Variable     rtc_input_freqVar               =  getVariable("rtc_input_freq");
+      Variable     rtc_cr_osceVar                  =  getVariable("rtc_cr_osce");
+      Variable     rtcclk_clockVar                 =  getVariable("rtcclk_clock");
+      Variable     rtcclk_gated_clockVar           =  getVariable("rtcclk_gated_clock");
+      Variable     rtc_cr_clkoVar                  =  getVariable("rtc_cr_clko");
+      Variable     rtc_cr_scpVar                   =  getVariable("rtc_cr_scp");
+      Variable     rtc_cr_umVar                    =  getVariable("rtc_cr_um");
+      Variable     rtc_cr_supVar                   =  getVariable("rtc_cr_sup");
+      Variable     rtc_cr_wpeVar                   =  getVariable("rtc_cr_wpe");
+      Variable     rtc_irqHandlerVar               =  getVariable("irqHandler");
+      Variable     rtc_irqLevelVar                 =  getVariable("irqLevel");
+
+//      Variable     sim_sopt1_osc32kselVar          =  getVariable("sim_sopt1_osc32ksel");
+//      Variable     system_erclk32k_clockVar        =  getVariable("system_erclk32k_clock");
+//      Variable     system_rtc_clkoutVar            =  getVariable("system_rtc_clkout");
 
       //=========================================
       // Check input clock/oscillator ranges
       //   - Determine mcg_c2_range
       //
-      boolean rtc_cr_osce = rtc_cr_osceNode.getValueAsBoolean();
-      if (rtc_cr_osceNode.getValueAsBoolean()) {
+      // Check suitability of OSC for OSC32KCLK
+      long rtcclk_input_freq = rtc_input_freqVar.getValueAsLong();
+      Message inputStatus = null;
+      if ((rtcclk_input_freq < EXTERNAL_EXTAL_RANGE_MIN) || (rtcclk_input_freq > EXTERNAL_EXTAL_RANGE_MAX)) {
+         inputStatus = OSCCLK32K_CLOCK_WARNING_MSG;
+         rtcclk_clockVar.setOrigin("RTCCLK (invalid range)");
+         rtcclk_input_freq = 0L;
+      }
+      else {
+         inputStatus = null;
+         rtcclk_clockVar.setOrigin("RTCCLK");
+      }
+      rtcclk_clockVar.setValue(rtcclk_input_freq);
+      
+      boolean rtc_cr_osce = rtc_cr_osceVar.getValueAsBoolean();
+      if (rtc_cr_osce) {
          // Enabled
-         // Check suitability of OSC for OSC32KCLK
-         long rtcclk_clock_freq = rtcclk_clockNode.getValueAsLong();
-         if ((rtcclk_clock_freq < EXTERNAL_EXTAL_RANGE_MIN) || (rtcclk_clock_freq > EXTERNAL_EXTAL_RANGE_MAX)) {
-            rtcclk_clockNode.setOrigin("RTCCLK (invalid range)");
-            rtcclk_clockNode.setStatus(OSCCLK32K_CLOCK_WARNING_MSG);
-         }
-         else {
-            rtcclk_clockNode.setOrigin("RTCCLK");
-            rtcclk_clockNode.setStatus((Message)null);
-         }
+         rtcclk_clockVar.setStatus(inputStatus);
+         rtc_input_freqVar.setStatus(inputStatus);
       }
       else {
          // Disabled
-         rtcclk_clockNode.setOrigin("RTCCLK (disabled)");
-         rtcclk_clockNode.setStatus(new Message("RTCCLK Disabled by rtc_cr_osce", Severity.WARNING));
+         rtcclk_clockVar.setStatus(new Message("RTCCLK Disabled by rtc_cr_osce", Severity.WARNING));
+         rtc_input_freqVar.setStatus((Message)null);
       }
-      rtcclk_clockNode.enable(rtc_cr_osce);
-      rtc_cr_scpNode.enable(rtc_cr_osce);
-      rtc_cr_clkoNode.enable(rtc_cr_osce);
-      rtc_cr_umNode.enable(rtc_cr_osce);
-      rtc_cr_supNode.enable(rtc_cr_osce);
-      rtc_cr_wpeNode.enable(rtc_cr_osce);
-      rtc_IRQ_HANDLERNode.enable(rtc_cr_osce);
+      rtcclk_clockVar.enable(rtc_cr_osce);
+      rtc_cr_scpVar.enable(rtc_cr_osce);
+      rtc_cr_clkoVar.enable(rtc_cr_osce);
+      rtc_cr_umVar.enable(rtc_cr_osce);
+      rtc_cr_supVar.enable(rtc_cr_osce);
+      rtc_cr_wpeVar.enable(rtc_cr_osce);
+      rtc_irqHandlerVar.enable(rtc_cr_osce);
+      rtc_irqLevelVar.enable(rtc_cr_osce);
+      
+      // RTC Clocks
+      //==============================
+      Long    rtcclk_clockValue  = rtcclk_clockVar.getValueAsLong();
+      Message rtcclk_clockStatus = rtcclk_clockVar.getStatus();
+      String  rtcclk_clockOrigin = rtcclk_clockVar.getOrigin();
+
+      if (rtc_cr_clkoVar.getValueAsBoolean()) {
+         rtcclk_gated_clockVar.setValue(rtcclk_clockValue);
+         rtcclk_gated_clockVar.setStatus(rtcclk_clockStatus);
+         rtcclk_gated_clockVar.setOrigin(rtcclk_clockOrigin);
+         rtcclk_gated_clockVar.enable(rtc_cr_osce);
+      }
+      else {
+         rtcclk_gated_clockVar.setValue(0L);
+         rtcclk_gated_clockVar.setStatus(new Message("Disabled by rtc_cr_clko", Severity.WARNING));
+         rtcclk_gated_clockVar.setOrigin(rtcclk_clockOrigin);
+         rtcclk_gated_clockVar.enable(false);
+      }
+      
    }
 }
