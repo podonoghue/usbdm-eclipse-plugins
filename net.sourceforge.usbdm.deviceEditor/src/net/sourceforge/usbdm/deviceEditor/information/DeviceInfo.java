@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
@@ -46,7 +45,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
@@ -58,6 +56,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSim;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
@@ -118,13 +117,13 @@ public class DeviceInfo extends ObservableModel {
    public static final String USBDM_HARDWARE_LOCATION  = "Stationery/Packages/180.ARM_Peripherals/Hardware";
    
    /** Key for device variant persistence */
-   public static final String DEVICE_VARIANT_SETTINGS_KEY   = "DeviceInfo_Device_Variant"; 
+   public static final String DEVICE_VARIANT_SETTINGS_KEY   = "$$DeviceInfo_Device_Variant"; 
 
    /** Key for target device persistence */
-   public static final String DEVICE_NAME_SETTINGS_KEY      = "DeviceInfo_Target_Device"; 
+   public static final String DEVICE_NAME_SETTINGS_KEY      = "$$DeviceInfo_Target_Device"; 
 
    /** Key for hardware source file persistence */
-   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "Hardware_Source_Filename"; 
+   public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "$$Hardware_Source_Filename"; 
 
    /** Map of variables for this peripheral */
    private final HashMap<String, Variable> fVariables = new HashMap<String, Variable>();
@@ -203,7 +202,7 @@ public class DeviceInfo extends ObservableModel {
 
       DeviceInfo deviceInfo = new DeviceInfo();
 
-      DialogSettings projectSettings = deviceInfo.getSettings(filePath);
+      Settings projectSettings = deviceInfo.getSettings(filePath);
 
       Path hardwarePath = Paths.get(projectSettings.get(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY));
 
@@ -1396,12 +1395,12 @@ public class DeviceInfo extends ObservableModel {
     * Load persistent settings
     * @throws IOException 
     */
-   public DialogSettings getSettings(Path path) throws IOException {
+   public Settings getSettings(Path path) throws Exception {
       System.err.println("DeviceInfo.getSettings(" + path.toAbsolutePath() + ")");
       fProjectSettingsPath = path;
       if (path.toFile().isFile()) {
-         DialogSettings settings = new DialogSettings("USBDM");
-         settings.load(path.toAbsolutePath().toString());
+         Settings settings = new Settings("USBDM");
+         settings.load(path.toAbsolutePath());
          return settings;
       }
       return null;
@@ -1410,7 +1409,7 @@ public class DeviceInfo extends ObservableModel {
    /**
     * Load persistent settings
     */
-   public void loadSettings(DialogSettings settings) {
+   public void loadSettings(Settings settings) {
       try {
          String variantName = settings.get(DEVICE_VARIANT_SETTINGS_KEY);
          if (variantName != null) {
@@ -1431,7 +1430,7 @@ public class DeviceInfo extends ObservableModel {
          for (String key:fVariables.keySet()) {
             String value = settings.get(key);
             if (value != null) {
-               fVariables.get(key).setValueQuietly(value);
+               fVariables.get(key).setPersistentValue(value);
             }
          }
          for (String peripheralName:fPeripheralsMap.keySet()) {
@@ -1459,7 +1458,7 @@ public class DeviceInfo extends ObservableModel {
    public void saveSettingsAs(Path path) {
       System.err.println("DeviceInfo.saveSettingsAs("+path.toAbsolutePath()+")");
       fProjectSettingsPath = path;
-      DialogSettings settings = new DialogSettings("USBDM");
+      Settings settings = new Settings("USBDM");
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);
       settings.put(DEVICE_VARIANT_SETTINGS_KEY, fVariantName);
       settings.put(HARDWARE_SOURCE_FILENAME_SETTINGS_KEY, fHardwarePath.getFileName().toString());
@@ -1477,10 +1476,10 @@ public class DeviceInfo extends ObservableModel {
       // Save variables
       for (String key:fVariables.keySet()) {
          // TODO
-         settings.put(key, fVariables.get(key).getRawValueAsString());
+         settings.put(key, fVariables.get(key).getPersistentValue());
       }
       try {
-         settings.save(fProjectSettingsPath.toAbsolutePath().toString());
+         settings.save(fProjectSettingsPath.toAbsolutePath());
       } catch (Exception e) {
          e.printStackTrace();
       }

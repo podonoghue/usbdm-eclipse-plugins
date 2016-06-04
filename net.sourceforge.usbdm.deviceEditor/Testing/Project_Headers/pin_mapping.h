@@ -2666,8 +2666,20 @@ public:
 
    // Template:lpuart0_0x400c4000
 
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemPeripheralClock;
+   static uint32_t getClockFrequency() {
+      switch(SIM->SOPT2&SIM_SOPT2_LPUARTSRC_MASK) {
+      default:
+      case SIM_SOPT2_LPUARTSRC(0): return 0;
+      case SIM_SOPT2_LPUARTSRC(1):
+         {
+         int  pllfllfrac  = SIM->CLKDIV3&0x1;
+         int  pllflldiv   = (SIM->CLKDIV3>>1)&0x7;
+         return (SystemPeripheralClock*(pllfllfrac+1))/(pllflldiv+1);
+         }
+      case SIM_SOPT2_LPUARTSRC(2): return SystemOscerClock;
+      case SIM_SOPT2_LPUARTSRC(3): return SystemMcgirClock;
+      }
+   }
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 4;
@@ -2778,7 +2790,7 @@ public:
    static constexpr uint32_t c6 =
       MCG_C6_LOLIE0(0) | // LOLIE0 Loss of Lock interrupt Enable
       MCG_C6_CME0(0)   | // CME0   Clock Monitor Enable
-      MCG_C6_VDIV0(0);   // VDIV0  PLL VCO Divider
+      MCG_C6_VDIV0(4);   // VDIV0  PLL VCO Divider
 
    //! Status and Control Register
    static constexpr uint32_t sc =
@@ -3407,11 +3419,15 @@ public:
 
    //! System Options Register 2
    static constexpr uint32_t sopt2 = 
-      SIM_SOPT2_RTCCLKOUTSEL(1) | // RTC clock out select
-      SIM_SOPT2_LPUARTSRC(1) |    // LPUART clock source select
-      SIM_SOPT2_TPMSRC(1) |       // TPM clock source select
-      SIM_SOPT2_USBSRC(0) |       // USB clock source select
-      SIM_SOPT2_PLLFLLSEL(1);     // PLL/FLL clock select
+      SIM_SOPT2_SDHCSRC(0) |       // SDHC clock source select
+      SIM_SOPT2_LPUARTSRC(1) |     // LPUART clock source select
+      SIM_SOPT2_TPMSRC(1) |        // TPM clock source select
+      SIM_SOPT2_TIMESRC(0) |       // IEEE 1588 timestamp clock source select
+      SIM_SOPT2_RMIISRC(0) |       // Ethernet RMII clock source select
+      SIM_SOPT2_USBSRC(1) |        // USB clock source select
+      SIM_SOPT2_PLLFLLSEL(1) |     // PLL/FLL clock select
+      SIM_SOPT2_CLKOUTSEL(0) |     // CLKOUT pin clock source select
+      SIM_SOPT2_RTCCLKOUTSEL(1);   // RTC clock out select
 
    //! System Clock Divider Register 1
    static constexpr uint32_t clkdiv1 = 
@@ -3422,11 +3438,11 @@ public:
 
    //! System Clock Divider Register 2
    static constexpr uint32_t clkdiv2 = 
-      1;  // USB clock divider divisor & fraction 
+      9;  // USB clock divider divisor & fraction 
 
    //! System Clock Divider Register 3
    static constexpr uint32_t clkdiv3 = 
-      12;  // PLLFLL clock divider divisor & fraction 
+      2;  // PLLFLL clock divider divisor & fraction 
 
 };
 
@@ -3935,41 +3951,6 @@ public:
 
    // Template:uart0_mk65f18_c7816
 
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemCoreClock;
-
-   //! Number of signals available in info table
-   static constexpr int numSignals  = 5;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART0_TX             = PTB17 (ConTx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  17,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   1: UART0_RX             = PTB16 (ConRx)                  */  { PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  16,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   2: UART0_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART0_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   4: UART0_COL_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-      PcrTable_T<Uart0Info,  0>::setPCR(); // UART0_TX        = PTB17 (ConTx)                 
-      PcrTable_T<Uart0Info,  1>::setPCR(); // UART0_RX        = PTB16 (ConRx)                 
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-      PcrTable_T<Uart0Info,  0>::setPCR(0); // UART0_TX        = PTB17 (ConTx)                 
-      PcrTable_T<Uart0Info,  1>::setPCR(0); // UART0_RX        = PTB16 (ConRx)                 
-   }
-
-};
-
 #define USBDM_UART1_IS_DEFINED 
 /**
  * Peripheral information for UART, Universal Asynchronous Receiver/Transmitter
@@ -3995,36 +3976,6 @@ public:
    static constexpr IRQn_Type irqNums[]  = {UART1_RX_TX_IRQn, UART1_ERR_IRQn};
 
    // Template:uart1_mk65f18
-
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemCoreClock;
-
-   //! Number of signals available in info table
-   static constexpr int numSignals  = 4;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART1_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART1_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART1_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART1_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-   }
-
-};
 
 #define USBDM_UART2_IS_DEFINED 
 /**
@@ -4052,36 +4003,6 @@ public:
 
    // Template:uart1_mk65f18
 
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemBusClock;
-
-   //! Number of signals available in info table
-   static constexpr int numSignals  = 4;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART2_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART2_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART2_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART2_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-   }
-
-};
-
 #define USBDM_UART3_IS_DEFINED 
 /**
  * Peripheral information for UART, Universal Asynchronous Receiver/Transmitter
@@ -4108,36 +4029,6 @@ public:
 
    // Template:uart1_mk65f18
 
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemBusClock;
-
-   //! Number of signals available in info table
-   static constexpr int numSignals  = 4;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART3_TX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   1: UART3_RX             = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   2: UART3_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART3_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-   }
-
-};
-
 #define USBDM_UART4_IS_DEFINED 
 /**
  * Peripheral information for UART, Universal Asynchronous Receiver/Transmitter
@@ -4163,40 +4054,6 @@ public:
    static constexpr IRQn_Type irqNums[]  = {UART4_RX_TX_IRQn, UART4_ERR_IRQn};
 
    // Template:uart1_mk65f18
-
-   //! Clock source for peripheral
-   static constexpr uint32_t &clockSource = SystemBusClock;
-
-   //! Number of signals available in info table
-   static constexpr int numSignals  = 4;
-
-   //! Information for each signal of peripheral
-   static constexpr PcrInfo  info[] = {
-
-         //      Signal                 Pin                                 clockMask          pcrAddress      gpioAddress     bit  PCR value
-         /*   0: UART4_TX             = PTC15 (BLUETOOTH_Tx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  15,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   1: UART4_RX             = PTC14 (BLUETOOTH_Rx)           */  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  14,  PORT_PCR_MUX(3)|pcrValue  },
-         /*   2: UART4_RTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-         /*   3: UART4_CTS_b          = --                             */  { 0, 0, 0, UNMAPPED_PCR, 0 },
-   };
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void initPCRs() {
-      PcrTable_T<Uart4Info,  0>::setPCR(); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
-      PcrTable_T<Uart4Info,  1>::setPCR(); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
-   }
-
-   /**
-    * Initialise pins used by peripheral
-    */
-   static void clearPCRs() {
-      PcrTable_T<Uart4Info,  0>::setPCR(0); // UART4_TX        = PTC15 (BLUETOOTH_Tx)          
-      PcrTable_T<Uart4Info,  1>::setPCR(0); // UART4_RX        = PTC14 (BLUETOOTH_Rx)          
-   }
-
-};
 
 /** 
  * End UART_Group

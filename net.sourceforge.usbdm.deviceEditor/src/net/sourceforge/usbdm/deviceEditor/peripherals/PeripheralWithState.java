@@ -9,12 +9,12 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.DialogSettings;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -22,8 +22,8 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -166,12 +166,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    @Override
-   public void loadSettings(DialogSettings settings) {
+   public void loadSettings(Settings settings) {
       super.loadSettings(settings);
    }
 
    @Override
-   public void saveSettings(DialogSettings settings) {
+   public void saveSettings(Settings settings) {
       super.saveSettings(settings);
    }
    

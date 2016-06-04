@@ -144,7 +144,12 @@ public class BooleanVariable extends Variable {
    }
 
    @Override
-   public String getRawValueAsString() {
+   public String getPersistentValue() {
       return Boolean.toString(fValue);
+   }
+
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
    }
 }

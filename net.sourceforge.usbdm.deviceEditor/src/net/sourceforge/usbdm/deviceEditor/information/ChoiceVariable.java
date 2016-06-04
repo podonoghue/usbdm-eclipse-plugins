@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 
 public class ChoiceVariable extends Variable {
 
@@ -12,7 +13,7 @@ public class ChoiceVariable extends Variable {
    /** List of choices */
    String[] fChoices = null;
 
-   /** Current value (user format) */
+   /** Current value (user format i.e name) */
    String fValue = null;
 
    /** Default value of variable */
@@ -214,7 +215,34 @@ public class ChoiceVariable extends Variable {
    }
 
    @Override
-   public String getRawValueAsString() {
-      return fValue;
+   public String getPersistentValue() {
+      int foundIndex = -1;
+      for (int index=0; index<fData.length; index++) {
+         if (fData[index].name.equalsIgnoreCase(fValue)) {
+            foundIndex = index;
+            break;
+         }
+      }
+      return Integer.toString(foundIndex);
+   }
+
+   @Override
+   public void setPersistentValue(String value) {
+      int index = -1;
+      try {
+         index = Integer.parseInt(value);
+         if ((index<0) || (index>fData.length)) {
+            index = -1;
+         }
+      } catch (NumberFormatException e) {
+      }
+      if (index<0) {
+         if (isValid(value) == null) {
+            fValue = value;
+            return;
+         }
+         fValue = fDefault;
+      }
+      fValue = fData[index].name;
    }
 }

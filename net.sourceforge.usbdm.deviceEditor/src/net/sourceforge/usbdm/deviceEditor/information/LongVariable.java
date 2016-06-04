@@ -257,10 +257,15 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public String getRawValueAsString() {
+   public String getPersistentValue() {
       if (getUnits() != Units.None) {
          return EngineeringNotation.convert(fValue, 5)+getUnits().toString();
       }
       return Long.toString(fValue);
+   }
+
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
    }
 }

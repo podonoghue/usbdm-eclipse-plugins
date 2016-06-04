@@ -3,8 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 public abstract class Validator {

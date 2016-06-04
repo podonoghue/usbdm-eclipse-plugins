@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.eclipse.jface.dialogs.DialogSettings;
-
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
@@ -325,18 +323,12 @@ public abstract class Peripheral {
       return fDmaInfoList;
    }
 
-   /** Key for mux selection persistence */
-   public static final String MUX_SETTINGS_KEY = "muxSetting"; 
-   
-   /** Key for description selection persistence */
-   public static final String DESCRIPTION_SETTINGS_KEY = "descriptionSetting"; 
-   
    /**
     * Load settings from settings object
     * 
     * @param settings Settings object
     */
-   public void loadSettings(DialogSettings settings) {
+   public void loadSettings(Settings settings) {
    }
 
    /**
@@ -344,7 +336,7 @@ public abstract class Peripheral {
     * 
     * @param settings Settings object
     */
-   public void saveSettings(DialogSettings settings) {
+   public void saveSettings(Settings settings) {
    }
 
    /** 

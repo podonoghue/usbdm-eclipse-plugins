@@ -1,202 +1,208 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- MK22F12810.usbdmProject -->
+<!-- 
+   Settings
+-->
+
 <section name="USBDM">
-	<item value="false" key="/MCG/irqHandler"/>
-	<item value="false" key="/ADC0/adc_cfg1_adlpc"/>
-	<item value="false" key="/CMP0/cmp_cr1_we"/>
-	<item value="Divide by 1" key="/FTM0/ftm_sc_ps"/>
-	<item value="false" key="/MCG/pll_enabled"/>
-	<item value="Filter is disabled" key="/CMP1/cmp_cr0_filter_cnt"/>
-	<item value="0" key="/I2C0/irqLevel"/>
-	<item value="false" key="/PIT/irq2Handler"/>
-	<item value="100MHz" key="/SIM/coreFreq"/>
-	<item value="13" key="/SIM/sim_clkdiv1_outdiv4"/>
-	<item value="10000" key="/FTM1/period"/>
-	<item value="false" key="/ADC1/adc_sc2_dmaen"/>
-	<item value="false" key="/PIT/irq0Handler"/>
-	<item value="false" key="/ADC1/adc_cfg2_adhsc"/>
-	<item value="0.0Hz" key="/SIM/system_lpuart_clock"/>
-	<item value="32.768kHz" key="/RTC/rtc_clkout"/>
-	<item value="Input clock" key="/ADC1/adc_cfg1_adiv"/>
-	<item value="13" key="/SIM/sim_clkdiv1_outdiv2"/>
-	<item value="13" key="/SIM/sim_clkdiv1_outdiv1"/>
-	<item value="VRefH and VRefl" key="/ADC1/adc_sc2_refsel"/>
-	<item value="false" key="/OSC0/hgo0"/>
-	<item value="Divide by 1" key="/OSC0/osc_div_erps"/>
-	<item value="system_lpuart_clock" key="/LPUART0/clockSource"/>
-	<item value="false" key="/CMP0/cmp_cr1_en"/>
-	<item value="10000" key="/LPTMR0/period"/>
-	<item value="Level 0" key="/CMP1/cmp_cr0_hystctr"/>
-	<item value="false" key="/SPI0/spi_lsbfe"/>
-	<item value="Mode 1: CPOL=0, CPHA=1" key="/SPI1/spi_mode"/>
-	<item value="false" key="/CMP0/cmp_cr1_trigm"/>
-	<item value="32.768kHz" key="/RTC/rtcclk_gated_clock"/>
-	<item value="false" key="/ADC0/adc_cfg2_adhsc"/>
-	<item value="100000" key="/SPI0/speed"/>
-	<item value="false" key="/FTM2/irqHandler"/>
-	<item value="false" key="/MCG/mcg_c2_locre0"/>
-	<item value="8.0MHz" key="/OSC0/oscclk_clock"/>
-	<item value="false" key="/RTC/rtc_cr_um"/>
-	<item value="Divide by 1" key="/FTM2/ftm_sc_ps"/>
-	<item value="VRefH and VRefl" key="/ADC0/adc_sc2_refsel"/>
-	<item value="+20 ADCK cycles; 24 ADCK total" key="/ADC0/adc_cfg2_adlsts"/>
-	<item value="false" key="/LPTMR0/lptmr_csr_tfc"/>
-	<item value="false" key="/ADC1/adc_cfg1_adlpc"/>
-	<item value="4.0MHz" key="/MCG/pllInputFrequency"/>
-	<item value="false" key="/MCG/mcg_c8_cme1"/>
-	<item value="false" key="/MCG/mcg_c2_ircs"/>
-	<item value="Bus clock" key="/ADC1/adc_cfg1_adiclk"/>
-	<item value="false" key="/MCG/mcg_c8_lolre"/>
-	<item value="0MHz" key="/SIM/flexFreq"/>
-	<item value="0" key="/CMP1/irqLevel"/>
-	<item value="false" key="/RTC/irqHandler"/>
-	<item value="0" key="/CMP0/cmp_fpr_filt_per"/>
-	<item value="false" key="/CMP0/cmp_cr1_ope"/>
-	<item value="false" key="/CMP1/cmp_cr1_ope"/>
-	<item value="100000" key="/SPI1/speed"/>
-	<item value="false" key="/MCG/mcg_c1_irefs"/>
-	<item value="RTC 32kHz clock" key="/SIM/sim_sopt1_osc32ksel"/>
-	<item value="80.0MHz" key="/MCG/system_mcgfllclk_clock"/>
-	<item value="false" key="/CMP0/cmp_cr1_se"/>
-	<item value="true" key="/OSC0/erefs0"/>
-	<item value="31.250kHz" key="/MCG/system_mcgffclk_clock"/>
-	<item value="false" key="/MCG/mcg_c5_pllclken"/>
-	<item value="false" key="/CMP1/cmp_cr1_en"/>
-	<item value="0" key="/FTM1/irqLevel"/>
-	<item value="false" key="/PIT/pit_mcr_frz"/>
-	<item value="CMP0 output" key="/LPTMR0/lptmr_csr_tps"/>
-	<item value="false" key="/LPTMR0/lptmr_csr_tpp"/>
-	<item value="false" key="/FTM2/ftm_sc_toie"/>
-	<item value="false" key="/ADC0/adc_sc2_dmaen"/>
-	<item value="false" key="/MCG/mcg_c4_dmx32"/>
-	<item value="false" key="/FTM0/ftm_sc_toie"/>
-	<item value="Mode 1: CPOL=0, CPHA=1" key="/SPI0/spi_mode"/>
-	<item value="High (x2560/x2929, 80-100/96 MHz)" key="/MCG/mcg_c4_drst_drs"/>
-	<item value="false" key="/CMP0/irqHandler"/>
-	<item value="6.1538MHz" key="/SIM/system_flash_clock"/>
-	<item value="false" key="/MCG/mcg_c6_cme0"/>
-	<item value="false" key="/OSC0/osc_cr_erefsten"/>
-	<item value="false" key="/CMP0/cmp_cr1_inv"/>
-	<item value="if RANGE0 = low, divide by 8, else 256" key="/MCG/mcg_c1_frdiv"/>
-	<item value="0" key="/MCG/irqLevel"/>
-	<item value="10-bit single/11-bit differential" key="/ADC0/adc_cfg1_mode"/>
-	<item value="High range" key="/OSC0/range"/>
-	<item value="SystemBusClock" key="/UART2/clockSource"/>
-	<item value="25MHz" key="/SIM/flashFreq"/>
-	<item value="31.250kHz" key="/MCG/fllInputFrequency"/>
-	<item value="FLL output" key="/MCG/system_mcgoutclk_clock_source"/>
-	<item value="0" key="/ADC0/irqLevel"/>
-	<item value="SystemCoreClock" key="/UART0/clockSource"/>
-	<item value="48.0MHz" key="/MCG/system_usb_clkin_clock"/>
-	<item value="false" key="/I2C1/irqHandler"/>
-	<item value="false" key="/ADC1/irqHandler"/>
-	<item value="32.768kHz" key="/RTC/rtc_input_freq"/>
-	<item value="32.768kHz" key="/MCG/system_slow_irc_clock"/>
-	<item value="System clock" key="/FTM1/ftm_sc_clks"/>
-	<item value="false" key="/ADC1/adc_cfg2_adacken"/>
-	<item value="10-bit single/11-bit differential" key="/ADC1/adc_cfg1_mode"/>
-	<item value="Divide by 1" key="/FTM1/ftm_sc_ps"/>
-	<item value="false" key="/ADC0/adc_cfg1_adlsmp"/>
-	<item value="false" key="/FTM0/ftm_sc_cpwms"/>
-	<item value="false" key="/MCG/mcg_c5_pllsten"/>
-	<item value="6.1538MHz" key="/SIM/system_bus_clock"/>
-	<item value="false" key="/MCG/mcg_c6_plls"/>
-	<item value="Prescaler = 2, no glitch filter" key="/LPTMR0/lptmr_psr_prescaler"/>
-	<item value="8.0MHz" key="/OSC0/osc_input_freq"/>
-	<item value="false" key="/CMP1/cmp_cr1_we"/>
-	<item value="FLL Engaged External (FEE)" key="/MCG/clock_mode"/>
-	<item value="8 pF" key="/RTC/rtc_cr_scp"/>
-	<item value="10000" key="/FTM0/period"/>
-	<item value="32.768kHz" key="/MCG/system_mcgirclk_clock"/>
-	<item value="Divide by 1" key="/MCG/mcg_sc_fcrdiv"/>
-	<item value="+20 ADCK cycles; 24 ADCK total" key="/ADC1/adc_cfg2_adlsts"/>
-	<item value="false" key="/ADC0/irqHandler"/>
-	<item value="false" key="/FTM2/ftm_sc_cpwms"/>
-	<item value="Output of FLL or PLL is selected" key="/MCG/mcg_c1_clks"/>
-	<item value="false" key="/PIT/irq3Handler"/>
-	<item value="10000" key="/PIT/pit_ldval"/>
-	<item value="80.0MHz" key="/MCG/system_mcgoutclk_clock"/>
-	<item value="10000" key="/FTM2/period"/>
-	<item value="false" key="/PIT/irq1Handler"/>
-	<item value="0.0Hz" key="/OSC0/osc32kclk_clock"/>
-	<item value="0" key="/CMP1/cmp_fpr_filt_per"/>
-	<item value="Peripheral Clock clock divided by SIM_CLKDIV2" key="/SIM/sim_sopt2_usbsrc"/>
-	<item value="8.0MHz" key="/OSC0/system_oscerclk_undiv_clock"/>
-	<item value="false" key="/CMP1/irqHandler"/>
-	<item value="48.0MHz" key="/SIM/system_peripheral_clock"/>
-	<item value="4.0MHz" key="/MCG/system_fast_irc_clock"/>
-	<item value="false" key="/ADC1/adc_cfg1_adlsmp"/>
-	<item value="8.0MHz" key="/OSC0/system_oscerclk_clock"/>
-	<item value="8.0MHz" key="/MCG/mcg_erc_clock"/>
-	<item value="0" key="/PIT/irqLevel"/>
-	<item value="32.768kHz" key="/RTC/rtcclk_clock"/>
-	<item value="false" key="/LPTMR0/lptmr_csr_tms"/>
-	<item value="false" key="/ADC0/adc_cfg2_adacken"/>
-	<item value="MK22F12810" key="DeviceInfo_Target_Device"/>
-	<item value="Disabled" key="/ADC1/adc_sc2_compare"/>
-	<item value="Filter is disabled" key="/CMP0/cmp_cr0_filter_cnt"/>
-	<item value="false" key="/CMP0/cmp_cr1_cos"/>
-	<item value="Main System Oscillator (OSCCLK0)" key="/MCG/mcg_c7_oscsel"/>
-	<item value="false" key="/CMP1/cmp_cr1_cos"/>
-	<item value="false" key="/LPTMR0/irqHandler"/>
-	<item value="false" key="/FTM1/irqHandler"/>
-	<item value="0" key="/RTC/irqLevel"/>
-	<item value="8 pF" key="/OSC0/osc_cr_scp"/>
-	<item value="false" key="/CMP1/cmp_cr1_pmode"/>
-	<item value="false" key="/FTM1/ftm_sc_cpwms"/>
-	<item value="false" key="/MCG/mcg_c2_lp"/>
-	<item value="0" key="/I2C1/irqLevel"/>
-	<item value="0" key="/ADC1/irqLevel"/>
-	<item value="Disabled" key="/SIM/sim_sopt2_lpuartsrc"/>
-	<item value="false" key="/FTM0/irqHandler"/>
-	<item value="48.0MHz" key="/SIM/system_usbfs_clock"/>
-	<item value="0" key="/FTM2/irqLevel"/>
-	<item value="false" key="/CMP1/cmp_cr1_se"/>
-	<item value="true" key="/RTC/rtc_cr_clko"/>
-	<item value="0" key="/CMP0/irqLevel"/>
-	<item value="false" key="/CMP0/cmp_cr1_pmode"/>
-	<item value="MCG Internal Reference Clock (MCGIRCLK)" key="/LPTMR0/lptmr_psr_pcs"/>
-	<item value="true" key="/OSC0/osc_cr_erclken"/>
-	<item value="Level 0" key="/CMP0/cmp_cr0_hystctr"/>
-	<item value="Bus clock" key="/ADC0/adc_cfg1_adiclk"/>
-	<item value="false" key="/I2C0/irqHandler"/>
-	<item value="6.1538MHz" key="/SIM/system_core_clock"/>
-	<item value="ERCLK32K is not output" key="/SIM/sim_sopt1_osc32kout"/>
-	<item value="High range" key="/OSC0/range_out"/>
-	<item value="true" key="/MCG/mcg_c1_irclken"/>
-	<item value="32.768kHz" key="/SIM/system_erclk32k_clock"/>
-	<item value="false" key="/RTC/rtc_cr_wpe"/>
-	<item value="false" key="/CMP1/cmp_cr1_trigm"/>
-	<item value="0" key="/FTM0/irqLevel"/>
-	<item value="30" key="/MCG/mcg_c6_vdiv0"/>
-	<item value="false" key="/FTM1/ftm_sc_toie"/>
-	<item value="MK22FN128VDC10" key="DeviceInfo_Device_Variant"/>
-	<item value="2" key="/MCG/mcg_c5_prdiv0"/>
-	<item value="true" key="/RTC/rtc_cr_osce"/>
-	<item value="Multiply by 1 (div=1, frac=1)" key="/SIM/sim_clkdiv2_usb"/>
-	<item value="1.0kHz" key="/MCG/system_low_power_clock"/>
-	<item value="false" key="/MCG/mcg_c1_irefsten"/>
-	<item value="Input clock" key="/ADC0/adc_cfg1_adiv"/>
-	<item value="60.0MHz" key="/SIM/system_flexbus_clock"/>
-	<item value="false" key="/ADC1/adc_sc2_adtrg"/>
-	<item value="false" key="/CMP1/cmp_cr1_inv"/>
-	<item value="false" key="/PIT/pit_tctrl_ch3"/>
-	<item value="false" key="/PIT/pit_tctrl_ch1"/>
-	<item value="120.0MHz" key="/MCG/system_mcgpllclk_clock"/>
-	<item value="true" key="/SIM/sim_sopt2_rtcclkoutsel"/>
-	<item value="50MHz" key="/SIM/busFreq"/>
-	<item value="false" key="/ADC0/adc_sc2_adtrg"/>
-	<item value="SystemCoreClock" key="/UART1/clockSource"/>
-	<item value="IRC48 MHz clock" key="/SIM/sim_sopt2_pllfllsel"/>
-	<item value="true" key="/MCG/fll_enabled"/>
-	<item value="System clock" key="/FTM0/ftm_sc_clks"/>
-	<item value="48.0MHz" key="/MCG/system_irc48m_clock"/>
-	<item value="System clock" key="/FTM2/ftm_sc_clks"/>
-	<item value="false" key="/LPTMR0/lptmr_psr_pbyp"/>
-	<item value="Disabled" key="/ADC0/adc_sc2_compare"/>
-	<item value="MK22F12810.usbdmHardware" key="Hardware_Source_Filename"/>
-	<item value="false" key="/SPI1/spi_lsbfe"/>
-	<item value="false" key="/MCG/mcg_c8_locre1"/>
-	<item value="false" key="/RTC/rtc_cr_sup"/>
-	<item value="0" key="/LPTMR0/irqLevel"/>
-	<item value="false" key="/MCG/mcg_c6_lolie0"/>
+   <item key="$$DeviceInfo_Device_Variant"                 value="MK22FN128VDC10" />
+   <item key="$$DeviceInfo_Target_Device"                  value="MK22F12810" />
+   <item key="$$Hardware_Source_Filename"                  value="MK22F12810.usbdmHardware" />
+   <item key="/ADC0/adc_cfg1_adiclk"                       value="0" />
+   <item key="/ADC0/adc_cfg1_adiv"                         value="0" />
+   <item key="/ADC0/adc_cfg1_adlpc"                        value="false" />
+   <item key="/ADC0/adc_cfg1_adlsmp"                       value="false" />
+   <item key="/ADC0/adc_cfg1_mode"                         value="2" />
+   <item key="/ADC0/adc_cfg2_adacken"                      value="false" />
+   <item key="/ADC0/adc_cfg2_adhsc"                        value="false" />
+   <item key="/ADC0/adc_cfg2_adlsts"                       value="0" />
+   <item key="/ADC0/adc_sc2_adtrg"                         value="false" />
+   <item key="/ADC0/adc_sc2_compare"                       value="0" />
+   <item key="/ADC0/adc_sc2_dmaen"                         value="false" />
+   <item key="/ADC0/adc_sc2_refsel"                        value="0" />
+   <item key="/ADC0/irqHandler"                            value="false" />
+   <item key="/ADC0/irqLevel"                              value="0" />
+   <item key="/ADC1/adc_cfg1_adiclk"                       value="0" />
+   <item key="/ADC1/adc_cfg1_adiv"                         value="0" />
+   <item key="/ADC1/adc_cfg1_adlpc"                        value="false" />
+   <item key="/ADC1/adc_cfg1_adlsmp"                       value="false" />
+   <item key="/ADC1/adc_cfg1_mode"                         value="2" />
+   <item key="/ADC1/adc_cfg2_adacken"                      value="false" />
+   <item key="/ADC1/adc_cfg2_adhsc"                        value="false" />
+   <item key="/ADC1/adc_cfg2_adlsts"                       value="0" />
+   <item key="/ADC1/adc_sc2_adtrg"                         value="false" />
+   <item key="/ADC1/adc_sc2_compare"                       value="0" />
+   <item key="/ADC1/adc_sc2_dmaen"                         value="false" />
+   <item key="/ADC1/adc_sc2_refsel"                        value="0" />
+   <item key="/ADC1/irqHandler"                            value="false" />
+   <item key="/ADC1/irqLevel"                              value="0" />
+   <item key="/CMP0/cmp_cr0_filter_cnt"                    value="0" />
+   <item key="/CMP0/cmp_cr0_hystctr"                       value="0" />
+   <item key="/CMP0/cmp_cr1_cos"                           value="false" />
+   <item key="/CMP0/cmp_cr1_en"                            value="false" />
+   <item key="/CMP0/cmp_cr1_inv"                           value="false" />
+   <item key="/CMP0/cmp_cr1_ope"                           value="false" />
+   <item key="/CMP0/cmp_cr1_pmode"                         value="false" />
+   <item key="/CMP0/cmp_cr1_se"                            value="false" />
+   <item key="/CMP0/cmp_cr1_trigm"                         value="false" />
+   <item key="/CMP0/cmp_cr1_we"                            value="false" />
+   <item key="/CMP0/cmp_fpr_filt_per"                      value="0" />
+   <item key="/CMP0/irqHandler"                            value="false" />
+   <item key="/CMP0/irqLevel"                              value="0" />
+   <item key="/CMP1/cmp_cr0_filter_cnt"                    value="0" />
+   <item key="/CMP1/cmp_cr0_hystctr"                       value="0" />
+   <item key="/CMP1/cmp_cr1_cos"                           value="false" />
+   <item key="/CMP1/cmp_cr1_en"                            value="false" />
+   <item key="/CMP1/cmp_cr1_inv"                           value="false" />
+   <item key="/CMP1/cmp_cr1_ope"                           value="false" />
+   <item key="/CMP1/cmp_cr1_pmode"                         value="false" />
+   <item key="/CMP1/cmp_cr1_se"                            value="false" />
+   <item key="/CMP1/cmp_cr1_trigm"                         value="false" />
+   <item key="/CMP1/cmp_cr1_we"                            value="false" />
+   <item key="/CMP1/cmp_fpr_filt_per"                      value="0" />
+   <item key="/CMP1/irqHandler"                            value="false" />
+   <item key="/CMP1/irqLevel"                              value="0" />
+   <item key="/FTM0/ftm_sc_clks"                           value="1" />
+   <item key="/FTM0/ftm_sc_cpwms"                          value="false" />
+   <item key="/FTM0/ftm_sc_ps"                             value="0" />
+   <item key="/FTM0/ftm_sc_toie"                           value="false" />
+   <item key="/FTM0/irqHandler"                            value="false" />
+   <item key="/FTM0/irqLevel"                              value="0" />
+   <item key="/FTM0/period"                                value="10000" />
+   <item key="/FTM1/ftm_sc_clks"                           value="1" />
+   <item key="/FTM1/ftm_sc_cpwms"                          value="false" />
+   <item key="/FTM1/ftm_sc_ps"                             value="0" />
+   <item key="/FTM1/ftm_sc_toie"                           value="false" />
+   <item key="/FTM1/irqHandler"                            value="false" />
+   <item key="/FTM1/irqLevel"                              value="0" />
+   <item key="/FTM1/period"                                value="10000" />
+   <item key="/FTM2/ftm_sc_clks"                           value="1" />
+   <item key="/FTM2/ftm_sc_cpwms"                          value="false" />
+   <item key="/FTM2/ftm_sc_ps"                             value="0" />
+   <item key="/FTM2/ftm_sc_toie"                           value="false" />
+   <item key="/FTM2/irqHandler"                            value="false" />
+   <item key="/FTM2/irqLevel"                              value="0" />
+   <item key="/FTM2/period"                                value="10000" />
+   <item key="/I2C0/irqHandler"                            value="false" />
+   <item key="/I2C0/irqLevel"                              value="0" />
+   <item key="/I2C1/irqHandler"                            value="false" />
+   <item key="/I2C1/irqLevel"                              value="0" />
+   <item key="/LPTMR0/irqHandler"                          value="false" />
+   <item key="/LPTMR0/irqLevel"                            value="0" />
+   <item key="/LPTMR0/lptmr_csr_tfc"                       value="false" />
+   <item key="/LPTMR0/lptmr_csr_tms"                       value="false" />
+   <item key="/LPTMR0/lptmr_csr_tpp"                       value="false" />
+   <item key="/LPTMR0/lptmr_csr_tps"                       value="0" />
+   <item key="/LPTMR0/lptmr_psr_pbyp"                      value="false" />
+   <item key="/LPTMR0/lptmr_psr_pcs"                       value="0" />
+   <item key="/LPTMR0/lptmr_psr_prescaler"                 value="0" />
+   <item key="/LPTMR0/period"                              value="10000" />
+   <item key="/MCG/clock_mode"                             value="2" />
+   <item key="/MCG/fllInputFrequency"                      value="31.250kHz" />
+   <item key="/MCG/fll_enabled"                            value="true" />
+   <item key="/MCG/irqHandler"                             value="false" />
+   <item key="/MCG/irqLevel"                               value="0" />
+   <item key="/MCG/mcg_c1_clks"                            value="0" />
+   <item key="/MCG/mcg_c1_frdiv"                           value="3" />
+   <item key="/MCG/mcg_c1_irclken"                         value="true" />
+   <item key="/MCG/mcg_c1_irefs"                           value="false" />
+   <item key="/MCG/mcg_c1_irefsten"                        value="false" />
+   <item key="/MCG/mcg_c2_ircs"                            value="false" />
+   <item key="/MCG/mcg_c2_locre0"                          value="false" />
+   <item key="/MCG/mcg_c2_lp"                              value="false" />
+   <item key="/MCG/mcg_c4_dmx32"                           value="false" />
+   <item key="/MCG/mcg_c4_drst_drs"                        value="3" />
+   <item key="/MCG/mcg_c5_pllclken"                        value="false" />
+   <item key="/MCG/mcg_c5_pllsten"                         value="false" />
+   <item key="/MCG/mcg_c5_prdiv0"                          value="2" />
+   <item key="/MCG/mcg_c6_cme0"                            value="false" />
+   <item key="/MCG/mcg_c6_lolie0"                          value="false" />
+   <item key="/MCG/mcg_c6_plls"                            value="false" />
+   <item key="/MCG/mcg_c6_vdiv0"                           value="30" />
+   <item key="/MCG/mcg_c7_oscsel"                          value="0" />
+   <item key="/MCG/mcg_c8_cme1"                            value="false" />
+   <item key="/MCG/mcg_c8_locre1"                          value="false" />
+   <item key="/MCG/mcg_c8_lolre"                           value="false" />
+   <item key="/MCG/mcg_erc_clock"                          value="8.0MHz" />
+   <item key="/MCG/mcg_sc_fcrdiv"                          value="0" />
+   <item key="/MCG/pll0Enabled"                            value="false" />
+   <item key="/MCG/pll0InputFrequency"                     value="4.0MHz" />
+   <item key="/MCG/pll0OutputFrequency"                    value="120.0MHz" />
+   <item key="/MCG/system_fast_irc_clock"                  value="4.0MHz" />
+   <item key="/MCG/system_irc48m_clock"                    value="48.0MHz" />
+   <item key="/MCG/system_low_power_clock"                 value="1.0kHz" />
+   <item key="/MCG/system_mcgffclk_clock"                  value="31.250kHz" />
+   <item key="/MCG/system_mcgfllclk_clock"                 value="80.0MHz" />
+   <item key="/MCG/system_mcgirclk_clock"                  value="32.768kHz" />
+   <item key="/MCG/system_mcgoutclk_clock"                 value="80.0MHz" />
+   <item key="/MCG/system_mcgoutclk_clock_source"          value="1" />
+   <item key="/MCG/system_mcgpllclk_clock"                 value="0.0Hz" />
+   <item key="/MCG/system_slow_irc_clock"                  value="32.768kHz" />
+   <item key="/MCG/system_usb_clkin_clock"                 value="48.0MHz" />
+   <item key="/OSC0/erefs0"                                value="true" />
+   <item key="/OSC0/hgo0"                                  value="false" />
+   <item key="/OSC0/osc32kclk_clock"                       value="0.0Hz" />
+   <item key="/OSC0/osc_cr_erclken"                        value="true" />
+   <item key="/OSC0/osc_cr_erefsten"                       value="false" />
+   <item key="/OSC0/osc_cr_scp"                            value="4" />
+   <item key="/OSC0/osc_div_erps"                          value="0" />
+   <item key="/OSC0/osc_input_freq"                        value="8.0MHz" />
+   <item key="/OSC0/oscclk_clock"                          value="8.0MHz" />
+   <item key="/OSC0/range"                                 value="1" />
+   <item key="/OSC0/range_out"                             value="1" />
+   <item key="/OSC0/system_oscerclk_clock"                 value="8.0MHz" />
+   <item key="/OSC0/system_oscerclk_undiv_clock"           value="8.0MHz" />
+   <item key="/PIT/irq0Handler"                            value="false" />
+   <item key="/PIT/irq1Handler"                            value="false" />
+   <item key="/PIT/irq2Handler"                            value="false" />
+   <item key="/PIT/irq3Handler"                            value="false" />
+   <item key="/PIT/irqLevel"                               value="0" />
+   <item key="/PIT/pit_ldval"                              value="10000" />
+   <item key="/PIT/pit_mcr_frz"                            value="false" />
+   <item key="/PIT/pit_tctrl_ch1"                          value="false" />
+   <item key="/PIT/pit_tctrl_ch3"                          value="false" />
+   <item key="/RTC/irqHandler"                             value="false" />
+   <item key="/RTC/irqLevel"                               value="0" />
+   <item key="/RTC/rtc_clkout"                             value="32.768kHz" />
+   <item key="/RTC/rtc_cr_clko"                            value="true" />
+   <item key="/RTC/rtc_cr_osce"                            value="true" />
+   <item key="/RTC/rtc_cr_scp"                             value="4" />
+   <item key="/RTC/rtc_cr_sup"                             value="false" />
+   <item key="/RTC/rtc_cr_um"                              value="false" />
+   <item key="/RTC/rtc_cr_wpe"                             value="false" />
+   <item key="/RTC/rtc_input_freq"                         value="32.768kHz" />
+   <item key="/RTC/rtcclk_clock"                           value="32.768kHz" />
+   <item key="/RTC/rtcclk_gated_clock"                     value="32.768kHz" />
+   <item key="/SIM/busFreq"                                value="50MHz" />
+   <item key="/SIM/coreFreq"                               value="100MHz" />
+   <item key="/SIM/flashFreq"                              value="25MHz" />
+   <item key="/SIM/flexFreq"                               value="0MHz" />
+   <item key="/SIM/sim_clkdiv1_outdiv1"                    value="13" />
+   <item key="/SIM/sim_clkdiv1_outdiv2"                    value="13" />
+   <item key="/SIM/sim_clkdiv1_outdiv4"                    value="13" />
+   <item key="/SIM/sim_clkdiv2_usb"                        value="2" />
+   <item key="/SIM/sim_sopt1_osc32kout"                    value="0" />
+   <item key="/SIM/sim_sopt1_osc32ksel"                    value="2" />
+   <item key="/SIM/sim_sopt2_clkoutsel"                    value="2" />
+   <item key="/SIM/sim_sopt2_lpuartsrc"                    value="0" />
+   <item key="/SIM/sim_sopt2_pllfllsel"                    value="3" />
+   <item key="/SIM/sim_sopt2_rtcclkoutsel"                 value="true" />
+   <item key="/SIM/sim_sopt2_usbsrc"                       value="1" />
+   <item key="/SIM/system_bus_clock"                       value="6.1538MHz" />
+   <item key="/SIM/system_core_clock"                      value="6.1538MHz" />
+   <item key="/SIM/system_erclk32k_clock"                  value="32.768kHz" />
+   <item key="/SIM/system_flash_clock"                     value="6.1538MHz" />
+   <item key="/SIM/system_flexbus_clock"                   value="60.0MHz" />
+   <item key="/SIM/system_lpuart_clock"                    value="0.0Hz" />
+   <item key="/SIM/system_peripheral_clock"                value="48.0MHz" />
+   <item key="/SIM/system_usbfs_clock"                     value="48.0MHz" />
+   <item key="/SPI0/speed"                                 value="10.0MHz" />
+   <item key="/SPI0/spi_lsbfe"                             value="false" />
+   <item key="/SPI0/spi_mode"                              value="1" />
+   <item key="/SPI1/speed"                                 value="100.0kHz" />
+   <item key="/SPI1/spi_lsbfe"                             value="false" />
+   <item key="/SPI1/spi_mode"                              value="1" />
+   <item key="/UART0/clockSource"                          value="SystemCoreClock" />
+   <item key="/UART1/clockSource"                          value="SystemCoreClock" />
+   <item key="/UART2/clockSource"                          value="SystemBusClock" />
 </section>

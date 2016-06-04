@@ -244,7 +244,7 @@ public class XmlDocumentUtilities {
     * </code></pre>
     *
     * @param filename      Filename of actual file being written
-    * @param dtdFilename       DTD file to reference
+    * @param dtdFilename   DTD file to reference (may be null)
     * @param description   Description to use in header block
     * 
     * @throws IOException
@@ -252,14 +252,18 @@ public class XmlDocumentUtilities {
    public void writeXmlFilePreamble(String filename, String dtdFilename, String description) throws IOException {
       final String headerfilePreambleTemplate = 
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-         "<!DOCTYPE root SYSTEM \"%s\">\n" +
+         "%s" +
          "<!-- %s -->\n" +
          "<!-- \n" +
          "   %s\n" +
          "-->\n" +
          "\n";
+      String dtdLine = "";
+      if (dtdFilename != null) {
+         dtdLine = String.format("<!DOCTYPE root SYSTEM \"%s\">\n", dtdFilename);
+      }
       description = description.replaceAll("\n", "\n   ");
-      fWriter.write(String.format(headerfilePreambleTemplate, dtdFilename, filename, description));
+      fWriter.write(String.format(headerfilePreambleTemplate, dtdLine, filename, description));
    }
 
    /**

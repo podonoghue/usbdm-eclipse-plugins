@@ -5,8 +5,6 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.jface.dialogs.DialogSettings;
-
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
@@ -489,25 +487,27 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       signal.addMappedPin(mapInfo);
       return mapInfo;
    }
-
-   /** Key for mux selection persistence */
-   public static final String MUX_SETTINGS_KEY = "_muxSetting"; 
    
-   /** Key for description selection persistence */
-   public static final String DESCRIPTION_SETTINGS_KEY = "_descriptionSetting"; 
+   public static final String getMuxKey(String name) {
+      return "$signal$"+name+"_muxSetting";
+   }
+   
+   public static final String getDescriptionKey(String name) {
+      return "$signal$"+name+"_descriptionSetting";
+   }
    
    /**
     * Load pin settings from settings object
     * 
     * @param settings Settings object
     */
-   public void loadSettings(DialogSettings settings) {
-      String value = settings.get(fName+MUX_SETTINGS_KEY);
+   public void loadSettings(Settings settings) {
+      String value = settings.get(getMuxKey(fName));
       if (value != null) {
          MuxSelection muxValue = MuxSelection.valueOf(value);
          setMuxSelection(muxValue);
       }
-      value = settings.get(fName+DESCRIPTION_SETTINGS_KEY);
+      value = settings.get(getDescriptionKey(fName));
       if (value != null) {
          setPinUseDescription(value);
       }
@@ -518,13 +518,13 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @param settings Settings object
     */
-   public void saveSettings(DialogSettings settings) {
+   public void saveSettings(Settings settings) {
       if ((fMuxValue != MuxSelection.reset) && (fMuxValue != MuxSelection.fixed)) {
-         settings.put(fName+MUX_SETTINGS_KEY, fMuxValue.name());
+         settings.put(getMuxKey(fName), fMuxValue.name());
       }
       String desc = getPinUseDescription();
       if ((desc != null) && !desc.isEmpty()) {
-         settings.put(fName+DESCRIPTION_SETTINGS_KEY, getPinUseDescription());
+         settings.put(getDescriptionKey(fName), getPinUseDescription());
       }
    }
 

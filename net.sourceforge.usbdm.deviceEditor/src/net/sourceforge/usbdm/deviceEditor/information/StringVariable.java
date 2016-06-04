@@ -57,7 +57,12 @@ public class StringVariable extends Variable {
    }
 
    @Override
-   public String getRawValueAsString() {
+   public String getPersistentValue() {
       return fValue;
+   }
+
+   @Override
+   public void setPersistentValue(String value) {
+      fValue = value.toString();
    }
 }

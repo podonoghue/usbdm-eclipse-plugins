@@ -125,18 +125,23 @@ public abstract class Variable extends ObservableModel {
     * Sets variable value without affecting listeners
     * 
     * @param value The value to set
-    * 
-    * @return True if variable actually changed value
     */
    public abstract void setValueQuietly(Object value);
 
    /**
-    * Get the variable value as a string for use in saving state<br>
-    * It is not influenced by whether the variable is enabled.
+    * Get the variable value as a string for use in saving state
     * 
     * @return the Value
     */
-   public abstract String getRawValueAsString();
+   public abstract String getPersistentValue();
+
+   /**
+    * Set the variable value as a string for use in restoring state<br>
+    * Listeners are not affected
+    * 
+    * @param value The raw (substitution) value
+    */
+   public abstract void setPersistentValue(String value);
 
    /**
     * Get variable value as long without reference to whether it is enabled

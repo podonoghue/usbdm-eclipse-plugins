@@ -336,7 +336,7 @@ public class XML_BaseParser {
     * @throws IOException 
     * @throws SAXException 
     */
-   protected static Document parseXmlFile(Path path) throws ParserConfigurationException, IOException, SAXException {
+   public static Document parseXmlFile(Path path) throws ParserConfigurationException, IOException, SAXException {
       // Get the factory
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
