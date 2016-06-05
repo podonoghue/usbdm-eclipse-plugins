@@ -9,6 +9,11 @@ import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 public abstract class Variable extends ObservableModel {
    
    /**
+    * Units for physical quantities
+    */
+   public enum Units {None, Hz, s};
+
+   /**
     * Class to hold the Name/Value pair
     */
    public static class Pair {
@@ -396,6 +401,14 @@ public abstract class Variable extends ObservableModel {
     * @return
     */
    public abstract VariableModel createModel(BaseModel parent);
+
+   public double getValueAsDouble() {
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with double" );
+   }
+
+   public double getRawValueAsDouble() {
+      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
+   }
 
 //   /**
 //    * Sets default value for variable

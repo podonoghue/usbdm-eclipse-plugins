@@ -34,9 +34,8 @@ public class EngineeringNotation {
       String suffix = "";
       int index = ((pow10+3*PREFIX_OFFSET)/3);
 //      System.err.println("index = "+index);
-      if ((index<0) || (index>PREFIX_ARRAY.length)) {
+      if ((index<0) || (index>=PREFIX_ARRAY.length)) {
          return Double.toString(value);
-//         throw new NumberFormatException("Number out of range :" + value + "@" + sigDigits);
       }
       suffix = PREFIX_ARRAY[index];
       
@@ -69,7 +68,7 @@ public class EngineeringNotation {
     */
    private static final String  BINARY_PATTERN   = "(0b([0-1]+))";
    private static final String  HEX_PATTERN      = "(0x([0-9|a-f|A-F]+))";
-   private static final String  DEC_PATTERN      = "([0-9]*\\.?[0-9]*)";
+   private static final String  DEC_PATTERN      = "([0-9]*\\.?[0-9]*(E-?[0-9]*)?)";
    private static final String  SUFFIX_PATTERN   = "(f|p|n|u|µ|m|k|M|G|T)?";
    private static final String  UNIT_PATTERN     = "(Hz|hz|s)?";
    private static final Pattern NUMBER_PATTERN   = Pattern.compile(
@@ -94,8 +93,7 @@ public class EngineeringNotation {
       String binaryNum = matcher.group(4);
       String hexNum    = matcher.group(6);
       String decNum    = matcher.group(7);
-      String suffix    = matcher.group(8);
-//      String units     = matcher.group(9);
+      String suffix    = matcher.group(9);
       if (decNum != null) {
          value = Double.parseDouble('0'+decNum);
       }
@@ -109,7 +107,12 @@ public class EngineeringNotation {
          value = - value;
       }
       if (suffix != null) {
-         value *= Math.pow(10, suffixPower[suffixes.indexOf(suffix)]);
+         try {
+            value *= Math.pow(10, suffixPower[suffixes.indexOf(suffix)]);
+         } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
       }
 //      System.err.println(num + "=>");
 //      System.err.println("  bin = " + binaryNum);

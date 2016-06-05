@@ -15,17 +15,17 @@ import org.w3c.dom.Node;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
-import net.sourceforge.usbdm.deviceEditor.information.LongVariable.Units;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
+import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
@@ -138,7 +138,46 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setStep(step);
       variable.setOffset(offset);
 
-      LongVariableModel model = new LongVariableModel(parent, variable);
+      VariableModel model = variable.createModel(parent);
+      model.setConstant(isConstant);
+   }
+
+   /**
+    * Parse &lt;intOption&gt; element<br>
+    * 
+    * @param varElement
+    */
+   private void parseDoubleOption(BaseModel parent, Element varElement) {
+
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
+      if (key.isEmpty()) {
+         key = fProvider.makeKey(name);
+      }
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  toolTip     = getToolTip(varElement);
+      String  value       = varElement.getAttribute("value");
+      String  units       = varElement.getAttribute("units");
+      
+      DoubleVariable variable = new DoubleVariable(name, key);
+      fProvider.addVariable(variable);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      try {
+         variable.setMin(getLongAttribute(varElement, "min"));
+      } catch( NumberFormatException e) {
+      }
+      try {
+         variable.setMax(getLongAttribute(varElement, "max"));
+      } catch( NumberFormatException e) {
+      }
+      variable.setValue(value);
+      variable.setUnits(Units.valueOf(units));
+      VariableModel model = variable.createModel(parent);
       model.setConstant(isConstant);
    }
 
@@ -303,6 +342,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "intOption") {
             parseLongOption(parentModel, element);
+         }
+         else if (element.getTagName() == "floatOption") {
+            parseDoubleOption(parentModel, element);
          }
          else if (element.getTagName() == "binaryOption") {
             parseBinaryOption(parentModel, element);

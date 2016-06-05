@@ -1,32 +1,26 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
-public class LongVariable extends Variable {
+public class DoubleVariable extends Variable {
    
    /** Minimum permitted value (user view) */
-   private long fMin    = Long.MIN_VALUE;
+   private double fMin    = Double.MIN_VALUE;
    
    /** Maximum permitted value (user view) */
-   private long fMax    = Long.MAX_VALUE;
-
-   /** Step size value */
-   private long fStep   = 1;
-   
-   /** Offset used when mapping value from user -> substitution */
-   private long fOffset = 0;
+   private double fMax    = Double.MAX_VALUE;
 
    /** Units of the quantity the variable represents e.g. Frequency => Hz */
    private Units fUnits = Units.None;
 
    /** Value in user format */
-   private long fValue = 0;
+   private double fValue = 0;
 
    /** Default value of variable */
-   private long fDefault = 0;
+   private double fDefault = 0;
    
    /**
     * Constructor
@@ -34,7 +28,7 @@ public class LongVariable extends Variable {
     * @param name Name to display to user.
     * @param key  Key for variable
     */
-   public LongVariable(String name, String key) {
+   public DoubleVariable(String name, String key) {
       super(name, key);
    }
 
@@ -45,7 +39,7 @@ public class LongVariable extends Variable {
     * @param key   Key for variable
     * @param value Initial value and default
     */
-   public LongVariable(String name, String key, String value) {
+   public DoubleVariable(String name, String key, String value) {
       super(name, key);
       setValue(value);
       setDefault(value);
@@ -53,17 +47,17 @@ public class LongVariable extends Variable {
 
    @Override
    public double getValueAsDouble() {
-      return getValueAsLong();
-   }
-
-   @Override
-   public long getValueAsLong() {
       return isEnabled()?fValue:fDefault;
    }
 
    @Override
+   public long getValueAsLong() {
+      return Math.round(getValueAsDouble());
+   }
+
+   @Override
    public String getSubstitutionValue() {
-      return Long.toString(getValueAsLong()+fOffset);
+      return Long.toString(getValueAsLong())+'D';
    }
 
    /**
@@ -73,11 +67,11 @@ public class LongVariable extends Variable {
     * 
     * @return String in appropriate form e.g. 24.56MHz
     */
-   public String getValueAsString(long value) {
+   public String getValueAsString(double value) {
       switch(getUnits()) {
       default:
       case None:
-         return Long.toString(value);
+         return Double.toString(value);
       case s:
       case Hz:
          return EngineeringNotation.convert(value, 5).toString()+getUnits().toString();
@@ -86,22 +80,17 @@ public class LongVariable extends Variable {
 
    @Override
    public String getValueAsString() {
-      return getValueAsString(getValueAsLong());
+      return getValueAsString(getValueAsDouble());
    }
-
-   @Override
-   public boolean getValueAsBoolean() {
-      return getValueAsLong() != 0;
-   }
-
+   
    /**
-    * Set value as long
+    * Set value as double
     * 
     * @param value Value to set
     * 
     * @return True if variable actually changed value and listeners notified
     */
-   public boolean setValue(Long value) {
+   public boolean setValue(double value) {
       if (fValue == value) {
          return false;
       }
@@ -121,24 +110,21 @@ public class LongVariable extends Variable {
     * @param value
     * @return
     */
-   private long translate(Object value) {
+   private double translate(Object value) {
       try {
          if (value instanceof Double) {
-            return Math.round((Double) value);
+            return (Double) value;
          }
          if (value instanceof Long) {
             return (Long) value;
          }
          if (value instanceof Integer) {
-            return (long)(Integer) value;
+            return (Integer) value;
          }
          if (value instanceof String) {
-            return EngineeringNotation.parseAsLong((String) value);
+            return EngineeringNotation.parse((String) value);
          }
-         if ((value instanceof Boolean) && (fOffset == 0)) {
-            return ((Boolean) value)?1L:0L;
-         }
-         throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
+         throw new RuntimeException("Object "+ value + "(" + value.getClass()+") Not compatible with DoubleVariable");
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -147,7 +133,12 @@ public class LongVariable extends Variable {
 
    @Override
    public boolean setValue(Object value) {
-      return setValue(translate(value));
+      try {
+         return setValue(translate(value));
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return false;
    }
    
    @Override
@@ -158,9 +149,9 @@ public class LongVariable extends Variable {
    /**
     * Set minimum value
     * 
-    * @param min Minimum value
+    * @param min Minimum value in user format
     */
-   public void setMin(long min) {
+   public void setMin(double min) {
       fMin = min;
       if (fDefault<fMin) {
          fDefault = fMin;
@@ -172,7 +163,7 @@ public class LongVariable extends Variable {
     * 
     * @param min Maximum value
     */
-   public void setMax(long max) {
+   public void setMax(double max) {
       fMax = max;
       if (fDefault>fMax) {
          fDefault = fMax;
@@ -180,29 +171,11 @@ public class LongVariable extends Variable {
    }
 
    /**
-    * Set set step size value
-    * 
-    * @param step Step size
-    */
-   public void setStep(long step) {
-      fStep = step;
-   }
-
-   /**
-    * Set offset value
-    * 
-    * @param offset
-    */
-   public void setOffset(long offset) {
-      fOffset = offset;
-   }
-
-   /**
     * Get minimum value
     * 
-    * @return Minimum value in user format
+    * @return Minimum value
     */
-   public long getMin() {
+   public double getMin() {
       return fMin;
    }
 
@@ -211,26 +184,8 @@ public class LongVariable extends Variable {
     * 
     * @return Maximum value in user format
     */
-   public long getMax() {
+   public double getMax() {
       return fMax;
-   }
-
-   /**
-    * Get step size value
-    * 
-    * @return Step size
-    */
-   public long getStep() {
-      return fStep;
-   }
-
-   /**
-    * Get offset value
-    * 
-    * @return Offset value
-    */
-   public long getOffset() {
-      return fOffset;
    }
 
    /**
@@ -254,25 +209,21 @@ public class LongVariable extends Variable {
     * 
     * @return Error message or null of valid
     */
-   public String isValid(Long value) {   
+   public String isValid(double value) {   
       if (value<getMin()) {
          return "Value too small";
       }
       if (value>getMax()) {
          return "Value too large";
       }
-      long remainder = value % getStep();
-      if (remainder != 0) {
-         return "Value not a multiple of " + getStep();
-      }
       return null;
    }
 
    @Override
    public String isValid(String value) {
-    long lValue = 0;
+    double lValue = 0;
     try {
-       lValue = Math.round(EngineeringNotation.parse(value));
+       lValue = EngineeringNotation.parse(value);
     }
     catch (NumberFormatException e) {
        return "Illegal number";
@@ -282,7 +233,7 @@ public class LongVariable extends Variable {
    
    @Override
    public VariableModel createModel(BaseModel parent) {
-      return new LongVariableModel(parent, this);
+      return new DoubleVariableModel(parent, this);
    }
 
    @Override
@@ -291,16 +242,18 @@ public class LongVariable extends Variable {
    }
 
    @Override
-   public long getRawValueAsLong() {
+   public double getRawValueAsDouble() {
       return  fValue;
    }
 
    @Override
+   public long getRawValueAsLong() {
+      return  Math.round(fValue);
+   }
+
+   @Override
    public String getPersistentValue() {
-      if (getUnits() != Units.None) {
-         return EngineeringNotation.convert(fValue, 5)+getUnits().toString();
-      }
-      return Long.toString(fValue);
+      return Double.toString(fValue);
    }
 
    @Override

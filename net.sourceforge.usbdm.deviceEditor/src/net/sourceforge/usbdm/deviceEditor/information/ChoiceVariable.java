@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 
 public class ChoiceVariable extends Variable {
 

@@ -1,10 +1,10 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
-public class LongVariableModel extends VariableModel {
+public class DoubleVariableModel extends VariableModel {
 
    /**
     * 
@@ -15,13 +15,13 @@ public class LongVariableModel extends VariableModel {
     * 
     * @note Added as child of parent if not null
     */
-   public LongVariableModel(BaseModel parent, Variable variable) {
+   public DoubleVariableModel(BaseModel parent, Variable variable) {
       super(parent, variable);
    }
    
    @Override
-   public LongVariable getVariable() {
-      return (LongVariable)super.getVariable();
+   public DoubleVariable getVariable() {
+      return (DoubleVariable)super.getVariable();
    }
 
    public String isValid(String value) {
@@ -29,8 +29,13 @@ public class LongVariableModel extends VariableModel {
    }
 
    @Override
-   public void setValueAsString(String value) {
-      getVariable().setValue(value);
+   public void setValueAsString(String sValue) {
+      getVariable().setValue(sValue);
+   }
+
+   @Override
+   public String getValueAsString() {
+      return getVariable().getValueAsString();
    }
 
    /**
@@ -40,13 +45,8 @@ public class LongVariableModel extends VariableModel {
     * 
     * @return String in appropriate form e.g. 24.56MHz
     */
-   private String getValueAsString(long value) {
+   private String getValueAsString(Double value) {
       return getVariable().getValueAsString(value);
-   }
-
-   @Override
-   public String getValueAsString() {
-      return getVariable().getValueAsString();
    }
 
    @Override
@@ -68,26 +68,19 @@ public class LongVariableModel extends VariableModel {
       sb.append(super.getToolTip());
       boolean newLineNeeded = sb.length()>0;
       
-      if (getVariable().getMin() != Long.MIN_VALUE) {
+      if (getVariable().getMin() != Double.MIN_VALUE) {
          if (newLineNeeded) {
             sb.append("\n");
             newLineNeeded = false;
          }
          sb.append("min="+getValueAsString(getVariable().getMin())+" ");
       }
-      if (getVariable().getMax() != Long.MAX_VALUE) {
+      if (getVariable().getMax() != Double.MAX_VALUE) {
          if (newLineNeeded) {
             sb.append("\n");
             newLineNeeded = false;
          }
          sb.append("max="+getValueAsString(getVariable().getMax())+" ");
-      }
-      if (getVariable().getStep() != 1) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
-         }
-         sb.append("step="+getValueAsString(getVariable().getStep())+" ");
       }
       return (sb.length() == 0)?null:sb.toString();
    }

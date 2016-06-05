@@ -128,17 +128,18 @@
    <item key="/FTM1/period"                                value="10000" />
    <item key="/I2C0/irqHandler"                            value="false" />
    <item key="/I2C0/irqLevel"                              value="0" />
-   <item key="/LPTMR0/clockFrequency"                      value="1.0kHz" />
+   <item key="/LPTMR0/clockFrequency"                      value="16384.0" />
+   <item key="/LPTMR0/clockPeriod"                         value="6.103515625E-5" />
    <item key="/LPTMR0/irqHandler"                          value="false" />
    <item key="/LPTMR0/irqLevel"                            value="0" />
+   <item key="/LPTMR0/lptmr_cnr"                           value="200" />
    <item key="/LPTMR0/lptmr_csr_tfc"                       value="false" />
-   <item key="/LPTMR0/lptmr_csr_tms"                       value="true" />
-   <item key="/LPTMR0/lptmr_csr_tpp"                       value="false" />
+   <item key="/LPTMR0/lptmr_csr_tms"                       value="false" />
+   <item key="/LPTMR0/lptmr_csr_tpp"                       value="true" />
    <item key="/LPTMR0/lptmr_csr_tps"                       value="0" />
    <item key="/LPTMR0/lptmr_psr_pbyp"                      value="false" />
-   <item key="/LPTMR0/lptmr_psr_pcs"                       value="3" />
+   <item key="/LPTMR0/lptmr_psr_pcs"                       value="0" />
    <item key="/LPTMR0/lptmr_psr_prescaler"                 value="0" />
-   <item key="/LPTMR0/period"                              value="1.2300Gs" />
    <item key="/MCG/ERRATA_E2448"                           value="false" />
    <item key="/MCG/clock_mode"                             value="0" />
    <item key="/MCG/fllInputFrequency"                      value="32.768kHz" />
