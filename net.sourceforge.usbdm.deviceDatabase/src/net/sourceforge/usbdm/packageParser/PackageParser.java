@@ -195,8 +195,6 @@ public class PackageParser {
                            }
                         };
                         newProjectActionList.visit(visitor, null);
-
-
                         // Add applicable actions
                         projectActionList.addProjectAction(newProjectActionList);
                      }
@@ -434,7 +432,7 @@ public class PackageParser {
     * Parse a <projectActionList> element
     * 
     * @param    projectActionListElement <projectActionList> element
-    * @param    isTop Indicates this is the top <projectActionList> element
+    * @param    path                     Path to use as base for any file actions
     * 
     * @return   Action list described 
     * 
@@ -497,6 +495,9 @@ public class PackageParser {
             }
             else if (element.getTagName() == "projectOption") {
                projectActionList.add(parseProjectOptionElement(element));
+            }
+            else if (element.getTagName() == "constant") {
+               projectActionList.add(parseConstantElement(element));
             }
             else {
                throw new Exception("Unexpected element \""+element.getTagName()+"\"");
@@ -770,7 +771,7 @@ public class PackageParser {
     * @return   File list described 
     * @throws Exception 
     */
-   private ProjectConstant parseConstantElement(Element projectConstantElement) throws Exception {
+   private static ProjectConstant parseConstantElement(Element projectConstantElement) throws Exception {
       // <constant>
       String id         = projectConstantElement.getAttribute("id");
       String value      = projectConstantElement.getAttribute("value");
