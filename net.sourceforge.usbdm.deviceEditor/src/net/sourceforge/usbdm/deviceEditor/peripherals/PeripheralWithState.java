@@ -121,10 +121,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
       Map<String, String> map = fDeviceInfo.getSimpleMap();
-//      for (String key:getParamMap().keySet()) {
-//         String value = getParamMap().get(key);
-//         map.put(keyMaker.makeKey(key),  value);
-//      }
       ProcessProjectActions.process(project, fData.fProjectActionList, map, monitor);
    }
 
@@ -232,7 +228,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               if (isCTrueValue("irq"+m.group(1)+"Handler")) {
+               if (isCTrueValue("irqHandler")) {
                   entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
                   entry.setClassMemberUsedAsHandler(true);
                   handlerSet = true;

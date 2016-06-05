@@ -6,7 +6,7 @@
 
 <section name="USBDM">
    <item key="$$DeviceInfo_Device_Variant"                 value="FRDM_K66F" />
-   <item key="$$DeviceInfo_Target_Device"                  value="MK66FN2M0M18" />
+   <item key="$$DeviceInfo_Target_Device"                  value="FRDM_K66F" />
    <item key="$$Hardware_Source_Filename"                  value="MK66F18.usbdmHardware" />
    <item key="$signal$PTA11_muxSetting"                    value="mux6" />
    <item key="$signal$PTA18_muxSetting"                    value="mux0" />
@@ -16,6 +16,7 @@
    <item key="$signal$PTB11_muxSetting"                    value="mux1" />
    <item key="$signal$PTB16_muxSetting"                    value="mux3" />
    <item key="$signal$PTB17_muxSetting"                    value="mux3" />
+   <item key="$signal$PTB18_muxSetting"                    value="mux1" />
    <item key="$signal$PTB19_muxSetting"                    value="mux1" />
    <item key="$signal$PTB20_muxSetting"                    value="mux1" />
    <item key="$signal$PTB23_muxSetting"                    value="mux1" />
@@ -47,9 +48,9 @@
    <item key="$signal$PTD12_muxSetting"                    value="mux1" />
    <item key="$signal$PTD13_muxSetting"                    value="mux1" />
    <item key="$signal$PTD14_muxSetting"                    value="mux0" />
-   <item key="$signal$PTD1_muxSetting"                     value="mux1" />
-   <item key="$signal$PTD2_muxSetting"                     value="mux1" />
-   <item key="$signal$PTD3_muxSetting"                     value="mux1" />
+   <item key="$signal$PTD1_muxSetting"                     value="mux2" />
+   <item key="$signal$PTD2_muxSetting"                     value="mux2" />
+   <item key="$signal$PTD3_muxSetting"                     value="mux2" />
    <item key="$signal$PTD4_muxSetting"                     value="mux1" />
    <item key="$signal$PTD5_muxSetting"                     value="mux7" />
    <item key="$signal$PTD6_muxSetting"                     value="mux7" />
@@ -253,10 +254,7 @@
    <item key="/OSC0/range_out"                             value="2" />
    <item key="/OSC0/system_oscerclk_clock"                 value="12.0MHz" />
    <item key="/OSC0/system_oscerclk_undiv_clock"           value="12.0MHz" />
-   <item key="/PIT/irq0Handler"                            value="false" />
-   <item key="/PIT/irq1Handler"                            value="false" />
-   <item key="/PIT/irq2Handler"                            value="false" />
-   <item key="/PIT/irq3Handler"                            value="false" />
+   <item key="/PIT/irqHandler"                             value="false" />
    <item key="/PIT/irqLevel"                               value="0" />
    <item key="/PIT/pit_ldval"                              value="10000" />
    <item key="/PIT/pit_mcr_frz"                            value="false" />
@@ -304,15 +302,21 @@
    <item key="/SIM/system_sdhc_clock"                      value="0.0Hz" />
    <item key="/SIM/system_tpm_clock"                       value="30.0MHz" />
    <item key="/SIM/system_usbfs_clock"                     value="48.0MHz" />
-   <item key="/SPI0/speed"                                 value="100000" />
+   <item key="/SPI0/irqHandler"                            value="false" />
+   <item key="/SPI0/irqLevel"                              value="0" />
+   <item key="/SPI0/speed"                                 value="100.0kHz" />
    <item key="/SPI0/spi_lsbfe"                             value="false" />
-   <item key="/SPI0/spi_mode"                              value="1" />
-   <item key="/SPI1/speed"                                 value="100000" />
+   <item key="/SPI0/spi_mode"                              value="0" />
+   <item key="/SPI1/irqHandler"                            value="false" />
+   <item key="/SPI1/irqLevel"                              value="0" />
+   <item key="/SPI1/speed"                                 value="100.0kHz" />
    <item key="/SPI1/spi_lsbfe"                             value="false" />
-   <item key="/SPI1/spi_mode"                              value="1" />
-   <item key="/SPI2/speed"                                 value="100000" />
+   <item key="/SPI1/spi_mode"                              value="0" />
+   <item key="/SPI2/irqHandler"                            value="false" />
+   <item key="/SPI2/irqLevel"                              value="0" />
+   <item key="/SPI2/speed"                                 value="100.0kHz" />
    <item key="/SPI2/spi_lsbfe"                             value="false" />
-   <item key="/SPI2/spi_mode"                              value="1" />
+   <item key="/SPI2/spi_mode"                              value="0" />
    <item key="/TPM1/irqHandler"                            value="false" />
    <item key="/TPM1/irqLevel"                              value="0" />
    <item key="/TPM1/period"                                value="10000" />
@@ -324,8 +328,39 @@
    <item key="/TPM2/tpm_sc_cmod"                           value="1" />
    <item key="/TPM2/tpm_sc_ps"                             value="0" />
    <item key="/UART0/clockSource"                          value="SystemCoreClock" />
+   <item key="/UART0/irqHandler"                           value="false" />
+   <item key="/UART0/irqLevel"                             value="0" />
    <item key="/UART1/clockSource"                          value="SystemCoreClock" />
+   <item key="/UART1/irqHandler"                           value="false" />
+   <item key="/UART1/irqLevel"                             value="0" />
    <item key="/UART2/clockSource"                          value="SystemBusClock" />
+   <item key="/UART2/irqHandler"                           value="false" />
+   <item key="/UART2/irqLevel"                             value="0" />
    <item key="/UART3/clockSource"                          value="SystemBusClock" />
+   <item key="/UART3/irqHandler"                           value="false" />
+   <item key="/UART3/irqLevel"                             value="0" />
    <item key="/UART4/clockSource"                          value="SystemBusClock" />
+   <item key="/UART4/irqHandler"                           value="false" />
+   <item key="/UART4/irqLevel"                             value="0" />
+   <item key="demo.cpp.blue.led"                           value="gpio_LED_BLUE" />
+   <item key="demo.cpp.external.gps"                       value="Gps1" />
+   <item key="demo.cpp.external.i2c"                       value="I2c0" />
+   <item key="demo.cpp.external.led"                       value="gpio_LED_RED" />
+   <item key="demo.cpp.external.spi"                       value="Spi0" />
+   <item key="demo.cpp.external.switch"                    value="gpio_SW2" />
+   <item key="demo.cpp.fx0s8700cq.i2c"                     value="I2c0" />
+   <item key="demo.cpp.green.led"                          value="gpio_LED_GREEN" />
+   <item key="demo.cpp.joystick.k"                         value="gpio_A0" />
+   <item key="demo.cpp.joystick.x"                         value="adc_A2" />
+   <item key="demo.cpp.joystick.y"                         value="adc_A1" />
+   <item key="demo.cpp.led"                                value="USBDM::GpioC&lt;9&gt;" />
+   <item key="demo.cpp.mag3110.i2c"                        value="I2c0" />
+   <item key="demo.cpp.mma845x.i2c"                        value="I2c0" />
+   <item key="demo.cpp.nrf24l01.ce"                        value="GpioC&lt;12&gt;" />
+   <item key="demo.cpp.nrf24l01.cs_n"                      value="spi0_PCS1" />
+   <item key="demo.cpp.nrf24l01.irq"                       value="GpioC&lt;18&gt;" />
+   <item key="demo.cpp.nrf24l01.spi"                       value="Spi0" />
+   <item key="demo.cpp.pwm.led1"                           value="ftm_LED_RED" />
+   <item key="demo.cpp.pwm.led2"                           value="tpm_LED_BLUE" />
+   <item key="demo.cpp.red.led"                            value="gpio_LED_RED" />
 </section>

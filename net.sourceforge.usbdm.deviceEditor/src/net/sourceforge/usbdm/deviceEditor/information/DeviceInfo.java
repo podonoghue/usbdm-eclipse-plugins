@@ -64,6 +64,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
@@ -278,6 +279,7 @@ public class DeviceInfo extends ObservableModel {
       else if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseFile(this, fHardwarePath);
+
          ArrayList<PeripheralWithState> PeripheralWithStateList = new ArrayList<PeripheralWithState>();
          
          // Construct list of all PeripheralWithState
@@ -1418,6 +1420,15 @@ public class DeviceInfo extends ObservableModel {
          String deviceName = settings.get(DEVICE_NAME_SETTINGS_KEY);
          if (deviceName != null) {
             setDeviceName(deviceName);
+            try {
+               ParseMenuXML.parseFile("symbols/"+deviceName, null, new PeripheralWithState("Symbols", "", this) {
+                  @Override
+                  public String getTitle() {
+                     return null;
+                  }
+               });
+            } catch (Exception e) {
+            }
          }
          for (String pinName:fPins.keySet()) {
             Pin pin = fPins.get(pinName);
@@ -1583,7 +1594,7 @@ public class DeviceInfo extends ObservableModel {
       writer.writeCppFiles(folder, "", this);
 
       // Regenerate vectors.cpp
-      Map<String, String> variableMap = new HashMap<String, String>();
+      Map<String, String> variableMap = getSimpleMap();
       generateVectorTable(variableMap);
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       

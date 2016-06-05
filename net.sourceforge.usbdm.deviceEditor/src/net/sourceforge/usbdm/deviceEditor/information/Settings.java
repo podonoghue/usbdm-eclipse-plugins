@@ -114,7 +114,10 @@ public class Settings {
             continue;
          }
          Element element = (Element)node;
-         if (!element.getTagName().equals("item")) {
+         if (element.getTagName().equals("fragment")) {
+            loadSection(element);
+         }
+         else if (!element.getTagName().equals("item")) {
             throw new Exception("Unexpected element " + element.getTagName());
          }
          map.put(element.getAttribute("key"), element.getAttribute("value"));

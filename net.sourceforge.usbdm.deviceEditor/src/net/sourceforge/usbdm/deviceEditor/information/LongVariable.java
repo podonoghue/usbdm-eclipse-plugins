@@ -7,7 +7,9 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class LongVariable extends Variable {
    
-   public enum Units {None, Hz, Seconds};
+   private long SCALE_FACTOR = 10000000;
+   
+   public enum Units {None, Hz, s};
    
    /** Minimum permitted value (user view) */
    private long fMin    = Long.MIN_VALUE;
@@ -52,12 +54,20 @@ public class LongVariable extends Variable {
 
    @Override
    public String getValueAsString() {
-      if (getUnits() != Units.None) {
+      switch(getUnits()) {
+      default:
+      case None:
+         return Long.toString(getValueAsLong());
+      case Hz:
          return EngineeringNotation.convert(getValueAsLong(), 5)+getUnits().toString();
+      case s:
+         return EngineeringNotation.convert(getValueAsLong()/((double)SCALE_FACTOR), 5)+getUnits().toString();
       }
-      return Long.toString(getValueAsLong());
    }
 
+   public long getScaleFactor() {
+      return SCALE_FACTOR;
+   }
    @Override
    public boolean getValueAsBoolean() {
       return getValueAsLong() != 0;
@@ -98,7 +108,15 @@ public class LongVariable extends Variable {
          return (long)(Integer) value;
       }
       if (value instanceof String) {
-         return EngineeringNotation.parseAsLong((String) value);
+         switch(getUnits()) {
+         default:
+         case None:
+            return EngineeringNotation.parseAsLong((String) value);
+         case Hz:
+            return EngineeringNotation.parseAsLong((String) value);
+         case s:
+            return EngineeringNotation.parseAsLong((String) value)*SCALE_FACTOR;
+         }
       }
       if ((value instanceof Boolean) && (fOffset == 0)) {
          return ((Boolean) value)?1L:0L;

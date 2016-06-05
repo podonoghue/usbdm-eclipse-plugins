@@ -69,9 +69,9 @@ public class EngineeringNotation {
     */
    private static final String  BINARY_PATTERN   = "(0b([0-1]+))";
    private static final String  HEX_PATTERN      = "(0x([0-9|a-f|A-F]+))";
-   private static final String  DEC_PATTERN      = "([0-9]+\\.?[0-9]*)";
+   private static final String  DEC_PATTERN      = "([0-9]*\\.?[0-9]*)";
    private static final String  SUFFIX_PATTERN   = "(f|p|n|u|µ|m|k|M|G|T)?";
-   private static final String  UNIT_PATTERN     = "(Hz|hz)?";
+   private static final String  UNIT_PATTERN     = "(Hz|hz|s)?";
    private static final Pattern NUMBER_PATTERN   = Pattern.compile(
          "^(-)?("+
          BINARY_PATTERN+"|"+
@@ -97,7 +97,7 @@ public class EngineeringNotation {
       String suffix    = matcher.group(8);
 //      String units     = matcher.group(9);
       if (decNum != null) {
-         value = Double.parseDouble(decNum);
+         value = Double.parseDouble('0'+decNum);
       }
       else if (hexNum != null) {
          value = Long.parseLong(hexNum, 16);

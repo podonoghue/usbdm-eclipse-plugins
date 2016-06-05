@@ -149,7 +149,7 @@ public abstract class Variable extends ObservableModel {
     * @return
     */
    public long getRawValueAsLong() {
-      throw new RuntimeException("Variable " + getName() + "doesn't have a Long representation");
+      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
    }
 
    /**

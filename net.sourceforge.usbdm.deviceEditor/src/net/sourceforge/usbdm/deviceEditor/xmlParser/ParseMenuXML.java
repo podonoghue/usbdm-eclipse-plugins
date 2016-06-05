@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -23,7 +24,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
@@ -34,7 +34,11 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.packageParser.PackageParser;
+import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
+import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
+import net.sourceforge.usbdm.packageParser.ProjectConstant;
 
 public class ParseMenuXML extends XML_BaseParser {
 
@@ -61,6 +65,27 @@ public class ParseMenuXML extends XML_BaseParser {
    
    /** Provider providing the variables used by the menu */
    private final PeripheralWithState  fProvider;
+   
+   /** Used to build the template */
+   private final StringBuilder        fTemplate   = new StringBuilder();
+   
+   /** Holds the validators found */
+   private final ArrayList<Validator> fValidators = new ArrayList<Validator>();
+
+   /** Actions associated with this Menu */
+   private final ProjectActionList fProjectActionList;
+   
+   /** USed to record the first model encountered */
+   BaseModel fRootModel = null;
+
+   /**
+    * 
+    * @param provider
+    */
+   private ParseMenuXML(PeripheralWithState provider) {
+      fProvider = provider;
+      fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
+   }
 
    /**
     * Gets the toolTip attribute from the element and applies some simple transformations
@@ -145,7 +170,6 @@ public class ParseMenuXML extends XML_BaseParser {
       ChoiceVariableModel model = new ChoiceVariableModel(parent, variable);
       model.setName(name);
       model.setConstant(isConstant);
-
 
       parseChildModels(model, varElement);
    }
@@ -237,43 +261,24 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       parseChoices(variable, varElement);
       
-      
-      
       fProvider.addVariable(variable);
       BooleanVariableModel model = new BooleanVariableModel(parent, variable);
       model.setConstant(isConstant);
       
       parseChildModels(model, varElement);
    }
-
+   
    /**
-    * Parse &lt;menu&gt; element<br>
     * 
-    * @param menuElement
-    * 
-    * @throws Exception 
+    * @param parentModel
+    * @param element
     */
-   private BaseModel parsePageOrMenu(BaseModel parent, Element menuElement) throws Exception {
-
-      BaseModel rootModel = null;
-
-      String name = menuElement.getAttribute("name");
-      if (name.equalsIgnoreCase("_instance")) {
-         name = fProvider.getName();
-      }
-      String description = menuElement.getAttribute("description");
-      String toolTip     = getToolTip(menuElement);
-      
-      if (menuElement.getTagName() == "page") {
-         rootModel = new PeripheralConfigurationModel(null, parent, name, description);
-         new ConstantModel(rootModel, "Peripheral file", "", fProvider.getVersion());
-      }
-      else {
-         rootModel = new CategoryModel(parent, name, description);
-      }
-      rootModel.setToolTip(toolTip);
-      parseChildModels(rootModel, menuElement);
-      return rootModel;
+   private void parseConstant(BaseModel parentModel, Element element) {
+      String id          = element.getAttribute("id");
+      String value       = element.getAttribute("value");
+      StringVariable var = new StringVariable(id, id);
+      fProvider.addVariable(var);
+      var.setValue(value);
    }
 
    /**
@@ -292,6 +297,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
+//         System.err.println("parseChildModels(): " + element.getTagName() + ", " + element.getAttribute("name"));
          if (element.getTagName() == "menu") {
             parsePageOrMenu(parentModel, element);
          }
@@ -310,10 +316,48 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (element.getTagName() == "aliasOption") {
             parseAliasOption(parentModel, element);
          }
+         else if (element.getTagName() == "constant") {
+            parseConstant(parentModel, element);
+         }
          else if (element.getTagName() == "choice") {
          }
          else if (element.getTagName() == "pins") {
             parsePinsOption(parentModel, element);
+         }
+         else if (element.getTagName() == "fragment") {
+            parseChildModels(parentModel, element);
+         }
+         else if (element.getTagName() == "validate") {
+            fValidators.add(parseValidate(element));
+         }
+         else if (element.getTagName() == "template") {
+            fTemplate.append(element.getTextContent().
+                  replaceAll("^\n\\s*","").
+                  replaceAll("(\\\\n|\\n)\\s*", "\n").
+                  replaceAll("\\\\t","   "));
+//            System.err.println(fTemplate.toString().substring(0, 40)+"\n");
+         }
+         else if (element.getTagName() == "menu") {
+            parsePageOrMenu(parentModel, element);
+         }
+         else if (element.getTagName() == "devicePage") {
+            parsePageOrMenu(parentModel, element);
+         }
+         else if (element.getTagName() == "projectActionList") {
+            ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
+            pal.visit(new Visitor() {
+               @Override
+               public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
+                  if (action instanceof ProjectConstant) {
+                     ProjectConstant constant = (ProjectConstant) action;
+                     Variable var = new StringVariable(constant.getId(), constant.getId());
+                     var.setValue(constant.getValue());
+                     System.err.println("Adding " + var);
+                     fProvider.addVariable(var);
+                  }
+                  return Visitor.CONTINUE;
+               }}, null);
+            fProjectActionList.addProjectAction(pal);
          }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
@@ -401,167 +445,7 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setDefault(defaultValue);
       variable.setValue(defaultValue);
    }
-   
-   /**
-    * 
-    * @param provider
-    */
-   public ParseMenuXML(PeripheralWithState provider) {
-      fProvider = provider;
-   }
-   
-   /**
-    * 
-    * @param document
-    * @param parent
-    * @param provider
-    * @return
-    * @throws Exception
-    */
-   private static Data parse(Document document, BaseModel parent, PeripheralWithState provider) throws Exception {
-      Element documentElement = document.getDocumentElement();
-      if (documentElement == null) {
-         throw new Exception("Failed to get documentElement");
-      }
-      for (Node node = document.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         ParseMenuXML parser = new ParseMenuXML(provider);
-         return parser.parseRoot(parent, (Element)node, provider);
-      }      
-      return null;
-   }
-   
-   private Data parseRoot(BaseModel parent, Element root, PeripheralWithState provider) throws Exception {
-      BaseModel            rootModel      = null;
-      String               template       = null;
-      ArrayList<Validator> validators     = new ArrayList<Validator>();
-      ProjectActionList projectActionList = null;
-      
-      Data data = null;
-      for (Node node = root.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element element = (Element) node;
-         if (element.getTagName() == "root") {
-            if (data != null) {
-               throw new RuntimeException("Multiple <root> elements");
-            }
-            data = parseRoot(parent, element, provider);
-         }
-         else if ((element.getTagName() == "page") || (element.getTagName() == "menu")) {
-            if (data != null) {
-               throw new RuntimeException("Cannot have other elements with <root> element");
-            }
-            if (rootModel != null) {
-               throw new RuntimeException("Multiple <page> or <menu> elements");
-            }
-            rootModel = parsePageOrMenu(parent, element);
-         }
-         else if (element.getTagName() == "validate") {
-            if (data != null) {
-               throw new RuntimeException("Cannot have other elements with <root> element");
-            }
-            validators.add(parseValidate(element));
-         }
-         else if (element.getTagName() == "template") {
-            if (data != null) {
-               throw new RuntimeException("Cannot have other elemnts with <root> element");
-            }
-            template = element.getTextContent().replaceAll("^\n\\s*","").replaceAll("(\\\\n|\\n)\\s*", "\n").replaceAll("\\\\t","   ");
-         }
-         else if (element.getTagName() == "projectActionList") {
-            projectActionList = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
-         }
-         else {
-            throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
-         }
-      }
-      if (data != null) {
-         return data;
-      }
-      return new Data(rootModel, template, validators, projectActionList);
-   }
 
-   /**
-    * Parses document from top element
-    * 
-    * @param path       Path to model
-    * @param parent     Parent for model
-    * @param provider   Provider for variables used etc.
-    * 
-    * @return Data from document
-    */
-   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) {
-      try {
-         if (!path.toFile().exists()) {
-            // Look in USBDM directory
-            path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
-         }
-         if (!path.toFile().exists()) {
-            throw new Exception("Unable to locate hardware description file " + path);
-         }
-         return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
-      } catch (Exception e) {
-         e.printStackTrace();
-         BaseModel model = new BaseModel(parent, "Failed to parse "+path, e.getMessage()) {
-            @Override
-            protected void removeMyListeners() {
-            }
-         };
-         return new Data(model, null, null, null);
-      }
-   }
-
-   /**
-    * Parses document from top element
-    * 
-    * @param name       Name of model (filename)
-    * @param parent     Parent for model
-    * @param provider   Provider for variables used etc.
-    * 
-    * @return  Data from model
-    */
-   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) {
-      try {
-         // For debug try local directory
-         Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
-         if (Files.isRegularFile(path)) {
-            path = path.toAbsolutePath();
-         }
-         else {
-            path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
-         }
-            return parseFile(path, parent, provider);
-      } catch (Exception e) {
-         e.printStackTrace();
-         BaseModel model = new BaseModel(parent, "Failed to parse "+name, e.getMessage()) {
-            @Override
-            protected void removeMyListeners() {
-            }
-         };
-         return new Data(model, null, null, null);
-      }
-   }
-
-   /**
-    * Parses document from top element
-    * @param models 
-    * @param deviceInfo 
-    * @return 
-    * 
-    * @throws Exception
-    */
-   public static Data parseString(String xmlString, BaseModel parent, PeripheralWithState provider) throws Exception {
-      return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
-   }
-   
    public static class Validator {
       private String            fClassName;
       private ArrayList<Object> fParams = new ArrayList<Object>();
@@ -642,4 +526,139 @@ public class ParseMenuXML extends XML_BaseParser {
       return validator;
    }
    
+   /**
+    * Parse: <br>
+    *    &lt;fragment&gt;<br>
+    *    &lt;devicePage&gt;<br>
+    *    &lt;menu&gt;<br>
+    * 
+    * @param menuElement
+    * 
+    * @throws Exception 
+    */
+   private void parsePageOrMenu(BaseModel parent, Element element) throws Exception {
+      
+//      System.err.println("parsePageOrMenu() " + element.getTagName() + ", " + element.getAttribute("name"));
+
+      String name = element.getAttribute("name");
+      if (name.equalsIgnoreCase("_instance")) {
+         name = fProvider.getName();
+      }
+      String description = element.getAttribute("description");
+      String toolTip     = getToolTip(element);
+
+      if (element.getTagName() == "fragment") {
+         parseChildModels(parent, element);
+      }
+      else if (element.getTagName() == "menu") {
+         BaseModel model = new CategoryModel(parent, name, description);
+         model.setToolTip(toolTip);
+         parseChildModels(model, element);
+         if (parent == null) {
+            if (fRootModel != null) {
+               throw new RuntimeException("Multiple top level <menu> or <devicePage> elements");
+            }
+            fRootModel = model;
+         }
+      }
+      else if (element.getTagName() == "devicePage") {
+         BaseModel model = new PeripheralConfigurationModel(null, parent, name, description);
+         model.setToolTip(toolTip);
+         parseChildModels(model, element);
+         if (parent == null) {
+            if (fRootModel != null) {
+               throw new RuntimeException("Multiple top level <menu> or <devicePage> elements");
+            }
+            fRootModel = model;
+         }
+      }
+      else {
+         throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
+      }
+   }
+   
+   /**
+    * 
+    * @param document
+    * @param parent
+    * @param provider
+    * @return
+    * @throws Exception
+    */
+   private static Data parse(Document document, BaseModel parent, PeripheralWithState provider) throws Exception {
+      Element documentElement = document.getDocumentElement();
+      if (documentElement == null) {
+         throw new Exception("Failed to get documentElement");
+      }
+      ParseMenuXML parser = new ParseMenuXML(provider);
+      for (Node child = document.getFirstChild();child != null; child = child.getNextSibling()) {
+         if (child.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) child;
+//         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
+         parser.parsePageOrMenu(parent, element);
+      }
+      return new Data(parser.fRootModel, parser.fTemplate.toString(), parser.fValidators, parser.fProjectActionList);
+   }
+   
+   /**
+    * Parses document from top element
+    * 
+    * @param path       Path to model
+    * @param parent     Parent for model
+    * @param provider   Provider for variables used etc.
+    * 
+    * @return Data from document
+    * @throws Exception 
+    */
+   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) throws Exception {
+      if (!path.toFile().exists()) {
+         // Look in USBDM directory
+         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+      }
+      if (!path.toFile().exists()) {
+         throw new Exception("Unable to locate hardware description file " + path);
+      }
+      return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
+   }
+
+   /**
+    * Parses document from top element
+    * 
+    * @param name       Name of model (filename)
+    * @param parent     Parent for model
+    * @param provider   Provider for variables used etc.
+    * 
+    * @return  Data from model
+    * @throws Exception 
+    */
+   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) throws Exception {
+      try {
+         // For debug try local directory
+         Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
+         if (Files.isRegularFile(path)) {
+            path = path.toAbsolutePath();
+         }
+         else {
+            path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
+         }
+         return parseFile(path, parent, provider);
+      } catch (Exception e) {
+         throw new Exception("Failed to parse "+name, e);
+      }
+   }
+
+   /**
+    * Parses document from top element
+    * @param models 
+    * @param deviceInfo 
+    * @return 
+    * 
+    * @throws Exception
+    */
+   public static Data parseString(String xmlString, BaseModel parent, PeripheralWithState provider) throws Exception {
+      return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
+   }
+
 }

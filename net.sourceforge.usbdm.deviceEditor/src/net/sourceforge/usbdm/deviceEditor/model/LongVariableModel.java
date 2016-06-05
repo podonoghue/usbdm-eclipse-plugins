@@ -53,11 +53,17 @@ public class LongVariableModel extends VariableModel {
    public void setValueAsString(String sValue) {
 //      System.err.println("NumericVariableModel.setValueAsString("+fName+", "+sValue+")");
       Long value;
-      if (getVariable().getUnits() == Units.Hz) {
-         value = Math.round(EngineeringNotation.parse(sValue));
-      }      
-      else {
+      switch(getVariable().getUnits()) {
+      default:
+      case None:
          value = Long.parseLong(sValue);
+         break;
+      case Hz:
+         value = Math.round(EngineeringNotation.parse(sValue));
+         break;
+      case s:
+         value = Math.round(EngineeringNotation.parse(sValue)*(double)(getVariable().getScaleFactor()));
+         break;
       }
       getVariable().setValue(value);
    }

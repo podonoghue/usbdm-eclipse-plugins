@@ -22,21 +22,4 @@ public class WriterForPit extends PeripheralWithState {
       final String signalNames[] = {"OUT"};
       return getSignalIndex(function, signalNames);
    }
-
-//   public void loadModels() throws Exception {
-//      fData = null;
-//      switch (fDeviceInfo.getDeviceFamily()) {
-//      case mk:
-//         loadModels("Pit");
-//         break;
-//      case mkl:
-//         loadModels("PitSharedIrq");
-//         break;
-//      case mke:
-//      case mkm:
-//      default:
-//         return;
-//      }
-//   }
-   
 }
