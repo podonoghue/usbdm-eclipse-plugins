@@ -192,7 +192,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified string or original if no changes
     */
    String substitute(String input) {
-      return substitute(input, fDeviceInfo.getSimpleMap());
+      Map<String, String> map = fDeviceInfo.getSimpleMap();
+      map.put("_instance", getInstance());
+      map.put("_name",     getName());
+      return substitute(input, map);
    }
    
    /**

@@ -110,6 +110,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
+      key = substituteKey(key);
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);
@@ -154,6 +155,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
+      key = substituteKey(key);
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);
@@ -193,6 +195,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
+      key = substituteKey(key);
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);
@@ -225,6 +228,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
+      key = substituteKey(key);
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  value       = varElement.getAttribute("value");
@@ -245,6 +249,19 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Does some simple substitutions on the key
+    *  "$(_instance)" => fProvider.getInstance()
+    *  "$(_name)"     => fProvider.getName()
+    * 
+    * @param key
+    * 
+    * @return
+    */
+   private String substituteKey(String key) {
+      return key.replaceAll("\\$\\(_instance\\)", fProvider.getInstance()).replaceAll("\\$\\(_name\\)", fProvider.getName());
+   }
+
+   /**
     * Parse &lt;choiceOption&gt; element<br>
     * 
     * @param stringElement
@@ -259,10 +276,12 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = name;
       }
+      key = substituteKey(key);
       if (name.isEmpty()) {
          name = key;
       }
       key = fProvider.makeKey(key);
+      
       boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
       boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
       Variable variable = fProvider.safeGetVariable(key);
@@ -288,6 +307,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
+      key = substituteKey(key);
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);

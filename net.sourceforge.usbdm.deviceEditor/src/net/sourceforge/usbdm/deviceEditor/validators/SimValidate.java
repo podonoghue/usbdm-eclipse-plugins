@@ -63,9 +63,11 @@ public class SimValidate extends BaseClockValidator {
       system_flash_clockVar.setMin(0);
       system_flash_clockVar.setMax(MAX_FLASH_CLOCK_FREQ);
 
-      LongVariable system_flexbus_clockVar = getLongVariable("system_flexbus_clock");
-      system_flexbus_clockVar.setMin(0);
-      system_flexbus_clockVar.setMax(MAX_FLEXBUS_CLOCK_FREQ);
+      LongVariable system_flexbus_clockVar = safeGetLongVariable("system_flexbus_clock");
+      if (system_flexbus_clockVar != null) {
+         system_flexbus_clockVar.setMin(0);
+         system_flexbus_clockVar.setMax(MAX_FLEXBUS_CLOCK_FREQ);
+      }
    }
 
    /**

@@ -4,6 +4,14 @@
 
 <devicePage xmlns:xi="http://www.w3.org/2001/XInclude" name="_instance" description="Flex timer">
 
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)clksel"  constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt0"    constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt1"    constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg0src" constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg1src" constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch0src" constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch1src" constant="false" optional="true" />
+
    <intOption name="ftmExternalClock" description="FTM External clock"
       toolTip="Clock frequency of external clock supplied to FTM_CLKIN pin"
       value="0" />

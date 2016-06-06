@@ -144,4 +144,13 @@ public class WriterForFtm extends PeripheralWithState {
       return rv;
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState#loadModels()
+    */
+   @Override
+   public void loadModels() throws Exception {
+      super.loadModels();
+   }
+
+   
 }
