@@ -8,10 +8,10 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 public class DoubleVariable extends Variable {
    
    /** Minimum permitted value (user view) */
-   private double fMin    = Double.MIN_VALUE;
+   private double fMin    = Double.NEGATIVE_INFINITY;
    
    /** Maximum permitted value (user view) */
-   private double fMax    = Double.MAX_VALUE;
+   private double fMax    = Double.POSITIVE_INFINITY;
 
    /** Units of the quantity the variable represents e.g. Frequency => Hz */
    private Units fUnits = Units.None;

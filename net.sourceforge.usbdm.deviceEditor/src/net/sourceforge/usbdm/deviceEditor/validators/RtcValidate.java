@@ -39,7 +39,7 @@ public class RtcValidate extends BaseClockValidator {
     * Outputs rtcclk_clock, rtcclk_gated_clock, 
     */
    @Override
-   public void validate() {
+   public void validate(Variable variable) {
       
       // OSC
       //=================================

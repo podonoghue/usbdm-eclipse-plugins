@@ -68,14 +68,14 @@ public class DoubleVariableModel extends VariableModel {
       sb.append(super.getToolTip());
       boolean newLineNeeded = sb.length()>0;
       
-      if (getVariable().getMin() != Double.MIN_VALUE) {
+      if (getVariable().getMin() != Double.NEGATIVE_INFINITY) {
          if (newLineNeeded) {
             sb.append("\n");
             newLineNeeded = false;
          }
          sb.append("min="+getValueAsString(getVariable().getMin())+" ");
       }
-      if (getVariable().getMax() != Double.MAX_VALUE) {
+      if (getVariable().getMax() != Double.POSITIVE_INFINITY) {
          if (newLineNeeded) {
             sb.append("\n");
             newLineNeeded = false;

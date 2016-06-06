@@ -90,7 +90,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
     *    system_mcgpllclk_clock
     */
    @Override
-   protected void validate() {
+   protected void validate(Variable variable) {
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

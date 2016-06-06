@@ -23,7 +23,7 @@ public class LpuartValidate extends BaseClockValidator {
     * Class to determine oscillator settings
     */
    @Override
-   public void validate() {
+   public void validate(Variable variable) {
       Variable     clockSource = getVariable("clockSource");
       clockSource.setStatus((Message)null);
       clockSource.setOrigin("");

@@ -72,7 +72,7 @@ public class SimValidate extends BaseClockValidator {
     * Class to determine oscillator settings
     */
    @Override
-   public void validate() {
+   public void validate(Variable variable) {
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

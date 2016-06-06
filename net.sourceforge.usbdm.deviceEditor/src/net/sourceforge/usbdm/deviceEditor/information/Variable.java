@@ -240,7 +240,7 @@ public abstract class Variable extends ObservableModel {
     * @return The origin
     */
    public String getOrigin() {
-      return fOrigin;
+      return (fOrigin!=null)?fOrigin:fDescription;
    }
 
    /**

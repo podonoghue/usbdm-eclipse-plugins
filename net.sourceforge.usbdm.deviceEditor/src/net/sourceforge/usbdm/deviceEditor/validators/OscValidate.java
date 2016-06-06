@@ -74,7 +74,7 @@ public class OscValidate extends BaseClockValidator {
     * Class to determine oscillator settings
     */
    @Override
-   public void validate() {
+   public void validate(Variable variable) {
       
       // OSC
       //=================================
