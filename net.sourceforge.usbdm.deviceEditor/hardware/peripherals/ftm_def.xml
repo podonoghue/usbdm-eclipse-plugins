@@ -4,14 +4,6 @@
 
 <devicePage xmlns:xi="http://www.w3.org/2001/XInclude" name="_instance" description="Flex timer">
 
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)clksel"  constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt0"    constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt1"    constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg0src" constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg1src" constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch0src" constant="false" optional="true" />
-   <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch1src" constant="false" optional="true" />
-
    <intOption name="ftmExternalClock" description="FTM External clock"
       toolTip="Clock frequency of external clock supplied to FTM_CLKIN pin"
       value="0" />
@@ -60,6 +52,24 @@
       <choice value="1" name="Enabled" />
    </binaryOption>
 
+   <menu name="Advanced" description="Advanced options">
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)clksel"  constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt0"    constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)flt1"    constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg0src" constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)trg1src" constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch0src" constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt4_ftm$(_instance)ch1src" constant="false" optional="true" />
+   
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och7src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och6src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och5src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och4src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och3src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och2src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och1src" constant="false" optional="true"/>
+      <aliasOption key="/SIM/sim_sopt8_ftm$(_instance)och0src" constant="false" optional="true"/>
+   </menu>
    <intOption name="period" description="Period of timer"
       toolTip="Default period of the timer"
       value="10000" min="0" max="65535" />

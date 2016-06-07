@@ -61,7 +61,10 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          fProjectActionList = projectActionList;
       }
-   };
+   }
+
+   /** Name of model (filename) */
+   private static String fName;;
    
    /** Provider providing the variables used by the menu */
    private final PeripheralWithState  fProvider;
@@ -626,6 +629,11 @@ public class ParseMenuXML extends XML_BaseParser {
       else if (element.getTagName() == "devicePage") {
          BaseModel model = new PeripheralConfigurationModel(null, parent, name, description);
          model.setToolTip(toolTip);
+         Variable var = new StringVariable("file", "file");
+         var.setValue(fName);
+         var.setDescription("Peripheral file");
+         var.setLocked(true);
+         var.createModel(model);
          parseChildModels(model, element);
          if (parent == null) {
             if (fRootModel != null) {
@@ -696,6 +704,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) throws Exception {
+      fName = name;
       try {
          // For debug try local directory
          Path path = Paths.get("hardware/peripherals").resolve(name+".xml");

@@ -89,6 +89,10 @@
       <choice value="1" name="Hardware trigger (ADHWT source)" />
    </binaryOption>
 
+   <aliasOption key="/SIM/sim_sopt7_adc$(_instance)alttrgen"  constant="false" optional="true" />
+   <aliasOption key="/SIM/sim_sopt7_adc$(_instance)pretrgsel" constant="false" optional="true"/>
+   <aliasOption key="/SIM/sim_sopt7_adc$(_instance)trgsel"    constant="false" optional="true"/>
+
    <xi:include href="_irqOption.xml"/>
       
    <projectActionList id = "adc_files" >

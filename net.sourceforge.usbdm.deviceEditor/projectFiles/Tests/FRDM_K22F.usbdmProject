@@ -122,6 +122,9 @@
    <item key="/CMP1/cmp_fpr_filt_per"                      value="0" />
    <item key="/CMP1/irqHandler"                            value="false" />
    <item key="/CMP1/irqLevel"                              value="0" />
+   <item key="/FTM0/clockFrequency"                        value="4.0E7" />
+   <item key="/FTM0/clockPeriod"                           value="2.5E-8" />
+   <item key="/FTM0/ftmExternalClock"                      value="0" />
    <item key="/FTM0/ftm_sc_clks"                           value="1" />
    <item key="/FTM0/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM0/ftm_sc_ps"                             value="0" />
@@ -129,6 +132,9 @@
    <item key="/FTM0/irqHandler"                            value="false" />
    <item key="/FTM0/irqLevel"                              value="0" />
    <item key="/FTM0/period"                                value="10000" />
+   <item key="/FTM1/clockFrequency"                        value="4.0E7" />
+   <item key="/FTM1/clockPeriod"                           value="2.5E-8" />
+   <item key="/FTM1/ftmExternalClock"                      value="0" />
    <item key="/FTM1/ftm_sc_clks"                           value="1" />
    <item key="/FTM1/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM1/ftm_sc_ps"                             value="0" />
@@ -136,6 +142,9 @@
    <item key="/FTM1/irqHandler"                            value="false" />
    <item key="/FTM1/irqLevel"                              value="0" />
    <item key="/FTM1/period"                                value="10000" />
+   <item key="/FTM2/clockFrequency"                        value="4.0E7" />
+   <item key="/FTM2/clockPeriod"                           value="2.5E-8" />
+   <item key="/FTM2/ftmExternalClock"                      value="0" />
    <item key="/FTM2/ftm_sc_clks"                           value="1" />
    <item key="/FTM2/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM2/ftm_sc_ps"                             value="0" />
@@ -143,6 +152,9 @@
    <item key="/FTM2/irqHandler"                            value="false" />
    <item key="/FTM2/irqLevel"                              value="0" />
    <item key="/FTM2/period"                                value="10000" />
+   <item key="/FTM3/clockFrequency"                        value="4.0E7" />
+   <item key="/FTM3/clockPeriod"                           value="2.5E-8" />
+   <item key="/FTM3/ftmExternalClock"                      value="0" />
    <item key="/FTM3/ftm_sc_clks"                           value="1" />
    <item key="/FTM3/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM3/ftm_sc_ps"                             value="0" />
@@ -154,8 +166,13 @@
    <item key="/I2C0/irqLevel"                              value="0" />
    <item key="/I2C1/irqHandler"                            value="false" />
    <item key="/I2C1/irqLevel"                              value="0" />
+   <item key="/LPTMR0/clockFrequency"                      value="16384.0" />
+   <item key="/LPTMR0/clockPeriod"                         value="6.103515625E-5" />
    <item key="/LPTMR0/irqHandler"                          value="false" />
    <item key="/LPTMR0/irqLevel"                            value="0" />
+   <item key="/LPTMR0/lptmr_cmr"                           value="0" />
+   <item key="/LPTMR0/lptmr_cmrFrequency"                  value="0.0Hz" />
+   <item key="/LPTMR0/lptmr_cmrPeriod"                     value="0.0" />
    <item key="/LPTMR0/lptmr_csr_tfc"                       value="false" />
    <item key="/LPTMR0/lptmr_csr_tms"                       value="false" />
    <item key="/LPTMR0/lptmr_csr_tpp"                       value="false" />
@@ -163,7 +180,6 @@
    <item key="/LPTMR0/lptmr_psr_pbyp"                      value="false" />
    <item key="/LPTMR0/lptmr_psr_pcs"                       value="0" />
    <item key="/LPTMR0/lptmr_psr_prescaler"                 value="0" />
-   <item key="/LPTMR0/period"                              value="10000" />
    <item key="/MCG/clock_mode"                             value="6" />
    <item key="/MCG/fllInputFrequency"                      value="31.250kHz" />
    <item key="/MCG/fll_enabled"                            value="false" />
@@ -279,6 +295,8 @@
    <item key="/UART2/clockSource"                          value="SystemBusClock" />
    <item key="/UART2/irqHandler"                           value="false" />
    <item key="/UART2/irqLevel"                             value="0" />
+   <item key="/USB0/irqHandler"                            value="false" />
+   <item key="/USB0/irqLevel"                              value="0" />
    <item key="demo.cpp.blue.led"                           value="gpio_LED_BLUE" />
    <item key="demo.cpp.console"                            value="USBDM::Uart##1" />
    <item key="demo.cpp.external.gps"                       value="Gps2" />
