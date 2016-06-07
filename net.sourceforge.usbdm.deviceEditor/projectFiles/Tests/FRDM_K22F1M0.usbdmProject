@@ -137,6 +137,9 @@
    <item key="/CMP2/cmp_fpr_filt_per"                      value="0" />
    <item key="/CMP2/irqHandler"                            value="false" />
    <item key="/CMP2/irqLevel"                              value="0" />
+   <item key="/FTM0/clockFrequency"                        value="6.0E7" />
+   <item key="/FTM0/clockPeriod"                           value="1.6666666666666667E-8" />
+   <item key="/FTM0/ftmExternalClock"                      value="0" />
    <item key="/FTM0/ftm_sc_clks"                           value="1" />
    <item key="/FTM0/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM0/ftm_sc_ps"                             value="0" />
@@ -144,6 +147,9 @@
    <item key="/FTM0/irqHandler"                            value="false" />
    <item key="/FTM0/irqLevel"                              value="0" />
    <item key="/FTM0/period"                                value="10000" />
+   <item key="/FTM1/clockFrequency"                        value="6.0E7" />
+   <item key="/FTM1/clockPeriod"                           value="1.6666666666666667E-8" />
+   <item key="/FTM1/ftmExternalClock"                      value="0" />
    <item key="/FTM1/ftm_sc_clks"                           value="1" />
    <item key="/FTM1/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM1/ftm_sc_ps"                             value="0" />
@@ -151,6 +157,9 @@
    <item key="/FTM1/irqHandler"                            value="false" />
    <item key="/FTM1/irqLevel"                              value="0" />
    <item key="/FTM1/period"                                value="10000" />
+   <item key="/FTM2/clockFrequency"                        value="6.0E7" />
+   <item key="/FTM2/clockPeriod"                           value="1.6666666666666667E-8" />
+   <item key="/FTM2/ftmExternalClock"                      value="0" />
    <item key="/FTM2/ftm_sc_clks"                           value="1" />
    <item key="/FTM2/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM2/ftm_sc_ps"                             value="0" />
@@ -158,6 +167,9 @@
    <item key="/FTM2/irqHandler"                            value="false" />
    <item key="/FTM2/irqLevel"                              value="0" />
    <item key="/FTM2/period"                                value="10000" />
+   <item key="/FTM3/clockFrequency"                        value="6.0E7" />
+   <item key="/FTM3/clockPeriod"                           value="1.6666666666666667E-8" />
+   <item key="/FTM3/ftmExternalClock"                      value="0" />
    <item key="/FTM3/ftm_sc_clks"                           value="1" />
    <item key="/FTM3/ftm_sc_cpwms"                          value="false" />
    <item key="/FTM3/ftm_sc_ps"                             value="0" />
@@ -171,8 +183,13 @@
    <item key="/I2C1/irqLevel"                              value="0" />
    <item key="/I2C2/irqHandler"                            value="false" />
    <item key="/I2C2/irqLevel"                              value="0" />
+   <item key="/LPTMR0/clockFrequency"                      value="16384.0" />
+   <item key="/LPTMR0/clockPeriod"                         value="6.103515625E-5" />
    <item key="/LPTMR0/irqHandler"                          value="false" />
    <item key="/LPTMR0/irqLevel"                            value="0" />
+   <item key="/LPTMR0/lptmr_cmr"                           value="0" />
+   <item key="/LPTMR0/lptmr_cmrFrequency"                  value="0.0Hz" />
+   <item key="/LPTMR0/lptmr_cmrPeriod"                     value="0.0" />
    <item key="/LPTMR0/lptmr_csr_tfc"                       value="false" />
    <item key="/LPTMR0/lptmr_csr_tms"                       value="false" />
    <item key="/LPTMR0/lptmr_csr_tpp"                       value="false" />
@@ -180,7 +197,6 @@
    <item key="/LPTMR0/lptmr_psr_pbyp"                      value="false" />
    <item key="/LPTMR0/lptmr_psr_pcs"                       value="0" />
    <item key="/LPTMR0/lptmr_psr_prescaler"                 value="0" />
-   <item key="/LPTMR0/period"                              value="10000" />
    <item key="/MCG/ERRATA_E2448"                           value="false" />
    <item key="/MCG/clock_mode"                             value="6" />
    <item key="/MCG/fllInputFrequency"                      value="31.250kHz" />
@@ -263,9 +279,37 @@
    <item key="/SIM/sim_clkdiv2_usb"                        value="6" />
    <item key="/SIM/sim_sopt1_osc32ksel"                    value="2" />
    <item key="/SIM/sim_sopt2_clkoutsel"                    value="0" />
+   <item key="/SIM/sim_sopt2_fbsl"                         value="0" />
    <item key="/SIM/sim_sopt2_pllfllsel"                    value="1" />
    <item key="/SIM/sim_sopt2_rtcclkoutsel"                 value="true" />
    <item key="/SIM/sim_sopt2_usbsrc"                       value="1" />
+   <item key="/SIM/sim_sopt4_ftm0clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm0flt0"                     value="true" />
+   <item key="/SIM/sim_sopt4_ftm0flt1"                     value="true" />
+   <item key="/SIM/sim_sopt4_ftm0flt2"                     value="true" />
+   <item key="/SIM/sim_sopt4_ftm0trg0src"                  value="true" />
+   <item key="/SIM/sim_sopt4_ftm0trg1src"                  value="true" />
+   <item key="/SIM/sim_sopt4_ftm1ch0src"                   value="0" />
+   <item key="/SIM/sim_sopt4_ftm1clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm1flt0"                     value="true" />
+   <item key="/SIM/sim_sopt4_ftm2ch0src"                   value="0" />
+   <item key="/SIM/sim_sopt4_ftm2clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm2flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm3clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm3flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm3trg0src"                  value="true" />
+   <item key="/SIM/sim_sopt4_ftm3trg1src"                  value="true" />
+   <item key="/SIM/sim_sopt4_ptd7pad"                      value="false" />
+   <item key="/SIM/sim_sopt5_uart0rxsrc"                   value="0" />
+   <item key="/SIM/sim_sopt5_uart0txsrc"                   value="0" />
+   <item key="/SIM/sim_sopt5_uart1rxsrc"                   value="0" />
+   <item key="/SIM/sim_sopt5_uart1txsrc"                   value="0" />
+   <item key="/SIM/sim_sopt7_adc0alttrgen"                 value="false" />
+   <item key="/SIM/sim_sopt7_adc0pretrgsel"                value="false" />
+   <item key="/SIM/sim_sopt7_adc0trgsel"                   value="0" />
+   <item key="/SIM/sim_sopt7_adc1alttrgen"                 value="false" />
+   <item key="/SIM/sim_sopt7_adc1pretrgsel"                value="false" />
+   <item key="/SIM/sim_sopt7_adc1trgsel"                   value="0" />
    <item key="/SIM/system_bus_clock"                       value="60.0MHz" />
    <item key="/SIM/system_core_clock"                      value="120.0MHz" />
    <item key="/SIM/system_erclk32k_clock"                  value="32.768kHz" />
@@ -287,6 +331,8 @@
    <item key="/UART2/clockSource"                          value="SystemBusClock" />
    <item key="/UART2/irqHandler"                           value="false" />
    <item key="/UART2/irqLevel"                             value="0" />
+   <item key="/USB0/irqHandler"                            value="false" />
+   <item key="/USB0/irqLevel"                              value="0" />
    <item key="demo.cpp.blue.led"                           value="gpio_LED_BLUE" />
    <item key="demo.cpp.external.gps"                       value="Gps1" />
    <item key="demo.cpp.external.i2c"                       value="I2c0" />

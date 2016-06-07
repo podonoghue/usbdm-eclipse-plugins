@@ -262,12 +262,56 @@
    <item key="/SIM/sim_clkdiv1_outdiv3"                    value="3" />
    <item key="/SIM/sim_clkdiv1_outdiv4"                    value="4" />
    <item key="/SIM/sim_clkdiv2_usb"                        value="2" />
+   <item key="/SIM/sim_sopt1_osc32kout"                    value="0" />
    <item key="/SIM/sim_sopt1_osc32ksel"                    value="2" />
    <item key="/SIM/sim_sopt2_clkoutsel"                    value="6" />
    <item key="/SIM/sim_sopt2_lpuartsrc"                    value="2" />
    <item key="/SIM/sim_sopt2_pllfllsel"                    value="3" />
    <item key="/SIM/sim_sopt2_rtcclkoutsel"                 value="true" />
    <item key="/SIM/sim_sopt2_usbsrc"                       value="1" />
+   <item key="/SIM/sim_sopt4_ftm0clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm0flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm0flt1"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm0trg0src"                  value="false" />
+   <item key="/SIM/sim_sopt4_ftm0trg1src"                  value="false" />
+   <item key="/SIM/sim_sopt4_ftm1ch0src"                   value="0" />
+   <item key="/SIM/sim_sopt4_ftm1clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm1flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm2ch0src"                   value="0" />
+   <item key="/SIM/sim_sopt4_ftm2ch1src"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm2clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm2flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm3clksel"                   value="false" />
+   <item key="/SIM/sim_sopt4_ftm3flt0"                     value="false" />
+   <item key="/SIM/sim_sopt4_ftm3trg0src"                  value="true" />
+   <item key="/SIM/sim_sopt4_ftm3trg1src"                  value="true" />
+   <item key="/SIM/sim_sopt5_lpuart0rxsrc"                 value="0" />
+   <item key="/SIM/sim_sopt5_uart0rxsrc"                   value="0" />
+   <item key="/SIM/sim_sopt5_uart0txsrc"                   value="false" />
+   <item key="/SIM/sim_sopt5_uart1rxsrc"                   value="0" />
+   <item key="/SIM/sim_sopt5_uart1txsrc"                   value="false" />
+   <item key="/SIM/sim_sopt7_adc0alttrgen"                 value="false" />
+   <item key="/SIM/sim_sopt7_adc0pretrgsel"                value="false" />
+   <item key="/SIM/sim_sopt7_adc0trgsel"                   value="0" />
+   <item key="/SIM/sim_sopt7_adc1alttrgen"                 value="false" />
+   <item key="/SIM/sim_sopt7_adc1pretrgsel"                value="false" />
+   <item key="/SIM/sim_sopt7_adc1trgsel"                   value="0" />
+   <item key="/SIM/sim_sopt8_ftm0och0src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och1src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och2src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och3src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och4src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och5src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och6src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm0och7src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och0src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och1src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och2src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och3src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och4src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och5src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och6src"                  value="false" />
+   <item key="/SIM/sim_sopt8_ftm3och7src"                  value="false" />
    <item key="/SIM/system_bus_clock"                       value="40.0MHz" />
    <item key="/SIM/system_core_clock"                      value="80.0MHz" />
    <item key="/SIM/system_erclk32k_clock"                  value="32.768kHz" />

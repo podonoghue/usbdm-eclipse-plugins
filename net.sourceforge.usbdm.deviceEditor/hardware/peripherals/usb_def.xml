@@ -9,7 +9,7 @@ Devices using this peripheral:
    <aliasOption key="/MCG/system_usb_clkin_clock" constant="false" optional="true"/>
    <aliasOption key="/SIM/sim_sopt2_usbsrc" constant="false" optional="true"/>
    <aliasOption key="/SIM/sim_clkdiv2_usb" constant="false" optional="true"/>
-   <aliasOption key="/SIM/system_usbfs_clock" constant="false" optional="true"/>
+   <aliasOption key="/SIM/system_usbfs_clock" optional="true"/>
 
    <xi:include href="_irqOption.xml"/>
 
