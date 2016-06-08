@@ -8,7 +8,7 @@
       os="linux,win32"
       arch="x86,x86_64">
 
-   <description url="http://usbdm.sourceforge.net/">
+   <description url="http://usbdm.sourceforge.net/USBDM_V4.12/html/index.html">
       USBDM Plugin for Codewarrior
    </description>
 
@@ -17,24 +17,33 @@
 Copyright (C) 2007-15  Peter O&apos;Donoghue
    </copyright>
 
-   <license url="http://www.eclipse.org/org/documents/epl-v10.php">
+   <license url="http://www.example.com/license">
       This plugin contains components licensed under the Eclipse Public License.
 Non-derivative components are licensed under GPL.
    </license>
 
    <requires>
-      <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.debug.core"/>
       <import plugin="org.eclipse.ui.forms"/>
       <import plugin="com.freescale.mcu.debugger.cdt"/>
       <import plugin="com.freescale.mcu.debug.connections"/>
+      <import plugin="com.freescale.core.debugger.ui.cdt"/>
       <import plugin="org.eclipse.swt"/>
-      <import plugin="net.sourceforge.usbdm.jni" version="4.10.6" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.jface"/>
-      <import plugin="org.eclipse.ui.workbench"/>
-      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.ui.ide"/>
    </requires>
+
+   <plugin
+         id="net.sourceforge.usbdm.constants"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="net.sourceforge.usbdm.cw.debugPlugin"
@@ -44,22 +53,14 @@ Non-derivative components are licensed under GPL.
          unpack="false"/>
 
    <plugin
-         id="net.sourceforge.usbdm.jni"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="net.sourceforge.usbdm.deviceDatabase"
-         arch="x86,x86_64"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="net.sourceforge.usbdm.constants"
+         id="net.sourceforge.usbdm.jni"
          download-size="0"
          install-size="0"
          version="0.0.0"
