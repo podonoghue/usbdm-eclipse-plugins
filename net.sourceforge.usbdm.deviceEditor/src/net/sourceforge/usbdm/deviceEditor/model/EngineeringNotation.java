@@ -26,7 +26,7 @@ public class EngineeringNotation {
     */
    public static String convert(double value, int sigDigits) {
       if (value == 0) {
-         // Always return 0
+         // Always return 0.0
          return "0.0";
       }
       int    pow10 = (int)Math.floor(Math.log10(value));
@@ -49,9 +49,9 @@ public class EngineeringNotation {
          long factor = divisors[-index];
          result = Long.toString(res*factor);
       }
-      else if (index> 0) {
+      else if (index > 0) {
          long divisor = divisors[index];
-         result = Long.toString(res/divisor) + "." + Long.toString(res%divisor);
+         result = Long.toString(res/divisor) + "." + String.format("%0"+index+"d", res%divisor);
       }
       else {
          result = Long.toString(res);
@@ -140,5 +140,4 @@ public class EngineeringNotation {
       }
       return Math.round(value);
    }
-
  }
