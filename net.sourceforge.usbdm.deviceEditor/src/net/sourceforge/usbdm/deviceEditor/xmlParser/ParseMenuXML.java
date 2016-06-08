@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,10 +47,10 @@ public class ParseMenuXML extends XML_BaseParser {
 
    public static class Data {
       public final BaseModel            fRootModel;
-      public final String               fTemplate;
+      public final Map<String,String>   fTemplate;
       public final ArrayList<Validator> fValidators;
       public final ProjectActionList    fProjectActionList;
-      public Data(BaseModel model, String template, ArrayList<Validator> validators, ProjectActionList projectActionList) {
+      public Data(BaseModel model, Map<String,String> template, ArrayList<Validator> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
          fTemplate   = template;
          if (validators == null) {
@@ -70,7 +71,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private final PeripheralWithState  fProvider;
    
    /** Used to build the template */
-   private final StringBuilder        fTemplate   = new StringBuilder();
+   private final Map<String,StringBuilder>  fTemplates   = new HashMap<String,StringBuilder>();
    
    /** Holds the validators found */
    private final ArrayList<Validator> fValidators = new ArrayList<Validator>();
@@ -396,7 +397,9 @@ public class ParseMenuXML extends XML_BaseParser {
             fValidators.add(parseValidate(element));
          }
          else if (element.getTagName() == "template") {
-            fTemplate.append(element.getTextContent().
+            String templateName = element.getAttribute("name");
+            addTemplate(templateName,
+                  element.getTextContent().
                   replaceAll("^\n\\s*","").
                   replaceAll("(\\\\n|\\n)\\s*", "\n").
                   replaceAll("\\\\t","   "));
@@ -430,6 +433,22 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    
+   /**
+    * Add template<br>
+    * If the template exists then the text is appended otherwise it is created.
+    * 
+    * @param key        Key used to index templates
+    * @param contents   Text for template
+    */
+   private void addTemplate(String key, String contents) {
+      StringBuilder sb = fTemplates.get(key);
+      if (sb == null) {
+         sb = new StringBuilder();
+         fTemplates.put(key, sb);
+      }
+      sb.append(contents);
+   }
+
    /**
     * Parse the pin associated with the peripheral
     * 
@@ -669,7 +688,11 @@ public class ParseMenuXML extends XML_BaseParser {
 //         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
          parser.parsePageOrMenu(parent, element);
       }
-      return new Data(parser.fRootModel, parser.fTemplate.toString(), parser.fValidators, parser.fProjectActionList);
+      HashMap<String, String> templates = new HashMap<String, String>();
+      for (String key:parser.fTemplates.keySet()) {
+         templates.put(key, parser.fTemplates.get(key).toString());
+      }
+      return new Data(parser.fRootModel, templates, parser.fValidators, parser.fProjectActionList);
    }
    
    /**

@@ -299,8 +299,7 @@ public class DeviceInfo extends ObservableModel {
          // Construct
          for (PeripheralWithState p:PeripheralWithStateList) {
             if (p instanceof PeripheralWithState) {
-               // TODO remove
-               System.err.println("Constructing " + p);
+//               System.err.println("Constructing " + p);
                ((PeripheralWithState) p).loadModels();
             }
          }
@@ -1594,7 +1593,7 @@ public class DeviceInfo extends ObservableModel {
       writer.writeCppFiles(folder, "", this);
 
       // Regenerate vectors.cpp
-      Map<String, String> variableMap = getSimpleMap();
+      Map<String, String> variableMap = getSimpleSymbolMap();
       generateVectorTable(variableMap);
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       
@@ -1776,7 +1775,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @return Map of Variables
     */
-   public Map<String, String> getSimpleMap() {
+   public Map<String, String> getSimpleSymbolMap() {
       HashMap<String, String>map = new HashMap<String, String>();
       for (String key:fVariables.keySet()) {
          map.put(key, fVariables.get(key).getSubstitutionValue());

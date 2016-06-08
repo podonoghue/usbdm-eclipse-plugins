@@ -41,6 +41,7 @@ public class LptmrValidate extends Validator {
       //=================================
       DoubleVariable    clockFrequencyVar          =  (DoubleVariable) getVariable("clockFrequency");
       DoubleVariable    clockPeriodVar             =  (DoubleVariable) getVariable("clockPeriod");
+      DoubleVariable    maximumPeriodVar           =  (DoubleVariable) getVariable("maximumPeriod");
       Variable          lptmr_psr_pcsVar           =  getVariable("lptmr_psr_pcs");
       Variable          lptmr_psr_prescalerVar     =  getVariable("lptmr_psr_prescaler");
       Variable          lptmr_cmrVar               =  getVariable("lptmr_cmr");
@@ -98,6 +99,7 @@ public class LptmrValidate extends Validator {
          clockPeriodVar.enable(true);
          clockPeriodVar.setValue(1/clockFrequency);
       }
+      maximumPeriodVar.setValue(clockPeriodVar.getValueAsDouble()*65536);
    }
 
 }

@@ -187,7 +187,7 @@ public class PllConfigure {
                lineCount = 0;
             }
             needComma = true;
-            status.append(EngineeringNotation.convert(freq, 5)+"Hz");
+            status.append(EngineeringNotation.convert(freq, 3)+"Hz");
          }
          pllStatus = new Message(status.toString(), severity);
       }

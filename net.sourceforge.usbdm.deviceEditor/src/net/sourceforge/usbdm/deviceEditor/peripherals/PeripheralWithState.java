@@ -110,7 +110,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
       pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
-      pinMappingHeaderFile.write(substitute(fData.fTemplate));
+      pinMappingHeaderFile.write(substitute(fData.fTemplate.get("")));
    }
 
    /**
@@ -120,10 +120,35 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
-      Map<String, String> map = fDeviceInfo.getSimpleMap();
-      ProcessProjectActions.process(project, fData.fProjectActionList, map, monitor);
+      Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
+      ProcessProjectActions.process(project, fData.fProjectActionList, symbolMap, monitor);
    }
 
+   /**
+    * Add extra templates to symbol map before doing other substitutions
+    * 
+    * @param map  Map to symbols add to
+    *  
+    * @return Modified map or original if no symbols added
+    */
+   protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
+      // Load any named templates
+      for (String key:fData.fTemplate.keySet()) {
+         if (key.isEmpty()) {
+            continue;
+         }
+         String fileTemplate = fData.fTemplate.get(key);
+         if ((fileTemplate == null) || fileTemplate.isEmpty()) {
+            continue;
+         }
+         fileTemplate = substitute(fileTemplate, map);
+         key = makeKey(key);
+//         System.err.println(key+"\n"+fileTemplate);
+         map.put(key, fileTemplate);
+      }
+      return map;
+   }
+   
    /**
     * Create a variable
     * 
@@ -192,7 +217,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified string or original if no changes
     */
    String substitute(String input) {
-      Map<String, String> map = fDeviceInfo.getSimpleMap();
+      Map<String, String> map = fDeviceInfo.getSimpleSymbolMap();
       map.put("_instance", getInstance());
       map.put("_name",     getName());
       return substitute(input, map);

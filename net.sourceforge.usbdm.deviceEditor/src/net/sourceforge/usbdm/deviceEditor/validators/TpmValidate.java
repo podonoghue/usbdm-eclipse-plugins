@@ -13,7 +13,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class FtmValidate extends Validator {
+public class TpmValidate extends Validator {
    
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
@@ -21,7 +21,7 @@ public class FtmValidate extends Validator {
          "/SIM/system_bus_clock",
    };
 
-   public FtmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public TpmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
 
@@ -37,30 +37,33 @@ public class FtmValidate extends Validator {
       }
       // OSC
       //=================================
+      
+      Variable          tpmExternalClockVar        =  getVariable("tpmExternalClock");
+      Variable          system_tpm_clockVar        =  getVariable("/SIM/system_tpm_clock");
       DoubleVariable    clockFrequencyVar          =  (DoubleVariable) getVariable("clockFrequency");
       DoubleVariable    clockPeriodVar             =  (DoubleVariable) getVariable("clockPeriod");
       DoubleVariable    maximumPeriodVar           =  (DoubleVariable) getVariable("maximumPeriod");
-      Variable          ftm_sc_clksVar             =  getVariable("ftm_sc_clks");
-      Variable          ftm_sc_psVar               =  getVariable("ftm_sc_ps");
+      Variable          tpm_sc_cmodVar             =  getVariable("tpm_sc_cmod");
+      Variable          tpm_sc_psVar               =  getVariable("tpm_sc_ps");
       
       Variable clockSource = null;
       
       double clockFrequency;
       
-      switch((int)ftm_sc_clksVar.getValueAsLong()) {
+      switch((int)tpm_sc_cmodVar.getValueAsLong()) {
       case 0: 
          clockSource = null;
          break;
       default:
-         ftm_sc_clksVar.setValue(1);
+         tpm_sc_cmodVar.setValue(1);
       case 1:
-         clockSource = getVariable("/SIM/system_bus_clock");
+         clockSource = system_tpm_clockVar;
          break;
       case 2:
-         clockSource = getVariable("/MCG/system_mcgffclk_clock");
+         clockSource = tpmExternalClockVar;
          break;
       case 3:
-         clockSource = getVariable("ftmExternalClock");
+         clockSource = null;
          break;
       }
       if (clockSource == null){
@@ -73,7 +76,7 @@ public class FtmValidate extends Validator {
       }
       else {
          clockFrequency = clockSource.getValueAsLong();
-         clockFrequency = clockFrequency/(1L<<ftm_sc_psVar.getValueAsLong());
+         clockFrequency = clockFrequency/(1L<<tpm_sc_psVar.getValueAsLong());
          clockFrequencyVar.setValue(clockFrequency);
          if (clockFrequency == 0) {
             clockFrequencyVar.enable(false);
