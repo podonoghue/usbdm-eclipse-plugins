@@ -18,4 +18,5 @@ Bundle-Vendor: USBDM
 Bundle-ClassPath: .
 Import-Package: org.eclipse.jface.resource,
  org.eclipse.swt,
+ org.eclipse.swt.widgets,
  org.eclipse.ui.plugin
