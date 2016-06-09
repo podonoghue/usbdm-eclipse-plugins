@@ -922,4 +922,11 @@ public abstract class Peripheral {
    public void setVersion(String version) {
      fVersion = version;
    }
+
+   /**
+    * @return the DeviceInfo
+    */
+   public DeviceInfo getDeviceInfo() {
+      return fDeviceInfo;
+   }
 }

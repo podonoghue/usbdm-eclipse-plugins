@@ -72,12 +72,12 @@ public class EngineeringNotation {
    private static final String  SUFFIX_PATTERN   = "(f|p|n|u|µ|m|k|M|G|T)?";
    private static final String  UNIT_PATTERN     = "(Hz|hz|s)?";
    private static final Pattern NUMBER_PATTERN   = Pattern.compile(
-         "^(-)?("+
-         BINARY_PATTERN+"|"+
-         HEX_PATTERN+"|"+
-         DEC_PATTERN+")"+
-         SUFFIX_PATTERN+
-         UNIT_PATTERN+"$");
+      "^(-)?("+
+      BINARY_PATTERN+"|"+
+      HEX_PATTERN+"|"+
+      DEC_PATTERN+")"+
+      SUFFIX_PATTERN+
+      UNIT_PATTERN+"$");
 
    private static final String suffixes      = "fpnuµmkMGT";
    private static final int    suffixPower[] = {-15, -12, -9, -6, -6, -3, 3, 6, 9, 12, 0};

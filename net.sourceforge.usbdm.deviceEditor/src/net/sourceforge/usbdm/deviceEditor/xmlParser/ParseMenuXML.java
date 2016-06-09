@@ -18,6 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -79,8 +80,11 @@ public class ParseMenuXML extends XML_BaseParser {
    /** Actions associated with this Menu */
    private final ProjectActionList fProjectActionList;
    
-   /** USed to record the first model encountered */
+   /** Used to record the first model encountered */
    BaseModel fRootModel = null;
+
+   /** Used to record the Pins model */
+   private CategoryModel fPinModel;
 
    /**
     * 
@@ -456,12 +460,19 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element
     */
    private void parsePinsOption(BaseModel parentModel, Element element) {
-      BaseModel model = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
-      TreeMap<String, Signal> peripheralSignals = fProvider.getSignals();
+      Peripheral peripheral = fProvider;
+      String peripheralName = element.getAttribute("name");
+      if (!peripheralName.isEmpty()) {
+         peripheral = fProvider.getDeviceInfo().getPeripherals().get(peripheralName);
+      }
+      if (fPinModel == null) {
+         fPinModel = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
+      }
+      TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
       for (String signalName:peripheralSignals.keySet()) {
          Signal signal = peripheralSignals.get(signalName);
          if (signal.isAvailableInPackage()) {
-            new SignalModel(model, signal);
+            new SignalModel(fPinModel, signal);
          }
       }
    }
