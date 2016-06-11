@@ -228,8 +228,12 @@ public abstract class BaseModel {
       String description = fDescription;
       Message message = getMessage();
       if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         description = message.getMessage();
-
+         if (message.greaterThan(Message.Severity.INFO)) {
+            description = message.getMessage();
+         }
+         else {
+            description = message.getRawMessage();
+         }
          // Truncate to single line
          int eolIndex = description.indexOf('\n');
          if (eolIndex>0) {

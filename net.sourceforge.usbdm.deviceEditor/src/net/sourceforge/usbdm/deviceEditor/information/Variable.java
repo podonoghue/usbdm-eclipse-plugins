@@ -59,6 +59,8 @@ public abstract class Variable extends ObservableModel {
    /** Origin of variable value */
    private String fOrigin = null;
 
+   private final boolean debug = false;
+
    /** Default value for variable */
 //   private String fDefaultValue;
    
@@ -408,6 +410,12 @@ public abstract class Variable extends ObservableModel {
 
    public double getRawValueAsDouble() {
       throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
+   }
+
+   public void debugPrint(String string) {
+      if (debug) {
+         System.err.println(string);
+      }
    }
 
 //   /**

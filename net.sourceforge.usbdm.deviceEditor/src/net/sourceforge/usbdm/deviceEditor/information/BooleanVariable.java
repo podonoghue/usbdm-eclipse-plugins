@@ -36,7 +36,7 @@ public class BooleanVariable extends Variable {
       if (fValue == (boolean)value) {
          return false;
       }
-//      System.err.println(this+"setValue("+value+")");
+      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;

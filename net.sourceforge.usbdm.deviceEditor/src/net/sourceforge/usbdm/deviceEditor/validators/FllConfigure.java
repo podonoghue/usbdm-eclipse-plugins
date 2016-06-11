@@ -190,7 +190,6 @@ class FllConfigure {
          // [RTCCLK] - Forced to LOW_RANGE_DIVISORS,  Range value unconstrained FLL
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          fllOrigin += " after scaling by (Low range FRDIV)";
-         // Use mcg_c2_rangeIn unless invalid
       }
       else if ((mcg_c7_oscsel != 0) && !osc_cr_erclken) {
          // ![OSCCLK] and not enabled for peripherals 

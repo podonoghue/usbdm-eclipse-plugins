@@ -323,27 +323,26 @@ void FTF_ReadCollision_IRQHandler(void)       WEAK_DEFAULT_HANDLER;
 void PMC_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LLWU_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void WDOG_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void RNG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void I2C0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2C1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2S0_Tx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
 void I2S0_Rx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void LPUART0_RX_TX_IRQHandler(void)           WEAK_DEFAULT_HANDLER;
 void UART0_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART0_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void UART1_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART1_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void UART2_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void UART2_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
-void UART3_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void UART3_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void ADC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void CMT_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void RTC_Alarm_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
 void RTC_Seconds_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
 void PIT0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -352,7 +351,6 @@ void PIT2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PIT3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void PDB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void USBDCD_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void DAC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void MCG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LPTMR0_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
@@ -362,25 +360,13 @@ void PORTC_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void PORTD_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void PORTE_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
 void SWI_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
-void UART4_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void UART4_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
-void UART5_RX_TX_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void UART5_ERR_IRQHandler(void)               WEAK_DEFAULT_HANDLER;
-void CMP2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void FTM3_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
+void DAC1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void ADC1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void I2C2_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void CAN0_Message_IRQHandler(void)            WEAK_DEFAULT_HANDLER;
-void CAN0_BusOff_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void CAN0_Error_IRQHandler(void)              WEAK_DEFAULT_HANDLER;
-void CAN0_Tx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
-void CAN0_Rx_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
-void CAN0_WakeUp_IRQHandler(void)             WEAK_DEFAULT_HANDLER;
-void SDHC_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 
 typedef struct {
    uint32_t *initialSP;
-   intfunc  handlers[97];
+   intfunc  handlers[89];
 } VectorTable;
 
 extern VectorTable const __vector_table;
@@ -430,29 +416,29 @@ VectorTable const __vector_table = {
       PMC_IRQHandler,                /*   36,   20  Power Management Controller                                                      */
       LLWU_IRQHandler,               /*   37,   21  Low Leakage Wakeup                                                               */
       WDOG_IRQHandler,               /*   38,   22  External Watchdog Monitor                                                        */
-      Default_Handler,               /*   39,   23                                                                                   */
+      RNG_IRQHandler,                /*   39,   23  Random Number Generator                                                          */
       I2C0_IRQHandler,               /*   40,   24  Inter-Integrated Circuit                                                         */
       I2C1_IRQHandler,               /*   41,   25  Inter-Integrated Circuit                                                         */
       SPI0_IRQHandler,               /*   42,   26  Serial Peripheral Interface                                                      */
       SPI1_IRQHandler,               /*   43,   27  Serial Peripheral Interface                                                      */
       I2S0_Tx_IRQHandler,            /*   44,   28  Synchronous Serial Interface                                                     */
       I2S0_Rx_IRQHandler,            /*   45,   29  Synchronous Serial Interface                                                     */
-      Default_Handler,               /*   46,   30                                                                                   */
+      LPUART0_RX_TX_IRQHandler,      /*   46,   30  Serial Communication Interface                                                   */
       UART0_RX_TX_IRQHandler,        /*   47,   31  Serial Communication Interface                                                   */
       UART0_ERR_IRQHandler,          /*   48,   32  Serial Communication Interface                                                   */
       UART1_RX_TX_IRQHandler,        /*   49,   33  Serial Communication Interface                                                   */
       UART1_ERR_IRQHandler,          /*   50,   34  Serial Communication Interface                                                   */
       UART2_RX_TX_IRQHandler,        /*   51,   35  Serial Communication Interface                                                   */
       UART2_ERR_IRQHandler,          /*   52,   36  Serial Communication Interface                                                   */
-      UART3_RX_TX_IRQHandler,        /*   53,   37  Serial Communication Interface                                                   */
-      UART3_ERR_IRQHandler,          /*   54,   38  Serial Communication Interface                                                   */
+      Default_Handler,               /*   53,   37                                                                                   */
+      Default_Handler,               /*   54,   38                                                                                   */
       ADC0_IRQHandler,               /*   55,   39  Analogue to Digital Converter                                                    */
       CMP0_IRQHandler,               /*   56,   40  High-Speed Comparator                                                            */
       CMP1_IRQHandler,               /*   57,   41  High-Speed Comparator                                                            */
       FTM0_IRQHandler,               /*   58,   42  FlexTimer Module                                                                 */
       FTM1_IRQHandler,               /*   59,   43  FlexTimer Module                                                                 */
       FTM2_IRQHandler,               /*   60,   44  FlexTimer Module                                                                 */
-      CMT_IRQHandler,                /*   61,   45  Carrier Modulator Transmitter                                                    */
+      Default_Handler,               /*   61,   45                                                                                   */
       RTC_Alarm_IRQHandler,          /*   62,   46  Real Time Clock                                                                  */
       RTC_Seconds_IRQHandler,        /*   63,   47  Real Time Clock                                                                  */
       PIT0_IRQHandler,               /*   64,   48  Periodic Interrupt Timer                                                         */
@@ -461,7 +447,7 @@ VectorTable const __vector_table = {
       PIT3_IRQHandler,               /*   67,   51  Periodic Interrupt Timer                                                         */
       PDB0_IRQHandler,               /*   68,   52  Programmable Delay Block                                                         */
       USB0_IRQHandler,               /*   69,   53  Universal Serial Bus                                                             */
-      USBDCD_IRQHandler,             /*   70,   54  USB Device Charger Detection                                                     */
+      Default_Handler,               /*   70,   54                                                                                   */
       Default_Handler,               /*   71,   55                                                                                   */
       DAC0_IRQHandler,               /*   72,   56  Digital to Analogue Converter                                                    */
       MCG_IRQHandler,                /*   73,   57  Multipurpose Clock Generator                                                     */
@@ -473,22 +459,14 @@ VectorTable const __vector_table = {
       PORTE_IRQHandler,              /*   79,   63  General Purpose Input/Output                                                     */
       SWI_IRQHandler,                /*   80,   64  Software interrupt                                                               */
       Default_Handler,               /*   81,   65                                                                                   */
-      UART4_RX_TX_IRQHandler,        /*   82,   66  Serial Communication Interface                                                   */
-      UART4_ERR_IRQHandler,          /*   83,   67  Serial Communication Interface                                                   */
-      UART5_RX_TX_IRQHandler,        /*   84,   68  Serial Communication Interface                                                   */
-      UART5_ERR_IRQHandler,          /*   85,   69  Serial Communication Interface                                                   */
-      CMP2_IRQHandler,               /*   86,   70  High-Speed Comparator                                                            */
+      Default_Handler,               /*   82,   66                                                                                   */
+      Default_Handler,               /*   83,   67                                                                                   */
+      Default_Handler,               /*   84,   68                                                                                   */
+      Default_Handler,               /*   85,   69                                                                                   */
+      Default_Handler,               /*   86,   70                                                                                   */
       FTM3_IRQHandler,               /*   87,   71  FlexTimer Module                                                                 */
-      Default_Handler,               /*   88,   72                                                                                   */
+      DAC1_IRQHandler,               /*   88,   72  Digital to Analogue Converter                                                    */
       ADC1_IRQHandler,               /*   89,   73  Analogue to Digital Converter                                                    */
-      I2C2_IRQHandler,               /*   90,   74  Inter-Integrated Circuit                                                         */
-      CAN0_Message_IRQHandler,       /*   91,   75  Flex Controller Area Network module                                              */
-      CAN0_BusOff_IRQHandler,        /*   92,   76  Flex Controller Area Network module                                              */
-      CAN0_Error_IRQHandler,         /*   93,   77  Flex Controller Area Network module                                              */
-      CAN0_Tx_IRQHandler,            /*   94,   78  Flex Controller Area Network module                                              */
-      CAN0_Rx_IRQHandler,            /*   95,   79  Flex Controller Area Network module                                              */
-      CAN0_WakeUp_IRQHandler,        /*   96,   80  Flex Controller Area Network module                                              */
-      SDHC_IRQHandler,               /*   97,   81  Secured Digital Host Controller                                                  */
    }
 };
 

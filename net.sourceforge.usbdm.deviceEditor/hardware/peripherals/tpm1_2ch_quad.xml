@@ -191,4 +191,5 @@
    </template>
 
    <pins/>
+   <pins name="TPM"/>
 </devicePage>

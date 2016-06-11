@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE root SYSTEM "_menu.dtd" >
-<!-- Cmp_def.xml -->
+<!-- Dac_def.xml -->
 
 <devicePage xmlns:xi="http://www.w3.org/2001/XInclude" name="_instance" description="Comparitor">
    
@@ -87,14 +87,14 @@
       \t   DAC_C1_DACBFEN($(dac_c1_dacbfen));      // Buffer Enable
    </template>
       
-   <intOption name="dac_c1_dacbfup" description="DAC Buffer Upper Limit"
+   <intOption name="dac_c2_dacbfup" description="DAC Buffer Upper Limit"
       toolTip="Selects the upper limit of the DAC buffer. The buffer read pointer cannot exceed it." 
       value="1"
-      min="0" max="1" />
+      min="0" />
    <template>
       \t//! DAC Control Register 2\n
       \tstatic constexpr uint32_t c2 =
-      \t   DAC_C2_DACBFUP($(dac_c1_dacbfup));   // DAC Buffer Upper Limit
+      \t   DAC_C2_DACBFUP($(dac_c2_dacbfup));   // DAC Buffer Upper Limit
    </template>
       
    <xi:include href="_irqOption.xml"/>         

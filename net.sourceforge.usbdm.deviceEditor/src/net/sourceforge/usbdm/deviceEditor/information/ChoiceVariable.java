@@ -48,9 +48,10 @@ public class ChoiceVariable extends Variable {
          // Quietly remove reserved values
          value = fDefault;
       }
+      super.debugPrint("ChoiceVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
-      return false;
+      return true;
    }
 
    @Override

@@ -110,7 +110,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
       pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
-      pinMappingHeaderFile.write(substitute(fData.fTemplate.get("")));
+      String template = fData.fTemplate.get("");
+      if (template != null) {
+         pinMappingHeaderFile.write(substitute(template));
+      }
    }
 
    /**

@@ -105,6 +105,7 @@ public class LongVariable extends Variable {
       if (fValue == value) {
          return false;
       }
+      super.debugPrint("LongVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;
@@ -140,7 +141,7 @@ public class LongVariable extends Variable {
          }
          throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
       } catch (Exception e) {
-         e.printStackTrace();
+//         e.printStackTrace();
       }
       return fDefault;
    }

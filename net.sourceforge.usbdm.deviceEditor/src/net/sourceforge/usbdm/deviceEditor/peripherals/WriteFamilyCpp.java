@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
@@ -164,6 +165,30 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException 
     */
+   private void writePeripheralInformationClass(DocumentUtilities writer, DocumentationGroups groups, Peripheral peripheral) throws IOException {
+      try {
+         groups.openGroup(peripheral);
+         peripheral.writeInfoClass(writer);
+      } catch (Exception e) {
+         System.err.println("Failed to write Info for peripheral " + peripheral);
+         e.printStackTrace();
+      }
+   }
+   /**
+    * Write all Peripheral Information Classes<br>
+    * 
+    * <pre>
+    *  class Adc0Info {
+    *   ...
+    *  };
+    *  class Adc1Info {
+    *   ...
+    *  };
+    * </pre>
+    * @param writer Where to write
+    * 
+    * @throws IOException 
+    */
    private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
       writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
       
@@ -182,15 +207,25 @@ public class WriteFamilyCpp {
       writer.writeBanner("Peripheral Information Classes");
 
       DocumentationGroups groups = new DocumentationGroups(writer);
-      for (String key:fDeviceInfo.getPeripherals().keySet()) {
-         try {
-            Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-            groups.openGroup(peripheral);
-            peripheral.writeInfoClass(writer);
-         } catch (Exception e) {
-            System.err.println("Failed to write Info for " + key);
-            e.printStackTrace();
+      
+      // Write these classes in order as they declare shared information etc.
+      ArrayList<String> priorityClasses = new ArrayList<String>();
+      priorityClasses.add("OSC");
+      priorityClasses.add("OSC0");
+      priorityClasses.add("RTC");
+      priorityClasses.add("MCG");
+      priorityClasses.add("SIM");
+      for (String key:priorityClasses) {
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
+         if (peripheral != null) {
+            writePeripheralInformationClass(writer, groups, peripheral);
          }
+      }
+      for (String key:fDeviceInfo.getPeripherals().keySet()) {
+         if (priorityClasses.contains(key)) {
+            continue;
+         }
+         writePeripheralInformationClass(writer, groups, fDeviceInfo.getPeripherals().get(key));
       }
       groups.closeGroup();
       writer.writeCloseNamespace();

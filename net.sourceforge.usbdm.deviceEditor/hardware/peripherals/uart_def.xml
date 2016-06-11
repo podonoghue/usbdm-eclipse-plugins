@@ -9,8 +9,9 @@ Devices using this peripheral:
    <aliasOption key="clockSource" />
    
    <menu name="Advanced" description="Advanced options">
-      <aliasOption key="/SIM/sim_sopt5_uart$(_instance)txsrc"  constant="false" optional="true" />
-      <aliasOption key="/SIM/sim_sopt5_uart$(_instance)rxsrc"  constant="false" optional="true" />
+      <aliasOption key="/SIM/sim_sopt5_uart$(_instance)ode"   optional="true" constant="false" />
+      <aliasOption key="/SIM/sim_sopt5_uart$(_instance)txsrc" optional="true" constant="false" />
+      <aliasOption key="/SIM/sim_sopt5_uart$(_instance)rxsrc" optional="true" constant="false" />
    </menu>
 
    <xi:include href="_irqOption.xml"/>
@@ -20,6 +21,8 @@ Devices using this peripheral:
    </projectActionList>
          
    <template>
+   \tstatic constexpr bool statusNeedsWrite = false;\n\n
+      
    \t/**
    \t * Get input clock frequency
    \t *

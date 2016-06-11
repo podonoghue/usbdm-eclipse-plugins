@@ -108,7 +108,7 @@ public class Message {
       return fSeverity.name() + ": " + fMessage;
    }
    /**
-    * Returns message text
+    * Returns message text without severity prefix
     * @return
     */
    public String getRawMessage() {

@@ -36,14 +36,15 @@ public abstract class Validator {
     * @return true => Updates pending, false => update completed
     */
    public boolean variableChanged(Variable variable) {
+//      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       int iterationCount = 0;
 //      if (!varModified.add(variable)) {
 //         System.err.println(Integer.toString(iterationCount)+getSimpleClassName()+".variableChanged("+variable+") variable already changed " + variable);
 //      }
 //      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       if (busy) {
-         recursed = true;
 //         System.err.println(getSimpleClassName()+".variableChanged("+variable+"):Recursed");
+         recursed = true;
 //         new Throwable().printStackTrace(System.err);
          return true;
       }

@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class RtcValidate extends BaseClockValidator {
+public class RtcValidate extends Validator {
    
    // Ranges for External Crystal
    private   static final long EXTERNAL_EXTAL_RANGE_MIN = 32000L;

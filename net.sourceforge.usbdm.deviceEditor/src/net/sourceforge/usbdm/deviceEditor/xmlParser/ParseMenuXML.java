@@ -208,6 +208,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);
 
+//      if (name.startsWith("adc_cfg1_adiclk")) {
+//         System.err.println("Name = "+ name);
+//      }
       Variable variable = new ChoiceVariable(name, key);
       fProvider.addVariable(variable);
       variable.setDescription(description);
@@ -465,14 +468,16 @@ public class ParseMenuXML extends XML_BaseParser {
       if (!peripheralName.isEmpty()) {
          peripheral = fProvider.getDeviceInfo().getPeripherals().get(peripheralName);
       }
-      if (fPinModel == null) {
-         fPinModel = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
-      }
-      TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
-      for (String signalName:peripheralSignals.keySet()) {
-         Signal signal = peripheralSignals.get(signalName);
-         if (signal.isAvailableInPackage()) {
-            new SignalModel(fPinModel, signal);
+      if (peripheral != null) {
+         if (fPinModel == null) {
+            fPinModel = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
+         }
+         TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
+         for (String signalName:peripheralSignals.keySet()) {
+            Signal signal = peripheralSignals.get(signalName);
+            if (signal.isAvailableInPackage()) {
+               new SignalModel(fPinModel, signal);
+            }
          }
       }
    }

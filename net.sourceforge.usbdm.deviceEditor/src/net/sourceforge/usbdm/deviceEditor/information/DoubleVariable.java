@@ -94,6 +94,7 @@ public class DoubleVariable extends Variable {
       if (fValue == value) {
          return false;
       }
+      super.debugPrint("DoubleVariable["+this+"].setValue("+value+"), old "+value);
       fValue = value;
       notifyListeners();
       return true;

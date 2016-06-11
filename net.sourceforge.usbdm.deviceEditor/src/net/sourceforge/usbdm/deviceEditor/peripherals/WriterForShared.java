@@ -22,7 +22,7 @@ public class WriterForShared extends Peripheral {
 
    @Override
    public String getTitle() {
-      return "Shared";
+      return "Shared Resources";
    }
 
    @Override
@@ -39,7 +39,7 @@ public class WriterForShared extends Peripheral {
 
    @Override
    public String getGroupName() {
-      return getBaseName().toUpperCase()+"_Misc_Group";
+      return getBaseName().toUpperCase()+"_Group";
    }
 
    private HashMap<String, Integer> indexMap = new HashMap<String, Integer>();

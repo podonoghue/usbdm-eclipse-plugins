@@ -75,7 +75,7 @@ public class DeviceInfo extends ObservableModel {
    public static final String VERSION           = "1.2.0";
 
    /** DTD file to reference in XML */
-   public static final String DTD_FILE          = "Hardware.dtd";
+   public static final String DTD_FILE          = "_Hardware.dtd";
 
    /** Name space for C files */
    public static final String NAME_SPACE        = "USBDM";
@@ -1125,6 +1125,12 @@ public class DeviceInfo extends ObservableModel {
                WriterForSim.class);
          
          createPeripheralTemplateInformation(
+               "ExternalTrigger", "", "$0",
+               "(EXTRG_IN)",
+               getDeviceFamily(),
+               WriterForShared.class);
+         
+         createPeripheralTemplateInformation(
                "FLEXIO", "", "",
                "(FXIO|FLEXIO).*",
                getDeviceFamily(),
@@ -1172,11 +1178,6 @@ public class DeviceInfo extends ObservableModel {
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(RNG(A)?)(\\d)?(.*)",
-               getDeviceFamily(),
-               WriterForToDo.class);
-         createPeripheralTemplateInformation(
-               "Miscellaneous", "", "$0",
-               "(EXTRG_IN)",
                getDeviceFamily(),
                WriterForToDo.class);
          createPeripheralTemplateInformation(

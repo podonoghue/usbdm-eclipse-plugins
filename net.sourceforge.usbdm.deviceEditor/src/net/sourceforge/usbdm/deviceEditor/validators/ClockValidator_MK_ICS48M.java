@@ -91,6 +91,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
     */
    @Override
    protected void validate(Variable variable) {
+//      System.err.println(getSimpleClassName()+" Var = "+variable);
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);
@@ -242,12 +243,12 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       default:
       case 0: // ERC = OSCCLK
          mcg_erc_clockVar.setValue(oscclk_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(oscclk_clockVar.getStatus());
+         mcg_erc_clockVar.setStatus(oscclk_clockVar.getFilteredStatus());
          mcg_erc_clockVar.setOrigin(oscclk_clockVar.getOrigin());
          break;
       case 1: // ERC = OSC32KCLK
          mcg_erc_clockVar.setValue(rtcclk_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(rtcclk_clockVar.getStatus());
+         mcg_erc_clockVar.setStatus(rtcclk_clockVar.getFilteredStatus());
          mcg_erc_clockVar.setOrigin(rtcclk_clockVar.getOrigin()+"[RTCCLK]");
          break;
       case 2: // ERC = IRC48MCLK
@@ -355,6 +356,10 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       mcg_c2_lpVar.setValue(mcg_c2_lp);
       mcg_c1_irefsVar.setValue(mcg_c1_irefs);
       
+      long mcg_c7_oscsel = 0;
+      if (mcg_c7_oscselVar != null) {
+         mcg_c7_oscsel = mcg_c7_oscselVar.getValueAsLong();
+      }
       //=======================================
       // Find FLL dividers
       FllConfigure fllCheck = new FllConfigure(
@@ -364,7 +369,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
             mcg_c1_irefs,
             mcg_erc_clockVar,
             slow_irc_clockVar.getValueAsLong(),
-            mcg_c7_oscselVar.getValueAsLong(), 
+            mcg_c7_oscsel, 
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fllInputFrequencyVar,
             system_mcgfllclk_clockVar,

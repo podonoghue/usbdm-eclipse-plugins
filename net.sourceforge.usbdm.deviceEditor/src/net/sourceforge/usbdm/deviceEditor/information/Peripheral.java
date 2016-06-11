@@ -100,7 +100,7 @@ public abstract class Peripheral {
    }
 
    /**
-    * Get base name of the peripheral e.g. FTM0 = FTM, PTA = PT 
+    * Get base name of the peripheral e.g. FTM0 => FTM, PTA =. PT 
     * 
     * @return
     */
@@ -109,7 +109,7 @@ public abstract class Peripheral {
    }
 
    /**
-    * Get instance name/number of the peripheral instance e.g. FTM0 = 0, PTA = A 
+    * Get instance name/number of the peripheral instance e.g. FTM0 => 0, PTA => A 
     * 
     * @return
     */
@@ -550,8 +550,8 @@ public abstract class Peripheral {
       // Base address
       sb.append(String.format(
             "   //! Hardware base pointer\n"+
-            "   static constexpr uint32_t basePtr   = %s\n\n",
-            getName()+"_BasePtr;"
+            "   static constexpr volatile %s_Type *%s   = (volatile %s_Type *)%s\n\n",
+            getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr;"
             ));
 
       if (needPCRTable()) {
@@ -566,8 +566,8 @@ public abstract class Peripheral {
       if (getClockReg() != null) {
          sb.append(String.format(
                "   //! Address of clock register for peripheral\n"+
-               "   static constexpr uint32_t clockReg  = %s;\n\n",
-               "SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+")"));
+               "   static constexpr volatile uint32_t *clockReg  = (volatile uint32_t *)%s;\n\n",
+               "(SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+"))"));
       }
       sb.append(String.format(
             "   //! Number of IRQs for hardware\n"+

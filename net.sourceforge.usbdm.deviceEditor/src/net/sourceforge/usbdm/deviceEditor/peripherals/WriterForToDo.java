@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of Unknow!!
  */
 /**
  * @author podonoghue

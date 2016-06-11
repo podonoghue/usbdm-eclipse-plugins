@@ -13,7 +13,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class LpuartValidate extends BaseClockValidator {
+public class LpuartValidate extends Validator {
    
    public LpuartValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
