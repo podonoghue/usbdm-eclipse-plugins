@@ -143,14 +143,5 @@ public class WriterForFtm extends PeripheralWithState {
       rv.add(fClkinSignals);
       return rv;
    }
-
-   /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState#loadModels()
-    */
-   @Override
-   public void loadModels() throws Exception {
-      super.loadModels();
-   }
-
    
 }

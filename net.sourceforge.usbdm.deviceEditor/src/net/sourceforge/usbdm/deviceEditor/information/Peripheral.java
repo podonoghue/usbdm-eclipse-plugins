@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -813,7 +815,6 @@ public abstract class Peripheral {
       return false;
    }
    
-   
    /**
     * Write initPCRs() function
     * 
@@ -823,31 +824,22 @@ public abstract class Peripheral {
     * @throws IOException
     */
    public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
-      if (signalTable.table.size() == 0) {
-         return;
-      }
-      final String PCR_TEMPLATE = 
-            indent+"      PcrTable_T<%s %2s>::setPCR(%s); // %-15s = %-30s\n";
-      
-      final String PCR_FUNCTION_TEMPLATE = 
+
+      final String INIT_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
             indent+"    * Initialise pins used by peripheral\n"+
             indent+"    */\n"+
-            indent+"   static void %s() {\n";
+            indent+"   static void initPCRs() {\n";
 
-      String tableName = "";
-      if (signalTable.getName() != INFO_TABLE_NAME) {
-         tableName = "::"+signalTable.getName();
-      }
-      StringBuffer initPcrbuffer = new StringBuffer();
-      StringBuffer clearPcrbuffer = new StringBuffer();
+      final String CLEAR_PCR_FUNCTION_TEMPLATE = 
+            indent+"   /**\n"+
+            indent+"    * Resets pins used by peripheral\n"+
+            indent+"    */\n"+
+            indent+"   static void clearPCRs() {\n";
+
+      HashMap<String, Long> portMap  = new HashMap<String, Long>();
+      HashSet<String> portClockMasks = new HashSet<String>();
       
-      initPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
-            "initPCRs"
-            ));
-      clearPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
-            "clearPCRs"
-            ));
       for (int index=0; index<signalTable.table.size(); index++) {
          Signal signal = signalTable.table.get(index);
          if (signal == null) {
@@ -872,26 +864,141 @@ public abstract class Peripheral {
                break;
             }
             if (mappedPin.isSelected()) {
-                  initPcrbuffer.append(String.format( PCR_TEMPLATE, 
-                        getClassName()+"Info"+tableName+",",
-                        index,
-                        "",
-                        signal.getName(),
-                        mappedPin.getPin().getNameWithLocation()));
-                  clearPcrbuffer.append(String.format( PCR_TEMPLATE, 
-                        getClassName()+"Info"+tableName+",",
-                        index,
-                        "0",
-                        signal.getName(),
-                        mappedPin.getPin().getNameWithLocation()));
+               Pin pin = mappedPin.getPin();
+               portClockMasks.add(pin.getClockMask());
+               
+               String bitNums = mappedPin.getPin().getGpioBitNum();
+               if (bitNums != null) {
+                  long bitNum = Long.parseLong(bitNums);
+
+                  Long bitMask = portMap.get(pin.getPORTBasePtr());
+                  if (bitMask == null) {
+                     bitMask = new Long(0);
+                     portMap.put(pin.getPORTBasePtr(), bitMask);
+                  }
+                  bitMask |= 1<<bitNum;
+                  portMap.put(pin.getPORTBasePtr(), bitMask);
+               }
             }
          }
       }
+      
+      StringBuffer initPcrbuffer = new StringBuffer();
+      boolean isFirst = true;
+      for (String p:portClockMasks) {
+         if (isFirst) {
+            initPcrbuffer.append(indent+"      SimInfo::enablePortClocks(");
+            isFirst = false;
+         }
+         else {
+            initPcrbuffer.append("|");
+         }
+         initPcrbuffer.append(p);
+      }
+      if (!isFirst) {
+         initPcrbuffer.append(");\n\n");
+      }
+      for (String key:portMap.keySet()) {
+         Long p = portMap.get(key);
+         if ((p&0xFFFF) != 0) {
+            initPcrbuffer.append(String.format(indent+"      %s = pcrValue|0x%sU;\n", "((PORT_Type *)"+key+")->GPCLR", Long.toHexString(p&0xFFFF).toUpperCase()));
+         }
+         p >>= 16;
+         if ((p&0xFFFF) != 0) {
+            initPcrbuffer.append(String.format(indent+"      %s = pcrValue|0x%sU;\n", "((PORT_Type *)"+key+")->GPCHR", Long.toHexString(p&0xFFFF).toUpperCase()));
+         }
+         isFirst = false;
+      }
       initPcrbuffer.append(indent+"   }\n\n");
-      clearPcrbuffer.append(indent+"   }\n\n");
-      pinMappingHeaderFile.write(initPcrbuffer.toString());
-      pinMappingHeaderFile.write(clearPcrbuffer.toString());
+
+      String buffer = initPcrbuffer.toString();
+      
+      pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
+      pinMappingHeaderFile.write(buffer);
+      
+      pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
+      buffer = buffer.replaceAll("pcrValue", "0");
+      pinMappingHeaderFile.write(buffer);
    }
+   
+//   /**
+//    * Write initPCRs() function
+//    * 
+//    * @param pinMappingHeaderFile
+//    * @param indent 
+//    * @param signalTable
+//    * @throws IOException
+//    */
+//   public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
+//      if (signalTable.table.size() == 0) {
+//         return;
+//      }
+//      final String PCR_TEMPLATE = 
+//            indent+"      PcrTable_T<%s %2s>::setPCR(%s); // %-15s = %-30s\n";
+//      
+//      final String PCR_FUNCTION_TEMPLATE = 
+//            indent+"   /**\n"+
+//            indent+"    * Initialise pins used by peripheral\n"+
+//            indent+"    */\n"+
+//            indent+"   static void %s() {\n";
+//
+//      String tableName = "";
+//      if (signalTable.getName() != INFO_TABLE_NAME) {
+//         tableName = "::"+signalTable.getName();
+//      }
+//      StringBuffer initPcrbuffer = new StringBuffer();
+//      StringBuffer clearPcrbuffer = new StringBuffer();
+//      
+//      initPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
+//            "initPCRs"
+//            ));
+//      clearPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
+//            "clearPCRs"
+//            ));
+//      for (int index=0; index<signalTable.table.size(); index++) {
+//         Signal signal = signalTable.table.get(index);
+//         if (signal == null) {
+//            continue;
+//         }
+//         ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(signal);
+//         for (MappingInfo mappedPin:mappedPins) {
+//            if (!mappedPin.getPin().isAvailableInPackage()) {
+//               // Discard unmapped signals on this package 
+//               continue;
+//            }
+//            if (mappedPin.getMux() == MuxSelection.disabled) {
+//               // Disabled selection - ignore
+//               continue;
+//            }
+//            if (mappedPin.getMux() == MuxSelection.reset) {
+//               // Reset selection - ignore
+//               continue;
+//            }
+//            if (mappedPin.getMux() == MuxSelection.fixed) {
+//               // No PCR
+//               break;
+//            }
+//            if (mappedPin.isSelected()) {
+//                  initPcrbuffer.append(String.format( PCR_TEMPLATE, 
+//                        getClassName()+"Info"+tableName+",",
+//                        index,
+//                        "",
+//                        signal.getName(),
+//                        mappedPin.getPin().getNameWithLocation()));
+//                  clearPcrbuffer.append(String.format( PCR_TEMPLATE, 
+//                        getClassName()+"Info"+tableName+",",
+//                        index,
+//                        "0",
+//                        signal.getName(),
+//                        mappedPin.getPin().getNameWithLocation()));
+//            }
+//         }
+//      }
+//      initPcrbuffer.append(indent+"   }\n\n");
+//      clearPcrbuffer.append(indent+"   }\n\n");
+//      pinMappingHeaderFile.write(initPcrbuffer.toString());
+//      pinMappingHeaderFile.write(clearPcrbuffer.toString());
+//   }
    
    /**
     * Adds variables to map for C++ generation

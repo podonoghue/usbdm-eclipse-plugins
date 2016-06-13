@@ -11,9 +11,12 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Tree;
 
@@ -24,6 +27,7 @@ import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
+import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
@@ -60,6 +64,10 @@ public class ValueColumnEditingSupport extends EditingSupport {
       if (element instanceof LongVariableModel) {
          LongVariableModel model = (LongVariableModel)element;
          return new NumericTextCellEditor(viewer.getTree(), model);
+      }      
+      if (element instanceof StringVariableModel) {
+         StringVariableModel model = (StringVariableModel)element;
+         return new ListEditor(viewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
          return new HardwareCellEditor(viewer.getTree());
@@ -110,7 +118,6 @@ public class ValueColumnEditingSupport extends EditingSupport {
          Validator validator =  new Validator(model);
          setValidator(validator);
       }
-
    }
    
    static class BooleanCellEditor extends CheckboxCellEditor {
@@ -186,6 +193,47 @@ public class ValueColumnEditingSupport extends EditingSupport {
          dialog.setFileName(path.getFileName().toString());
          return dialog.open();
       }
-      
    }
+   
+   static class StringCellEditor extends TextCellEditor {
+
+      class Validator implements ICellEditorValidator {
+         LongVariableModel fModel;
+         
+         Validator(LongVariableModel model) {
+            fModel = model;
+         }
+         
+         @Override
+         public String isValid(Object value) {
+            return fModel.isValid(value.toString());
+         }
+      }
+      
+      public StringCellEditor(Tree parent, StringVariableModel model) {
+         super(parent, SWT.SINGLE);
+         setValueValid(true);
+//         Validator validator =  new Validator(model);
+//         setValidator(validator);
+      }
+   }
+   
+   static class ListEditor extends DialogCellEditor {
+      final StringVariableModel fModel;
+      
+      public ListEditor(Tree tree, StringVariableModel model) {
+         super(tree, SWT.NONE);
+         fModel = model;
+      }
+
+      @Override
+      protected Object openDialogBox(Control paramControl) {
+//         CheckBoxListDialogue dialog = new CheckBoxListDialogue(paramControl.getShell(), 61);
+//         if (dialog.open() == Window.OK) {
+//            return dialog.getResult();
+//         };
+         return null;
+      }
+   }
+
 }

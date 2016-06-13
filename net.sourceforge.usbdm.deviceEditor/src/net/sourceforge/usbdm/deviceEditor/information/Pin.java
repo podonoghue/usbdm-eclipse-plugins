@@ -111,9 +111,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    /**
-    * Get Base pointer for Port e.g. PORTC_BasePtr
+    * Get Port base pointer e.g. PORTC_BasePtr
     * 
-    * @return
+    * @return String or null if no associated PORT
     */
    public String getPORTBasePtr() {
       if (fPortInstance == null) {
@@ -147,11 +147,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    /**
-    * Get clock mask e.g. PORTA_CLOCK_MASK
+    * Get GPIO base pointer e.g. GPIOA_BasePtr
     * 
-    * @return
+    * @return String or null if no associated GPIO
     */
-   public String getGpioReg() {
+   public String getGpioBasePtr() {
       if (fPortInstance == null) {
          return null;
       }
@@ -159,9 +159,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    /**
-    * Get clock mask e.g. PORTA_CLOCK_MASK
+    * Get bit number of associated PORT/GPIO
     * 
-    * @return
+    * @return String or null if no associated port
     */
    public String getGpioBitNum() {
       if (fPortInstance == null) {
@@ -365,7 +365,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          return "0, 0, 0, 0, ";
       }
       String pcrRegister      = getPORTBasePtr();
-      String gpioRegister     = getGpioReg();
+      String gpioRegister     = getGpioBasePtr();
       String gpioBitNum       = getGpioBitNum();
 
       return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");

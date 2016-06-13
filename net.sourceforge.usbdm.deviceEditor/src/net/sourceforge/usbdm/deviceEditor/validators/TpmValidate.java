@@ -17,8 +17,7 @@ public class TpmValidate extends Validator {
    
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
-         "/MCG/system_mcgffclk_clock",
-         "/SIM/system_bus_clock",
+         "/SIM/system_tpm_clock"
    };
 
    public TpmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {

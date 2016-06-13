@@ -197,8 +197,39 @@ public class SimValidate extends Validator {
          pllPostDiv3Origin += " after /CLKDIV3";
       }
       
-      // LPUART Clock source select 
+      // UART0 Clock source select (if present)
       //============================
+      Variable sim_sopt2_uart0srcVar = safeGetVariable("sim_sopt2_uart0src");
+      if (sim_sopt2_uart0srcVar != null) {
+         Variable system_uart0_clockVar   = getVariable("system_uart0_clock");
+         switch ((int)sim_sopt2_uart0srcVar.getValueAsLong()) {
+         default:
+            sim_sopt2_uart0srcVar.setValue(0);
+         case 0: // Disabled
+            system_uart0_clockVar.setValue(0);
+            system_uart0_clockVar.setStatus((Message)null);
+            system_uart0_clockVar.setOrigin("Disabled");
+            break;
+         case 1: // Peripheral Clock / CLKDIV3
+            system_uart0_clockVar.setValue(pllPostDiv3Value);
+            system_uart0_clockVar.setStatus(system_peripheral_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(pllPostDiv3Origin);
+            break;
+         case 2: // OSCERCLK
+            system_uart0_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+            system_uart0_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+            break;
+         case 3: // MCGIRCLK
+            system_uart0_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
+            system_uart0_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
+            break;
+         }
+      }
+
+      // LPUART Clock source select (if present)
+      //========================================
       Variable sim_sopt2_lpuartsrcVar = safeGetVariable("sim_sopt2_lpuartsrc");
       if (sim_sopt2_lpuartsrcVar != null) {
          Variable system_lpuart_clockVar   = getVariable("system_lpuart_clock");
@@ -261,58 +292,76 @@ public class SimValidate extends Validator {
 
       // USB FS Clock source select 
       //============================
-      Variable sim_clkdiv2_usbVar = safeGetVariable("sim_clkdiv2_usb");
-      if (sim_clkdiv2_usbVar != null) {
+      Variable sim_sopt2_usbsrcVar = safeGetVariable("sim_sopt2_usbsrc");
+      if (sim_sopt2_usbsrcVar != null) {
 
-         Variable system_usbfs_clockVar     = getVariable("system_usbfs_clock");
-         Variable sim_sopt2_usbsrcVar       = getVariable("sim_sopt2_usbsrc");
+         Variable sim_clkdiv2_usbVar    = safeGetVariable("sim_clkdiv2_usb");
 
-         int pllCalcValue = -1;
+         if (sim_clkdiv2_usbVar != null) {
+            // USB divider CLKDIV2 exists
+
+            int pllCalcValue = -1;
+            if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
+               // Using USB CLKIN pin
+               sim_clkdiv2_usbVar.enable(false);
+               sim_clkdiv2_usbVar.setOrigin("Not used with external clock");
+               sim_clkdiv2_usbVar.setLocked(false);
+            }
+            else {
+               // Using internal clock
+
+               // Try to auto calculate divisor
+               long clock = system_peripheral_clockVar.getValueAsLong();
+               for (int  pllflldiv=0; pllflldiv<=7; pllflldiv++) {
+                  for (int  pllfllfrac=0; pllfllfrac<=1; pllfllfrac++) {
+                     long testValue = Math.round(clock*(pllfllfrac+1.0)/(pllflldiv+1.0));
+                     if (testValue == 48000000) {
+                        pllCalcValue = (pllflldiv<<1) + pllfllfrac;
+                        break;
+                     }
+                  }
+                  if (pllCalcValue>0) {
+                     break;
+                  }
+               }
+               sim_clkdiv2_usbVar.enable(true);
+               if (pllCalcValue>0) {
+                  ((ChoiceVariable)sim_clkdiv2_usbVar).setRawValue(pllCalcValue);
+                  sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
+                  sim_clkdiv2_usbVar.setLocked(true);
+               }
+               else {
+                  sim_clkdiv2_usbVar.setOrigin("Manually selected");
+                  sim_clkdiv2_usbVar.setLocked(false);
+               }
+            }
+         }
+         Variable system_usbfs_clockVar = getVariable("system_usbfs_clock");
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
-            // Using USB CLKIN pin
-            sim_clkdiv2_usbVar.enable(false);
-            sim_clkdiv2_usbVar.setLocked(false);
+            // Using USB_CLKIN
             system_usbfs_clockVar.setValue(system_usb_clkin_clockVar.getValueAsLong());
             system_usbfs_clockVar.setStatus(system_usb_clkin_clockVar.getStatus());
             system_usbfs_clockVar.setOrigin(system_usb_clkin_clockVar.getOrigin());
          }
          else {
             // Using internal clock
+            if (sim_clkdiv2_usbVar != null) {
+               // Peripheral Clock / CLKDIV2
+               int  pllValue = Long.decode(sim_clkdiv2_usbVar.getSubstitutionValue()).intValue();
+               int  pllfllfrac  = pllValue&0x1;
+               int  pllflldiv   = (pllValue>>1)&0x7;
+               long pllPostDiv2 = system_peripheral_clockVar.getValueAsLong()*(pllfllfrac+1)/(pllflldiv+1);
 
-            // Try to auto calculate divisor
-            long clock = system_peripheral_clockVar.getValueAsLong();
-            for (int  pllflldiv=0; pllflldiv<=7; pllflldiv++) {
-               for (int  pllfllfrac=0; pllfllfrac<=1; pllfllfrac++) {
-                  long testValue = Math.round(clock*(pllfllfrac+1.0)/(pllflldiv+1.0));
-                  if (testValue == 48000000) {
-                     pllCalcValue = (pllflldiv<<1) + pllfllfrac;
-                     break;
-                  }
-               }
-               if (pllCalcValue>0) {
-                  break;
-               }
-            }
-            if (pllCalcValue>0) {
-               ((ChoiceVariable)sim_clkdiv2_usbVar).setRawValue(pllCalcValue);
-               sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
-               sim_clkdiv2_usbVar.setLocked(true);
+               system_usbfs_clockVar.setValue(pllPostDiv2);
+               system_usbfs_clockVar.setStatus(system_peripheral_clockVar.getStatus());
+               system_usbfs_clockVar.setOrigin(system_peripheral_clockVar.getOrigin()+" after /CLKDIV2");
             }
             else {
-               sim_clkdiv2_usbVar.setOrigin("Manually selected");
-               sim_clkdiv2_usbVar.setLocked(false);
+               // Directly using peripheral clock
+               system_usbfs_clockVar.setValue(system_peripheral_clockVar.getValueAsLong());
+               system_usbfs_clockVar.setStatus(system_peripheral_clockVar.getStatus());
+               system_usbfs_clockVar.setOrigin(system_peripheral_clockVar.getOrigin());
             }
-            sim_clkdiv2_usbVar.enable(true);
-            
-            int  pllValue = Long.decode(sim_clkdiv2_usbVar.getSubstitutionValue()).intValue();
-            int  pllfllfrac  = pllValue&0x1;
-            int  pllflldiv   = (pllValue>>1)&0x7;
-            long pllPostDiv2 = system_peripheral_clockVar.getValueAsLong()*(pllfllfrac+1)/(pllflldiv+1);
-
-            // Peripheral Clock / CLKDIV2
-            system_usbfs_clockVar.setValue(pllPostDiv2);
-            system_usbfs_clockVar.setStatus(system_peripheral_clockVar.getStatus());
-            system_usbfs_clockVar.setOrigin(system_peripheral_clockVar.getOrigin()+" after /CLKDIV2");
          }
       }
 
@@ -418,8 +467,6 @@ public class SimValidate extends Validator {
       system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
       system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
       sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
-
-
    }
 
    private abstract static class FindDivisor {

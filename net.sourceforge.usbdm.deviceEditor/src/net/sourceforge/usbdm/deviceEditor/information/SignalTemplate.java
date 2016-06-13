@@ -167,7 +167,7 @@ public class SignalTemplate {
          return "0, 0, 0, 0, ";
       }
       String pcrRegister      = pin.getPORTBasePtr();
-      String gpioRegister     = pin.getGpioReg();
+      String gpioRegister     = pin.getGpioBasePtr();
       String gpioBitNum       = pin.getGpioBitNum();
       
       return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");

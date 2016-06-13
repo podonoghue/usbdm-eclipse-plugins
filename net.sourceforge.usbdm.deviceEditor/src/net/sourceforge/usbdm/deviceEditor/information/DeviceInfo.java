@@ -40,6 +40,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
@@ -1139,7 +1140,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "", "$3",
                "S?(LCD)(\\d)?_?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForLcd.class);
          createPeripheralTemplateInformation(
                "LCD_POWER", "", "$0",
                "(VCAP|VLL)\\d+",
