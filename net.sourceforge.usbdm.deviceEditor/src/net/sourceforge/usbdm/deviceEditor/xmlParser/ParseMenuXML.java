@@ -28,6 +28,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralConfigurationModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
@@ -135,12 +136,14 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
       try {
-         variable.setMin(getLongAttribute(varElement, "min"));
+         if (varElement.hasAttribute("min")) {
+            variable.setMin(getLongAttribute(varElement, "min"));
+         }
+         if (varElement.hasAttribute("max")) {
+            variable.setMax(getLongAttribute(varElement, "max"));
+         }
       } catch( NumberFormatException e) {
-      }
-      try {
-         variable.setMax(getLongAttribute(varElement, "max"));
-      } catch( NumberFormatException e) {
+         throw new RuntimeException("Illegal min/max value in " + name, e);
       }
       variable.setValue(value);
       variable.setUnits(Units.valueOf(units));
@@ -251,6 +254,49 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
+      fProvider.addVariable(variable);
+      StringVariableModel model = new StringVariableModel(parent, variable);
+      model.setName(name);
+      model.setConstant(isConstant);
+      
+      variable.setValue(value);
+   }
+   
+   /**
+    * Parse &lt;choiceOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception 
+    */
+   private void parseNumericListOption(BaseModel parent, Element varElement) throws Exception {
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
+      if (key.isEmpty()) {
+         key = fProvider.makeKey(name);
+      }
+      key = substituteKey(key);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  value       = varElement.getAttribute("value");
+      String  toolTip     = getToolTip(varElement);
+
+      NumericListVariable variable = new NumericListVariable(name, key);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      try {
+         if (varElement.hasAttribute("min")) {
+            variable.setMin(getLongAttribute(varElement, "min"));
+         }
+         if (varElement.hasAttribute("max")) {
+            variable.setMax(getLongAttribute(varElement, "max"));
+         }
+      } catch( NumberFormatException e) {
+         throw new RuntimeException("Illegal min/max value in " + name, e);
+      }
+      
       fProvider.addVariable(variable);
       StringVariableModel model = new StringVariableModel(parent, variable);
       model.setName(name);
@@ -385,6 +431,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "stringOption") {
             parseStringOption(parentModel, element);
+         }
+         else if (element.getTagName() == "numericListOption") {
+            parseNumericListOption(parentModel, element);
          }
          else if (element.getTagName() == "aliasOption") {
             parseAliasOption(parentModel, element);

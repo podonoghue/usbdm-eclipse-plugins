@@ -209,7 +209,6 @@ public abstract class Variable extends ObservableModel {
          // No significant change
          return;
       }
-//      System.err.println(this+"setMessage("+message+")");
       fStatus = message;
       notifyListeners();
    }
@@ -220,6 +219,10 @@ public abstract class Variable extends ObservableModel {
     * @return
     */
    public Message getStatus() {
+      String msg = isValid();
+      if (msg != null) {
+         return new Message(msg, Severity.WARNING);
+      }
       return fStatus;
    }
 
@@ -307,11 +310,33 @@ public abstract class Variable extends ObservableModel {
    /**
     * Checks if the value is valid for assignment to this variable
     * 
-    * @param value
+    * @param value String to validate
     * 
     * @return Error message or null if valid
     */
    public String isValid(String value) {
+      return null;
+   }
+
+   /**
+    * Checks if the current variable value is valid
+    * 
+    * @return Error message or null if valid
+    */
+   public String isValid() {
+      return null;
+   }
+   
+   /**
+    * Checks is a character is 'plausible' for this  variable<br>
+    * Used to validate initial text entry in dialogues<br>
+    * Allows entry of illegal strings while editing even though current result is invalid
+    * 
+    * @param character Character to validate
+    * 
+    * @return Error message or null if valid
+    */
+   public String isValidKey(char character) {
       return null;
    }
 

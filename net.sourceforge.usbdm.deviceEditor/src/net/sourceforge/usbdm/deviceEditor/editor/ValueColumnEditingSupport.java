@@ -13,10 +13,9 @@ import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Tree;
 
@@ -67,7 +66,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
       }      
       if (element instanceof StringVariableModel) {
          StringVariableModel model = (StringVariableModel)element;
-         return new ListEditor(viewer.getTree(), model);
+         return new StringCellEditor(viewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
          return new HardwareCellEditor(viewer.getTree());
@@ -196,42 +195,50 @@ public class ValueColumnEditingSupport extends EditingSupport {
    }
    
    static class StringCellEditor extends TextCellEditor {
+      StringVariableModel fModel;
 
-      class Validator implements ICellEditorValidator {
-         LongVariableModel fModel;
-         
-         Validator(LongVariableModel model) {
-            fModel = model;
+      // Definitely a hack but I can't find a portable method 
+      final static String acceptableChars = "\t\f\n\r\b\0";
+
+      @Override
+      protected void keyReleaseOccured(KeyEvent keyEvent) {
+         if ((acceptableChars.indexOf(keyEvent.character) < 0) &&
+             (fModel.isValidKey(keyEvent.character) != null)) {
+            keyEvent.doit = false;
          }
-         
-         @Override
-         public String isValid(Object value) {
-            return fModel.isValid(value.toString());
-         }
+         super.keyReleaseOccured(keyEvent);
       }
+
+//      class Validator implements ICellEditorValidator {
+//         @Override
+//         public String isValid(Object value) {
+//            return fModel.isValid(value.toString());
+//         }
+//      }
       
       public StringCellEditor(Tree parent, StringVariableModel model) {
          super(parent, SWT.SINGLE);
+         fModel = model;
          setValueValid(true);
-//         Validator validator =  new Validator(model);
+//         Validator validator =  new Validator();
 //         setValidator(validator);
       }
    }
    
-   static class ListEditor extends DialogCellEditor {
+   static class IntegerListEditor extends DialogCellEditor {
       final StringVariableModel fModel;
       
-      public ListEditor(Tree tree, StringVariableModel model) {
+      public IntegerListEditor(Tree tree, StringVariableModel model) {
          super(tree, SWT.NONE);
          fModel = model;
       }
 
       @Override
       protected Object openDialogBox(Control paramControl) {
-//         CheckBoxListDialogue dialog = new CheckBoxListDialogue(paramControl.getShell(), 61);
-//         if (dialog.open() == Window.OK) {
-//            return dialog.getResult();
-//         };
+         CheckBoxListDialogue dialog = new CheckBoxListDialogue(paramControl.getShell(), 61, fModel.getValueAsString());
+         if (dialog.open() == Window.OK) {
+            return dialog.getResult();
+         };
          return null;
       }
    }

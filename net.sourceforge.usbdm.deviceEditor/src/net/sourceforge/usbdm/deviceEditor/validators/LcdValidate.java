@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -39,10 +40,22 @@ public class LcdValidate extends Validator {
       Variable       system_erclk32k_clockVar        =  getVariable("/SIM/system_erclk32k_clock");
       Variable       system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
       Variable       system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
-      Variable       lcd_gcr_clockVar                    =  getVariable("lcd_gcr_clock");
+      Variable       lcd_gcr_clockVar                =  getVariable("lcd_gcr_clock");
       Variable       lcd_gcr_altdivVar               =  getVariable("lcd_gcr_altdiv");
       Variable       lcdClockVar                     =  getVariable("lcdClock");
 
+      Variable       lcd_gcr_rvenVar                 =  getVariable("lcd_gcr_rven");
+      Variable       lcd_gcr_rvtrimVar               =  getVariable("lcd_gcr_rvtrim");
+      
+      lcd_gcr_rvtrimVar.enable(lcd_gcr_rvenVar.getValueAsBoolean());
+      
+      Variable             lcd_gcr_dutyVar     =  getVariable("lcd_gcr_duty");
+      NumericListVariable  backplanesVar       =  (NumericListVariable) getVariable("backplanes");
+//      NumericListVariable  frontplanesVar      =  (NumericListVariable) getVariable("frontplanes");
+      
+      
+      backplanesVar.setListSize((int)lcd_gcr_dutyVar.getValueAsLong()+1);
+      
       double divider = 1<<(3*lcd_gcr_altdivVar.getValueAsLong());
             
       switch ((int)lcd_gcr_clockVar.getValueAsLong()) {

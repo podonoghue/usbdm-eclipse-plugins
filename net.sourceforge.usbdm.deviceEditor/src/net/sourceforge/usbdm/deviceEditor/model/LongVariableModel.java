@@ -24,10 +24,6 @@ public class LongVariableModel extends VariableModel {
       return (LongVariable)super.getVariable();
    }
 
-   public String isValid(String value) {
-      return getVariable().isValid(value);
-   }
-
    @Override
    public void setValueAsString(String value) {
       getVariable().setValue(value);

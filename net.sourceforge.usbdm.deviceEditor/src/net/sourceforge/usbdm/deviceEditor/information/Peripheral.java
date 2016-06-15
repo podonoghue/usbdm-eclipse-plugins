@@ -815,6 +815,46 @@ public abstract class Peripheral {
       return false;
    }
    
+   private String createPcrInitString(String indent, HashMap<String, long[]> portMap) {
+      StringBuffer initPcrbuffer = new StringBuffer();
+
+      for (String key:portMap.keySet()) {
+         long[] masks = portMap.get(key);
+         int muxValue = 0;
+         for (long mask:masks) {
+            if ((mask&0xFFFF) != 0) {
+               initPcrbuffer.append(String.format(indent+"      %s = pcrValue|PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
+            }
+            mask >>= 16;
+            if ((mask&0xFFFF) != 0) {
+               initPcrbuffer.append(String.format(indent+"      %s = pcrValue|PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
+            }
+            muxValue++;
+         }
+      }
+      return initPcrbuffer.toString();
+   }
+   
+   private String createPcrClearString(String indent, HashMap<String, long[]> portMap) {
+      StringBuffer initPcrbuffer = new StringBuffer();
+
+      for (String key:portMap.keySet()) {
+         long[] masks = portMap.get(key);
+         long collectedMask = 0;
+         for (long p:masks) {
+            collectedMask |= p;
+         }
+         if ((collectedMask&0xFFFF) != 0) {
+            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
+         }
+         collectedMask >>= 16;
+         if ((collectedMask&0xFFFF) != 0) {
+            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
+         }
+      }
+      return initPcrbuffer.toString();
+   }
+   
    /**
     * Write initPCRs() function
     * 
@@ -837,8 +877,10 @@ public abstract class Peripheral {
             indent+"    */\n"+
             indent+"   static void clearPCRs() {\n";
 
-      HashMap<String, Long> portMap  = new HashMap<String, Long>();
+      // Set of Port clock masks for used ports
       HashSet<String> portClockMasks = new HashSet<String>();
+      // HashMap of Ports to pcrvalues&pins used
+      HashMap<String, long[]> portMap  = new HashMap<String, long[]>();
       
       for (int index=0; index<signalTable.table.size(); index++) {
          Signal signal = signalTable.table.get(index);
@@ -871,54 +913,42 @@ public abstract class Peripheral {
                if (bitNums != null) {
                   long bitNum = Long.parseLong(bitNums);
 
-                  Long bitMask = portMap.get(pin.getPORTBasePtr());
-                  if (bitMask == null) {
-                     bitMask = new Long(0);
-                     portMap.put(pin.getPORTBasePtr(), bitMask);
+                  long[] muxValues = portMap.get(pin.getPORTBasePtr());
+                  if (muxValues == null) {
+                     muxValues = new long[8];
+                     portMap.put(pin.getPORTBasePtr(), muxValues);
                   }
-                  bitMask |= 1<<bitNum;
-                  portMap.put(pin.getPORTBasePtr(), bitMask);
+                  muxValues[mappedPin.getMux().value] |= 1<<bitNum;
                }
             }
          }
       }
       
-      StringBuffer initPcrbuffer = new StringBuffer();
+      StringBuffer initClocksBuffer = new StringBuffer();
       boolean isFirst = true;
       for (String p:portClockMasks) {
          if (isFirst) {
-            initPcrbuffer.append(indent+"      SimInfo::enablePortClocks(");
+            initClocksBuffer.append(indent+"      SimInfo::enablePortClocks(");
             isFirst = false;
          }
          else {
-            initPcrbuffer.append("|");
+            initClocksBuffer.append("|");
          }
-         initPcrbuffer.append(p);
+         initClocksBuffer.append(p);
       }
       if (!isFirst) {
-         initPcrbuffer.append(");\n\n");
+         initClocksBuffer.append(");\n\n");
       }
-      for (String key:portMap.keySet()) {
-         Long p = portMap.get(key);
-         if ((p&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = pcrValue|0x%sU;\n", "((PORT_Type *)"+key+")->GPCLR", Long.toHexString(p&0xFFFF).toUpperCase()));
-         }
-         p >>= 16;
-         if ((p&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = pcrValue|0x%sU;\n", "((PORT_Type *)"+key+")->GPCHR", Long.toHexString(p&0xFFFF).toUpperCase()));
-         }
-         isFirst = false;
-      }
-      initPcrbuffer.append(indent+"   }\n\n");
 
-      String buffer = initPcrbuffer.toString();
-      
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
-      pinMappingHeaderFile.write(buffer);
+      pinMappingHeaderFile.write(initClocksBuffer.toString());
+      pinMappingHeaderFile.write(createPcrInitString(indent, portMap));
+      pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
-      buffer = buffer.replaceAll("pcrValue", "0");
-      pinMappingHeaderFile.write(buffer);
+      pinMappingHeaderFile.write(initClocksBuffer.toString());
+      pinMappingHeaderFile.write(createPcrClearString(indent, portMap));
+      pinMappingHeaderFile.write(indent+"   }\n\n");
    }
    
 //   /**

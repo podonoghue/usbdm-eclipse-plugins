@@ -7,10 +7,10 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 public class StringVariable extends Variable {
 
    /** Value in user format */
-   private String fValue = "Not assigned";
+   protected String fValue = "Not assigned";
    
    /** Default value of variable */
-   private String fDefault;
+   protected String fDefault;
    
    /**
     * Constructor
@@ -32,13 +32,26 @@ public class StringVariable extends Variable {
       return isEnabled()?fValue:fDefault;
    }
 
-   @Override
-   public boolean setValue(Object value) {
-      if (fValue.equalsIgnoreCase(value.toString())) {
+   /**
+    * Set value as String
+    * 
+    * @param value Value to set
+    * 
+    * @return True if variable actually changed value and listeners notified
+    */
+   public boolean setValue(String value) {
+      if (fValue == value) {
          return false;
       }
-      fValue = value.toString();
+      super.debugPrint("StringVariable["+this+"].setValue("+value+"), old "+value);
+      fValue = value;
+      notifyListeners();
       return true;
+   }
+   
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(value.toString());
    }
 
    @Override

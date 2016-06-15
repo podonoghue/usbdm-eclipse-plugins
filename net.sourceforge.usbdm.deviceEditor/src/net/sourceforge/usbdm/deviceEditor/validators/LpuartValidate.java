@@ -10,8 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Class to determine oscillator settings
  
  * Used for:
- *     osc0
- *     osc0_div
+ *     lpuart
  */
 public class LpuartValidate extends Validator {
    
@@ -20,7 +19,7 @@ public class LpuartValidate extends Validator {
    }
 
    /**
-    * Class to determine oscillator settings
+    * Class to determine LPUART settings
     */
    @Override
    public void validate(Variable variable) {

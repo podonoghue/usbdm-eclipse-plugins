@@ -30,7 +30,6 @@ public class AdcValidate extends Validator {
    private final static String[] externalVariables = {
          "/SIM/system_bus_clock",
          "/OSC0/system_oscerclk_clock",
-         "/MCG/system_mcgffclk_clock",
          "/SIM/system_bus_clock",
    };
 

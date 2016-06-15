@@ -51,7 +51,19 @@ public class VariableModel extends EditableModel implements IModelChangeListener
     * @return Description of error or null if valid
     */
    public String isValid(String value) {
-      return null;
+      return getVariable().isValid(value);
+   }
+
+   /**
+    * Used to validate initial text entry in dialogues<br>
+    * Allows entry of illegal strings while editing even though current result is invalid
+    * 
+    * @param character Character to validate
+    * 
+    * @return Error message or null if valid
+    */
+   public String isValidKey(char character) {
+      return fVariable.isValidKey(character);
    }
 
    @Override

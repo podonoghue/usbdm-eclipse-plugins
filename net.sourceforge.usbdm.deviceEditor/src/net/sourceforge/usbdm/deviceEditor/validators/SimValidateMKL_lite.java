@@ -1,0 +1,341 @@
+package net.sourceforge.usbdm.deviceEditor.validators;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.ListIterator;
+
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.Message;
+import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+
+/**
+ * Class to determine oscillator settings
+
+ * Used for:
+ * Sim_xxx
+ */
+public class SimValidateMKL_lite extends Validator {
+
+   private final long MAX_CORE_CLOCK_FREQ;
+   private final long MAX_BUS_CLOCK_FREQ;
+
+   private boolean addedExternalVariables = false;
+   private final static String[] externalVariables = {
+         "/OSC0/system_oscerclk_clock",
+         "/OSC0/osc32kclk_clock",
+         "/MCG/system_low_power_clock",
+         "/MCG/system_mcgpclk_clock",
+         "/MCG/system_mcgoutclk_clock",
+         "/MCG/system_mcgirclk_clock",
+         "/MCG/system_irc48m_clock",
+         "/MCG/system_usb_clkin_clock",
+         "/RTC/rtc_clkout",
+         "/RTC/rtcclk_clock",
+         "/RTC/rtcclk_gated_clock",
+   };
+
+   public SimValidateMKL_lite(PeripheralWithState peripheral, ArrayList<Object> values) {
+      super(peripheral);
+
+      ListIterator<Object> it = values.listIterator();
+      MAX_CORE_CLOCK_FREQ     = (Long)it.next();
+      MAX_BUS_CLOCK_FREQ      = (Long)it.next();
+
+      LongVariable system_core_clockVar = getLongVariable("system_core_clock");
+      system_core_clockVar.setMin(0);
+      system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
+
+      LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
+      system_bus_clockVar.setMin(0);
+      system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
+   }
+
+   /**
+    * Class to determine oscillator settings
+    */
+   @Override
+   public void validate(Variable variable) {
+
+      if (!addedExternalVariables) {
+         addToWatchedVariables(externalVariables);
+         addedExternalVariables = true;
+      }
+      Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
+      Variable     osc32kclk_clockVar              =  getVariable("/OSC0/osc32kclk_clock");
+
+      Variable     system_low_power_clockVar       =  getVariable("/MCG/system_low_power_clock");
+      Variable     system_mcgpclk_clockVar         =  getVariable("/MCG/system_mcgpclk_clock");
+      Variable     system_mcgoutclk_clockVar       =  getVariable("/MCG/system_mcgoutclk_clock");
+      Variable     system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
+      Variable     system_irc48m_clockVar          =  safeGetVariable("/MCG/system_irc48m_clock");
+      Variable     system_usb_clkin_clockVar       =  safeGetVariable("/MCG/system_usb_clkin_clock");
+
+      Variable     rtc_clkoutVar                   =  getVariable("/RTC/rtc_clkout");
+      Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
+      Variable     rtcclk_gated_clockVar           =  getVariable("/RTC/rtcclk_gated_clock");
+      
+
+      // Determine ERCLK32K
+      //==================================
+      Variable system_erclk32k_clockVar = getVariable("system_erclk32k_clock");
+      Variable sim_sopt1_osc32kselVar   = getVariable("sim_sopt1_osc32ksel");
+      switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
+      case 0: // System oscillator (OSC32KCLK)
+         system_erclk32k_clockVar.setValue(osc32kclk_clockVar.getValueAsLong());
+         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
+         system_erclk32k_clockVar.setOrigin(osc32kclk_clockVar.getOrigin());
+         break;
+      default:
+         sim_sopt1_osc32kselVar.setValue(2);
+      case 2: // RTC 32.768kHz oscillator
+         system_erclk32k_clockVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
+         system_erclk32k_clockVar.setStatus(rtcclk_gated_clockVar.getStatus());
+         system_erclk32k_clockVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+         break;
+      case 3: // LPO 1 kHz
+         system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
+         system_erclk32k_clockVar.setStatus((Message)null);
+         system_erclk32k_clockVar.setOrigin("Low Power Oscillator");
+         break;
+      }
+
+      // RTC Clock out pin select 
+      //============================
+      Variable sim_sopt2_rtcclkoutselVar = getVariable("sim_sopt2_rtcclkoutsel");
+      switch ((int)sim_sopt2_rtcclkoutselVar.getValueAsLong()) {
+      default:
+         sim_sopt2_rtcclkoutselVar.setValue(0);
+      case 0: // RTC seconds clock = 1Hz
+         rtc_clkoutVar.setValue((rtcclk_clockVar.getValueAsLong()!=0)?1:0);
+         rtc_clkoutVar.setStatus(rtcclk_clockVar.getStatus());
+         rtc_clkoutVar.setOrigin(rtcclk_clockVar+" (1Hz output)");
+         break;
+      case 1: // RTC 32.768kHz oscillator
+         rtc_clkoutVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
+         rtc_clkoutVar.setStatus(rtcclk_gated_clockVar.getStatus());
+         rtc_clkoutVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+         break;
+      }
+
+      // UART0 Clock source select (if present)
+      //============================
+      Variable sim_sopt2_uart0srcVar = safeGetVariable("sim_sopt2_uart0src");
+      if (sim_sopt2_uart0srcVar != null) {
+         Variable system_uart0_clockVar   = getVariable("system_uart0_clock");
+         switch ((int)sim_sopt2_uart0srcVar.getValueAsLong()) {
+         default:
+            sim_sopt2_uart0srcVar.setValue(0);
+         case 0: // Disabled
+            system_uart0_clockVar.setValue(0);
+            system_uart0_clockVar.setStatus((Message)null);
+            system_uart0_clockVar.setOrigin("Disabled");
+            break;
+         case 1: // Peripheral Clock / CLKDIV3
+            system_uart0_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
+            system_uart0_clockVar.setStatus(system_irc48m_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(system_irc48m_clockVar.getOrigin());
+            break;
+         case 2: // OSCERCLK
+            system_uart0_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+            system_uart0_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+            break;
+         case 3: // MCGIRCLK
+            system_uart0_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
+            system_uart0_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
+            system_uart0_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
+            break;
+         }
+      }
+
+      // LPUART Clock source select (if present)
+      //========================================
+      Variable sim_sopt2_lpuartsrcVar = safeGetVariable("sim_sopt2_lpuartsrc");
+      if (sim_sopt2_lpuartsrcVar != null) {
+         Variable system_lpuart_clockVar   = getVariable("system_lpuart_clock");
+         switch ((int)sim_sopt2_lpuartsrcVar.getValueAsLong()) {
+         default:
+            sim_sopt2_lpuartsrcVar.setValue(0);
+         case 0: // Disabled
+            system_lpuart_clockVar.setValue(0);
+            system_lpuart_clockVar.setStatus((Message)null);
+            system_lpuart_clockVar.setOrigin("Disabled");
+            break;
+         case 1: // Peripheral Clock / CLKDIV3
+            system_lpuart_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
+            system_lpuart_clockVar.setStatus(system_irc48m_clockVar.getStatus());
+            system_lpuart_clockVar.setOrigin(system_irc48m_clockVar.getOrigin());
+            break;
+         case 2: // OSCERCLK
+            system_lpuart_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+            system_lpuart_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
+            system_lpuart_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+            break;
+         case 3: // MCGIRCLK
+            system_lpuart_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
+            system_lpuart_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
+            system_lpuart_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
+            break;
+         }
+      }
+
+      // TPM Clock source select 
+      //============================
+      Variable sim_sopt2_tpmsrcVar = safeGetVariable("sim_sopt2_tpmsrc");
+      if (sim_sopt2_tpmsrcVar != null) {
+         Variable system_tpm_clockVar = getVariable("system_tpm_clock");
+         switch ((int)sim_sopt2_tpmsrcVar.getValueAsLong()) {
+         default:
+            sim_sopt2_tpmsrcVar.setValue(0);
+         case 0: // Disabled
+            system_tpm_clockVar.setValue(0);
+            system_tpm_clockVar.setStatus((Message)null);
+            system_tpm_clockVar.setOrigin("Disabled");
+            break;
+         case 1: // Peripheral Clock / CLKDIV3
+            system_tpm_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
+            system_tpm_clockVar.setStatus(system_irc48m_clockVar.getStatus());
+            system_tpm_clockVar.setOrigin(system_irc48m_clockVar.getOrigin());
+            break;
+         case 2: // OSCERCLK
+            system_tpm_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+            system_tpm_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
+            system_tpm_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+            break;
+         case 3: // MCGIRCLK
+            system_tpm_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
+            system_tpm_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
+            system_tpm_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
+            break;
+         }
+      }
+
+      // MCGPCLK
+      //=====================================
+      
+      
+      // USB FS Clock source select 
+      //============================
+      Variable sim_sopt2_usbsrcVar = safeGetVariable("sim_sopt2_usbsrc");
+      if (sim_sopt2_usbsrcVar != null) {
+         Variable system_usbfs_clockVar = safeGetVariable("system_usbfs_clock");
+
+         if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
+            // External
+            system_usbfs_clockVar.setValue(system_usb_clkin_clockVar.getValueAsLong());
+            system_usbfs_clockVar.setStatus(system_usb_clkin_clockVar.getStatus());
+            system_usbfs_clockVar.setOrigin(system_usb_clkin_clockVar.getOrigin());
+         }
+         else {
+            // IRC48
+            system_usbfs_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
+            system_usbfs_clockVar.setStatus(system_irc48m_clockVar.getStatus());
+            system_usbfs_clockVar.setOrigin(system_irc48m_clockVar.getOrigin());
+         }
+      }
+
+      Variable     system_core_clockVar           =  getVariable("system_core_clock");
+      Variable     system_bus_clockVar            =  getVariable("system_bus_clock");
+
+      Variable     sim_clkdiv1_outdiv1Var         =  getVariable("sim_clkdiv1_outdiv1");
+      Variable     sim_clkdiv1_outdiv4Var         =  getVariable("sim_clkdiv1_outdiv4");
+
+
+      // Core & System Clock
+      //===========================================
+      final FindDivisor coreDivisor = new FindDivisor(system_mcgoutclk_clockVar.getValueAsLong(), system_core_clockVar.getValueAsLong()) {
+         @Override
+         boolean okValue(int divisor, double frequency) {
+            return frequency<=MAX_CORE_CLOCK_FREQ;
+         }
+      };
+      Severity severity = Severity.OK;
+      StringBuilder sb = new StringBuilder();
+      if (coreDivisor.divisor == 0) {
+         severity = Severity.ERROR;
+         sb.append("Illegal Frequency\n");
+      }
+      sb.append(coreDivisor.divisors);
+      system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+      system_core_clockVar.setStatus(new Message(sb.toString(), severity));
+      sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
+
+      // Bus & Flash Clock
+      //===========================================
+      final FindDivisor flashDivisor = new FindDivisor(coreDivisor.nearestTargetFrequency, system_bus_clockVar.getValueAsLong()) {
+         @Override
+         boolean okValue(int divisor, double frequency) {
+            return (frequency<=MAX_BUS_CLOCK_FREQ) &&
+                  (frequency<=coreDivisor.nearestTargetFrequency) &&
+                  ((divisor % coreDivisor.divisor) == 0);   // Differ from core < 8
+
+         }
+      };
+      severity = Severity.OK;
+      sb = new StringBuilder();
+      if (flashDivisor.divisor == 0) {
+         severity = Severity.ERROR;
+         sb.append("Illegal Frequency\n");
+      }
+      sb.append(flashDivisor.divisors);
+      system_bus_clockVar.setValue(flashDivisor.nearestTargetFrequency);
+      system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
+      sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
+   }
+
+   private abstract static class FindDivisor {
+
+      public final long   nearestTargetFrequency;
+      public final int    divisor;
+      public final String divisors;
+
+      /**
+       * Creates table of acceptable frequencies and determines the nearest to target frequency
+       * 
+       * @param inputFrequency   Input frequency being divided
+       * @param targetFrequency  Desired frequency
+       */
+      public FindDivisor(long inputFrequency, long targetFrequency) {
+         HashSet<String> divisorSet= new HashSet<String>();
+         double nearestValue   = Double.MAX_VALUE;
+         int    nearestDivisor = 0;
+         StringBuilder sb = new StringBuilder();
+         sb.append("Possible values:");
+         int values = 0;
+         for (int divisor=16; divisor>0; divisor--) {
+            double frequency = inputFrequency/divisor;
+            if (!okValue(divisor, frequency)) {
+               continue;
+            }
+            if (values++ == 7) {
+               sb.append("\n");
+            }
+            String value = EngineeringNotation.convert(frequency, 3);
+            if (divisorSet.add(value)) {
+               sb.append(" "+value+"Hz");
+               if ((Math.abs(frequency-targetFrequency))<(Math.abs(nearestValue-targetFrequency))) {
+                  nearestValue = frequency;
+                  nearestDivisor = divisor;
+               }
+            }
+         }
+         nearestTargetFrequency = Math.round(nearestValue);
+         divisor  = nearestDivisor;
+         divisors = sb.toString();
+      }
+
+      /**
+       * Used to accept or reject proposed target frequencies/divisors
+       * 
+       * @param divisor    Current divisor being considered
+       * @param frequency  Current frequency being considered
+       * @return
+       */
+      abstract boolean okValue(int divisor, double frequency);
+   }
+
+}

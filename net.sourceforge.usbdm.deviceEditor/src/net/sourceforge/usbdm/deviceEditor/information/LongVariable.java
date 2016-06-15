@@ -248,6 +248,11 @@ public class LongVariable extends Variable {
       fUnits = units;
    }
 
+   @Override
+   public String isValid() {
+      return isValid(fValue);
+   }
+   
    /**
     * Checks if the value is valid for assignment to this variable
     * 

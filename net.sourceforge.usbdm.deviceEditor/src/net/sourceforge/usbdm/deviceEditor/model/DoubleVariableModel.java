@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class DoubleVariableModel extends VariableModel {
 
@@ -24,10 +23,6 @@ public class DoubleVariableModel extends VariableModel {
       return (DoubleVariable)super.getVariable();
    }
 
-   public String isValid(String value) {
-      return getVariable().isValid(value);
-   }
-
    @Override
    public void setValueAsString(String sValue) {
       getVariable().setValue(sValue);
@@ -47,19 +42,6 @@ public class DoubleVariableModel extends VariableModel {
     */
    private String getValueAsString(Double value) {
       return getVariable().getValueAsString(value);
-   }
-
-   @Override
-   Message getMessage() {
-      Message msg = super.getMessage();
-      if ((msg != null) && msg.greaterThan(Severity.WARNING)) {
-         return msg;
-      }
-      String message = isValid(getValueAsString());
-      if (message != null) {
-         msg = new Message(message);
-      }
-      return msg;
    }
 
    @Override
