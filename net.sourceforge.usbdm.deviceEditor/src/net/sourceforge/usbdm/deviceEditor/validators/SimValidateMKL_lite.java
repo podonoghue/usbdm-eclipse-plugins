@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ListIterator;
 
-import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
@@ -33,9 +32,8 @@ public class SimValidateMKL_lite extends Validator {
          "/MCG/system_mcgirclk_clock",
          "/MCG/system_irc48m_clock",
          "/MCG/system_usb_clkin_clock",
-         "/RTC/rtc_clkout",
-         "/RTC/rtcclk_clock",
-         "/RTC/rtcclk_gated_clock",
+         "/RTC/rtcclkin_clock",
+         "/RTC/rtc_1hz_clock",
    };
 
    public SimValidateMKL_lite(PeripheralWithState peripheral, ArrayList<Object> values) {
@@ -68,15 +66,15 @@ public class SimValidateMKL_lite extends Validator {
       Variable     osc32kclk_clockVar              =  getVariable("/OSC0/osc32kclk_clock");
 
       Variable     system_low_power_clockVar       =  getVariable("/MCG/system_low_power_clock");
-      Variable     system_mcgpclk_clockVar         =  getVariable("/MCG/system_mcgpclk_clock");
+//      Variable     system_mcgpclk_clockVar         =  getVariable("/MCG/system_mcgpclk_clock");
       Variable     system_mcgoutclk_clockVar       =  getVariable("/MCG/system_mcgoutclk_clock");
       Variable     system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
       Variable     system_irc48m_clockVar          =  safeGetVariable("/MCG/system_irc48m_clock");
       Variable     system_usb_clkin_clockVar       =  safeGetVariable("/MCG/system_usb_clkin_clock");
 
-      Variable     rtc_clkoutVar                   =  getVariable("/RTC/rtc_clkout");
-      Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
-      Variable     rtcclk_gated_clockVar           =  getVariable("/RTC/rtcclk_gated_clock");
+      Variable     rtcclkin_clockVar               =  getVariable("/RTC/rtcclkin_clock");
+      Variable     rtc_1hz_clockVar                =  getVariable("/RTC/rtc_1hz_clock");
+      Variable     rtc_clkoutVar                   =  getVariable("rtc_clkout");
       
 
       // Determine ERCLK32K
@@ -86,20 +84,20 @@ public class SimValidateMKL_lite extends Validator {
       switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
       case 0: // System oscillator (OSC32KCLK)
          system_erclk32k_clockVar.setValue(osc32kclk_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
          system_erclk32k_clockVar.setOrigin(osc32kclk_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
          break;
       default:
          sim_sopt1_osc32kselVar.setValue(2);
       case 2: // RTC 32.768kHz oscillator
-         system_erclk32k_clockVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus(rtcclk_gated_clockVar.getStatus());
-         system_erclk32k_clockVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+         system_erclk32k_clockVar.setValue(rtcclkin_clockVar.getValueAsLong());
+         system_erclk32k_clockVar.setOrigin(rtcclkin_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(rtcclkin_clockVar.getStatus());
          break;
       case 3: // LPO 1 kHz
          system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus((Message)null);
-         system_erclk32k_clockVar.setOrigin("Low Power Oscillator");
+         system_erclk32k_clockVar.setOrigin(system_low_power_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(system_low_power_clockVar.getStatus());
          break;
       }
 
@@ -110,14 +108,14 @@ public class SimValidateMKL_lite extends Validator {
       default:
          sim_sopt2_rtcclkoutselVar.setValue(0);
       case 0: // RTC seconds clock = 1Hz
-         rtc_clkoutVar.setValue((rtcclk_clockVar.getValueAsLong()!=0)?1:0);
-         rtc_clkoutVar.setStatus(rtcclk_clockVar.getStatus());
-         rtc_clkoutVar.setOrigin(rtcclk_clockVar+" (1Hz output)");
+         rtc_clkoutVar.setValue((rtc_1hz_clockVar.getValueAsLong()!=0)?1:0);
+         rtc_clkoutVar.setStatus(rtc_1hz_clockVar.getStatus());
+         rtc_clkoutVar.setOrigin(rtc_1hz_clockVar.getOrigin());
          break;
       case 1: // RTC 32.768kHz oscillator
-         rtc_clkoutVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
-         rtc_clkoutVar.setStatus(rtcclk_gated_clockVar.getStatus());
-         rtc_clkoutVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+         rtc_clkoutVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+         rtc_clkoutVar.setStatus(system_oscerclk_clockVar.getStatus());
+         rtc_clkoutVar.setOrigin(system_oscerclk_clockVar.getOrigin());
          break;
       }
 

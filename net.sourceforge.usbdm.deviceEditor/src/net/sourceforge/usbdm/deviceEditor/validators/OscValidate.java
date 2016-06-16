@@ -37,12 +37,11 @@ public class OscValidate extends Validator {
    private   static final long EXTERNAL_CLOCK_MAX        = 50000000L;
 
    /** External Crystal frequency error message */
-   private   static final Message OSCCLK32K_CLOCK_WARNING_MSG = new Message(String.format(
-      "External crystal frequency not suitable for OSCCLK32\n"+
+   private   static final String OSCCLK32K_CLOCK_MSG = String.format(
+      "External crystal frequency not suitable for 32k Oscillator mode\n"+
       "Range [%sHz,%sHz]",           
       EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MIN, 3),
-      EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MAX, 3)),
-      Severity.WARNING);
+      EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE1_MAX, 3));
 
    /** External crystal frequency error message */
    private   static final Message FLL_CLOCK_ERROR_MSG = new Message(String.format(
@@ -59,8 +58,6 @@ public class OscValidate extends Validator {
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/RTC/rtc_cr_osce",
-         "/RTC/rtc_input_freq",
-         "/RTC/rtcclk_clock",
    };
    
    /** External clock frequency error message */
@@ -113,51 +110,11 @@ public class OscValidate extends Validator {
       Variable     rtcSharesPinsVar                =  safeGetVariable("rtcSharesPins");
       Variable     rtc_cr_osceVar                  =  safeGetVariable("/RTC/rtc_cr_osce");
 
-      long    oscclk_clock_freq;
       Message oscclk_clockStatus    = null;
       String  oscclk_clockOrg       = null;
 
-      boolean  erefs0 = erefs0Var.getValueAsBoolean();
+      long oscclk_clock_freq  = osc_input_freqVar.getValueAsLong();
 
-      if ((rtcSharesPinsVar != null) && (rtc_cr_osceVar != null) && rtc_cr_osceVar.getValueAsBoolean()) {
-         // RTC has been enabled and conflicts with OSC
-         Variable     rtc_input_freqVar               =  getVariable("/RTC/rtc_input_freq");
-//         Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
-         
-         Message rtcInUseMessage = new Message("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.INFO);
-         osc_input_freqVar.enable(false);
-         osc_input_freqVar.setStatus(rtcInUseMessage);
-
-         erefs0Var.enable(false);
-         erefs0Var.setStatus(rtcInUseMessage);
-         
-         osc_cr_scpVar.enable(false);
-         osc_cr_scpVar.setStatus(rtcInUseMessage);
-         
-         hgo0Var.enable(false);
-         hgo0Var.setStatus(rtcInUseMessage);
-         
-         oscclk_clockStatus = rtcInUseMessage;
-         oscclk_clockOrg    = rtc_input_freqVar.getOrigin();
-         oscclk_clock_freq  = rtc_input_freqVar.getValueAsLong();
-      }
-      else {
-         osc_input_freqVar.enable(true);
-         osc_input_freqVar.setStatus((Message)null);
-         
-         erefs0Var.enable(true);
-         erefs0Var.setStatus((Message)null);
-         
-         osc_cr_scpVar.enable(erefs0);
-         osc_cr_scpVar.setStatus((Message)null);
-         
-         hgo0Var.enable(erefs0);
-         hgo0Var.setStatus((Message)null);
-         
-         oscclk_clockStatus = null;
-         oscclk_clockOrg    = null;
-         oscclk_clock_freq  = osc_input_freqVar.getValueAsLong();
-      }      
       
       //==========================================
       
@@ -172,17 +129,29 @@ public class OscValidate extends Validator {
       //   - Determine mcg_c2_range
       //
       
+      // Check if RTC has control of OSC
+      boolean rtcForcing = ((rtcSharesPinsVar != null) && rtc_cr_osceVar.getValueAsBoolean());
+      
+      // OSC mode if selected by erefs or RTC
+      boolean erefs0 = erefs0Var.getValueAsBoolean() || rtcForcing;
+
       // Check suitability of OSC for OSC32KCLK
       if ((oscclk_clock_freq < EXTERNAL_EXTAL_RANGE1_MIN) || (oscclk_clock_freq > EXTERNAL_EXTAL_RANGE1_MAX)) {
-         osc32kclk_clockStatus = OSCCLK32K_CLOCK_WARNING_MSG;
+         osc32kclk_clockStatus = new Message(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
          osc32kclk_clockOrg = "OSC32KCLK (invalid range)";
       }
       if (erefs0) {
-         // Using oscillator - range is chosen to suit crystal frequency
+         // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
          if ((oscclk_clock_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (oscclk_clock_freq <= EXTERNAL_EXTAL_RANGE1_MAX)) {
             oscclk_clockOrg = "OSCCLK (low range oscillator)";
             rangeOrigin     = "Determined by Crystal Frequency";
             range           = 0;
+         }
+         else if (rtcForcing) {
+            // Not suitable as OSC Crystal frequency
+            oscclk_clockOrg     = "OSCCLK (invalid range for RTC clock)";
+            oscclk_clockStatus  = new Message(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
+            range               = 0;
          }
          else if ((oscclk_clock_freq >= EXTERNAL_EXTAL_RANGE2_MIN) && (oscclk_clock_freq <= EXTERNAL_EXTAL_RANGE2_MAX)) {
             oscclk_clockOrg = "OSCCLK (high range oscillator)";
@@ -214,7 +183,34 @@ public class OscValidate extends Validator {
             oscclk_clockStatus = CLOCK_RANGE_ERROR_MSG;
          }
       }
+      if (rtcForcing) {
+         Message rtcInUseMessage = new Message("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.INFO);
+         erefs0Var.enable(false);
+         erefs0Var.setStatus(rtcInUseMessage);
+         
+         osc_cr_scpVar.enable(false);
+         osc_cr_scpVar.setStatus(rtcInUseMessage);
+         
+         hgo0Var.enable(false);
+         hgo0Var.setStatus(rtcInUseMessage);
+      }
+      else {
+         osc_input_freqVar.enable(true);
+         osc_input_freqVar.setStatus((Message)null);
+         
+         erefs0Var.enable(true);
+         erefs0Var.setStatus((Message)null);
+         
+         osc_cr_scpVar.enable(erefs0);
+         osc_cr_scpVar.setStatus((Message)null);
+         
+         hgo0Var.enable(erefs0);
+         hgo0Var.setStatus((Message)null);
+      }      
+      
       boolean oscclkOK = (oscclk_clockStatus==null) || oscclk_clockStatus.getSeverity().lessThan(Severity.WARNING);
+      long checkedOscclk_clock_freq = oscclkOK?oscclk_clock_freq:0;
+
       oscclk_clockVar.setOrigin(oscclk_clockOrg);
       oscclk_clockVar.setStatus(oscclk_clockStatus);
       oscclk_clockVar.setValue(oscclkOK?oscclk_clock_freq:0);
@@ -232,12 +228,12 @@ public class OscValidate extends Validator {
       //==================================
       if (osc_cr_erclkenVar.getValueAsBoolean()) {
          // Oscillator/clock enabled
-         system_oscerclk_undiv_clockVar.setValue(oscclk_clock_freq);
+         system_oscerclk_undiv_clockVar.setValue(checkedOscclk_clock_freq);
          system_oscerclk_undiv_clockVar.setStatus(oscclk_clockVar.getFilteredStatus());
          system_oscerclk_undiv_clockVar.setOrigin(oscclk_clockVar.getOrigin());
          system_oscerclk_undiv_clockVar.enable(true);
          osc_cr_erefstenVar.enable(true);
-         long system_oscerclk = oscclk_clock_freq;
+         long system_oscerclk = checkedOscclk_clock_freq;
          if (osc_div_erpsVar != null) {
             // If divider exists
             system_oscerclk /= 1<<osc_div_erpsVar.getValueAsLong();
@@ -250,7 +246,6 @@ public class OscValidate extends Validator {
          }
       }
       else {
-         System.err.println("Disabled");
          Message osc_crMessage = new Message("Disabled by osc_cr_erclken", Severity.OK);
          // Oscillator/clock disabled
 //         system_oscerclk_undiv_clockVar.setValue(0);
