@@ -11,18 +11,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
@@ -47,23 +45,23 @@ public class WriteFamilyCpp {
    /** Name of function to do pin mapping */
    private static final String DO_PIN_MAPPING_FUNCTION    = "mapAllPins";
 
-   /** Fixed GPIO multiplexor function */
-   private int      gpioFunctionMuxValue          = 1; 
-
-   /** GPIO multiplexor function varies with port */
-   private boolean  gpioFunctionMuxValueChanged   = false;
-
-   /** Fixed ADC multiplexor function - default to multiplexor setting 0*/
-   private int      adcFunctionMuxValue           = 0;
-
-   /** GPIO ADC function varies with port */
-   private boolean  adcFunctionMuxValueChanged    = false;
-
-   /** Fixed PORT clock enable register */
-   private String   portClockRegisterValue        = "SCGC5";
-
-   /** PORT clock enable register varies with port */
-   private boolean  portClockRegisterChanged      = false;
+//   /** Fixed GPIO multiplexor function */
+//   private int      gpioFunctionMuxValue          = 1; 
+//
+//   /** GPIO multiplexor function varies with port */
+//   private boolean  gpioFunctionMuxValueChanged   = false;
+//
+//   /** Fixed ADC multiplexor function - default to multiplexor setting 0*/
+//   private int      adcFunctionMuxValue           = 0;
+//
+//   /** GPIO ADC function varies with port */
+//   private boolean  adcFunctionMuxValueChanged    = false;
+//
+//   /** Fixed PORT clock enable register */
+//   private String   portClockRegisterValue        = "SCGC5";
+//
+//   /** PORT clock enable register varies with port */
+//   private boolean  portClockRegisterChanged      = false;
 
    /*
     * Macros =============================================================================================
@@ -88,66 +86,84 @@ public class WriteFamilyCpp {
       return true;
    }
 
-   /**
-    * Writes macros describing common pin functions for all pins
-    * e.g.<pre>
-    * #undef FIXED_ADC_FN
-    * #undef FIXED_GPIO_FN
-    * #undef FIXED_PORT_CLOCK_REG
-    * 
-    * #define FIXED_ADC_FN         0                    // Fixed ADC Multiplexing value
-    * #define FIXED_GPIO_FN        1                    // Fixed GPIO Multiplexing value
-    * #define FIXED_PORT_CLOCK_REG SIM->SCGC5           // Fixed PORT Clock
-    * </pre>
-    * 
-    * @param writer Where to write
-    * 
-    * @throws IOException 
-    * 
-    * @throws Exception 
-    */
-   private void writePinDefines(DocumentUtilities writer) throws IOException {
-      writer.writeBanner("Common Mux settings for PCR");
-      writer.writeMacroUnDefinition("FIXED_ADC_FN");
-      writer.writeMacroUnDefinition("FIXED_GPIO_FN");
-      writer.writeMacroUnDefinition("FIXED_PORT_CLOCK_REG");
-      if (adcFunctionMuxValueChanged) {
-         writer.writeMacroDefinition("ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
-      }
-      else {
-         writer.writeMacroDefinition("FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
-      }
-      if (gpioFunctionMuxValueChanged) {
-         writer.writeMacroDefinition("GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
-      }
-      else {
-         writer.writeMacroDefinition("FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
-      }
-      if (portClockRegisterChanged) {
-         writer.writeMacroDefinition("PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
-      }
-      else {
-         writer.writeMacroDefinition("FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
-      }
-      writer.write("\n");
-   }
+//   /**
+//    * Writes macros describing common pin functions for all pins
+//    * e.g.<pre>
+//    * #undef FIXED_ADC_FN
+//    * #undef FIXED_GPIO_FN
+//    * #undef FIXED_PORT_CLOCK_REG
+//    * 
+//    * #define FIXED_ADC_FN         0                    // Fixed ADC Multiplexing value
+//    * #define FIXED_GPIO_FN        1                    // Fixed GPIO Multiplexing value
+//    * #define FIXED_PORT_CLOCK_REG SIM->SCGC5           // Fixed PORT Clock
+//    * </pre>
+//    * 
+//    * @param writer Where to write
+//    * 
+//    * @throws IOException 
+//    * 
+//    * @throws Exception 
+//    */
+//   private void writePinDefines(DocumentUtilities writer) throws IOException {
+//      writer.writeBanner("Common Mux settings for PCR");
+//      writer.writeMacroUnDefinition("FIXED_ADC_FN");
+//      writer.writeMacroUnDefinition("FIXED_GPIO_FN");
+//      writer.writeMacroUnDefinition("FIXED_PORT_CLOCK_REG");
+//      if (adcFunctionMuxValueChanged) {
+//         writer.writeMacroDefinition("ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
+//      }
+//      else {
+//         writer.writeMacroDefinition("FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
+//      }
+//      if (gpioFunctionMuxValueChanged) {
+//         writer.writeMacroDefinition("GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
+//      }
+//      else {
+//         writer.writeMacroDefinition("FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
+//      }
+//      if (portClockRegisterChanged) {
+//         writer.writeMacroDefinition("PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
+//      }
+//      else {
+//         writer.writeMacroDefinition("FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
+//      }
+//      writer.write("\n");
+//   }
 
+   static final String PORT_CLOCK_FUNCTIONS = 
+      "   /*\n"+
+      "    * Enable clock to ports\n"+
+      "    *\n"+
+      "    * @param mask Mask for PORTs to enable\n"+
+      "    */\n"+
+      "   static inline void enablePortClocks(uint32_t mask) {\n"+
+      "      SIM->SCGC5 |=  mask;\n"+
+      "   };\n"+
+      "   \n"+
+      "   /*\n"+
+      "    * Disable clock to ports\n"+
+      "    *\n"+
+      "    * @param mask Mask for PORTs to disable\n"+
+      "    */\n"+
+      "   static inline void disablePortClocks(uint32_t mask) {\n"+
+      "      SIM->SCGC5 &=  ~mask;\n"+
+      "   };\n\n";
+   
    /**
-    * Writes all clock macros e.g.
+    * Writes port clock functions
     * 
     * <pre>
-    * #define ADC0_CLOCK_REG       SIM->SCGC6          
-    * #define ADC0_CLOCK_MASK      SIM_SCGC6_ADC0_MASK 
+    *    "static void enablePortClocks(uint32_t mask) {...
     * </pre>
     * 
     * @param writer  Where to write
     * 
     * @throws IOException 
     */
-   private void writeClockMacros(DocumentUtilities writer) throws IOException {
-      writer.writeBanner("Peripheral clock macros");
-      writer.writeMacroDefinition("PORT_CLOCK_REG", portClockRegisterValue);
-      writer.write("\n");
+   private void writePortClockFunctions(DocumentUtilities writer) throws IOException {
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.write(PORT_CLOCK_FUNCTIONS);
+      writer.writeCloseNamespace();
    }
 
    /**
@@ -384,14 +400,32 @@ public class WriteFamilyCpp {
       writer.writeCloseNamespace();
    }
 
+   private void writePinMappingFunction(DocumentUtilities writer) throws Exception {
+      PcrInitialiser pcrInitialiser = new PcrInitialiser(fDeviceInfo);
+
+      for (String pinName:fDeviceInfo.getPins().keySet()) {
+         Pin pin = fDeviceInfo.getPins().get(pinName);
+         pcrInitialiser.addPin(pin, null);
+      }
+      writer.write(
+         "/**\n" + 
+               " * Used to configure pin-mapping before 1st use of peripherals\n" + 
+               " */\n" + 
+               "void "+DO_PIN_MAPPING_FUNCTION+"() {\n"
+         );
+      writer.write(pcrInitialiser.getInitPortClocks(""));
+      writer.write(pcrInitialiser.getPcrInitString(""));
+      writer.write("}\n");
+   }
+   
    /**
     * Write Pin Mapping function to CPP file
     * 
     * @param writer Where to write
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   private void writePinMappingFunction(DocumentUtilities writer) throws IOException {
+   @SuppressWarnings("unused")
+   private void oldWritePinMappingFunction(DocumentUtilities writer) throws Exception {
 
       writer.write(
             "struct PinInit {\n"+
@@ -401,33 +435,35 @@ public class WriteFamilyCpp {
                   "static constexpr PinInit pinInit[] = {\n"
             );
 
-      TreeSet<String> usedPcrs = new TreeSet<String>();
+      TreeSet<String> portClockMasks = new TreeSet<String>();
       for (String pinName:fDeviceInfo.getPins().keySet()) {
-         if (fDeviceInfo.getDeviceVariant().getPackage().getLocation(pinName) == null) {
+         
+         Pin pin = fDeviceInfo.getPins().get(pinName);
+         if (!pin.isAvailableInPackage()) {
             // Discard pin that is not available on this package
             continue;
          }
-         Pattern p = Pattern.compile("PT([A-Z]+)([0-9]+)");
-         Matcher m = p.matcher(pinName);
-         if (m.matches()) {
-            Pin pin = fDeviceInfo.getPins().get(pinName);
-            MuxSelection mux = pin.getMuxValue();
-            if (!mux.isMappedValue()) {
-               // Skip unused pin
-               continue;
-            }
-            String instance = m.replaceAll("$1");
-            String signal   = m.replaceAll("$2");
-            usedPcrs.add(instance);
-            writer.write(String.format(
-                  " /* %-10s ==> %-30s */  { PORT_PCR_MUX(%d)|%s::DEFAULT_PCR, &PORT%s->%-8s },\n",
-                  pin.getName(),
-                  pin.getMappedSignal().getSignalList(),
-                  mux.value, 
-                  DeviceInfo.NAME_SPACE, 
-                  instance, 
-                  "PCR["+signal+"],"));
+         MuxSelection mux = pin.getMuxValue();
+         if (!mux.isMappedValue()) {
+            // Skip unmapped pin
+            continue;
          }
+         MappingInfo mapping = pin.getMappedSignal();
+         String pcrValue = "USBDM::DEFAULT_PCR";
+         for (Signal sig:mapping.getSignals()) {
+            String pinPcrValue = sig.getPeripheral().getPcrValue(sig);
+            if (!pinPcrValue.equals(pcrValue)) {
+               pcrValue = pinPcrValue;
+            }
+         }
+         writer.write(String.format(
+               " /* %-10s ==> %-30s */  { PORT_PCR_MUX(%d)|%s, %-16s },\n",
+               pin.getName(),
+               pin.getMappedSignal().getSignalList(),
+               mux.value, 
+               pcrValue,
+               pin.getPCR()));
+         portClockMasks.add(pin.getClockMask());
       }
       writer.write("};\n\n");
 
@@ -439,12 +475,12 @@ public class WriteFamilyCpp {
             );
 
       boolean maskWritten = false;
-      for (String pcr:usedPcrs) {
+      for (String portClockMask:portClockMasks) {
          if (!maskWritten) {
-            writer.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= PORT%s_CLOCK_MASK", pcr));
+            writer.write(String.format("\n   SIM->FIXED_PORT_CLOCK_REG |= %s", portClockMask));
          }
          else {
-            writer.write(String.format("|PORT%s_CLOCK_MASK", pcr));
+            writer.write(String.format("|%s", portClockMask));
          }
          maskWritten = true;
       }
@@ -584,8 +620,8 @@ public class WriteFamilyCpp {
       writer.writeHeaderFileInclude("pcr.h");
       headerFile.write("\n");
 
-      writePinDefines(writer);
-      writeClockMacros(writer);
+//      writePinDefines(writer);
+      writePortClockFunctions(writer);
       writePeripheralInformationClasses(writer);
 
       writeMappedSignals(writer);
@@ -601,10 +637,9 @@ public class WriteFamilyCpp {
     * Write CPP file      
     *                     
     * @param path      Path to file for writing
-    * 
-    * @throws IOException 
+    * @throws Exception 
     */                    
-   private void writePinMappingCppFile(Path path) throws IOException {
+   private void writePinMappingCppFile(Path path) throws Exception {
       BufferedWriter cppFile = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
       DocumentUtilities writer = new DocumentUtilities(cppFile);
       
@@ -630,10 +665,9 @@ public class WriteFamilyCpp {
     * @param  directory    Parent director
     * @param  filename     Filename to use as base of files written
     * @param  deviceInfo   Device information to print to CPP files  
-    * 
-    * @throws IOException 
+    * @throws Exception 
     */
-   public void writeCppFiles(Path directory, String filename, DeviceInfo deviceInfo) throws IOException {
+   public void writeCppFiles(Path directory, String filename, DeviceInfo deviceInfo) throws Exception {
       if (!filename.isEmpty()) {
          filename = "-"+filename;
       }
@@ -648,10 +682,9 @@ public class WriteFamilyCpp {
     * 
     * @param  directory    Parent director
     * @param  deviceInfo   Device information to print to CPP files  
-    * 
-    * @throws IOException 
+    * @throws Exception 
     */
-   public void writeCppFiles(Path directory, DeviceInfo deviceInfo) throws IOException {
+   public void writeCppFiles(Path directory, DeviceInfo deviceInfo) throws Exception {
       for (String key:deviceInfo.getDeviceVariants().keySet()) {
          deviceInfo.setDeviceVariant(key);
          writeCppFiles(directory, deviceInfo.getDeviceVariantName(), deviceInfo);
@@ -663,11 +696,9 @@ public class WriteFamilyCpp {
     * 
     * @param project       Destination project 
     * @param  deviceInfo   Device information to print to CPP files  
-    * 
-    * @throws IOException
-    * @throws CoreException 
+    * @throws Exception 
     */
-   public void writeCppFiles(IProject project, DeviceInfo deviceInfo, IProgressMonitor mon) throws IOException, CoreException {
+   public void writeCppFiles(IProject project, DeviceInfo deviceInfo, IProgressMonitor mon) throws Exception {
       
       fDeviceInfo = deviceInfo;
 

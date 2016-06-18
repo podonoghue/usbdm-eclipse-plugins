@@ -36,4 +36,10 @@ public class WriterForOsc extends PeripheralWithState {
       return 1000;
    }
 
+   @Override
+   public String getPcrValue(Signal y) {
+      return "USBDM::XTAL_DEFAULT_PCR";
+   }
+
+   
 }

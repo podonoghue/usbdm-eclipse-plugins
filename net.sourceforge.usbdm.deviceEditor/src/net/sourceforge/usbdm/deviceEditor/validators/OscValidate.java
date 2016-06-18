@@ -113,8 +113,7 @@ public class OscValidate extends Validator {
       Message oscclk_clockStatus    = null;
       String  oscclk_clockOrg       = null;
 
-      long oscclk_clock_freq  = osc_input_freqVar.getValueAsLong();
-
+      long    oscclk_clock_freq    = osc_input_freqVar.getValueAsLong();
       
       //==========================================
       

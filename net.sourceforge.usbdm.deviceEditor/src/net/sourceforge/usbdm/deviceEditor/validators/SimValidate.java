@@ -70,6 +70,10 @@ public class SimValidate extends Validator {
       }
    }
 
+   private static interface LpClockSelector {
+      public void lpClockSelect(String sourceVar, String clockVar);
+   }
+   
    /**
     * Class to determine oscillator settings
     */
@@ -80,21 +84,90 @@ public class SimValidate extends Validator {
          addToWatchedVariables(externalVariables);
          addedExternalVariables = true;
       }
-      Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
-      Variable     osc32kclk_clockVar              =  getVariable("/OSC0/osc32kclk_clock");
+      //OSC
+      //=================
+      final Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
+      final Variable     osc32kclk_clockVar              =  getVariable("/OSC0/osc32kclk_clock");
 
-      Variable     system_low_power_clockVar       =  getVariable("/MCG/system_low_power_clock");
-      Variable     system_mcgfllclk_clockVar       =  getVariable("/MCG/system_mcgfllclk_clock");
-      Variable     system_mcgpllclk_clockVar       =  getVariable("/MCG/system_mcgpllclk_clock");
-      Variable     system_mcgoutclk_clockVar       =  getVariable("/MCG/system_mcgoutclk_clock");
-      Variable     system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
-      Variable     usb1pfdclk_ClockVar             =  safeGetVariable("/MCG/usb1pfdclk_Clock");
-      Variable     system_irc48m_clockVar          =  safeGetVariable("/MCG/system_irc48m_clock");
-      Variable     system_usb_clkin_clockVar       =  safeGetVariable("/MCG/system_usb_clkin_clock");
+      // MCG
+      //=================
+      final Variable     system_low_power_clockVar       =  getVariable("/MCG/system_low_power_clock");
+      final Variable     system_mcgfllclk_clockVar       =  getVariable("/MCG/system_mcgfllclk_clock");
+      final Variable     system_mcgpllclk_clockVar       =  getVariable("/MCG/system_mcgpllclk_clock");
+      final Variable     system_mcgoutclk_clockVar       =  getVariable("/MCG/system_mcgoutclk_clock");
+      final Variable     system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
+      final Variable     usb1pfdclk_ClockVar             =  safeGetVariable("/MCG/usb1pfdclk_Clock");
+      final Variable     system_irc48m_clockVar          =  safeGetVariable("/MCG/system_irc48m_clock");
+      final Variable     system_usb_clkin_clockVar       =  safeGetVariable("/MCG/system_usb_clkin_clock");
 
-      Variable     rtc_clkoutVar                   =  getVariable("/RTC/rtc_clkout");
-      Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
-      Variable     rtcclk_gated_clockVar           =  getVariable("/RTC/rtcclk_gated_clock");
+      // RTC
+      //=================
+      final Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
+      final Variable     rtcclk_gated_clockVar           =  getVariable("/RTC/rtcclk_gated_clock");
+      final Variable     rtc_clkoutVar                   =  getVariable("/RTC/rtc_clkout");
+
+      //
+      //=====================
+      final Variable system_peripheral_clockVar = getVariable("system_peripheral_clock");
+      final Variable sim_sopt2_pllfllselVar     = getVariable("sim_sopt2_pllfllsel");
+      
+      final Long   pllPostDiv3Value;
+      final String pllPostDiv3Origin;
+
+      // Check if CLKDIV3 Present
+      //=====================================
+      Variable sim_clkdiv3_pllfllVar = safeGetVariable("sim_clkdiv3_pllfll");
+      if (sim_clkdiv3_pllfllVar != null) {
+         int  pllValue     = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
+         int  pllfllfrac   = pllValue&0x1;
+         int  pllflldiv    = (pllValue>>1)&0x7;
+         pllPostDiv3Value  = (system_peripheral_clockVar.getValueAsLong()*(pllfllfrac+1))/(pllflldiv+1);
+         pllPostDiv3Origin = system_peripheral_clockVar.getOrigin() + " after /CLKDIV3";
+      }
+      else {
+         pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
+         pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
+      }
+      
+      /**
+       * Clock selector used for LPUARTs and TPMs
+       */
+      LpClockSelector clockSelector = new LpClockSelector() {
+         @Override
+         public void lpClockSelect(String sourceVar, String clockVarId) {
+            
+            // Clock source select (if present)
+            //===================================
+            Variable srcVar = safeGetVariable(sourceVar);
+            if (srcVar != null) {
+               Variable clockVar   = getVariable(clockVarId);
+               switch ((int)srcVar.getValueAsLong()) {
+               default:
+                  srcVar.setValue(0);
+               case 0: // Disabled
+                  clockVar.setValue(0);
+                  clockVar.setStatus((Message)null);
+                  clockVar.setOrigin("Disabled");
+                  break;
+               case 1: // Peripheral Clock / CLKDIV3
+                  clockVar.setValue(pllPostDiv3Value);
+                  clockVar.setStatus(system_peripheral_clockVar.getStatus());
+                  clockVar.setOrigin(pllPostDiv3Origin);
+                  break;
+               case 2: // OSCERCLK
+                  clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
+                  clockVar.setStatus(system_oscerclk_clockVar.getStatus());
+                  clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+                  break;
+               case 3: // MCGIRCLK
+                  clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
+                  clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
+                  clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
+                  break;
+               }
+            }
+         }
+      };
       
       // Determine ERCLK32K
       //==================================
@@ -103,20 +176,20 @@ public class SimValidate extends Validator {
       switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
       case 0: // System oscillator (OSC32KCLK)
          system_erclk32k_clockVar.setValue(osc32kclk_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
          system_erclk32k_clockVar.setOrigin(osc32kclk_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
          break;
       default:
          sim_sopt1_osc32kselVar.setValue(2);
       case 2: // RTC 32.768kHz oscillator
          system_erclk32k_clockVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus(rtcclk_gated_clockVar.getStatus());
          system_erclk32k_clockVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(rtcclk_gated_clockVar.getStatus());
          break;
       case 3: // LPO 1 kHz
          system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setStatus((Message)null);
-         system_erclk32k_clockVar.setOrigin("Low Power Oscillator");
+         system_erclk32k_clockVar.setOrigin(system_low_power_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(system_low_power_clockVar.getStatus());
          break;
       }
 
@@ -140,8 +213,6 @@ public class SimValidate extends Validator {
 
       // Find PLLFLLCLOCK
       //=====================================
-      Variable sim_sopt2_pllfllselVar     = getVariable("sim_sopt2_pllfllsel");
-      Variable system_peripheral_clockVar = getVariable("system_peripheral_clock");
       switch ((int)sim_sopt2_pllfllselVar.getValueAsLong()) {
       default:
          sim_sopt2_pllfllselVar.setValue(0);
@@ -184,117 +255,22 @@ public class SimValidate extends Validator {
          break;
       }
 
-      // Check if CLKDIV3 Present
-      //=====================================
-      long   pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
-      String pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
-      Variable sim_clkdiv3_pllfllVar = safeGetVariable("sim_clkdiv3_pllfll");
-      if (sim_clkdiv3_pllfllVar != null) {
-         int  pllValue = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
-         int  pllfllfrac  = pllValue&0x1;
-         int  pllflldiv   = (pllValue>>1)&0x7;
-         pllPostDiv3Value   = (pllPostDiv3Value*(pllfllfrac+1))/(pllflldiv+1);
-         pllPostDiv3Origin += " after /CLKDIV3";
-      }
-      
       // UART0 Clock source select (if present)
       //============================
-      Variable sim_sopt2_uart0srcVar = safeGetVariable("sim_sopt2_uart0src");
-      if (sim_sopt2_uart0srcVar != null) {
-         Variable system_uart0_clockVar   = getVariable("system_uart0_clock");
-         switch ((int)sim_sopt2_uart0srcVar.getValueAsLong()) {
-         default:
-            sim_sopt2_uart0srcVar.setValue(0);
-         case 0: // Disabled
-            system_uart0_clockVar.setValue(0);
-            system_uart0_clockVar.setStatus((Message)null);
-            system_uart0_clockVar.setOrigin("Disabled");
-            break;
-         case 1: // Peripheral Clock / CLKDIV3
-            system_uart0_clockVar.setValue(pllPostDiv3Value);
-            system_uart0_clockVar.setStatus(system_peripheral_clockVar.getStatus());
-            system_uart0_clockVar.setOrigin(pllPostDiv3Origin);
-            break;
-         case 2: // OSCERCLK
-            system_uart0_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
-            system_uart0_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
-            system_uart0_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
-            break;
-         case 3: // MCGIRCLK
-            system_uart0_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
-            system_uart0_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
-            system_uart0_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
-            break;
-         }
-      }
-
+      clockSelector.lpClockSelect("sim_sopt2_uart0src", "system_uart0_clock");
+      
       // LPUART Clock source select (if present)
       //========================================
-      Variable sim_sopt2_lpuartsrcVar = safeGetVariable("sim_sopt2_lpuartsrc");
-      if (sim_sopt2_lpuartsrcVar != null) {
-         Variable system_lpuart_clockVar   = getVariable("system_lpuart_clock");
-         switch ((int)sim_sopt2_lpuartsrcVar.getValueAsLong()) {
-         default:
-            sim_sopt2_lpuartsrcVar.setValue(0);
-         case 0: // Disabled
-            system_lpuart_clockVar.setValue(0);
-            system_lpuart_clockVar.setStatus((Message)null);
-            system_lpuart_clockVar.setOrigin("Disabled");
-            break;
-         case 1: // Peripheral Clock / CLKDIV3
-            system_lpuart_clockVar.setValue(pllPostDiv3Value);
-            system_lpuart_clockVar.setStatus(system_peripheral_clockVar.getStatus());
-            system_lpuart_clockVar.setOrigin(pllPostDiv3Origin);
-            break;
-         case 2: // OSCERCLK
-            system_lpuart_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
-            system_lpuart_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
-            system_lpuart_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
-            break;
-         case 3: // MCGIRCLK
-            system_lpuart_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
-            system_lpuart_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
-            system_lpuart_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
-            break;
-         }
-      }
+      clockSelector.lpClockSelect("sim_sopt2_lpuartsrc", "system_lpuart_clock");
 
       // TPM Clock source select 
       //============================
-      Variable sim_sopt2_tpmsrcVar = safeGetVariable("sim_sopt2_tpmsrc");
-      if (sim_sopt2_tpmsrcVar != null) {
-         Variable system_tpm_clockVar = getVariable("system_tpm_clock");
-         switch ((int)sim_sopt2_tpmsrcVar.getValueAsLong()) {
-         default:
-            sim_sopt2_tpmsrcVar.setValue(0);
-         case 0: // Disabled
-            system_tpm_clockVar.setValue(0);
-            system_tpm_clockVar.setStatus((Message)null);
-            system_tpm_clockVar.setOrigin("Disabled");
-            break;
-         case 1: // Peripheral Clock / CLKDIV3
-            system_tpm_clockVar.setValue(pllPostDiv3Value);
-            system_tpm_clockVar.setStatus(system_peripheral_clockVar.getStatus());
-            system_tpm_clockVar.setOrigin(pllPostDiv3Origin);
-            break;
-         case 2: // OSCERCLK
-            system_tpm_clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
-            system_tpm_clockVar.setStatus(system_oscerclk_clockVar.getStatus());
-            system_tpm_clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
-            break;
-         case 3: // MCGIRCLK
-            system_tpm_clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
-            system_tpm_clockVar.setStatus(system_mcgirclk_clockVar.getStatus());
-            system_tpm_clockVar.setOrigin(system_mcgirclk_clockVar.getOrigin());
-            break;
-         }
-      }
+      clockSelector.lpClockSelect("sim_sopt2_tpmsrc", "system_tpm_clock");
 
       // USB FS Clock source select 
       //============================
       Variable sim_sopt2_usbsrcVar = safeGetVariable("sim_sopt2_usbsrc");
       if (sim_sopt2_usbsrcVar != null) {
-
          Variable sim_clkdiv2_usbVar    = safeGetVariable("sim_clkdiv2_usb");
 
          if (sim_clkdiv2_usbVar != null) {
@@ -378,49 +354,80 @@ public class SimValidate extends Validator {
 
       // Core Clock
       //===========================================
-      final FindDivisor coreDivisor = new FindDivisor(system_mcgoutclk_clockVar.getValueAsLong(), system_core_clockVar.getValueAsLong()) {
+      // Attempt to find acceptable divisor
+      long inputFrequency = system_mcgoutclk_clockVar.getValueAsLong();
+      final FindDivisor coreDivisor = new FindDivisor(inputFrequency, system_core_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return frequency<=MAX_CORE_CLOCK_FREQ;
          }
       };
-      Severity severity = Severity.OK;
-      StringBuilder sb = new StringBuilder();
-      if (coreDivisor.divisor == 0) {
-         severity = Severity.ERROR;
-         sb.append("Illegal Frequency\n");
+      Severity      severity = Severity.OK;
+      StringBuilder sb       = new StringBuilder();
+      if (variable == system_core_clockVar) {
+         // Clock variable changed - replace with nearest value if found
+         if (coreDivisor.divisor == 0) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(coreDivisor.divisors);
+         system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
+         system_core_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
       }
-      sb.append(coreDivisor.divisors);
-      system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
-      system_core_clockVar.setStatus(new Message(sb.toString(), severity));
-      sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
+      else {
+         // Clock variable not changed - just validate
+         if ((coreDivisor.divisor == 0) || 
+             (system_core_clockVar.getValueAsLong() != (coreDivisor.nearestTargetFrequency))) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(coreDivisor.divisors);
+         system_core_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
+      }
 
       // Bus Clock
       //===========================================
-      final FindDivisor busDivisor = new FindDivisor(system_mcgoutclk_clockVar.getValueAsLong(), system_bus_clockVar.getValueAsLong()) {
+      // Attempt to find acceptable divisor
+      final FindDivisor busDivisor = new FindDivisor(inputFrequency, system_bus_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=MAX_BUS_CLOCK_FREQ) &&
                   ((divisor % coreDivisor.divisor) == 0) &&    // Even multiple
                   (Math.abs(coreDivisor.divisor-divisor)<8);   //  Differ from core < 8
-
          }
       };
       severity = Severity.OK;
-      sb = new StringBuilder();
-      if (busDivisor.divisor == 0) {
-         severity = Severity.ERROR;
-         sb.append("Illegal Frequency\n");
+      sb       = new StringBuilder();
+      if (variable == system_bus_clockVar) {
+         // Clock variable changed - replace with nearest value if found
+         if (busDivisor.divisor == 0) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(busDivisor.divisors);
+         system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
+         system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
       }
-      sb.append(busDivisor.divisors);
-      system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
-      system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
-      sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
+      else {
+         // Clock variable not changed - just validate
+         if ((busDivisor.divisor == 0) || 
+             (system_bus_clockVar.getValueAsLong() != (busDivisor.nearestTargetFrequency))) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(busDivisor.divisors);
+         system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
+      }
 
       // Flexbus Clock
       //===========================================
       if (sim_clkdiv1_outdiv3Var != null) {
-         final FindDivisor flexDivisor = new FindDivisor(system_mcgoutclk_clockVar.getValueAsLong(), system_flexbus_clockVar.getValueAsLong()) {
+         // Attempt to find acceptable divisor
+         final FindDivisor flexDivisor = new FindDivisor(inputFrequency, system_flexbus_clockVar.getValueAsLong()) {
             @Override
             boolean okValue(int divisor, double frequency) {
                return (frequency<=MAX_FLEXBUS_CLOCK_FREQ) &&
@@ -431,14 +438,28 @@ public class SimValidate extends Validator {
          };
          severity = Severity.OK;
          sb = new StringBuilder();
-         if (flexDivisor.divisor == 0) {
-            severity = Severity.ERROR;
-            sb.append("Illegal Frequency\n");
+         if (variable == system_flexbus_clockVar) {
+            // Clock variable changed - replace with nearest value if found
+            if (flexDivisor.divisor == 0) {
+               severity = Severity.ERROR;
+               sb.append("Illegal Frequency\n");
+            }
+            sb.append(flexDivisor.divisors);
+            system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
+            system_flexbus_clockVar.setStatus(new Message(sb.toString(), severity));
+            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
          }
-         sb.append(flexDivisor.divisors);
-         system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
-         system_flexbus_clockVar.setStatus(new Message(sb.toString(), severity));
-         sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
+         else {
+            // Clock variable not changed - just validate
+            if ((flexDivisor.divisor == 0) || 
+                (system_flexbus_clockVar.getValueAsLong() != (flexDivisor.nearestTargetFrequency))) {
+               severity = Severity.ERROR;
+               sb.append("Illegal Frequency\n");
+            }
+            sb.append(flexDivisor.divisors);
+            system_flexbus_clockVar.setStatus(new Message(sb.toString(), severity));
+            sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
+         }
       }
       else if (system_flexbus_clockVar != null) {
          system_flexbus_clockVar.enable(false);
@@ -447,7 +468,7 @@ public class SimValidate extends Validator {
 
       // Flash Clock
       //===========================================
-      final FindDivisor flashDivisor = new FindDivisor(system_mcgoutclk_clockVar.getValueAsLong(), system_flash_clockVar.getValueAsLong()) {
+      final FindDivisor flashDivisor = new FindDivisor(inputFrequency, system_flash_clockVar.getValueAsLong()) {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=MAX_FLASH_CLOCK_FREQ) &&
@@ -459,14 +480,27 @@ public class SimValidate extends Validator {
       };
       severity = Severity.OK;
       sb = new StringBuilder();
-      if (flashDivisor.divisor == 0) {
-         severity = Severity.ERROR;
-         sb.append("Illegal Frequency\n");
+      if (variable == system_flash_clockVar) {
+         if (flashDivisor.divisor == 0) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(flashDivisor.divisors);
+         system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
+         system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
       }
-      sb.append(flashDivisor.divisors);
-      system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
-      system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
-      sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
+      else {
+         // Clock variable not changed - just validate
+         if ((flashDivisor.divisor == 0) || 
+            (system_flash_clockVar.getValueAsLong() != (flashDivisor.nearestTargetFrequency))) {
+            severity = Severity.ERROR;
+            sb.append("Illegal Frequency\n");
+         }
+         sb.append(flashDivisor.divisors);
+         system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
+         sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
+      }
    }
 
    private abstract static class FindDivisor {

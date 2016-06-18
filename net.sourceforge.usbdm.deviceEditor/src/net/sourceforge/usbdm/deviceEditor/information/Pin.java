@@ -572,4 +572,22 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void modelStructureChanged(ObservableModel model) {
       notifyStructureChangeListeners();
    }
+
+   public void setPort(Signal signal) throws Exception {
+      Pattern p = Pattern.compile("^\\s*GPIO(.)_(\\d*)\\s*$");
+      Matcher m = p.matcher(signal.getName());
+      if (m.matches()) {
+         String portInstance = m.group(1);
+         String portPin      = m.group(2);
+         if (fPortInstance == null) {
+            fPortInstance = portInstance;
+            fPortPin      = portPin;
+         }
+         else {
+            if (!fPortInstance.equals(portInstance) || !fPortPin.equals(portPin)) {
+               throw new Exception("Pin associated with multiple PORTs");
+            }
+         }
+      }
+   }
 }

@@ -1,8 +1,6 @@
-package net.sourceforge.usbdm.deviceEditor.model;
+package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.regex.Pattern;
-
-import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class NumericListVariable extends StringVariable {
 
@@ -55,19 +53,27 @@ public class NumericListVariable extends StringVariable {
       return isValid(fValue);
    }
 
+   /**
+    * Set value as String
+    * 
+    * @param value Value to set
+    * 
+    * @return True if variable actually changed value and listeners notified
+    */
    @Override
-   public boolean setValue(Object value) {
+   public boolean setValue(String value) {
       StringBuilder sb = new StringBuilder();
       for (String s:value.toString().split(fDelimeter)) {
          sb.append(s);
          sb.append(",");
       }
       String s = sb.toString();
-      if (fValue.equalsIgnoreCase(s)) {
-         return false;
-      }
-      fValue = s;
-      return true;
+      return super.setValue(s);
+   }
+
+   @Override
+   public boolean setValue(Object value) {
+      return setValue(value.toString());
    }
 
    /**

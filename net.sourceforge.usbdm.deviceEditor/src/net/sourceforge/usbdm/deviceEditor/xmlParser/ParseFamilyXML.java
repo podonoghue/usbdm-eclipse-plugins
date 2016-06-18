@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -28,7 +29,7 @@ public class ParseFamilyXML extends XML_BaseParser {
     * @param pinElement
     * @throws Exception 
     */
-   private void parsePin(Element pinElement) {
+   private void parsePin(Element pinElement) throws Exception {
 
       Pin pin = fDeviceInfo.createPin(pinElement.getAttribute("name"));
 
@@ -41,7 +42,12 @@ public class ParseFamilyXML extends XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == "mux") {
 //            factory.createMapping(factory.findSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
-            fDeviceInfo.createMapping(fDeviceInfo.findOrCreateSignal(element.getAttribute("signal")), pin, MuxSelection.valueOf(element.getAttribute("sel")));
+            Signal       signal       = fDeviceInfo.findOrCreateSignal(element.getAttribute("signal"));
+            MuxSelection muxSelection = MuxSelection.valueOf(element.getAttribute("sel"));
+            fDeviceInfo.createMapping(signal, pin, muxSelection);
+            if (signal.getName().startsWith("GPIO")) {
+               pin.setPort(signal);
+            }
          }
          else if (element.getTagName() == "reset") {
             MuxSelection muxSelection = MuxSelection.valueOf(element.getAttribute("sel"));
@@ -51,7 +57,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             pin.setDefaultValue(MuxSelection.valueOf(element.getAttribute("sel")));
          }
          else {
-            throw new RuntimeException("Unexpected field in PIN, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PIN, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -60,8 +66,9 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;pins&gt;
     * 
     * @param pinsElement
+    * @throws Exception 
     */
-   private void parsePins(Element pinsElement) {
+   private void parsePins(Element pinsElement) throws Exception {
 
       for (Node node = pinsElement.getFirstChild();
             node != null;
@@ -74,7 +81,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             parsePin(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in PINS, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PINS, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -107,7 +114,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             fDeviceInfo.createDeviceInformation(name, manual, packageName);
          }
          else {
-            throw new RuntimeException("Unexpected field in FAMILYT, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in FAMILYT, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -116,8 +123,9 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;package&gt;
     * 
     * @param packageElement
+    * @throws Exception 
     */
-   private void parsePackage(Element packageElement) {
+   private void parsePackage(Element packageElement) throws Exception {
 
       String packageName = packageElement.getAttribute("name");
 
@@ -135,7 +143,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             devicePackage.addPin(pin, location);
          }
          else {
-            throw new RuntimeException("Unexpected field in PACKAGE, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PACKAGE, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -144,8 +152,9 @@ public class ParseFamilyXML extends XML_BaseParser {
     * Parse &lt;packages&gt;
     * 
     * @param packagesElement
+    * @throws Exception 
     */
-   private void parsePackages(Element packagesElement) {
+   private void parsePackages(Element packagesElement) throws Exception {
 
       for (Node node = packagesElement.getFirstChild();
             node != null;
@@ -158,7 +167,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             parsePackage(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in PACKAGES, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PACKAGES, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -175,7 +184,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             parsePeripheral(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in PERIPHERALS, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PERIPHERALS, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -192,7 +201,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             parseSignal(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in SIGNALS, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in SIGNALS, value = \'"+element.getTagName()+"\'");
          }
       }
    }
@@ -229,7 +238,7 @@ public class ParseFamilyXML extends XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == "handler") {
             if (peripheral!=null) {
-               throw new RuntimeException("Peripheral already created");
+               throw new Exception("Peripheral already created");
             }
             peripheral = fDeviceInfo.createPeripheral(baseName, instance, element.getAttribute("class"), element.getAttribute("parameters"));
          }
@@ -255,13 +264,13 @@ public class ParseFamilyXML extends XML_BaseParser {
             p.addParam(p.makeKey(key), value);
          }
          else {
-            throw new RuntimeException("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in PERIPHERAL, value = \'"+element.getTagName()+"\'");
          }
       }
       peripheral.setVersion(version);
    }
 
-   private void parseDma(Element dmaElement, Peripheral peripheral) {
+   private void parseDma(Element dmaElement, Peripheral peripheral) throws Exception {
       if (predefinedPeripherals.size()==0) {
          predefinedPeripherals.add(Pattern.compile("(DMAMUX)(\\d*)"));
          predefinedPeripherals.add(Pattern.compile("(PIT)(\\d*)"));
@@ -277,7 +286,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             peripheral.addDmaChannel(getIntAttribute(element,"num"), element.getAttribute("source"));
          }
          else {
-            throw new RuntimeException("Unexpected field in DMA, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in DMA, value = \'"+element.getTagName()+"\'");
          }
       }
    
@@ -322,7 +331,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             parsePackages(element);
          }
          else {
-            throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
          }
       }      
       fDeviceInfo.consistencyCheck();

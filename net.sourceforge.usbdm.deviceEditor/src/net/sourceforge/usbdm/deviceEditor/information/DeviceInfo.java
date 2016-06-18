@@ -1756,7 +1756,7 @@ public class DeviceInfo extends ObservableModel {
    }
 
    /**
-    * Get value of variable
+    * Set value of variable
     * 
     * @param key  Key used to identify variable
     * 

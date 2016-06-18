@@ -35,4 +35,11 @@ public class WriterForI2c extends PeripheralWithState {
             "   static constexpr uint32_t pcrValue  = I2C_DEFAULT_PCR;\n\n"
             );
    }
+
+   @Override
+   public String getPcrValue(Signal y) {
+      return "USBDM::I2C_DEFAULT_PCR";
+   }
+   
+   
 }

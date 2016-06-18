@@ -18,7 +18,7 @@ public class WriterForMcg extends PeripheralWithState {
    
    @Override
    public int getPriority() {
-      return 950;
+      return 850;
    }
 
 }

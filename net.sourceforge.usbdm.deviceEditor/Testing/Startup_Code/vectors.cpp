@@ -307,9 +307,9 @@ void I2C0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void I2C1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void SPI1_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void UART0_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void UART1_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
-void UART2_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
+void LPUART0_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void LPUART1_IRQHandler(void)                 WEAK_DEFAULT_HANDLER;
+void UART2_FLEXIO_IRQHandler(void)            WEAK_DEFAULT_HANDLER;
 void ADC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void CMP0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void TPM0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
@@ -321,8 +321,6 @@ void PIT_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void I2S0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void USB0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
 void DAC0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void TSI0_IRQHandler(void)                    WEAK_DEFAULT_HANDLER;
-void MCG_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void LPTMR0_IRQHandler(void)                  WEAK_DEFAULT_HANDLER;
 void LCD_IRQHandler(void)                     WEAK_DEFAULT_HANDLER;
 void PORTA_IRQHandler(void)                   WEAK_DEFAULT_HANDLER;
@@ -369,9 +367,9 @@ VectorTable const __vector_table = {
       I2C1_IRQHandler,               /*   25,    9  Inter-Integrated Circuit                                                         */
       SPI0_IRQHandler,               /*   26,   10  Serial Peripheral Interface                                                      */
       SPI1_IRQHandler,               /*   27,   11  Serial Peripheral Interface                                                      */
-      UART0_IRQHandler,              /*   28,   12  Serial Communication Interface                                                   */
-      UART1_IRQHandler,              /*   29,   13  Serial Communication Interface                                                   */
-      UART2_IRQHandler,              /*   30,   14  Serial Communication Interface                                                   */
+      LPUART0_IRQHandler,            /*   28,   12  Serial Communication Interface                                                   */
+      LPUART1_IRQHandler,            /*   29,   13  Serial Communication Interface                                                   */
+      UART2_FLEXIO_IRQHandler,       /*   30,   14  UART2 or FLEXIO Status and error                                                 */
       ADC0_IRQHandler,               /*   31,   15  Analogue to Digital Converter                                                    */
       CMP0_IRQHandler,               /*   32,   16  High-Speed Comparator                                                            */
       TPM0_IRQHandler,               /*   33,   17  Timer/PWM Module                                                                 */
@@ -383,8 +381,8 @@ VectorTable const __vector_table = {
       I2S0_IRQHandler,               /*   39,   23  Synchronous Serial Interface                                                     */
       USB0_IRQHandler,               /*   40,   24  Universal Serial Bus                                                             */
       DAC0_IRQHandler,               /*   41,   25  Digital to Analogue Converter                                                    */
-      TSI0_IRQHandler,               /*   42,   26  Touch Sense Input                                                                */
-      MCG_IRQHandler,                /*   43,   27  Multipurpose Clock Generator                                                     */
+      Default_Handler,               /*   42,   26                                                                                   */
+      Default_Handler,               /*   43,   27                                                                                   */
       LPTMR0_IRQHandler,             /*   44,   28  Low Power Timer                                                                  */
       LCD_IRQHandler,                /*   45,   29  Segment Liquid Crystal Display                                                   */
       PORTA_IRQHandler,              /*   46,   30  General Purpose Input/Output                                                     */

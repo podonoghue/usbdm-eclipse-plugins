@@ -2,8 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -674,8 +672,9 @@ public abstract class Peripheral {
             pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, index, "--", "--"));
             continue;
          }
+         MappingInfo mappingInfo = signal.getMappedPin();
          MappingInfo mappedPin = null;
-         for (MappingInfo mappingInfo:signal.getPinMapping()) {
+         do {
             if (!mappingInfo.getPin().isAvailableInPackage()) {
                // Discard unmapped signals on this package 
                continue;
@@ -692,18 +691,9 @@ public abstract class Peripheral {
                // Fixed pin mapping
                pinMappingHeaderFile.write(String.format(indent+FIXED_TEMPLATE, index, signal.getName(), mappingInfo.getPin().getNameWithLocation()));
                mappedPin = mappingInfo;
-               break;
+               continue;
             }
             if (mappingInfo.isSelected()) {
-               if (mappedPin != null) {
-                  pinMappingHeaderFile.write("#error \"Pin mapping conflict "+mappedPin+"<==>"+mappingInfo+"\"\n//");
-//                  for (MappingInfo info:signal.getPinMapping()) {
-//                     System.err.println(info.toString());
-//                  }
-//                  pinMappingHeaderFile.flush();
-//                  throw new RuntimeException("Multiple active pin mappings, \nPin==>\n"+mappedPin+",\n<==>\n"+mappingInfo);
-               }
-//               System.err.println("Writing: "+mappingInfo);
                mappedPin = mappingInfo;
                String pcrInitString = SignalTemplate.getPCRInitString(mappingInfo.getPin());
                pinMappingHeaderFile.write(
@@ -711,7 +701,7 @@ public abstract class Peripheral {
                            signal.getName(), mappingInfo.getPin().getNameWithLocation(), pcrInitString, mappingInfo.getMux().value));
 
             }
-         }
+         } while(false);
          if (mappedPin == null) {
             pinMappingHeaderFile.write(String.format(indent+DUMMY_TEMPLATE, index, signal.getName(), "--"));
          }
@@ -815,46 +805,6 @@ public abstract class Peripheral {
       return false;
    }
    
-   private String createPcrInitString(String indent, HashMap<String, long[]> portMap) {
-      StringBuffer initPcrbuffer = new StringBuffer();
-
-      for (String key:portMap.keySet()) {
-         long[] masks = portMap.get(key);
-         int muxValue = 0;
-         for (long mask:masks) {
-            if ((mask&0xFFFF) != 0) {
-               initPcrbuffer.append(String.format(indent+"      %s = pcrValue|PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
-            }
-            mask >>= 16;
-            if ((mask&0xFFFF) != 0) {
-               initPcrbuffer.append(String.format(indent+"      %s = pcrValue|PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
-            }
-            muxValue++;
-         }
-      }
-      return initPcrbuffer.toString();
-   }
-   
-   private String createPcrClearString(String indent, HashMap<String, long[]> portMap) {
-      StringBuffer initPcrbuffer = new StringBuffer();
-
-      for (String key:portMap.keySet()) {
-         long[] masks = portMap.get(key);
-         long collectedMask = 0;
-         for (long p:masks) {
-            collectedMask |= p;
-         }
-         if ((collectedMask&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
-         }
-         collectedMask >>= 16;
-         if ((collectedMask&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
-         }
-      }
-      return initPcrbuffer.toString();
-   }
-   
    /**
     * Write initPCRs() function
     * 
@@ -877,159 +827,29 @@ public abstract class Peripheral {
             indent+"    */\n"+
             indent+"   static void clearPCRs() {\n";
 
-      // Set of Port clock masks for used ports
-      HashSet<String> portClockMasks = new HashSet<String>();
-      // HashMap of Ports to pcrvalues&pins used
-      HashMap<String, long[]> portMap  = new HashMap<String, long[]>();
+      PcrInitialiser pcrInitialiser = new PcrInitialiser(fDeviceInfo);
       
       for (int index=0; index<signalTable.table.size(); index++) {
          Signal signal = signalTable.table.get(index);
          if (signal == null) {
             continue;
          }
-         ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(signal);
-         for (MappingInfo mappedPin:mappedPins) {
-            if (!mappedPin.getPin().isAvailableInPackage()) {
-               // Discard unmapped signals on this package 
-               continue;
-            }
-            if (mappedPin.getMux() == MuxSelection.disabled) {
-               // Disabled selection - ignore
-               continue;
-            }
-            if (mappedPin.getMux() == MuxSelection.reset) {
-               // Reset selection - ignore
-               continue;
-            }
-            if (mappedPin.getMux() == MuxSelection.fixed) {
-               // No PCR
-               break;
-            }
-            if (mappedPin.isSelected()) {
-               Pin pin = mappedPin.getPin();
-               portClockMasks.add(pin.getClockMask());
-               
-               String bitNums = mappedPin.getPin().getGpioBitNum();
-               if (bitNums != null) {
-                  long bitNum = Long.parseLong(bitNums);
-
-                  long[] muxValues = portMap.get(pin.getPORTBasePtr());
-                  if (muxValues == null) {
-                     muxValues = new long[8];
-                     portMap.put(pin.getPORTBasePtr(), muxValues);
-                  }
-                  muxValues[mappedPin.getMux().value] |= 1<<bitNum;
-               }
-            }
-         }
+         pcrInitialiser.addSignal(signal, "pcrValue");
       }
       
-      StringBuffer initClocksBuffer = new StringBuffer();
-      boolean isFirst = true;
-      for (String p:portClockMasks) {
-         if (isFirst) {
-            initClocksBuffer.append(indent+"      SimInfo::enablePortClocks(");
-            isFirst = false;
-         }
-         else {
-            initClocksBuffer.append("|");
-         }
-         initClocksBuffer.append(p);
-      }
-      if (!isFirst) {
-         initClocksBuffer.append(");\n\n");
-      }
+      String initClocksBuffer = pcrInitialiser.getInitPortClocks(indent);
 
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
-      pinMappingHeaderFile.write(initClocksBuffer.toString());
-      pinMappingHeaderFile.write(createPcrInitString(indent, portMap));
+      pinMappingHeaderFile.write(initClocksBuffer);
+      pinMappingHeaderFile.write(pcrInitialiser.getPcrInitString(indent));
       pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
-      pinMappingHeaderFile.write(initClocksBuffer.toString());
-      pinMappingHeaderFile.write(createPcrClearString(indent, portMap));
+      pinMappingHeaderFile.write(initClocksBuffer);
+      pinMappingHeaderFile.write(pcrInitialiser.getPcrClearString(indent));
       pinMappingHeaderFile.write(indent+"   }\n\n");
    }
-   
-//   /**
-//    * Write initPCRs() function
-//    * 
-//    * @param pinMappingHeaderFile
-//    * @param indent 
-//    * @param signalTable
-//    * @throws IOException
-//    */
-//   public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
-//      if (signalTable.table.size() == 0) {
-//         return;
-//      }
-//      final String PCR_TEMPLATE = 
-//            indent+"      PcrTable_T<%s %2s>::setPCR(%s); // %-15s = %-30s\n";
-//      
-//      final String PCR_FUNCTION_TEMPLATE = 
-//            indent+"   /**\n"+
-//            indent+"    * Initialise pins used by peripheral\n"+
-//            indent+"    */\n"+
-//            indent+"   static void %s() {\n";
-//
-//      String tableName = "";
-//      if (signalTable.getName() != INFO_TABLE_NAME) {
-//         tableName = "::"+signalTable.getName();
-//      }
-//      StringBuffer initPcrbuffer = new StringBuffer();
-//      StringBuffer clearPcrbuffer = new StringBuffer();
-//      
-//      initPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
-//            "initPCRs"
-//            ));
-//      clearPcrbuffer.append(String.format(PCR_FUNCTION_TEMPLATE,
-//            "clearPCRs"
-//            ));
-//      for (int index=0; index<signalTable.table.size(); index++) {
-//         Signal signal = signalTable.table.get(index);
-//         if (signal == null) {
-//            continue;
-//         }
-//         ArrayList<MappingInfo> mappedPins = fDeviceInfo.getPins(signal);
-//         for (MappingInfo mappedPin:mappedPins) {
-//            if (!mappedPin.getPin().isAvailableInPackage()) {
-//               // Discard unmapped signals on this package 
-//               continue;
-//            }
-//            if (mappedPin.getMux() == MuxSelection.disabled) {
-//               // Disabled selection - ignore
-//               continue;
-//            }
-//            if (mappedPin.getMux() == MuxSelection.reset) {
-//               // Reset selection - ignore
-//               continue;
-//            }
-//            if (mappedPin.getMux() == MuxSelection.fixed) {
-//               // No PCR
-//               break;
-//            }
-//            if (mappedPin.isSelected()) {
-//                  initPcrbuffer.append(String.format( PCR_TEMPLATE, 
-//                        getClassName()+"Info"+tableName+",",
-//                        index,
-//                        "",
-//                        signal.getName(),
-//                        mappedPin.getPin().getNameWithLocation()));
-//                  clearPcrbuffer.append(String.format( PCR_TEMPLATE, 
-//                        getClassName()+"Info"+tableName+",",
-//                        index,
-//                        "0",
-//                        signal.getName(),
-//                        mappedPin.getPin().getNameWithLocation()));
-//            }
-//         }
-//      }
-//      initPcrbuffer.append(indent+"   }\n\n");
-//      clearPcrbuffer.append(indent+"   }\n\n");
-//      pinMappingHeaderFile.write(initPcrbuffer.toString());
-//      pinMappingHeaderFile.write(clearPcrbuffer.toString());
-//   }
-   
+     
    /**
     * Adds variables to map for C++ generation
     * 
@@ -1065,5 +885,9 @@ public abstract class Peripheral {
     */
    public DeviceInfo getDeviceInfo() {
       return fDeviceInfo;
+   }
+
+   public String getPcrValue(Signal y) {
+      return "USBDM::DEFAULT_PCR";
    }
 }

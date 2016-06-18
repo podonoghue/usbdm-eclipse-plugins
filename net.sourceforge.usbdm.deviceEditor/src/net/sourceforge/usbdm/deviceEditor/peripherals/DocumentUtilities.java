@@ -292,7 +292,7 @@ public class DocumentUtilities {
          throw new RuntimeException("Closing non-open namespace");
       }
       String currentNamespace = nameSpaceStack.pop();
-      fWriter.write(String.format("\n} // End namespace %s\n", currentNamespace));
+      fWriter.write(String.format("\n} // End namespace %s\n\n", currentNamespace));
       fWriter.flush();
    }
 

@@ -28,7 +28,6 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
    /**
     * Inputs
-    *    /RTC/rtcclk_clock
     *    /OSC0/OscValidate.OSC_RANGE_KEY
     *    /OSC0/oscclk_clock
     *    /OSC0/range
@@ -37,10 +36,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
     *    system_slow_irc_clock
     *    system_fast_irc_clock
     *    system_mcgirclk_clock
-    *    system_mcgffclk_clock
     *    system_mcgoutclk_clock
-    *    system_mcgfllclk_clock
-    *    system_mcgpllclk_clock
+    *    system_mcgpclk_clock
     */
    @Override
    protected void validate(Variable variable) {
@@ -58,7 +55,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // C2
       //=================================
-      Variable     mcg_c2_range0Var                =  getVariable("/OSC0/range");
+      Variable     mcg_c2_range0Var                =  getVariable("/OSC0/range"); // Maps to OSC0 range control
       Variable     mcg_c2_ircsVar                  =  getVariable("mcg_c2_ircs");
 
       // SC
@@ -72,8 +69,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // LIRC
       //=================================
-      Variable     slow_irc_clockVar               =  getVariable("system_slow_irc_clock");
-      Variable     fast_irc_clockVar               =  getVariable("system_fast_irc_clock");
+      Variable     system_slow_irc_clockVar        =  getVariable("system_slow_irc_clock");
+      Variable     system_fast_irc_clockVar        =  getVariable("system_fast_irc_clock");
       Variable     system_lirc_clockVar            =  getVariable("system_lirc_clock");
       Variable     system_lirc_div1_clockVar       =  getVariable("system_lirc_div1_clock");
       Variable     system_mcgirclk_clockVar        =  getVariable("system_mcgirclk_clock");
@@ -83,17 +80,10 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable     system_irc48m_clockVar          =  safeGetVariable("system_irc48m_clock");
 //    Variable     usb_clkin_clockVar              =  getLongVariable("system_usb_clkin_clock");
 
-      // RTC
-      //=================================
-//      Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
-
       // Clocks and information from main oscillator
       //=================================
       Variable     oscclk_clockVar                 =  getVariable("/OSC0/oscclk_clock");
-//      Variable     osc_cr_erclkenVar               =  getVariable("/OSC0/osc_cr_erclken");
       Variable     oscRangeInVar                   =  getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
-
-      //===================
 
       //=================================
       Variable     clock_modeVar                   =  getVariable("clock_mode");
@@ -103,7 +93,6 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable     system_mcgoutclk_clockVar        =  getVariable("system_mcgoutclk_clock");
       
       Variable     system_mcgpclk_clockVar         =  getVariable("system_mcgpclk_clock");
-//      Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
 
       
       long rangIn = oscRangeInVar.getValueAsLong();
@@ -125,10 +114,10 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c1_clksVar.setValue(0);
          mcg_c2_ircsVar.setLocked(false);
 
-         system_mcgoutclk_clockVar.setValue(slow_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(slow_irc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(system_slow_irc_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_slow_irc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus(new Message("No clock settings are applied", Severity.WARNING));
-         system_mcgoutclk_clock_sourceVar.setValue("LIRC8 or LIRC2");
+         system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
          
       case ClockMode_HIRC_48M:
@@ -146,8 +135,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c2_ircsVar.setValue(0);
          mcg_c2_ircsVar.setLocked(true);
 
-         system_mcgoutclk_clockVar.setValue(slow_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(slow_irc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(system_slow_irc_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_slow_irc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Message)null);
          system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
@@ -157,8 +146,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c2_ircsVar.setValue(1);
          mcg_c2_ircsVar.setLocked(true);
 
-         system_mcgoutclk_clockVar.setValue(fast_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(fast_irc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(system_fast_irc_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_fast_irc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Message)null);
          system_mcgoutclk_clock_sourceVar.setValue("LIRC8");
          break;
@@ -170,7 +159,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          system_mcgoutclk_clockVar.setValue(oscclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(oscclk_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Message)null);
-         system_mcgoutclk_clock_sourceVar.setValue("External Clock");
+         system_mcgoutclk_clock_sourceVar.setValue("External Clock (OSCCLK)");
          break;
       }     
       system_mcgoutclk_clock_sourceVar.setStatus(system_mcgoutclk_clockVar.getStatus());
@@ -191,20 +180,21 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       
       // LIRC related clocks
       //========================================
-      if (mcg_c1_irclkenVar.getValueAsBoolean()) {
+      if (mcg_c1_irclkenVar.getValueAsBoolean() || 
+          (clock_mode == ClockMode.ClockMode_LIRC_2M) || (clock_mode == ClockMode.ClockMode_LIRC_8M) ) {
          // LIRC Enabled
          mcg_c1_irefstenVar.enable(true);
          system_lirc_clockVar.enable(true);
          system_lirc_clockVar.setStatus((Message)null);
          if (mcg_c2_ircsVar.getValueAsBoolean()) {
             // Fast IRC selected
-            system_lirc_clockVar.setValue(fast_irc_clockVar.getValueAsLong());
-            system_lirc_clockVar.setOrigin(fast_irc_clockVar.getOrigin());
+            system_lirc_clockVar.setValue(system_fast_irc_clockVar.getValueAsLong());
+            system_lirc_clockVar.setOrigin(system_fast_irc_clockVar.getOrigin());
          }
          else {
             // Slow IRC selected
-            system_lirc_clockVar.setValue(slow_irc_clockVar.getValueAsLong());
-            system_lirc_clockVar.setOrigin(fast_irc_clockVar.getOrigin());
+            system_lirc_clockVar.setValue(system_slow_irc_clockVar.getValueAsLong());
+            system_lirc_clockVar.setOrigin(system_fast_irc_clockVar.getOrigin());
          }
          mcg_sc_fcrdivVar.enable(true);
          system_lirc_div1_clockVar.enable(true);

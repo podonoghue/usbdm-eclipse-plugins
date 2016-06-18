@@ -135,6 +135,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified map or original if no symbols added
     */
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
+      map.put("_instance", getInstance());
+      map.put("_name",     getName());
       // Load any named templates
       for (String key:fData.fTemplate.keySet()) {
          if (key.isEmpty()) {
@@ -221,8 +223,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    String substitute(String input) {
       Map<String, String> map = fDeviceInfo.getSimpleSymbolMap();
-      map.put("_instance", getInstance());
-      map.put("_name",     getName());
+      map.put(makeKey("_instance"), getInstance());
+      map.put(makeKey("_name"),     getName());
       return substitute(input, map);
    }
    
