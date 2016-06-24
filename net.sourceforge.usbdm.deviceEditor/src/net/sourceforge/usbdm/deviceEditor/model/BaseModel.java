@@ -61,6 +61,8 @@ public abstract class BaseModel {
     * Updates the model's presentation when one or more of its properties change
     */
    protected void update() {
+      // Necessary to propagate error messages up the tree
+//      updateAncestors();
       StructuredViewer viewer = getViewer();
       if (viewer != null) {
          viewer.update(this, null);

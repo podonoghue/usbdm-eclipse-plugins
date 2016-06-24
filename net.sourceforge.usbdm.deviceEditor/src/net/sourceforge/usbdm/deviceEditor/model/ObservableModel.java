@@ -51,6 +51,16 @@ public class ObservableModel {
       }
       fRefreshPending = false;
    }
+   /**
+    * Notify all listeners<br>
+    * Clears RefreshPending
+    */
+   public void notifyStatusListeners() {
+      for (IModelChangeListener listener:fListeners) {
+         listener.elementStatusChanged(this);
+      }
+      fRefreshPending = false;
+   }
 
    /**
     * Notify structure change listeners

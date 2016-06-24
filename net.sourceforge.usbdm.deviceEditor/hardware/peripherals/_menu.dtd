@@ -5,13 +5,13 @@
    <!ATTLIST xi:include href      CDATA        #REQUIRED>
 
 <!-- Root fileElement -->
-<!ELEMENT devicePage ((xi:include|menu|devicePage|constant|floatOption|intOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|template|validate|projectActionList|pins)*) >
+<!ELEMENT devicePage ((xi:include|divider|menu|constant|floatOption|intOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|template|validate|projectActionList|pins)*) >
    <!ATTLIST devicePage xmlns:xi     CDATA        #IMPLIED>
    <!ATTLIST devicePage name         CDATA        #REQUIRED>
    <!ATTLIST devicePage description  CDATA        #REQUIRED>
    <!ATTLIST devicePage toolTip      CDATA        "">
 
-<!ELEMENT menu ((xi:include|menu|devicePage|constant|floatOption|intOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|template|validate|projectActionList|pins)*) >
+<!ELEMENT menu ((xi:include|menu|constant|floatOption|intOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|template|validate|projectActionList|pins)*) >
    <!ATTLIST menu xmlns:xi     CDATA        #IMPLIED>
    <!ATTLIST menu name         CDATA        #REQUIRED>
    <!ATTLIST menu description  CDATA        #REQUIRED>
@@ -36,6 +36,7 @@
    <!ATTLIST intOption max          CDATA        #IMPLIED>
    <!-- Offset to translate from displayed value to substitution value -->
    <!ATTLIST intOption offset       CDATA        "0">
+   <!ATTLIST intOption indexedBy    CDATA        #IMPLIED>
   
 <!ELEMENT floatOption EMPTY >
    <!ATTLIST floatOption constant     (false|true) "false">
@@ -65,6 +66,7 @@
    <!ATTLIST stringOption description  CDATA        #REQUIRED>
    <!ATTLIST stringOption toolTip      CDATA        "">
    <!ATTLIST stringOption value        CDATA        "0">
+   <!ATTLIST stringOption indexedBy    CDATA        #IMPLIED>
   
 <!ELEMENT numericListOption EMPTY >
    <!ATTLIST numericListOption constant     (false|true) "false">
@@ -74,8 +76,10 @@
    <!ATTLIST numericListOption description  CDATA        #REQUIRED>
    <!ATTLIST numericListOption toolTip      CDATA        "">
    <!ATTLIST numericListOption value        CDATA        "0">
+   <!ATTLIST numericListOption size         CDATA        #IMPLIED>
    <!ATTLIST numericListOption min          CDATA        #IMPLIED>
    <!ATTLIST numericListOption max          CDATA        #IMPLIED>
+   <!ATTLIST numericListOption indexedBy    CDATA        #IMPLIED>
   
 <!ELEMENT choiceOption (choice)+ >
    <!ATTLIST choiceOption constant     (false|true) "false">
@@ -85,6 +89,7 @@
    <!ATTLIST choiceOption description  CDATA        #REQUIRED>
    <!ATTLIST choiceOption toolTip      CDATA        "">
    <!ATTLIST choiceOption units        (None|Hz|Seconds)    "None">
+   <!ATTLIST choiceOption indexedBy    CDATA        #IMPLIED>
   
 <!ELEMENT choice EMPTY >
    <!ATTLIST choice value        CDATA        #REQUIRED>
@@ -98,9 +103,11 @@
    <!ATTLIST binaryOption origin       CDATA        #IMPLIED>
    <!ATTLIST binaryOption description  CDATA        #REQUIRED>
    <!ATTLIST binaryOption toolTip      CDATA        "">
+   <!ATTLIST binaryOption indexedBy    CDATA        #IMPLIED>
 
 <!ELEMENT template (#PCDATA)>
-   <!ATTLIST template name CDATA "" >
+   <!ATTLIST template name CDATA  "" >
+   <!ATTLIST template dim  CDATA  #IMPLIED >
 
 <!ELEMENT validate (param*) >
    <!ATTLIST validate class CDATA #REQUIRED>
@@ -146,10 +153,13 @@
    <!ATTLIST copy derived              (true|false) "false">
    
 <!ELEMENT constant EMPTY >
-   <!ATTLIST constant id           CDATA #REQUIRED>
+   <!ATTLIST constant name         ID           #IMPLIED>
+   <!ATTLIST constant id           CDATA        #IMPLIED>
+   <!ATTLIST constant key          CDATA        #IMPLIED>
    <!ATTLIST constant value        CDATA #REQUIRED>
    <!ATTLIST constant type         (boolean|int|string)  "string" >
    <!ATTLIST constant weak         (true|false)          "false">
    <!ATTLIST constant replace      (true|false)          "false">
    
+<!ELEMENT divider EMPTY >
    

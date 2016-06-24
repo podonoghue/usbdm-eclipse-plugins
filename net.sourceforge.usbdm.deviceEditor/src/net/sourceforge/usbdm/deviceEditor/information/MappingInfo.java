@@ -161,17 +161,28 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Get message to display
+    * Set message to display
     * 
     * @return Message to display
     */
    public void setMessage(String msg) {
-      if ((msg==null) || msg.isEmpty()) {
-         fMessage = null;
+      Message message = null;
+      if (msg.isEmpty()) {
+         msg = null;
+      }
+      if (msg == null) {
+         if (fMessage == null) {
+            return;
+         }
       }
       else {
-         fMessage = new Message(msg, Message.Severity.ERROR);
+         message = new Message(msg, Message.Severity.ERROR);
+         if (message.equals(fMessage)) {
+            return;
+         }
       }
+      fMessage = message;
+      notifyStatusListeners();
    }
 
    /**

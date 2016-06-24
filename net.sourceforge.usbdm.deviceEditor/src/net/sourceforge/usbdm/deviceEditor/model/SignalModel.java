@@ -146,4 +146,9 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       fSignal.disconnectListeners();
    }
 
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      updateAncestors();
+   }
+
 }

@@ -9,6 +9,7 @@ public class DynamicPage {
    
    private ArrayList<DynamicGroup> fComposites;
    private String fName;
+   @SuppressWarnings("unused")
    private String fTitle;
    
    public DynamicPage() {

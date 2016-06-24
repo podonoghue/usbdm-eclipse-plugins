@@ -86,86 +86,6 @@ public class WriteFamilyCpp {
       return true;
    }
 
-//   /**
-//    * Writes macros describing common pin functions for all pins
-//    * e.g.<pre>
-//    * #undef FIXED_ADC_FN
-//    * #undef FIXED_GPIO_FN
-//    * #undef FIXED_PORT_CLOCK_REG
-//    * 
-//    * #define FIXED_ADC_FN         0                    // Fixed ADC Multiplexing value
-//    * #define FIXED_GPIO_FN        1                    // Fixed GPIO Multiplexing value
-//    * #define FIXED_PORT_CLOCK_REG SIM->SCGC5           // Fixed PORT Clock
-//    * </pre>
-//    * 
-//    * @param writer Where to write
-//    * 
-//    * @throws IOException 
-//    * 
-//    * @throws Exception 
-//    */
-//   private void writePinDefines(DocumentUtilities writer) throws IOException {
-//      writer.writeBanner("Common Mux settings for PCR");
-//      writer.writeMacroUnDefinition("FIXED_ADC_FN");
-//      writer.writeMacroUnDefinition("FIXED_GPIO_FN");
-//      writer.writeMacroUnDefinition("FIXED_PORT_CLOCK_REG");
-//      if (adcFunctionMuxValueChanged) {
-//         writer.writeMacroDefinition("ADC_FN_CHANGES", "", " Indicates ADC Multiplexing varies with pin");
-//      }
-//      else {
-//         writer.writeMacroDefinition("FIXED_ADC_FN", Integer.toString(adcFunctionMuxValue), " Fixed ADC Multiplexing value");
-//      }
-//      if (gpioFunctionMuxValueChanged) {
-//         writer.writeMacroDefinition("GPIO_FN_CHANGES", "", " Indicates GPIO Multiplexing varies with pin");
-//      }
-//      else {
-//         writer.writeMacroDefinition("FIXED_GPIO_FN", Integer.toString(gpioFunctionMuxValue), " Fixed GPIO Multiplexing value");
-//      }
-//      if (portClockRegisterChanged) {
-//         writer.writeMacroDefinition("PORT_CLOCK_REG_CHANGES", "", " Indicates PORT Clock varies with pin");
-//      }
-//      else {
-//         writer.writeMacroDefinition("FIXED_PORT_CLOCK_REG", portClockRegisterValue, " Fixed PORT Clock");
-//      }
-//      writer.write("\n");
-//   }
-
-   static final String PORT_CLOCK_FUNCTIONS = 
-      "   /*\n"+
-      "    * Enable clock to ports\n"+
-      "    *\n"+
-      "    * @param mask Mask for PORTs to enable\n"+
-      "    */\n"+
-      "   static inline void enablePortClocks(uint32_t mask) {\n"+
-      "      SIM->SCGC5 |=  mask;\n"+
-      "   };\n"+
-      "   \n"+
-      "   /*\n"+
-      "    * Disable clock to ports\n"+
-      "    *\n"+
-      "    * @param mask Mask for PORTs to disable\n"+
-      "    */\n"+
-      "   static inline void disablePortClocks(uint32_t mask) {\n"+
-      "      SIM->SCGC5 &=  ~mask;\n"+
-      "   };\n\n";
-   
-   /**
-    * Writes port clock functions
-    * 
-    * <pre>
-    *    "static void enablePortClocks(uint32_t mask) {...
-    * </pre>
-    * 
-    * @param writer  Where to write
-    * 
-    * @throws IOException 
-    */
-   private void writePortClockFunctions(DocumentUtilities writer) throws IOException {
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
-      writer.write(PORT_CLOCK_FUNCTIONS);
-      writer.writeCloseNamespace();
-   }
-
    /**
     * Write all Peripheral Information Classes<br>
     * 
@@ -620,8 +540,6 @@ public class WriteFamilyCpp {
       writer.writeHeaderFileInclude("pcr.h");
       headerFile.write("\n");
 
-//      writePinDefines(writer);
-      writePortClockFunctions(writer);
       writePeripheralInformationClasses(writer);
 
       writeMappedSignals(writer);

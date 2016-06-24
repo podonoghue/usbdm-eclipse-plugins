@@ -404,4 +404,10 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       return super.getAdapter(required);
    }
 
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      // TODO Auto-generated method stub
+      
+   }
+
 }

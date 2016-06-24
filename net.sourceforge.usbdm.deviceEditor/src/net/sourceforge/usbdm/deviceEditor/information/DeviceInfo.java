@@ -29,6 +29,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmt;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForConsole;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForControl;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
@@ -55,6 +56,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSim;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSpi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForToDo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForTsi;
@@ -1126,6 +1128,18 @@ public class DeviceInfo extends ObservableModel {
                WriterForSim.class);
          
          createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(SMC)",
+               getDeviceFamily(),
+               WriterForSmc.class);
+         
+         createPeripheralTemplateInformation(
+               "Console", "", "",
+               "CONSOLE",
+               getDeviceFamily(),
+               WriterForConsole.class);
+         
+         createPeripheralTemplateInformation(
                "ExternalTrigger", "", "$0",
                "(EXTRG_IN)",
                getDeviceFamily(),
@@ -1426,6 +1440,10 @@ public class DeviceInfo extends ObservableModel {
                   public String getTitle() {
                      return null;
                   }
+
+                  @Override
+                  public void elementStatusChanged(ObservableModel observableModel) {
+                  }
                });
             } catch (Exception e) {
             }
@@ -1486,7 +1504,6 @@ public class DeviceInfo extends ObservableModel {
       }
       // Save variables
       for (String key:fVariables.keySet()) {
-         // TODO
          settings.put(key, fVariables.get(key).getPersistentValue());
       }
       try {

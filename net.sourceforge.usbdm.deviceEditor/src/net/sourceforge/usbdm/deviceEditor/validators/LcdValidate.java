@@ -54,7 +54,7 @@ public class LcdValidate extends Validator {
 //      NumericListVariable  frontplanesVar      =  (NumericListVariable) getVariable("frontplanes");
       
       
-      backplanesVar.setListSize((int)lcd_gcr_dutyVar.getValueAsLong()+1);
+      backplanesVar.setListLength((int)lcd_gcr_dutyVar.getValueAsLong()+1);
       
       double divider = 1<<(3*lcd_gcr_altdivVar.getValueAsLong());
             

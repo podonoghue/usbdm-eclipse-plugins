@@ -4,12 +4,13 @@ import java.util.regex.Pattern;
 
 public class NumericListVariable extends StringVariable {
 
-   protected long fMin      = Long.MIN_VALUE;
-   protected long fMax      = Long.MAX_VALUE;
-   private   int  fListSize = 0;
+   protected long fMin         = Long.MIN_VALUE;
+   protected long fMax         = Long.MAX_VALUE;
+   private   int  fMinListSize = 0;
+   private   int  fMaxListSize = 0;
 
    static final String  fDelimeter    = "[, ]+";
-   static final Pattern fValuePattern = Pattern.compile("(\\d+[ ,])*(\\d+)[ ,]?");
+   static final Pattern fValuePattern = Pattern.compile("((\\d+[ ,]+)*\\d+[ ]+),?");
    
    public NumericListVariable(String name, String key) {
       super(name, key);
@@ -17,13 +18,24 @@ public class NumericListVariable extends StringVariable {
 
    @Override
    public String isValid(String value) {
-      if (!fValuePattern.matcher(value).matches()) {
-         return "Illegal list";
-      }
+//      Matcher m = fValuePattern.matcher(value);
+//      if (!m.matches()) {
+//         return "Illegal list";
+//      }
+//      value = m.group(1);
       try {
-         String values[] = value.split("[, ]+");
-         if ((fListSize>0) && (values.length != fListSize)) {
-            return "Illegal number of elements, Requires " + fListSize;
+         String values[];
+         if (value.isEmpty()) {
+            values = new String[0];
+         }
+         else {
+            values = value.split(fDelimeter);
+         }
+         if ((fMaxListSize>0) && (values.length > fMaxListSize)) {
+            return "Illegal number of elements, Requires < " + fMaxListSize;
+         }
+         if ((fMinListSize>0) && (values.length < fMinListSize)) {
+            return "Illegal number of elements, Requires > " + fMaxListSize;
          }
          for (String s:values) {
             int iValue = Integer.parseInt(s);
@@ -63,9 +75,13 @@ public class NumericListVariable extends StringVariable {
    @Override
    public boolean setValue(String value) {
       StringBuilder sb = new StringBuilder();
+      boolean isFirst = true;
       for (String s:value.toString().split(fDelimeter)) {
+         if (!isFirst) {
+            sb.append(",");
+         }
+         isFirst = false;
          sb.append(s);
-         sb.append(",");
       }
       String s = sb.toString();
       return super.setValue(s);
@@ -95,16 +111,39 @@ public class NumericListVariable extends StringVariable {
    }
 
    /**
+    * Set Minimum number of entries in list<br>
+    * 
+    * @param l
+    */
+   public void setMinListLength(long l) {
+      fMinListSize = (int) l;
+   }
+   
+   /**
+    * Set maximum number of entries in list<br>
+    * A value of 0 sets no limit
+    * 
+    * @param l
+    */
+   public void setMaxListLength(long l) {
+      fMaxListSize = (int) l;
+      if (fMinListSize>l) {
+         fMinListSize = (int)l;
+      }
+   }
+   
+   /**
     * Set number of entries in list<br>
     * A value of 0 sets no limit
     * 
-    * @param size
+    * @param l
     */
-   public void setListSize(int size) {
-      if (fListSize == size) {
+   public void setListLength(long l) {
+      if (fMaxListSize == l) {
          return;
       }
-      fListSize = size;
+      fMaxListSize = (int) l;
+      fMinListSize = (int) l;
       notifyListeners();
    }
    

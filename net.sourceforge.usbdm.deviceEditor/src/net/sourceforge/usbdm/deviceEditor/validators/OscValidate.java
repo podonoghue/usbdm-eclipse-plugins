@@ -107,7 +107,7 @@ public class OscValidate extends Validator {
       Variable     oscclk_clockVar                 =  getVariable("oscclk_clock");
       Variable     osc_input_freqVar               =  getVariable("osc_input_freq");
       
-      Variable     rtcSharesPinsVar                =  safeGetVariable("rtcSharesPins");
+      Variable     rtcSharesPinsVar                =  safeGetVariable("/SIM/rtcSharesPins");
       Variable     rtc_cr_osceVar                  =  safeGetVariable("/RTC/rtc_cr_osce");
 
       Message oscclk_clockStatus    = null;

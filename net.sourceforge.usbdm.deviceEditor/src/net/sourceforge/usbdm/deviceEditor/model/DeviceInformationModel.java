@@ -19,10 +19,4 @@ public final class DeviceInformationModel extends TreeViewModel {
    @Override
    protected void removeMyListeners() {
    }
-
-   @Override
-   public EditorPage createEditorPage() {
-      return new TreeEditorPage();
-   }
-   
 }

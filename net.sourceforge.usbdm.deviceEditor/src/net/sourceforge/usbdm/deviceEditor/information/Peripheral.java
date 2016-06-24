@@ -140,7 +140,7 @@ public abstract class Peripheral {
     * Defaults to name based on peripheral e.g. Ftm
     */
    public String getVersion() {
-      return (fVersion!=null)?fVersion:getClassBaseName();
+      return ((fVersion!=null) && !fVersion.isEmpty())?fVersion:getClassBaseName();
    }
 
    /**

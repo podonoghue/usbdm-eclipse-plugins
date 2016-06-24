@@ -321,16 +321,18 @@ public class ParseFamilyCSV {
          }
       }
 
-      Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
-      Matcher matcher = pattern.matcher(peripheralClockReg);
-      if (!matcher.matches()) {
-         throw new RuntimeException("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
+      if ((peripheralClockReg != null) && !peripheralClockReg.isEmpty()) {
+         Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
+         Matcher matcher = pattern.matcher(peripheralClockReg);
+         if (!matcher.matches()) {
+            throw new RuntimeException("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
+         }
+         peripheralClockReg = matcher.group(1);
+         if (!peripheralClockMask.contains(peripheralClockReg)) {
+            throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
+         }
+         peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
       }
-      peripheralClockReg = matcher.group(1);
-      if (!peripheralClockMask.contains(peripheralClockReg)) {
-         throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
-      }
-      peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
       for (int index=0; index<irqNums.length; index++) {
          if (irqNums[index] != null) {
             peripheral.addIrqNum(irqNums[index]);

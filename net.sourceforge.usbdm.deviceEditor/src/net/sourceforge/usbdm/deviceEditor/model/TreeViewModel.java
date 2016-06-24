@@ -6,7 +6,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 /**
  *  Represents the top of a Tree view
  */
-public abstract class TreeViewModel extends PeripheralPageModel {
+public class TreeViewModel extends PeripheralPageModel {
 
    /** Labels for view columns */
    private final String[] fColumnLabels;
@@ -16,8 +16,6 @@ public abstract class TreeViewModel extends PeripheralPageModel {
    
    /**
     * Constructor
-    * @param factory 
-    * 
     * @param columnLabels  Labels to use for columns
     * @param title         Title
     * @param toolTip       Tool tip
@@ -54,5 +52,13 @@ public abstract class TreeViewModel extends PeripheralPageModel {
    protected StructuredViewer getViewer() {
       return fViewer;
    }
-   
+
+   @Override
+   public EditorPage createEditorPage() {
+      return new TreeEditorPage();
+   }
+
+   @Override
+   protected void removeMyListeners() {
+   }
 }

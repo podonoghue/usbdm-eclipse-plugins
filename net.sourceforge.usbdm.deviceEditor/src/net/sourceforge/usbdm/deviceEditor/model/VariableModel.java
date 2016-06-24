@@ -109,5 +109,10 @@ public class VariableModel extends EditableModel implements IModelChangeListener
       }
       return fVariable.getStatus();
    }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      updateAncestors();
+   }
    
 }

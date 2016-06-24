@@ -20,8 +20,8 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
-   TreeViewModel fParameterModels = null;
-   boolean       underConstruction;
+   PeripheralParametersModel fParameterModels = null;
+   boolean  underConstruction;
    
    /**
     * Used to sort the pins into categories for display
@@ -186,11 +186,11 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return
     */
-   private TreeViewModel createParameterModels() {
+   private PeripheralParametersModel createParameterModels() {
       if (fParameterModels != null) {
          return fParameterModels;
       }
-      fParameterModels = new PeripheralConfigurationModel(this, null, "Peripheral Parameters", "These are usually the default values for parameters");
+      fParameterModels = new PeripheralParametersModel(this, null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
@@ -533,5 +533,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             viewer.refresh();
          };
       }
+   }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
    }
 }

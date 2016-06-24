@@ -7,11 +7,11 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.w3c.dom.Attr;
 
 public class DynamicLayout {
    String fType;
    private int fColumns;
+   @SuppressWarnings("unused")
    private int fRows;
    private String fDirection;
 

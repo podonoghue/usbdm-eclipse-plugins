@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-Name: USBDM JNI Plugin
 Bundle-NativeCode: 
- i386/libgcc_s_dw2-1.dll;i386/libstdc++-6.dll;i386/usbdm.4.dll;i386/usbdm-jni.4.dll;i386/usbdm-debug.4.dll;i386/usbdm-jni-debug.4.dll;osname=Win32;processor=i386,
+ i386/usbdm.4.dll;i386/usbdm-jni.4.dll;i386/usbdm-debug.4.dll;i386/usbdm-jni-debug.4.dll;osname=Win32;processor=i386,
  x86_64/libwinpthread-1.dll;x86_64/libgcc_s_seh-1.dll;x86_64/libstdc++-6.dll;x86_64/usbdm.4.dll;x86_64/usbdm-jni.4.dll;x86_64/usbdm-debug.4.dll;x86_64/usbdm-jni-debug.4.dll;osname=Win32;processor=x86_64,
  i386/libusbdm-jni.so;i386/libusbdm-jni-debug.so;osname=linux;processor=i386,
  x86_64/libusbdm-jni.so;x86_64/libusbdm-jni-debug.so;osname=linux;processor=x86_64,

@@ -4,9 +4,9 @@ Device,MKL43Z128VLH4,KL43P64M48SF6RM,LQFP_64,,,,,,,,,,,,,,,
 Device,MKL43Z256VLH4,KL43P64M48SF6RM,LQFP_64,,,,,,,,,,,,,,,
 Device,MKL43Z128VMP4,KL43P64M48SF6RM,BGA_64,,,,,,,,,,,,,,,
 Device,MKL43Z256VMP4,KL43P64M48SF6RM,BGA_64,,,,,,,,,,,,,,,
-Device,FRDM_KL43Z4,KL43P64M48SF6RM,FRDM,,,,,,,,,,,,,,,
+Device,FRDM_KL43Z4,KL43P64M48SF6RM,FRDM_KL43Z,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
-Key,Pin,Pkg LQFP_64,Pkg BGA_64,Pkg FRDM,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort,64_BGA,64_LQFP,Seq#
+Key,Pin,Pkg LQFP_64,Pkg BGA_64,Pkg FRDM_KL43Z,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort,64_BGA,64_LQFP,Seq#
 Pin,PTE0,p1,A1,D14,LCD_P48,I2C1_SDA,LCD_P48,GPIOE_0/CLKOUT32K,SPI1_MISO,LPUART1_TX,RTC_CLKOUT,CMP0_OUT,I2C1_SDA,LCD_P48,,A1,1,1
 Pin,PTE1,p2,B1,D15,LCD_P49,I2C1_SCL,LCD_P49,GPIOE_1,SPI1_MOSI,LPUART1_RX,,SPI1_MISO,I2C1_SCL,LCD_P49,,B1,2,2
 Pin,VDD1,p3,*,,VDD1,,,,,,,,,,,*,3,3
@@ -111,8 +111,10 @@ Peripheral,RTC,SIM->SCGC6,,,RTC_Alarm_IRQn,RTC_Seconds_IRQn,,,,,,,,,,,,
 Peripheral,DAC0,SIM->SCGC6,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 Peripheral,DMA,SIM->SCGC7,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,
+Peripheral,LLWU,,,,LLWU_IRQn,,,,,,,,,,,,,
+Peripheral,SMC,,,,,,,,,,,,,,,,,
 Peripheral,SIM,,,,,,,,,,,,,,,,,
+Peripheral,CONSOLE,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 ,,DMA #,Source,Async DMA,,,,,,,,,,,,,,
 DmaMux,0,0,Disabled,,,,,,,,,,,,,,,
@@ -159,4 +161,3 @@ DmaMux,0,62,AlwaysEnabled2,,,,,,,,,,,,,,,
 DmaMux,0,63,AlwaysEnabled3,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 ,Peripheral,key,value,,,,,,,,,,,,,,,
-Param,OSC0,rtcSharesPins,1,,,,,,,,,,,,,,,

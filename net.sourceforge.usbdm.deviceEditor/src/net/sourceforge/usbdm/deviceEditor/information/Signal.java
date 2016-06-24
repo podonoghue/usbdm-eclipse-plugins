@@ -256,4 +256,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       // Not used
    }
 
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      notifyStatusListeners();
+   }
+
 }

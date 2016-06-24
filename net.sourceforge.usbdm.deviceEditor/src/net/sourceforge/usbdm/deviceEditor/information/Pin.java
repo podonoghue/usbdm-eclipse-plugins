@@ -536,41 +536,30 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          if (mappingInfo.isSelected()) {
             // Signal has been mapped to this pin
             if (fMuxValue == mappingInfo.getMux()) {
-//               System.err.println("Pin("+fName+").modelElementChanged("+mappingInfo+") - Selection Ignored");
-               // Already mapped - ignore
-               return;
-            }
-            // Deselect other signals
-            for (MuxSelection muxValue:fMappedSignals.keySet()) {
-               if (muxValue != mappingInfo.getMux()) {
-                  fMappedSignals.get(muxValue).select(Origin.pin, false);
+               // Deselect other signals
+               for (MuxSelection muxValue:fMappedSignals.keySet()) {
+                  if (muxValue != mappingInfo.getMux()) {
+                     fMappedSignals.get(muxValue).select(Origin.pin, false);
+                  }
                }
+               // Select this signal
+               fMuxValue = mappingInfo.getMux();
+               fDeviceInfo.setDirty(true);
             }
-            // Select this signal
-            fMuxValue = mappingInfo.getMux();
-            fDeviceInfo.setDirty(true);
          }
          else {
             // Signal may have been unmapped
-            if (fMuxValue != mappingInfo.getMux()) {
-               // Not currently mapped - ignore
-//               System.err.println("Pin("+fName+").modelElementChanged("+mappingInfo+") - Unselection Ignored");
-               return;
+            if (fMuxValue == mappingInfo.getMux()) {
+               fMuxValue = MuxSelection.reset;
+               fDeviceInfo.setDirty(true);
             }
-            fMuxValue = MuxSelection.reset;
-            fDeviceInfo.setDirty(true);
+         }
+         if (fMuxValue == null) {
+            throw new RuntimeException("Impossible mapping");
          }
       }
 //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
-      if (fMuxValue == null) {
-         throw new RuntimeException("Impossible mapping");
-      }
       notifyListeners();
-   }
-
-   @Override
-   public void modelStructureChanged(ObservableModel model) {
-      notifyStructureChangeListeners();
    }
 
    public void setPort(Signal signal) throws Exception {
@@ -589,5 +578,15 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             }
          }
       }
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+      notifyStructureChangeListeners();
+   }
+
+   @Override
+   public void elementStatusChanged(ObservableModel model) {
+      notifyStatusListeners();
    }
 }

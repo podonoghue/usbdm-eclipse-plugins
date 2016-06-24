@@ -8,9 +8,9 @@ Device,MKL27Z32VLH4,KL27P64M48SF2RM,LQFP_64,,,,,,,,,,,,,,,,,,,
 Device,MKL27Z64VLH4,KL27P64M48SF2RM,LQFP_64,,,,,,,,,,,,,,,,,,,
 Device,MKL27Z32VMP4,KL27P64M48SF2RM,BGA_64,,,,,,,,,,,,,,,,,,,
 Device,MKL27Z32VMP4,KL27P64M48SF2RM,BGA_64,,,,,,,,,,,,,,,,,,,
-Device,FRDM_KL27Z,KL27P64M48SF2RM,FRDM,,,,,,,,,,,,,,,,,,,
+Device,FRDM_KL27Z,KL27P64M48SF2RM,FRDM_KL27Z,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,
-Key,Pin,Pkg FRDM,Pkg LQFP_64,Pkg QFN_32,Pkg QFN_48,Pkg BGA_64,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,64 LQFP,32 QFN,48 QFN,64 BGA,36 BGA
+Key,Pin,Pkg FRDM_KL27Z,Pkg LQFP_64,Pkg QFN_32,Pkg QFN_48,Pkg BGA_64,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Seq,64 LQFP,32 QFN,48 QFN,64 BGA,36 BGA
 Pin,PTE17,*,*,*,*,*,ADC0_DM1/ADC0_SE5a,,ADC0_DM1/ADC0_SE5a,GPIOE_17,SPI0_SCK,UART2_RX,TPM_CLKIN1,LPTMR0_ALT3,FXIO0_D1,,1,*,*,*,*,C1
 Pin,PTE18,*,*,*,*,*,ADC0_DP2/ADC0_SE2,,ADC0_DP2/ADC0_SE2,GPIOE_18,SPI0_MOSI,,I2C0_SDA,SPI0_MISO,FXIO0_D2,,2,*,*,*,*,D1
 Pin,PTE0,,p1,p1,*,A1,DISABLED,,,GPIOE_0/CLKOUT32K,SPI1_MISO,LPUART1_TX,RTC_CLKOUT,CMP0_OUT,I2C1_SDA,,4,1,1,*,A1,A1
@@ -111,5 +111,8 @@ Peripheral,TPM2,SIM->SCGC6,,,TPM2_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,ADC0,SIM->SCGC6,,,ADC0_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,RTC,SIM->SCGC6,,,RTC_Alarm_IRQn,RTC_Seconds_IRQn,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,
+Peripheral,SMC,,,,,,,,,,,,,,,,,,,,,
 Peripheral,DMA,SIM->SCGC7,,,,,,,,,,,,,,,,,,,,
+Peripheral,SIM,,,,,,,,,,,,,,,,,,,,,
+Peripheral,CONSOLE,,,,,,,,,,,,,,,,,,,,,
+Peripheral,LLWU,,,,LLWU_IRQn,,,,,,,,,,,,,,,,,

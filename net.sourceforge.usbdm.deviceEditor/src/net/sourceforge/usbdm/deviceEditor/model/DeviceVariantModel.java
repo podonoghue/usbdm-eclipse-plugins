@@ -59,4 +59,8 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
       fDeviceInfo.removeListener(this);
    }
 
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+   }
+
 }

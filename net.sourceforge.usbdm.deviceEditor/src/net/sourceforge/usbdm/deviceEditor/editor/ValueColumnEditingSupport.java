@@ -22,12 +22,12 @@ import org.eclipse.swt.widgets.Tree;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.SelectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
-import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 

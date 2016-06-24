@@ -89,7 +89,11 @@ public class PcrInitialiser {
       
       if (pcrValue == null) {
          for (Signal sig:mapping.getSignals()) {
-            String pinPcrValue = sig.getPeripheral().getPcrValue(sig);
+            Peripheral peripheral = sig.getPeripheral();
+            if (peripheral == null) {
+               continue;
+            }
+            String pinPcrValue = peripheral.getPcrValue(sig);
             if (pinPcrValue != null) {
                if (pcrValue == null) {
                   pcrValue = pinPcrValue;

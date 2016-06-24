@@ -203,6 +203,7 @@ public class ImageCanvas extends Canvas {
                new Image(getDisplay(), clientRect.width, clientRect.height);
          GC newGC = new GC(screenImage);
          newGC.setClipping(clientRect);
+         newGC.setAntialias(SWT.ON);
          newGC.drawImage(
                sourceImage,
                imageRect.x,
@@ -249,9 +250,9 @@ public class ImageCanvas extends Canvas {
     * @param scrollBar
     */
    private void scrollHorizontally(ScrollBar scrollBar) {
-      if (sourceImage == null)
+      if (sourceImage == null) {
          return;
-
+      }
       AffineTransform af = fTransform;
       double tx = af.getTranslateX();
       double select = -scrollBar.getSelection();
@@ -266,9 +267,9 @@ public class ImageCanvas extends Canvas {
     * @param scrollBar
     */
    private void scrollVertically(ScrollBar scrollBar) {
-      if (sourceImage == null)
+      if (sourceImage == null) {
          return;
-
+      }
       AffineTransform af = fTransform;
       double ty = af.getTranslateY();
       double select = -scrollBar.getSelection();
@@ -282,8 +283,9 @@ public class ImageCanvas extends Canvas {
     * Fit the image onto the canvas
     */
    public void fitCanvas() {
-      if (sourceImage == null)
+      if (sourceImage == null) {
          return;
+      }
       Rectangle imageBound = sourceImage.getBounds();
       Rectangle destRect = getClientArea();
       double sx = (double) destRect.width / (double) imageBound.width;
@@ -325,7 +327,6 @@ public class ImageCanvas extends Canvas {
          redraw();
          return;
       }
-
       AffineTransform af = fTransform;
       double sx = af.getScaleX(), sy = af.getScaleY();
       double tx = af.getTranslateX(), ty = af.getTranslateY();

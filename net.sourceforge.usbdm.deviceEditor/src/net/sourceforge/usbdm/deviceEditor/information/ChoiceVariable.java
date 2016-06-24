@@ -1,8 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.peripherals.ChoiceVariableModel;
 
 public class ChoiceVariable extends Variable {
 
@@ -228,21 +228,22 @@ public class ChoiceVariable extends Variable {
 
    @Override
    public void setPersistentValue(String value) {
-      int index = -1;
       try {
-         index = Integer.parseInt(value);
-         if ((index<0) || (index>fData.length)) {
-            index = -1;
+         // Try as index number
+         int index = Integer.parseInt(value);
+         if ((index>=0) && (index<fData.length)) {
+            fValue = fData[index].name;
+            return;
          }
       } catch (NumberFormatException e) {
       }
-      if (index<0) {
-         if (isValid(value) == null) {
-            fValue = value;
-            return;
-         }
-         fValue = fDefault;
+      // Try as selected value
+      if (isValid(value) == null) {
+         fValue = value;
+         return;
       }
-      fValue = fData[index].name;
+      // Use default
+      fValue = fDefault;
+      return;
    }
 }

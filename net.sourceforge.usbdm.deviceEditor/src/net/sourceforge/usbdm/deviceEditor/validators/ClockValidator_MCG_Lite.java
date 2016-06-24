@@ -60,43 +60,43 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
       // SC
       //=================================
-      Variable     mcg_sc_fcrdivVar                =  safeGetVariable("mcg_sc_fcrdiv");
+      Variable     mcg_sc_fcrdivVar                 =  safeGetVariable("mcg_sc_fcrdiv");
 
       // MC
       //=================================
-      Variable     mcg_mc_hircenVar                =  safeGetVariable("mcg_mc_hircen");
-      Variable     mcg_mc_lirc_div2Var             =  safeGetVariable("mcg_mc_lirc_div2");
+      Variable     mcg_mc_hircenVar                 =  safeGetVariable("mcg_mc_hircen");
+      Variable     mcg_mc_lirc_div2Var              =  safeGetVariable("mcg_mc_lirc_div2");
 
       // LIRC
       //=================================
-      Variable     system_slow_irc_clockVar        =  getVariable("system_slow_irc_clock");
-      Variable     system_fast_irc_clockVar        =  getVariable("system_fast_irc_clock");
-      Variable     system_lirc_clockVar            =  getVariable("system_lirc_clock");
-      Variable     system_lirc_div1_clockVar       =  getVariable("system_lirc_div1_clock");
-      Variable     system_mcgirclk_clockVar        =  getVariable("system_mcgirclk_clock");
+      Variable     system_slow_irc_clockVar         =  getVariable("system_slow_irc_clock");
+      Variable     system_fast_irc_clockVar         =  getVariable("system_fast_irc_clock");
+      Variable     system_lirc_clockVar             =  getVariable("system_lirc_clock");
+      Variable     system_lirc_div1_clockVar        =  getVariable("system_lirc_div1_clock");
+      Variable     system_mcgirclk_clockVar         =  getVariable("system_mcgirclk_clock");
 
       // Internal
       //=================================
-      Variable     system_irc48m_clockVar          =  safeGetVariable("system_irc48m_clock");
-//    Variable     usb_clkin_clockVar              =  getLongVariable("system_usb_clkin_clock");
+      Variable     system_irc48m_clockVar           =  safeGetVariable("system_irc48m_clock");
+//    Variable     usb_clkin_clockVar               =  getLongVariable("system_usb_clkin_clock");
 
       // Clocks and information from main oscillator
       //=================================
-      Variable     oscclk_clockVar                 =  getVariable("/OSC0/oscclk_clock");
-      Variable     oscRangeInVar                   =  getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
+      Variable     oscclk_clockVar                  =  getVariable("/OSC0/oscclk_clock");
+      Variable     oscRangeInVar                    =  getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
 
       //=================================
-      Variable     clock_modeVar                   =  getVariable("clock_mode");
+      Variable     clock_modeVar                    =  getVariable("clock_mode");
 
       //=================================
       Variable     system_mcgoutclk_clock_sourceVar =  getVariable("system_mcgoutclk_clock_source");
       Variable     system_mcgoutclk_clockVar        =  getVariable("system_mcgoutclk_clock");
       
-      Variable     system_mcgpclk_clockVar         =  getVariable("system_mcgpclk_clock");
+      Variable     system_mcgpclk_clockVar          =  getVariable("system_mcgpclk_clock");
 
       
-      long rangIn = oscRangeInVar.getValueAsLong();
-      if (rangIn != OscValidate.UNCONSTRAINED_RANGE) {
+      long rangeIn = oscRangeInVar.getValueAsLong();
+      if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
          mcg_c2_range0Var.enable(true);
          mcg_c2_range0Var.setValue(oscRangeInVar.getValueAsLong());
       }
@@ -135,8 +135,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c2_ircsVar.setValue(0);
          mcg_c2_ircsVar.setLocked(true);
 
-         system_mcgoutclk_clockVar.setValue(system_slow_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_slow_irc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(system_lirc_div1_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_lirc_div1_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Message)null);
          system_mcgoutclk_clock_sourceVar.setValue("LIRC2");
          break;
@@ -146,8 +146,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c2_ircsVar.setValue(1);
          mcg_c2_ircsVar.setLocked(true);
 
-         system_mcgoutclk_clockVar.setValue(system_fast_irc_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(system_fast_irc_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(system_lirc_div1_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(system_lirc_div1_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Message)null);
          system_mcgoutclk_clock_sourceVar.setValue("LIRC8");
          break;

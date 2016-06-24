@@ -37,5 +37,9 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    protected void removeMyListeners() {
       fDeviceInfo.addListener(this);
    }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+   }
    
 }

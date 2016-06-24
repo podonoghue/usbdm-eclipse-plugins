@@ -14,7 +14,6 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
@@ -22,6 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.CodeTemplate;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
@@ -40,6 +40,21 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    private final class KeyMaker implements IKeyMaker {
+      @Override
+      public String makeKey(String name) {
+         if (name.charAt(0) == '/') {
+            return name;
+         }
+         return "/"+getName()+"/"+name;
+      }
+   }
+   
+   private final class IndexKeyMaker implements IKeyMaker {
+      private final String fIndex;
+      
+      public IndexKeyMaker(int index) {
+         fIndex = "[" + index + "]";
+      }
       @Override
       public String makeKey(String name) {
          if (name.charAt(0) == '/') {
@@ -110,9 +125,19 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
       pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
-      String template = fData.fTemplate.get("");
+      CodeTemplate template = fData.fTemplate.get("");
       if (template != null) {
-         pinMappingHeaderFile.write(substitute(template));
+         //TODO - add dimension
+//         Variable dimension = template.getDimension();
+//         if (dimension != null) {
+//            int dim = (int)dimension.getValueAsLong();
+//            for (int index=0; index<dim; index++) {
+//               pinMappingHeaderFile.write(substitute(template.getTemplate()));
+//            }
+//         }
+//         else {
+         pinMappingHeaderFile.write(substitute(template.getTemplate()));
+//         }
       }
    }
 
@@ -132,24 +157,36 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @param map  Map to symbols add to
     *  
-    * @return Modified map or original if no symbols added
+    * @return Modified map
     */
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
       map.put("_instance", getInstance());
       map.put("_name",     getName());
+      
       // Load any named templates
       for (String key:fData.fTemplate.keySet()) {
          if (key.isEmpty()) {
             continue;
          }
-         String fileTemplate = fData.fTemplate.get(key);
-         if ((fileTemplate == null) || fileTemplate.isEmpty()) {
-            continue;
+         CodeTemplate fileTemplate = fData.fTemplate.get(key);
+
+         // Final template after substitutions
+         String substitutedTemplate = null;
+         
+         // Check for dimension
+         Variable dimension = fileTemplate.getDimension();
+         if (dimension != null) {
+            StringBuffer sb = new StringBuffer();
+            int dim = (int)dimension.getValueAsLong();
+            for (int index=0; index<dim; index++) {
+               sb.append(FileUtility.substitute(fileTemplate.getTemplate(), map, new IndexKeyMaker(index)));
+            }
+            substitutedTemplate = sb.toString();
          }
-         fileTemplate = substitute(fileTemplate, map);
-         key = makeKey(key);
-//         System.err.println(key+"\n"+fileTemplate);
-         map.put(key, fileTemplate);
+         else {
+            substitutedTemplate = FileUtility.substitute(fileTemplate.getTemplate(), map, keyMaker);
+         }
+         map.put(keyMaker.makeKey(key), substitutedTemplate);
       }
       return map;
    }
@@ -191,16 +228,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
-   @Override
-   public void loadSettings(Settings settings) {
-      super.loadSettings(settings);
-   }
-
-   @Override
-   public void saveSettings(Settings settings) {
-      super.saveSettings(settings);
-   }
-   
    /**
     * Does variable substitution in a string
     * 
@@ -303,6 +330,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    @Override
    public void modelStructureChanged(ObservableModel observableModel) {
+   }
+   
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
    }
 
    /**

@@ -303,9 +303,6 @@ public class LongVariable extends Variable {
 
    @Override
    public String getPersistentValue() {
-      if (getUnits() != Units.None) {
-         return EngineeringNotation.convert(fValue, 5)+getUnits().toString();
-      }
       return Long.toString(fValue);
    }
 

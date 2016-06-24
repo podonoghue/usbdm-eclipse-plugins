@@ -140,11 +140,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
 
    @Override
-   public void modelStructureChanged(ObservableModel model) {
-      // Not used
-   }
-
-   @Override
    public boolean isReset() {
       return (fPin.getMuxValue() == MuxSelection.reset);
    }
@@ -172,5 +167,15 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    public String toString() {
       return "PinModel("+fName+") => "+getValueAsString();
+   }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      updateAncestors();
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+      // Not used
    }
 }
