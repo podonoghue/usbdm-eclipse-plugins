@@ -6,7 +6,7 @@ import org.eclipse.swt.widgets.Control;
 /**
  * Represents a page in the editor
  */
-public abstract interface EditorPage {
+public abstract interface IEditorPage {
 
    /**
     * Constructs the composite representing this editor page
@@ -18,7 +18,9 @@ public abstract interface EditorPage {
 
    /**
     * Updates the Editor with changes from the model 
+    * 
     * @param peripheralPageModel 
     */
-   public abstract void update(PeripheralPageModel peripheralPageModel);
+   public abstract void update(IPage peripheralPageModel);
+   
 }

@@ -30,10 +30,11 @@ import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.PeripheralParametersModel;
+import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
+import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
+import net.sourceforge.usbdm.deviceEditor.model.TabModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -68,7 +69,8 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /** Name of model (filename) */
-   private static String fName;;
+   @SuppressWarnings("unused")
+   private static String fName;
    
    /** Provider providing the variables used by the menu */
    private final PeripheralWithState  fProvider;
@@ -233,8 +235,6 @@ public class ParseMenuXML extends XML_BaseParser {
       ChoiceVariableModel model = new ChoiceVariableModel(parent, variable);
       model.setName(name);
       model.setConstant(isConstant);
-
-      parseChildModels(model, varElement);
    }
    
    /**
@@ -394,8 +394,6 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider.addVariable(variable);
       BooleanVariableModel model = new BooleanVariableModel(parent, variable);
       model.setConstant(isConstant);
-      
-      parseChildModels(model, varElement);
    }
    
    /**
@@ -425,6 +423,53 @@ public class ParseMenuXML extends XML_BaseParser {
       var.setValue(value);
    }
 
+   private void parseControlItem(Element element) throws Exception {
+      
+      if (element.getTagName() == "fragment") {
+         parseControlItem(element);
+      }
+      else if (element.getTagName() == "validate") {
+         fValidators.add(parseValidate(element));
+      }
+      else if (element.getTagName() == "template") {
+         String templateName = element.getAttribute("name");
+         Variable dimension = null;
+         if (element.hasAttribute("dim")) {
+            String dimName = element.getAttribute("dim");
+            String key = fProvider.makeKey(dimName);
+            dimension = fProvider.safeGetVariable(key);
+            if (dimension == null) {
+               throw new RuntimeException("Alias not found for " + key);
+            }
+         }
+         addTemplate(templateName, dimension,
+               element.getTextContent().
+               replaceAll("^\n\\s*","").
+               replaceAll("(\\\\n|\\n)\\s*", "\n").
+               replaceAll("\\\\t","   "));
+//         System.err.println(fTemplate.toString().substring(0, 40)+"\n");
+      }
+      else if (element.getTagName() == "projectActionList") {
+         ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
+         pal.visit(new Visitor() {
+            @Override
+            public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
+               if (action instanceof ProjectConstant) {
+                  ProjectConstant constant = (ProjectConstant) action;
+                  Variable var = new StringVariable(constant.getId(), constant.getId());
+                  var.setValue(constant.getValue());
+                  System.err.println("Adding " + var);
+                  fProvider.addVariable(var);
+               }
+               return Visitor.CONTINUE;
+            }}, null);
+         fProjectActionList.addProjectAction(pal);
+      }
+      else {
+         throw new RuntimeException("Unexpected field in parseChildModels(), value = \'"+element.getTagName()+"\'");
+      }
+
+   }
    /**
     * Parses the children of this element
     * 
@@ -434,6 +479,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    void parseChildModels(BaseModel parentModel, Element menuElement) throws Exception {
+      
       for (Node node = menuElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -441,10 +487,31 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-//         System.err.println("parseChildModels(): " + element.getTagName() + ", " + element.getAttribute("name"));
-         if (element.getTagName() == "menu") {
-            parsePageOrMenu(parentModel, element);
+         
+         //         System.err.println("parseChildModels(): " + element.getTagName() + ", " + element.getAttribute("name"));
+         if (element.getTagName() == "fragment") {
+            parseChildModels(parentModel, element);
          }
+         else if (element.getTagName() == "category") {
+            String name        = element.getAttribute("name");
+            String description = element.getAttribute("description");
+            String toolTip     = element.getAttribute("toolTip");
+            BaseModel model = new CategoryModel(parentModel, name, description);
+            model.setToolTip(toolTip);
+            parseChildModels(model, element);
+         }
+//         else if (element.getTagName() == "section") {
+//            String name        = element.getAttribute("name");
+//            String toolTip     = element.getAttribute("toolTip");
+//            BaseModel model = new SectionModel(parentModel, name, toolTip);
+//            parseChildModels(model, element);
+//         }
+//         else if (element.getTagName() == "tab") {
+//            String name        = element.getAttribute("name");
+//            String toolTip     = element.getAttribute("toolTip");
+//            BaseModel model = new TabModel(parentModel, name, toolTip);
+//            parseChildModels(model, element);
+//         }
          else if (element.getTagName() == "intOption") {
             parseLongOption(parentModel, element);
          }
@@ -469,7 +536,13 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (element.getTagName() == "constant") {
             parseConstant(parentModel, element);
          }
-         else if (element.getTagName() == "choice") {
+         else if (element.getTagName() == "section") {
+            BaseModel model = new ParametersModel(parentModel, "Title", "Section");
+            parseChildModels(model, element);
+         }
+         else if (element.getTagName() == "tab") {
+            BaseModel model = new ParametersModel(parentModel, "Title", "Section");
+            parseChildModels(model, element);
          }
          else if (element.getTagName() == "pins") {
             parsePinsOption(parentModel, element);
@@ -477,51 +550,8 @@ public class ParseMenuXML extends XML_BaseParser {
          else if (element.getTagName() == "fragment") {
             parseChildModels(parentModel, element);
          }
-         else if (element.getTagName() == "validate") {
-            fValidators.add(parseValidate(element));
-         }
-         else if (element.getTagName() == "template") {
-            String templateName = element.getAttribute("name");
-            Variable dimension = null;
-            if (element.hasAttribute("dim")) {
-               String dimName = element.getAttribute("dim");
-               String key = fProvider.makeKey(dimName);
-               dimension = fProvider.safeGetVariable(key);
-               if (dimension == null) {
-                  throw new RuntimeException("Alias not found for " + key);
-               }
-            }
-            addTemplate(templateName, dimension,
-                  element.getTextContent().
-                  replaceAll("^\n\\s*","").
-                  replaceAll("(\\\\n|\\n)\\s*", "\n").
-                  replaceAll("\\\\t","   "));
-//            System.err.println(fTemplate.toString().substring(0, 40)+"\n");
-         }
-         else if (element.getTagName() == "menu") {
-            parsePageOrMenu(parentModel, element);
-         }
-         else if (element.getTagName() == "devicePage") {
-            parsePageOrMenu(parentModel, element);
-         }
-         else if (element.getTagName() == "projectActionList") {
-            ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
-            pal.visit(new Visitor() {
-               @Override
-               public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
-                  if (action instanceof ProjectConstant) {
-                     ProjectConstant constant = (ProjectConstant) action;
-                     Variable var = new StringVariable(constant.getId(), constant.getId());
-                     var.setValue(constant.getValue());
-                     System.err.println("Adding " + var);
-                     fProvider.addVariable(var);
-                  }
-                  return Visitor.CONTINUE;
-               }}, null);
-            fProjectActionList.addProjectAction(pal);
-         }
          else {
-            throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
+            parseControlItem( element);
          }
       }
    }
@@ -595,7 +625,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "menu") {
+         if (element.getTagName() == "category") {
          }
          else if (element.getTagName() == "intOption") {
          }
@@ -720,55 +750,116 @@ public class ParseMenuXML extends XML_BaseParser {
       return validator;
    }
    
+//   /**
+//    * Parse: <br>
+//    *    &lt;fragment&gt;<br>
+//    *    &lt;devicePage&gt;<br>
+//    *    &lt;menu&gt;<br>
+//    * 
+//    * @param menuElement
+//    * 
+//    * @throws Exception 
+//    */
+//   private void parseSections(BaseModel parent, Element sectionsElement) throws Exception {
+//      for (Node node = sectionsElement.getFirstChild();
+//            node != null;
+//            node = node.getNextSibling()) {
+//         if (node.getNodeType() != Node.ELEMENT_NODE) {
+//            continue;
+//         }
+//         Element element = (Element) node;
+//         if (element.getTagName() == "section") {
+//            BaseModel model = new ParametersModel(parent, "Title", "Section");
+//            parseChildModels(model, element);
+//         }
+//         else if (element.getTagName() == "tab") {
+//            BaseModel model = new TabModel(parent, "Title", "Tab");
+//            parseChildModels(model, element);
+//         }
+//         else {
+//            throw new RuntimeException("Unexpected field in <sections>, value = \'"+element.getTagName()+"\'");
+//         }
+//      }
+//   }
+   
    /**
     * Parse: <br>
-    *    &lt;fragment&gt;<br>
     *    &lt;devicePage&gt;<br>
-    *    &lt;menu&gt;<br>
     * 
     * @param menuElement
     * 
     * @throws Exception 
     */
-   private void parsePageOrMenu(BaseModel parent, Element element) throws Exception {
+   private BaseModel parseSectionsOrOther(BaseModel parent, Element topElement) throws Exception {
       
-//      System.err.println("parsePageOrMenu() " + element.getTagName() + ", " + element.getAttribute("name"));
-
-      String name = element.getAttribute("name");
+      String name = topElement.getAttribute("name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
-      String description = element.getAttribute("description");
-      String toolTip     = getToolTip(element);
+      String description = topElement.getAttribute("description");
+      String toolTip     = getToolTip(topElement);
 
-      if (element.getTagName() == "fragment") {
-         parseChildModels(parent, element);
-      }
-      else if (element.getTagName() == "menu") {
-         BaseModel model = new CategoryModel(parent, name, description);
-         model.setToolTip(toolTip);
-         parseChildModels(model, element);
-      }
-      else if (element.getTagName() == "devicePage") {
-         BaseModel model = new PeripheralParametersModel(null, parent, name, description);
-         model.setToolTip(toolTip);
-         if (parent == null) {
-            if (fRootModel != null) {
-               throw new RuntimeException("Multiple top level <devicePage> elements");
-            }
-            fRootModel = model;
+      BaseModel model = null;
+
+      for (Node node = topElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
          }
-         TreeViewModel treeModel = new TreeViewModel(PeripheralParametersModel.OTHER_COLUMN_LABELS, name, description);
-         model.addChild(treeModel);
-         Variable var = new StringVariable("file", "file");
-         var.setValue(fName);
-         var.setDescription("Peripheral file");
-         var.setLocked(true);
-         var.createModel(treeModel);
-         parseChildModels(treeModel, element);
+         Element element = (Element) node;
+         if (element.getTagName() == "section") {
+            if (model == null) {
+               model = new SectionModel(parent, name, toolTip);
+            }
+            parseSectionsOrOther(model, element);
+         }
+         else if (element.getTagName() == "tab") {
+            if (model == null) {
+               model = new TabModel(parent, name, toolTip);
+            }
+            parseSectionsOrOther(model, element);
+         }
+         else {
+            if (model == null) {
+               model = new ParametersModel(parent, name, description);
+               parseChildModels(model, topElement);
+               break;
+            }
+            else {
+               parseControlItem(element);
+            }
+         }
+      }
+      return model;
+   }
+   
+   /**
+    * Parse: <br>
+    *    &lt;fragment&gt;<br>
+    *    &lt;devicePage&gt;<br>
+    * 
+    * @param menuElement
+    * 
+    * @throws Exception 
+    */
+   private void parsePage(BaseModel parent, Element element) throws Exception {
+      String name = element.getAttribute("name");
+      if (name.equalsIgnoreCase("MCG")) {
+         System.err.println("MCG");
+      }
+      if (element.getTagName() == "fragment") {
+         for (Node node = element.getFirstChild();
+               node != null;
+               node = node.getNextSibling()) {
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            parsePage(parent, (Element) node);
+         }
       }
       else {
-         throw new RuntimeException("Unexpected field in ROOT, value = \'"+element.getTagName()+"\'");
+         fRootModel = parseSectionsOrOther(null, element);
       }
    }
    
@@ -814,13 +905,13 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Failed to get documentElement");
       }
       ParseMenuXML parser = new ParseMenuXML(provider);
-      for (Node child = document.getFirstChild();child != null; child = child.getNextSibling()) {
+      for (Node child = document.getFirstChild(); child != null; child = child.getNextSibling()) {
          if (child.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
          Element element = (Element) child;
 //         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
-         parser.parsePageOrMenu(parent, element);
+         parser.parsePage(parent, element);
       }
       if (parser.fRootModel == null) {
          throw new Exception("No <devicePage> found in XML");

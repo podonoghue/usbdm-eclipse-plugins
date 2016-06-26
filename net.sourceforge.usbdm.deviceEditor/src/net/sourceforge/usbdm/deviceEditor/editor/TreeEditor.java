@@ -1,9 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.util.HashMap;
-
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
@@ -13,32 +9,30 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Tree;
 
-import net.sourceforge.usbdm.deviceEditor.Activator;
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.IEditor;
 import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
-public class TreeEditor {
+public class TreeEditor implements IEditor {
 
    TreeViewer       fViewer      = null;
-   TreeViewModel        fDeviceModel = null;
+   TreeViewModel    fDeviceModel = null;
    TreeViewerColumn fColumns[];
-   
-   public TreeViewer getViewer() {
-      return fViewer;
-   }
    
    public TreeEditor() {
    }
 
-   public void setModel(TreeViewModel deviceModel) {
-      fDeviceModel = deviceModel;
-      fViewer.setInput(deviceModel);
-      deviceModel.addViewer(fViewer);
-      String[] columnLabels = deviceModel.getColumnLabels();
+   public void setModel(BaseModel model) {
+      
+      fDeviceModel = (TreeViewModel) model;
+      fViewer.setInput(fDeviceModel);
+      fDeviceModel.setViewer(fViewer);
+      String[] columnLabels = fDeviceModel.getColumnLabels();
       for (int index=0; index<columnLabels.length; index++) {
          fColumns[index].getColumn().setText(columnLabels[index]);
       }
@@ -47,26 +41,14 @@ public class TreeEditor {
    public void refresh() {
       fViewer.refresh();
    }
-   
-   private LocalResourceManager     resManager = null;
-   private HashMap<String, Image>   imageCache = new HashMap<String,Image>();
-
-   public Image getMyImage(String imageId) {
-      Image image = imageCache.get(imageId);
-      if ((Activator.getDefault() != null) && (image == null)) {
-         ImageDescriptor imageDescriptor  = Activator.getDefault().getImageDescriptor(imageId);
-         image = resManager.createImage(imageDescriptor);
-         imageCache.put(imageId, image);
-      }
-      return image;
+   public Control createControl(Composite parent) {
+      return createControl(parent, SWT.BORDER);
    }
-
-   public TreeViewer createControls(Composite parent) {
-      parent.setLayoutData(new FillLayout());
-      fViewer = new TreeViewer(parent, SWT.BORDER|SWT.FULL_SELECTION);
-//      viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+   
+   public Control createControl(Composite parent, int style) {
+//      parent.setLayoutData(new FillLayout());
+      fViewer = new TreeViewer(parent, SWT.FULL_SELECTION|style);
       ColumnViewerToolTipSupport.enableFor(fViewer);
-      
       Tree tree = fViewer.getTree();
       tree.setLinesVisible(true);
       tree.setHeaderVisible(true);
@@ -98,7 +80,16 @@ public class TreeEditor {
       fColumns[2].setEditingSupport(new DescriptionColumnEditingSupport(fViewer));
       fColumns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionColumnLabelProvider(this)));
 
+      return fViewer.getControl();
+   }
+
+   public TreeViewer getViewer() {
       return fViewer;
+   }
+   
+   @Override
+   public Control getControl() {
+      return fViewer.getControl();
    }
 
 }

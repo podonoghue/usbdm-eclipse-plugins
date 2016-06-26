@@ -311,7 +311,9 @@ public:
       const uint8_t c8;
    };
 
-   static const ClockInfo clockInfo[4];
+// Various clock configurations
+   static const ClockInfo clockInfo[1];
+
    /**
     * Get MCGERCLK
     *
@@ -358,7 +360,6 @@ public:
       }
    }
 
-   ---Symbol not found for substitution '$(/MCG/McgClockInfoEntries)'
 };
 
 /** 
@@ -2898,7 +2899,6 @@ using adc_A3               = const USBDM::Adc0Channel<6>;
  */
 using ftm_D5               = const USBDM::Ftm0Channel<6>;
 using ftm_SWD_DIO          = const USBDM::Ftm0Channel<0>;
-using ftm_A1               = const USBDM::Ftm0Channel<0>;
 /** 
  * End FTM_Group
  * @}
@@ -2976,7 +2976,7 @@ extern void mapAllPins();
  *  PTB18                    | TSI0_CH11                                   | Touch1                    | Touch 1       
  *  PTB19                    | TSI0_CH12                                   | Touch2                    | Touch 2       
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | A0                        | -       
- *  PTC1                     | FTM0_CH0                                    | A1                        | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
  *  PTC2                     | ADC0_SE4b/CMP1_IN0/TSI0_CH15                | D10                       | LCD_backlight       
  *  PTC3                     | CMP1_IN1                                    | D6/LED_RED                | Red LED       
  *  PTC4                     | Disabled                                    | D7                        | -       
@@ -3022,7 +3022,7 @@ extern void mapAllPins();
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | A0                        | -       
- *  PTC1                     | FTM0_CH0                                    | A1                        | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
  *  PTD6                     | ADC0_SE7b                                   | A2                        | -       
  *  PTD5                     | ADC0_SE6b                                   | A3                        | -       
  *  PTB1                     | GPIOB_1                                     | A4/ACC_SDA                | Accelerometer       
@@ -3099,12 +3099,13 @@ extern void mapAllPins();
  *  PTD5                     | ADC0_SE6b                                   | A3                        | -       
  *  PTD6                     | ADC0_SE7b                                   | A2                        | -       
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | A0                        | -       
+ *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
  *  ADC0_SE23                | ADC0_SE23/CMP1_IN3                          | A7                        | -       
  *  PTC3                     | CMP1_IN1                                    | D6/LED_RED                | Red LED       
  *  PTE1                     | Disabled                                    | D0                        | -       
  *  PTA18                    | EXTAL0                                      | EXTAL0                    | Reserved       
  *  EXTAL32                  | EXTAL32                                     | EXTAL32                   | Reserved(EXTAL32)       
- *  PTC1                     | FTM0_CH0                                    | A1                        | -       
+ *  PTA3                     | FTM0_CH0                                    | SWD_DIO                   | Reserved(SWD)       
  *  PTA1                     | FTM0_CH6                                    | D5                        | -       
  *  PTA0                     | GPIOA_0                                     | SWD_CLK                   | Reserved(SWD)       
  *  PTA4                     | GPIOA_4/LLWU_P3                             | D21                       | -       

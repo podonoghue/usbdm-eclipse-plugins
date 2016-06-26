@@ -11,7 +11,7 @@ public class FilePathModel extends EditableModel {
     * @param parent        Parent model
     * @param modelFactory  Model factory associated with this model
     */
-   public FilePathModel(DeviceInformationModel parent, ModelFactory modelFactory) {
+   public FilePathModel(BaseModel parent, ModelFactory modelFactory) {
       super(parent, "Hardware", "Path to hardware description");
       
       fFactory = modelFactory;

@@ -10,19 +10,14 @@ import net.sourceforge.usbdm.deviceEditor.editor.ImageCanvas;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.jni.Usbdm;
 
-public class PackageImageModel extends PeripheralPageModel implements EditorPage {
+public class PackageImageModel implements IPage, IEditorPage {
 
    private ImageCanvas        fImageCanvas = null;
    private PackageImageModel  fPackageImageModel;
    private final ModelFactory fModelFactory;
 
    public PackageImageModel(ModelFactory modelFactory) {
-      super(null, "Package Image", "");
       fModelFactory = modelFactory;
-   }
-
-   @Override
-   protected void removeMyListeners() {
    }
 
    @Override
@@ -32,7 +27,7 @@ public class PackageImageModel extends PeripheralPageModel implements EditorPage
    }
 
    @Override
-   public void update(PeripheralPageModel model) {
+   public void update(IPage model) {
       if (model != this) {
          // Only supports updating the image - not the entire model
          throw new RuntimeException("Model differs from this!");
@@ -57,7 +52,25 @@ public class PackageImageModel extends PeripheralPageModel implements EditorPage
    }
 
    @Override
-   public EditorPage createEditorPage() {
+   public IEditorPage createEditorPage() {
       return this;
+   }
+
+   @Override
+   public String getPageName() {
+      return "Package Image";
+   }
+
+   @Override
+   public void updatePage() {
+   }
+
+   @Override
+   public void removeListeners() {
+   }
+
+   @Override
+   public TreeViewModel getModel() {
+      return null;
    }
 }

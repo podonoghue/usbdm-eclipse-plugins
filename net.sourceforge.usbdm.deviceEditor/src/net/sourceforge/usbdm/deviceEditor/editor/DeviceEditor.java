@@ -39,11 +39,11 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.model.EditorPage;
+import net.sourceforge.usbdm.deviceEditor.model.IEditorPage;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.IPage;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.model.PeripheralPageModel;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
@@ -56,7 +56,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Folder containing all the tabs */
    private CTabFolder    fTabFolder          = null;
 
-   private EditorPage[] fEditors             = null;
+   private IEditorPage[] fEditors             = null;
 
    /** Actions to add to pop-up menus */
    ArrayList<MyAction>  popupActions         = new ArrayList<MyAction>();
@@ -101,9 +101,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
     * 
     */
    private void refreshModels() {
-      ArrayList<PeripheralPageModel> models = fFactory.getModels();
+      ArrayList<IPage> models = fFactory.getModels();
       int index = 0;
-      for (EditorPage page:fEditors) {
+      for (IEditorPage page:fEditors) {
          page.update(models.get(index++));
       }
    }
@@ -132,7 +132,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
       Display display = Display.getCurrent();
       // Create the containing tab folder
-      fTabFolder   = new CTabFolder(parent, SWT.NONE);
+      fTabFolder = new CTabFolder(parent, SWT.NONE);
       fTabFolder.setSimple(false);
       fTabFolder.setBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_WHITE),
@@ -143,18 +143,17 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             display.getSystemColor(SWT.COLOR_WHITE)}, 
             new int[]{100}, true);
 
-      ArrayList<EditorPage> editors = new ArrayList<EditorPage>();
-      for (PeripheralPageModel model:fFactory.getModels()) {
+      ArrayList<IEditorPage> editors = new ArrayList<IEditorPage>();
+      for (IPage model:fFactory.getModels()) {
          // Pin view
          CTabItem tabItem;
          tabItem = new CTabItem(fTabFolder, SWT.NONE);
-         tabItem.setText(model.getName());
-         tabItem.setToolTipText(model.getToolTip());
-         EditorPage editorPage = model.createEditorPage();
+         tabItem.setText(model.getPageName());
+         IEditorPage editorPage = model.createEditorPage();
          editors.add(editorPage);
          tabItem.setControl(editorPage.createComposite(fTabFolder));
       }
-      fEditors = editors.toArray(new EditorPage[editors.size()]);
+      fEditors = editors.toArray(new IEditorPage[editors.size()]);
 
       refreshModels();
 
@@ -406,8 +405,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
-      // TODO Auto-generated method stub
-      
    }
 
 }

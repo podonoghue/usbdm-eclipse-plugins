@@ -200,7 +200,7 @@ public abstract class BaseModel {
     * @return string
     */
    public String toString() {
-      return "BaseModel("+fName+", "+fDescription+")";
+      return getClass()+"("+fName+", "+fDescription+")";
    }
 
    /**

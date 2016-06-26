@@ -43,7 +43,6 @@
    <item key="$signal$PTC0_muxSetting"                     value="mux0" />
    <item key="$signal$PTC10_muxSetting"                    value="mux1" />
    <item key="$signal$PTC11_muxSetting"                    value="mux1" />
-   <item key="$signal$PTC1_muxSetting"                     value="mux4" />
    <item key="$signal$PTC2_descriptionSetting"             value="LCD_backlight" />
    <item key="$signal$PTC3_descriptionSetting"             value="Red LED" />
    <item key="$signal$PTC5_muxSetting"                     value="mux1" />
@@ -124,8 +123,8 @@
    <item key="/FTM0/irqLevel"                              value="0" />
    <item key="/FTM0/maximumPeriod"                         value="0.17476266666666668" />
    <item key="/FTM0/period"                                value="10000" />
-   <item key="/FTM1/clockFrequency"                        value="244.140625" />
-   <item key="/FTM1/clockPeriod"                           value="0.004096" />
+   <item key="/FTM1/clockFrequency"                        value="256.0" />
+   <item key="/FTM1/clockPeriod"                           value="0.00390625" />
    <item key="/FTM1/ftmExternalClock"                      value="0" />
    <item key="/FTM1/ftm_sc_clks"                           value="2" />
    <item key="/FTM1/ftm_sc_cpwms"                          value="false" />
@@ -134,7 +133,7 @@
    <item key="/FTM1/irqEnabled"                            value="false" />
    <item key="/FTM1/irqHandler"                            value="false" />
    <item key="/FTM1/irqLevel"                              value="0" />
-   <item key="/FTM1/maximumPeriod"                         value="268.435456" />
+   <item key="/FTM1/maximumPeriod"                         value="256.0" />
    <item key="/FTM1/period"                                value="10000" />
    <item key="/I2C0/clockSource"                           value="SystemBusClock" />
    <item key="/I2C0/irqEnabled"                            value="false" />
@@ -174,50 +173,51 @@
    <item key="/LPTMR0/lptmr_psr_prescaler"                 value="0" />
    <item key="/LPTMR0/maximumPeriod"                       value="0.016384" />
    <item key="/MCG/ERRATA_E2448"                           value="false" />
+   <item key="/MCG/LowPower"                               value="false" />
    <item key="/MCG/McgInfoSize"                            value="1" />
-   <item key="/MCG/clock_mode"                             value="6" />
-   <item key="/MCG/fllInputFrequency"                      value="31250" />
-   <item key="/MCG/fll_enabled"                            value="false" />
+   <item key="/MCG/clock_mode"                             value="2" />
+   <item key="/MCG/fllInputFrequency"                      value="32768" />
+   <item key="/MCG/fll_enabled"                            value="true" />
    <item key="/MCG/irqEnabled"                             value="false" />
    <item key="/MCG/irqHandler"                             value="false" />
    <item key="/MCG/irqLevel"                               value="0" />
    <item key="/MCG/mcg_c1_clks"                            value="0" />
-   <item key="/MCG/mcg_c1_frdiv"                           value="3" />
+   <item key="/MCG/mcg_c1_frdiv"                           value="0" />
    <item key="/MCG/mcg_c1_irclken"                         value="true" />
    <item key="/MCG/mcg_c1_irefs"                           value="false" />
    <item key="/MCG/mcg_c1_irefsten"                        value="false" />
-   <item key="/MCG/mcg_c2_ircs"                            value="false" />
+   <item key="/MCG/mcg_c2_ircs"                            value="true" />
    <item key="/MCG/mcg_c2_locre0"                          value="false" />
    <item key="/MCG/mcg_c2_lp"                              value="false" />
    <item key="/MCG/mcg_c4_dmx32"                           value="false" />
    <item key="/MCG/mcg_c4_drst_drs"                        value="0" />
    <item key="/MCG/mcg_c5_pllclken"                        value="false" />
    <item key="/MCG/mcg_c5_pllsten"                         value="false" />
-   <item key="/MCG/mcg_c5_prdiv0"                          value="2" />
+   <item key="/MCG/mcg_c5_prdiv0"                          value="1" />
    <item key="/MCG/mcg_c6_cme0"                            value="false" />
    <item key="/MCG/mcg_c6_lolie0"                          value="false" />
-   <item key="/MCG/mcg_c6_plls"                            value="true" />
+   <item key="/MCG/mcg_c6_plls"                            value="false" />
    <item key="/MCG/mcg_c6_vdiv0"                           value="24" />
-   <item key="/MCG/mcg_c7_oscsel"                          value="0" />
+   <item key="/MCG/mcg_c7_oscsel"                          value="1" />
    <item key="/MCG/mcg_c8_cme1"                            value="false" />
    <item key="/MCG/mcg_c8_locre1"                          value="false" />
    <item key="/MCG/mcg_c8_lolre"                           value="false" />
-   <item key="/MCG/mcg_erc_clock"                          value="8000000" />
+   <item key="/MCG/mcg_erc_clock"                          value="32768" />
    <item key="/MCG/mcg_sc_fcrdiv"                          value="0" />
-   <item key="/MCG/pll0Enabled"                            value="true" />
-   <item key="/MCG/pll0InputFrequency"                     value="4000000" />
-   <item key="/MCG/pll0OutputFrequency"                    value="96000000" />
+   <item key="/MCG/pll0Enabled"                            value="false" />
+   <item key="/MCG/pll0InputFrequency"                     value="32768" />
+   <item key="/MCG/pll0OutputFrequency"                    value="120000000" />
    <item key="/MCG/system_fast_irc_clock"                  value="4000000" />
    <item key="/MCG/system_low_power_clock"                 value="1000" />
-   <item key="/MCG/system_mcgffclk_clock"                  value="31250" />
+   <item key="/MCG/system_mcgffclk_clock"                  value="32768" />
    <item key="/MCG/system_mcgfllclk_clock"                 value="96000000" />
-   <item key="/MCG/system_mcgirclk_clock"                  value="32768" />
+   <item key="/MCG/system_mcgirclk_clock"                  value="4000000" />
    <item key="/MCG/system_mcgoutclk_clock"                 value="96000000" />
-   <item key="/MCG/system_mcgoutclk_clock_source"          value="PLL output" />
-   <item key="/MCG/system_mcgpllclk_clock"                 value="96000000" />
+   <item key="/MCG/system_mcgoutclk_clock_source"          value="FLL output" />
+   <item key="/MCG/system_mcgpllclk_clock"                 value="0" />
    <item key="/MCG/system_slow_irc_clock"                  value="32768" />
    <item key="/MCG/system_usb_clkin_clock"                 value="48000000" />
-   <item key="/OSC0/erefs0"                                value="true" />
+   <item key="/OSC0/erefs0"                                value="false" />
    <item key="/OSC0/hgo0"                                  value="false" />
    <item key="/OSC0/osc32kclk_clock"                       value="0" />
    <item key="/OSC0/osc_cr_erclken"                        value="true" />
@@ -225,8 +225,8 @@
    <item key="/OSC0/osc_cr_scp"                            value="4" />
    <item key="/OSC0/osc_input_freq"                        value="8000000" />
    <item key="/OSC0/oscclk_clock"                          value="8000000" />
-   <item key="/OSC0/range"                                 value="1" />
-   <item key="/OSC0/range_out"                             value="1" />
+   <item key="/OSC0/range"                                 value="3" />
+   <item key="/OSC0/range_out"                             value="3" />
    <item key="/OSC0/system_oscerclk_clock"                 value="8000000" />
    <item key="/PIT/irqEnabled"                             value="false" />
    <item key="/PIT/irqHandler"                             value="false" />
@@ -280,8 +280,8 @@
    <item key="/SIM/system_core_clock"                      value="48000000" />
    <item key="/SIM/system_erclk32k_clock"                  value="32768" />
    <item key="/SIM/system_flash_clock"                     value="24000000" />
-   <item key="/SIM/system_peripheral_clock"                value="96000000" />
-   <item key="/SIM/system_usbfs_clock"                     value="48000000" />
+   <item key="/SIM/system_peripheral_clock"                value="0" />
+   <item key="/SIM/system_usbfs_clock"                     value="0" />
    <item key="/SMC/smc_pmctrl_lpwui"                       value="true" />
    <item key="/SMC/smc_pmprot_alls"                        value="false" />
    <item key="/SMC/smc_pmprot_avlls"                       value="false" />
@@ -309,25 +309,4 @@
    <item key="/USB0/irqEnabled"                            value="false" />
    <item key="/USB0/irqHandler"                            value="false" />
    <item key="/USB0/irqLevel"                              value="0" />
-   <item key="demo.cpp.blue.led"                           value="gpio_LED_BLUE" />
-   <item key="demo.cpp.external.gps"                       value="Gps1" />
-   <item key="demo.cpp.external.i2c"                       value="I2c0" />
-   <item key="demo.cpp.external.led"                       value="gpio_A1" />
-   <item key="demo.cpp.external.spi"                       value="Spi0" />
-   <item key="demo.cpp.external.switch"                    value="gpio_A0" />
-   <item key="demo.cpp.fx0s8700cq.i2c"                     value="I2c0" />
-   <item key="demo.cpp.green.led"                          value="gpio_LED_GREEN" />
-   <item key="demo.cpp.joystick.k"                         value="gpio_A0" />
-   <item key="demo.cpp.joystick.x"                         value="adc_A2" />
-   <item key="demo.cpp.joystick.y"                         value="adc_A1" />
-   <item key="demo.cpp.led"                                value="USBDM::GpioC&lt;3&gt;" />
-   <item key="demo.cpp.mag3110.i2c"                        value="I2c0" />
-   <item key="demo.cpp.mma845x.i2c"                        value="I2c0" />
-   <item key="demo.cpp.nrf24l01.ce"                        value="GpioC&lt;4&gt;" />
-   <item key="demo.cpp.nrf24l01.cs_n"                      value="spi0_PCS1" />
-   <item key="demo.cpp.nrf24l01.irq"                       value="GpioC&lt;3&gt;" />
-   <item key="demo.cpp.nrf24l01.spi"                       value="Spi0" />
-   <item key="demo.cpp.pwm.led1"                           value="ftm_LED_RED" />
-   <item key="demo.cpp.pwm.led2"                           value="ftm_LED_GREEN" />
-   <item key="demo.cpp.red.led"                            value="gpio_LED_RED" />
 </section>

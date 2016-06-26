@@ -13,14 +13,13 @@ import org.eclipse.swt.widgets.Display;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 
-   PeripheralParametersModel fParameterModels = null;
+   TabModel fParameterModels = null;
    boolean  underConstruction;
    
    /**
@@ -82,10 +81,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
    }
 
-   static final private String[] PIN_COLUMN_LABELS         = {"Category.Pin",      "Mux:Signals", "Description"};
-   static final private String[] PERIPHERAL_COLUMN_LABELS  = {"Peripheral.Signal", "Mux:Pin",     "Description"};
-   static final private String[] PACKAGE_COLUMN_LABELS     = {"Name",              "Value",       "Description"};
-
    /*
     * =============================================================================================
     */
@@ -93,10 +88,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    private final DeviceInfo   fDeviceInfo;
 
    /** List of all models */
-   ArrayList<PeripheralPageModel> fModels = new ArrayList<PeripheralPageModel>();
-
-   /** List of all pin mapping entries to scan for mapping conflicts */
-   protected ArrayList<MappingInfo> fMappingInfos = null;
+   ArrayList<IPage> fModels = new ArrayList<IPage>();
 
    /**
     * Create model organised by pin<br>
@@ -104,54 +96,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return Model
     */
-   private DevicePinsModel createPinModel() {
-      fMappingInfos = new ArrayList<MappingInfo>();
-
-      final ArrayList<PinCategory> categories = new ArrayList<PinCategory>();
-
-      // Construct categories
-      for (char c='A'; c<='I'; c++) {
-         categories.add(new PinCategory("Port "+c, "PT"+c+".*"));
-      }
-      categories.add(new PinCategory("Power", "((VDD|VSS|VREGIN|VBAT|VOUT|(VREF(H|L)))).*"));
-      categories.add(new PinCategory("Miscellaneous", ".*"));
-
-      // Group pins into categories
-      for (String pName:fDeviceInfo.getPins().keySet()) {
-         Pin pinInformation = fDeviceInfo.getPins().get(pName);
-         if (pinInformation.isAvailableInPackage()) {
-            // Only add if available in package
-            for (PinCategory category:categories) {
-               if (category.tryAdd(pinInformation)) {
-                  break;
-               }
-            }
-         }
-      }
-      // Construct model
-      DevicePinsModel deviceModel = new DevicePinsModel(PIN_COLUMN_LABELS, "Pin View", "Pin mapping organized by pin");
-      for (PinCategory pinCategory:categories) {
-         if (pinCategory.getPins().isEmpty()) {
-            continue;
-         }
-         CategoryModel categoryModel = new CategoryModel(deviceModel, pinCategory.getName(), "");
-         for(Pin pinInformation:pinCategory.getPins()) {
-            new PinModel(categoryModel, pinInformation);
-            for (MappingInfo mappingInfo:pinInformation.getMappedSignals().values()) {
-               if (mappingInfo.getMux() == MuxSelection.fixed) {
-                  continue;
-               }
-               if (mappingInfo.getMux() == MuxSelection.disabled) {
-                  continue;
-               }
-               if (mappingInfo.getSignals().get(0) == Signal.DISABLED_SIGNAL) {
-                  continue;
-               }
-               fMappingInfos.add(mappingInfo);
-            }
-         }
-      }
-      return deviceModel;
+   private DeviceSignalsModel createPinModel() {
+      return new DeviceSignalsModel(null, fDeviceInfo);
    }
 
    /**
@@ -160,14 +106,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return Model
     */
    private DevicePinsModel createPeripheralModel() {
-      DevicePinsModel deviceModel = new DevicePinsModel(PERIPHERAL_COLUMN_LABELS, "Peripheral View", "Pin mapping organized by peripheral");
-      for (String pName:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
-         if (peripheral.hasMappableSignals()) {
-            new PeripheralModel(deviceModel, peripheral);
-         }
-      }
-      return deviceModel;
+      return new DevicePinsModel(null, fDeviceInfo);
    }
    
    /**
@@ -176,9 +115,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return Model
     */
    private DeviceInformationModel createPackageModel() {
-      DeviceInformationModel packageModel = new DeviceInformationModel(PACKAGE_COLUMN_LABELS, "Project", "Project Settings");
-      fDeviceInfo.getModels(packageModel);
-      return packageModel;
+      return new DeviceInformationModel(null, fDeviceInfo);
    }
 
    /**
@@ -186,15 +123,16 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return
     */
-   private PeripheralParametersModel createParameterModels() {
+   private TabModel createParameterModels() {
       if (fParameterModels != null) {
          return fParameterModels;
       }
-      fParameterModels = new PeripheralParametersModel(this, null, "Peripheral Parameters", "These are usually the default values for parameters");
+      fParameterModels = new TabModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
-            ((IModelEntryProvider) device).getModels(fParameterModels);
+            BaseModel model = ((IModelEntryProvider) device).getModels(fParameterModels);
+            model.setParent(fParameterModels);
          }
       }
       return fParameterModels;
@@ -224,6 +162,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    
    /** The current device variant - if this changes the models are rebuilt */
    private DeviceVariantInformation fCurrentDeviceVariant = null;
+   
+   /** Models representing all pins */
+   private DeviceSignalsModel fPinModel;
 
    /**
     * Sets conflict check as pending<br>
@@ -301,7 +242,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       /** Used to check for a signal being mapped to multiple pins */
       Map<String, List<MappingInfo>> mappedPinsBySignal = new HashMap<String, List<MappingInfo>>();
 
-      for (MappingInfo mapping:fMappingInfos) {
+      for (MappingInfo mapping:fPinModel.getMappingInfos()) {
          mapping.setMessage("");
          if (!mapping.isSelected()) {
             continue;
@@ -377,8 +318,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
             }
          }
       }
-      for (BaseModel model:fModels) {
-         model.update();
+      for (IPage model:fModels) {
+         model.updatePage();
       }
    }
 
@@ -421,15 +362,16 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * Creates models for the variant pages and updates the model list
     */
    void createModels() {
-      for (BaseModel model:fModels) {
+      for (IPage model:fModels) {
          if (model != fPackageModel) {
             model.removeListeners();
          }
       }
-      fModels = new ArrayList<PeripheralPageModel>();
+      fModels = new ArrayList<IPage>();
       fModels.add(fPackageModel);
       fModels.add(createPeripheralModel());
-      fModels.add(createPinModel());
+      fPinModel = createPinModel();
+      fModels.add(fPinModel);
       fModels.add(createParameterModels());
       fModels.add(fPackageImageModel);
 
@@ -443,7 +385,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * 
     * @return
     */
-   public ArrayList<PeripheralPageModel> getModels() {
+   public ArrayList<IPage> getModels() {
       return fModels;
    }
    

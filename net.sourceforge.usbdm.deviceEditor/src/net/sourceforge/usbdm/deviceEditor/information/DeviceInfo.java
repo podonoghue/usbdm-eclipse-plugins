@@ -1219,7 +1219,7 @@ public class DeviceInfo extends ObservableModel {
       fDeviceName = deviceName;
    }
    
-   String getDeviceName() {
+   public String getDeviceName() {
       return fDeviceName;
    }
    
@@ -1713,12 +1713,12 @@ public class DeviceInfo extends ObservableModel {
     * @param parent
     * @return
     */
-   public BaseModel[] getModels(BaseModel parent) {
+   public BaseModel[] getModels(DeviceInfo deviceInfo, BaseModel parent) {
       BaseModel[] models = {
-            new ConstantModel(parent, "Device", "", getDeviceName()),
-            new ConstantModel(parent, "Hardware File", "", getSourceFilename()),
-            new DeviceVariantModel(parent, this),
-            new DevicePackageModel(parent, this),
+            new ConstantModel(parent, "Device", "", deviceInfo.getDeviceName()),
+            new ConstantModel(parent, "Hardware File", "", deviceInfo.getSourceFilename()),
+            new DeviceVariantModel(parent, deviceInfo),
+            new DevicePackageModel(parent, deviceInfo),
       };
       return models;
    }

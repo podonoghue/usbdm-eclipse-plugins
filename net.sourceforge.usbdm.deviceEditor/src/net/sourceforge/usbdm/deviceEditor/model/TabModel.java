@@ -1,13 +1,57 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class TabModel extends BaseModel {
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 
-   public TabModel(BaseModel parent, String name, String description) {
-      super(parent, name, description);
+import net.sourceforge.usbdm.deviceEditor.editor.TabbedEditor;
+
+public class TabModel extends BaseModel implements IPage {
+
+   public TabModel(BaseModel parent, String title, String toolTip) {
+      super(parent, title, toolTip);
+   }
+
+   @Override
+   public void addChild(BaseModel model) {
+      super.addChild(model);
    }
 
    @Override
    protected void removeMyListeners() {
    }
 
+   @Override
+   public IEditorPage createEditorPage() {
+      return new IEditorPage() {
+
+         private TabbedEditor fEditor = null;
+
+         @Override
+         public Control createComposite(Composite parent) {
+            if (fEditor == null) {
+               fEditor = new TabbedEditor();
+            }
+            return fEditor.createControl(parent);
+         }
+
+         @Override
+         public void update(IPage peripheralPageModel) {
+            fEditor.setModel((TabModel) peripheralPageModel);
+         }
+      };
+   }
+
+   @Override
+   public String getPageName() {
+      return getName();
+   }
+
+   @Override
+   public void updatePage() {
+   }
+
+   @Override
+   public BaseModel getModel() {
+      return this;
+   }
 }

@@ -1,12 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 
-public class TreeEditorPage implements EditorPage {
+public class TreeEditorPage implements IEditorPage {
 
    private TreeEditor fEditor = null;
 
@@ -18,12 +17,12 @@ public class TreeEditorPage implements EditorPage {
       if (fEditor == null) {
          fEditor = new TreeEditor();
       }
-      TreeViewer treeViewer = fEditor.createControls(parent);
-      return treeViewer.getControl();
+      return fEditor.createControl(parent);
    }
 
    @Override
-   public void update(PeripheralPageModel peripheralPageModel) {
-      fEditor.setModel((TreeViewModel) peripheralPageModel);
+   public void update(IPage peripheralPageModel) {
+      fEditor.setModel((TreeViewModel) peripheralPageModel.getModel());
    }
+   
 }

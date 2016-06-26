@@ -6,7 +6,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 /**
  *  Represents the top of a Tree view
  */
-public class TreeViewModel extends PeripheralPageModel {
+public class TreeViewModel extends BaseModel {
 
    /** Labels for view columns */
    private final String[] fColumnLabels;
@@ -20,8 +20,8 @@ public class TreeViewModel extends PeripheralPageModel {
     * @param title         Title
     * @param toolTip       Tool tip
     */
-   public TreeViewModel(String[] columnLabels, String title, String toolTip) {
-      super(null, title, "");
+   public TreeViewModel(BaseModel parent, String title, String toolTip, String[] columnLabels) {
+      super(parent, title, "");
       super.setToolTip(toolTip);
       
       fColumnLabels  = columnLabels;
@@ -37,11 +37,11 @@ public class TreeViewModel extends PeripheralPageModel {
    }
    
    /**
-    * Add a view to the model
+    * Sets the viewer of this model
     * 
     * @param viewer
     */
-   public void addViewer(TreeViewer viewer) {
+   public void setViewer(TreeViewer viewer) {
       if ((fViewer != null) && (fViewer != viewer)) {
          throw new RuntimeException("Viewer already assigned");
       }
@@ -51,11 +51,6 @@ public class TreeViewModel extends PeripheralPageModel {
    @Override
    protected StructuredViewer getViewer() {
       return fViewer;
-   }
-
-   @Override
-   public EditorPage createEditorPage() {
-      return new TreeEditorPage();
    }
 
    @Override

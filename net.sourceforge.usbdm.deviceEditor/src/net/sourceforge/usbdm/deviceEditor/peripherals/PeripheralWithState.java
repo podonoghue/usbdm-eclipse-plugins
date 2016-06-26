@@ -117,7 +117,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    @Override
    public BaseModel getModels(BaseModel parent) {
-      fData.fRootModel.setParent(parent);
       return fData.fRootModel;
    }
 
