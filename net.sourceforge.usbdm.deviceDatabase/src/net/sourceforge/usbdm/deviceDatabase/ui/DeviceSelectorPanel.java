@@ -612,6 +612,11 @@ public class DeviceSelectorPanel extends Composite {
       fViewer.addSelectionChangedListener(new ISelectionChangedListener() {
          @Override
          public void selectionChanged(SelectionChangedEvent event) {
+//            System.err.println("selectionChanged() "+event);
+            if (!((TreeViewer)event.getSource()).getControl().isFocusControl()) {
+               // Filter selection events due to re-population of tree i.e. when  tree doesn't have focus
+               return;
+            }
             IStructuredSelection selection = (IStructuredSelection)event.getSelection();
             for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
                Object domain = iterator.next();
