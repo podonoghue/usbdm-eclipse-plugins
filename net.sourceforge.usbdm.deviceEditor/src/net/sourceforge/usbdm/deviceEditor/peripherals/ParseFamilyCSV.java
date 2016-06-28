@@ -36,6 +36,7 @@ public class ParseFamilyCSV {
    private int fResetIndex     = 3;
    
    /** Index of default signal column in CSV file */
+   @SuppressWarnings("unused")
    private int fDefaultIndex   = 4;
    
    /** Start index of multiplexor signal columns in CSV file */
@@ -234,31 +235,22 @@ public class ParseFamilyCSV {
       if ((line.length>fResetIndex) && (line[fResetIndex] != null) && (!line[fResetIndex].isEmpty())) {
          String resetName  = line[fResetIndex];
          ArrayList<Signal> resetSignals = createSignalsFromString(resetName, true);
-         for (Signal resetSignal:resetSignals) {
-            sb.append("R:" + resetSignal.getName() + ", ");
-            // Pin is not mapped to this signal in the ALT columns - must be a non-mappable pin
-            MappingInfo mapping = fDeviceInfo.createMapping(resetSignal, pin, pinIsMapped?MuxSelection.reset:MuxSelection.fixed);
-            for (Signal signal:mapping.getSignals()) {
-               signal.setResetPin(mapping);
+         if (!pinIsMapped) {
+            for (Signal resetSignal:resetSignals) {
+               sb.append("R:" + resetSignal.getName() + ", ");
+               // Pin is not mapped to this signal in the ALT columns - must be a non-mappable pin
+               MappingInfo mapping = fDeviceInfo.createMapping(resetSignal, pin, MuxSelection.fixed);
+               for (Signal signal:mapping.getSignals()) {
+                  signal.setResetPin(mapping);
+               }
             }
          }
          pin.setResetSignals(fDeviceInfo, resetName);
       }
       else {
          sb.append("R:" + Signal.DISABLED_SIGNAL.getName() + ", ");
-         fDeviceInfo.createMapping(Signal.DISABLED_SIGNAL, pin, MuxSelection.reset);
+         fDeviceInfo.createMapping(Signal.DISABLED_SIGNAL, pin, MuxSelection.unassigned);
          pin.setResetSignals(fDeviceInfo, Signal.DISABLED_SIGNAL.getName());
-      }
-      if (line.length>fDefaultIndex) {
-         String defaultName  = convertName(line[fDefaultIndex]);
-         if ((defaultName != null) && (!defaultName.isEmpty())) {
-            pin.setDefaultSignals(fDeviceInfo, defaultName);
-            sb.append("D:" + pin.getDefaultValue());
-         }
-      }
-      if (pin.getDefaultValue() == MuxSelection.unused) {
-         // If no default set then set the default to reset value
-         pin.setDefaultValue(MuxSelection.reset);
       }
       for (PackageColumnInfo pkgIndex:fPackageIndexes){
          String pinNum = line[pkgIndex.index];

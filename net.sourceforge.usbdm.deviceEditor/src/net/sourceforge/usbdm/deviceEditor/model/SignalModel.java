@@ -39,7 +39,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
             // Discard pins without package location
             continue;
          }
-         if (muxSelection == MuxSelection.reset) {
+         if (muxSelection == MuxSelection.unassigned) {
             values.add(muxSelection.getShortName()+": ("+mappingInfo.getPin().getNameWithLocation()+")");
          }
          else {
@@ -133,11 +133,10 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
 
    @Override
-   public boolean isReset() {
+   public boolean isUnassigned() {
       MappingInfo currentMapping = fSignal.getMappedPin();
       return ((currentMapping == null) || 
-              (currentMapping.getMux() == MuxSelection.reset) ||
-              (currentMapping.getMux() == MuxSelection.disabled));
+              (currentMapping.getMux() == MuxSelection.unassigned));
    }
 
    @Override

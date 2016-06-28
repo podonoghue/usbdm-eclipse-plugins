@@ -16,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 public class Signal extends ObservableModel implements Comparable<Signal>, IModelChangeListener {
 
    /**
-    * Pin comparator
+    * Pin mapping comparator
     */
    public static Comparator<String> comparator = Utils.comparator;
 
@@ -24,9 +24,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
       @Override
       public int compare(MappingInfo o1, MappingInfo o2) {
-         int rc = Pin.comparator.compare(o1.getPin().getName(), o2.getPin().getName());
+         int rc = o1.getMux().ordinal() - o2.getMux().ordinal();
          if (rc == 0) {
-            rc = o1.getMux().ordinal() - o2.getMux().ordinal();
+            rc = Pin.comparator.compare(o1.getPin().getName(), o2.getPin().getName());
             if (rc == 0) {
                rc = o1.getSignalList().compareTo(o2.getSignalList());
             }
@@ -35,9 +35,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
    }
 
-   /** Comparator for Pin mappings to sort by pin */
-   private static PinMappingComparator pinMappingComparator = new PinMappingComparator();
-   
    /**
     * Disabled signal
     */
@@ -58,10 +55,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    private final String fName;
 
    /** Set of pin mappings for this signal */
-   private TreeSet<MappingInfo> fPinMappings = new TreeSet<MappingInfo>(pinMappingComparator);
+   private TreeSet<MappingInfo> fPinMappings = new TreeSet<MappingInfo>(new PinMappingComparator());
 
    /** Reset mapping for this signal */
-   private MappingInfo fResetMapping = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
+   private MappingInfo fResetMapping = MappingInfo.UNASSIGNED_MAPPING;
 
    /**
     * 
@@ -144,7 +141,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       if (fPinMappings.isEmpty()) {
          // Add disabled setting
-         fPinMappings.add(MappingInfo.DISABLED_MAPPING);
+         fPinMappings.add(MappingInfo.UNASSIGNED_MAPPING);
          fPinMappings.add(fResetMapping);
       }
       fPinMappings.add(mapInfo);
@@ -169,7 +166,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          // Ignore resets to Disabled
          return;
       }
-      if ((fResetMapping.getMux() != MuxSelection.disabled) && (fResetMapping != mapping)) {
+      if ((fResetMapping.getMux() != MuxSelection.unassigned) && (fResetMapping != mapping)) {
          throw new RuntimeException("Multiple reset pin mappings for " + getName());
       }
       fResetMapping = mapping;
@@ -206,7 +203,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       for (MappingInfo info:fPinMappings) {
          Pin pin = info.getPin();
          // Exclude disabled pin
-         if ((pin != Pin.DISABLED_PIN) && pin.isAvailableInPackage()) {
+         if ((pin != Pin.UNASSIGNED_PIN) && pin.isAvailableInPackage()) {
             return true;
          }
       }
@@ -224,7 +221,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
             return mappingInfo;
          }
       }
-      return MappingInfo.DISABLED_MAPPING;
+      return MappingInfo.UNASSIGNED_MAPPING;
    }
    
    /**

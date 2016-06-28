@@ -53,9 +53,6 @@ public class ParseFamilyXML extends XML_BaseParser {
             MuxSelection muxSelection = MuxSelection.valueOf(element.getAttribute("sel"));
             pin.setResetValue(muxSelection);
          }
-         else if (element.getTagName() == "default") {
-            pin.setDefaultValue(MuxSelection.valueOf(element.getAttribute("sel")));
-         }
          else {
             throw new Exception("Unexpected field in PIN, value = \'"+element.getTagName()+"\'");
          }

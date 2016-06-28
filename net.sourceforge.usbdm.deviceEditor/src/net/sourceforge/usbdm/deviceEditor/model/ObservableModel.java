@@ -51,6 +51,7 @@ public class ObservableModel {
       }
       fRefreshPending = false;
    }
+   
    /**
     * Notify all listeners<br>
     * Clears RefreshPending

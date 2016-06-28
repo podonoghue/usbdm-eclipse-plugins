@@ -96,7 +96,7 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
       if (baseModel.isWarning()) {
          return new StyledString(text, WARNING_STYLER);
       }
-      if (baseModel.isReset()) {
+      if (baseModel.isUnassigned()) {
          return new StyledString(text, DISABLED_STYLER);
       }
       if (baseModel.hasChildren()) {

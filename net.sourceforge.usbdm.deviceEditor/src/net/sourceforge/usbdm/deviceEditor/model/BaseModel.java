@@ -345,11 +345,11 @@ public abstract class BaseModel {
    }
 
    /** 
-    * Indicates that element is 'reset'
+    * Indicates that element is 'unassigned'
     * 
     * @return
     */
-   public boolean isReset() {
+   public boolean isUnassigned() {
       return false;
    }
 

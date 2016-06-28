@@ -855,8 +855,8 @@ public class DeviceInfo extends ObservableModel {
     * @return Pin found or null if not present
     */
    public Pin findPin(String name) {
-      if (name.equalsIgnoreCase(Pin.DISABLED_PIN.getName())) {
-         return Pin.DISABLED_PIN;
+      if (name.equalsIgnoreCase(Pin.UNASSIGNED_PIN.getName())) {
+         return Pin.UNASSIGNED_PIN;
       }
       return fPins.get(name);
    }
@@ -1342,6 +1342,9 @@ public class DeviceInfo extends ObservableModel {
          return true;
       }
       if (pin.getResetValue() == MuxSelection.fixed) {
+         return true;
+      }
+      if (pin.getResetValue() == MuxSelection.unassigned) {
          return true;
       }
       if (exceptions.size() == 0) {

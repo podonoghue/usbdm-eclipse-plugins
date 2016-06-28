@@ -679,11 +679,7 @@ public abstract class Peripheral {
                // Discard unmapped signals on this package 
                continue;
             }
-            if (mappingInfo.getMux() == MuxSelection.disabled) {
-               // Disabled selection - ignore
-               continue;
-            }
-            if (mappingInfo.getMux() == MuxSelection.reset) {
+            if (mappingInfo.getMux() == MuxSelection.unassigned) {
                // Reset selection - ignore
                continue;
             }

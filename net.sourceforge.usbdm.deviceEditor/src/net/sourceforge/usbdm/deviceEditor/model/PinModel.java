@@ -12,9 +12,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    /** Associated pin */
    private final Pin fPin;
 
-   /** Default selection index */
-   private int fDefaultSelection = 0;
-
    /** Mappings corresponding to selections */
    private final MappingInfo[] fMappingInfos;
 
@@ -24,13 +21,11 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       fPin = pin;
       fPin.addListener(this);
 
-      MuxSelection defaultMuxValue  = fPin.getDefaultValue();
       MuxSelection currentMuxValue  = fPin.getMuxValue();
 
-      fDefaultSelection = 0;
       fSelection        = 0;
 
-      Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappedSignals();
+      Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappableSignals();
 
       MappingInfo fixedMapping = mappingInfoMap.get(MuxSelection.fixed);
       if (fixedMapping != null) {
@@ -43,26 +38,23 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       // List of values to choose from
       ArrayList<String>      values       = new ArrayList<String>();
       ArrayList<MappingInfo> mappingInfos = new ArrayList<MappingInfo>();
+      
+      values.add(MuxSelection.unassigned.getShortName()+": Unassigned");
+      mappingInfos.add(MappingInfo.UNASSIGNED_MAPPING);
+      
       for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
          MappingInfo mappingInfo = mappingInfoMap.get(muxSelection);
 
          mappingInfos.add(mappingInfo);
-         if (muxSelection == MuxSelection.reset) {
+         if (muxSelection == MuxSelection.unassigned) {
             values.add(muxSelection.getShortName()+": ("+mappingInfo.getSignalList()+")");
          }
          else {
             values.add(muxSelection.getShortName()+": "+mappingInfo.getSignalList());
          }
-         if (muxSelection == defaultMuxValue) {
-            fDefaultSelection = values.size()-1;
-         }
          if (muxSelection == currentMuxValue) {
             fSelection = values.size()-1;
          }
-      }
-      if (values.size()>1) {
-         // Add default entry
-         values.add(values.get(fDefaultSelection).replaceFirst(".:", "D:"));
       }
 
       fChoices      = values.toArray(new String[values.size()]);
@@ -99,10 +91,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    public void setValueAsString(String value) {
       super.setValueAsString(value);
-      if (fSelection == fChoices.length-1) {
-         // Last entry is the default
-         fSelection = fDefaultSelection;
-      }
       fPin.setMappedSignal(fMappingInfos[fSelection]);
       checkConflicts();
    }
@@ -140,8 +128,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
 
    @Override
-   public boolean isReset() {
-      return (fPin.getMuxValue() == MuxSelection.reset);
+   public boolean isUnassigned() {
+      return (fPin.getMuxValue() == MuxSelection.unassigned);
    }
 
    /**

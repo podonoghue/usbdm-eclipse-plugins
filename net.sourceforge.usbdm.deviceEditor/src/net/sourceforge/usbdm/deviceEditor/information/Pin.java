@@ -5,7 +5,6 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
@@ -17,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 public class Pin extends ObservableModel implements Comparable<Pin>, IModelChangeListener {
    
    /** Pin used to denote a disabled mapping */
-   public final static Pin DISABLED_PIN = new Pin(null, "Disabled");
+   public final static Pin UNASSIGNED_PIN = new Pin(null, "Unassigned");
    
    /** Pin comparator */
    public static Comparator<String> comparator = Utils.comparator;
@@ -35,19 +34,15 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    private String fName;
    
    /** Map of signals mapped to this pin ordered by mux value */
-   private Map<MuxSelection, MappingInfo> fMappedSignals = new TreeMap<MuxSelection, MappingInfo>();
+   private Map<MuxSelection, MappingInfo> fMappableSignals = new TreeMap<MuxSelection, MappingInfo>();
 
-   /** Multiplexor value at reset */
-   private MuxSelection fResetMuxValue = MuxSelection.unused;
-
-   /** Default multiplexor value */
-   private MuxSelection fDefaultMuxValue = MuxSelection.unused;
+   private MuxSelection fResetMuxValue = MuxSelection.unassigned;
 
    /** User description of pin use */
    private String fPinUseDescription = "";
 
    /** Current multiplexor setting */
-   private MuxSelection fMuxValue = MuxSelection.reset;
+   private MuxSelection fMuxValue = MuxSelection.unassigned;
    
    /** Device info owning this pin */
    private DeviceInfo fDeviceInfo;
@@ -73,8 +68,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Connect Pin as listener for changes on pin multiplexing
     */
    public void connectListeners() {
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+      for (MuxSelection muxValue:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxValue);
          mappingInfo.addListener(this);
       }
    }
@@ -83,8 +78,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Disconnect Pin as listener for changes on pin multiplexing
     */
    public void disconnectListeners() {
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+      for (MuxSelection muxValue:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxValue);
          mappingInfo.removeListener(this);
       }
    }
@@ -198,7 +193,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return
     */
    public boolean isAvailableInPackage() {
-      if (this == DISABLED_PIN) {
+      if (this == UNASSIGNED_PIN) {
          // The disabled pin is always available
          return true;
       }
@@ -232,9 +227,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
-      sb.append("Pin("+fName+",\n   R:"+fResetMuxValue+",\n   D:"+fDefaultMuxValue+",\n   C:"+fMuxValue);
-      for (MuxSelection muxSelection:fMappedSignals.keySet()) {
-         sb.append(",\n   "+fMappedSignals.get(muxSelection).toString());
+      sb.append("Pin("+fName+",\n   R:"+fResetMuxValue+",\n   C:"+fMuxValue);
+      for (MuxSelection muxSelection:fMappableSignals.keySet()) {
+         sb.append(",\n   "+fMappableSignals.get(muxSelection).toString());
       }
       sb.append(")");
       return sb.toString();
@@ -244,16 +239,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Sets the reset pin mapping
     * 
     * @param mux reset peripheral function on this pin<br>
-    * Note - The value should never be <b>MuxSelection.reset</b> i.e. it is the actual mux value used for reset
     * 
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setResetValue(MuxSelection mux) {
-      if ((fResetMuxValue != mux) && (fResetMuxValue != MuxSelection.unused)) {
+      if ((fResetMuxValue != mux) && (fResetMuxValue != MuxSelection.unassigned)) {
          throw new RuntimeException("Pin "+fName+" already has reset value "+fResetMuxValue);
-      }
-      if (fResetMuxValue == MuxSelection.reset) {
-         throw new RuntimeException("Pin "+fName+" illegal reset value "+mux);
       }
       fResetMuxValue = mux;
    }
@@ -268,56 +259,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Sets the default pin mapping
-    * 
-    * @param mux default peripheral function on this pin
-    * 
-    * @throws RuntimeException If pin already has default or new default not found as available pin mapping
-    */
-   public void setDefaultValue(MuxSelection mux) {
-      if ((fDefaultMuxValue != mux) && (fDefaultMuxValue != MuxSelection.unused)) {
-         throw new RuntimeException("Pin "+fName+" already has default value "+fDefaultMuxValue);
-      }
-      // Set current value to default if not already set
-      if ((fMuxValue == MuxSelection.unused) || (fMuxValue == MuxSelection.reset)) {
-         setMuxSelection(mux);
-      }
-      fDefaultMuxValue = mux;
-   }
-
-   /**
-    * Returns the default pin mapping
-    * 
-    * @return default peripheral function on this pin
-    */
-   public MuxSelection getDefaultValue() {
-      if (fMuxValue == MuxSelection.unused) {
-         setMuxSelection(fResetMuxValue);
-      }
-      return fDefaultMuxValue;
-   }
-
-   /**
-    * Sets the default signal mapping for the pin
-    * 
-    * @param defaultSignals  Name of signals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
-    * 
-    * @throws Exception If pin already has default or value not available pin mapping
-    */
-   public void setDefaultSignals(DeviceInfo factory, final String defaultSignals) {
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo= fMappedSignals.get(muxValue);
-         if (mappingInfo.getSignalList().equalsIgnoreCase(defaultSignals) && (mappingInfo.getMux() != MuxSelection.reset)) {
-            setDefaultValue(mappingInfo.getMux());
-            break;
-         }
-      }
-      if (fDefaultMuxValue == null) {
-         throw new RuntimeException("Signal "+defaultSignals+" not found as option for pin " + fName);
-      }
-   }
-
-   /**
     * Sets the reset peripheral signals for the pin
     * 
     * @param resetSignals  Name of signals to look for e.g. <b><i>GPIOE_1/LLWU_P0</i></b>
@@ -325,24 +266,28 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @throws Exception If pin already has reset or value not available pin mapping
     */
    public void setResetSignals(DeviceInfo factory, final String resetSignals) {
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo= fMappedSignals.get(muxValue);
-         if (mappingInfo.getSignalList().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.reset)) {
+      for (MuxSelection muxValue:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo= fMappableSignals.get(muxValue);
+         if (mappingInfo.getSignalList().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.unassigned)) {
             setResetValue(mappingInfo.getMux());
             break;
          }
       }
-      // Disabled is not necessarily in list of mappings
-      // If necessary create mux0=disabled if free
-      if ((fResetMuxValue == MuxSelection.unused) && resetSignals.equalsIgnoreCase(MuxSelection.disabled.name())) {
-         if (fMappedSignals.get(MuxSelection.mux0) == null) {
-            factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
-            setResetValue(MuxSelection.mux0);
-         }
-      }
-      if (fResetMuxValue == MuxSelection.unused) {
-         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
-      }
+    if ((fResetMuxValue == MuxSelection.unassigned) && !resetSignals.equalsIgnoreCase("Disabled")) {
+       throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
+    }
+      
+//      // Disabled is not necessarily in list of mappings
+//      // If necessary create mux0=disabled if free
+//      if ((fResetMuxValue == MuxSelection.unassigned) && resetSignals.equalsIgnoreCase("Disabled")) {
+//         if (fMappedSignals.get(MuxSelection.mux0) == null) {
+//            factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
+//            setResetValue(MuxSelection.mux0);
+//         }
+//      }
+//      if (fResetMuxValue == MuxSelection.unassigned) {
+//         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
+//      }
    }
 
    /**
@@ -377,12 +322,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    /**
-    * Get map of signals mapped to this pin ordered by mux value
+    * Get map of signals mappable to this pin ordered by MUX value
     * 
     * @return
     */
-   public Map<MuxSelection, MappingInfo> getMappedSignals() {
-      return fMappedSignals;
+   public Map<MuxSelection, MappingInfo> getMappableSignals() {
+      return fMappableSignals;
    }
 
    /** 
@@ -412,9 +357,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return Mapped signal or <b>MappingInfo.DISABLED_MAPPING</b> if none
     */
    public MappingInfo getMappedSignal() {
-      MappingInfo rv = fMappedSignals.get(fMuxValue);
+      MappingInfo rv = fMappableSignals.get(fMuxValue);
       if (rv == null) {
-         rv = MappingInfo.DISABLED_MAPPING;
+         rv = MappingInfo.UNASSIGNED_MAPPING;
       }
       return rv;
    }
@@ -435,7 +380,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public void setMuxSelection(MuxSelection newMuxValue) {
 //      System.err.println("Pin("+fName+")::setMuxSelection("+newMuxValue+")");
-      if (this == DISABLED_PIN) {
+      if (this == UNASSIGNED_PIN) {
          return;
       }
       if (newMuxValue == fMuxValue) {
@@ -443,8 +388,8 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       fMuxValue = newMuxValue;
       MappingInfo newMappingInfo = null;
-      for (MuxSelection muxValue:fMappedSignals.keySet()) {
-         MappingInfo mappingInfo = fMappedSignals.get(muxValue);
+      for (MuxSelection muxValue:fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxValue);
          if (muxValue == newMuxValue) {
             newMappingInfo = mappingInfo;
             continue;
@@ -474,14 +419,13 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public MappingInfo addSignal(Signal signal, MuxSelection muxValue) {
       if (muxValue == MuxSelection.fixed) {
          fResetMuxValue    = MuxSelection.fixed;
-         fDefaultMuxValue  = MuxSelection.fixed;
          setMuxSelection(MuxSelection.fixed);
       }
-      MappingInfo mapInfo = fMappedSignals.get(muxValue);
+      MappingInfo mapInfo = fMappableSignals.get(muxValue);
       if (mapInfo == null) {
          // Create new mapping
          mapInfo = new MappingInfo(this, muxValue);
-         fMappedSignals.put(muxValue, mapInfo);
+         fMappableSignals.put(muxValue, mapInfo);
       }
       mapInfo.addSignal(signal);
       signal.addMappedPin(mapInfo);
@@ -519,7 +463,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param settings Settings object
     */
    public void saveSettings(Settings settings) {
-      if ((fMuxValue != MuxSelection.reset) && (fMuxValue != MuxSelection.fixed)) {
+      if ((fMuxValue != MuxSelection.unassigned) && (fMuxValue != MuxSelection.fixed)) {
          settings.put(getMuxKey(fName), fMuxValue.name());
       }
       String desc = getPinUseDescription();
@@ -535,22 +479,13 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          MappingInfo mappingInfo = (MappingInfo) model;
          if (mappingInfo.isSelected()) {
             // Signal has been mapped to this pin
-            if (fMuxValue == mappingInfo.getMux()) {
-               // Deselect other signals
-               for (MuxSelection muxValue:fMappedSignals.keySet()) {
-                  if (muxValue != mappingInfo.getMux()) {
-                     fMappedSignals.get(muxValue).select(Origin.pin, false);
-                  }
-               }
-               // Select this signal
-               fMuxValue = mappingInfo.getMux();
-               fDeviceInfo.setDirty(true);
-            }
+            fMuxValue = mappingInfo.getMux();
+            fDeviceInfo.setDirty(true);
          }
          else {
-            // Signal may have been unmapped
+            // Pin may have been unmapped
             if (fMuxValue == mappingInfo.getMux()) {
-               fMuxValue = MuxSelection.reset;
+               fMuxValue = MuxSelection.unassigned;
                fDeviceInfo.setDirty(true);
             }
          }

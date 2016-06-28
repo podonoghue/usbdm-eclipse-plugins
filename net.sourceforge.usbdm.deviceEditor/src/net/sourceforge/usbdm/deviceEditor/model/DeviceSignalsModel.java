@@ -86,11 +86,11 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
          CategoryModel categoryModel = new CategoryModel(this, pinCategory.getName(), "");
          for(Pin pinInformation:pinCategory.getPins()) {
             new PinModel(categoryModel, pinInformation);
-            for (MappingInfo mappingInfo:pinInformation.getMappedSignals().values()) {
+            for (MappingInfo mappingInfo:pinInformation.getMappableSignals().values()) {
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   continue;
                }
-               if (mappingInfo.getMux() == MuxSelection.disabled) {
+               if (mappingInfo.getMux() == MuxSelection.unassigned) {
                   continue;
                }
                if (mappingInfo.getSignals().get(0) == Signal.DISABLED_SIGNAL) {

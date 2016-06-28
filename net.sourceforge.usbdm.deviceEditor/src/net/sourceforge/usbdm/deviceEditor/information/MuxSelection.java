@@ -1,10 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 public enum MuxSelection {
-   unused(-4,"E"),
-   fixed(-3,"F"),
-   reset(-2,"R"),
-   disabled(-1,"D"),
+   fixed(-2,"F"),
+   unassigned(-1,"U"),
    mux0(0,"0"),
    mux1(1,"1"),
    mux2(2,"2"),
@@ -30,10 +28,8 @@ public enum MuxSelection {
     */
    public static MuxSelection valueOf(int value) {
       switch(value) {
-      case -4 : return unused;
-      case -3 : return fixed;
-      case -2 : return reset;
-      case -1 : return disabled;
+      case -2 : return fixed;
+      case -1 : return unassigned;
       case 0  : return mux0;
       case 1  : return mux1;
       case 2  : return mux2;

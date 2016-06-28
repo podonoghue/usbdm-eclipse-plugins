@@ -83,20 +83,17 @@ public class WriteFamilyXML {
    private void writePin(XmlDocumentUtilities documentUtilities, Pin pin) throws IOException {
       documentUtilities.openTag("pin");
 
-      Map<MuxSelection, MappingInfo>  mappingInfo  = pin.getMappedSignals();
+      Map<MuxSelection, MappingInfo>  mappingInfo  = pin.getMappableSignals();
 
       Set<MuxSelection> sortedSelectionIndexes = mappingInfo.keySet();
 
-      MuxSelection defaultSelection = MuxSelection.reset;
+      boolean isFixed = false;
 
       // Construct list of alternatives
       StringBuffer alternativeHint = new StringBuffer();
       for (MuxSelection selection:mappingInfo.keySet()) {
          if (selection == MuxSelection.fixed) {
-            defaultSelection = MuxSelection.fixed;
-         }
-         if (selection == pin.getDefaultValue()) {
-            defaultSelection = selection;
+            isFixed = true;
          }
          MappingInfo mInfo = mappingInfo.get(selection);
          StringBuffer name = new StringBuffer();
@@ -107,7 +104,7 @@ public class WriteFamilyXML {
          alternativeHint.append(name);
       }
       documentUtilities.writeAttribute("name", pin.getName());
-      if (defaultSelection == MuxSelection.fixed) {
+      if (isFixed) {
          documentUtilities.writeAttribute("isFixed", "true");
       }
       for (MuxSelection selection:sortedSelectionIndexes) {
@@ -126,9 +123,9 @@ public class WriteFamilyXML {
       documentUtilities.writeAttribute("sel", pin.getResetValue().name());
       documentUtilities.closeTag();
 
-      documentUtilities.openTag("default");
-      documentUtilities.writeAttribute("sel", pin.getDefaultValue().name());
-      documentUtilities.closeTag();
+//      documentUtilities.openTag("default");
+//      documentUtilities.writeAttribute("sel", pin.getDefaultValue().name());
+//      documentUtilities.closeTag();
       documentUtilities.closeTag();
    }
 

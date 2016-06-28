@@ -292,12 +292,12 @@ public class WriteFamilyCpp {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          for (String pinName:fDeviceInfo.getPins().keySet()) {
             Pin pin = fDeviceInfo.getPins().get(pinName);
-            Map<MuxSelection, MappingInfo> mappedSignals = pin.getMappedSignals();
+            Map<MuxSelection, MappingInfo> mappedSignals = pin.getMappableSignals();
             if (mappedSignals == null) {
                continue;
             }
             for (MuxSelection index:mappedSignals.keySet()) {
-               if (index == MuxSelection.reset) {
+               if (index == MuxSelection.unassigned) {
                   continue;
                }
                MappingInfo mappedSignal = mappedSignals.get(index);
@@ -465,17 +465,24 @@ public class WriteFamilyCpp {
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         
-         String signal = pin.getMappedSignals().get(pin.getMuxValue()).getSignalList();
+         Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
+         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
+         String signalList;
+         if (mappedSignal == null) {
+            signalList = "-";
+         }
+         else {
+            signalList = mappedSignal.getSignalList();
+         }
          writer.write(String.format(DOCUMENTATION_TEMPLATE,
                pin.getName(), 
-               signal,
+               signalList,
                pin.getLocation(), 
                useDescription));
          if ((pin.getLocation() != null) && !pin.getLocation().isEmpty()) {
             pinsByLocation.put(pin.getLocation(), pin);
          }
-         pinsByFunction.put(signal, pin);
+         pinsByFunction.put(signalList, pin);
       }
       writer.write(TABLE_CLOSE);
       writer.write(String.format(TABLE_OPEN, "PinsByLocation", "Pins by Location"));
@@ -487,10 +494,18 @@ public class WriteFamilyCpp {
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         String function = pin.getMappedSignals().get(pin.getMuxValue()).getSignalList();
+         Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
+         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
+         String signalList;
+         if (mappedSignal == null) {
+            signalList = "-";
+         }
+         else {
+            signalList = mappedSignal.getSignalList();
+         }
          writer.write(String.format(DOCUMENTATION_TEMPLATE,
                pin.getName(), 
-               function,
+               signalList,
                pin.getLocation(), 
                useDescription));
          
@@ -505,9 +520,18 @@ public class WriteFamilyCpp {
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
+         Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
+         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
+         String signalList;
+         if (mappedSignal == null) {
+            signalList = "-";
+         }
+         else {
+            signalList = mappedSignal.getSignalList();
+         }
          writer.write(String.format(DOCUMENTATION_TEMPLATE,
                pin.getName(), 
-               pin.getMappedSignals().get(pin.getMuxValue()).getSignalList(),
+               signalList,
                pin.getLocation(), 
                useDescription));
       }

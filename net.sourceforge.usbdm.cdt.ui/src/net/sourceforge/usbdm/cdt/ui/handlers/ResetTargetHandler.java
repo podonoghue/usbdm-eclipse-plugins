@@ -1,8 +1,5 @@
 package net.sourceforge.usbdm.cdt.ui.handlers;
 
-import net.sourceforge.usbdm.cdt.ui.Activator;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-
 import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.cdt.dsf.concurrent.CountingRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
@@ -13,14 +10,12 @@ import org.eclipse.cdt.dsf.debug.service.IBreakpoints.IBreakpointsTargetDMContex
 import org.eclipse.cdt.dsf.debug.service.command.ICommandControlService.ICommandControlDMContext;
 import org.eclipse.cdt.dsf.debug.ui.viewmodel.launch.StateChangedEvent;
 import org.eclipse.cdt.dsf.gdb.service.GDBBackend;
-import org.eclipse.cdt.dsf.gdb.service.command.GDBBackendCLIProcess;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
 import org.eclipse.cdt.dsf.mi.service.IMIExecutionDMContext;
 import org.eclipse.cdt.dsf.mi.service.IMIProcesses;
 import org.eclipse.cdt.dsf.mi.service.IMIRunControl;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.mi.service.command.commands.CLICommand;
-import org.eclipse.cdt.dsf.mi.service.command.output.MIBreakInsertInfo;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 import org.eclipse.cdt.dsf.service.DsfServicesTracker;
 import org.eclipse.cdt.dsf.service.DsfSession;
@@ -36,23 +31,26 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.contexts.DebugContextEvent;
 import org.eclipse.debug.ui.contexts.IDebugContextListener;
 
+import net.sourceforge.usbdm.cdt.ui.Activator;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+
 @SuppressWarnings({ "restriction" })
 public class ResetTargetHandler extends AbstractHandler implements IDebugContextListener {
 
    public ResetTargetHandler() {
-      System.err.println("ResetTargetHandler()");
+//      System.err.println("ResetTargetHandler()");
       DebugUITools.getDebugContextManager().addDebugContextListener(this);
    }
 
    @Override
    public Object execute(ExecutionEvent event) throws ExecutionException {
-      System.err.println("ResetTargetHandler.execute()");
+//      System.err.println("ResetTargetHandler.execute()");
       resetTarget();
       return null;
    }
 
    private void resetTarget() {
-      System.err.println("ResetTargetHandler.resetTarget()");
+//      System.err.println("ResetTargetHandler.resetTarget()");
       final IDMContext dmContext = getIDMContext();
       if (dmContext == null) {
          System.err.println("ResetTargetHandler.resetTarget() dmContext = null");
@@ -89,10 +87,10 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
       runControl.canSuspend(executionContext, brm);
       if (brm.getData()) {
          // Suspend target 
-         System.err.println("ResetTargetHandler.resetTarget() suspending target");
+//         System.err.println("ResetTargetHandler.resetTarget() suspending target");
          runControl.suspend(executionContext, new RequestMonitor(runControl.getExecutor(), null) {
             protected void handleSuccess(){
-               System.err.println("ResetTargetHandler.resetTarget() suspending target OK");
+//               System.err.println("ResetTargetHandler.resetTarget() suspending target OK");
             }
 
             @Override
@@ -104,7 +102,7 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
          });
       }
       else {
-         System.err.println("ResetTargetHandler.resetTarget() not suspending target");
+//         System.err.println("ResetTargetHandler.resetTarget() not suspending target");
       }
       
       final IGDBControl fGdb = tracker.getService(IGDBControl.class);
@@ -112,7 +110,7 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
          System.err.println("ResetTargetHandler.resetTarget() IGDBControl = null");
          return;
       }
-      System.err.println("ResetTargetHandler.resetTarget() IGDBControl created");
+//      System.err.println("ResetTargetHandler.resetTarget() IGDBControl created");
       
       boolean restartUsesStartup = UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_USES_STARTUP;
       boolean doSetPc            = IGDBJtagConstants.DEFAULT_SET_PC_REGISTER;

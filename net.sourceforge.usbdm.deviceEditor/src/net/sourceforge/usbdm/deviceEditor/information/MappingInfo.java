@@ -31,7 +31,7 @@ public class MappingInfo extends ObservableModel {
    
    public boolean marked = false;
    
-   public static MappingInfo DISABLED_MAPPING = new MappingInfo(Pin.DISABLED_PIN, MuxSelection.disabled);
+   public static MappingInfo UNASSIGNED_MAPPING = new MappingInfo(Pin.UNASSIGNED_PIN, MuxSelection.unassigned);
    /**
     * Associates a peripheral signal and a pin<br>
     * 
@@ -113,7 +113,7 @@ public class MappingInfo extends ObservableModel {
     * @param selected
     */
    public void select(Origin origin, boolean selected) {
-      if (this == MappingInfo.DISABLED_MAPPING) {
+      if (this == MappingInfo.UNASSIGNED_MAPPING) {
          return;
       }
 //      System.err.println("MappingIofo.select("+selected+") == "+fSelected);
