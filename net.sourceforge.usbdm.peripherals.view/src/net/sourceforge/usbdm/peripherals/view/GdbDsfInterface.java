@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
-import org.eclipse.cdt.debug.mi.core.MIFormat;
 import org.eclipse.cdt.dsf.concurrent.DataRequestMonitor;
 import org.eclipse.cdt.dsf.concurrent.ImmediateExecutor;
 import org.eclipse.cdt.dsf.concurrent.Query;
@@ -33,6 +32,7 @@ import org.eclipse.cdt.dsf.debug.service.IStack.IFrameDMContext;
 import org.eclipse.cdt.dsf.debug.service.IStack.IFrameDMData;
 import org.eclipse.cdt.dsf.debug.service.command.ICommand;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
+import org.eclipse.cdt.dsf.mi.service.MIFormat;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIDataReadMemoryInfo;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIDataWriteMemoryInfo;
@@ -763,14 +763,14 @@ public class GdbDsfInterface extends GdbCommonInterface {
       IFrameDMContext exceptionFrameContext = null;
       for(IFrameDMContext frame:frames) {
          IFrameDMData frameData = getFrameDMData(stackService, frame);
-         long pc = evaluateExpression(expressionService, frame, "$pc");
-         long lr = evaluateExpression(expressionService, frame, "$lr");
-         long fp = evaluateExpression(expressionService, frame, "$fp");
-         long sp = evaluateExpression(expressionService, frame, "$sp");
-         System.err.println(String.format("@=0x%08X, pc=0x%08X, lr=0x%08X, fp=0x%08X, sp=0x%08X", 
-               frameData.getAddress().getValue().longValue(), 
-               pc, lr, fp, sp
-               ));
+//         long pc = evaluateExpression(expressionService, frame, "$pc");
+//         long lr = evaluateExpression(expressionService, frame, "$lr");
+//         long fp = evaluateExpression(expressionService, frame, "$fp");
+//         long sp = evaluateExpression(expressionService, frame, "$sp");
+//         System.err.println(String.format("@=0x%08X, pc=0x%08X, lr=0x%08X, fp=0x%08X, sp=0x%08X", 
+//               frameData.getAddress().getValue().longValue(), 
+//               pc, lr, fp, sp
+//               ));
          if ((frameData.getAddress().getValue().longValue()&0xFFFFFF00L) == 0xFFFFFF00L) {
             exceptionFrameContext = frame;
             break;

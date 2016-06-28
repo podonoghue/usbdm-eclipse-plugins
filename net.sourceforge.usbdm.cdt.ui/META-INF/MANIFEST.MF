@@ -16,9 +16,7 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools,
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.debug.ui,
  org.eclipse.cdt.dsf.ui,
- org.eclipse.ui.console,
- org.eclipse.jface,
- org.eclipse.core.resources
+ org.eclipse.ui.console
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.cdt.ui;
@@ -55,6 +53,7 @@ Import-Package: net.sourceforge.usbdm.deviceEditor.information,
  org.eclipse.cdt.dsf.datamodel,
  org.eclipse.cdt.dsf.debug.service,
  org.eclipse.cdt.dsf.debug.service.command,
+ org.eclipse.cdt.dsf.gdb.service,
  org.eclipse.cdt.dsf.gdb.service.command,
  org.eclipse.cdt.dsf.mi.service,
  org.eclipse.cdt.dsf.mi.service.command,

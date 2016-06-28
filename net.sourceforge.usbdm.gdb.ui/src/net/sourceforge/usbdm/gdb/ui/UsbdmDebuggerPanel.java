@@ -23,11 +23,7 @@ import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
 import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
-import org.eclipse.cdt.debug.mi.core.IMILaunchConfigurationConstants;
-import org.eclipse.cdt.debug.mi.core.MIPlugin;
-import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryDescriptor;
-import org.eclipse.cdt.debug.mi.core.command.factories.CommandFactoryManager;
-import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
+
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -85,7 +81,6 @@ import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
  * @since 4.12
  */
 public class UsbdmDebuggerPanel {
-   /*extends AbstractLaunchConfigurationTab*/
    
    // Keys used in GDB Launch configurations 
    public  final static String USBDM_LAUNCH_ATTRIBUTE_KEY   = "net.sourceforge.usbdm.gdb.";               //$NON-NLS-1$
@@ -94,9 +89,15 @@ public class UsbdmDebuggerPanel {
    private final static String USBDM_GDB_COMMAND_KEY        = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbCommand";    //$NON-NLS-1$
    private final static String USBDM_BUILD_TOOL_KEY         = USBDM_LAUNCH_ATTRIBUTE_KEY+"buildToolId";   //$NON-NLS-1$
 
+   // These are legacy and will eventually be removed
+   private static final String ATTR_DEBUGGER_COMMAND_FACTORY   = "org.eclipse.cdt.debug.mi.core.commandFactory";
+   private static final String ATTR_DEBUGGER_PROTOCOL          = "org.eclipse.cdt.debug.mi.core.protocol";
+   private static final String ATTR_DEBUGGER_VERBOSE_MODE      = "org.eclipse.cdt.debug.mi.core.verboseMode";
+   private static final String ATTR_DEBUG_NAME                 = "org.eclipse.cdt.debug.mi.core.DEBUG_NAME";
+   private static final String ATTR_JTAG_DEVICE                = "org.eclipse.cdt.debug.gdbjtag.core.jtagDevice";
+   private static final String ATTR_USE_REMOTE_TARGET          = "org.eclipse.cdt.debug.gdbjtag.core.useRemoteTarget";
+   
    private static final String         JTAG_DEVICE_NAME = UsbdmSharedConstants.USBDM_INTERFACE_NAME;
-
-   private CommandFactoryDescriptor[]  cfDescs;
 
    private GdbServerParameters         gdbServerParameters;
    private ArrayList<USBDMDeviceInfo>  deviceList;
@@ -118,8 +119,6 @@ public class UsbdmDebuggerPanel {
    private Text                        txtGdbCommand;
    private Button                      btnGdbCommandVariables;
 
-   private Combo                       comboCommandFactory;
-   private Combo                       comboMiProtocol;
    private Button                      btnVerboseMode;
 
    private Combo                       comboSelectBDM;
@@ -134,8 +133,6 @@ public class UsbdmDebuggerPanel {
    private NumberTextAdapter           txtGdbTtyPortAdapter;
    private Button                      btnUseDebug;
    private Button                      btnExitOnClose;
-//   private Button                      btnPipeServer;
-//   private Button                      btnSocketServer;
 
    private Combo                       comboInterfaceSpeed;
    private Button                      btnAutomaticallyReconnect;
@@ -414,33 +411,6 @@ public class UsbdmDebuggerPanel {
       layout.spacing = 10;
       layout.wrap = false;
       comp.setLayout(layout);
-
-      //=====================================================
-      Label label = new Label(comp, SWT.NONE);
-      label.setText("Command Set:");
-
-      comboCommandFactory = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
-      comboCommandFactory.addModifyListener(new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            suspendUpdate++;
-            populateMiProtocol();
-            suspendUpdate--;
-            doUpdate();
-         }
-      });
-
-      //=====================================================
-      label = new Label(comp, SWT.NONE);
-      label.setText("Protocol:");
-
-      comboMiProtocol = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
-      comboMiProtocol.addModifyListener(new ModifyListener() {
-         @Override
-         public void modifyText(ModifyEvent e) {
-            doUpdate();
-         }
-      });
 
       //=====================================================
       btnVerboseMode = new Button(comp, SWT.CHECK);
@@ -1183,35 +1153,6 @@ public class UsbdmDebuggerPanel {
       txtNVTRIMAddressAdapter.setValue(          gdbServerParameters.getNvmClockTrimLocation());
    }
 
-   private void populateGdbCommandFactoryControls() {
-
-      if (comboCommandFactory == null) {
-         return;
-      }
-      comboCommandFactory.removeAll();
-
-      // Get the command sets
-      MIPlugin miPlugin = MIPlugin.getDefault();
-      if (miPlugin == null) {
-       //  System.err.println("miPlugin == NULL");
-         comboCommandFactory.add("miPlugin == NULL");
-         comboCommandFactory.select(0);
-         return;
-      }
-      CommandFactoryManager cfManager = miPlugin.getCommandFactoryManager();
-      if (cfManager == null) {
-       //  System.err.println("cfManager == NULL");
-         comboCommandFactory.add("cfManager == NULL");
-         comboCommandFactory.select(0);
-         return;
-      }
-      cfDescs = cfManager.getDescriptors(IGDBJtagConstants.DEBUGGER_ID);
-      for (int i = 0; i < cfDescs.length; ++i) {
-         comboCommandFactory.add(cfDescs[i].getName());
-      }
-      comboCommandFactory.select(0);
-   }
-
    private int getInterfaceSpeed() {
       return JTAGInterfaceData.ClockSpeed.parse(comboInterfaceSpeed.getText()).getFrequency();
    }
@@ -1258,30 +1199,6 @@ public class UsbdmDebuggerPanel {
       txtGdbBinPath.setEnabled(toolInfo == null);
       btnGdbBinPathBrowse.setEnabled(toolInfo == null);
       btnGdbBinPathVariables.setEnabled(toolInfo == null);
-   }
-
-   /**  Populates the Mi Protocol Combo
-    *   Values depends on Command set chosen 
-    */
-   private void populateMiProtocol() {
-      if (cfDescs == null) {
-         comboMiProtocol.add("cfDescs == null");
-         comboMiProtocol.select(0);
-         return;
-      }
-      String currProt = comboMiProtocol.getText();
-      comboMiProtocol.removeAll();
-      int cfsel = comboCommandFactory.getSelectionIndex();
-      if (cfsel >= 0) {
-         String[] protocols = cfDescs[cfsel].getMIVersions();
-         for (int i = 0; i < protocols.length; ++i) {
-            comboMiProtocol.add(protocols[i]);
-            if (currProt != null && protocols[i].equals(currProt))
-               comboMiProtocol.select(i);
-         }
-      }
-      comboMiProtocol.select(0);
-      comboMiProtocol.setText(currProt);
    }
 
    /**
@@ -1430,12 +1347,9 @@ public class UsbdmDebuggerPanel {
     */
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
 
-      CommandFactoryManager cfManager = MIPlugin.getDefault().getCommandFactoryManager();
-      CommandFactoryDescriptor defDesc = cfManager.getDefaultDescriptor(IGDBJtagConstants.DEBUGGER_ID);
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_COMMAND_FACTORY, defDesc.getName());
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_PROTOCOL,        defDesc.getMIVersions()[0]);
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_VERBOSE_MODE,    
-            IMILaunchConfigurationConstants.DEBUGGER_VERBOSE_MODE_DEFAULT);
+      configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY,  "Standard");
+      configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL,         "mi");
+      configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE,     false);
       configuration.setAttribute(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET,                         true);
    }
 
@@ -1496,7 +1410,6 @@ public class UsbdmDebuggerPanel {
          }
          // Populate & set the initial interface
          populateInterfaceTypes(interfaceType);
-         populateGdbCommandFactoryControls();
 
          // Load into controls
        //  System.err.println("Loading gdbServerParameters into controls");
@@ -1518,21 +1431,7 @@ public class UsbdmDebuggerPanel {
             }
             buildToolSelectionChanged();
 
-            CommandFactoryManager cfManager = MIPlugin.getDefault().getCommandFactoryManager();
-            CommandFactoryDescriptor defDesc = cfManager.getDefaultDescriptor(IGDBJtagConstants.DEBUGGER_ID);
-            String commandFactoryAttr = configuration.getAttribute(
-                  IMILaunchConfigurationConstants.ATTR_DEBUGGER_COMMAND_FACTORY,
-                  defDesc.getName());
-            comboCommandFactory.setText(commandFactoryAttr);
-
-            String miProtocolAttr = configuration.getAttribute(
-                  IMILaunchConfigurationConstants.ATTR_DEBUGGER_PROTOCOL,
-                  defDesc.getMIVersions()[0]);
-            comboMiProtocol.setText(miProtocolAttr);
-
-            boolean verboseModeAttr = configuration.getAttribute(
-                  IMILaunchConfigurationConstants.ATTR_DEBUGGER_VERBOSE_MODE,
-                  IMILaunchConfigurationConstants.DEBUGGER_VERBOSE_MODE_DEFAULT);
+            boolean verboseModeAttr = configuration.getAttribute( ATTR_DEBUGGER_VERBOSE_MODE, false);
             btnVerboseMode.setSelection(verboseModeAttr);
 
             String currentJtagDeviceName = configuration.getAttribute(IGDBJtagConstants.ATTR_JTAG_DEVICE, "");
@@ -1545,7 +1444,7 @@ public class UsbdmDebuggerPanel {
          e.printStackTrace();
       }
    }
-
+   
    /**
     * Copies values from this Panel into the given launch configuration.
     * 
@@ -1559,7 +1458,6 @@ public class UsbdmDebuggerPanel {
 
       configuration.setAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, getInterfaceType().name());
 
-      configuration.setAttribute(IGDBJtagConstants.ATTR_CONNECTION,  "not used");
       configuration.setAttribute(USBDM_BUILD_TOOL_KEY,               getBuildToolId());
       configuration.setAttribute(USBDM_GDB_COMMAND_KEY,              txtGdbCommand.getText().trim());
       configuration.setAttribute(USBDM_GDB_BIN_PATH_KEY,             txtGdbBinPath.getText().trim());
@@ -1571,15 +1469,15 @@ public class UsbdmDebuggerPanel {
       }
       gdbPath += txtGdbCommand.getText().trim();
 //      System.err.println("UsbdmDebuggerTab.performApply() gdbPath = \'" + gdbPath + "\'");
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUG_NAME,                gdbPath);
-      configuration.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME,               gdbPath); // DSF
+      configuration.setAttribute(ATTR_DEBUG_NAME,                gdbPath);
+      configuration.setAttribute(ATTR_DEBUG_NAME,                gdbPath); // DSF
 
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_COMMAND_FACTORY,  comboCommandFactory.getText());
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_PROTOCOL,         comboMiProtocol.getText());
-      configuration.setAttribute(IMILaunchConfigurationConstants.ATTR_DEBUGGER_VERBOSE_MODE,     btnVerboseMode.getSelection());
+      configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY,  "Standard");
+      configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL,         "mi");
+      configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE,     btnVerboseMode.getSelection());
 
-      configuration.setAttribute(IGDBJtagConstants.ATTR_JTAG_DEVICE, JTAG_DEVICE_NAME);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET, true);
+      configuration.setAttribute(ATTR_JTAG_DEVICE, JTAG_DEVICE_NAME);
+      configuration.setAttribute(ATTR_USE_REMOTE_TARGET, true);
    }
 
    private void doUpdate() {

@@ -136,7 +136,7 @@ IWorkbenchPreferencePage {
          GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
          if (toolInformation.getType() == VariableType.SIMPLE) {
             new Label(group, SWT.NONE);
-            gd.widthHint = 150;
+            gd.widthHint = 450;
             gd.horizontalAlignment = SWT.LEFT;
          }
          else if (toolInformation.getType() == VariableType.FILE_PATH) {
@@ -151,7 +151,8 @@ IWorkbenchPreferencePage {
                   fd.setFilterPath(toolInformation.getValueText().getText());
                   String directoryPath = fd.open();
                   if (directoryPath != null) {
-                     toolInformation.getValueText().setText(directoryPath);
+                     Path path = new Path(directoryPath);
+                     toolInformation.getValueText().setText(path.toPortableString());
                      validate();
                   }
                }
@@ -285,7 +286,7 @@ IWorkbenchPreferencePage {
                      prefix = prefix.substring(0,  index);
                   }
                   int trailingSegmentsToRemove = 1;
-                  String path = gccPath.removeLastSegments(trailingSegmentsToRemove).toOSString();
+                  String path = gccPath.removeLastSegments(trailingSegmentsToRemove).toPortableString();
                   toolInformation.getPathText().setText(path);
                   toolInformation.getPrefixText().setText(prefix);
                   validate();
@@ -461,7 +462,8 @@ IWorkbenchPreferencePage {
             fd.setFilterPath(toolInformation.getValueText().getText());
             String directoryPath = fd.open();
             if (directoryPath != null) {
-               toolInformation.getValueText().setText(directoryPath);
+               Path path = new Path(directoryPath);
+               toolInformation.getValueText().setText(path.toPortableString());
                validate();
             }
          }

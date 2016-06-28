@@ -12,6 +12,8 @@ import org.eclipse.cdt.dsf.datamodel.IDMContext;
 import org.eclipse.cdt.dsf.debug.service.IBreakpoints.IBreakpointsTargetDMContext;
 import org.eclipse.cdt.dsf.debug.service.command.ICommandControlService.ICommandControlDMContext;
 import org.eclipse.cdt.dsf.debug.ui.viewmodel.launch.StateChangedEvent;
+import org.eclipse.cdt.dsf.gdb.service.GDBBackend;
+import org.eclipse.cdt.dsf.gdb.service.command.GDBBackendCLIProcess;
 import org.eclipse.cdt.dsf.gdb.service.command.IGDBControl;
 import org.eclipse.cdt.dsf.mi.service.IMIExecutionDMContext;
 import org.eclipse.cdt.dsf.mi.service.IMIProcesses;
@@ -38,18 +40,19 @@ import org.eclipse.debug.ui.contexts.IDebugContextListener;
 public class ResetTargetHandler extends AbstractHandler implements IDebugContextListener {
 
    public ResetTargetHandler() {
-      //      System.err.println("ResetTarget()");
+      System.err.println("ResetTargetHandler()");
       DebugUITools.getDebugContextManager().addDebugContextListener(this);
    }
 
    @Override
    public Object execute(ExecutionEvent event) throws ExecutionException {
+      System.err.println("ResetTargetHandler.execute()");
       resetTarget();
       return null;
    }
 
    private void resetTarget() {
-   //      System.err.println("ResetTarget.resetTarget()");
+      System.err.println("ResetTargetHandler.resetTarget()");
       final IDMContext dmContext = getIDMContext();
       if (dmContext == null) {
          System.err.println("ResetTargetHandler.resetTarget() dmContext = null");
@@ -77,21 +80,39 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
          System.err.println("ResetTargetHandler.resetTarget() breakPointContext = null");
          return;
       }
+
+      ILaunch launch = (ILaunch)dsfSession.getModelAdapter(ILaunch.class);
+      final ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
+      
       // Check if target running
       DataRequestMonitor<Boolean> brm = new DataRequestMonitor<Boolean>(runControl.getExecutor(), null);
       runControl.canSuspend(executionContext, brm);
       if (brm.getData()) {
          // Suspend target 
-         runControl.suspend(executionContext, new RequestMonitor(runControl.getExecutor(), null));
-      }
+         System.err.println("ResetTargetHandler.resetTarget() suspending target");
+         runControl.suspend(executionContext, new RequestMonitor(runControl.getExecutor(), null) {
+            protected void handleSuccess(){
+               System.err.println("ResetTargetHandler.resetTarget() suspending target OK");
+            }
 
-      final IGDBControl fGdb = tracker.getService(IGDBControl.class);
-      if (fGdb == null) {
-         return;
+            @Override
+            protected void handleError() {
+               System.err.println("ResetTargetHandler.resetTarget() suspending target Failed");
+               GDBBackend gdbBackend = new GDBBackend(dsfSession, launchConfiguration);
+               gdbBackend.interruptAndWait(100, this);
+            }
+         });
+      }
+      else {
+         System.err.println("ResetTargetHandler.resetTarget() not suspending target");
       }
       
-      ILaunch launch = (ILaunch)dsfSession.getModelAdapter(ILaunch.class);
-      ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
+      final IGDBControl fGdb = tracker.getService(IGDBControl.class);
+      if (fGdb == null) {
+         System.err.println("ResetTargetHandler.resetTarget() IGDBControl = null");
+         return;
+      }
+      System.err.println("ResetTargetHandler.resetTarget() IGDBControl created");
       
       boolean restartUsesStartup = UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_USES_STARTUP;
       boolean doSetPc            = IGDBJtagConstants.DEFAULT_SET_PC_REGISTER;
@@ -134,7 +155,7 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
       crm.setDoneCount(4);
 
       CommandFactory factory = fGdb.getCommandFactory();
-      
+
       fGdb.getCommandFactory();
 
       // Step 1
@@ -157,9 +178,11 @@ public class ResetTargetHandler extends AbstractHandler implements IDebugContext
       // Step 3
       if (doStopAt) {
          // Set temporary restart breakpoint 
-         fGdb.queueCommand(
-               factory.createMIBreakInsert(breakPointContext, true, false, null, 0, stopAtAddress, 0), 
-               new DataRequestMonitor<MIBreakInsertInfo>(fGdb.getExecutor(), crm));
+         fGdb.queueCommand(new CLICommand<MIInfo>(fGdb.getContext(), "tb " + stopAtAddress), 
+               new DataRequestMonitor<MIInfo>(fGdb.getExecutor(), crm));
+//         fGdb.queueCommand(
+//               factory.createMIBreakInsert(breakPointContext, true, false, null, 0, stopAtAddress, null), 
+//               new DataRequestMonitor<MIBreakInsertInfo>(fGdb.getExecutor(), crm));
       }
       else {
          crm.done();

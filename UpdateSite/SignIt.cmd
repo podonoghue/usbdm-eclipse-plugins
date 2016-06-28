@@ -1,4 +1,4 @@
-@echo off
+ @echo off
 rem if "%1"=="" goto usage
 
 set HOME_DIR=%~dp0
@@ -11,7 +11,8 @@ if [%PASS%] == []  goto done
 set KEYTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\keytool.exe"
 set SIGNTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\jarsigner.exe"
 set STORE="C:\Apps\Certificates\cacerts"
-set ALIAS=mykey
+set ALIAS=myKey
+rem set ALIAS={0483c6d5-103a-436c-bca0-dfe8ad043339}
 rem set TIMESTAMP_URL=http://www.startssl.com/timestamp
 set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
 

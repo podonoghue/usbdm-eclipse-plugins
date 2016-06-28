@@ -24,30 +24,32 @@ Non-derivative components are licensed under the GPL.
 
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.eclipse.swt"/>
       <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.swt"/>
+      <import plugin="org.eclipse.ui.workbench"/>
+      <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.cdt.core" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core"/>
       <import plugin="org.eclipse.core.variables"/>
-      <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.cdt.dsf.ui"/>
       <import plugin="org.eclipse.cdt.debug.gdbjtag.core"/>
       <import plugin="org.eclipse.cdt.dsf"/>
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
-      <import plugin="org.eclipse.ui.workbench"/>
-      <import plugin="org.eclipse.cdt.debug.mi.core"/>
       <import plugin="org.eclipse.cdt.launch"/>
       <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.osgi"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
       <import plugin="org.eclipse.debug.core"/>
-      <import plugin="org.eclipse.cdt.make.ui"/>
-      <import plugin="org.eclipse.ltk.core.refactoring"/>
-      <import plugin="org.eclipse.osgi"/>
+      <import plugin="net.sourceforge.usbdm.jni" version="4.12.1" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.cdt.tools" version="4.12.1" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="4.12.1" match="greaterOrEqual"/>
+      <import plugin="net.sourceforge.usbdm.deviceDatabase" version="4.12.1" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.views"/>
    </requires>
 
    <plugin

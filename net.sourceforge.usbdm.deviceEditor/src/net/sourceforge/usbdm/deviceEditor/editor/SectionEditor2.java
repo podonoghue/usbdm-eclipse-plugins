@@ -68,7 +68,7 @@ public class SectionEditor2 implements IEditor {
             treeEditor.setModel((TreeViewModel) pageModel);
             treeEditor.getViewer().addTreeListener( new ITreeViewerListener() {
                @Override
-               public void treeExpanded(TreeExpansionEvent arg0) {
+               public void treeExpanded(final TreeExpansionEvent arg0) {
                   System.err.println("Expand");
                   Display.getDefault().asyncExec(new Runnable() {
                      @Override
@@ -80,7 +80,7 @@ public class SectionEditor2 implements IEditor {
                   });
                }
                @Override
-               public void treeCollapsed(TreeExpansionEvent arg0) {
+               public void treeCollapsed(final TreeExpansionEvent arg0) {
                   System.err.println("Collapse");
                   Display.getDefault().asyncExec(new Runnable() {
                      @Override

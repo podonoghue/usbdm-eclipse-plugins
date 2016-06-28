@@ -9,7 +9,6 @@ Require-Bundle: net.sourceforge.usbdm.constants,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
- org.eclipse.cdt.make.ui,
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.core.variables,
  org.eclipse.core.resources,
@@ -20,5 +19,4 @@ Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.tools.scanners,
  net.sourceforge.usbdm.cdt.utilties
-Import-Package: net.sourceforge.usbdm.deviceDatabase,
- net.sourceforge.usbdm.packageParser
+Import-Package: net.sourceforge.usbdm.packageParser

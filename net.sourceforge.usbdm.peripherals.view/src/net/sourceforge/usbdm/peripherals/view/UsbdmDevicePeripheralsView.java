@@ -235,7 +235,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    
    private Action                openFaultDialogue;
    private GdbDsfSessionListener gdbDsfSessionListener = null;
-   private GdbMiSessionListener  gdbMiSessionListener = null;
 
    // Current model being displayed
    private UsbdmDevicePeripheralsModel peripheralsModel = null;
@@ -259,9 +258,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       gdbDsfSessionListener = GdbDsfSessionListener.getListener();
       gdbDsfSessionListener.addListener(this);
 
-      // Listen for MI Sessions
-      gdbMiSessionListener = GdbMiSessionListener.getListener();
-      gdbMiSessionListener.addListener(this);
    }
 
    /*
@@ -274,9 +270,6 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       super.dispose();
       if (gdbDsfSessionListener != null) {
          gdbDsfSessionListener.removeListener(this);
-      }
-      if (gdbMiSessionListener != null) {
-         gdbMiSessionListener.removeListener(this);
       }
    }
 

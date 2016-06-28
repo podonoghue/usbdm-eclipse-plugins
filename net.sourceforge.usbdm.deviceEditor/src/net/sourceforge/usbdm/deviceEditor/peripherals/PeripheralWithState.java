@@ -50,10 +50,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    private final class IndexKeyMaker implements IKeyMaker {
-      private final String fIndex;
+//      private final String fIndex;
       
       public IndexKeyMaker(int index) {
-         fIndex = "[" + index + "]";
+//         fIndex = "[" + index + "]";
       }
       @Override
       public String makeKey(String name) {
