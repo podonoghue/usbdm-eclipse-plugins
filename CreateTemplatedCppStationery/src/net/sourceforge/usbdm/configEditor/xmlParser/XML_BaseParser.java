@@ -46,10 +46,10 @@ public class XML_BaseParser {
          case '\'':
             sb.append("&apos;");
             break;
-         case '×':
+         case '\327':
             sb.append("x");
             break;
-         case 'µ':
+         case '\265':
             sb.append("u");
             break;
             // Used once-off to change description formats
