@@ -470,6 +470,10 @@ public class DeviceSelectorPanel extends Composite {
     * @return
     */
    void filterNodesJob() {
+      if ((fDeviceText == null) || fDeviceText.isDisposed()) {
+         // In case just disposed
+         return;
+      }
 //      System.err.println("filterNodesJob()");
       testAndSetFilterPending(false);
       fMatchingNodesCount = 0;
