@@ -151,5 +151,5 @@ public class EngineeringNotation {
             System.err.println(String.format("%-10s => Expected %f, Got %f, diff=%f", tests[index], num, results[index], num-results[index]));
          }
       }
-
+   }
  }
