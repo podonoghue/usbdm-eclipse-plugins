@@ -140,4 +140,16 @@ public class EngineeringNotation {
       }
       return Math.round(value);
    }
+   
+   public static void main(String[] args) {
+
+      String tests[]   = {"24.56789kHz", "100Hz", "100MHz", "100kHz", "100k", "100u", "100m", "0x23", "0b1010", "-100", "-0x23", "-0b1010kHz", };
+      double results[] = { 24567.89,      100,    100000000, 100000,  100000, 0.0001, 0.10,    0x23,    10, -100, -0x23, -0b1010*1000, };
+      for (int index=0; index<results.length; index++) {
+         double num = EngineeringNotation.parseAsLong(tests[index]);
+         if (num != results[index]) {
+            System.err.println(String.format("%-10s => Expected %f, Got %f, diff=%f", tests[index], num, results[index], num-results[index]));
+         }
+      }
+
  }
