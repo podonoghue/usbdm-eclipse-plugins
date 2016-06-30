@@ -2,7 +2,7 @@
  * Used to package USBDM GDB server parameters.
  * 
  */
-package net.sourceforge.usbdm.gdb;
+package net.sourceforge.usbdm.gdb.server;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;

@@ -20,9 +20,12 @@ Require-Bundle: net.sourceforge.usbdm.constants,
  org.eclipse.cdt.debug.gdbjtag.core,
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.core,
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ org.eclipse.cdt.dsf.ui;bundle-version="2.5.0",
+ org.eclipse.cdt.dsf.gdb.ui;bundle-version="2.4.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: net.sourceforge.usbdm.gdb,
+ net.sourceforge.usbdm.gdb.server,
  net.sourceforge.usbdm.gdb.ttyConsole,
  net.sourceforge.usbdm.gdb.ui
 Import-Package: org.eclipse.cdt.core.model,
@@ -33,4 +36,6 @@ Import-Package: org.eclipse.cdt.core.model,
  org.eclipse.cdt.dsf.debug.service.command,
  org.eclipse.cdt.dsf.service,
  org.eclipse.cdt.managedbuilder.core,
+ org.eclipse.core.runtime;version="3.4.0",
+ org.eclipse.debug.core.commands,
  org.eclipse.ui.views.navigator

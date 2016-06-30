@@ -1,86 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
-            configTypeID="net.sourceforge.usbdm.gdb.launchConfigurationType"
-            icon="icons/cog.png"
-            id="net.sourceforge.usbdm.gdb.launchConfigurationTypeImage">
+         configTypeID="net.sourceforge.usbdm.gdb.launchConfigurationType"
+         icon="icons/cog.png"
+         id="net.sourceforge.usbdm.gdb.launchConfigurationTypeImage">
       </launchConfigurationTypeImage>
    </extension>
-   <extension
-         point="org.eclipse.debug.core.launchConfigurationTypes">
+   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            id="net.sourceforge.usbdm.gdb.launchConfigurationType"
-            name="USBDM Hardware Debugging"
-            public="true"/>
+         id="net.sourceforge.usbdm.gdb.launchConfigurationType"
+         name="USBDM Hardware Debugging"
+         public="true" />
    </extension>
-   <extension
-         point="org.eclipse.debug.core.launchDelegates">
+   <extension point="org.eclipse.debug.core.launchDelegates">
       <launchDelegate
-            delegate="net.sourceforge.usbdm.gdb.UsbdmGdbDsfLaunchConfigurationDelegate"
-            delegateDescription="Hardware debugging using the USBDM debugger framework (DSF-debug)"
-            id="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"
-            modes="debug"
-            name="USBDM Hardware Debugger (DSF-debug)"
-            sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
-            sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
-            type="net.sourceforge.usbdm.gdb.launchConfigurationType">
+         delegate="net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfLaunchConfigurationDelegate"
+         delegateDescription="Hardware debugging using the USBDM debugger framework (DSF-debug)"
+         id="net.sourceforge.usbdm.gdb.dsfLaunchDelegate"
+         modes="debug"
+         name="USBDM Hardware Debugger (DSF-debug)"
+         sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
+         sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
+         type="net.sourceforge.usbdm.gdb.launchConfigurationType">
       </launchDelegate>
       <launchDelegate
-            delegate="net.sourceforge.usbdm.gdb.UsbdmGdbDsfLaunchConfigurationDelegate"
-            delegateDescription="Hardware debugging using the USBDM debugger framework (DSF-run)"
-            id="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate"
-            modes="run"
-            name="USBDM Hardware Debugger (DSF-run)"
-            sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
-            sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
-            type="net.sourceforge.usbdm.gdb.launchConfigurationType">
+         delegate="net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfLaunchConfigurationDelegate"
+         delegateDescription="Hardware debugging using the USBDM debugger framework (DSF-run)"
+         id="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate"
+         modes="run"
+         name="USBDM Hardware Debugger (DSF-run)"
+         sourceLocatorId="org.eclipse.cdt.debug.core.sourceLocator"
+         sourcePathComputerId="org.eclipse.cdt.debug.core.sourcePathComputer"
+         type="net.sourceforge.usbdm.gdb.launchConfigurationType">
       </launchDelegate>
    </extension>
-   <extension
-         point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
+   <!--extension
+      point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
       <device
-            class="net.sourceforge.usbdm.gdb.UsbdmGdbInterface"
-            id="net.sourceforge.usbdm.dsf.interface"
-            name="USBDM DSF Interface">
+      class="net.sourceforge.usbdm.gdb.launch.UsbdmGdbInterface"
+      id="net.sourceforge.usbdm.dsf.interface"
+      name="USBDM DSF Interface">
       </device>
-   </extension>
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      </extension -->
+   <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="net.sourceforge.usbdm.gdb.ui.UsbdmLaunchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            type="net.sourceforge.usbdm.gdb.launchConfigurationType"/>
+         class="net.sourceforge.usbdm.gdb.ui.UsbdmLaunchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         type="net.sourceforge.usbdm.gdb.launchConfigurationType" />
    </extension>
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabs">
+   <extension point="org.eclipse.debug.ui.launchConfigurationTabs">
       <tab
-            class="net.sourceforge.usbdm.gdb.ui.UsbdmCMainTab"
-            group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab"
-            name="Main">
+         class="net.sourceforge.usbdm.gdb.ui.UsbdmCMainTab"
+         group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab"
+         name="Main">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
       </tab>
       <tab
-            class="net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerTab"
-            group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab"
-            name="Debugger">
+         class="net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerTab"
+         group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab"
+         name="Debugger">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
-         <placement
-               after="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab">
+         <placement after="net.sourceforge.usbdm.gdb.ui.usbdmCMainTab">
          </placement>
       </tab>
       <tab
@@ -89,67 +83,170 @@
          id="net.sourceforge.usbdm.gdb.ui.usbdmStartupTab"
          name="Startup">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
-         <placement
-               after="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab">
+         <placement after="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab">
          </placement>
       </tab>
       <tab
-            class="net.sourceforge.usbdm.gdb.ui.UsbdmRunTab"
-            group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.ui.usbdmRunTab"
-            name="Run">
+         class="net.sourceforge.usbdm.gdb.ui.UsbdmRunTab"
+         group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.ui.usbdmRunTab"
+         name="Run">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
-         <placement
-               after="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab">
+         <placement after="net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab">
          </placement>
       </tab>
       <tab
-            class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab"
-            group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.ui.usbdmSourceLookupTab"
-            name="Source">
+         class="org.eclipse.debug.ui.sourcelookup.SourceLookupTab"
+         group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.ui.usbdmSourceLookupTab"
+         name="Source">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
-         <placement
-               after="net.sourceforge.usbdm.gdb.ui.usbdmRunTab">
+         <placement after="net.sourceforge.usbdm.gdb.ui.usbdmRunTab">
          </placement>
       </tab>
       <tab
-            class="org.eclipse.debug.ui.CommonTab"
-            group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
-            id="net.sourceforge.usbdm.gdb.ui.usbdmCommonTab"
-            name="Common">
+         class="org.eclipse.debug.ui.CommonTab"
+         group="net.sourceforge.usbdm.gdb.launchConfigurationTabGroup"
+         id="net.sourceforge.usbdm.gdb.ui.usbdmCommonTab"
+         name="Common">
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfRunLaunchDelegate">
          </associatedDelegate>
          <associatedDelegate
-               delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
+            delegate="net.sourceforge.usbdm.gdb.dsfLaunchDelegate">
          </associatedDelegate>
-         <placement
-               after="org.eclipse.debug.ui.sourceLookupTab">
+         <placement after="org.eclipse.debug.ui.sourceLookupTab">
          </placement>
       </tab>
    </extension>
-      <extension
-         point="org.eclipse.ui.console.consolePageParticipants">
+   
+   <!-- Debug console for stdout/stderr messages -->
+   <extension point="org.eclipse.ui.console.consolePageParticipants">
       <consolePageParticipant
-            class="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant"
-            id="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant">
+         class="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant"
+         id="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsolePageParticipant">
          <enablement>
-            <instanceof value="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsole"/>
+            <instanceof
+               value="net.sourceforge.usbdm.gdb.ttyConsole.UsbdmTtyConsole" />
          </enablement>
       </consolePageParticipant>
    </extension>
-      <extension
-            point="org.eclipse.cdt.launch.launchConfigAffinity">
-         <launchConfigTypeId
-               id="net.sourceforge.usbdm.gdb.launchConfigurationType">
-         </launchConfigTypeId>
-      </extension> 
-   
+
+   <!-- Allow CDT to adjust launch configuration when renaming etc -->
+   <extension point="org.eclipse.cdt.launch.launchConfigAffinity">
+      <launchConfigTypeId
+         id="net.sourceforge.usbdm.gdb.launchConfigurationType">
+      </launchConfigTypeId>
+   </extension>
+
+   <!-- Restart command -->
+   <extension point="org.eclipse.ui.commands">
+      <command
+         categoryId="org.eclipse.cdt.debug.ui.category.debugViewLayout"
+         description="Restart Target"
+         id="net.sourceforge.usbdm.gdb.commands.RestartTarget"
+         name="Restart">
+      </command>
+   </extension>
+
+   <!-- Connect Restart command to handler -->
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+         class="net.sourceforge.usbdm.gdb.commands.UsbdmRestartTargetHandler"
+         commandId="net.sourceforge.usbdm.gdb.commands.RestartTarget">
+         <enabledWhen>
+            <with variable="org.eclipse.core.runtime.Platform">
+               <test property="org.eclipse.core.runtime.bundleState"
+                     args="net.sourceforge.usbdm.gdb.ui"
+                     value="ACTIVE">
+               </test>
+            </with>
+         </enabledWhen>
+      </handler>
+   </extension>
+
+   <extension point="org.eclipse.ui.menus">
+
+      <!-- Add Restart to main toolbar -->
+      <menuContribution
+         allPopups="false"
+         locationURI="toolbar:org.eclipse.debug.ui.main.toolbar?before=stepGroup">
+         <command
+            commandId="net.sourceforge.usbdm.gdb.commands.RestartTarget"
+            disabledIcon="icons/reset_disabled.png"
+            icon="icons/reset.png"
+            label="Restart Target"
+            tooltip="Restart">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <reference
+                     definitionId="org.eclipse.cdt.debug.ui.testIsDebugActionSetActive">
+                  </reference>
+                  <with variable="org.eclipse.core.runtime.Platform">
+                     <test
+                        property="org.eclipse.core.runtime.bundleState"
+                        args="net.sourceforge.usbdm.gdb.ui"
+                        value="ACTIVE">
+                     </test>
+                  </with>
+               </and>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <!-- Add Restart to toolbar at the top of the Debug View -->
+      <menuContribution
+         allPopups="true"
+         locationURI="toolbar:org.eclipse.debug.ui.DebugView?before=stepGroup">
+         <command
+            commandId="net.sourceforge.usbdm.gdb.commands.RestartTarget"
+            disabledIcon="icons/reset_disabled.png"
+            icon="icons/reset.png"
+            label="Restart Target"
+            tooltip="Restart">
+            <visibleWhen checkEnabled="false">
+               <and>
+                  <systemTest
+                     property="org.eclipse.debug.ui.debugViewToolbarVisible"
+                     value="true" />
+                  <with variable="org.eclipse.core.runtime.Platform">
+                     <test
+                        property="org.eclipse.core.runtime.bundleState"
+                        args="net.sourceforge.usbdm.gdb.ui"
+                        value="ACTIVE">
+                     </test>
+                  </with>
+               </and>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+
+      <!-- Add Restart to the popup menu of the Debug View -->
+      <menuContribution
+         locationURI="popup:org.eclipse.debug.ui.DebugView?before=stepGroup">
+         <command
+            commandId="net.sourceforge.usbdm.gdb.commands.RestartTarget"
+            disabledIcon="icons/reset_disabled.png"
+            icon="icons/reset.png"
+            label="Restart Target"
+            tooltip="Restart">
+            <visibleWhen checkEnabled="false">
+               <with variable="org.eclipse.core.runtime.Platform">
+                  <test
+                     property="org.eclipse.core.runtime.bundleState"
+                     args="net.sourceforge.usbdm.gdb.ui"
+                     value="ACTIVE">
+                  </test>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+
 </plugin>

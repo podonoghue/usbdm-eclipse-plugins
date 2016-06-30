@@ -1,7 +1,7 @@
 /*
  * Provides an interface that allows creating and monitoring of USBDM GDB socket-based server.
  */
-package net.sourceforge.usbdm.gdb;
+package net.sourceforge.usbdm.gdb.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.gdb.GdbServerParameters;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 import org.eclipse.swt.SWT;

@@ -19,7 +19,7 @@
  *******************************************************************************/
 
 
-package net.sourceforge.usbdm.gdb;
+package net.sourceforge.usbdm.gdb.launch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import net.sourceforge.usbdm.gdb.GdbServerParameters.GdbServerType;
-import net.sourceforge.usbdm.gdb.ttyConsole.MyConsoleInterface;
-import net.sourceforge.usbdm.jni.UsbdmException;
 
 import org.eclipse.cdt.debug.core.CDebugUtils;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
@@ -71,6 +67,13 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
+
+import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
+import net.sourceforge.usbdm.gdb.server.GdbServerInterface;
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters.GdbServerType;
+import net.sourceforge.usbdm.gdb.ttyConsole.MyConsoleInterface;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * The final launch sequence for the hardware debugging using the
@@ -112,9 +115,9 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
       fDoSyncTarget        = false;
       ILaunch launch       = (ILaunch)fSession.getModelAdapter(ILaunch.class);
       fTtyPortNum          = -1;
-      boolean ttyOpen = getBooleanLaunchSetting(launch, net.sourceforge.usbdm.gdb.GdbServerParameters.USE_SEMI_HOSTING_KEY);
+      boolean ttyOpen = getBooleanLaunchSetting(launch, net.sourceforge.usbdm.gdb.server.GdbServerParameters.USE_SEMI_HOSTING_KEY);
       if (ttyOpen) {
-         fTtyPortNum = getIntegerSetting(launch, net.sourceforge.usbdm.gdb.GdbServerParameters.TTY_PORT_KEY);
+         fTtyPortNum = getIntegerSetting(launch, net.sourceforge.usbdm.gdb.server.GdbServerParameters.TTY_PORT_KEY);
       }
       fLaunchMode = launch.getLaunchMode();
    }
@@ -288,7 +291,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    @Execute
    public void stepInitUsbdmGdbDsfFinalLaunchSequence(RequestMonitor rm) {
 //      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepInitUsbdmGdbDsfFinalLaunchSequence()");
-      fTracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
+      fTracker    = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
       fGDBBackend = fTracker.getService(IGDBBackend.class);
       if (fGDBBackend == null) {
          rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain GDBBackend service", null)); //$NON-NLS-1$

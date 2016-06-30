@@ -1,15 +1,14 @@
 /*******************************************************************************
- * Copyright (c) 2013 Ericsson and others.
+ * Copyright (c) 2014 Ericsson and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Contributors:
- *     Marc Khouzam (Ericsson) - initial API and implementation this class is based on
- \******************************************************************************/
-package net.sourceforge.usbdm.gdb;
-
+ *     Marc Khouzam (Ericsson) - initial API and implementation
+ *******************************************************************************/
+package net.sourceforge.usbdm.gdb.launch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,15 +24,19 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
+
 /**
- * Version for GDB 7.2 and higher.
+ * Subclass for GDB >= 7.7.
+ * 
  * @since 4.12
  */
-public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
-
-   public UsbdmGdbDsfFinalLaunchSequence_7_2(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm, GdbServerParameters gdbServerParameters) {
-      super(session, attributes, rm, gdbServerParameters);
-   }
+public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSequence {
+	
+	public UsbdmGdbDsfFinalLaunchSequence_7_7(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm, GdbServerParameters gdbServerParameters) {
+		super(session, attributes, rm, gdbServerParameters);
+	}
 
    @Override
    protected String[] getExecutionOrder(String group) {
@@ -70,4 +73,5 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
       setContainerContext(procService.createContainerContextFromGroupId(gdbControl.getContext(), "i1")); //$NON-NLS-1$
       rm.done();
    }
+
 }

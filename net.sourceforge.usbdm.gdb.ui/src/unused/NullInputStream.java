@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.gdb;
+package unused;
 
 import java.io.IOException;
 import java.io.InputStream;

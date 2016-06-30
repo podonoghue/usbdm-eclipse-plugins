@@ -66,7 +66,7 @@ import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.ClockTypes;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
-import net.sourceforge.usbdm.gdb.GdbServerParameters;
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData;
 import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
 import net.sourceforge.usbdm.jni.Usbdm;
