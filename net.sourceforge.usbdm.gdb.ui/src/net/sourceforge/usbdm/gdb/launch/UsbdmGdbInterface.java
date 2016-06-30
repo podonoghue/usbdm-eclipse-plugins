@@ -18,24 +18,11 @@ package net.sourceforge.usbdm.gdb.launch;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConnection;
-
 /**
  * Used for USBDM connection
  */
-public class UsbdmGdbInterface implements IGDBJtagConnection {
+public class UsbdmGdbInterface {
 
-   /**
-    * Utility method to format and add commands
-    * 
-    * @param commands Collection of commands
-    * @param cmd      Command to add to collection
-    */
-   protected void addCmd(Collection<String> commands, String cmd) {
-//      System.err.println(String.format("addCmd(%s)", cmd));
-      commands.add(cmd);
-   }
-   
    /**
     * Protect file path if needed
     * 
@@ -58,8 +45,8 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doLoadImage(String imageFileName, String imageOffset, Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doLoadImage()");
-      addCmd(commands, "-file-exec-file " + escapeSpaces(imageFileName));  //$NON-NLS-1$  //$NON-NLS-2$
-      addCmd(commands, "-target-download");  //$NON-NLS-1$
+      commands.add("-file-exec-file " + escapeSpaces(imageFileName));  //$NON-NLS-1$
+      commands.add("-target-download");  //$NON-NLS-1$
    }
 
    /**
@@ -71,37 +58,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doLoadSymbol(String symbolFileName, String symbolOffset, Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doLoadSymbol()");
-      addCmd(commands, "-file-symbol-file " + escapeSpaces(symbolFileName)); //$NON-NLS-1$
-   }
-
-   protected String connection = "localhost:1234";
-
-   /* (non-Javadoc)
-    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#doDelay(int, java.util.Collection)
-    */
-   public final void setDefaultDeviceConnection(String connection) {
-//      System.err.println("UsbdmGdbInterface::setDefaultDeviceConnection(\'"+connection+"\')");
-      this.connection = connection;
-   }
-
-   /* (non-Javadoc)
-    * @see org.eclipse.cdt.debug.gdbjtag.core.jtagdevice.IGDBJtagDevice#getDefaultDeviceConnection()
-    */
-   public String getDefaultDeviceConnection() {
-//       System.err.println("UsbdmGdbInterface::getDefaultDeviceConnection() => \'"+connection+"\'");
-      return connection;
-   }
-
-   /**
-    * 
-    * @param ip
-    * @param port
-    * @param commands       Collection to add commands to
-    */
-   public void doRemote(String ip, int port, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doRemote(ip=%s, port=%d)", ip, port));
-      addCmd(commands, "-gdb-set remotetimeout 3000"); //$NON-NLS-1$
-      addCmd(commands, "-target-select remote " + ip + ":" + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
+      commands.add("-file-symbol-file " + escapeSpaces(symbolFileName)); //$NON-NLS-1$
    }
 
    /**
@@ -109,22 +66,12 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     * @param commandLine   GDB command line
     */
    public void doRemote(String commandLine, Collection<String> commands) {
-      addCmd(commands, "-gdb-set remotetimeout 3000"); //$NON-NLS-1$
+      commands.add("-gdb-set remotetimeout 3000"); //$NON-NLS-1$
 //      System.err.println("UsbdmGdbInterface.doRemote(\'"+"-gdb-set remotetimeout 3000"+"\')");
       if (commandLine != null) {
-         addCmd(commands, "-target-select remote " + commandLine);//$NON-NLS-1$
+         commands.add("-target-select remote " + commandLine);//$NON-NLS-1$
 //         System.err.println("UsbdmGdbInterface.doRemote(\'"+"-target-select remote " +commandLine+"\')");
       }
-   }
-
-   public String getDefaultIpAddress() {
-//      System.err.println("UsbdmGdbInterface::getDefaultIpAddress()");
-      throw new UnsupportedOperationException();
-   }
-
-   public String getDefaultPortNumber() {
-//      System.err.println("UsbdmGdbInterface::getDefaultPortNumber()");
-      throw new UnsupportedOperationException();
    }
 
    /**
@@ -135,7 +82,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doStopAt(String stopAt, Collection<String> commands) {
 //      System.err.println(String.format("UsbdmGdbInterface.doStopAt(%s)", stopAt));
-      addCmd(commands, "-break-insert -t " + stopAt); //$NON-NLS-1$
+      commands.add("-break-insert -t " + stopAt); //$NON-NLS-1$
    }
 
    /**
@@ -145,7 +92,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doReset(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doReset()");
-      addCmd(commands, "monitor reset halt"); //$NON-NLS-1$
+      commands.add("monitor reset halt"); //$NON-NLS-1$
    }
 
    /**
@@ -155,7 +102,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doStep(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doStep()");
-      addCmd(commands, "-exec-step");  //$NON-NLS-1$
+      commands.add("-exec-step");  //$NON-NLS-1$
    }
 
    /**
@@ -166,7 +113,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doSetPC(String pcValue, Collection<String> commands) {
 //      System.err.println(String.format("UsbdmGdbInterface.doSetPC(%s)", pcValue));
-      addCmd(commands, "-gdb-set $pc=" + pcValue); //$NON-NLS-1$
+      commands.add("-gdb-set $pc=" + pcValue); //$NON-NLS-1$
    }
 
    /**
@@ -176,7 +123,7 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
     */
    public void doHalt(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doHalt()");
-      addCmd(commands, "-exec-interrupt"); //$NON-NLS-1$
+      commands.add("-exec-interrupt"); //$NON-NLS-1$
    }
 
    /**
@@ -187,8 +134,8 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
    public void doContinue(Collection<String> commands) {
 //     System.err.println("UsbdmGdbInterface.doContinue()");
       // Use 'continue' so we don't wait for acknowledgement
-//      addCmd(commands, "continue"); //$NON-NLS-1$
-      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
+//      commands.add("continue"); //$NON-NLS-1$
+      commands.add("-exec-continue"); //$NON-NLS-1$
    }
 
    /**
@@ -200,22 +147,13 @@ public class UsbdmGdbInterface implements IGDBJtagConnection {
    public void doRun(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doRun()");
       // Use 'continue' so we don't wait for acknowledgement
-      addCmd(commands, "monitor run"); //$NON-NLS-1$
-//      addCmd(commands, "-exec-continue"); //$NON-NLS-1$
-   }
-
-   /**
-    * Get default reset delay
-    * 
-    * @return delay in ms
-    */
-   public int getDefaultDelay() {
-      return 0;
+      commands.add("monitor run"); //$NON-NLS-1$
+//      commands.add("-exec-continue"); //$NON-NLS-1$
    }
 
    public void doDetach(List<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doDetach()");
-      addCmd(commands, "-target-detach"); //$NON-NLS-1$
+      commands.add("-target-detach"); //$NON-NLS-1$
    }
 
 }

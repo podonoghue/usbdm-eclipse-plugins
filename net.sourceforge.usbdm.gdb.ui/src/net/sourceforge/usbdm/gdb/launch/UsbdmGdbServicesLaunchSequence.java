@@ -20,7 +20,7 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.commands.IRestartHandler;
 
-import net.sourceforge.usbdm.gdb.commands.UsbdmRestartTargetHandler;
+import net.sourceforge.usbdm.gdb.commands.UsbdmGdbRestartTargetHandler;
 import net.sourceforge.usbdm.gdb.service.UsbdmExtendedFunctions;
 
 public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
@@ -33,12 +33,12 @@ public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
       System.err.println("...gdb.UsbdmGdbServicesLaunchSequence()");
       fLaunch = launch;
       fSession = session;
-      session.registerModelAdapter(IRestartHandler.class, new UsbdmRestartTargetHandler(session, launch));
+      session.registerModelAdapter(IRestartHandler.class, new UsbdmGdbRestartTargetHandler(session, launch));
    }
 
    @Override
    public Step[] getSteps() { 
-      System.err.println("...gdb.UsbdmGdbServicesLaunchSequence.getSteps()");
+//      System.err.println("...gdb.UsbdmGdbServicesLaunchSequence.getSteps()");
       // Add an extra step at the end to create the new service
       Step[] steps     = super.getSteps();
       Step[] moreSteps = new Step[steps.length + 1];
@@ -46,16 +46,10 @@ public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
       moreSteps[steps.length] = new Step() {
          @Override
          public void execute(RequestMonitor requestMonitor) {
-            fLaunch.getServiceFactory().createService(UsbdmExtendedFunctions.class, fLaunch.getSession()).initialize(requestMonitor);
+            fLaunch.getServiceFactory().createService(UsbdmExtendedFunctions.class, fSession).initialize(requestMonitor);
          }
       };
       return moreSteps;
-   }
-
-   @Override
-   public boolean isDone() {
-      fSession.unregisterModelAdapter(IRestartHandler.class);
-      return super.isDone();
    }
 
 }

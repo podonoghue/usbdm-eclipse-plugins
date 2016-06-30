@@ -66,7 +66,7 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSe
       tracker.dispose();
 
       if (gdbControl == null || procService == null) {
-         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.PLUGIN_ID, -1, "Cannot obtain service", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), -1, "Cannot obtain service", null)); //$NON-NLS-1$
          rm.done();
          return;
       }

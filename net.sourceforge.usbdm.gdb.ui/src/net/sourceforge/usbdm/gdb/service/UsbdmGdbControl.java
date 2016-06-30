@@ -34,7 +34,11 @@ public class UsbdmGdbControl extends GDBControl_7_7 {
 
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-      System.err.println("UsbdmGdbControl.getCompleteInitializationSequence()");
+//      System.err.println("UsbdmGdbControl.getCompleteInitializationSequence()");
+//	   for (String key:attributes.keySet() ) {
+//	      System.err.println(String.format("%-20s ==> %s", key, attributes.get(key).toString()));
+//	   }
+//      System.err.println("===========");
 		return new UsbdmGdbDsfFinalLaunchSequence(getSession(), attributes, rm, fGdbServerParameters);
 	}
 	

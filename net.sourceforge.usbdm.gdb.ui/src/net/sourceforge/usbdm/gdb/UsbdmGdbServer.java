@@ -18,7 +18,7 @@ import org.osgi.framework.BundleContext;
 public class UsbdmGdbServer extends AbstractUIPlugin {
 
    // The plug-in ID
-   public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
+   private static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
 
    // The shared instance
    private static UsbdmGdbServer plugin;

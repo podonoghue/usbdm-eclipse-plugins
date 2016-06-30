@@ -31,16 +31,6 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
       System.err.println("...gdb.UsbdmGdbDebugServicesFactory(...)");
    }
 
-   @SuppressWarnings("unchecked")
-   @Override
-   public <V> V createService(Class<V> clazz, DsfSession session, Object... optionalArguments) {
-      System.err.println("...gdb.UsbdmGdbDebugServicesFactory.createService(...)");
-      if (IUsbdmExtendedFunctions.class.isAssignableFrom(clazz)) {
-         return (V)createExtendedService(session);
-      }
-      return super.createService(clazz, session, optionalArguments);
-   }
-
    @Override
    protected ICommandControl createCommandControl(DsfSession session, ILaunchConfiguration config) {
       System.err.println("...gdb.UsbdmGdbDebugServicesFactory.createCommandControl(...)");
@@ -62,6 +52,15 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
          return new GDBControl(session, config, new UsbdmCommandFactory_6_8());
       }
       return new GDBControl(session, config, new UsbdmCommandFactory_6_8());
+   }
+
+   @SuppressWarnings("unchecked")
+   @Override
+   public <V> V createService(Class<V> clazz, DsfSession session, Object... optionalArguments) {
+      if (IUsbdmExtendedFunctions.class.isAssignableFrom(clazz)) {
+         return (V)createExtendedService(session);
+      }
+      return super.createService(clazz, session, optionalArguments);
    }
 
    protected IUsbdmExtendedFunctions createExtendedService(DsfSession session) {

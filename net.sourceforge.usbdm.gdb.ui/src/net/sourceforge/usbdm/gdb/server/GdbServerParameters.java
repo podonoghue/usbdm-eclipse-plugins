@@ -581,7 +581,7 @@ public class GdbServerParameters {
       return escapeArg(file);
    }
 
-   /*!
+   /**
     *  Determines command line to pass to GDB described as a ArrayList.
     *  This will be either of these forms:
     *    ["| pipe-server-path", "device-name"]
@@ -590,18 +590,16 @@ public class GdbServerParameters {
     * 
     * @return as described above or null on error
     */
-   public ArrayList<String> getCommandLine() {
-      ArrayList<String> commandList =  new ArrayList<String>(20);
+   public String getCommandLine() {
       if (getServerType() == GdbServerType.SERVER_SOCKET) {
-         commandList.add("localhost:" + Integer.toString(getGdbServerPortNumber()));
-         return commandList;
+         return "localhost:" + Integer.toString(getGdbServerPortNumber());
       }
       else {
          return null;
       }
    }
    
-   /*!
+   /**
     * @return ArrayList {"path-to-gdbServer", "args", ...}
     */
    public ArrayList<String> getServerCommandLine() {
