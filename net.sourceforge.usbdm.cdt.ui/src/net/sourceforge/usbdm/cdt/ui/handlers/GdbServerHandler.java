@@ -1,13 +1,13 @@
 package net.sourceforge.usbdm.cdt.ui.handlers;
 
-import net.sourceforge.usbdm.gdb.GdbServerInterface;
-import net.sourceforge.usbdm.gdb.GdbServerParameters;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
+
+import net.sourceforge.usbdm.gdb.server.GdbServerInterface;
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
 
 public class GdbServerHandler extends AbstractHandler {
    GdbServerParameters serverParameters   = null;

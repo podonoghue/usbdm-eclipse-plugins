@@ -1,8 +1,7 @@
 package net.sourceforge.usbdm.cdt.ui.handlers;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.gdb.GdbServerParameters;
-
+import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
 
 public class CfvxGdbServerHandler extends GdbServerHandler {
 
