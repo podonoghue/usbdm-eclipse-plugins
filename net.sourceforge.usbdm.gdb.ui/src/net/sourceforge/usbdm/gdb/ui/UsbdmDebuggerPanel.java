@@ -22,8 +22,7 @@ import java.util.ListIterator;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.debug.core.ICDTLaunchConfigurationConstants;
-import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
-
+import org.eclipse.cdt.dsf.gdb.IGDBLaunchConfigurationConstants;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IOption;
 import org.eclipse.cdt.managedbuilder.core.IToolChain;
@@ -88,16 +87,6 @@ public class UsbdmDebuggerPanel {
    private final static String USBDM_GDB_BIN_PATH_KEY       = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbBinPath";    //$NON-NLS-1$
    private final static String USBDM_GDB_COMMAND_KEY        = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbCommand";    //$NON-NLS-1$
    private final static String USBDM_BUILD_TOOL_KEY         = USBDM_LAUNCH_ATTRIBUTE_KEY+"buildToolId";   //$NON-NLS-1$
-
-   // These are legacy and will eventually be removed
-   private static final String ATTR_DEBUGGER_COMMAND_FACTORY   = "org.eclipse.cdt.debug.mi.core.commandFactory";
-   private static final String ATTR_DEBUGGER_PROTOCOL          = "org.eclipse.cdt.debug.mi.core.protocol";
-   private static final String ATTR_DEBUGGER_VERBOSE_MODE      = "org.eclipse.cdt.debug.mi.core.verboseMode";
-   private static final String ATTR_DEBUG_NAME                 = "org.eclipse.cdt.debug.mi.core.DEBUG_NAME";
-   private static final String ATTR_JTAG_DEVICE                = "org.eclipse.cdt.debug.gdbjtag.core.jtagDevice";
-   private static final String ATTR_USE_REMOTE_TARGET          = "org.eclipse.cdt.debug.gdbjtag.core.useRemoteTarget";
-   
-   private static final String         JTAG_DEVICE_NAME = UsbdmSharedConstants.USBDM_INTERFACE_NAME;
 
    private GdbServerParameters         gdbServerParameters;
    private ArrayList<USBDMDeviceInfo>  deviceList;
@@ -1346,11 +1335,6 @@ public class UsbdmDebuggerPanel {
     * @param configuration launch configuration
     */
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-
-      configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY,  "Standard");
-      configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL,         "mi");
-      configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE,     false);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_REMOTE_TARGET,                         true);
    }
 
    /**
@@ -1431,14 +1415,8 @@ public class UsbdmDebuggerPanel {
             }
             buildToolSelectionChanged();
 
-            boolean verboseModeAttr = configuration.getAttribute( ATTR_DEBUGGER_VERBOSE_MODE, false);
+            boolean verboseModeAttr = false; //configuration.getAttribute( ATTR_DEBUGGER_VERBOSE_MODE, false);
             btnVerboseMode.setSelection(verboseModeAttr);
-
-            String currentJtagDeviceName = configuration.getAttribute(IGDBJtagConstants.ATTR_JTAG_DEVICE, "");
-            if (currentJtagDeviceName != JTAG_DEVICE_NAME) {
-               //             System.err.println("jtagDeviceNameNeedsUpdate required");
-               doUpdate();
-            }
          }
       } catch (CoreException e) {
          e.printStackTrace();
@@ -1462,22 +1440,14 @@ public class UsbdmDebuggerPanel {
       configuration.setAttribute(USBDM_GDB_COMMAND_KEY,              txtGdbCommand.getText().trim());
       configuration.setAttribute(USBDM_GDB_BIN_PATH_KEY,             txtGdbBinPath.getText().trim());
 
-      // Compatibility, still needed ?
+      // DSF GDB Launcher needs this
       String gdbPath = txtGdbBinPath.getText().trim();
       if (gdbPath.length() != 0) {
          gdbPath += File.separator;
       }
       gdbPath += txtGdbCommand.getText().trim();
 //      System.err.println("UsbdmDebuggerTab.performApply() gdbPath = \'" + gdbPath + "\'");
-      configuration.setAttribute(ATTR_DEBUG_NAME,                gdbPath);
-      configuration.setAttribute(ATTR_DEBUG_NAME,                gdbPath); // DSF
-
-      configuration.setAttribute(ATTR_DEBUGGER_COMMAND_FACTORY,  "Standard");
-      configuration.setAttribute(ATTR_DEBUGGER_PROTOCOL,         "mi");
-      configuration.setAttribute(ATTR_DEBUGGER_VERBOSE_MODE,     btnVerboseMode.getSelection());
-
-      configuration.setAttribute(ATTR_JTAG_DEVICE, JTAG_DEVICE_NAME);
-      configuration.setAttribute(ATTR_USE_REMOTE_TARGET, true);
+      configuration.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME, gdbPath);
    }
 
    private void doUpdate() {

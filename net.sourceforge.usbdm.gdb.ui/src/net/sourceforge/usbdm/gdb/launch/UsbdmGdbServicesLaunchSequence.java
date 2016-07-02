@@ -29,8 +29,8 @@ public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
    private final DsfSession fSession;
    
    public UsbdmGdbServicesLaunchSequence(DsfSession session, GdbLaunch launch, IProgressMonitor pm) {
+      
       super(session, launch, pm);
-      System.err.println("...gdb.UsbdmGdbServicesLaunchSequence()");
       fLaunch = launch;
       fSession = session;
       session.registerModelAdapter(IRestartHandler.class, new UsbdmGdbRestartTargetHandler(session, launch));
@@ -38,7 +38,7 @@ public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
 
    @Override
    public Step[] getSteps() { 
-//      System.err.println("...gdb.UsbdmGdbServicesLaunchSequence.getSteps()");
+      
       // Add an extra step at the end to create the new service
       Step[] steps     = super.getSteps();
       Step[] moreSteps = new Step[steps.length + 1];

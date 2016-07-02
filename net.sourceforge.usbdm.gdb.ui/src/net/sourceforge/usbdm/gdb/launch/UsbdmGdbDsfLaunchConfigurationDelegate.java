@@ -22,7 +22,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
 
    public UsbdmGdbDsfLaunchConfigurationDelegate() {
       super();
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate()");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate()");
    }
 
    /**
@@ -31,7 +31,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
     */
    public UsbdmGdbDsfLaunchConfigurationDelegate(boolean requireCProject) {
       super(requireCProject);
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate(requireCProject)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate(requireCProject)");
    }
 
    /**
@@ -42,7 +42,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
     */
    @Override
    public void launch(ILaunchConfiguration config, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launch(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launch(...)");
 
       org.eclipse.cdt.launch.LaunchUtils.enableActivity("org.eclipse.cdt.debug.dsfgdbActivity", true); //$NON-NLS-1$
       if ( monitor == null ) {
@@ -61,7 +61,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
    }
 
    private void launchDebugger( ILaunchConfiguration config, ILaunch launch, IProgressMonitor monitor ) throws CoreException {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launchDebugger(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launchDebugger(...)");
       monitor.beginTask("Launching debugger session", 10);  //$NON-NLS-1$
       if ( monitor.isCanceled() ) {
          cleanupLaunch();
@@ -77,7 +77,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
 
    @Override
    protected void launchDebugSession(ILaunchConfiguration config, ILaunch l, IProgressMonitor monitor) throws CoreException {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launchDebugSession(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.launchDebugSession(...)");
       super.launchDebugSession(config, l, monitor);
    }
 
@@ -86,19 +86,19 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
     */
    @Override
    protected IDsfDebugServicesFactory newServiceFactory(ILaunchConfiguration config, String version) {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.newServiceFactory(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.newServiceFactory(...)");
       return new UsbdmGdbDebugServicesFactory(config, version);
    }
 
    @Override
    protected GdbLaunch createGdbLaunch(ILaunchConfiguration configuration, String mode, ISourceLocator locator) throws CoreException {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.createGdbLaunch(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.createGdbLaunch(...)");
       return new UsbdmExtendedLaunch(configuration, mode, locator);
    }
 
    @Override
    protected Sequence getServicesSequence(DsfSession session, ILaunch launch, IProgressMonitor rm) {
-      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.getServicesSequence(...)");
+//      System.err.println("...gdb.UsbdmGdbDsfLaunchConfigurationDelegate.getServicesSequence(...)");
       return new UsbdmGdbServicesLaunchSequence(session, (GdbLaunch) launch, rm);
    }
 

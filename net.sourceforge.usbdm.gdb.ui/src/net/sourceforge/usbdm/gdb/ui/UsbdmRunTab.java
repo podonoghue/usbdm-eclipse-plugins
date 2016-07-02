@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.gdb.ui;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 
-import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -26,9 +25,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-/**
- * @since 4.12
- */
 public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
 
    private static final String TAB_NAME = "Run";
@@ -43,7 +39,6 @@ public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
     * Dialogue controls
     * *********************************************************
     */
-
    private  Button  loadExternalImageButton;
    private  Text    externalImagePath;
    private  Button  browseImageWorkspaceButton;
@@ -234,25 +229,25 @@ public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
    @Override
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
    }
-
+   
    @Override
    public void initializeFrom(ILaunchConfiguration configuration) {
 
       try {
          // Program target
 
-         loadExternalImageButton.setSelection(       !configuration.getAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE,   UsbdmSharedConstants.LAUNCH_DEFAULT_USE_PROJ_BINARY_FOR_IMAGE));
-         externalImagePath.setText(                   configuration.getAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,             UsbdmSharedConstants.LAUNCH_DEFAULT_IMAGE_FILE_NAME));
+         loadExternalImageButton.setSelection(       configuration.getAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_FILE,   UsbdmSharedConstants.DEFAULT_USE_EXTERNAL_FILE));
+         externalImagePath.setText(                  configuration.getAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,  UsbdmSharedConstants.DEFAULT_EXTERNAL_FILE_NAME));
 
          // Program target options                                                                                                 
-         setInitialProgramCounterButton.setSelection( configuration.getAttribute(IGDBJtagConstants.ATTR_SET_PC_REGISTER,             UsbdmSharedConstants.LAUNCH_DEFAULT_SET_PC_REGISTER));
-         initialProgramCounterText.setText(           configuration.getAttribute(IGDBJtagConstants.ATTR_PC_REGISTER,                 UsbdmSharedConstants.LAUNCH_DEFAULT_PC_REGISTER));
+         setInitialProgramCounterButton.setSelection( configuration.getAttribute(UsbdmSharedConstants.ATTR_SET_PC_REGISTER,    UsbdmSharedConstants.DEFAULT_SET_PC_REGISTER));
+         initialProgramCounterText.setText(           configuration.getAttribute(UsbdmSharedConstants.ATTR_PC_REGISTER_VALUE,  UsbdmSharedConstants.DEFAULT_PC_REGISTER_VALUE));
 
          // Initialisation commands
-         initCommands.setText(                        configuration.getAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,               UsbdmSharedConstants.LAUNCH_DEFAULT_INIT_COMMANDS));
+         initCommands.setText(                        configuration.getAttribute(UsbdmSharedConstants.ATTR_INIT_COMMANDS,      UsbdmSharedConstants.DEFAULT_INIT_COMMANDS));
 
          // Run Commands
-         runCommands.setText(                         configuration.getAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                UsbdmSharedConstants.LAUNCH_DEFAULT_RUN_COMMANDS));
+         runCommands.setText(                         configuration.getAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,       UsbdmSharedConstants.DEFAULT_RUN_COMMANDS));
 
       } catch (CoreException e) {
          UsbdmGdbServer.getDefault().getLog().log(e.getStatus());
@@ -263,24 +258,19 @@ public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
    @Override
    public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
-      // No user commands
-      configuration.setAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                      "");
-                                                                                            
       // Load image                                                                         
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE,          !loadExternalImageButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_IMAGE,                 loadExternalImageButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,                    externalImagePath.getText());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_OFFSET,                       "");
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_FILE,          loadExternalImageButton.getSelection());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,         externalImagePath.getText());
                                                                                             
       // Optionally set PC                                                                  
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_PC_REGISTER,                    setInitialProgramCounterButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_PC_REGISTER,                        initialProgramCounterText.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_SET_PC_REGISTER,            setInitialProgramCounterButton.getSelection());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_PC_REGISTER_VALUE,          initialProgramCounterText.getText());
                                                                                             
       // Initialisation commands                                                            
-      configuration.setAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                      initCommands.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_INIT_COMMANDS,              initCommands.getText());
                                                                                             
       // Run Commands                                                                       
-      configuration.setAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                       runCommands.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,               runCommands.getText());
    }
 
    @Override

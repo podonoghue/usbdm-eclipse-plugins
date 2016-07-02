@@ -5,9 +5,11 @@
 package net.sourceforge.usbdm.gdb.server;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.cdt.debug.core.CDebugUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 //import org.eclipse.core.runtime.IStatus;
@@ -144,38 +146,48 @@ public class GdbServerParameters {
       }
    }
    
+   /**
+    * Create a GdbServerParameters from the launch configuration
+    * 
+    * @param config Launch configuration to load settings from
+    * 
+    * @return GdbServerParameters or null on error
+    */
    public static GdbServerParameters getInitializedServerParameters(ILaunchConfiguration config) {
-      if (config == null) {
+      try {
+         return getInitializedServerParameters(config.getAttributes());
+      } catch (CoreException e) {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
+   /**
+    * Create a GdbServerParameters from a map of settings
+    * 
+    * @param attributes Map to load settings from
+    * 
+    * @return GdbServerParameters or null on error
+    */
+   public static GdbServerParameters getInitializedServerParameters(Map<String, Object> attributes) {
+      if (attributes == null) {
          return null;
       }
       String interfaceName = null;
+      interfaceName = CDebugUtils.getAttribute(attributes, UsbdmDebuggerPanel.USBDM_GDB_INTERFACE_TYPE_KEY, "");
+      if (interfaceName.isEmpty()) {
+         return null;
+      }
+      GdbServerParameters gdbServerParameters = null;
       try {
-         interfaceName = config.getAttribute(UsbdmDebuggerPanel.USBDM_GDB_INTERFACE_TYPE_KEY, (String)null);
-      } catch (CoreException e) {
-         return null;
-      }
-      if (interfaceName == null) {
-         return null;
-      }
-      InterfaceType interfaceType = null;
-      try {
-         interfaceType = InterfaceType.valueOf(interfaceName);
-      } catch (Exception e2) {
-         return null;
-      }
-      if (interfaceType == null) {
-         return null;
-      }
-      GdbServerParameters gdbServerParameters;
-      try {
+         InterfaceType interfaceType = InterfaceType.valueOf(interfaceName);
+         if (interfaceType == null) {
+            return null;
+         }
          gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
-      } catch (Exception e1) {
-         return null;
-      }
-      try {
-         gdbServerParameters.initializeFrom(config);
-      } catch (CoreException e) {
-         return null;
+         gdbServerParameters.initializeFrom(attributes);
+      } catch (Exception e) {
+         e.printStackTrace();
       }
       return gdbServerParameters;
    }
@@ -802,43 +814,61 @@ public class GdbServerParameters {
    
    private static final String key = UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY;      
 
-   public void initializeFrom(ILaunchConfiguration configuration) throws CoreException {
+   /**
+    * Initialises from the launch configuration
+    * 
+    * @param config Launch configuration to load settings from
+    * 
+    * @throws CoreException
+    */
+   public void initializeFrom(ILaunchConfiguration config) throws CoreException {
+      initializeFrom(config.getAttributes());
+   }
+   
+   /**
+    * Initialises from a map of settings
+    * 
+    * @param config Map to load settings from
+    * 
+    * @throws CoreException
+    */
+   private void initializeFrom(Map<String, Object> attributes) throws CoreException {
       
       // Update from settings 
-      setDeviceName(            configuration.getAttribute((key+deviceNameKey),                    getDeviceName()));
+      setDeviceName(            CDebugUtils.getAttribute(attributes, (key+deviceNameKey),                    getDeviceName()));
       // Map KDS internal name to USBDM name e.g. MK20DN512xxx10 => MK20DN512M10
       final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
       Matcher m = namePattern.matcher(getDeviceName());
       if (m.matches()) {
          setDeviceName(m.group(1)+"M"+m.group(2));
       }
-      setBdmSerialNumber(       configuration.getAttribute((key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
+      setBdmSerialNumber(       CDebugUtils.getAttribute(attributes, (key+bdmSerialNumberKey),               getBdmSerialNumber()), true);
       enableBdmSerialNumberMatchRequired(  
-                                configuration.getAttribute((key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
-      setGdbServerPortNumber(   configuration.getAttribute((key+SERVER_PORT_KEY),                  getGdbServerPortNumber()));
-      setGdbTtyPortNumber(      configuration.getAttribute((key+TTY_PORT_KEY),                     getGdbTtyPortNumber()));
-      enableUseSemiHosting(     configuration.getAttribute((key+USE_SEMI_HOSTING_KEY),             isUseSemihosting()));
-      enableUseDebugVersion(    configuration.getAttribute((key+useDebugVersionKey),               isUseDebugVersion()));
-      enableExitOnClose(        configuration.getAttribute((key+exitOnCloseKey),                   isExitOnClose()));
+                                CDebugUtils.getAttribute(attributes, (key+bdmSerialNumberMatchRequiredKey),  isBdmSerialNumberMatchRequired()));
+      setGdbServerPortNumber(   CDebugUtils.getAttribute(attributes, (key+SERVER_PORT_KEY),                  getGdbServerPortNumber()));
+      setGdbTtyPortNumber(      CDebugUtils.getAttribute(attributes, (key+TTY_PORT_KEY),                     getGdbTtyPortNumber()));
+      enableUseSemiHosting(     CDebugUtils.getAttribute(attributes, (key+USE_SEMI_HOSTING_KEY),             isUseSemihosting()));
+      enableUseDebugVersion(    CDebugUtils.getAttribute(attributes, (key+useDebugVersionKey),               isUseDebugVersion()));
+      enableExitOnClose(        CDebugUtils.getAttribute(attributes, (key+exitOnCloseKey),                   isExitOnClose()));
       setServerType(GdbServerType.valueOf(
-                                configuration.getAttribute((key+serverTypeKey),                    getServerType().name())));
-      setInterfaceFrequency(    configuration.getAttribute((key+interfaceFrequencyKey),            getInterfaceFrequency()));
+                                CDebugUtils.getAttribute(attributes, (key+serverTypeKey),                    getServerType().name())));
+      setInterfaceFrequency(    CDebugUtils.getAttribute(attributes, (key+interfaceFrequencyKey),            getInterfaceFrequency()));
       setAutoReconnect(AutoConnect.valueOf( 
-                                configuration.getAttribute((key+autoReconnectKey),                 getAutoReconnect().name())));
-      enableUseReset(           configuration.getAttribute((key+useResetKey),                      isUseReset()));
-      enableUsePstSignals(      configuration.getAttribute((key+usePstSignalsKey),                 isUsePstSignals()));
+                                CDebugUtils.getAttribute(attributes, (key+autoReconnectKey),                 getAutoReconnect().name())));
+      enableUseReset(           CDebugUtils.getAttribute(attributes, (key+useResetKey),                      isUseReset()));
+      enableUsePstSignals(      CDebugUtils.getAttribute(attributes, (key+usePstSignalsKey),                 isUsePstSignals()));
       setEraseMethod(EraseMethod.valueOf(  
-              configuration.getAttribute((key+eraseMethodKey),                   getEraseMethod().name())));
+              CDebugUtils.getAttribute(attributes, (key+eraseMethodKey),                   getEraseMethod().name())));
       setSecurityOption(SecurityOptions.valueOf(  
-              configuration.getAttribute((key+securityOptionKey),                getSecurityOption().name())));
+              CDebugUtils.getAttribute(attributes, (key+securityOptionKey),                getSecurityOption().name())));
       setTargetVdd(TargetVddSelect.valueOf( 
-                                configuration.getAttribute((key+targetVddKey),                     getTargetVdd().name())));
-      enableTrimClock(          configuration.getAttribute((key+trimClockKey),                     isTrimClock()));
-      setClockTrimFrequency(    configuration.getAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency()));
-      setNvmClockTrimLocation(  configuration.getAttribute((key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
-      setConnectionTimeout(     configuration.getAttribute((key+connectionTimeoutKey),             getConnectionTimeout()));
-      enableCatchVLLSxEvents(   configuration.getAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
-      enableCatchVLLSxEvents(   configuration.getAttribute((key+maskInterruptsKey),                isMaskInterrupts()));
+                                CDebugUtils.getAttribute(attributes, (key+targetVddKey),                     getTargetVdd().name())));
+      enableTrimClock(          CDebugUtils.getAttribute(attributes, (key+trimClockKey),                     isTrimClock()));
+      setClockTrimFrequency(    CDebugUtils.getAttribute(attributes, (key+clockTrimFrequencyKey),            getClockTrimFrequency()));
+      setNvmClockTrimLocation(  CDebugUtils.getAttribute(attributes, (key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
+      setConnectionTimeout(     CDebugUtils.getAttribute(attributes, (key+connectionTimeoutKey),             getConnectionTimeout()));
+      enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
+      enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+maskInterruptsKey),                isMaskInterrupts()));
    }
 
    public boolean isUseSemihosting() {

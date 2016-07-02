@@ -36,7 +36,6 @@ Non-derivative components are licensed under the GPL.
       <import plugin="org.eclipse.ui.console"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.cdt.dsf.ui"/>
-      <import plugin="org.eclipse.cdt.debug.gdbjtag.core"/>
       <import plugin="org.eclipse.cdt.dsf"/>
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
       <import plugin="org.eclipse.cdt.launch"/>

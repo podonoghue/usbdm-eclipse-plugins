@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.gdb.ui;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 
-import org.eclipse.cdt.debug.gdbjtag.core.IGDBJtagConstants;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -52,17 +51,17 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
     * Dialogue controls
     * *********************************************************
     */
-   private  Button  doInitialDownloadCheckButton;
+   private  Button  programTargetCheckButton;
    private  Button  doResetButton;
-   private  Button  loadExternalImageButton;
-   private  Text    externalImagePath;
+   private  Button  loadExternalFileButton;
+   private  Text    externalFilePath;
    private  Button  browseImageWorkspaceButton;
    private  Button  browseImageExternalButton;
    private  Button  setInitialProgramCounterButton;
    private  Text    initialProgramCounterText;
    private  Button  setInitialBreakpointButton;
    private  Text    initialBreakpointText;
-   private  Button  executeAfterLaunchButton;
+   private  Button  executeAfterLoadButton;
                     
    private  Button  doConnectTargetButton;
    private  Button  loadExternalSymbolButton;
@@ -129,18 +128,18 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    void optionsChanged(boolean doUpdate) {
       boolean enabled;
       
-      enabled = doInitialDownloadCheckButton.getSelection();
+      enabled = programTargetCheckButton.getSelection();
       doResetButton.setEnabled(enabled);
-      loadExternalImageButton.setEnabled(enabled);
-      externalImagePath.setEnabled(enabled && loadExternalImageButton.getSelection());
-      browseImageWorkspaceButton.setEnabled(enabled && loadExternalImageButton.getSelection());
-      browseImageExternalButton.setEnabled(enabled && loadExternalImageButton.getSelection());
+      loadExternalFileButton.setEnabled(enabled);
+      externalFilePath.setEnabled(enabled && loadExternalFileButton.getSelection());
+      browseImageWorkspaceButton.setEnabled(enabled && loadExternalFileButton.getSelection());
+      browseImageExternalButton.setEnabled(enabled && loadExternalFileButton.getSelection());
 
       setInitialProgramCounterButton.setEnabled(enabled);
       initialProgramCounterText.setEnabled(enabled&&setInitialProgramCounterButton.getSelection());
       setInitialBreakpointButton.setEnabled(enabled);
       initialBreakpointText.setEnabled(enabled&&setInitialBreakpointButton.getSelection());
-      executeAfterLaunchButton.setEnabled(enabled);
+      executeAfterLoadButton.setEnabled(enabled);
 
       enabled = doConnectTargetButton.getSelection();
       loadExternalSymbolButton.setEnabled(enabled);
@@ -169,9 +168,9 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    }
 
    private void createStartupGroup(Composite parent) {
-      doInitialDownloadCheckButton = new Button(parent, SWT.RADIO);
-      doInitialDownloadCheckButton.setText("Program target before debugging");
-      doInitialDownloadCheckButton.addSelectionListener(new SelectionAdapter() {
+      programTargetCheckButton = new Button(parent, SWT.RADIO);
+      programTargetCheckButton.setText("Program target before debugging");
+      programTargetCheckButton.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             optionsChanged(true);
@@ -208,23 +207,23 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       /*
        * ===================================================================
        */
-      loadExternalImageButton = new Button(startUpGroup, SWT.CHECK);
-      loadExternalImageButton.setText("Load external file");
-      loadExternalImageButton.setToolTipText("Load binary image and symbols from external file rather than project file");
-      loadExternalImageButton.addSelectionListener(new SelectionAdapter() {
+      loadExternalFileButton = new Button(startUpGroup, SWT.CHECK);
+      loadExternalFileButton.setText("Load external file");
+      loadExternalFileButton.setToolTipText("Load binary image and symbols from external file rather than project file");
+      loadExternalFileButton.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             optionsChanged(true);
          }
       });
 
-      externalImagePath = new Text(startUpGroup, SWT.BORDER|SWT.FILL|SWT.READ_ONLY);
+      externalFilePath = new Text(startUpGroup, SWT.BORDER|SWT.FILL|SWT.READ_ONLY);
       gd = new GridData();
       gd.horizontalAlignment = SWT.FILL;
       gd.widthHint = 100;
       gd.grabExcessHorizontalSpace = true;
-      externalImagePath.setLayoutData(gd);
-      externalImagePath.setToolTipText("Path to external image and symbols files");
+      externalFilePath.setLayoutData(gd);
+      externalFilePath.setToolTipText("Path to external image and symbols files");
 
       browseImageWorkspaceButton = new Button(startUpGroup, SWT.NONE);
       browseImageWorkspaceButton.setText("Workspace...");
@@ -233,7 +232,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
          @Override
          public void widgetSelected(SelectionEvent e) {
             if (Utility.browseWorkspaceButtonSelected(getShell(), 
-                  "Select file for binary image and symbols", externalImagePath) != null) {
+                  "Select file for binary image and symbols", externalFilePath) != null) {
                updateRequired();
             }
          }
@@ -245,7 +244,7 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
          @Override
          public void widgetSelected(SelectionEvent e) {
             if (Utility.browseButtonSelected(getShell(), 
-                  "Select file for binary image and symbols", externalImagePath) != null) {
+                  "Select file for binary image and symbols", externalFilePath) != null) {
                updateRequired();
             }
          }
@@ -303,15 +302,15 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
       /*
        * ===================================================================
        */
-      executeAfterLaunchButton = new Button(startUpGroup, SWT.CHECK);
+      executeAfterLoadButton = new Button(startUpGroup, SWT.CHECK);
       gd = new GridData();
       gd.horizontalSpan = 2;
-      executeAfterLaunchButton.setLayoutData(gd);
-      executeAfterLaunchButton.setText("Start execution after load");
-      executeAfterLaunchButton.setToolTipText(
+      executeAfterLoadButton.setLayoutData(gd);
+      executeAfterLoadButton.setText("Start execution after load");
+      executeAfterLoadButton.setToolTipText(
             "Start execution after load\n"+
             "Disable to debug startup code");
-      executeAfterLaunchButton.addSelectionListener(new SelectionAdapter() {
+      executeAfterLoadButton.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             updateRequired();
@@ -621,85 +620,64 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
 
    @Override
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-
-      // Load image
-      configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_IMAGE,                        UsbdmSharedConstants.LAUNCH_DEFAULT_LOAD_IMAGE);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE,         UsbdmSharedConstants.LAUNCH_DEFAULT_USE_PROJ_BINARY_FOR_IMAGE);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_IMAGE,                UsbdmSharedConstants.LAUNCH_DEFAULT_USE_FILE_FOR_IMAGE);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,                   UsbdmSharedConstants.LAUNCH_DEFAULT_IMAGE_FILE_NAME);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_OFFSET,                      UsbdmSharedConstants.LAUNCH_DEFAULT_IMAGE_OFFSET);
-                                                                                           
-      // Always load symbols from same file as image                                       
-      configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_SYMBOLS,                      UsbdmSharedConstants.LAUNCH_DEFAULT_LOAD_SYMBOLS);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS,       UsbdmSharedConstants.LAUNCH_DEFAULT_USE_PROJ_BINARY_FOR_SYMBOLS);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_SYMBOLS,              UsbdmSharedConstants.LAUNCH_DEFAULT_USE_FILE_FOR_SYMBOLS);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_FILE_NAME,                 UsbdmSharedConstants.LAUNCH_DEFAULT_SYMBOLS_FILE_NAME);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_OFFSET,                    UsbdmSharedConstants.LAUNCH_DEFAULT_SYMBOLS_OFFSET);
-                                                                                           
-      // Reset, halt and resume options                                                    
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                          UsbdmSharedConstants.LAUNCH_DEFAULT_DO_RESET);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DELAY,                             0);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DO_HALT,                           UsbdmSharedConstants.LAUNCH_DEFAULT_DO_HALT);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_RESUME,                        UsbdmSharedConstants.LAUNCH_DEFAULT_SET_RESUME);
-                                                                                           
-      // Don't set PC                                                                      
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_PC_REGISTER,                   UsbdmSharedConstants.LAUNCH_DEFAULT_SET_PC_REGISTER);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_PC_REGISTER,                       UsbdmSharedConstants.LAUNCH_DEFAULT_PC_REGISTER);
-                                                                                           
-      // Set temporary breakpoint                                                          
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,                       UsbdmSharedConstants.LAUNCH_DEFAULT_SET_STOP_AT);
-      configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,                           UsbdmSharedConstants.LAUNCH_DEFAULT_STOP_AT);
-
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_USES_STARTUP,    UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_USES_STARTUP);
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_PC_REGISTER, UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_PC_REGISTER);
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_PC_REGISTER,     UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_PC_REGISTER);
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_STOP_AT,     UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_STOP_AT);
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_STOP_AT,         UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_STOP_AT);
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_RESUME,      UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_RESUME);
-      
-      // Initialisation commands
-      configuration.setAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                     UsbdmSharedConstants.LAUNCH_DEFAULT_INIT_COMMANDS);
-
-      // Run Commands
-      configuration.setAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                      UsbdmSharedConstants.LAUNCH_DEFAULT_RUN_COMMANDS); 
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_PROGRAM_TARGET,                UsbdmSharedConstants.DEFAULT_PROGRAM_TARGET                ); 
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_RESET,                      UsbdmSharedConstants.DEFAULT_DO_RESET                      );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_FILE,             UsbdmSharedConstants.DEFAULT_USE_EXTERNAL_FILE             );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,            UsbdmSharedConstants.DEFAULT_EXTERNAL_FILE_NAME            );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_SET_PC_REGISTER,               UsbdmSharedConstants.DEFAULT_SET_PC_REGISTER               );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_PC_REGISTER_VALUE,             UsbdmSharedConstants.DEFAULT_PC_REGISTER_VALUE             );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_STOP_AT_MAIN,               UsbdmSharedConstants.DEFAULT_DO_STOP_AT_MAIN               );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_STOP_AT_MAIN_ADDRESS,          UsbdmSharedConstants.DEFAULT_STOP_AT_MAIN_ADDRESS          );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_RESUME,                     UsbdmSharedConstants.DEFAULT_DO_RESUME                     );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_SYMBOL_FILE,      UsbdmSharedConstants.DEFAULT_USE_EXTERNAL_SYMBOL_FILE      );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,            UsbdmSharedConstants.DEFAULT_EXTERNAL_FILE_NAME            );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_HALT,                       UsbdmSharedConstants.DEFAULT_DO_HALT                       );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_STOP_AT_MAIN_ADDRESS,          UsbdmSharedConstants.DEFAULT_STOP_AT_MAIN_ADDRESS          );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_USES_STARTUP,          UsbdmSharedConstants.DEFAULT_RESTART_USES_STARTUP          );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_SET_PC_REGISTER,       UsbdmSharedConstants.DEFAULT_RESTART_SET_PC_REGISTER       );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_PC_REGISTER_VALUE,     UsbdmSharedConstants.DEFAULT_RESTART_PC_REGISTER_VALUE     );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_STOP_AT_MAIN,       UsbdmSharedConstants.DEFAULT_RESTART_DO_STOP_AT_MAIN       );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_STOP_AT_MAIN_ADDRESS,  UsbdmSharedConstants.DEFAULT_RESTART_STOP_AT_MAIN_ADDRESS  );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_RESUME,             UsbdmSharedConstants.DEFAULT_RESTART_DO_RESUME             );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_INIT_COMMANDS,                 UsbdmSharedConstants.DEFAULT_INIT_COMMANDS                 );
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,                  UsbdmSharedConstants.DEFAULT_RUN_COMMANDS                  );
    }
 
    @Override
    public void initializeFrom(ILaunchConfiguration configuration) {
       
       try {
-         boolean doReset    = configuration.getAttribute(IGDBJtagConstants.ATTR_DO_RESET,                                            UsbdmSharedConstants.LAUNCH_DEFAULT_DO_RESET);
-         boolean doHalt     = configuration.getAttribute(IGDBJtagConstants.ATTR_DO_HALT,                                             UsbdmSharedConstants.LAUNCH_DEFAULT_DO_HALT);
-         boolean doContinue = configuration.getAttribute(IGDBJtagConstants.ATTR_SET_RESUME,                                          UsbdmSharedConstants.LAUNCH_DEFAULT_SET_RESUME);
+         boolean doReset    = configuration.getAttribute(UsbdmSharedConstants.ATTR_DO_RESET,    UsbdmSharedConstants.DEFAULT_DO_RESET);
+         boolean doHalt     = configuration.getAttribute(UsbdmSharedConstants.ATTR_DO_HALT,     UsbdmSharedConstants.DEFAULT_DO_HALT);
+         boolean doContinue = configuration.getAttribute(UsbdmSharedConstants.ATTR_DO_RESUME,   UsbdmSharedConstants.DEFAULT_DO_RESUME);
 
-         // Program target
+         programTargetCheckButton.setSelection(   configuration.getAttribute(UsbdmSharedConstants.ATTR_PROGRAM_TARGET,                  UsbdmSharedConstants.DEFAULT_PROGRAM_TARGET));
+         doConnectTargetButton.setSelection(!programTargetCheckButton.getSelection());                                               
+
+         //===================
          doResetButton.setSelection(doReset);
-         doInitialDownloadCheckButton.setSelection(   configuration.getAttribute(IGDBJtagConstants.ATTR_LOAD_IMAGE,                  UsbdmSharedConstants.LAUNCH_DEFAULT_LOAD_IMAGE));
-         doConnectTargetButton.setSelection(!doInitialDownloadCheckButton.getSelection());                                               
-         executeAfterLaunchButton.setSelection(       doContinue);
+         
+         loadExternalFileButton.setSelection(        configuration.getAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_FILE,            UsbdmSharedConstants.DEFAULT_USE_EXTERNAL_FILE));
+         externalFilePath.setText(                   configuration.getAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,           UsbdmSharedConstants.DEFAULT_EXTERNAL_FILE_NAME));
+         
+         setInitialProgramCounterButton.setSelection( configuration.getAttribute(UsbdmSharedConstants.ATTR_SET_PC_REGISTER,             UsbdmSharedConstants.DEFAULT_SET_PC_REGISTER));
+         initialProgramCounterText.setText(           configuration.getAttribute(UsbdmSharedConstants.ATTR_PC_REGISTER_VALUE,           UsbdmSharedConstants.DEFAULT_PC_REGISTER_VALUE));
+         
+         setInitialBreakpointButton.setSelection(     configuration.getAttribute(UsbdmSharedConstants.ATTR_DO_STOP_AT_MAIN,             UsbdmSharedConstants.DEFAULT_DO_STOP_AT_MAIN));
+         initialBreakpointText.setText(               configuration.getAttribute(UsbdmSharedConstants.ATTR_STOP_AT_MAIN_ADDRESS,        UsbdmSharedConstants.DEFAULT_STOP_AT_MAIN_ADDRESS));
+         
+         executeAfterLoadButton.setSelection(       doContinue);
 
-         // File loading.  Ignores ATTR_USE_FILE_FOR_IMAGE, ATTR_USE_FILE_FOR_SYMBOLS, ATTR_IMAGE_OFFSET, ATTR_SYMBOLS_OFFSET
-         loadExternalImageButton.setSelection(       !configuration.getAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE,   UsbdmSharedConstants.LAUNCH_DEFAULT_USE_PROJ_BINARY_FOR_IMAGE));
-         externalImagePath.setText(                   configuration.getAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,             UsbdmSharedConstants.LAUNCH_DEFAULT_IMAGE_FILE_NAME));
-         loadExternalSymbolButton.setSelection(      !configuration.getAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS, UsbdmSharedConstants.LAUNCH_DEFAULT_USE_PROJ_BINARY_FOR_SYMBOLS));
-         externalSymbolPath.setText(                  configuration.getAttribute(IGDBJtagConstants.ATTR_SYMBOLS_FILE_NAME,           UsbdmSharedConstants.LAUNCH_DEFAULT_SYMBOLS_FILE_NAME));
+         //===================
+         loadExternalSymbolButton.setSelection(       configuration.getAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_SYMBOL_FILE,    UsbdmSharedConstants.DEFAULT_USE_EXTERNAL_SYMBOL_FILE));
+         externalSymbolPath.setText(                  configuration.getAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_SYMBOL_FILE_NAME,   UsbdmSharedConstants.DEFAULT_EXTERNAL_SYMBOL_FILE_NAME));
 
-         // Connect target options.                                                                                           
+         // Radio buttons                                                                                           
          resetAfterConnectButton.setSelection(            doReset &&   doHalt); // RESET (results in halt)
          resetAndContinueAfterConnectButton.setSelection( doReset &&  !doHalt); // RESET & RESUME
          haltAfterConnectButton.setSelection(            !doReset &&   doHalt); // HALT
          unchangedAfterConnectButton.setSelection(       !doReset &&  !doHalt); //
          
-         // Program target options                                                                                                 
-         setInitialProgramCounterButton.setSelection( configuration.getAttribute(IGDBJtagConstants.ATTR_SET_PC_REGISTER,             UsbdmSharedConstants.LAUNCH_DEFAULT_SET_PC_REGISTER));
-         initialProgramCounterText.setText(           configuration.getAttribute(IGDBJtagConstants.ATTR_PC_REGISTER,                 UsbdmSharedConstants.LAUNCH_DEFAULT_PC_REGISTER));
-         
-         // This information is used twice
-         setInitialBreakpointButton.setSelection(     configuration.getAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,                 UsbdmSharedConstants.LAUNCH_DEFAULT_SET_STOP_AT));
-         setBreakpointOnConnectButton.setSelection(   setInitialBreakpointButton.getSelection());
-         initialBreakpointText.setText(               configuration.getAttribute(IGDBJtagConstants.ATTR_STOP_AT,                     UsbdmSharedConstants.LAUNCH_DEFAULT_STOP_AT));
-         breakpointOnConnectText.setText(             initialBreakpointText.getText());
-
          // Fix radio buttons as options may overlap in configuration
          if (resetAfterConnectButton.getSelection()) {
             resetAndContinueAfterConnectButton.setSelection(false);
@@ -717,18 +695,24 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
             // Not reset or halt => resume
             unchangedAfterConnectButton.setSelection(true);               
          }
-         useStartupOptionsForRestartButton.setSelection( configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_USES_STARTUP,    UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_USES_STARTUP));
-         setRestartProgramCounterButton.setSelection(    configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_PC_REGISTER, UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_PC_REGISTER));
-         restartProgramCounterText.setText(              configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_PC_REGISTER,     UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_PC_REGISTER));
-         setBreakpointOnRestartButton.setSelection(      configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_STOP_AT,     UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_STOP_AT));
-         breakpointOnRestartText.setText(                configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_STOP_AT,         UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_STOP_AT));
-         executeAfterRestartButton.setSelection(         configuration.getAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_RESUME,      UsbdmSharedConstants.LAUNCH_DEFAULT_RESTART_SET_RESUME));
+
+         setBreakpointOnConnectButton.setSelection(   setInitialBreakpointButton.getSelection());
+         breakpointOnConnectText.setText(             initialBreakpointText.getText());
+         
+         //===========================
+         // Restart
+         useStartupOptionsForRestartButton.setSelection( configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_USES_STARTUP,          UsbdmSharedConstants.DEFAULT_RESTART_USES_STARTUP));
+         setRestartProgramCounterButton.setSelection(    configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_SET_PC_REGISTER,       UsbdmSharedConstants.DEFAULT_RESTART_SET_PC_REGISTER));
+         restartProgramCounterText.setText(              configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_PC_REGISTER_VALUE,     UsbdmSharedConstants.DEFAULT_RESTART_PC_REGISTER_VALUE));
+         setBreakpointOnRestartButton.setSelection(      configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_STOP_AT_MAIN,       UsbdmSharedConstants.DEFAULT_RESTART_DO_STOP_AT_MAIN));
+         breakpointOnRestartText.setText(                configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_STOP_AT_MAIN_ADDRESS,  UsbdmSharedConstants.DEFAULT_RESTART_STOP_AT_MAIN_ADDRESS));
+         executeAfterRestartButton.setSelection(         configuration.getAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_RESUME,             UsbdmSharedConstants.DEFAULT_RESTART_DO_RESUME));
 
          // Initialisation commands
-         initCommands.setText(                           configuration.getAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                     UsbdmSharedConstants.LAUNCH_DEFAULT_INIT_COMMANDS));
+         initCommands.setText(                           configuration.getAttribute(UsbdmSharedConstants.ATTR_INIT_COMMANDS,                 UsbdmSharedConstants.DEFAULT_INIT_COMMANDS));
 
          // Run Commands
-         runCommands.setText(                            configuration.getAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                      UsbdmSharedConstants.LAUNCH_DEFAULT_RUN_COMMANDS));
+         runCommands.setText(                            configuration.getAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,                  UsbdmSharedConstants.DEFAULT_RUN_COMMANDS));
 
       } catch (CoreException e) {
          UsbdmGdbServer.getDefault().getLog().log(e.getStatus());
@@ -739,73 +723,56 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    @Override
    public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
-      // No user commands
-      configuration.setAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                      "");
-                                                                                            
       // Load image                                                                         
-      configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_IMAGE,                         doInitialDownloadCheckButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_IMAGE,          !loadExternalImageButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_IMAGE,                 loadExternalImageButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_FILE_NAME,                    externalImagePath.getText());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_IMAGE_OFFSET,                       "");
-                                                                                            
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DO_HALT,                            resetAfterConnectButton.getSelection() ||
-                                                                                            haltAfterConnectButton.getSelection());
-      // Reset recovery delay is a USBDM option                                             
-      configuration.setAttribute(IGDBJtagConstants.ATTR_DELAY,                              0);
-                                                                                            
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_RESUME,                         executeAfterLaunchButton.getSelection());
-                                                                                            
-      // Optionally set PC                                                                  
-      configuration.setAttribute(IGDBJtagConstants.ATTR_SET_PC_REGISTER,                    setInitialProgramCounterButton.getSelection());
-      configuration.setAttribute(IGDBJtagConstants.ATTR_PC_REGISTER,                        initialProgramCounterText.getText());
-                                                                                            
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_PROGRAM_TARGET,                programTargetCheckButton.getSelection());
+
       // Note: The following options appear in two different locations in the TAB but only one is active (preserved)
-      if (doInitialDownloadCheckButton.getSelection()) {                                    
+      if (programTargetCheckButton.getSelection()) {                                    
          // Reset options                                                     
-         configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                        doResetButton.getSelection());
-         
-         // Load symbols from same file as image                                            
-         configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_SYMBOLS,                    true);
-         configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS,     !loadExternalImageButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_SYMBOLS,            loadExternalImageButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_FILE_NAME,               externalImagePath.getText());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_OFFSET,                  "");
-                                                                                            
-         // Optionally set temporary breakpoint                                             
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,                     setInitialBreakpointButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,                         initialBreakpointText.getText());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_RESET,                   doResetButton.getSelection());
+
+         // Load external file
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_FILE,          loadExternalFileButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,         externalFilePath.getText());
+                                                                                               
+         // Optionally set initial PC                                                                  
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_SET_PC_REGISTER,            setInitialProgramCounterButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_PC_REGISTER_VALUE,          initialProgramCounterText.getText());
+                                                                                               
+         // Optionally set temporary breakpoint at main                                            
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_STOP_AT_MAIN,            setInitialBreakpointButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_STOP_AT_MAIN_ADDRESS,       initialBreakpointText.getText());
+
+         // Optionally execute after programming
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_RESUME,                  executeAfterLoadButton.getSelection());
       }                                                                                     
       else {                                                                                
-         // Reset, halt and resume options                                                     
-         configuration.setAttribute(IGDBJtagConstants.ATTR_DO_RESET,                           resetAfterConnectButton.getSelection() ||
-                                                                                               resetAndContinueAfterConnectButton.getSelection());
          // Load symbols from image or external symbol file                                 
-         configuration.setAttribute(IGDBJtagConstants.ATTR_LOAD_SYMBOLS,                    true);
-         configuration.setAttribute(IGDBJtagConstants.ATTR_USE_PROJ_BINARY_FOR_SYMBOLS,     !loadExternalSymbolButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_USE_FILE_FOR_SYMBOLS,            loadExternalSymbolButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_FILE_NAME,               externalSymbolPath.getText());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SYMBOLS_OFFSET,                  "");
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_USE_EXTERNAL_SYMBOL_FILE,   loadExternalSymbolButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_EXTERNAL_FILE_NAME,         externalSymbolPath.getText());
                                                                                             
+         // Radio buttons encode Reset, halt and resume options                                                     
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_RESET,                   resetAfterConnectButton.getSelection() ||
+                                                                                          resetAndContinueAfterConnectButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_HALT,                    resetAfterConnectButton.getSelection() ||
+                                                                                          haltAfterConnectButton.getSelection());
          // Optionally set temporary breakpoint                                             
-         configuration.setAttribute(IGDBJtagConstants.ATTR_SET_STOP_AT,                     setBreakpointOnConnectButton.getSelection());
-         configuration.setAttribute(IGDBJtagConstants.ATTR_STOP_AT,                         breakpointOnConnectText.getText());
-      }                                                                                     
-      // No run Commands                                                                    
-      configuration.setAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                       "");
-                                                                                            
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_USES_STARTUP,     useStartupOptionsForRestartButton.getSelection());
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_PC_REGISTER,  setRestartProgramCounterButton.getSelection());
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_PC_REGISTER,      restartProgramCounterText.getText());
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_STOP_AT,      setBreakpointOnRestartButton.getSelection());
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_STOP_AT,          breakpointOnRestartText.getText());
-      configuration.setAttribute(UsbdmSharedConstants.LAUNCH_ATTR_RESTART_SET_RESUME,       executeAfterRestartButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_DO_STOP_AT_MAIN,            setBreakpointOnConnectButton.getSelection());
+         configuration.setAttribute(UsbdmSharedConstants.ATTR_STOP_AT_MAIN_ADDRESS,       breakpointOnConnectText.getText());
+      }                                                                                   
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_USES_STARTUP,          useStartupOptionsForRestartButton.getSelection());
+
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_SET_PC_REGISTER,       setRestartProgramCounterButton.getSelection());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_PC_REGISTER_VALUE,     restartProgramCounterText.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_STOP_AT_MAIN,       setBreakpointOnRestartButton.getSelection());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_STOP_AT_MAIN_ADDRESS,  breakpointOnRestartText.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RESTART_DO_RESUME,             executeAfterRestartButton.getSelection());
                                                                                             
       // Initialisation commands                                                            
-      configuration.setAttribute(IGDBJtagConstants.ATTR_INIT_COMMANDS,                      initCommands.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_INIT_COMMANDS,                 initCommands.getText());
                                                                                             
       // Run Commands                                                                       
-      configuration.setAttribute(IGDBJtagConstants.ATTR_RUN_COMMANDS,                       runCommands.getText());
+      configuration.setAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,                  runCommands.getText());
    }
 
    @Override

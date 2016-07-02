@@ -18,10 +18,14 @@ public class MIExecReset extends MICommand<MIInfo> {
       this(dmc, false, groupId);
    }
 
-   /*
-    * The parameters allThreads and groupId are mutually exclusive.  allThreads must be false
-    * if we are to use groupId.  The value of this method is to only have one place
-    * where we use the hard-coded strings.
+   /**
+    * Convenience function
+    * allThreads & groupId exclusive
+    * 
+    * @param dmc           Execution context
+    * @param allThreads    Apply to all threads or not
+    * @param groupId       Apply to group
+    * 
     */
    private MIExecReset(IExecutionDMContext dmc, boolean allThreads, String groupId) {
       super(dmc, "mon reset"); //$NON-NLS-1$

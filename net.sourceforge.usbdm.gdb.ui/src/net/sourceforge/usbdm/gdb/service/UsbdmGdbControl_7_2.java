@@ -14,32 +14,23 @@ import java.util.Map;
 
 import org.eclipse.cdt.dsf.concurrent.RequestMonitorWithProgress;
 import org.eclipse.cdt.dsf.concurrent.Sequence;
-import org.eclipse.cdt.dsf.gdb.service.command.GDBControl_7_7;
+import org.eclipse.cdt.dsf.gdb.service.command.GDBControl_7_2;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
-import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence;
-import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
+import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence_7_2;
 
-public class UsbdmGdbControl extends GDBControl_7_7 {
+public class UsbdmGdbControl_7_2 extends GDBControl_7_2 {
 
-   GdbServerParameters fGdbServerParameters;
-
-	public UsbdmGdbControl(DsfSession session, ILaunchConfiguration config, CommandFactory factory, GdbServerParameters gdbServerParameters) {
+	public UsbdmGdbControl_7_2(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {
 		super(session, config, factory);
-      System.err.println("UsbdmGdbControl()");
-      fGdbServerParameters = gdbServerParameters;
+//      System.err.println("UsbdmGdbControl_7_2()");
 	}
 
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
-//      System.err.println("UsbdmGdbControl.getCompleteInitializationSequence()");
-//	   for (String key:attributes.keySet() ) {
-//	      System.err.println(String.format("%-20s ==> %s", key, attributes.get(key).toString()));
-//	   }
-//      System.err.println("===========");
-		return new UsbdmGdbDsfFinalLaunchSequence(getSession(), attributes, rm, fGdbServerParameters);
+		return new UsbdmGdbDsfFinalLaunchSequence_7_2(getSession(), attributes, rm);
 	}
 	
 }

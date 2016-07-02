@@ -108,11 +108,11 @@ public class UsbdmGdbInterface {
    /**
     * Add  commands to set PC
     * 
-    * @param pcValue    PC value to use
+    * @param fPcValue    PC value to use
     * @param commands   Collection to add commands to
     */
    public void doSetPC(String pcValue, Collection<String> commands) {
-//      System.err.println(String.format("UsbdmGdbInterface.doSetPC(%s)", pcValue));
+//      System.err.println(String.format("UsbdmGdbInterface.doSetPC(%s)", fPcValue));
       commands.add("-gdb-set $pc=" + pcValue); //$NON-NLS-1$
    }
 

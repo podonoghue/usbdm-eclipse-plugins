@@ -1,4 +1,6 @@
 /*******************************************************************************
+ * Based on
+ * 
  * Copyright (c) 2014 Ericsson and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -25,17 +27,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
-import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
 
 /**
  * Subclass for GDB >= 7.7.
- * 
- * @since 4.12
  */
 public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSequence {
 	
-	public UsbdmGdbDsfFinalLaunchSequence_7_7(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm, GdbServerParameters gdbServerParameters) {
-		super(session, attributes, rm, gdbServerParameters);
+	public UsbdmGdbDsfFinalLaunchSequence_7_7(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm) {
+		super(session, attributes, rm);
 	}
 
    @Override
@@ -50,7 +49,6 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSe
 
          return orderList.toArray(new String[orderList.size()]);
       }
-
       return super.getExecutionOrder(group);
    }
 

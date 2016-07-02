@@ -36,14 +36,6 @@
          type="net.sourceforge.usbdm.gdb.launchConfigurationType">
       </launchDelegate>
    </extension>
-   <!--extension
-      point="org.eclipse.cdt.debug.gdbjtag.core.JTagDevice">
-      <device
-      class="net.sourceforge.usbdm.gdb.launch.UsbdmGdbInterface"
-      id="net.sourceforge.usbdm.dsf.interface"
-      name="USBDM DSF Interface">
-      </device>
-      </extension -->
    <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
          class="net.sourceforge.usbdm.gdb.ui.UsbdmLaunchConfigurationTabGroup"
