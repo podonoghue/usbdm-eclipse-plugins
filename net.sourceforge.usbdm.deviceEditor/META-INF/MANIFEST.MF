@@ -9,7 +9,8 @@ Require-Bundle: org.eclipse.core.runtime,
  net.sourceforge.usbdm.jni;bundle-version="4.12.1",
  net.sourceforge.usbdm.cdt.tools;bundle-version="4.12.1",
  net.sourceforge.usbdm.peripheralDatabase;bundle-version="4.12.1",
- net.sourceforge.usbdm.deviceDatabase;bundle-version="4.12.1"
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="4.12.1",
+ org.eclipse.ui.workbench
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.core.resources,

@@ -27,7 +27,6 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
     * The constructor
     */
    public UsbdmGdbServer() {
-//      System.err.println("USBDM::Activator() - Ver 4.10.0");
    }
 
    /*

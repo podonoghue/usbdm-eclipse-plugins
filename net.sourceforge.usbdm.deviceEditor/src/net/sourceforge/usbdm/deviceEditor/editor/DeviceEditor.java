@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
@@ -17,8 +20,6 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -56,7 +57,8 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    /** Folder containing all the tabs */
    private CTabFolder    fTabFolder          = null;
 
-   private IEditorPage[] fEditors             = null;
+   /** Editors for each page */
+   private IEditorPage[] fEditors            = null;
 
    /** Actions to add to pop-up menus */
    ArrayList<MyAction>  popupActions         = new ArrayList<MyAction>();
@@ -66,7 +68,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    /** Eclipse status line manager */
    IStatusLineManager fStatusLineManager     = null;
-   
+
    @Override
    public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
       super.setSite(editorSite);
@@ -187,61 +189,42 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    //      }
    //   }
 
-   /** Convenience wrapper for Action */
-   class MyAction extends Action {
-
-      MyAction(String text, String toolTip, int style, String imageId) {
-         super(text, style);
-
-         setText(text);
-         setToolTipText(toolTip);
-         if ((imageId!= null) && (Activator.getDefault() != null)) {
-            ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(imageId);
-            setImageDescriptor(imageDescriptor);
-         }
-      }
-
-      MyAction(String text,int style, String imageId) {
-         this(text, text, style, imageId);
-      }
-
-      MyAction(String text,int style) {
-         this(text, text, style, null);
-      }
-   }
-
    /**
     * Generate C code files
+    * @return 
     */
    public void generateCode() {
-      if (fFactory == null) {
-         MessageDialog.openError(null, "Failed", "Regenerated code files failed");
-         return;
-      }
-      try {
-         if (fProject != null) {
-            // Opened as part of a Eclipse project
-            fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
+      Job job = new Job("Regenerate code files") {
+         protected IStatus run(IProgressMonitor monitor) {
+            System.err.println("GenerateCodeAction.run()");
+            monitor.beginTask("Started...", 10);
+            if (fFactory == null) {
+               monitor.done();
+               return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
+            }
+            try {
+               if (fProject != null) {
+                  // Opened as part of a Eclipse project
+                  fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
+               }
+               else {
+                  // Used for testing
+                  fFactory.getDeviceInfo().generateCppFiles();
+               }
+            } catch (Exception e) {
+               monitor.done();
+               return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
+            }
+            return Status.OK_STATUS;
          }
-         else {
-            // Used for testing
-            fFactory.getDeviceInfo().generateCppFiles();
-         }
-         if (fStatusLineManager != null) {
-            fStatusLineManager.setMessage("File generation complete");
-         }
-         else {
-            MessageDialog.openInformation(null, "Regenerated Code", "Regenerated all code files");
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-         MessageDialog.openError(null, "Regenerate Code Failed", "Failed to regenerate code.\nReason:\n"+e.getMessage());
-      }
+      };
+      job.setUser(true);
+      job.schedule();
    }
 
    class GenerateCodeAction extends MyAction {
       GenerateCodeAction() {
-         super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_WARNING_NODE_IMAGE);
+         super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_GEN_FILES_IMAGE);
       }
 
       @Override
@@ -250,8 +233,14 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
    }
 
-   MyAction fActions[] = {new GenerateCodeAction()};
+   private GenerateCodeAction generateCodeAction = new GenerateCodeAction();
+   
+   MyAction fActions[] = {generateCodeAction};
 
+   Action getGenerateCodeAction() {
+      return generateCodeAction;
+   }
+   
    /** 
     * Create menu actions
     */
@@ -389,7 +378,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }
 
    DeviceEditorOutlinePage fOutlinePage = null;
-   
+
    @SuppressWarnings("rawtypes")
    @Override
    public Object getAdapter(Class required) {      

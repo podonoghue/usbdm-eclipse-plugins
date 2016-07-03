@@ -199,15 +199,12 @@ public class FileUtility {
             Files.delete(backupFilePath);
          }
       } catch (Exception e) {
-         //         e.printStackTrace();
-         System.err.println("Failed to process " + inFilePath.toString());
-         if (writer != null) {
-            writer.close();
-         }
          if (reader != null) {
             reader.close();
          }
-         Files.delete(outFilePath);
+         if (writer != null) {
+            writer.close();
+         }
          if (backupFilePath != null) {
             Files.move(backupFilePath, outFilePath, StandardCopyOption.REPLACE_EXISTING);
             System.err.println("Restoring backup " + backupFilePath.toString());
@@ -232,7 +229,7 @@ public class FileUtility {
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source);
       Path targetPath = projectDirectory.resolve(target);
-      //      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
+//      System.err.println(String.format("FileUtility.copyFile()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy File", 100);
          IFile iFile = project.getFile(targetPath.toString());
@@ -242,16 +239,15 @@ public class FileUtility {
          copy(sourcePath, targetPath, variableMap);
          iFile.refreshLocal(IResource.DEPTH_ONE, null);
          iFile.setDerived(true, monitor);
-         //         project.refreshLocal(IResource.DEPTH_INFINITE, null);
       } catch (CoreException e) {
-         throw new Exception("Failed" + e.getMessage(), e); //$NON-NLS-1$
+         throw new Exception("Failed to copy file "+source+" to "+target , e);
       } finally {
          monitor.done();
       }
    }
 
    /**
-    * Copy files<br>
+    * Copy file<br>
     * For testing
     * 
     * @param project       Project being modified (if any)
@@ -263,24 +259,23 @@ public class FileUtility {
     * @throws Exception
     */
    private static void copyFile(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
-      //      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
-      if (!targetPath.getParent().toFile().exists()) {
-         //         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
-         targetPath.getParent().toFile().mkdirs();
-      }
-      copy(sourcePath, targetPath, variableMap);
-      if (project != null) {
-         Path projectPath = Paths.get(project.getLocation().toPortableString()).toAbsolutePath();
-         if (targetPath.startsWith(projectPath)) {
-            try {
+      try {
+         //      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
+         if (!targetPath.getParent().toFile().exists()) {
+            //         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
+            targetPath.getParent().toFile().mkdirs();
+         }
+         copy(sourcePath, targetPath, variableMap);
+         if (project != null) {
+            Path projectPath = Paths.get(project.getLocation().toPortableString()).toAbsolutePath();
+            if (targetPath.startsWith(projectPath)) {
                IFile iFile = project.getFile(projectPath.relativize(targetPath).toString());
                iFile.refreshLocal(IResource.DEPTH_ONE, monitor);
                iFile.setDerived(true, monitor);
-            } catch (Exception e) {
-               // Report and ignore
-               e.printStackTrace();
             }
          }
+      } catch (Exception e) {
+         throw new Exception("Failed to copy file "+sourcePath+" to "+targetPath, e);
       }
    }
 
@@ -300,17 +295,21 @@ public class FileUtility {
     * @throws Exception
     */
    public static void copyDirectory(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
-      sourcePath = sourcePath.toAbsolutePath();
-      targetPath = targetPath.toAbsolutePath();
-      if (Files.isDirectory(sourcePath)) {
-         DirectoryStream<Path> folderStream = Files.newDirectoryStream(sourcePath);
-         for (Path filePath : folderStream) {
-            Path relativePath = sourcePath.relativize(filePath);
-            copyDirectory(project, filePath, targetPath.resolve(relativePath), variableMap, monitor);
+      try {
+         sourcePath = sourcePath.toAbsolutePath();
+         targetPath = targetPath.toAbsolutePath();
+         if (Files.isDirectory(sourcePath)) {
+            DirectoryStream<Path> folderStream = Files.newDirectoryStream(sourcePath);
+            for (Path filePath : folderStream) {
+               Path relativePath = sourcePath.relativize(filePath);
+               copyDirectory(project, filePath, targetPath.resolve(relativePath), variableMap, monitor);
+            }
          }
-      }
-      else if (Files.isRegularFile(sourcePath)) {
-         copyFile(project, sourcePath, targetPath, variableMap, monitor);
+         else if (Files.isRegularFile(sourcePath)) {
+            copyFile(project, sourcePath, targetPath, variableMap, monitor);
+         }
+      } catch (Exception e) {
+         throw new Exception("Failed to copy directory "+sourcePath+" to "+targetPath, e);
       }
    }
 
@@ -358,32 +357,43 @@ public class FileUtility {
     * @param project            - project.
     * @param targetPath         - project relative path to the new folder.
     * @param progressMonitor    - progress monitor.
-    * 
-    * @throws CoreException 
+    * @throws Exception 
     */
-   public static void createFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws CoreException {
+   public static void createFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws Exception {
       //If the targetPath is an empty string, there will be no folder to create.
       // Also this is not an error. So just return gracefully.
       if (targetPath == null || targetPath.length()==0) {
          return;
       }
       IPath path = new org.eclipse.core.runtime.Path(targetPath);
-      for (int i=1; i<=path.segmentCount(); i++) {
-         IFolder subfolder = project.getFolder(path.uptoSegment(i));
-         if (!subfolder.exists()) {
-            subfolder.create(true, true, progressMonitor);
-            subfolder.refreshLocal(IResource.DEPTH_ONE, null);
+      try {
+         for (int i=1; i<=path.segmentCount(); i++) {
+            IFolder subfolder = project.getFolder(path.uptoSegment(i));
+            if (!subfolder.exists()) {
+               subfolder.create(true, true, progressMonitor);
+               subfolder.refreshLocal(IResource.DEPTH_ONE, null);
+            }
          }
+      } catch (Exception e) {
+         throw new Exception("Failed to create folder "+targetPath, e);
       }
    }
 
    public static void refreshFile(Path path, Map<String, String> variableMap) throws Exception {
-      copyFile(null, path, path, variableMap, null);
+      try {
+         copyFile(null, path, path, variableMap, null);
+      } catch (Exception e) {
+         throw new Exception("Failed to refresh file "+path, e);
+      }
    }
 
    public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor progressMonitor) throws Exception {
-      Path projectDirectory = Paths.get(project.getLocation().toPortableString());
-      Path sourcePath = projectDirectory.resolve(path);
-      copyFile(project, sourcePath, sourcePath, variableMap, progressMonitor);
+      try {
+         Path projectDirectory = Paths.get(project.getLocation().toPortableString());
+         Path sourcePath = projectDirectory.resolve(path);
+         copyFile(project, sourcePath, sourcePath, variableMap, progressMonitor);
+      } catch (Exception e) {
+         throw new Exception("Failed to refresh file "+path+" in project "+project.getName(), e);
+      }
    }
 }

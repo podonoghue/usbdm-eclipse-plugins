@@ -46,6 +46,10 @@ public class Activator extends AbstractUIPlugin {
       super.stop(context);
    }
 
+   public static String getPluginId() {
+      return PLUGIN_ID;
+   }
+   
    /**
     * Returns the shared instance
     *
@@ -74,6 +78,10 @@ public class Activator extends AbstractUIPlugin {
       ImageDescriptor imageDescriptor;
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/empty.png"), null));
       registry.put(ID_EMPTY_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/generateFiles.png"), null));
+      registry.put(ID_GEN_FILES_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/generateFiles-disabled.png"), null));
+      registry.put(ID_GEN_FILES_DISABLED_IMAGE, imageDescriptor);   
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/disabled.png"), null));
       registry.put(ID_DISABLED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
@@ -93,6 +101,8 @@ public class Activator extends AbstractUIPlugin {
    }
 
    public final static String ID_EMPTY_IMAGE               = "empty";
+   public final static String ID_GEN_FILES_IMAGE           = "generate-files";
+   public final static String ID_GEN_FILES_DISABLED_IMAGE  = "generate-files-disabled";
    public final static String ID_COG_IMAGE                 = "cog";
    public final static String ID_DISABLED_IMAGE            = "disabled";
    public final static String ID_CHECKBOX_CHECKED_IMAGE    = "checkbox-checked";
