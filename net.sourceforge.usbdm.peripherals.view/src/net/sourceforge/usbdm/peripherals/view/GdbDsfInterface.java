@@ -50,13 +50,13 @@ public class GdbDsfInterface extends GdbCommonInterface {
    private static final int reducedMemoryWaitTimeInMilliseconds =  100; // Reduced time to wait after an initial failure
    private int              memoryWaitTimeInMilliseconds        = defaultMemoryWaitTimeInMilliseconds; // Active memory wait time
 
-   private DsfSession          dsfSession  = null;
+   private DsfSession          fDsfSession  = null;
 //   private DsfServicesTracker  tracker     = null;
 
    GdbDsfInterface(DsfSession dsfSession) {
-      this.dsfSession  = dsfSession;
-//      if (dsfSession != null) {
-//         tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+      this.fDsfSession  = dsfSession;
+//      if (fDsfSession != null) {
+//         tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
 //      }
    }
 
@@ -77,8 +77,8 @@ public class GdbDsfInterface extends GdbCommonInterface {
 //      System.err.println(String.format("GdbDsfInterface.readMemory(0x%X, %d)", address, size));
       
       DsfServicesTracker  tracker = null;
-      if (dsfSession != null) {
-         tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+      if (fDsfSession != null) {
+         tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
       }
 //      System.err.println("GdbDsfInterface.readMemory()");
       if (tracker == null) {
@@ -205,8 +205,8 @@ public class GdbDsfInterface extends GdbCommonInterface {
       String value = buffer.toString();
       
       DsfServicesTracker  tracker = null;
-      if (dsfSession != null) {
-         tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+      if (fDsfSession != null) {
+         tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
       }
       if (tracker == null) {
          System.err.println("GdbDsfInterface.writeMemory(DSF) tracker = null");
@@ -283,10 +283,10 @@ public class GdbDsfInterface extends GdbCommonInterface {
 //   public long evaluateExpression(String expression) throws Exception {
 //      //      System.err.println(String.format("GdbDsfInterface.evaluateExpression(%s)", expression));
 //
-//      if ((dsfSession == null)) {
+//      if ((fDsfSession == null)) {
 //         return 0;
 //      }
-//      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+//      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
 //      final IGDBControl fGdb = tracker.getService(IGDBControl.class);
 //      if (fGdb == null) {
 //         return 0;
@@ -363,8 +363,8 @@ public class GdbDsfInterface extends GdbCommonInterface {
    @Override
    public long setFrame(int frameNum) throws Exception {
       DsfServicesTracker  tracker = null;
-      if (dsfSession != null) {
-         tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+      if (fDsfSession != null) {
+         tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
       }
       if ((tracker == null)) {
          return 0;
@@ -728,10 +728,10 @@ public class GdbDsfInterface extends GdbCommonInterface {
    public long evaluateExpression(IExpressions expressionService, final IFrameDMContext frame, String expression) {
       if (expressionService == null) {
 //         System.err.println("evaluateExpression() expressionService = null");
-         if ((dsfSession == null)) {
+         if ((fDsfSession == null)) {
             return 0;
          }
-         DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+         DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
          expressionService = tracker.getService(IExpressions.class);
       }
       FormattedValueDMData formattedData = getFormattedValueDMData(expressionService, frame, expression);
@@ -744,10 +744,10 @@ public class GdbDsfInterface extends GdbCommonInterface {
    public IFrameDMContext getExceptionStackFrameContext() {
       
       System.err.println(String.format("GdbDsfInterface.getExceptionStackFrameContext()"));
-      if ((dsfSession == null)) {
-         System.err.println("GdbDsfInterface.getExceptionStackFrameContext() dsfSession = null");
+      if ((fDsfSession == null)) {
+         System.err.println("GdbDsfInterface.getExceptionStackFrameContext() fDsfSession = null");
       }
-      final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
+      final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());
       final IExpressions expressionService = tracker.getService(IExpressions.class);
       if (expressionService == null) {
          System.err.println("getExceptionStackFrameContext() expressionService = null");
@@ -813,10 +813,10 @@ public class GdbDsfInterface extends GdbCommonInterface {
    @SuppressWarnings("unused")
    private Object tryIt() {
       System.err.println(String.format("GdbDsfInterface.tryIt()"));
-      if ((dsfSession == null)) {
+      if ((fDsfSession == null)) {
          return null;
       }
-      final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());      
+      final DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), fDsfSession.getId());      
       final IExpressions expressionService = tracker.getService(IExpressions.class);
       if (expressionService == null) {
          System.err.println("GdbDsfInterface.tryIt() expressionService = null");
@@ -865,296 +865,8 @@ public class GdbDsfInterface extends GdbCommonInterface {
             res.getEditableValue(),
             res.getFormattedValue()
             ));
-      
-//      IBitFieldDMContext arg0 = null;
-//      registerService.getBitFieldData(arg0 , arg1);
-//      SyncRegisterDataAccess s = new SyncRegisterDataAccess(dsfSession);
-//      System.err.println(String.format("GdbDsfInterface.tryIt() getFormattedRegisterValue = %s",
-//            s.getFormattedRegisterValue(registerDMContext, IFormattedValues.HEX_FORMAT)
-//            ));
-      
-//      IFormattedDataDMContext formattedDataDMContext = null;
-//      FormattedValueDMContext formattedValueDMContext = null;
-//      registerService.getFormattedExpressionValue(formattedValueDMContext, null);
-//      FormattedValueDMContext y = registerService.getFormattedValueContext(formattedDataDMContext, IFormattedValues.HEX_FORMAT);
-//
-//      String s = formattedValueDMContext.getFormatID();
-      
-//      IRegisterGroupDMContext[] registerGroups = getRegisterGroups(registerService);
-//      for(IRegisterGroupDMContext registerGroup:registerGroups) {
-//         IRegisterDMContext[] registers = getRegisters(registerService, registerGroup);
-//         System.err.println("GdbDsfInterface.tryIt():3 registerGroup.toString()" + registerGroup.toString());
-//         for (IRegisterDMContext registerDMContext:registers) {
-//            IRegisterDMData registerData = getRegisterData(registerService, registerDMContext);
-//            System.err.println("GdbDsfInterface.doit():3b register = " + registerData + "," + registerData.getClass());
-//            System.err.println(String.format("GdbDsfInterface.tryIt():3c %s : %s ", 
-//                  registerData.getName(), registerData.getDescription()));
-//         }
-//      }
       return null;
    }
-   
 
-//   int doit() {
-//
-//      System.err.println(String.format("GdbDsfInterface.doit()"));
-//      if ((dsfSession == null)) {
-//         return 0;
-//      }
-//      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
-//
-//      IAdaptable debugContext = DebugUITools.getDebugContext();
-//      if (debugContext != null) {
-//         IDMContext idmContext = (IDMContext)debugContext.getAdapter(IDMContext.class);
-//         if (idmContext != null) {
-//            IMIExecutionDMContext execDmc = DMContexts.getAncestorOfType(idmContext, IMIExecutionDMContext.class);
-//            System.err.println("GdbDsfInterface.doit():1a execDmc = " + execDmc + "," + execDmc.getClass());
-//            IMIProcessDMContext processDmc = DMContexts.getAncestorOfType(idmContext, IMIProcessDMContext.class);
-//            System.err.println("GdbDsfInterface.doit():1a processDmc = " + processDmc + "," + processDmc.getClass());
-//         }
-//      }
-//      final IStack stackService = tracker.getService(IStack.class);
-//      System.err.println("GdbDsfInterface.doit():1 stackService = " + stackService + "," + stackService.getClass());
-//
-//      final MIRegisters registerService = tracker.getService(MIRegisters.class);
-//      System.err.println("GdbDsfInterface.doit():2 registerService = " + registerService + "," + registerService.getClass());
-//
-//      final IExpressions expressionService = tracker.getService(IExpressions.class);
-//      System.err.println("GdbDsfInterface.doit():4a expressionService = " + expressionService + "," + expressionService.getClass());
-//
-//      IRegisterGroupDMContext[] registerGroups = getRegisterGroups(registerService);
-//      for(IRegisterGroupDMContext registerGroup:registerGroups) {
-//         IRegisterDMContext[] registers = getRegisters(registerService, registerGroup);
-//         System.err.println("GdbDsfInterface.doit():3 registerGroup.toString()" + registerGroup.toString());
-//         for (IRegisterDMContext registerDMContext:registers) {
-//            IRegisterDMData registerData = getRegisterData(registerService, registerDMContext);
-//            //            System.err.println("GdbDsfInterface.doit():3b register = " + registerData + "," + registerData.getClass());
-//            System.err.println(String.format("GdbDsfInterface.doit():3c %s : %s ", 
-//                  registerData.getName(), registerData.getDescription()));
-//         }
-//      }
-//
-//      //    int y = getStackDepth(stackService);
-//
-//      System.err.println("====================================================================");
-//      IFrameDMContext      topFrame          = getTopFrame(stackService);
-//      FormattedValueDMData fpFormattedData   = getFormattedValueDMData(expressionService, topFrame, "$fp");
-//      String value = fpFormattedData.getFormattedValue();
-//      System.err.println("GdbDsfInterface.doit():4b value = " + value);
-//      System.err.println("====================================================================");
-//
-//      IFrameDMContext[] frames = getFrames(stackService);
-//      for(IFrameDMContext frame:frames) {
-//         IFrameDMData frameData = getFrameDMData(stackService, frame);
-//         System.err.println("GdbDsfInterface.doit():5a frameData = " + frameData);
-//         System.err.println("GdbDsfInterface.doit():5b frameData.getAddress()" + frameData.getAddress());
-//
-//         //         IExpressionDMContext fpExpression = expressionService.createExpression(frame, "$fp");
-//         //         String formatId = IFormattedValues.HEX_FORMAT;
-//         //         FormattedValueDMContext valueDmc = expressionService.getFormattedValueContext(fpExpression, formatId);
-//         //         final DataRequestMonitor<IExpressionDMData> drm = new
-//         //               DataRequestMonitor<IExpressionDMData>(expressionService.getExecutor(), null){
-//         //               @ Override
-//         //               protected void handleCompleted() {
-//         //               IExpressionDMData data = getData();
-//         //               System.err.println("handleCompleted = " + data);
-//         //               }
-//         //               };
-//         //         final DataRequestMonitor<FormattedValueDMData> drmf = new
-//         //               DataRequestMonitor<FormattedValueDMData>(expressionService.getExecutor(), null){
-//         //                @ Override
-//         //               protected void handleCompleted() {
-//         //               FormattedValueDMData data = getData();
-//         //               String formattedValue = data.getFormattedValue();
-//         //               System.err.println("handleCompleted formattedValue = " + formattedValue);
-//         //               }
-//         //               };
-//         //         expressionService.getExpressionData(fpExpression, drm);
-//         //         expressionService.writeExpression(fpExpression, "42", formatId, drmf);
-//      }
-//      return 0;
-//   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
-//
-//   /* (non-Javadoc)
-//    * @see net.sourceforge.usbdm.peripherals.view.GdbCommonInterface#readRegister(int)
-//    */
-//   public long getStackFrameAddressX() throws Exception {
-//      System.err.println(String.format("GdbDsfInterface.getStackFramseSize()"));
-//
-//      if ((dsfSession == null)) {
-//         return 0;
-//      }
-//
-//      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), dsfSession.getId());
-//      final IMemory fMemory = tracker.getService(IMemory.class);
-//      if (fMemory == null) {
-//         System.err.println("GdbDsfInterface.getStackFramseSize():1 fMemory = null");
-//      }
-//      else {
-//         System.err.println("GdbDsfInterface.getStackFramseSize():1 fMemory = " + fMemory + "," + fMemory.getClass());
-//      }
-//
-//      final IStack fStack = tracker.getService(IStack.class);
-//      if (fStack == null) {
-//         System.err.println("GdbDsfInterface.getStackFramseSize():1 fMemory = null");
-//      }
-//      else {
-//         System.err.println("GdbDsfInterface.getStackFramseSize():1 fMemory = " + fStack + "," + fStack.getClass());
-//      }
-//      //      fStack.getStackDepth(arg0, arg1, arg2);
-//
-//
-//      //      IMemoryDMContext paramIMemoryDMContext = null;
-//      //      IAddress paramIAddress = new ;
-//      //      
-//      //      Addr32Factory a; 
-//      //      a.createAddress(null, 100);
-//      //      
-//      //      IAddress address=getDebugTarget().getAddressFactory().createAddress(cdiBreakpoint.getLocator().getAddress());
-//      //      
-//      //      long paramLong = 0;
-//      //      int paramInt1 = 0;
-//      //      int paramInt2 = 0; 
-//      //      DataRequestMonitor<MemoryByte[]> paramDataRequestMonitor = null;
-//      //
-//      //      fMemory.getMemory(paramIMemoryDMContext, paramIAddress, paramLong, paramInt1, paramInt2, paramDataRequestMonitor);
-//
-//      ICStackFrame cStackFrame = null;
-//      ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
-//      for (ILaunch launch: launches) {
-//         System.err.println("GdbDsfInterface.getStackFramseSize():1 launch = " + launch + "," + launch.getClass());
-//         if (!(launch instanceof GdbLaunch)) {
-//            continue;
-//         }
-//         GdbLaunch dsfLaunch = (GdbLaunch) launch;
-//
-//         Class<?> classes[] = {
-//               IStackFrame.class,
-//               IStack.class,
-//               AbstractDMVMNode.class,
-//               DsfMemoryBlockRetrieval.class,
-//               DsfMemoryBlock.class,
-//         };
-//         for (Class<?> clazz:classes) {
-//            Object obj = dsfLaunch.getSession().getModelAdapter(clazz);
-//            if (obj == null) {
-//               System.err.println("GdbDsfInterface.getStackFramseSize():1aa obj = null");
-//            }
-//            else {
-//               System.err.println("GdbDsfInterface.getStackFramseSize():1aa obj = " + obj + ",class = "+ obj.getClass());
-//            }
-//            obj = dsfLaunch.getAdapter(clazz);
-//            if (obj == null) {
-//               System.err.println("GdbDsfInterface.getStackFramseSize():1bb obj = null");
-//            }
-//            else {
-//               System.err.println("GdbDsfInterface.getStackFramseSize():1bb obj = " + obj + ",class = "+ obj.getClass());
-//            }
-//         }
-//         IDebugTarget targets[] = dsfLaunch.getDebugTargets();
-//         if ((targets == null) || (targets.length == 0)) {
-//            System.err.println("GdbDsfInterface.getStackFramseSize():1a targets[] = null/empty");
-//         }
-//         for (IDebugTarget target:targets) {
-//            System.err.println("GdbDsfInterface.getStackFramseSize():2 target = " + target);
-//            if ((targets == null) || (targets.length == 0)) {
-//               System.err.println("GdbDsfInterface.getStackFramseSize():2a targets[] = null/empty");
-//            }
-//            IThread[] threads = target.getThreads();
-//            System.err.println("GdbDsfInterface.getStackFramseSize():3 threads = " + threads);
-//         }
-//         Object children[] = dsfLaunch.getChildren();
-//         for (Object child:children) {
-//            System.err.println("GdbDsfInterface.getStackFramseSize():3a child = " + child + ", class = " + child.getClass());
-//         }
-//         IProcess processes[] = dsfLaunch.getProcesses();
-//         for(IProcess process:processes) {
-//            if (process == null) {
-//               continue;
-//            }
-//            System.err.println("GdbDsfInterface.getStackFramseSize():4 process = " + process + ", class = " + process.getClass());
-//            if (process instanceof GDBProcess) {
-//               GDBProcess gdbProcess = (GDBProcess) process;
-//               IMemoryBlockRetrievalExtension adapt = (IMemoryBlockRetrievalExtension)gdbProcess.getAdapter(IMemoryBlockRetrievalExtension.class);
-//               System.err.println("GdbDsfInterface.getStackFramseSize():5 adapt = " + adapt + ", class = " + adapt.getClass());
-//            }
-//         }
-//         IDebugTarget target = dsfLaunch.getDebugTarget();
-//         System.err.println("GdbDsfInterface.getStackFramseSize():6 target = " + target);
-//         if (target == null) {
-//            continue;
-//         }
-//         IThread[] threads = target.getThreads();
-//         System.err.println("GdbDsfInterface.getStackFramseSize():7 threads = " + threads);
-//         cStackFrame = (ICStackFrame)(threads[0].getTopStackFrame().getAdapter(ICStackFrame.class));
-//         System.err.println("GdbDsfInterface.getStackFramseSize():8 cStackFrame1.getAddress() = " + cStackFrame.getAddress());
-//
-//
-//
-//
-//
-//
-//         //         IProcess[] processes = dsfLaunch.getProcesses();
-//         //         System.err.println("GdbDsfInterface.getStackFramseSize() processes = " + processes);
-//         //         GDBProcess gdbProcess = null;
-//         //         if (processes != null) {
-//         //            for(IProcess process : processes) {
-//         //               if (process instanceof GDBProcess) {
-//         //               gdbProcess = (GDBProcess) process;
-//         //               }
-//         //            }
-//         //         }
-//         //         System.err.println("GdbDsfInterface.getStackFramseSize() gdbProcess = " + gdbProcess);
-//         //         Target dsfTarget = gdbProcess.getTarget();
-//         //         System.err.println("GdbDsfInterface.getStackFramseSize() dsfTarget = " + dsfTarget);
-//         //         if (dsfTarget == null) {
-//         //            continue;
-//         //         }
-//         //         ICDIThread[] threads = dsfTarget.getThreads();
-//         //         if (threads == null) {
-//         //            continue;
-//         //         }
-//         //         for (ICDIThread thread : threads) {
-//         //            System.err.println("GdbDsfInterface.getStackFramseSize() thread = " + thread);
-//         //            ICDIStackFrame[] stackFrames = thread.getStackFrames(0,0);
-//         //            System.err.println("GdbDsfInterface.getStackFramseSize() stackFrame = " + stackFrames);
-//         //            if (stackFrames != null) {
-//         //               cStackFrame1 = stackFrames[0];
-//         //               break;
-//         //            }
-//         //         }
-//         //         if (cStackFrame1 != null) {
-//         //            break;
-//         //         }
-//      }
-//      if (cStackFrame == null) {
-//         return 0;
-//      }
-//      System.err.println("GdbDsfInterface.getStackFramseSize() stackFrame = " + cStackFrame.getAddress());
-//      return 0;
-//   }
 }
 
