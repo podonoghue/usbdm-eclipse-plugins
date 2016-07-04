@@ -40,10 +40,11 @@ Non-derivative components are licensed under the GPL.
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
       <import plugin="org.eclipse.cdt.launch"/>
       <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="org.eclipse.cdt.dsf.ui" version="2.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.core"/>
       <import plugin="org.eclipse.osgi"/>
       <import plugin="org.eclipse.jface.text"/>
       <import plugin="org.eclipse.ui.editors"/>
-      <import plugin="org.eclipse.debug.core"/>
       <import plugin="net.sourceforge.usbdm.jni" version="4.12.1" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.cdt.tools" version="4.12.1" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="4.12.1" match="greaterOrEqual"/>
