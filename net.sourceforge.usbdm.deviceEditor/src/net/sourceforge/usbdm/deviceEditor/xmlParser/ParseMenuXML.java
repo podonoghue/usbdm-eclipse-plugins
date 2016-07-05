@@ -13,6 +13,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
@@ -156,6 +157,44 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setUnits(Units.valueOf(units));
       variable.setStep(step);
       variable.setOffset(offset);
+
+      VariableModel model = variable.createModel(parent);
+      model.setConstant(isConstant);
+   }
+
+   /**
+    * Parse &lt;intOption&gt; element<br>
+    * 
+    * @param varElement
+    */
+   private void parseBitmaskOption(BaseModel parent, Element varElement) {
+
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
+      if (key.isEmpty()) {
+         key = fProvider.makeKey(name);
+      }
+      key  = substituteKey(key);
+      name = substituteKey(name);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  toolTip     = getToolTip(varElement);
+      String  value       = varElement.getAttribute("value");
+      
+      BitmaskVariable variable = new BitmaskVariable(name, key);
+      fProvider.addVariable(variable);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      try {
+         variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
+         variable.setBitList(varElement.getAttribute("bitList"));
+      } catch( NumberFormatException e) {
+         throw new RuntimeException("Illegal permittedBits value in " + name, e);
+      }
+      variable.setValue(value);
 
       VariableModel model = variable.createModel(parent);
       model.setConstant(isConstant);
@@ -514,6 +553,9 @@ public class ParseMenuXML extends XML_BaseParser {
 //         }
          else if (element.getTagName() == "intOption") {
             parseLongOption(parentModel, element);
+         }
+         else if (element.getTagName() == "bitmaskOption") {
+            parseBitmaskOption(parentModel, element);
          }
          else if (element.getTagName() == "floatOption") {
             parseDoubleOption(parentModel, element);

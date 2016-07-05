@@ -19,8 +19,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Tree;
 
+import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.BitmaskModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
@@ -59,6 +61,10 @@ public class ValueColumnEditingSupport extends EditingSupport {
       if (element instanceof ChoiceVariableModel) {
          ChoiceVariableModel model = (ChoiceVariableModel)element;
          return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
+      }      
+      if (element instanceof BitmaskModel) {
+         BitmaskModel model = (BitmaskModel)element;
+         return new BitmaskEditor(viewer.getTree(), model);
       }      
       if (element instanceof LongVariableModel) {
          LongVariableModel model = (LongVariableModel)element;
@@ -226,9 +232,9 @@ public class ValueColumnEditingSupport extends EditingSupport {
    }
    
    static class IntegerListEditor extends DialogCellEditor {
-      final StringVariableModel fModel;
+      final BitmaskModel fModel;
       
-      public IntegerListEditor(Tree tree, StringVariableModel model) {
+      public IntegerListEditor(Tree tree, BitmaskModel model) {
          super(tree, SWT.NONE);
          fModel = model;
       }
@@ -238,6 +244,27 @@ public class ValueColumnEditingSupport extends EditingSupport {
          CheckBoxListDialogue dialog = new CheckBoxListDialogue(paramControl.getShell(), 61, fModel.getValueAsString());
          if (dialog.open() == Window.OK) {
             return dialog.getResult();
+         };
+         return null;
+      }
+   }
+
+   static class BitmaskEditor extends DialogCellEditor {
+      final BitmaskModel fModel;
+      
+      public BitmaskEditor(Tree tree, BitmaskModel model) {
+         super(tree, SWT.NONE);
+         fModel = model;
+      }
+
+      @Override
+      protected Object openDialogBox(Control paramControl) {
+         BitmaskVariable var = fModel.getVariable();
+         BitmaskDialogue dialog = new BitmaskDialogue(paramControl.getShell(), var.getPermittedBits(), var.getValueAsLong());
+         dialog.setBitNameList(var.getBitList());
+         dialog.setTitle(var.getDescription());
+         if (dialog.open() == Window.OK) {
+            return Long.toString(dialog.getResult());
          };
          return null;
       }

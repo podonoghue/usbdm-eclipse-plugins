@@ -2125,6 +2125,50 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PDB0_IRQn};
 
+   // Template:pdb0_1ch_2trig_0dac_2po
+
+   //! Install Callback handler
+   static constexpr bool irqEnabled = false;
+
+   //! Install Callback handler
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   static constexpr uint32_t pdb_sc = 
+      PDB_PDB_MULT(0) |      // Multiplication Factor Select for Prescaler
+      PDB_PDB_PDBIE(0) |     // PDB Interrupt Enable
+      PDB_PDB_TRGSEL(0) |    // Trigger Input Source Select
+      PDB_PDB_PRESCALER(0) | // Prescaler Divider Select
+      PDB_PDB_DMAEN(0) |     // DMA Enable
+      PDB_PDB_PDBEIE(0) |    // PDB Sequence Error Interrupt Enable
+      PDB_PDB_LDMOD(0);      // Load Mode Select
+
+   static constexpr uint32_t pdb_mod = 
+      PDB_MOD_MOD(4000000);  // PDB Modulus
+
+   static constexpr uint32_t pdb_idly = 
+      PDB_IDLY_IDLY(4000000);  // PDB Modulus
+
+   static constexpr uint32_t pdb_chc1 = 
+      PDB_CHC1_BB(0) |   // Channel Pre-Trigger Back-to-Back Operation Enable
+      PDB_CHC1_TOS(0) |  // Channel Pre-Trigger Output Select
+      PDB_CHC1_EN(0);    // Channel Pre-Trigger Enable
+
+   static constexpr uint32_t pdb_chdly0 = 
+      PDB_CHDLY0_DLY(65535);  // PDB Modulus
+
+   static constexpr uint32_t pdb_chdly1 = 
+      PDB_CHDLY1_DLY(65535);  // PDB Modulus
+
+   static constexpr uint32_t pdb_poen = 
+      PDB_POEN_POEN(0);   // PDB Pulse-Out Enable
+
+   static constexpr uint32_t pdb_chc1 = 
+      PDB_PODLY_DLY1(4000000) |  // PDB Pulse-Out Delay 1
+      PDB_PODLY_DLY1(4000000);   // PDB Pulse-Out Delay 2
+
    //! Number of signals available in info table
    static constexpr int numSignals  = 1;
 
@@ -2423,6 +2467,34 @@ public:
 
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {TSI0_IRQn};
+
+   // Template:tsi0_mk
+
+   static constexpr uint32_t tsi_gencs = \
+      TSI_GENCS_STPE(0)       |  // TSI STOP Enable
+      TSI_GENCS_STM(1)        |  // Scan Trigger Mode
+      TSI_GENCS_ESOR(0)       |  // EOS or OOR Interrupt select
+      TSI_GENCS_ERIE(0)       |  // Error Interrupt Enable
+      TSI_GENCS_TSIIE(0)      |  // Touch Sensing Input Interrupt Module Enable
+      TSI_GENCS_PS(3)         |  // Electrode Oscillator Prescaler
+      TSI_GENCS_NSCN(8-1)     |  // Consecutive Scan number
+      TSI_GENCS_LPSCNITV(7)   |  // Low-Power Mode Scan Interval
+      TSI_GENCS_LPCLKS(0);       // Low-Power Mode Clock Source
+
+   static constexpr uint32_t tsi_scanc = \
+      TSI_SCANC_AMPSC(3)           |  // Active Mode Prescaler
+      TSI_SCANC_AMCLKS(0)          |  // Active Mode Clock Source
+      TSI_SCANC_SMOD(8)            |  // Scan Period Modulus
+      TSI_SCANC_EXTCHRG((16/2)-1)  |  // External Oscillator Charge Current select
+      TSI_SCANC_REFCHRG((16/2)-1);    // Reference Oscillator Charge Current select
+
+   static constexpr uint32_t tsi_pen = \
+      (6144) |    // Pins enable pin as TSI inputs
+      TSI_PEN_LPSP(5);    // Low Power Scan Pin
+
+   static constexpr uint32_t tsi_threshold = \
+      TSI_THRESHOLD_LTHH(4096) |   // Low Power Channel Low Threshold value
+      TSI_THRESHOLD_HTHH(12288);    // Low Power Channel High Threshold value
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 16;
@@ -2841,6 +2913,8 @@ public:
 
    //! Number of IRQs for hardware
    static constexpr uint32_t irqCount  = 0;
+
+   // Template:vref_c
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 1;

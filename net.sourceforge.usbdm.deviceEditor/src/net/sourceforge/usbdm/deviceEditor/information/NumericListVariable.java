@@ -32,15 +32,15 @@ public class NumericListVariable extends StringVariable {
             values = value.split(fDelimeter);
          }
          if ((fMaxListSize>0) && (values.length > fMaxListSize)) {
-            return "Illegal number of elements, Requires < " + fMaxListSize;
+            return "Illegal number of elements, Requires <= " + fMaxListSize;
          }
          if ((fMinListSize>0) && (values.length < fMinListSize)) {
-            return "Illegal number of elements, Requires > " + fMaxListSize;
+            return "Illegal number of elements, Requires >= " + fMinListSize;
          }
          for (String s:values) {
             int iValue = Integer.parseInt(s);
             if ((iValue<fMin) || (iValue>fMax)) {
-               return "Illegal integer in list, "+iValue;
+               return "Illegal integer in list, "+iValue+", range ["+fMin+","+fMax+"]";
             }
          }
          return null;
