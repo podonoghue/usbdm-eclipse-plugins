@@ -18,7 +18,7 @@ public interface IModelEntryProvider {
     * @param key     Key used to identify variable
     * @param value   New value for variable
     */
-   public void setVariableValue(String key, String value);
+   public void setVariableValue(String key, String value) throws Exception;
 
    /**
     * Get value of variable
@@ -27,7 +27,7 @@ public interface IModelEntryProvider {
     * 
     * @return Value for variable
     */
-   public String getVariableValue(String key);
+   public String getVariableValue(String key) throws Exception;
 
    /**
     * Get variable with given key
@@ -38,7 +38,7 @@ public interface IModelEntryProvider {
     * 
     * @throws Exception if variable doesn't exist
     */
-   public Variable getVariable(String key);
+   public Variable getVariable(String key) throws Exception;
 
    /**
     * Get variable with given key

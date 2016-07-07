@@ -20,9 +20,10 @@ public class LpuartValidate extends Validator {
 
    /**
     * Class to determine LPUART settings
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
       Variable     clockSource = getVariable("clockSource");
       clockSource.setStatus((Message)null);
       clockSource.setOrigin("");

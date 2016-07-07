@@ -6,13 +6,12 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
  * Class encapsulating the code for writing an instance of GPIO
  */
-public class WriterForGpio extends Peripheral {
+public class WriterForGpio extends PeripheralWithState {
 
    public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -103,6 +102,8 @@ public class WriterForGpio extends Peripheral {
                getIrqNumsAsInitialiser()));
       }
       pinMappingHeaderFile.write(sb.toString());
+      
+      writeInfoTemplate(pinMappingHeaderFile);
    }
 
 }

@@ -51,17 +51,21 @@ public class SimValidate extends Validator {
       MAX_FLASH_CLOCK_FREQ    = (Long)it.next();
       MAX_FLEXBUS_CLOCK_FREQ  = (Long)it.next();
 
-      LongVariable system_core_clockVar = getLongVariable("system_core_clock");
-      system_core_clockVar.setMin(0);
-      system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
+      try {
+         LongVariable system_core_clockVar = getLongVariable("system_core_clock");
+         system_core_clockVar.setMin(0);
+         system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
 
-      LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
-      system_bus_clockVar.setMin(0);
-      system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
+         LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
+         system_bus_clockVar.setMin(0);
+         system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
 
-      LongVariable system_flash_clockVar = getLongVariable("system_flash_clock");
-      system_flash_clockVar.setMin(0);
-      system_flash_clockVar.setMax(MAX_FLASH_CLOCK_FREQ);
+         LongVariable system_flash_clockVar = getLongVariable("system_flash_clock");
+         system_flash_clockVar.setMin(0);
+         system_flash_clockVar.setMax(MAX_FLASH_CLOCK_FREQ);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
 
       LongVariable system_flexbus_clockVar = safeGetLongVariable("system_flexbus_clock");
       if (system_flexbus_clockVar != null) {
@@ -71,14 +75,15 @@ public class SimValidate extends Validator {
    }
 
    private static interface LpClockSelector {
-      public void lpClockSelect(String sourceVar, String clockVar);
+      public void lpClockSelect(String sourceVar, String clockVar) throws Exception;
    }
    
    /**
     * Class to determine oscillator settings
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);
@@ -134,7 +139,7 @@ public class SimValidate extends Validator {
        */
       LpClockSelector clockSelector = new LpClockSelector() {
          @Override
-         public void lpClockSelect(String sourceVar, String clockVarId) {
+         public void lpClockSelect(String sourceVar, String clockVarId) throws Exception {
             
             // Clock source select (if present)
             //===================================

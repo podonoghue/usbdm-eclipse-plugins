@@ -29,9 +29,10 @@ public class RtcSharedOscValidate extends Validator {
     * Class to determine RTC oscillator settings
     * 
     * Outputs rtcclk_clock, rtcclk_gated_clock, 
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
       
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

@@ -13,7 +13,7 @@ public abstract class Validator {
       fPeripheral = peripheral;
    }
 
-   protected abstract void validate(Variable variable);
+   protected abstract void validate(Variable variable) throws Exception;
 
    protected String getSimpleClassName() {
       String s = getClass().toString();
@@ -51,7 +51,12 @@ public abstract class Validator {
       busy = true;
       do {
          recursed = false;
-         validate(variable);
+         try {
+            validate(variable);
+         } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+         }
 //         System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iterating " + iterationCount);
          if (iterationCount++>MAX_ITERATION) {
             System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iteration limit reached");
@@ -69,8 +74,9 @@ public abstract class Validator {
     * @param key  Key to lookup variable
     * 
     * @return Variable found
+    * @throws Exception 
     */
-   BooleanVariable getBooleanVariable(String key) {
+   BooleanVariable getBooleanVariable(String key) throws Exception {
       Variable variable = fPeripheral.getVariable(key);
       if (!(variable instanceof BooleanVariable)) {
          throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
@@ -102,8 +108,9 @@ public abstract class Validator {
     * @param key  Key to lookup variable
     * 
     * @return
+    * @throws Exception 
     */
-   LongVariable getLongVariable(String key) {
+   LongVariable getLongVariable(String key) throws Exception {
       Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
       if (!(variable instanceof LongVariable)) {
          throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
@@ -151,8 +158,9 @@ public abstract class Validator {
     * @param key  Key to lookup variable
     * 
     * @return
+    * @throws Exception 
     */
-   Variable getVariable(String key) {
+   Variable getVariable(String key) throws Exception {
       return fPeripheral.getVariable(fPeripheral.makeKey(key));
    }
 

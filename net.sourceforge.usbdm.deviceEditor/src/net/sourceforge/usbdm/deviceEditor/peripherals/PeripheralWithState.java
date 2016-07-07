@@ -123,6 +123,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoConstants(pinMappingHeaderFile);
+      writeInfoTemplate(pinMappingHeaderFile);
+   }
+
+   public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
       pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
       CodeTemplate template = fData.fTemplate.get("");
       if (template != null) {
@@ -139,7 +143,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 //         }
       }
    }
-
+   
    /**
     * @param project
     * @param monitor
@@ -209,13 +213,21 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    @Override
-   public String getVariableValue(String key) {
-      return fDeviceInfo.getVariableValue(key);
+   public String getVariableValue(String key) throws Exception {
+      try {
+         return fDeviceInfo.getVariableValue(key);
+      } catch (Exception e) {
+         throw new Exception("Variable error in peripheral "+getName(), e);
+      }
    }
 
    @Override
-   public Variable getVariable(String key) {
-      return fDeviceInfo.getVariable(key);
+   public Variable getVariable(String key) throws Exception {
+      try {
+         return fDeviceInfo.getVariable(key);
+      } catch (Exception e) {
+         throw new Exception("Variable error in peripheral "+getName(), e);
+      }
    }
 
    @Override

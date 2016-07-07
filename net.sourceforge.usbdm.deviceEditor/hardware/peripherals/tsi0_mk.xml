@@ -185,6 +185,8 @@
          source="Project_Headers/tsi.h" target="Project_Headers/tsi.h" replace="true" derived="true" />
    </projectActionList>
 
+   <xi:include href="_irqOption.xml"/>
+
    <pins />
 
 </devicePage>

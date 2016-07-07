@@ -1756,7 +1756,7 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if variable doesn't exist
     */
-   public String getVariableValue(String key) {
+   public String getVariableValue(String key) throws Exception {
       return getVariable(key).getValueAsString();
    }
 
@@ -1767,10 +1767,10 @@ public class DeviceInfo extends ObservableModel {
     * 
     * @throws Exception if variable doesn't exist
     */
-   public Variable getVariable(String key) {
+   public Variable getVariable(String key) throws Exception {
       Variable variable = fVariables.get(key);
       if (variable == null) {
-         throw new RuntimeException("Variable does not exist for key \'"+key+"\'");
+         throw new Exception("Variable does not exist for key \'"+key+"\'");
       }
       return variable;
    }

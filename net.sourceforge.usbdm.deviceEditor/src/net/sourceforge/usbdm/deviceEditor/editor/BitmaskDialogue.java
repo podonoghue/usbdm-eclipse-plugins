@@ -57,10 +57,14 @@ public class BitmaskDialogue extends Dialog {
       Composite container = (Composite) super.createDialogArea(parent);
       int width = 8;
       if (fBitNames != null) {
-         width = Integer.min(width, fBitNames.length);            
+         if (fBitNames.length<width) {
+            width = fBitNames.length;
+         }
       }
       else {
-         width = Integer.min(width, fButtons.length);            
+         if (fButtons.length<width) {
+            width = fButtons.length;
+         }
       }
       GridLayout gl = new GridLayout(width, true);
       gl.marginLeft = 10;
@@ -85,6 +89,9 @@ public class BitmaskDialogue extends Dialog {
                // If names are given only create required buttons
                if ((fBitmask & mask) != 0) {
                   Button btn = new Button(container, SWT.CHECK);
+                  if (bitNameIndex >= fBitNames.length) {
+                     throw new RuntimeException("Insufficient bit names in list");
+                  }
                   btn.setText(fBitNames[bitNameIndex++]);
                   btn.setSelection((fValue & mask) != 0);
                   fButtons[i] = btn;
@@ -167,7 +174,7 @@ public class BitmaskDialogue extends Dialog {
       
       long selection = 0xC2;
       while(true) {
-         BitmaskDialogue editor = new BitmaskDialogue(shell, 0xC2, selection);
+         BitmaskDialogue editor = new BitmaskDialogue(shell, 0xCC2, selection);
 //         editor.setElementName("pin%d");
          editor.setBitNameList("This is #1,This is #6,This is #7");
          if  (editor.open() != OK) {

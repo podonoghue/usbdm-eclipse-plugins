@@ -160,10 +160,7 @@ public:
 
    // Template:rtc_war_rar_tsie
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -248,10 +245,7 @@ public:
 
    // Template:mcg_mk
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -515,10 +509,7 @@ public:
 
    // Template:adc0_diff_a
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -694,15 +685,6 @@ public:
 
    // Template:cmp0
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
-   static constexpr bool irqHandlerInstalled = false;
-
-   //! Default IRQ level
-   static constexpr uint32_t irqLevel =  0;
-
    //! CMP Control Register 0
    static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
@@ -720,12 +702,31 @@ public:
       CMP_CR1_PMODE(0) | // Power mode Select
       CMP_CR1_INV(0)   | // Comparator Invert
       CMP_CR1_COS(0)   | // Comparator Output Select
-      CMP_CR1_OPE(0)   | // Comparator Output Pin Enable
-      CMP_CR1_EN(0);     // Comparator Module Enable
-
+      CMP_CR1_OPE(0);    // Comparator Output Pin Enable
    //! CMP Filter Period Register
    static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
+
+   //! CMP Status and Control Register
+   static constexpr uint32_t scr =
+      CMP_SCR_DMAEN(0) | // DMA Enable Control
+      CMP_SCR_IER(0) | // Comparator Interrupt Enable Rising
+      CMP_SCR_IEF(0);  // Comparator Interrupt Enable Falling
+
+   //! CMP Status and Control Register
+   static constexpr uint32_t daccr =
+      CMP_DACCR_VRSEL(0); // Supply Voltage Reference Source Select
+
+   //! MUX Control Register
+   static constexpr uint32_t muxcr =
+      CMP_MUXCR_PSEL(6)| // Plus Input Mux Control
+      CMP_MUXCR_MSEL(0); // Minus Input Mux Control
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 9;
@@ -785,15 +786,6 @@ public:
 
    // Template:cmp0
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
-   static constexpr bool irqHandlerInstalled = false;
-
-   //! Default IRQ level
-   static constexpr uint32_t irqLevel =  0;
-
    //! CMP Control Register 0
    static constexpr uint32_t cr0 =
       CMP_CR0_FILTER_CNT(0)     | // Filter Sample Count
@@ -811,12 +803,31 @@ public:
       CMP_CR1_PMODE(0) | // Power mode Select
       CMP_CR1_INV(0)   | // Comparator Invert
       CMP_CR1_COS(0)   | // Comparator Output Select
-      CMP_CR1_OPE(0)   | // Comparator Output Pin Enable
-      CMP_CR1_EN(0);     // Comparator Module Enable
-
+      CMP_CR1_OPE(0);    // Comparator Output Pin Enable
    //! CMP Filter Period Register
    static constexpr uint32_t fpr =
       CMP_FPR_FILT_PER(0); // Filter Sample Period
+
+   //! CMP Status and Control Register
+   static constexpr uint32_t scr =
+      CMP_SCR_DMAEN(0) | // DMA Enable Control
+      CMP_SCR_IER(1) | // Comparator Interrupt Enable Rising
+      CMP_SCR_IEF(1);  // Comparator Interrupt Enable Falling
+
+   //! CMP Status and Control Register
+   static constexpr uint32_t daccr =
+      CMP_DACCR_VRSEL(0); // Supply Voltage Reference Source Select
+
+   //! MUX Control Register
+   static constexpr uint32_t muxcr =
+      CMP_MUXCR_PSEL(0)| // Plus Input Mux Control
+      CMP_MUXCR_MSEL(0); // Minus Input Mux Control
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 9;
@@ -1271,10 +1282,7 @@ public:
        FTM_SC_TOIE(0)|  // Timer Overflow Interrupt Enable
        FTM_SC_PS(7);    // Prescale Factor Selection 
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -1417,10 +1425,7 @@ public:
        FTM_SC_TOIE(0)|  // Timer Overflow Interrupt Enable
        FTM_SC_PS(7);    // Prescale Factor Selection 
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -1578,6 +1583,25 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PORTA_IRQn};
 
+   // Template:gpioa_0x400ff000
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   //! Interrupt Configuration
+   static constexpr uint32_t port_pcr = 
+      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
+      PORT_PCR_LK(0) |    \\ Lock Register
+      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
+      PORT_PCR_ODE(0) |   \\ Open Drain Enable
+      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
+      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
+      PORT_PCR_PE(0>>1) | \\ Pull Enable
+      PORT_PCR_PS(0);     \\ Pull direction
+
 };
 
 #define USBDM_GPIOB_IS_DEFINED 
@@ -1606,6 +1630,25 @@ public:
 
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PORTB_IRQn};
+
+   // Template:gpioa_0x400ff000
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   //! Interrupt Configuration
+   static constexpr uint32_t port_pcr = 
+      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
+      PORT_PCR_LK(0) |    \\ Lock Register
+      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
+      PORT_PCR_ODE(0) |   \\ Open Drain Enable
+      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
+      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
+      PORT_PCR_PE(0>>1) | \\ Pull Enable
+      PORT_PCR_PS(0);     \\ Pull direction
 
 };
 
@@ -1636,6 +1679,25 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PORTC_IRQn};
 
+   // Template:gpioa_0x400ff000
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   //! Interrupt Configuration
+   static constexpr uint32_t port_pcr = 
+      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
+      PORT_PCR_LK(0) |    \\ Lock Register
+      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
+      PORT_PCR_ODE(0) |   \\ Open Drain Enable
+      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
+      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
+      PORT_PCR_PE(0>>1) | \\ Pull Enable
+      PORT_PCR_PS(0);     \\ Pull direction
+
 };
 
 #define USBDM_GPIOD_IS_DEFINED 
@@ -1665,6 +1727,25 @@ public:
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PORTD_IRQn};
 
+   // Template:gpioa_0x400ff000
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   //! Interrupt Configuration
+   static constexpr uint32_t port_pcr = 
+      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
+      PORT_PCR_LK(0) |    \\ Lock Register
+      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
+      PORT_PCR_ODE(0) |   \\ Open Drain Enable
+      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
+      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
+      PORT_PCR_PE(0>>1) | \\ Pull Enable
+      PORT_PCR_PS(0);     \\ Pull direction
+
 };
 
 #define USBDM_GPIOE_IS_DEFINED 
@@ -1693,6 +1774,25 @@ public:
 
    //! IRQ numbers for hardware
    static constexpr IRQn_Type irqNums[]  = {PORTE_IRQn};
+
+   // Template:gpioa_0x400ff000
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = true;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
+
+   //! Interrupt Configuration
+   static constexpr uint32_t port_pcr = 
+      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
+      PORT_PCR_LK(0) |    \\ Lock Register
+      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
+      PORT_PCR_ODE(0) |   \\ Open Drain Enable
+      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
+      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
+      PORT_PCR_PE(0>>1) | \\ Pull Enable
+      PORT_PCR_PS(0);     \\ Pull direction
 
 };
 
@@ -1731,10 +1831,7 @@ public:
 
    // Template:i2c0_mk10d5
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -1867,10 +1964,7 @@ public:
 
    // Template:llwu_pe3_filt2_rst
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2007,16 +2101,13 @@ public:
 
    //! Default CSR value
    static constexpr uint32_t csr = 
-      LPTMR_CSR_TIE(false)|
+      LPTMR_CSR_TIE(0)|
       LPTMR_CSR_TMS(0)|
       LPTMR_CSR_TFC(0)|
       LPTMR_CSR_TPP(0)|
       LPTMR_CSR_TPS(0);
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2127,47 +2218,48 @@ public:
 
    // Template:pdb0_1ch_2trig_0dac_2po
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
    static constexpr uint32_t pdb_sc = 
-      PDB_PDB_MULT(0) |      // Multiplication Factor Select for Prescaler
-      PDB_PDB_PDBIE(0) |     // PDB Interrupt Enable
-      PDB_PDB_TRGSEL(0) |    // Trigger Input Source Select
-      PDB_PDB_PRESCALER(0) | // Prescaler Divider Select
-      PDB_PDB_DMAEN(0) |     // DMA Enable
-      PDB_PDB_PDBEIE(0) |    // PDB Sequence Error Interrupt Enable
-      PDB_PDB_LDMOD(0);      // Load Mode Select
+      PDB_SC_MULT(0) |      // Multiplication Factor Select for Prescaler
+      PDB_SC_PDBIE(0) |     // PDB Interrupt Enable
+      PDB_SC_TRGSEL(0) |    // Trigger Input Source Select
+      PDB_SC_PRESCALER(0) | // Prescaler Divider Select
+      PDB_SC_DMAEN(0) |     // DMA Enable
+      PDB_SC_PDBEIE(0) |    // PDB Sequence Error Interrupt Enable
+      PDB_SC_LDMOD(0);      // Load Mode Select
 
    static constexpr uint32_t pdb_mod = 
-      PDB_MOD_MOD(4000000);  // PDB Modulus
+      PDB_MOD_MOD(30000);  // PDB Modulus
 
    static constexpr uint32_t pdb_idly = 
-      PDB_IDLY_IDLY(4000000);  // PDB Modulus
+      PDB_IDLY_IDLY(10000);  // PDB Modulus
 
-   static constexpr uint32_t pdb_chc1 = 
-      PDB_CHC1_BB(0) |   // Channel Pre-Trigger Back-to-Back Operation Enable
-      PDB_CHC1_TOS(0) |  // Channel Pre-Trigger Output Select
-      PDB_CHC1_EN(0);    // Channel Pre-Trigger Enable
+   static constexpr uint32_t pdb_ch0_c1 = // Channel[0] Control Register 1
+      PDB_C1_BB(3) |   // Channel Pre-Trigger Back-to-Back Operation Enable
+      PDB_C1_TOS(3) |  // Channel Pre-Trigger Output Select
+      PDB_C1_EN(3);    // Channel Pre-Trigger Enable
 
-   static constexpr uint32_t pdb_chdly0 = 
-      PDB_CHDLY0_DLY(65535);  // PDB Modulus
+   static constexpr uint32_t pdb_ch0_dly0 = 
+      PDB_DLY_DLY(0);  // Channel[0] pre-trigger delay 0
 
-   static constexpr uint32_t pdb_chdly1 = 
-      PDB_CHDLY1_DLY(65535);  // PDB Modulus
+   static constexpr uint32_t pdb_ch0_dly1 = 
+      PDB_DLY_DLY(0);  // Channel[0] pre-trigger delay 1
 
    static constexpr uint32_t pdb_poen = 
-      PDB_POEN_POEN(0);   // PDB Pulse-Out Enable
+      PDB_POEN_POEN(3);   // PDB Pulse-Out Enable
 
-   static constexpr uint32_t pdb_chc1 = 
-      PDB_PODLY_DLY1(4000000) |  // PDB Pulse-Out Delay 1
-      PDB_PODLY_DLY1(4000000);   // PDB Pulse-Out Delay 2
+   static constexpr uint32_t pdb_po0_dly =   // PDB Pulse Output[0] Delays
+      PDB_PODLY_DLY1(0) |  // Delay 1
+      PDB_PODLY_DLY2(0);   // Delay 2
+
+   static constexpr uint32_t pdb_po1_dly =   // PDB Pulse Output[1] Delays
+      PDB_PODLY_DLY1(0) |  // Delay 1
+      PDB_PODLY_DLY2(0);   // Delay 2
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 1;
@@ -2225,10 +2317,7 @@ public:
 
    // Template:pit_4ch
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2373,10 +2462,7 @@ public:
 
    // Template:spi0_mk_pcsis6
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2489,12 +2575,18 @@ public:
       TSI_SCANC_REFCHRG((16/2)-1);    // Reference Oscillator Charge Current select
 
    static constexpr uint32_t tsi_pen = \
-      (6144) |    // Pins enable pin as TSI inputs
+      (35472) |    // Pins enable pin as TSI inputs
       TSI_PEN_LPSP(5);    // Low Power Scan Pin
 
    static constexpr uint32_t tsi_threshold = \
       TSI_THRESHOLD_LTHH(4096) |   // Low Power Channel Low Threshold value
       TSI_THRESHOLD_HTHH(12288);    // Low Power Channel High Threshold value
+
+   //! Callback handler has been installed in vector table
+   static constexpr bool irqHandlerInstalled = false;
+
+   //! Default IRQ level
+   static constexpr uint32_t irqLevel =  0;
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 16;
@@ -2578,10 +2670,7 @@ public:
 
    // Template:uart0_mk10d10_c7816_cea709
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2660,10 +2749,7 @@ public:
 
    // Template:uart1_mk10d5
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2735,10 +2821,7 @@ public:
 
    // Template:uart1_mk10d5
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2819,10 +2902,7 @@ public:
 
    // Template:usb0_otg_c
 
-   //! Install Callback handler
-   static constexpr bool irqEnabled = false;
-
-   //! Install Callback handler
+   //! Callback handler has been installed in vector table
    static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
@@ -2915,6 +2995,16 @@ public:
    static constexpr uint32_t irqCount  = 0;
 
    // Template:vref_c
+
+   static constexpr uint8_t vref_trm = 
+       VREF_TRM_CHOPEN(0) | // Chop oscillator enable
+       VREF_TRM_TRIM(32);   // Trim bits 
+
+   static constexpr uint8_t vref_sc = 
+       VREF_SC_VREFEN(0) |   // Internal Voltage Reference enable
+       VREF_SC_REGEN(0) |    // Regulator enable
+       VREF_SC_ICOMPEN(0) |  // Second order curvature compensation enable
+       VREF_SC_MODE_LV(0);   // Buffer Mode selection 
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 1;

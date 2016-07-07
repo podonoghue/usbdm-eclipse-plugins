@@ -37,9 +37,10 @@ public class RtcValidate extends Validator {
     * Class to determine RTC oscillator settings
     * 
     * Outputs rtcclk_clock, rtcclk_gated_clock, 
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
       
       // OSC
       //=================================
@@ -52,7 +53,7 @@ public class RtcValidate extends Validator {
       Variable     rtc_cr_umVar                    =  getVariable("rtc_cr_um");
       Variable     rtc_cr_supVar                   =  getVariable("rtc_cr_sup");
       Variable     rtc_cr_wpeVar                   =  getVariable("rtc_cr_wpe");
-      Variable     rtc_irqHandlerVar               =  getVariable("irqHandler");
+      Variable     rtc_irqHandlerVar               =  getVariable("irqHandlerInstalled");
       Variable     rtc_irqLevelVar                 =  getVariable("irqLevel");
 
 //      Variable     sim_sopt1_osc32kselVar          =  getVariable("sim_sopt1_osc32ksel");

@@ -26,9 +26,10 @@ public class TpmValidate extends Validator {
 
    /**
     * Class to determine LPTMR settings
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
       
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

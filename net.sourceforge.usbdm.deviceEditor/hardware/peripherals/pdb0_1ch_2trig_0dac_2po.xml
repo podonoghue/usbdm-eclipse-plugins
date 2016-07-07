@@ -137,8 +137,10 @@ Devices using this peripheral:
       bitList="ADC1SC1B_COCO,ADC0SC1A_COCO" />
 
    <bitmaskOption name="pdb_ch0_c1_tos" 
-      description="Channel 0 Pre-Trigger Output Select" 
-      toolTip="These bits select the PDB ADC pre-trigger outputs"
+      description="Channel 0 Pre-Trigger Delay Enable" 
+      toolTip="These bits enable the PDB ADC pre-trigger delay\n
+         If disabled, the pre-trigger asserts 1-clock-cycle after trigger\n
+         If enabled, the pre-trigger is further delayed until the count reaches the channel delay register value"
       value="0"
       bitmask="0x3" 
       bitList="ADC1SC1B_COCO,ADC0SC1A_COCO" />
@@ -210,6 +212,23 @@ Devices using this peripheral:
    \t   PDB_PODLY_DLY2($(pdb_po0_dly_dly2));   // Delay 2\n\n
    ]]></template>
 
+   <intOption name="pdb_po1_dly_dly1" 
+      description="PDB Pulse-Out 1 Delay 1" 
+      toolTip="These bits specify the delay 1 value for the PDB Pulse-Out.\n
+         Pulse-Out goes high when the PDB counter is equal to the DLY1"
+      value="0" min="0" max="65535" />
+
+   <intOption name="pdb_po1_dly_dly2" 
+      description="PDB Pulse-Out 1 Delay 2" 
+      toolTip="These bits specify the delay 2 value for the PDB Pulse-Out.\n
+         Pulse-Out goes low when the PDB counter is equal to the DLY2"
+      value="0" min="0" max="65535" />
+
+   <template><![CDATA[
+   \tstatic constexpr uint32_t pdb_po1_dly =   // PDB Pulse Output[1] Delays
+   \t   PDB_PODLY_DLY1($(pdb_po1_dly_dly1)) |  // Delay 1
+   \t   PDB_PODLY_DLY2($(pdb_po1_dly_dly2));   // Delay 2\n\n
+   ]]></template>
 
    <pins/>
 </devicePage>

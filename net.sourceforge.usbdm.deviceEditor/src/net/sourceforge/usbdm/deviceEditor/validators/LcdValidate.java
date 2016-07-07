@@ -28,9 +28,10 @@ public class LcdValidate extends Validator {
 
    /**
     * Class to validate LCD settings
+    * @throws Exception 
     */
    @Override
-   public void validate(Variable variable) {
+   public void validate(Variable variable) throws Exception {
       
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);
