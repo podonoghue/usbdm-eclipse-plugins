@@ -8,9 +8,6 @@ import org.eclipse.jface.viewers.TreeViewer;
  */
 public class TreeViewModel extends BaseModel {
 
-   /** Labels for view columns */
-   private final String[] fColumnLabels;
-   
    /** Viewer associated with this model */
    private TreeViewer fViewer = null;
    
@@ -20,22 +17,11 @@ public class TreeViewModel extends BaseModel {
     * @param title         Title
     * @param toolTip       Tool tip
     */
-   public TreeViewModel(BaseModel parent, String title, String toolTip, String[] columnLabels) {
+   public TreeViewModel(BaseModel parent, String title, String toolTip) {
       super(parent, title, "");
       super.setToolTip(toolTip);
-      
-      fColumnLabels  = columnLabels;
    }
 
-   /**
-    * Get array of titles to use on editor
-    * 
-    * @return
-    */
-   public String[] getColumnLabels() {
-      return fColumnLabels;
-   }
-   
    /**
     * Sets the viewer of this model
     * 

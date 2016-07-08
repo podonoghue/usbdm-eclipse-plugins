@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -62,7 +63,17 @@ public class TabbedEditor implements IEditor {
          tabItem.setText(pageModel.getName());
          tabItem.setToolTipText(pageModel.getToolTip()); 
          if (pageModel instanceof TreeViewModel) {
-            TreeEditor treeEditor = new TreeEditor();
+            TreeEditor treeEditor = new TreeEditor() {
+               @Override
+               protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
+                  final TreeColumnInformation[] fColumnInformation = {
+                        new TreeColumnInformation("Parameter",   350, new NameColumnLabelProvider(),        null),
+                        new TreeColumnInformation("Value",       450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Description", 500, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                  };
+                  return fColumnInformation;
+               }
+            };
             tabItem.setControl(treeEditor.createControl(fTabFolder));
             treeEditor.setModel((TreeViewModel) pageModel);
          }
@@ -74,11 +85,6 @@ public class TabbedEditor implements IEditor {
          else {
             System.err.println("other");
          }
-//         else {
-//            TreeViewModel rootModel = new TreeViewModel(PeripheralParametersModel.getColumnLabels(), pageModel.getName(), pageModel.getToolTip());
-//            rootModel.addChild(pageModel);
-//            treeEditor.setModel(rootModel);
-//         }
       }
       fTabFolder.setSelection(0);
    }

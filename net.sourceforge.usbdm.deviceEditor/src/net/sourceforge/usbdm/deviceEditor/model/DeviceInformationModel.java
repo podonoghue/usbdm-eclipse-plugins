@@ -1,13 +1,21 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 
 /**
  * Model describing the Device
  */
 public final class DeviceInformationModel extends TreeViewModel implements IPage {
-
-   static final private String[] PACKAGE_COLUMN_LABELS = {"Name", "Value", "Description"};
 
    /**
     * Constructor
@@ -17,7 +25,7 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
     * @param toolTip 
     */
    public DeviceInformationModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Project", "Project Settings", PACKAGE_COLUMN_LABELS);
+      super(parent, "Project", "Project Settings");
 
       new ConstantModel(this, "Device", "", deviceInfo.getDeviceName());
       new ConstantModel(this, "Hardware File", "", deviceInfo.getSourceFilename());
@@ -27,7 +35,25 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
 
    @Override
    public IEditorPage createEditorPage() {
-      return new TreeEditorPage();
+      return new TreeEditorPage() {
+         @Override
+         public Control createComposite(Composite parent) {
+            if (getEditor() == null) {
+               setEditor(new TreeEditor() {
+                  @Override
+                  protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
+                     final TreeColumnInformation[] fColumnInformation = {
+                           new TreeColumnInformation("Property Name", 350, new NameColumnLabelProvider(),        null),
+                           new TreeColumnInformation("Value",         450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Description",   500, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                     };
+                     return fColumnInformation;
+                  }
+               });
+            }
+            return getEditor().createControl(parent);
+         }
+      };
    }
 
    @Override

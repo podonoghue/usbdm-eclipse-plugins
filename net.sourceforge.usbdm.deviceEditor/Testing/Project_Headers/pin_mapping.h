@@ -65,7 +65,7 @@ public:
    static constexpr uint32_t cr =
       OSC_CR_ERCLKEN(1)  | // External Reference Enable
       OSC_CR_EREFSTEN(0) | // External Reference Stop Enable
-      OSC_CR_SCP(2);       // Oscillator load capacitance
+      OSC_CR_SCP(4);       // Oscillator load capacitance
 
    /**
     * Get OSC clock (internal, assumed available)
@@ -176,7 +176,7 @@ public:
       RTC_CR_UM(0)   | // Update Mode
       RTC_CR_SUP(0)  | // Supervisor access
       RTC_CR_WPE(0)  | // Wakeup Pin Enable
-      RTC_CR_SCP(2);   // RTC Oscillator load capacitance
+      RTC_CR_SCP(4);   // RTC Oscillator load capacitance
 
    /**
     * Get RTC clock (internal, not masked by RTC_CR_CLKO)
@@ -1591,17 +1591,6 @@ public:
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Interrupt Configuration
-   static constexpr uint32_t port_pcr = 
-      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
-      PORT_PCR_LK(0) |    \\ Lock Register
-      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
-      PORT_PCR_ODE(0) |   \\ Open Drain Enable
-      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
-      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
-      PORT_PCR_PE(0>>1) | \\ Pull Enable
-      PORT_PCR_PS(0);     \\ Pull direction
-
 };
 
 #define USBDM_GPIOB_IS_DEFINED 
@@ -1638,17 +1627,6 @@ public:
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
-
-   //! Interrupt Configuration
-   static constexpr uint32_t port_pcr = 
-      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
-      PORT_PCR_LK(0) |    \\ Lock Register
-      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
-      PORT_PCR_ODE(0) |   \\ Open Drain Enable
-      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
-      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
-      PORT_PCR_PE(0>>1) | \\ Pull Enable
-      PORT_PCR_PS(0);     \\ Pull direction
 
 };
 
@@ -1687,17 +1665,6 @@ public:
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Interrupt Configuration
-   static constexpr uint32_t port_pcr = 
-      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
-      PORT_PCR_LK(0) |    \\ Lock Register
-      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
-      PORT_PCR_ODE(0) |   \\ Open Drain Enable
-      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
-      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
-      PORT_PCR_PE(0>>1) | \\ Pull Enable
-      PORT_PCR_PS(0);     \\ Pull direction
-
 };
 
 #define USBDM_GPIOD_IS_DEFINED 
@@ -1735,17 +1702,6 @@ public:
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
 
-   //! Interrupt Configuration
-   static constexpr uint32_t port_pcr = 
-      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
-      PORT_PCR_LK(0) |    \\ Lock Register
-      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
-      PORT_PCR_ODE(0) |   \\ Open Drain Enable
-      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
-      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
-      PORT_PCR_PE(0>>1) | \\ Pull Enable
-      PORT_PCR_PS(0);     \\ Pull direction
-
 };
 
 #define USBDM_GPIOE_IS_DEFINED 
@@ -1778,21 +1734,10 @@ public:
    // Template:gpioa_0x400ff000
 
    //! Callback handler has been installed in vector table
-   static constexpr bool irqHandlerInstalled = true;
+   static constexpr bool irqHandlerInstalled = false;
 
    //! Default IRQ level
    static constexpr uint32_t irqLevel =  0;
-
-   //! Interrupt Configuration
-   static constexpr uint32_t port_pcr = 
-      PORT_PCR_IRQC(0) |  \\ Interrupt Configuration
-      PORT_PCR_LK(0) |    \\ Lock Register
-      PORT_PCR_DSE(0) |   \\ Drive Strength Enable
-      PORT_PCR_ODE(0) |   \\ Open Drain Enable
-      PORT_PCR_PFE(0) |   \\ Passive Filter Enable
-      PORT_PCR_SRE(0) |   \\ Slew Rate Enable
-      PORT_PCR_PE(0>>1) | \\ Pull Enable
-      PORT_PCR_PS(0);     \\ Pull direction
 
 };
 
@@ -2482,7 +2427,7 @@ public:
 
    //! Default speed (Hz)
    static constexpr uint32_t speed = 
-      100000;
+      10000000;
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 8;
@@ -2575,7 +2520,7 @@ public:
       TSI_SCANC_REFCHRG((16/2)-1);    // Reference Oscillator Charge Current select
 
    static constexpr uint32_t tsi_pen = \
-      (35472) |    // Pins enable pin as TSI inputs
+      (24584) |    // Pins enable pin as TSI inputs
       TSI_PEN_LPSP(5);    // Low Power Scan Pin
 
    static constexpr uint32_t tsi_threshold = \
@@ -2678,7 +2623,7 @@ public:
 
    static constexpr bool statusNeedsWrite = false;
 
-   static constexpr uint32_t defaultBaudRate = 19200;
+   static constexpr uint32_t defaultBaudRate = 115200;
 
    /**
     * Get input clock frequency
@@ -2757,7 +2702,7 @@ public:
 
    static constexpr bool statusNeedsWrite = false;
 
-   static constexpr uint32_t defaultBaudRate = 19200;
+   static constexpr uint32_t defaultBaudRate = 115200;
 
    /**
     * Get input clock frequency
@@ -2829,7 +2774,7 @@ public:
 
    static constexpr bool statusNeedsWrite = false;
 
-   static constexpr uint32_t defaultBaudRate = 19200;
+   static constexpr uint32_t defaultBaudRate = 115200;
 
    /**
     * Get input clock frequency
@@ -2997,14 +2942,14 @@ public:
    // Template:vref_c
 
    static constexpr uint8_t vref_trm = 
-       VREF_TRM_CHOPEN(0) | // Chop oscillator enable
+       VREF_TRM_CHOPEN(1) | // Chop oscillator enable
        VREF_TRM_TRIM(32);   // Trim bits 
 
    static constexpr uint8_t vref_sc = 
-       VREF_SC_VREFEN(0) |   // Internal Voltage Reference enable
-       VREF_SC_REGEN(0) |    // Regulator enable
-       VREF_SC_ICOMPEN(0) |  // Second order curvature compensation enable
-       VREF_SC_MODE_LV(0);   // Buffer Mode selection 
+       VREF_SC_VREFEN(1) |   // Internal Voltage Reference enable
+       VREF_SC_REGEN(1) |    // Regulator enable
+       VREF_SC_ICOMPEN(1) |  // Second order curvature compensation enable
+       VREF_SC_MODE_LV(1);   // Buffer Mode selection 
 
    //! Number of signals available in info table
    static constexpr int numSignals  = 1;
@@ -3072,35 +3017,21 @@ using adc_A2               = const USBDM::Adc0Channel<7>;
  * @{
  */
 using gpio_D5              = const USBDM::GpioA<1>;
-using gpio_D9              = const USBDM::GpioA<2>;
-using gpio_LED_BLUE        = const USBDM::GpioA<2>;
 using gpio_D21             = const USBDM::GpioA<4>;
-using gpio_D2              = const USBDM::GpioA<5>;
-using gpio_D8              = const USBDM::GpioA<12>;
 using gpio_D24             = const USBDM::GpioA<13>;
 using gpio_A5              = const USBDM::GpioB<0>;
 using gpio_ACC_SCL         = const USBDM::GpioB<0>;
-using gpio_A4              = const USBDM::GpioB<1>;
-using gpio_ACC_SDA         = const USBDM::GpioB<1>;
-using gpio_D15             = const USBDM::GpioB<2>;
-using gpio_D14             = const USBDM::GpioB<3>;
-using gpio_D10             = const USBDM::GpioC<2>;
 using gpio_D6              = const USBDM::GpioC<3>;
 using gpio_LED_RED         = const USBDM::GpioC<3>;
 using gpio_D7              = const USBDM::GpioC<4>;
 using gpio_D18             = const USBDM::GpioC<5>;
 using gpio_D19             = const USBDM::GpioC<6>;
 using gpio_ACC_INT2        = const USBDM::GpioC<6>;
-using gpio_D20             = const USBDM::GpioC<7>;
-using gpio_D4              = const USBDM::GpioC<8>;
-using gpio_D23             = const USBDM::GpioC<9>;
-using gpio_D25             = const USBDM::GpioC<10>;
 using gpio_D17             = const USBDM::GpioC<11>;
 using gpio_ACC_INT1        = const USBDM::GpioC<11>;
 using gpio_D16             = const USBDM::GpioD<0>;
 using gpio_D3              = const USBDM::GpioD<4>;
 using gpio_LED_GREEN       = const USBDM::GpioD<4>;
-using gpio_D1              = const USBDM::GpioE<0>;
 using gpio_D0              = const USBDM::GpioE<1>;
 /** 
  * End GPIO_Group
@@ -3129,47 +3060,47 @@ extern void mapAllPins();
  *  EXTAL32                  | EXTAL32                                     | EXTAL32                   | Reserved(EXTAL32)       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           | SWD_CLK                   | Reserved(SWD)       
  *  PTA1                     | GPIOA_1                                     | D5                        | -       
- *  PTA2                     | GPIOA_2                                     | D9/LED_BLUE               | Blue LED, LCD_cs*       
- *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | Reserved(SWD)       
+ *  PTA2                     | -                                           | D9/LED_BLUE               | -       
+ *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | -       
  *  PTA4                     | GPIOA_4/LLWU_P3                             | D21                       | -       
- *  PTA5                     | GPIOA_5                                     | D2                        | -       
- *  PTA12                    | GPIOA_12                                    | D8                        | LCD_Reset*       
+ *  PTA5                     | -                                           | D2                        | -       
+ *  PTA12                    | -                                           | D8                        | -       
  *  PTA13                    | GPIOA_13/LLWU_P4                            | D24                       | -       
- *  PTA18                    | EXTAL0                                      | EXTAL0                    | Reserved       
- *  PTA19                    | XTAL0                                       | XTAL0                     | Reserved       
- *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | Accelerometer       
- *  PTB1                     | GPIOB_1                                     | A4/ACC_SDA                | Accelerometer       
- *  PTB2                     | GPIOB_2                                     | D15                       | -       
- *  PTB3                     | GPIOB_3                                     | D14                       | -       
- *  PTB16                    | UART0_RX                                    | ConRx                     | USB_serial       
- *  PTB17                    | UART0_TX                                    | ConTx                     | USB_serial       
- *  PTB18                    | TSI0_CH11                                   | Touch1                    | Touch 1       
- *  PTB19                    | TSI0_CH12                                   | Touch2                    | Touch 2       
+ *  PTA18                    | EXTAL0                                      | EXTAL0                    | -       
+ *  PTA19                    | XTAL0                                       | XTAL0                     | -       
+ *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | -       
+ *  PTB1                     | -                                           | A4/ACC_SDA                | -       
+ *  PTB2                     | -                                           | D15                       | -       
+ *  PTB3                     | -                                           | D14                       | -       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
+ *  PTB18                    | TSI0_CH11                                   | Touch1                    | -       
+ *  PTB19                    | TSI0_CH12                                   | Touch2                    | -       
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | A0                        | -       
  *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
- *  PTC2                     | GPIOC_2                                     | D10                       | LCD_backlight       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | Red LED       
+ *  PTC2                     | -                                           | D10                       | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | -       
  *  PTC4                     | GPIOC_4/LLWU_P8                             | D7                        | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D18                       | -       
  *  PTC6                     | GPIOC_6/LLWU_P10                            | D19/ACC_INT2              | -       
- *  PTC7                     | GPIOC_7                                     | D20                       | -       
- *  PTC8                     | GPIOC_8                                     | D4                        | -       
- *  PTC9                     | GPIOC_9                                     | D23                       | -       
- *  PTC10                    | GPIOC_10                                    | D25                       | -       
+ *  PTC7                     | -                                           | D20                       | -       
+ *  PTC8                     | -                                           | D4                        | -       
+ *  PTC9                     | -                                           | D23                       | -       
+ *  PTC10                    | -                                           | D25                       | -       
  *  PTC11                    | GPIOC_11/LLWU_P11                           | D17/ACC_INT1              | -       
  *  PTD0                     | GPIOD_0/LLWU_P12                            | D16                       | -       
- *  PTD1                     | SPI0_SCK                                    | D13                       | LCD_sck       
- *  PTD2                     | SPI0_SOUT                                   | D11                       | LCD_sin       
+ *  PTD1                     | SPI0_SCK                                    | D13                       | -       
+ *  PTD2                     | SPI0_SOUT                                   | D11                       | -       
  *  PTD3                     | SPI0_SIN                                    | D12                       | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | Green LED       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | -       
  *  PTD5                     | ADC0_SE6b                                   | A3                        | -       
  *  PTD6                     | ADC0_SE7b                                   | A2                        | -       
  *  PTD7                     | -                                           | D22                       | -       
- *  PTE0                     | GPIOE_0                                     | D1                        | -       
+ *  PTE0                     | -                                           | D1                        | -       
  *  PTE1                     | GPIOE_1/LLWU_P0                             | D0                        | -       
- *  RESET_b                  | RESET_b                                     | RESET_b                   | Reserved(Reset*)       
- *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | Reserved(USB_DM)       
- *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | Reserved(USB_DP)       
+ *  RESET_b                  | RESET_b                                     | RESET_b                   | -       
+ *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | -       
+ *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | -       
  *  VBAT                     | VBAT                                        | VBAT                      | -       
  *  VDD1                     | VDD1                                        | VDD1                      | -       
  *  VDD2                     | VDD2                                        | VDD2                      | -       
@@ -3184,7 +3115,7 @@ extern void mapAllPins();
  *  VSS2                     | VSS2                                        | VSS2                      | -       
  *  VSS3                     | VSS3                                        | VSS3                      | -       
  *  VSSA                     | VSSA                                        | VSSA                      | -       
- *  XTAL32                   | XTAL32                                      | XTAL32                    | Reserved(XTAL32)       
+ *  XTAL32                   | XTAL32                                      | XTAL32                    | -       
  *
  *
  * @section PinsByLocation Pins by Location
@@ -3195,51 +3126,51 @@ extern void mapAllPins();
  *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
  *  PTD6                     | ADC0_SE7b                                   | A2                        | -       
  *  PTD5                     | ADC0_SE6b                                   | A3                        | -       
- *  PTB1                     | GPIOB_1                                     | A4/ACC_SDA                | Accelerometer       
- *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | Accelerometer       
+ *  PTB1                     | -                                           | A4/ACC_SDA                | -       
+ *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | -       
  *  VREF_OUT                 | VREF_OUT/CMP1_IN5/CMP0_IN5                  | A6                        | -       
  *  ADC0_SE23                | ADC0_SE23/CMP1_IN3                          | A7                        | -       
  *  ADC0_DP3                 | ADC0_DP3/ADC0_SE3                           | A8                        | -       
  *  ADC0_DM3                 | ADC0_DM3/ADC0_SE21                          | A9                        | Temperature sensor       
  *  ADC0_DP0                 | ADC0_DP0/ADC0_SE0                           | A10                       | -       
  *  ADC0_DM0                 | ADC0_DM0/ADC0_SE19                          | A11                       | Photo-transistor       
- *  PTB16                    | UART0_RX                                    | ConRx                     | USB_serial       
- *  PTB17                    | UART0_TX                                    | ConTx                     | USB_serial       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
  *  PTE1                     | GPIOE_1/LLWU_P0                             | D0                        | -       
- *  PTE0                     | GPIOE_0                                     | D1                        | -       
- *  PTA5                     | GPIOA_5                                     | D2                        | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | Green LED       
- *  PTC8                     | GPIOC_8                                     | D4                        | -       
+ *  PTE0                     | -                                           | D1                        | -       
+ *  PTA5                     | -                                           | D2                        | -       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | -       
+ *  PTC8                     | -                                           | D4                        | -       
  *  PTA1                     | GPIOA_1                                     | D5                        | -       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | Red LED       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | -       
  *  PTC4                     | GPIOC_4/LLWU_P8                             | D7                        | -       
- *  PTA12                    | GPIOA_12                                    | D8                        | LCD_Reset*       
- *  PTA2                     | GPIOA_2                                     | D9/LED_BLUE               | Blue LED, LCD_cs*       
- *  PTC2                     | GPIOC_2                                     | D10                       | LCD_backlight       
- *  PTD2                     | SPI0_SOUT                                   | D11                       | LCD_sin       
+ *  PTA12                    | -                                           | D8                        | -       
+ *  PTA2                     | -                                           | D9/LED_BLUE               | -       
+ *  PTC2                     | -                                           | D10                       | -       
+ *  PTD2                     | SPI0_SOUT                                   | D11                       | -       
  *  PTD3                     | SPI0_SIN                                    | D12                       | -       
- *  PTD1                     | SPI0_SCK                                    | D13                       | LCD_sck       
- *  PTB3                     | GPIOB_3                                     | D14                       | -       
- *  PTB2                     | GPIOB_2                                     | D15                       | -       
+ *  PTD1                     | SPI0_SCK                                    | D13                       | -       
+ *  PTB3                     | -                                           | D14                       | -       
+ *  PTB2                     | -                                           | D15                       | -       
  *  PTD0                     | GPIOD_0/LLWU_P12                            | D16                       | -       
  *  PTC11                    | GPIOC_11/LLWU_P11                           | D17/ACC_INT1              | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D18                       | -       
  *  PTC6                     | GPIOC_6/LLWU_P10                            | D19/ACC_INT2              | -       
- *  PTC7                     | GPIOC_7                                     | D20                       | -       
+ *  PTC7                     | -                                           | D20                       | -       
  *  PTA4                     | GPIOA_4/LLWU_P3                             | D21                       | -       
  *  PTD7                     | -                                           | D22                       | -       
- *  PTC9                     | GPIOC_9                                     | D23                       | -       
+ *  PTC9                     | -                                           | D23                       | -       
  *  PTA13                    | GPIOA_13/LLWU_P4                            | D24                       | -       
- *  PTC10                    | GPIOC_10                                    | D25                       | -       
- *  PTA18                    | EXTAL0                                      | EXTAL0                    | Reserved       
+ *  PTC10                    | -                                           | D25                       | -       
+ *  PTA18                    | EXTAL0                                      | EXTAL0                    | -       
  *  EXTAL32                  | EXTAL32                                     | EXTAL32                   | Reserved(EXTAL32)       
- *  RESET_b                  | RESET_b                                     | RESET_b                   | Reserved(Reset*)       
+ *  RESET_b                  | RESET_b                                     | RESET_b                   | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           | SWD_CLK                   | Reserved(SWD)       
- *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | Reserved(SWD)       
- *  PTB18                    | TSI0_CH11                                   | Touch1                    | Touch 1       
- *  PTB19                    | TSI0_CH12                                   | Touch2                    | Touch 2       
- *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | Reserved(USB_DM)       
- *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | Reserved(USB_DP)       
+ *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | -       
+ *  PTB18                    | TSI0_CH11                                   | Touch1                    | -       
+ *  PTB19                    | TSI0_CH12                                   | Touch2                    | -       
+ *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | -       
+ *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | -       
  *  VBAT                     | VBAT                                        | VBAT                      | -       
  *  VDD1                     | VDD1                                        | VDD1                      | -       
  *  VDD2                     | VDD2                                        | VDD2                      | -       
@@ -3253,15 +3184,15 @@ extern void mapAllPins();
  *  VSS2                     | VSS2                                        | VSS2                      | -       
  *  VSS3                     | VSS3                                        | VSS3                      | -       
  *  VSSA                     | VSSA                                        | VSSA                      | -       
- *  PTA19                    | XTAL0                                       | XTAL0                     | Reserved       
- *  XTAL32                   | XTAL32                                      | XTAL32                    | Reserved(XTAL32)       
+ *  PTA19                    | XTAL0                                       | XTAL0                     | -       
+ *  XTAL32                   | XTAL32                                      | XTAL32                    | -       
  *
  *
  * @section PinsByFunction Pins by Function
  *
  *    Pin Name               |   Functions                                 |  Location                 |  Description  
  *  ------------------------ | --------------------------------------------|---------------------------| ------------- 
- *  PTD7                     | -                                           | D22                       | -       
+ *  PTE0                     | -                                           | D1                        | -       
  *  ADC0_DM0                 | ADC0_DM0/ADC0_SE19                          | A11                       | Photo-transistor       
  *  ADC0_DM3                 | ADC0_DM3/ADC0_SE21                          | A9                        | Temperature sensor       
  *  ADC0_DP0                 | ADC0_DP0/ADC0_SE0                           | A10                       | -       
@@ -3271,44 +3202,32 @@ extern void mapAllPins();
  *  PTC0                     | ADC0_SE14/TSI0_CH13                         | A0                        | -       
  *  PTC1                     | ADC0_SE15/TSI0_CH14                         | A1                        | -       
  *  ADC0_SE23                | ADC0_SE23/CMP1_IN3                          | A7                        | -       
- *  PTA18                    | EXTAL0                                      | EXTAL0                    | Reserved       
+ *  PTA18                    | EXTAL0                                      | EXTAL0                    | -       
  *  EXTAL32                  | EXTAL32                                     | EXTAL32                   | Reserved(EXTAL32)       
  *  PTA1                     | GPIOA_1                                     | D5                        | -       
- *  PTA2                     | GPIOA_2                                     | D9/LED_BLUE               | Blue LED, LCD_cs*       
  *  PTA4                     | GPIOA_4/LLWU_P3                             | D21                       | -       
- *  PTA5                     | GPIOA_5                                     | D2                        | -       
- *  PTA12                    | GPIOA_12                                    | D8                        | LCD_Reset*       
  *  PTA13                    | GPIOA_13/LLWU_P4                            | D24                       | -       
- *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | Accelerometer       
- *  PTB1                     | GPIOB_1                                     | A4/ACC_SDA                | Accelerometer       
- *  PTB2                     | GPIOB_2                                     | D15                       | -       
- *  PTB3                     | GPIOB_3                                     | D14                       | -       
- *  PTC2                     | GPIOC_2                                     | D10                       | LCD_backlight       
- *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | Red LED       
+ *  PTB0                     | GPIOB_0/LLWU_P5                             | A5/ACC_SCL                | -       
+ *  PTC3                     | GPIOC_3/LLWU_P7                             | D6/LED_RED                | -       
  *  PTC4                     | GPIOC_4/LLWU_P8                             | D7                        | -       
  *  PTC5                     | GPIOC_5/LLWU_P9                             | D18                       | -       
  *  PTC6                     | GPIOC_6/LLWU_P10                            | D19/ACC_INT2              | -       
- *  PTC7                     | GPIOC_7                                     | D20                       | -       
- *  PTC8                     | GPIOC_8                                     | D4                        | -       
- *  PTC9                     | GPIOC_9                                     | D23                       | -       
- *  PTC10                    | GPIOC_10                                    | D25                       | -       
  *  PTC11                    | GPIOC_11/LLWU_P11                           | D17/ACC_INT1              | -       
  *  PTD0                     | GPIOD_0/LLWU_P12                            | D16                       | -       
- *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | Green LED       
- *  PTE0                     | GPIOE_0                                     | D1                        | -       
+ *  PTD4                     | GPIOD_4/LLWU_P14                            | D3/LED_GREEN              | -       
  *  PTE1                     | GPIOE_1/LLWU_P0                             | D0                        | -       
  *  PTA0                     | JTAG_TCLK/SWD_CLK                           | SWD_CLK                   | Reserved(SWD)       
- *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | Reserved(SWD)       
- *  RESET_b                  | RESET_b                                     | RESET_b                   | Reserved(Reset*)       
- *  PTD1                     | SPI0_SCK                                    | D13                       | LCD_sck       
+ *  PTA3                     | JTAG_TMS/SWD_DIO                            | SWD_DIO                   | -       
+ *  RESET_b                  | RESET_b                                     | RESET_b                   | -       
+ *  PTD1                     | SPI0_SCK                                    | D13                       | -       
  *  PTD3                     | SPI0_SIN                                    | D12                       | -       
- *  PTD2                     | SPI0_SOUT                                   | D11                       | LCD_sin       
- *  PTB18                    | TSI0_CH11                                   | Touch1                    | Touch 1       
- *  PTB19                    | TSI0_CH12                                   | Touch2                    | Touch 2       
- *  PTB16                    | UART0_RX                                    | ConRx                     | USB_serial       
- *  PTB17                    | UART0_TX                                    | ConTx                     | USB_serial       
- *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | Reserved(USB_DM)       
- *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | Reserved(USB_DP)       
+ *  PTD2                     | SPI0_SOUT                                   | D11                       | -       
+ *  PTB18                    | TSI0_CH11                                   | Touch1                    | -       
+ *  PTB19                    | TSI0_CH12                                   | Touch2                    | -       
+ *  PTB16                    | UART0_RX                                    | ConRx                     | -       
+ *  PTB17                    | UART0_TX                                    | ConTx                     | -       
+ *  USB0_DM                  | USB0_DM                                     | USB0_DM                   | -       
+ *  USB0_DP                  | USB0_DP                                     | USB0_DP                   | -       
  *  VBAT                     | VBAT                                        | VBAT                      | -       
  *  VDD1                     | VDD1                                        | VDD1                      | -       
  *  VDD2                     | VDD2                                        | VDD2                      | -       
@@ -3323,8 +3242,8 @@ extern void mapAllPins();
  *  VSS2                     | VSS2                                        | VSS2                      | -       
  *  VSS3                     | VSS3                                        | VSS3                      | -       
  *  VSSA                     | VSSA                                        | VSSA                      | -       
- *  PTA19                    | XTAL0                                       | XTAL0                     | Reserved       
- *  XTAL32                   | XTAL32                                      | XTAL32                    | Reserved(XTAL32)       
+ *  PTA19                    | XTAL0                                       | XTAL0                     | -       
+ *  XTAL32                   | XTAL32                                      | XTAL32                    | -       
  *
  */
 

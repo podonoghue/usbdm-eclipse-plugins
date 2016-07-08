@@ -2,6 +2,22 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinBooleanEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinInterruptDmaEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.PinPullEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -14,7 +30,6 @@ import net.sourceforge.usbdm.deviceEditor.model.ModelFactory.PinCategory;
  */
 public final class DeviceSignalsModel extends TreeViewModel implements IPage {
 
-   static final private String[] PIN_COLUMN_LABELS = {"Category.Pin", "Mux:Signals", "Description"};
 
    /** List of all pin mapping entries to scan for mapping conflicts */
    private ArrayList<MappingInfo> fMappingInfos;
@@ -36,7 +51,7 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
     * @param toolTip 
     */
    public DeviceSignalsModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Pin View", "Pin mapping organized by pin", PIN_COLUMN_LABELS);
+      super(parent, "Pin View", "Pin mapping organized by pin");
       createModels(deviceInfo);
    }
 
@@ -48,10 +63,35 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
    @Override
    protected void removeMyListeners() {
    }
-
+   
    @Override
    public IEditorPage createEditorPage() {
-      return new TreeEditorPage();
+      return new TreeEditorPage() {
+         @Override
+         public Control createComposite(Composite parent) {
+            if (getEditor() == null) {
+               setEditor(new TreeEditor() {
+                  @Override
+                  protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
+                     final TreeColumnInformation[] fColumnInformation = {
+                        new TreeColumnInformation("Category.Pin",        250, new NameColumnLabelProvider(),             null),
+                        new TreeColumnInformation("Pin Use Description", 250, new DescriptionColumnLabelProvider(),      new DescriptionColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Mux:Signals",         250, new ValueColumnLabelProvider(),            new ValueColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Interrupt/DMA",       200, new PinInterruptDmaColumnLabelProvider(),  new PinInterruptDmaEditingSupport(viewer)),
+                        new TreeColumnInformation("LK",                   50, PinBooleanColumnLabelProvider.getLk(),     PinBooleanEditingSupport.getLk(viewer)),
+                        new TreeColumnInformation("DSE",                  50, PinBooleanColumnLabelProvider.getDse(),    PinBooleanEditingSupport.getDse(viewer)),
+                        new TreeColumnInformation("ODE",                  50, PinBooleanColumnLabelProvider.getOde(),    PinBooleanEditingSupport.getOde(viewer)),
+                        new TreeColumnInformation("PFE",                  50, PinBooleanColumnLabelProvider.getPfe(),    PinBooleanEditingSupport.getPfe(viewer)),
+                        new TreeColumnInformation("SRE",                  50, PinBooleanColumnLabelProvider.getSre(),    PinBooleanEditingSupport.getSre(viewer)),
+                        new TreeColumnInformation("Pull",                100, new PinPullColumnLabelProvider(),          new PinPullEditingSupport(viewer)),
+                     };
+                     return fColumnInformation;
+                  }
+               });
+            }
+            return getEditor().createControl(parent);
+         }
+      };
    }
 
    private void createModels(DeviceInfo fDeviceInfo) {      

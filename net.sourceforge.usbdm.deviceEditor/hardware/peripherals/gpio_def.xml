@@ -6,12 +6,13 @@
 
    <xi:include href="_irqOption.xml"/>
    
-      <choiceOption name="port_pcr_irqc" 
+   <!--
+   <choiceOption name="port_pcr_irqc" 
          description="Interrupt Configuration"
          toolTip="The pin interrupt configuration is valid in all digital pin muxing modes" >
       <choice value="0" name="Interrupt/DMA request disabled" />
       <choice value="1" name="DMA request on rising edge" />
-      <choice value="2" name="DMA request on rising edge" />
+      <choice value="2" name="DMA request on falling edge" />
       <choice value="3" name="DMA request on either edge" />
       <choice value="8" name="Interrupt when logic zero" />
       <choice value="9" name="Interrupt on rising edge" />
@@ -73,16 +74,17 @@
    <template><![CDATA[
       \t//! Interrupt Configuration
       \tstatic constexpr uint32_t port_pcr = 
-      \t   PORT_PCR_IRQC($(port_pcr_irqc)) |  \\ Interrupt Configuration
-      \t   PORT_PCR_LK($(port_pcr_lk)) |    \\ Lock Register
-      \t   PORT_PCR_DSE($(port_pcr_dse)) |   \\ Drive Strength Enable
-      \t   PORT_PCR_ODE($(port_pcr_ode)) |   \\ Open Drain Enable
-      \t   PORT_PCR_PFE($(port_pcr_pfe)) |   \\ Passive Filter Enable
-      \t   PORT_PCR_SRE($(port_pcr_sre)) |   \\ Slew Rate Enable
-      \t   PORT_PCR_PE($(port_pcr_pull_mode)>>1) | \\ Pull Enable
-      \t   PORT_PCR_PS($(port_pcr_pull_mode));     \\ Pull direction\n\n
+      \t   PORT_PCR_IRQC($(port_pcr_irqc)) |  // Interrupt Configuration
+      \t   PORT_PCR_LK($(port_pcr_lk)) |    // Lock Register
+      \t   PORT_PCR_DSE($(port_pcr_dse)) |   // Drive Strength Enable
+      \t   PORT_PCR_ODE($(port_pcr_ode)) |   // Open Drain Enable
+      \t   PORT_PCR_PFE($(port_pcr_pfe)) |   // Passive Filter Enable
+      \t   PORT_PCR_SRE($(port_pcr_sre)) |   // Slew Rate Enable
+      \t   PORT_PCR_PE($(port_pcr_pull_mode)>>1) | // Pull Enable
+      \t   PORT_PCR_PS($(port_pcr_pull_mode));     // Pull direction\n\n
    ]]></template>
    
+   -->
    <pins/>
    
    

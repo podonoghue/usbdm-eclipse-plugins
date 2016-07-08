@@ -216,18 +216,17 @@ public class ChoiceVariable extends Variable {
 
    @Override
    public String getPersistentValue() {
-      int foundIndex = -1;
-      for (int index=0; index<fData.length; index++) {
-         if (fData[index].name.equalsIgnoreCase(fValue)) {
-            foundIndex = index;
-            break;
-         }
-      }
-      return Integer.toString(foundIndex);
+      return getSubstitutionValue();
    }
 
    @Override
    public void setPersistentValue(String value) {
+      for (int index=0; index<fData.length; index++) {
+         if (fData[index].value.equalsIgnoreCase(value)) {
+            fValue = fData[index].name;
+            return;
+         }
+      }
       try {
          // Try as index number
          int index = Integer.parseInt(value);

@@ -29,12 +29,10 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
-import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
-import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.TabModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -271,7 +269,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       parseChoices(variable, varElement);
 
-      ChoiceVariableModel model = new ChoiceVariableModel(parent, variable);
+      VariableModel model = variable.createModel(parent);
       model.setName(name);
       model.setConstant(isConstant);
    }
@@ -302,7 +300,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
       fProvider.addVariable(variable);
-      StringVariableModel model = new StringVariableModel(parent, variable);
+      VariableModel model = variable.createModel(parent);
       model.setName(name);
       model.setConstant(isConstant);
       
@@ -349,7 +347,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       
       fProvider.addVariable(variable);
-      StringVariableModel model = new StringVariableModel(parent, variable);
+      VariableModel model = variable.createModel(parent);
       model.setName(name);
       model.setConstant(isConstant);
       

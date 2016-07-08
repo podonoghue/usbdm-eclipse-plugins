@@ -4,10 +4,10 @@ import org.eclipse.swt.graphics.Image;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
-class NameColumnLabelProvider extends BaseLabelProvider {
+public class NameColumnLabelProvider extends BaseLabelProvider {
    
-   NameColumnLabelProvider(TreeEditor viewer) {
-      super(viewer);
+   public NameColumnLabelProvider() {
+      super();
    }
 
    @Override

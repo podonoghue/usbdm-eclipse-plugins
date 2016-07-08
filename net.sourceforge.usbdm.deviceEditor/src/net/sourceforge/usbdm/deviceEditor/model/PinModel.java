@@ -6,6 +6,8 @@ import java.util.Map;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Pin.PinIntDmaValue;
+import net.sourceforge.usbdm.deviceEditor.information.Pin.PinPullValue;
 
 public class PinModel extends SelectionModel implements IModelChangeListener {
 
@@ -165,5 +167,29 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    public void modelStructureChanged(ObservableModel model) {
       // Not used
+   }
+   
+   public long getProperty(long mask, long offset) {
+      return fPin.getProperty(mask, offset);
+   }
+   
+   public boolean setProperty(long mask, long offset, long property) {
+      return fPin.setProperty(mask, offset, property);
+   }
+
+   public PinPullValue getPullSetting() {
+      return fPin.getPullSetting();
+   }
+
+   public void setPullSetting(PinPullValue pinPullValue) {
+      fPin.setPullSetting(pinPullValue);
+   }
+
+   public PinIntDmaValue getInterruptDmaSetting() {
+      return fPin.getInterruptDmaSetting();
+   }
+
+   public void setInterruptDmaSetting(PinIntDmaValue pinIntDmaValue) {
+      fPin.setInterruptDmaSetting(pinIntDmaValue);
    }
 }

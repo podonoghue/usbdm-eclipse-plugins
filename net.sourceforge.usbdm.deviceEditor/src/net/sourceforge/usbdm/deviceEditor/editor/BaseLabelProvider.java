@@ -26,7 +26,7 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
    protected static Image emptyImage     = null;
    private   static int   referenceCount = 0;
    
-   BaseLabelProvider(TreeEditor viewer) {
+   BaseLabelProvider() {
       referenceCount++;
 //      System.err.println("BaseLabelProvider(), ref = " + referenceCount);
       if ((errorImage == null) && (Activator.getDefault() != null)) {

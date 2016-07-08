@@ -47,6 +47,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /** Device info owning this pin */
    private DeviceInfo fDeviceInfo;
 
+   /** PCR value (excluding MUX) */
+   private long fProperties = 0;
+   
    /**
     * Create empty pin function for given pin
     * @param deviceInfo 
@@ -440,6 +443,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return "$signal$"+name+"_descriptionSetting";
    }
    
+   public static final String getPCRKey(String name) {
+      return "$signal$"+name+"_pcrSetting";
+   }
+   
    /**
     * Load pin settings from settings object
     * 
@@ -455,6 +462,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (value != null) {
          setPinUseDescription(value);
       }
+      value = settings.get(getPCRKey(fName));
+      if (value != null) {
+         setProperties(Long.parseLong(value, 16));
+      }
    }
 
    /**
@@ -469,6 +480,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       String desc = getPinUseDescription();
       if ((desc != null) && !desc.isEmpty()) {
          settings.put(getDescriptionKey(fName), getPinUseDescription());
+      }
+      if (getProperties() != 0) {
+         settings.put(getPCRKey(fName), Long.toHexString(getProperties()));
       }
    }
 
@@ -515,6 +529,243 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
 
+   /**
+    * Class representing Pin Interrupt/DMA functions
+    */
+   public enum PinIntDmaValue {
+      disabled(   0,  "Disabled"),
+      dmaRising(  1,  "DMA rising edge"),
+      dmaFalling( 2,  "DMA falling edge"),
+      dmaEither(  3,  "DMA either edge"),
+      intLow(     8,  "INT when low"),
+      intRising(  9,  "INT rising edge"),
+      intFalling( 10, "INT falling edge"),
+      intEither(  11, "INT either edge"),
+      intHigh(    12, "INT when high");
+
+      static final String[] choices = {
+            disabled.getName(),
+            dmaRising.getName(),
+            dmaFalling.getName(),
+            dmaEither.getName(),
+            intLow.getName(),
+            intRising.getName(),
+            intFalling.getName(),
+            intEither.getName(),
+            intHigh.getName(),
+      };
+      
+      private final int     value;
+      private final String  name;
+
+      private PinIntDmaValue(int value, String name) {
+         this.value  = value;
+         this.name   = name;
+      }
+      /**
+       * Maps an integer into a PinIntDmaValue value
+       * 
+       * @param value Value to map
+       * 
+       * @return Corresponding PinIntDmaValue value
+       */
+      public static PinIntDmaValue valueOf(int value) {
+         switch(value) {
+         case 0  : return disabled;
+         case 1  : return dmaRising;
+         case 2  : return dmaFalling;
+         case 3  : return dmaEither;
+         case 8  : return intLow;
+         case 9  : return intRising;
+         case 10 : return intFalling;
+         case 11 : return intEither;
+         case 12 : return intHigh;
+         default : return disabled;
+         }
+      }
+      
+      /**
+       * Maps an integer into a PinIntDmaValue value
+       * 
+       * @param value Value to map
+       * 
+       * @return Corresponding PinIntDmaValue value
+       */
+      public static PinIntDmaValue getNameFromDescription(String description) {
+         for (int index=0; index<choices.length; index++) {
+            if (choices[index].equalsIgnoreCase(description)) {
+               return PinIntDmaValue.values()[index];
+            }
+         }
+         throw new RuntimeException("No matching enum for " + description);
+      }
+      public String getName() {
+         return name;
+      }
+      
+      public static String[] getChoices() {
+         return choices;
+      }
+      
+      public int getValue() {
+         return value;
+      }
+   }
+   
+   /**
+    * Get Pin Interrupt/DMA functions
+    * 
+    * @return function
+    */
+   public PinIntDmaValue getInterruptDmaSetting() {
+      return PinIntDmaValue.valueOf((int)getProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT));
+   }
+
+   /**
+    * Set Pin Interrupt/DMA functions
+    * 
+    * @param value Function to set
+    */
+   public void setInterruptDmaSetting(PinIntDmaValue value) {
+      setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
+   }
+   
+   /**
+    * Class representing Pin Interrupt/DMA functions
+    */
+   public enum PinPullValue {
+      none(  0,  "None"),
+      down(  2,  "Down"),
+      up(    3,  "Up");
+
+      static final String[] choices = {
+            none.getName(),
+            down.getName(),
+            up.getName(),
+      };
+      
+      private final int     value;
+      private final String  name;
+
+      private PinPullValue(int value, String name) {
+         this.value  = value;
+         this.name   = name;
+      }
+      /**
+       * Maps an integer into a PinIntDmaValue value
+       * 
+       * @param value Value to map
+       * 
+       * @return Corresponding PinIntDmaValue value
+       */
+      public static PinPullValue valueOf(int value) {
+         switch(value) {
+         case 0  : return none;
+         case 2  : return down;
+         case 3  : return up;
+         default : return none;
+         }
+      }
+      
+      /**
+       * Maps an integer into a PinIntDmaValue value
+       * 
+       * @param value Value to map
+       * 
+       * @return Corresponding PinIntDmaValue value
+       */
+      public static PinIntDmaValue getNameFromDescription(String description) {
+         for (int index=0; index<choices.length; index++) {
+            if (choices[index].equalsIgnoreCase(description)) {
+               return PinIntDmaValue.values()[index];
+            }
+         }
+         throw new RuntimeException("No matching enum for " + description);
+      }
+      public String getName() {
+         return name;
+      }
+      
+      public static String[] getChoices() {
+         return choices;
+      }
+      
+      public int getValue() {
+         return value;
+      }
+   }
+   
+   /**
+    * Get Pin Interrupt/DMA functions
+    * 
+    * @return function
+    */
+   public PinPullValue getPullSetting() {
+      return PinPullValue.valueOf((int)getProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT));
+   }
+
+   /**
+    * Set Pin Interrupt/DMA functions
+    * 
+    * @param value Function to set
+    */
+   public void setPullSetting(PinPullValue value) {
+      setProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT, value.getValue());
+   }
+   
+   public final static long PORT_PCR_PULL_SHIFT  =  0;                             
+   public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);  
+   public final static long PORT_PCR_SRE_SHIFT   =  2;                             
+   public final static long PORT_PCR_SRE_MASK    =  (0x01L << PORT_PCR_SRE_SHIFT); 
+   public final static long PORT_PCR_PFE_SHIFT   =  4;                             
+   public final static long PORT_PCR_PFE_MASK    =  (0x01L << PORT_PCR_PFE_SHIFT); 
+   public final static long PORT_PCR_ODE_SHIFT   =  5;                             
+   public final static long PORT_PCR_ODE_MASK    =  (0x01L << PORT_PCR_ODE_SHIFT); 
+   public final static long PORT_PCR_DSE_SHIFT   =  6;                             
+   public final static long PORT_PCR_DSE_MASK    =  (0x01L << PORT_PCR_DSE_SHIFT); 
+   public final static long PORT_PCR_MUX_SHIFT   =  8;                             
+   public final static long PORT_PCR_MUX_MASK    =  (0x07L << PORT_PCR_MUX_SHIFT); 
+   public final static long PORT_PCR_LK_SHIFT    =  15;                            
+   public final static long PORT_PCR_LK_MASK     =  (0x01L << PORT_PCR_LK_SHIFT);  
+   public final static long PORT_PCR_IRQC_SHIFT  =  16;                            
+   public final static long PORT_PCR_IRQC_MASK   =  (0x0FL << PORT_PCR_IRQC_SHIFT); 
+   public final static long PORT_PCR_ISF_SHIFT   =  24;                            
+   public final static long PORT_PCR_ISF_MASK    =  (0x01L << PORT_PCR_ISF_SHIFT); 
+   public final static long PORT_PCR_MASK        =  
+         PORT_PCR_PULL_MASK|PORT_PCR_SRE_MASK|PORT_PCR_PFE_MASK|PORT_PCR_ODE_MASK|
+         PORT_PCR_DSE_MASK|PORT_PCR_LK_MASK|PORT_PCR_IRQC_MASK; 
+
+   /**
+    * Get PCR value (excluding MUX)
+    * 
+    * @return PCR value (excluding MUX)
+    */
+   public long getProperties() {
+      return fProperties & PORT_PCR_MASK;
+   }
+   
+   /**
+    * Set PCR value (excluding MUX)
+    * 
+    * @param properties PCR value (excluding MUX)
+    */
+   public boolean setProperties(long properties) {
+      properties &= PORT_PCR_MASK;
+      if (fProperties == properties) {
+         return false;
+      }
+      fProperties = properties;
+      return true;
+   }
+
+   public long getProperty(long mask, long offset) {
+      return (getProperties()&mask)>>offset;
+   }
+   
+   public boolean setProperty(long mask, long offset, long property) {
+      return setProperties((getProperties()&~mask)|((property<<offset)&mask));
+   }
+   
    @Override
    public void modelStructureChanged(ObservableModel model) {
       notifyStructureChangeListeners();
@@ -523,5 +774,30 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    @Override
    public void elementStatusChanged(ObservableModel model) {
       notifyStatusListeners();
+   }
+
+   public long getPcrValue() {
+      return getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
+   }
+
+   public String getPcrValueAsString() {
+      long pcrValue = getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
+      return getPcrValueAsString(pcrValue);
+   }
+   
+   public static String getPcrValueAsString(long pcrValue) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+      sb.append("PORT_PCR_DSE(" +((pcrValue & PORT_PCR_DSE_MASK) >> PORT_PCR_DSE_SHIFT)+")|");
+      sb.append("PORT_PCR_IRQC("+((pcrValue & PORT_PCR_IRQC_MASK)>> PORT_PCR_IRQC_SHIFT)+")|");
+      sb.append("PORT_PCR_ISF(" +((pcrValue & PORT_PCR_ISF_MASK) >> PORT_PCR_ISF_SHIFT)+")|");
+      sb.append("PORT_PCR_LK("  +((pcrValue & PORT_PCR_LK_MASK) >> PORT_PCR_LK_SHIFT)+")|");
+      sb.append("PORT_PCR_ODE(" +((pcrValue & PORT_PCR_ODE_MASK) >> PORT_PCR_ODE_SHIFT)+")|");
+      sb.append("PORT_PCR_PFE(" +((pcrValue & PORT_PCR_PFE_MASK) >> PORT_PCR_PFE_SHIFT)+")|");
+      sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
+      sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
+      sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
+      
+      return sb.toString();
    }
 }

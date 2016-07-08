@@ -33,49 +33,54 @@ import net.sourceforge.usbdm.deviceEditor.model.StringVariableModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 
-   private TreeViewer viewer;
+   private TreeViewer fViewer;
 
    public ValueColumnEditingSupport(TreeViewer viewer) {
       super(viewer);
-      this.viewer = viewer;
+      fViewer = viewer;
    }
 
    @Override
-   protected boolean canEdit(Object element) {
-      if (!(element instanceof BaseModel)) {
+   protected boolean canEdit(Object model) {
+      if (!(model instanceof BaseModel)) {
          return false;
       }
-      BaseModel model = (BaseModel)element;
-      return model.canEdit();
+      BaseModel baseModel = (BaseModel)model;
+      return baseModel.canEdit();
    }
 
    @Override
    protected CellEditor getCellEditor(Object element) {
       if (element instanceof BooleanVariableModel) {
-         return new BooleanCellEditor(viewer.getTree());
+         return new BooleanCellEditor(fViewer.getTree());
       }
       if (element instanceof SelectionModel) {
          SelectionModel model = (SelectionModel)element;
-         return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
+//         ComboBoxCellEditor editor = new ComboBoxCellEditor(fViewer.getTree(), model.getChoices());
+//         editor.setActivationStyle(
+//               ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
+//               ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
+//         return editor;
+         return new ChoiceCellEditor(fViewer.getTree(), model.getChoices());
       }      
       if (element instanceof ChoiceVariableModel) {
          ChoiceVariableModel model = (ChoiceVariableModel)element;
-         return new ChoiceCellEditor(viewer.getTree(), model.getChoices());
+         return new ChoiceCellEditor(fViewer.getTree(), model.getChoices());
       }      
       if (element instanceof BitmaskModel) {
          BitmaskModel model = (BitmaskModel)element;
-         return new BitmaskEditor(viewer.getTree(), model);
+         return new BitmaskEditor(fViewer.getTree(), model);
       }      
       if (element instanceof LongVariableModel) {
          LongVariableModel model = (LongVariableModel)element;
-         return new NumericTextCellEditor(viewer.getTree(), model);
+         return new NumericTextCellEditor(fViewer.getTree(), model);
       }      
       if (element instanceof StringVariableModel) {
          StringVariableModel model = (StringVariableModel)element;
-         return new StringCellEditor(viewer.getTree(), model);
+         return new StringCellEditor(fViewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
-         return new HardwareCellEditor(viewer.getTree());
+         return new HardwareCellEditor(fViewer.getTree());
       }
       return null;
    }
@@ -99,7 +104,7 @@ public class ValueColumnEditingSupport extends EditingSupport {
       else if (element instanceof EditableModel) {
          ((EditableModel)element).setValueAsString((String) value);
       }
-      viewer.update(element, null);
+      fViewer.update(element, null);
    }
 
    static class NumericTextCellEditor extends TextCellEditor {

@@ -1,7 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -14,7 +12,7 @@ public class PcrInitialiser {
    private HashSet<String> portClockMasks = new HashSet<String>();
    
    /** HashMap of Ports to PCR values and pins used */
-   private HashMap<String, ArrayList<HashMap<String, Long>>> portMap  = new HashMap<String, ArrayList<HashMap<String, Long>>>();
+   private HashMap<String, HashMap<String, Long>> portToPcrValuesMap  = new HashMap<String, HashMap<String, Long>>();
 
    /**
     * Constructor
@@ -42,28 +40,23 @@ public class PcrInitialiser {
          // Skip unmapped pin
          return;
       }
+      pcrValue = pcrValue+"|PORT_PCR_MUX("+mux.value+")";
       if (mappingInfo.isSelected()) {
          portClockMasks.add(pin.getClockMask());
-
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
             long bitNum = Long.parseLong(bitNums);
-            ArrayList<HashMap<String, Long>> muxValues = portMap.get(pin.getPORTBasePtr());
-            if (muxValues == null) {
-               muxValues = new ArrayList<HashMap<String, Long>>(Collections.nCopies(8, (HashMap<String, Long>)null));
-               portMap.put(pin.getPORTBasePtr(), muxValues);
+            HashMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+            if (pcrValueToBitsMap == null) {
+               pcrValueToBitsMap = new HashMap<String, Long>();
+               portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
             }
-            HashMap<String, Long> pcrMap = muxValues.get(mux.value);
-            if (pcrMap == null) {
-               pcrMap = new HashMap<String, Long>();
-               muxValues.set(mux.value, pcrMap);
-            }
-            Long bitMask = pcrMap.get(pcrValue);
+            Long bitMask = pcrValueToBitsMap.get(pcrValue);
             if (bitMask == null) {
                bitMask = new Long(0);
             }
             bitMask |= 1<<bitNum;
-            pcrMap.put(pcrValue, bitMask);
+            pcrValueToBitsMap.put(pcrValue, bitMask);
          }
       }
    }
@@ -73,7 +66,7 @@ public class PcrInitialiser {
     * @param pin
     * @throws Exception 
     */
-   public void addPin(Pin pin, String pcrValue) throws Exception {
+   public void addPin(Pin pin) throws Exception {
 
       if (!pin.isAvailableInPackage()) {
          // Discard unmapped signals on this package 
@@ -84,49 +77,23 @@ public class PcrInitialiser {
          // Skip unmapped pin
          return;
       }
-      
-      MappingInfo mapping = pin.getMappedSignal();
-      
-      if (pcrValue == null) {
-         for (Signal sig:mapping.getSignals()) {
-            Peripheral peripheral = sig.getPeripheral();
-            if (peripheral == null) {
-               continue;
-            }
-            String pinPcrValue = peripheral.getPcrValue(sig);
-            if (pinPcrValue != null) {
-               if (pcrValue == null) {
-                  pcrValue = pinPcrValue;
-               }
-               else if (!pinPcrValue.equals(pcrValue)) {
-                  throw new Exception("Conflicting PCR values, 1st = "+pcrValue+", 2nd="+pinPcrValue);
-               }
-            }
-         }
-         if (pcrValue ==null) {
-            pcrValue = "USBDM::DEFAULT_PCR";
-         }
-      }
+//      String pcrValue = pin.getPcrValueAsString();
+      String pcrValue = "0x"+Long.toHexString(pin.getPcrValue());
       portClockMasks.add(pin.getClockMask());
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
          long bitNum = Long.parseLong(bitNums);
-         ArrayList<HashMap<String, Long>> muxValues = portMap.get(pin.getPORTBasePtr());
-         if (muxValues == null) {
-            muxValues = new ArrayList<HashMap<String, Long>>(Collections.nCopies(8, (HashMap<String, Long>)null));
-            portMap.put(pin.getPORTBasePtr(), muxValues);
+         HashMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+         if (pcrValueToBitsMap == null) {
+            pcrValueToBitsMap = new HashMap<String, Long>();
+            portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
          }
-         HashMap<String, Long> pcrMap = muxValues.get(mux.value);
-         if (pcrMap == null) {
-            pcrMap = new HashMap<String, Long>();
-            muxValues.set(mux.value, pcrMap);
-         }
-         Long bitMask = pcrMap.get(pcrValue);
+         Long bitMask = pcrValueToBitsMap.get(pcrValue);
          if (bitMask == null) {
             bitMask = new Long(0);
          }
          bitMask |= 1<<bitNum;
-         pcrMap.put(pcrValue, bitMask);
+         pcrValueToBitsMap.put(pcrValue, bitMask);
       }
    }
    
@@ -137,57 +104,52 @@ public class PcrInitialiser {
     */
    public String getPcrClearString(String indent) {
       
-      StringBuffer initPcrbuffer = new StringBuffer();
+      StringBuffer sb = new StringBuffer();
 
-      for (String key:portMap.keySet()) {
-         // Each PORT
-         ArrayList<HashMap<String, Long>> port = portMap.get(key);
-         long collectedMask = 0;
-         // Each pin (ignoring pcrValue)
-         for (HashMap<String, Long> pcrValuesForMux:port) {
-            if (pcrValuesForMux != null) {
-               for (String key2:pcrValuesForMux.keySet()) {
-                  collectedMask |= pcrValuesForMux.get(key2);
-               }
-            }
+      // For each port
+      for (String port:portToPcrValuesMap.keySet()) {
+         Long bits = 0L;
+         
+         // For each PCR value
+         HashMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
+         for (String pcrValue:pcrToBitsMap.keySet()) {
+            // Merge all bits on this port
+            bits |= pcrToBitsMap.get(pcrValue);
          }
-         if ((collectedMask&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
+         if ((bits&0xFFFF) != 0) {
+            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCLR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
          }
-         collectedMask >>= 16;
-         if ((collectedMask&0xFFFF) != 0) {
-            initPcrbuffer.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", 0, Long.toHexString(collectedMask&0xFFFF).toUpperCase()));
+         bits >>= 16;
+         if ((bits&0xFFFF) != 0) {
+            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCHR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
          }
       }
-      return initPcrbuffer.toString();
+      return sb.toString();
    }
 
    public String getPcrInitString(String indent) {
-      StringBuffer initPcrbuffer = new StringBuffer();
+      
+      StringBuffer sb = new StringBuffer();
 
-      for (String key:portMap.keySet()) {
-         // Each PORT
-         ArrayList<HashMap<String, Long>> port = portMap.get(key);
-         // Each mux value on port
-         int muxValue = 0;
-         for (HashMap<String, Long> pcrValuesForMux:port) {
-            if (pcrValuesForMux != null) {
-               // Each PCR value for mux
-               for (String pcrValue:pcrValuesForMux.keySet()) {
-                  Long mask = pcrValuesForMux.get(pcrValue);
-                  if ((mask&0xFFFF) != 0) {
-                     initPcrbuffer.append(String.format(indent+"      %s = %s|PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCLR", pcrValue, muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
-                  }
-                  mask >>= 16;
-                  if ((mask&0xFFFF) != 0) {
-                     initPcrbuffer.append(String.format(indent+"      %s = %s|PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+key+")->GPCHR", pcrValue, muxValue, Long.toHexString(mask&0xFFFF).toUpperCase()));
-                  }
-               }
+      // For each port
+      for (String port:portToPcrValuesMap.keySet()) {
+         // For each PCR value
+         HashMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
+         for (String pcrValue:pcrToBitsMap.keySet()) {
+//          String pcrValue = "0x"+Long.toHexString(pin.getPcrValue());
+
+            // Bits that share this PCR value on this port
+            Long bits = pcrToBitsMap.get(pcrValue);
+            if ((bits&0xFFFF) != 0) {
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCLR", pcrValue, Long.toHexString(bits&0xFFFF).toUpperCase()));
             }
-            muxValue++;
+            bits >>= 16;
+            if ((bits&0xFFFF) != 0) {
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCHR", pcrValue, Long.toHexString(bits&0xFFFF).toUpperCase()));
+            }
          }
       }
-      return initPcrbuffer.toString();
+      return sb.toString();
    }
    
    /**

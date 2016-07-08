@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
@@ -17,11 +18,30 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
 import net.sourceforge.usbdm.deviceEditor.model.TreeViewModel;
 
-public class TreeEditor implements IEditor {
+public abstract class TreeEditor implements IEditor {
 
    TreeViewer       fViewer      = null;
    TreeViewModel    fDeviceModel = null;
    TreeViewerColumn fColumns[];
+   
+   public static class TreeColumnInformation {
+      final String            name;
+      final int               width;
+      final BaseLabelProvider labelProvider;
+      final EditingSupport    editingSupport;
+      
+      public TreeColumnInformation(
+            String                    name, 
+            int                       width, 
+            BaseLabelProvider         labelProvider, 
+            EditingSupport            editingSupport) {
+         
+         this.name           = name;
+         this.width          = width;
+         this.labelProvider  = labelProvider;
+         this.editingSupport = editingSupport;
+      }
+   }
    
    public TreeEditor() {
    }
@@ -31,19 +51,18 @@ public class TreeEditor implements IEditor {
       fDeviceModel = (TreeViewModel) model;
       fViewer.setInput(fDeviceModel);
       fDeviceModel.setViewer(fViewer);
-      String[] columnLabels = fDeviceModel.getColumnLabels();
-      for (int index=0; index<columnLabels.length; index++) {
-         fColumns[index].getColumn().setText(columnLabels[index]);
-      }
    }
 
    public void refresh() {
       fViewer.refresh();
    }
+   
    public Control createControl(Composite parent) {
       return createControl(parent, SWT.BORDER);
    }
-   
+
+   protected abstract TreeColumnInformation[] getColumnInformation(TreeViewer viewer);
+
    public Control createControl(Composite parent, int style) {
 //      parent.setLayoutData(new FillLayout());
       fViewer = new TreeViewer(parent, SWT.FULL_SELECTION|style);
@@ -61,24 +80,19 @@ public class TreeEditor implements IEditor {
          }
       };
       TreeViewerEditor.create(fViewer, actSupport, ColumnViewerEditor.DEFAULT);
+      final TreeColumnInformation[] fColumnInformation = getColumnInformation(fViewer);
 
-      fColumns = new TreeViewerColumn[3];
+      fColumns = new TreeViewerColumn[fColumnInformation.length];
       
-      fColumns[0] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[0].getColumn().setWidth(350);
-//      fColumns[0].setLabelProvider(new NameColumnLabelProviderX());
-      fColumns[0].setLabelProvider(new DelegatingStyledCellLabelProvider(new NameColumnLabelProvider(this)));
-
-      fColumns[1] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[1].getColumn().setWidth(450);
-      fColumns[1].setEditingSupport(new ValueColumnEditingSupport(fViewer));
-      fColumns[1].setLabelProvider(new DelegatingStyledCellLabelProvider(new ValueColumnLabelProvider(this)));
-      
-      fColumns[2] = new TreeViewerColumn(fViewer, SWT.NONE);
-      fColumns[2].getColumn().setWidth(500);
-      fColumns[2].setEditingSupport(new DescriptionColumnEditingSupport(fViewer));
-      fColumns[2].setLabelProvider(new DelegatingStyledCellLabelProvider(new DescriptionColumnLabelProvider(this)));
-
+      for (int index=0; index<fColumnInformation.length; index++) {
+         fColumns[index] = new TreeViewerColumn(fViewer, SWT.NONE);
+         fColumns[index].getColumn().setWidth(fColumnInformation[index].width);
+         fColumns[index].setLabelProvider(new DelegatingStyledCellLabelProvider(fColumnInformation[index].labelProvider));
+         fColumns[index].getColumn().setText(fColumnInformation[index].name);
+         if (fColumnInformation[index].editingSupport != null) {
+            fColumns[index].setEditingSupport(fColumnInformation[index].editingSupport);
+         }
+      }
       return fViewer.getControl();
    }
 

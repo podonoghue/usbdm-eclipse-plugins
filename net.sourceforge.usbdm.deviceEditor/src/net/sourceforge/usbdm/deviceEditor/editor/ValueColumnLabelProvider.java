@@ -6,10 +6,10 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 
-class ValueColumnLabelProvider extends BaseLabelProvider {
+public class ValueColumnLabelProvider extends BaseLabelProvider {
    
-   ValueColumnLabelProvider(TreeEditor viewer) {
-      super(viewer);
+   public ValueColumnLabelProvider() {
+      super();
    }
 
    @Override

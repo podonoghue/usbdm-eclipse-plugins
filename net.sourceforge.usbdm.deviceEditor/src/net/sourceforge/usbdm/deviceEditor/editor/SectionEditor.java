@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -51,7 +52,17 @@ public class SectionEditor implements IEditor {
       for (Object child:fSectionModel.getChildren()) {
          BaseModel pageModel = (BaseModel) child;
          if (pageModel instanceof TreeViewModel) {
-            TreeEditor treeEditor = new TreeEditor();
+            TreeEditor treeEditor = new TreeEditor() {
+               @Override
+               protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
+                  final TreeColumnInformation[] fColumnInformation = {
+                        new TreeColumnInformation("Property",    350, new NameColumnLabelProvider(),        null),
+                        new TreeColumnInformation("Value",       450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Description", 500, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                  };
+                  return fColumnInformation;
+               }
+            };
             Control treeControl = treeEditor.createControl(tabArea);
             treeControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             treeEditor.setModel((TreeViewModel) pageModel);
