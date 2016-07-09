@@ -93,7 +93,7 @@ Pin,PTD6,A2,p63,B2,p47,p31,ADC0_SE7b,ADC0_SE7b,,ADC0_SE7b,GPIOD_6/LLWU_P15,SPI0_
 Pin,PTD7,D22,p64,A2,p48,p32,DISABLED,DISABLED,,,GPIOD_7,CMT_IRO,UART0_TX,FTM0_CH7,,FTM0_FLT1,,,64,A2,64,32
 ,,,,,,,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,Irq number,Irq number,Irq number,,,,,,,,,,,,,,,
-Peripheral,MCG,,,,,,,,,,,,,,,,,,,,,
+Peripheral,MCG,,,,MCG_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,EWM,SIM->SCGC4,,,,,,,,,,,,,,,,,,,,
 Peripheral,CMT,SIM->SCGC4,,,CMT_IRQn,,,,,,,,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,,,,,,,,

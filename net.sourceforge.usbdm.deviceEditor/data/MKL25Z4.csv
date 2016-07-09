@@ -98,7 +98,7 @@ Pin,PTD7,p80,p64,p48,p32,D33,DISABLED,,DISABLED,PTD7,SPI1_MISO,UART0_TX,,SPI1_MO
 ,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,Irq number,Irq number,Irq number,,,,,,,,,
-Peripheral,MCG,,,,,,,,,,,,,,,
+Peripheral,MCG,,,,MCG_IRQn,,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,,
 Peripheral,I2C1,SIM->SCGC4,,,I2C1_IRQn,,,,,,,,,,,
 Peripheral,UART0,SIM->SCGC4,,SystemCoreClock,UART0_IRQn,,,,,,,,,,,

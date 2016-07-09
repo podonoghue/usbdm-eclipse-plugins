@@ -76,7 +76,7 @@ Pin,PTD6,p31,p47,B2,p63,ADC0_SE7b,,ADC0_SE7b,GPIOD_6/LLWU_P15,SPI1_MOSI,LPUART0_
 Pin,PTD7,p32,p48,A2,p64,DISABLED,,DISABLED,GPIOD_7,SPI1_MISO,LPUART0_TX,,SPI1_MOSI,FXIO0_D7,
 ,,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,Irq number,Irq number,Irq number,,,,,,,,
-Peripheral,MCG,,,,,,,,,,,,,,
+Peripheral,MCG,,,,MCG_IRQn,,,,,,,,,,
 Peripheral,I2C0,SIM->SCGC4,,,I2C0_IRQn,,,,,,,,,,
 Peripheral,I2C1,SIM->SCGC4,,,I2C1_IRQn,,,,,,,,,,
 Peripheral,UART2,SIM->SCGC4,,,UART2_IRQn,,,,,,,,,,
