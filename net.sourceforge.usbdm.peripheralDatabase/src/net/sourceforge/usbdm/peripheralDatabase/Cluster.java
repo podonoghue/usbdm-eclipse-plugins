@@ -593,7 +593,7 @@ public class Cluster extends ModeControl implements Cloneable {
                indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())),
                baseAddress,
                String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
-               
+         writer.flush();       
 //                String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
 //         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())) + 
 //               String.format(Register.lineFormat, baseAddress, String.format("(size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
@@ -605,6 +605,7 @@ public class Cluster extends ModeControl implements Cloneable {
                indenter+String.format(clusterCloseStruct, getBaseName()),
                baseAddress,
                String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
+         writer.flush();       
       }
    }
 
@@ -954,6 +955,18 @@ public class Cluster extends ModeControl implements Cloneable {
       for (Register r:getRegisters()) {
          r.optimise();
       }
+   }
+
+   /**
+    * Check if an array with non-consecutive indexes<br>
+    * Register will be written as individual elements
+    * 
+    * @return  True if a complex array
+    * 
+    * @throws RegisterException
+    */
+   public boolean isComplexArray() throws RegisterException {
+      return (getDimension()>0)&&!isSimpleArray();
    }
 
 }

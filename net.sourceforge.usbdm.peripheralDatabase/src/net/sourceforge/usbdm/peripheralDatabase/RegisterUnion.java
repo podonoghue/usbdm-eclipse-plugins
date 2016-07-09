@@ -86,6 +86,12 @@ public class RegisterUnion {
     * @throws Exception
     */
    public void add(Cluster cluster) throws Exception {
+//      if ("CNTRx%s".equalsIgnoreCase(cluster.getName())) {
+//         System.err.println(cluster.getName());
+//      }
+//      if ("CNTRy%s".equalsIgnoreCase(cluster.getName())) {
+//         System.err.println(cluster.getName());
+//      }
       if (cluster.getAddressOffset()<lastWrittenOffset) {
          throw new Exception(String.format("Register addresses not monotonic, p=%s, c=%s",
                peripheral.getName(), cluster.getName()));
@@ -140,17 +146,32 @@ public class RegisterUnion {
       int           regsDone      = 0;
       boolean       wrapInStruct  = false;
       
-      // Process regs
+      // Process registers
       for (Cluster register : union) {
+         if ("CNTRx%s".equalsIgnoreCase(register.getName())) {
+            System.err.println(register.getName());
+         }
+         if ("CNTRy%s".equalsIgnoreCase(register.getName())) {
+            System.err.println(register.getName());
+         }
          long regSize = register.getTotalSizeInBytes();
          if (regSize == size) {
             // Initial registers that occupy the entire union are simply written
-            register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
+            if ((union.size()>1)&&register.isComplexArray()) {
+               // If the register is an non-simple array and there is more than one element in the union then
+               // it is necessary to wrap in a anonymous STRUCT
+               writer.write(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
+               register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
+               writer.write(indenter+"   "+unionClosing);         
+            }
+            else {
+               register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
+            }
             regsDone++;
          }
          else {
             if (subStruct == null) {
-               // Need to wrap in struct if more than a single element or needs padding before the element
+               // Need to wrap in STRUCT if more than a single element or needs padding before the element
                wrapInStruct = ((union.size()-regsDone)>1)||(register.getAddressOffset() != lastWrittenOffset);
                if (wrapInStruct) {
                   writer.write(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));

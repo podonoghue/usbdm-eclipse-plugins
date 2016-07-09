@@ -678,7 +678,7 @@ public class Register extends Cluster implements Cloneable {
       String accessPrefix = getCAccessName(getAccessType());
       final String indenter = RegisterUnion.getIndent(indent);
 
-      StringBuffer line = new StringBuffer(120);
+      StringBuilder line = new StringBuilder(120);
       line.append(indenter);
       
       if (getDimension()==0) {
@@ -714,6 +714,7 @@ public class Register extends Cluster implements Cloneable {
             }
             writer.write(String.format(lineFormat, String.format(baseLine,sIndex)+";", 
                   offset, truncateAtNewlineOrTab(format(getCDescription(index), index))));
+            writer.flush();
             if (padding>0) {
                registerUnion.fill(offset, padding);
             }
