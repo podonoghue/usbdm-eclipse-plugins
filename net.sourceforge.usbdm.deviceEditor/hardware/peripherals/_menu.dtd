@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!ENTITY % gui_items        "(xi:include|category|constant|floatOption|intOption|bitmaskOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|pins)" >
+<!ENTITY % gui_items        "(xi:include|category|constant|floatOption|intOption|bitmaskOption|choiceOption|binaryOption|stringOption|numericListOption|aliasOption|signals)" >
 <!ENTITY % structure_items  "((section*)|(tab)*)" >
 <!ENTITY % control_items    "(xi:include|template|validate|projectActionList)" >
 
@@ -139,8 +139,8 @@
    <!ATTLIST param type  (long|string) #REQUIRED>
    <!ATTLIST param value CDATA         #REQUIRED>
 
-<!ELEMENT pins EMPTY >
-   <!ATTLIST pins name CDATA "" >
+<!ELEMENT signals EMPTY >
+   <!ATTLIST signals name CDATA "" >
 
 <!-- List of actions to be applied to a project -->
 <!ELEMENT projectActionList ((deleteResource|copy|constant)*) >

@@ -133,6 +133,6 @@
       \t}\n\n
    ]]></template>
 
-   <pins/>
-   <pins name="TPM"/>
+   <signals/>
+   <signals name="TPM"/>
 </devicePage>

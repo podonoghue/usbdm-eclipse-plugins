@@ -83,9 +83,8 @@
       \t   PORT_PCR_PE($(port_pcr_pull_mode)>>1) | // Pull Enable
       \t   PORT_PCR_PS($(port_pcr_pull_mode));     // Pull direction\n\n
    ]]></template>
-   
    -->
-   <pins/>
    
+   <signals/>
    
 </devicePage>

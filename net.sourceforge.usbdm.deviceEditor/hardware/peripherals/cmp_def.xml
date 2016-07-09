@@ -202,6 +202,6 @@
       <copy source="Project_Headers/cmp.h"  target="Project_Headers/cmp.h"  replace="true"  derived="true" />
    </projectActionList>
    
-   <pins/>
+   <signals/>
    
 </devicePage>

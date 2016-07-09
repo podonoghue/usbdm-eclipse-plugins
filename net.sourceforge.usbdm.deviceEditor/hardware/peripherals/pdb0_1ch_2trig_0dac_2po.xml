@@ -6,12 +6,6 @@ Devices using this peripheral:
 -->
 <devicePage xmlns:xi="http://www.w3.org/2001/XInclude" name="_instance" description="PDB">
 
-   <xi:include href="_irqOption.xml"/>
-
-   <projectActionList id = "pdb_files">
-      <copy source="Project_Headers/pdb.h"  target="Project_Headers/pdb.h"  replace="true"  derived="true" />
-   </projectActionList>
-         
    <choiceOption name="pdb_sc_mult" 
       description="Multiplication Factor Select for Prescaler"
       toolTip="This bit selects the multiplication factor of the prescaler divider for the counter clock.">
@@ -230,5 +224,11 @@ Devices using this peripheral:
    \t   PDB_PODLY_DLY2($(pdb_po1_dly_dly2));   // Delay 2\n\n
    ]]></template>
 
-   <pins/>
+   <xi:include href="_irqOption.xml"/>
+
+   <projectActionList id = "pdb_files">
+      <copy source="Project_Headers/pdb.h"  target="Project_Headers/pdb.h"  replace="true"  derived="true" />
+   </projectActionList>
+         
+   <signals/>
 </devicePage>
