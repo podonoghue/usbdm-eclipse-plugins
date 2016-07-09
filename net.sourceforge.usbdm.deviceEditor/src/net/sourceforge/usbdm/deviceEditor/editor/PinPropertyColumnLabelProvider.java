@@ -20,8 +20,11 @@ public class PinPropertyColumnLabelProvider extends BaseLabelProvider {
       if (!(baseModel instanceof PinModel)) {
          return null;
       }
+      if (!baseModel.canEdit()) {
+         return null;
+      }
       PinModel pinModel = (PinModel)baseModel;
-      return (pinModel.getProperty(fMask,fOffset));
+      return pinModel.getProperty(fMask,fOffset);
    }
 
    @Override

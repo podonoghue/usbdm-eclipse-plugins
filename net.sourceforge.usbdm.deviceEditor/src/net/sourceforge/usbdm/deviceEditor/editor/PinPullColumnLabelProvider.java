@@ -17,5 +17,10 @@ public class PinPullColumnLabelProvider extends PinPropertyColumnLabelProvider {
       }
       return Pin.PinPullValue.valueOf(value.intValue()).getName();
    }
+
+   @Override
+   public String getToolTipText(Object element) {
+      return "Pin pull-up/down select";
+   }
    
 }
