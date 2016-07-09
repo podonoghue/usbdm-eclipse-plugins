@@ -31,4 +31,10 @@ public class ValueColumnLabelProvider extends BaseLabelProvider {
       return emptyImage;
    }
 
+   @Override
+   public String getToolTipText(Object element) {
+      // TODO Auto-generated method stub
+      return super.getToolTipText(element);
+   }
+
 }

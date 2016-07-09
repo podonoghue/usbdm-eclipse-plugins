@@ -320,7 +320,7 @@ public class WriteFamilyCpp {
    }
 
    private void writePinMappingFunction(DocumentUtilities writer) throws Exception {
-      PcrInitialiser pcrInitialiser = new PcrInitialiser(fDeviceInfo);
+      PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
       for (String pinName:fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
@@ -332,8 +332,8 @@ public class WriteFamilyCpp {
                " */\n" + 
                "void "+DO_PIN_MAPPING_FUNCTION+"() {\n"
          );
-      writer.write(pcrInitialiser.getInitPortClocks(""));
-      writer.write(pcrInitialiser.getPcrInitString(""));
+      writer.write(pcrInitialiser.getInitPortClocksStatement(""));
+      writer.write(pcrInitialiser.getPcrInitStatements(""));
       writer.write("}\n");
    }
    

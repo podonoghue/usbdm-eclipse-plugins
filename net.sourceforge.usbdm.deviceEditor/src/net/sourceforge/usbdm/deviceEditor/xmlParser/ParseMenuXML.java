@@ -463,7 +463,14 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseControlItem(Element element) throws Exception {
       
       if (element.getTagName() == "fragment") {
-         parseControlItem(element);
+         for (Node node = element.getFirstChild();
+               node != null;
+               node = node.getNextSibling()) {
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            parseControlItem((Element) node);
+         }
       }
       else if (element.getTagName() == "validate") {
          fValidators.add(parseValidate(element));
@@ -584,8 +591,8 @@ public class ParseMenuXML extends XML_BaseParser {
             BaseModel model = new ParametersModel(parentModel, "Title", "Section");
             parseChildModels(model, element);
          }
-         else if (element.getTagName() == "pins") {
-            parsePinsOption(parentModel, element);
+         else if (element.getTagName() == "signals") {
+            parseSignalsOption(parentModel, element);
          }
          else if (element.getTagName() == "fragment") {
             parseChildModels(parentModel, element);
@@ -626,7 +633,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param parentModel
     * @param element
     */
-   private void parsePinsOption(BaseModel parentModel, Element element) {
+   private void parseSignalsOption(BaseModel parentModel, Element element) {
       Peripheral peripheral = fProvider;
       String peripheralName = element.getAttribute("name");
       if (!peripheralName.isEmpty()) {
@@ -634,7 +641,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       if (peripheral != null) {
          if (fPinModel == null) {
-            fPinModel = new CategoryModel(parentModel, "Pins", "Pins for this peripheral");
+            fPinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
          }
          TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
          for (String signalName:peripheralSignals.keySet()) {
@@ -687,7 +694,7 @@ public class ParseMenuXML extends XML_BaseParser {
                defaultValue = entry.name;
             }
          }
-         else if (element.getTagName() == "pins") {
+         else if (element.getTagName() == "signals") {
          }
          else {
             throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");

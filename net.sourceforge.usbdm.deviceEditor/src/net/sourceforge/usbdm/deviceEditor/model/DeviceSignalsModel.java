@@ -75,7 +75,7 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
                         new TreeColumnInformation("Category.Pin",        250, new NameColumnLabelProvider(),             null),
-                        new TreeColumnInformation("Pin Use Description", 250, new DescriptionColumnLabelProvider(),      new DescriptionColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Pin Use Description", 400, new DescriptionColumnLabelProvider(),      new DescriptionColumnEditingSupport(viewer)),
                         new TreeColumnInformation("Mux:Signals",         250, new ValueColumnLabelProvider(),            new ValueColumnEditingSupport(viewer)),
                         new TreeColumnInformation("Interrupt/DMA",       200, new PinInterruptDmaColumnLabelProvider(),  new PinInterruptDmaEditingSupport(viewer)),
                         new TreeColumnInformation("LK",                   50, PinBooleanColumnLabelProvider.getLk(),     PinBooleanEditingSupport.getLk(viewer)),

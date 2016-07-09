@@ -29,6 +29,8 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
 
+   public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlerInstalled";
+
    /** Data about model loaded from file */
    protected Data fData = null;
    
@@ -299,7 +301,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               if (isCTrueValue("irqHandler")) {
+               if (isCTrueValue(IRQ_HANDLER_INSTALLED_SYMBOL)) {
                   entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
                   entry.setClassMemberUsedAsHandler(true);
                   handlerSet = true;

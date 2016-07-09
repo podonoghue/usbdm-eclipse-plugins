@@ -43,8 +43,8 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Property Name", 350, new NameColumnLabelProvider(),        null),
-                           new TreeColumnInformation("Value",         450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Property Name", 300, new NameColumnLabelProvider(),        null),
+                           new TreeColumnInformation("Value",         400, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Description",   500, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
                      };
                      return fColumnInformation;

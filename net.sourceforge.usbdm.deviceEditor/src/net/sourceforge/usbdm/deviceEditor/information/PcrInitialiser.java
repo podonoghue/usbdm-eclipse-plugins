@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Class to initialise multiple PCRs efficiently
@@ -9,20 +9,19 @@ import java.util.HashSet;
 public class PcrInitialiser {
    
    /** Set of Port clock masks for used ports */
-   private HashSet<String> portClockMasks = new HashSet<String>();
+   private TreeSet<String> portClockMasks = new TreeSet<String>();
    
    /** HashMap of Ports to PCR values and pins used */
-   private HashMap<String, HashMap<String, Long>> portToPcrValuesMap  = new HashMap<String, HashMap<String, Long>>();
+   private TreeMap<String, TreeMap<String, Long>> portToPcrValuesMap  = new TreeMap<String, TreeMap<String, Long>>();
 
    /**
     * Constructor
-    * 
-    * @param deviceInfo Where to get information about the device
     */
-   public PcrInitialiser(DeviceInfo deviceInfo) {
+   public PcrInitialiser() {
    }
    
    /**
+    * Adds information required to set up the PCR associated with the given signal
     * 
     * @param signal
     */
@@ -46,9 +45,9 @@ public class PcrInitialiser {
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
             long bitNum = Long.parseLong(bitNums);
-            HashMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
             if (pcrValueToBitsMap == null) {
-               pcrValueToBitsMap = new HashMap<String, Long>();
+               pcrValueToBitsMap = new TreeMap<String, Long>();
                portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
             }
             Long bitMask = pcrValueToBitsMap.get(pcrValue);
@@ -61,9 +60,14 @@ public class PcrInitialiser {
       }
    }
    
+   String longTo4Hex(long value) {
+      return String.format("0x%04XUL", value);
+   }
    /**
+    * Adds information required to set up the PCR associated with the given pin
     * 
     * @param pin
+    * 
     * @throws Exception 
     */
    public void addPin(Pin pin) throws Exception {
@@ -78,14 +82,14 @@ public class PcrInitialiser {
          return;
       }
 //      String pcrValue = pin.getPcrValueAsString();
-      String pcrValue = "0x"+Long.toHexString(pin.getPcrValue());
+      String pcrValue = longTo4Hex(pin.getPcrValue());
       portClockMasks.add(pin.getClockMask());
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
          long bitNum = Long.parseLong(bitNums);
-         HashMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
          if (pcrValueToBitsMap == null) {
-            pcrValueToBitsMap = new HashMap<String, Long>();
+            pcrValueToBitsMap = new TreeMap<String, Long>();
             portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
          }
          Long bitMask = pcrValueToBitsMap.get(pcrValue);
@@ -98,11 +102,11 @@ public class PcrInitialiser {
    }
    
    /**
-    * Get string to initialise PORT clocks
+    * Get string to clear the referenced PCRs
     * 
     * @return
     */
-   public String getPcrClearString(String indent) {
+   public String getPcrClearStatements(String indent) {
       
       StringBuffer sb = new StringBuffer();
 
@@ -111,7 +115,7 @@ public class PcrInitialiser {
          Long bits = 0L;
          
          // For each PCR value
-         HashMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
+         TreeMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
          for (String pcrValue:pcrToBitsMap.keySet()) {
             // Merge all bits on this port
             bits |= pcrToBitsMap.get(pcrValue);
@@ -127,25 +131,31 @@ public class PcrInitialiser {
       return sb.toString();
    }
 
-   public String getPcrInitString(String indent) {
+   /**
+    * Get string to clear the referenced PCRs
+    * 
+    * @return
+    */
+   public String getPcrInitStatements(String indent) {
       
       StringBuffer sb = new StringBuffer();
 
       // For each port
       for (String port:portToPcrValuesMap.keySet()) {
          // For each PCR value
-         HashMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
+         TreeMap<String, Long> pcrToBitsMap = portToPcrValuesMap.get(port);
          for (String pcrValue:pcrToBitsMap.keySet()) {
 //          String pcrValue = "0x"+Long.toHexString(pin.getPcrValue());
 
             // Bits that share this PCR value on this port
             Long bits = pcrToBitsMap.get(pcrValue);
+            
             if ((bits&0xFFFF) != 0) {
-               sb.append(String.format(indent+"      %s = %s|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCLR", pcrValue, Long.toHexString(bits&0xFFFF).toUpperCase()));
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCLR_GPWE(%s);\n", "((PORT_Type *)"+port+")->GPCLR", pcrValue, longTo4Hex(bits&0xFFFF)));
             }
             bits >>= 16;
             if ((bits&0xFFFF) != 0) {
-               sb.append(String.format(indent+"      %s = %s|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCHR", pcrValue, Long.toHexString(bits&0xFFFF).toUpperCase()));
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCHR_GPWE(%s);\n", "((PORT_Type *)"+port+")->GPCHR", pcrValue, longTo4Hex(bits&0xFFFF)));
             }
          }
       }
@@ -158,10 +168,11 @@ public class PcrInitialiser {
     * <code>
     *    <b>enablePortClocks(PORTA_CLOCK_MASK|PORTE_CLOCK_MASK);</b>
     * </code>
+    * 
     * @param indent 
     * @return 
     */
-   public String getInitPortClocks(String indent) {
+   public String getInitPortClocksStatement(String indent) {
       StringBuffer sb = new StringBuffer();
       boolean isFirst = true;
       for (String p:portClockMasks) {

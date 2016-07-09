@@ -13,7 +13,7 @@ public class TreeViewModel extends BaseModel {
    
    /**
     * Constructor
-    * @param columnLabels  Labels to use for columns
+    * @param parent        Parent model
     * @param title         Title
     * @param toolTip       Tool tip
     */

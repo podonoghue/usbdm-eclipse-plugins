@@ -45,9 +45,6 @@ public class SectionEditor implements IEditor {
       if (fSectionModel == model) {
          return;
       }
-      //      if ((fControl != null) && !fControl.isDisposed()) {
-      //         fControl.dispose();
-      //      }
       fSectionModel = (SectionModel) model;
       for (Object child:fSectionModel.getChildren()) {
          BaseModel pageModel = (BaseModel) child;
@@ -58,7 +55,7 @@ public class SectionEditor implements IEditor {
                   final TreeColumnInformation[] fColumnInformation = {
                         new TreeColumnInformation("Property",    350, new NameColumnLabelProvider(),        null),
                         new TreeColumnInformation("Value",       450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
-                        new TreeColumnInformation("Description", 500, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Description", 550, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
                   };
                   return fColumnInformation;
                }

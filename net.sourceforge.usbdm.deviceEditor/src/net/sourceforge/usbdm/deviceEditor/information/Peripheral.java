@@ -823,7 +823,7 @@ public abstract class Peripheral {
             indent+"    */\n"+
             indent+"   static void clearPCRs() {\n";
 
-      PcrInitialiser pcrInitialiser = new PcrInitialiser(fDeviceInfo);
+      PcrInitialiser pcrInitialiser = new PcrInitialiser();
       
       for (int index=0; index<signalTable.table.size(); index++) {
          Signal signal = signalTable.table.get(index);
@@ -833,16 +833,16 @@ public abstract class Peripheral {
          pcrInitialiser.addSignal(signal, "pcrValue");
       }
       
-      String initClocksBuffer = pcrInitialiser.getInitPortClocks(indent);
+      String initClocksBuffer = pcrInitialiser.getInitPortClocksStatement(indent);
 
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
-      pinMappingHeaderFile.write(pcrInitialiser.getPcrInitString(indent));
+      pinMappingHeaderFile.write(pcrInitialiser.getPcrInitStatements(indent));
       pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
-      pinMappingHeaderFile.write(pcrInitialiser.getPcrClearString(indent));
+      pinMappingHeaderFile.write(pcrInitialiser.getPcrClearStatements(indent));
       pinMappingHeaderFile.write(indent+"   }\n\n");
    }
      
