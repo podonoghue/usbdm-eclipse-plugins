@@ -29,6 +29,9 @@ public class Cluster extends ModeControl implements Cloneable {
    private  String               nameMacroformat   = "";
    protected Peripheral          owner;
    private boolean               hidden;
+   
+   /** Indicates Field Macros should be written even for derived registers */
+   private boolean               fDoDerivedMacros = false;
 
    Cluster(Peripheral owner) {
       this.owner            = owner;
@@ -818,7 +821,7 @@ public class Cluster extends ModeControl implements Cloneable {
    
    final Pattern arraySubscriptPattern  = Pattern.compile("^(.+)\\[%s\\]$");
    final Pattern substitutePattern      = Pattern.compile("^(.+)%s(.*)$");
-
+   
    /**
     * Gets the register at given subscript of a simple register array as a simple name e.g. ADC_RESULT10
     * 
@@ -967,6 +970,24 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public boolean isComplexArray() throws RegisterException {
       return (getDimension()>0)&&!isSimpleArray();
+   }
+
+   /**
+    * Controls whether field macros should be written even for derived registers 
+    *
+    * @param doDerivedMacros
+    */
+   public void setDoDerivedMacros(boolean doDerivedMacros) {
+      fDoDerivedMacros = doDerivedMacros;
+   }
+
+   /**
+    * Indicates if Field Macros should be written even for derived registers 
+
+    * @return
+    */
+   public boolean isDoDerivedMacros() {
+      return fDoDerivedMacros;
    }
 
 }

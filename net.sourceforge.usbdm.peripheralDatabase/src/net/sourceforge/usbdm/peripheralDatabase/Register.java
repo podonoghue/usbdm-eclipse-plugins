@@ -75,7 +75,19 @@ public class Register extends Cluster implements Cloneable {
             else if (field2.getBitOffset() > field1.getBitOffset()) {
                return -1;
             }
-            return (int)(field2.getBitwidth() - field1.getBitwidth());
+            if (field2.getBitwidth() > field1.getBitwidth()) {
+               return 1;
+            }
+            else if (field2.getBitwidth() < field1.getBitwidth()) {
+               return -1;
+            }
+            if (field2.getDerivedFrom() == field1) {
+               return -1;  
+            }
+            if (field1.getDerivedFrom() == field2) {
+               return 1;  
+            }
+            return 0;
          }
       });
       sorted = true;
@@ -476,11 +488,19 @@ public class Register extends Cluster implements Cloneable {
          writeDimensionList(writer, indent);
       }
       writer.write(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
-      
+
+      if (isHidden() != derived.isHidden()) {
+         writer.write(String.format(" <?hide?>"));
+      }
+      if (isDoDerivedMacros() != derived.isDoDerivedMacros()) {
+         writer.write(String.format(" <?doDerivedMacros?>"));
+      }
       if (!getDescription().equals(derived.getDescription())) {
          writer.write(String.format(" <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      if (getAddressOffset() != derived.getAddressOffset()) {
+         writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      }
       if (!getAccessType().equals(derived.getAccessType())) {
          writer.write(String.format(" <access>%s</access>",                 getAccessType().getPrettyName()));
       }
@@ -581,6 +601,9 @@ public class Register extends Cluster implements Cloneable {
       writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(name)));
       if (isHidden()) {
          writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
+      }
+      if (isDoDerivedMacros()) {
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.DODERIVEDMACROS_ATTRIB+"?>\n");
       }
       if ((getDescription() != null) && (getDescription().length() > 0)) {
          writer.write(String.format(indenter+"   <description>%s</description>\n",       SVD_XML_BaseParser.escapeString(getDescription())));
@@ -796,7 +819,7 @@ public class Register extends Cluster implements Cloneable {
     * @throws Exception
     */
    public void writeHeaderFileFieldMacros(Writer writer, Peripheral peripheral, String registerPrefix) throws Exception {
-      if (getDerivedFrom() != null) {
+      if ((getDerivedFrom() != null) && !isDoDerivedMacros()) {
          // Don't do macros for derived registers
          return;
       }

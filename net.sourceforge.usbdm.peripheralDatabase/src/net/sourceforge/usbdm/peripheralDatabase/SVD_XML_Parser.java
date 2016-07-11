@@ -35,6 +35,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String SOURCEFILE_ATTRIB                = "sourceFile";
    static final String IGNOREOVERLAP_ATTRIB             = "ignoreOverlap";
    static final String HIDE_ATTRIB                      = "hide";
+   static final String DODERIVEDMACROS_ATTRIB           = "doDerivedMacros";
 
    static final String ALTERNATEREGISTER_TAG    = "alternateRegister";
    static final String ACCESS_TAG               = "access";
@@ -389,7 +390,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             ProcessingInstruction element = (ProcessingInstruction) node;
             if (element.getNodeName() == HIDE_ATTRIB) {
                register.setHidden(true);
-            }            
+            }         
+            else if (element.getNodeName() == DODERIVEDMACROS_ATTRIB) {
+               register.setDoDerivedMacros(true);
+            }         
+            else {
+               System.err.println("parseRegister() - unknown attribute " + element.getNodeName());
+            }
             continue;
          }
          if (node.getNodeType() != Node.ELEMENT_NODE) {
@@ -496,8 +503,11 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             if (element.getNodeName() == HIDE_ATTRIB) {
                cluster.setHidden(true);
             }            
+            else if (element.getNodeName() == DODERIVEDMACROS_ATTRIB) {
+               cluster.setDoDerivedMacros(true);
+            }         
             else {
-               System.err.println("parseRegister() - unknown attribute " + element.getNodeName());
+               System.err.println("parseCluster() - unknown attribute " + element.getNodeName());
             }
             continue;
          }

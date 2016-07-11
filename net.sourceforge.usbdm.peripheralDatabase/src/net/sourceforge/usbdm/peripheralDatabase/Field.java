@@ -16,6 +16,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/* 
+ * How to do a hidden derived field
+ * <field derivedFrom="VLLSM" > <name>LLSM</name> <?ignoreOverlap?> <?hide?> </field>
+ */
 public class Field extends ModeControl implements Cloneable {
    static final int READ_MASK  = (1<<1); 
    static final int WRITE_MASK = (1<<2); 
@@ -345,6 +349,12 @@ public class Field extends ModeControl implements Cloneable {
          }
          if (fDerivedFrom.getAccessType() != getAccessType()) {
             writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
+         }
+         if (fDerivedFrom.isIgnoreOverlap() != isIgnoreOverlap()) {
+            writer.write(" <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>");
+         }
+         if (fDerivedFrom.isHidden() != isHidden()) {
+            writer.write(" <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
          }
          writer.write(" </field>\n");
       }
