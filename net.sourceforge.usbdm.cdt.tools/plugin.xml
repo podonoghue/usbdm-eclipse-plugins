@@ -1505,13 +1505,13 @@
                <enumeratedOptionValue
                      command="-std=c++11"
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp11"
-                     isDefault="true"
                      name="2011 ISO C++ standard plus amendments (-std=c++11)">
                </enumeratedOptionValue>
                <enumeratedOptionValue
-                  name="GNU dialect of C++11 (-std=gnu++11)"
-                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.c89"
-                  command="-std=gnu++11">
+                     command="-std=gnu++11"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.c89"
+                     isDefault="true"
+                     name="GNU dialect of C++11 (-std=gnu++11)">
                </enumeratedOptionValue>
             </option>
             <option
