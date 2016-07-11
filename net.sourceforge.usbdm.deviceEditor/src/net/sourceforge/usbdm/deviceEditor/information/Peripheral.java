@@ -573,6 +573,7 @@ public abstract class Peripheral {
             "   //! Number of IRQs for hardware\n"+
             "   static constexpr uint32_t irqCount  = %s;\n\n",
             getIrqCount()));
+      
       if (getIrqNumsAsInitialiser() != null) {
          sb.append(String.format(
                "   //! IRQ numbers for hardware\n"+

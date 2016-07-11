@@ -16,6 +16,8 @@
    <item key="$signal$PTB10_muxSetting"                    value="mux0" />
    <item key="$signal$PTB11_descriptionSetting"            value="LCD" />
    <item key="$signal$PTB11_muxSetting"                    value="mux0" />
+   <item key="$signal$PTB16_muxSetting"                    value="mux0" />
+   <item key="$signal$PTB17_muxSetting"                    value="mux0" />
    <item key="$signal$PTB21_descriptionSetting"            value="LCD" />
    <item key="$signal$PTB21_muxSetting"                    value="mux0" />
    <item key="$signal$PTB22_descriptionSetting"            value="LCD" />
@@ -32,10 +34,12 @@
    <item key="$signal$PTC18_muxSetting"                    value="mux0" />
    <item key="$signal$PTD0_descriptionSetting"             value="LCD" />
    <item key="$signal$PTD0_muxSetting"                     value="mux0" />
+   <item key="$signal$PTD5_muxSetting"                     value="mux1" />
    <item key="$signal$PTE24_descriptionSetting"            value="onboard I2C" />
    <item key="$signal$PTE24_muxSetting"                    value="mux5" />
    <item key="$signal$PTE25_descriptionSetting"            value="onboard I2C" />
    <item key="$signal$PTE25_muxSetting"                    value="mux5" />
+   <item key="$signal$PTE29_muxSetting"                    value="mux1" />
    <item key="$signal$PTE4_muxSetting"                     value="mux0" />
    <item key="$signal$PTE5_muxSetting"                     value="mux0" />
    <item key="$signal$USB0_DM_descriptionSetting"          value="USB" />
@@ -249,9 +253,9 @@
    <item key="/SMC/smc_pmprot_alls"                        value="false" />
    <item key="/SMC/smc_pmprot_avlls"                       value="false" />
    <item key="/SMC/smc_pmprot_avlp"                        value="false" />
+   <item key="/SMC/smc_stopctrl_llsm"                      value="0" />
    <item key="/SMC/smc_stopctrl_porpo"                     value="false" />
    <item key="/SMC/smc_stopctrl_pstopo"                    value="0" />
-   <item key="/SMC/smc_stopctrl_vllsm"                     value="0" />
    <item key="/SPI0/irqHandlerInstalled"                   value="false" />
    <item key="/SPI0/irqLevel"                              value="0" />
    <item key="/SPI0/speed"                                 value="10000000" />
@@ -297,24 +301,19 @@
    <item key="/TPM2/tpm_sc_toie"                           value="false" />
    <item key="/TSI0/irqHandlerInstalled"                   value="false" />
    <item key="/TSI0/irqLevel"                              value="0" />
-   <item key="/TSI0/tsi_gencs_erie"                        value="false" />
+   <item key="/TSI0/tsi_gencs_cursw"                       value="false" />
+   <item key="/TSI0/tsi_gencs_dvolt"                       value="0" />
    <item key="/TSI0/tsi_gencs_esor"                        value="true" />
-   <item key="/TSI0/tsi_gencs_lpclks"                      value="0" />
-   <item key="/TSI0/tsi_gencs_lpscnitv"                    value="9" />
+   <item key="/TSI0/tsi_gencs_extchrg"                     value="5" />
+   <item key="/TSI0/tsi_gencs_mode"                        value="0b0000" />
    <item key="/TSI0/tsi_gencs_nscn"                        value="8" />
    <item key="/TSI0/tsi_gencs_ps"                          value="3" />
+   <item key="/TSI0/tsi_gencs_refchrg"                     value="5" />
    <item key="/TSI0/tsi_gencs_stm"                         value="false" />
    <item key="/TSI0/tsi_gencs_stpe"                        value="false" />
-   <item key="/TSI0/tsi_gencs_tsiie"                       value="false" />
-   <item key="/TSI0/tsi_pen_lpsp"                          value="0" />
-   <item key="/TSI0/tsi_pen_pen"                           value="0" />
-   <item key="/TSI0/tsi_scanc_amclks"                      value="0" />
-   <item key="/TSI0/tsi_scanc_ampsc"                       value="3" />
-   <item key="/TSI0/tsi_scanc_extchrg"                     value="16" />
-   <item key="/TSI0/tsi_scanc_refchrg"                     value="16" />
-   <item key="/TSI0/tsi_scanc_smod"                        value="8" />
-   <item key="/TSI0/tsi_threshold_hthh"                    value="0" />
-   <item key="/TSI0/tsi_threshold_lthh"                    value="0" />
+   <item key="/TSI0/tsi_gencs_tsiien"                      value="false" />
+   <item key="/TSI0/tsi_tshd_thresh"                       value="65535" />
+   <item key="/TSI0/tsi_tshd_thresl"                       value="0" />
    <item key="/UART0/defaultBaudRate"                      value="115200" />
    <item key="/UART0/irqHandlerInstalled"                  value="false" />
    <item key="/UART0/irqLevel"                             value="0" />

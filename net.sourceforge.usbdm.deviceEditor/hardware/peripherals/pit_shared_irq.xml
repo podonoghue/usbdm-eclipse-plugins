@@ -35,6 +35,15 @@
    </projectActionList>
          
    <template><![CDATA[
+      \t/**
+      \t * Get clock frequency
+      \t *
+      \t * @return Input clock frequency as a uint32_t in Hz
+      \t */
+      \tstatic uint32_t getClockFrequency() {
+      \t   return SystemBusClock;
+      \t}\n\n
+   
       \t//! Default value for PIT->SC register\n
       \tstatic constexpr uint32_t loadValue  = 
       \t   $(pit_ldval);\n\n
