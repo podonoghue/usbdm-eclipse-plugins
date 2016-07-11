@@ -34,21 +34,21 @@
       <choice name="The system exits to normal RUN mode on an interrupt"  value="1" isDefault="true" />
    </binaryOption>   
       
-   <binaryOption name="smc_vllsctrl_porpo" 
+   <binaryOption name="smc_stopctrl_porpo" 
       description="POR Power Option" 
       toolTip="This bit controls whether the POR detect circuit is enabled in VLLS0 mode." >
       <choice name="POR detect circuit is enabled in VLLS0"     value="0" isDefault="true" />
       <choice name="POR detect circuit is not enabled in VLLS0" value="1" />
    </binaryOption>   
    
-   <binaryOption name="smc_vllsctrl_ram2po" 
+   <binaryOption name="smc_stopctrl_ram2po" 
       description="RAM2 Power Option" 
       toolTip="This bit controls powering of RAM partition 2 in VLLS2 mode." >
       <choice name="RAM2 not powered in VLLS2"     value="0" isDefault="true" />
       <choice name="RAM2 powered in VLLS2" value="1" />
    </binaryOption>   
    
-   <choiceOption name="smc_vllsctrl_vllsm" 
+   <choiceOption name="smc_stopctrl_vllsm" 
       description="VLLS Mode Control"
       toolTip="This field controls which VLLS sub-mode to enter if STOPM = VLLS">
       <choice value="0" name="VLLS0" />
@@ -77,10 +77,10 @@
       \t   SMC_PMCTRL_LPWUI($(smc_pmctrl_lpwui:0));   // Low Power Wake Up on Interrupt\n\n
       
       \t// VLLS Control Register
-      \tstatic constexpr uint8_t vllsctrl =  
-      \t   SMC_VLLSCTRL_PORPO($(smc_vllsctrl_porpo:0)) |  // POR Power Option
-      \t   SMC_VLLSCTRL_RAM2PO($(smc_vllsctrl_ram2po:0)) |  // RAM2 Power Option
-      \t   SMC_VLLSCTRL_VLLSM($(smc_vllsctrl_vllsm:0));   // VLLS Mode Control\n\n
+      \tstatic constexpr uint8_t stopctrl =  
+      \t   SMC_STOPCTRL_PORPO($(smc_stopctrl_porpo:0)) |  // POR Power Option
+      \t   SMC_STOPCTRL_RAM2PO($(smc_stopctrl_ram2po:0)) |  // RAM2 Power Option
+      \t   SMC_STOPCTRL_LLSM($(smc_stopctrl_vllsm:0));   // VLLS Mode Control\n\n
       
    ]]></template>
 </devicePage>

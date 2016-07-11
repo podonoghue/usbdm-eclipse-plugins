@@ -49,7 +49,7 @@
       <choice name="LPO clock is disabled in LLS/VLLSx"  value="1" />
    </binaryOption>   
    
-   <choiceOption name="smc_stopctrl_vllsm" 
+   <choiceOption name="smc_stopctrl_llsm" 
       description="LLS or VLLS Mode Control"
       toolTip="This field controls which LLS or VLLS sub-mode to enter if STOPM = VLLS">
       <choice value="0" name="VLLS0" />
@@ -69,16 +69,21 @@
    <template><![CDATA[
       \t// Power Mode Protection Register
       \tstatic constexpr uint8_t pmprot =  
+      \t   SMC_PMPROT_AHSRUN($(smc_pmprot_ahsrun:0)) |  // Allow High Speed Run mode
       \t   SMC_PMPROT_AVLP($(smc_pmprot_avlp:0)) |  // Allow very low power modes
       \t   SMC_PMPROT_ALLS($(smc_pmprot_alls:0)) |  // Allow low leakage stop mode
       \t   SMC_PMPROT_AVLLS($(smc_pmprot_avlls:0));  // Allow very low leakage stop mode\n\n
       
+      \t// Power Mode Control Register
+      \tstatic constexpr uint8_t pmctrl =  
+      \t   SMC_PMCTRL_LPWUI($(smc_pmctrl_lpwui:0));   // Low Power Wake Up on Interrupt\n\n
+      
       \t// VLLS Control Register
       \tstatic constexpr uint8_t stopctrl =  
-      \t   SMC_STOPCTRL_PSTOPO($(smc_stopctrl_pstopo:0)) |  // Partial Stop Option
-      \t   SMC_STOPCTRL_PORPO($(smc_stopctrl_porpo:0)) |  // LPO Power Option
-      \t   SMC_STOPCTRL_LPOPO($(smc_stopctrl_lpopo:0)) |  // POR Power Option
-      \t   SMC_STOPCTRL_LLSM($(smc_stopctrl_vllsm:0));   // LLS or VLLS Mode Control\n\n
+      \t   SMC_STOPCTRL_PSTOPO($(smc_stopctrl_pstopo:0)) |  // Partial Stop Option (if present)
+      \t   SMC_STOPCTRL_PORPO($(smc_stopctrl_porpo:0)) |  // POR Power Option
+      \t   SMC_STOPCTRL_LPOPO($(smc_stopctrl_lpopo:0)) |  // POR Power Option (if present)
+      \t   SMC_STOPCTRL_LLSM($(smc_stopctrl_llsm:0));   // LLS or VLLS Mode Control\n\n
       
    ]]></template>
 </devicePage>
