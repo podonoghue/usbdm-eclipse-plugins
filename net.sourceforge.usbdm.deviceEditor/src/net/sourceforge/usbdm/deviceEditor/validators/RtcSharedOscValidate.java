@@ -53,9 +53,6 @@ public class RtcSharedOscValidate extends Validator {
 
       Variable     rtc_1hz_clockVar                =  getVariable("rtc_1hz_clock");
 
-      Variable     rtc_irqHandlerVar               =  getVariable("irqHandler");
-      Variable     rtc_irqLevelVar                 =  getVariable("irqLevel");
-
       //=========================================
       // Check input clock/oscillator ranges
       //   - Determine mcg_c2_range
@@ -67,8 +64,6 @@ public class RtcSharedOscValidate extends Validator {
       rtc_cr_umVar.enable(rtc_cr_osce);
       rtc_cr_supVar.enable(rtc_cr_osce);
       rtc_cr_wpeVar.enable(rtc_cr_osce);
-      rtc_irqHandlerVar.enable(rtc_cr_osce);
-      rtc_irqLevelVar.enable(rtc_cr_osce);
       
       // RTC Clocks
       //==============================
