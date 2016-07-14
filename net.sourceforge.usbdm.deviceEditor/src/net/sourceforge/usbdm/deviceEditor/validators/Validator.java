@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -134,6 +135,40 @@ public abstract class Validator {
          throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
       }
       return (LongVariable) variable;
+   }
+
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    * @throws Exception 
+    */
+   DoubleVariable getDoubleVariable(String key) throws Exception {
+      Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
+      if (!(variable instanceof DoubleVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+      }
+      return (DoubleVariable) variable;
+   }
+
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    */
+   DoubleVariable safeGetDoubleVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof DoubleVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+      }
+      return (DoubleVariable) variable;
    }
 
    /**

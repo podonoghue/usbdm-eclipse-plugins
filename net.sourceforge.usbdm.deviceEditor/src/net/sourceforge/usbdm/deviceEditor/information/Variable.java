@@ -59,6 +59,9 @@ public abstract class Variable extends ObservableModel {
    /** Origin of variable value */
    private String fOrigin = null;
 
+   /** Indicates this variable is derived (calculated) from other variables */
+   private boolean fDerived = false;
+
    private final boolean debug = false;
 
    /** Default value for variable */
@@ -442,7 +445,24 @@ public abstract class Variable extends ObservableModel {
          System.err.println(string);
       }
    }
-
+   
+   /** 
+    * Sets if this variable is derived (calculated) from other variables 
+    * 
+    * @param derived 
+    */
+   public void setDerived(boolean derived) {
+      fDerived = derived;
+   }
+   
+   /** 
+    * Gets if this variable is derived (calculated) from other variables 
+    * 
+    * @return  
+    */
+   public boolean isDerived() {
+      return fDerived;
+   }
 //   /**
 //    * Sets default value for variable
 //    * 

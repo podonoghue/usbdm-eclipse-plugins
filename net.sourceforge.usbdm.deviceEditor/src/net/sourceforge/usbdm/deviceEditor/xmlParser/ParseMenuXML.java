@@ -138,6 +138,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
@@ -183,6 +184,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
@@ -222,6 +224,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
@@ -264,6 +267,7 @@ public class ParseMenuXML extends XML_BaseParser {
       fProvider.addVariable(variable);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
@@ -329,6 +333,7 @@ public class ParseMenuXML extends XML_BaseParser {
       NumericListVariable variable = new NumericListVariable(name, key);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
@@ -419,10 +424,11 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
       String  description = varElement.getAttribute("description");
       String  toolTip     = getToolTip(varElement);
-      
+
       BooleanVariable variable = new BooleanVariable(name, key);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
