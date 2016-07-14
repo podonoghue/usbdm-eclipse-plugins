@@ -4,7 +4,7 @@
 
 <devicePage xmlns:xi="http://www.w3.org/2001/XInclude" name="_instance" description="Flex timer">
 
-   <intOption name="tpmMinimumResolution" description="Minimum resolution for TPM interval"
+   <intOption name="minimumResolution" description="Minimum resolution for TPM interval"
       toolTip="This value is used as a minimum value for the timer interval in ticks \n
          so that a reasonable resolution is available for PWM duty-cycle"
       value="100" min="0" />
@@ -110,7 +110,7 @@
    </projectActionList>
          
    <template><![CDATA[
-      \tstatic constexpr uint32_t tpmMinimumResolution=$(tpmMinimumResolution);\n\n
+      \tstatic constexpr uint32_t minimumResolution=$(minimumResolution);\n\n
       
       \t/**
       \t * Get input clock frequency
