@@ -66,5 +66,4 @@ public class DoubleVariableModel extends VariableModel {
       }
       return (sb.length() == 0)?null:sb.toString();
    }
-   
 }

@@ -25,6 +25,7 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BitmaskModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
 import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
 import net.sourceforge.usbdm.deviceEditor.model.LongVariableModel;
@@ -75,9 +76,9 @@ public class ValueColumnEditingSupport extends EditingSupport {
          LongVariableModel model = (LongVariableModel)element;
          return new NumericTextCellEditor(fViewer.getTree(), model);
       }      
-      if (element instanceof StringVariableModel) {
-         StringVariableModel model = (StringVariableModel)element;
-         return new StringCellEditor(fViewer.getTree(), model);
+      if (element instanceof DoubleVariableModel) {
+         DoubleVariableModel model = (DoubleVariableModel)element;
+         return new DoubleTextCellEditor(fViewer.getTree(), model);
       }      
       if (element instanceof FilePathModel) {
          return new HardwareCellEditor(fViewer.getTree());
@@ -123,6 +124,29 @@ public class ValueColumnEditingSupport extends EditingSupport {
       }
       
       public NumericTextCellEditor(Tree parent, LongVariableModel model) {
+         super(parent, SWT.SINGLE);
+         setValueValid(true);
+         Validator validator =  new Validator(model);
+         setValidator(validator);
+      }
+   }
+   
+   static class DoubleTextCellEditor extends TextCellEditor {
+
+      class Validator implements ICellEditorValidator {
+         DoubleVariableModel fModel;
+         
+         Validator(DoubleVariableModel model) {
+            fModel = model;
+         }
+         
+         @Override
+         public String isValid(Object value) {
+            return fModel.isValid(value.toString());
+         }
+      }
+      
+      public DoubleTextCellEditor(Tree parent, DoubleVariableModel model) {
          super(parent, SWT.SINGLE);
          setValueValid(true);
          Validator validator =  new Validator(model);
