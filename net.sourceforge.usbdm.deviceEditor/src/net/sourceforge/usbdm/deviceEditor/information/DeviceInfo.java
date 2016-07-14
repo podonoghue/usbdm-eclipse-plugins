@@ -1462,7 +1462,10 @@ public class DeviceInfo extends ObservableModel {
          for (String key:fVariables.keySet()) {
             String value = settings.get(key);
             if (value != null) {
-               fVariables.get(key).setPersistentValue(value);
+               Variable var = fVariables.get(key);
+               if (!var.isDerived()) {
+                  var.setPersistentValue(value);
+               }
             }
          }
          for (String peripheralName:fPeripheralsMap.keySet()) {
@@ -1507,7 +1510,10 @@ public class DeviceInfo extends ObservableModel {
       }
       // Save variables
       for (String key:fVariables.keySet()) {
-         settings.put(key, fVariables.get(key).getPersistentValue());
+         Variable var = fVariables.get(key);
+         if (!var.isDerived()) {
+            settings.put(key, var.getPersistentValue());
+         }
       }
       try {
          settings.save(fProjectSettingsPath.toAbsolutePath());
