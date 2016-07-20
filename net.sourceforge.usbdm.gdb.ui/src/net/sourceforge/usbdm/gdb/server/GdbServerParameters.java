@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 import org.eclipse.cdt.debug.core.CDebugUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-//import org.eclipse.core.runtime.IStatus;
-//import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 
@@ -40,9 +38,9 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  */
 public class GdbServerParameters {
 
-   private InterfaceType         interfaceType;
-   private String                deviceName;
-   private String                bdmSerialNumber;
+   private InterfaceType         interfaceType = InterfaceType.T_ARM;
+   private String                deviceName = "";
+   private String                bdmSerialNumber = "";
    private boolean               bdmSerialNumberMatchRequired;
    private int                   gdbServerPortNumber;
    private int                   gdbTtyPortNumber;
@@ -50,7 +48,7 @@ public class GdbServerParameters {
    private boolean               useDebugVersion;
    private boolean               exitOnClose;
    
-   private EraseMethod           eraseMethod;
+   private EraseMethod           eraseMethod = EraseMethod.ERASE_MASS;
    private boolean               trimClock;
    private int                   clockTrimFrequency;
    private long                  nvmClockTrimLocation;
@@ -256,14 +254,14 @@ public class GdbServerParameters {
    }
 
    public void setBdmSerialNumber(String serialNumber, boolean serialNumberMatchRequired ) {
-      this.bdmSerialNumber = null;
+      this.bdmSerialNumber = "";
       if (serialNumber != null) {
          serialNumber = serialNumber.trim();
          if (!serialNumber.isEmpty()) {
             this.bdmSerialNumber = serialNumber;
          }
       }
-      this.bdmSerialNumberMatchRequired = serialNumberMatchRequired && (this.bdmSerialNumber != null);
+      this.bdmSerialNumberMatchRequired = serialNumberMatchRequired && !this.bdmSerialNumber.isEmpty();
    }
 
    public void setBdmSerialNumber(String serialNumber) {
@@ -626,7 +624,7 @@ public class GdbServerParameters {
       }
       commandList.add(getGdbServerPortNumberAsOption());
       commandList.add(getGdbTtyPortNumberAsOption());
-      if ((getBdmSerialNumber() != null) && !getBdmSerialNumber().equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber)) {
+      if (!getBdmSerialNumber().isEmpty() && !getBdmSerialNumber().equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber)) {
          if (isBdmSerialNumberMatchRequired()) {
             commandList.add("-requiredBdm="+getBdmSerialNumber());
          }
@@ -693,8 +691,8 @@ public class GdbServerParameters {
       
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
 
-      setDeviceName(                                  settings.get(getKey(deviceNameKey),                   null));
-      setBdmSerialNumber(                             settings.get(getKey(bdmSerialNumberKey),              null));
+      setDeviceName(                                  settings.get(getKey(deviceNameKey),                   ""));
+      setBdmSerialNumber(                             settings.get(getKey(bdmSerialNumberKey),              ""));
       enableBdmSerialNumberMatchRequired(             settings.get(getKey(bdmSerialNumberMatchRequiredKey), false));
       setGdbServerPortNumber(                         settings.get(getKey(SERVER_PORT_KEY),                 1234));
       setGdbTtyPortNumber(                            settings.get(getKey(TTY_PORT_KEY),                    4321));

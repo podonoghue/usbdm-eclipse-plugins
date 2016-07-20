@@ -813,10 +813,10 @@ public class UsbdmDebuggerPanel {
    private void populateInterfaceTypes(InterfaceType interfaceTypeToSelect) {
 //      System.err.println("populateInterfaceTypes() "+ interfaceTypeToSelect);
       int index = 0;
-      comboInterfaceType.removeAll();
       if (comboInterfaceTypeListener != null) {
          comboInterfaceType.removeModifyListener(comboInterfaceTypeListener);
       }
+      comboInterfaceType.removeAll();
       for (InterfaceType interfaceType : InterfaceType.values()) {
          comboInterfaceType.add(interfaceType.toString());
          interfaceTypes[index++] = interfaceType;
@@ -866,20 +866,20 @@ public class UsbdmDebuggerPanel {
       comboInterfaceType.setEnabled(!fixed);
    }
 
-   private void setInterface(InterfaceType interfaceType) {
-      setInterface(interfaceType, false);
-   }
-   
-   @SuppressWarnings("unused")
-   private void setInterface(String interfaceTypeName) {
-      InterfaceType interfaceType = InterfaceType.valueOf(interfaceTypeName);
-      setInterface(interfaceType);
-   }
+//   private void setInterface(InterfaceType interfaceType) {
+//      setInterface(interfaceType, false);
+//   }
+//   
+//   @SuppressWarnings("unused")
+//   private void setInterface(String interfaceTypeName) {
+//      InterfaceType interfaceType = InterfaceType.valueOf(interfaceTypeName);
+//      setInterface(interfaceType);
+//   }
 
    private InterfaceType getInterfaceType() {
       int deviceIndex = comboInterfaceType.getSelectionIndex();
       if (deviceIndex<0) {
-         return null;
+         deviceIndex = 0;
       }
       return interfaceTypes[deviceIndex];
    }
@@ -1350,7 +1350,7 @@ public class UsbdmDebuggerPanel {
 
       try {
          // Get interface type from settings
-         InterfaceType       interfaceType = null;
+         InterfaceType       interfaceType       = null;
          ToolInformationData toolInformationData = null;
 
          if (configuration != null) {
