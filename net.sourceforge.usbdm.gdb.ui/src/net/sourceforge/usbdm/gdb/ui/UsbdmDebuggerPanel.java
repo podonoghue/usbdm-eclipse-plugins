@@ -1272,6 +1272,7 @@ public class UsbdmDebuggerPanel {
       if (gdbServerParameters == null) {
          return;
       }
+      txtTargetDeviceName.setText(               gdbServerParameters.getDeviceName());
       populateBdmChoices(                        gdbServerParameters.getBdmSerialNumber(), true);
       btnRequireExactBdm.setSelection(           gdbServerParameters.isBdmSerialNumberMatchRequired());
       txtGdbServerPortAdapter.setDecimalValue(   gdbServerParameters.getGdbServerPortNumber());
