@@ -124,9 +124,14 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return
     */
    private TabModel createParameterModels() {
-      if (fParameterModels != null) {
-         return fParameterModels;
-      }
+      System.err.println("createParameterModels()");
+      //XXX Working here
+//      if (fParameterModels != null) {
+////         for (Object m:fParameterModels.getChildren()) {
+////            BaseModel model = (BaseModel) m;
+////         }
+//         return fParameterModels;
+//      }
       fParameterModels = new TabModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
