@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.annotationEditor;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -18,7 +19,7 @@ public class Activator extends AbstractUIPlugin {
    public static final String PLUGIN_ID = "net.sourceforge.usbdm.annotationEditor"; //$NON-NLS-1$
 
    // The shared instance
-   private static Activator plugin;
+   private static Activator plugin = null;
 
    /**
     * The constructor
@@ -28,7 +29,9 @@ public class Activator extends AbstractUIPlugin {
 
    /*
     * (non-Javadoc)
-    * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+    * 
+    * @see
+    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
    public void start(BundleContext context) throws Exception {
       super.start(context);
@@ -38,7 +41,9 @@ public class Activator extends AbstractUIPlugin {
 
    /*
     * (non-Javadoc)
-    * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+    * 
+    * @see
+    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
@@ -53,17 +58,6 @@ public class Activator extends AbstractUIPlugin {
     */
    public static Activator getDefault() {
       return plugin;
-   }
-
-   /**
-    * Returns an image descriptor based on an key
-    *
-    * @param key Key to lookup image 
-    * 
-    * @return The image descriptor
-    */
-   public ImageDescriptor getImageDescriptor(String key) {
-      return getImageRegistry().getDescriptor(key);
    }
 
    @Override
@@ -89,4 +83,42 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_INVALID_NODE_IMAGE        = "error";
    public final static String ID_WARNING_NODE_IMAGE        = "warning";
    public final static String ID_LOCKED_NODE_IMAGE         = "locked";
+
+   /**
+    * Returns an image descriptor based on an key
+    *
+    * @param key Key to lookup image 
+    * 
+    * @return The image descriptor
+    */
+   public static ImageDescriptor getImageDescriptor(String key) {
+      return getDefault().getImageRegistry().getDescriptor(key);
+   }
+
+   public static String getPluginId() {
+      return PLUGIN_ID;
+   }
+
+   public static BundleContext getBundleContext() {
+      return getDefault().getBundle().getBundleContext();
+   }
+
+   /**
+    * @since 5.0
+    */
+   static public void log(String msg) {
+      log(msg, null);
+   }
+
+   /**
+    * @since 5.0
+    */
+   static public void log(String msg, Exception e) {
+      getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
+   }
+
+   static public void error(String msg, Exception e) {
+      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
+   }
+
 }

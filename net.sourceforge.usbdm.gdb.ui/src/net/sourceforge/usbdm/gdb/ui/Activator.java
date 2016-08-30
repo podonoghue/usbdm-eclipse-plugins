@@ -1,9 +1,8 @@
-package net.sourceforge.usbdm.gdb;
+package net.sourceforge.usbdm.gdb.ui;
 
-import org.eclipse.cdt.utils.Platform;
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -15,18 +14,18 @@ import org.osgi.framework.BundleContext;
  * The activator class controls the plug-in life cycle
  * @since 4.12
  */
-public class UsbdmGdbServer extends AbstractUIPlugin {
+public class Activator extends AbstractUIPlugin {
 
    // The plug-in ID
-   private static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
+   public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
 
    // The shared instance
-   private static UsbdmGdbServer plugin;
+   private static Activator plugin = null;
 
    /**
     * The constructor
     */
-   public UsbdmGdbServer() {
+   public Activator() {
    }
 
    /*
@@ -39,10 +38,7 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
-      System.err.println("net.sourceforge.usbdm.gdb.UsbdmGdbServer.start()");
-//      System.err.println("USBDM::Activator::start() - "
-//            + getDefault().getBundle().getSymbolicName() + " : "
-//            + getDefault().getBundle().getVersion());
+      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
    }
 
    /*
@@ -53,65 +49,73 @@ public class UsbdmGdbServer extends AbstractUIPlugin {
     * )
     */
    public void stop(BundleContext context) throws Exception {
-      System.err.println("net.sourceforge.usbdm.gdb.UsbdmGdbServer.stop()");
-//      System.err.println("USBDM::Activator::stop()");
       plugin = null;
+      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
       super.stop(context);
    }
 
    /**
     * Returns the shared instance
-    * 
+    *
     * @return the shared instance
     */
-   public static UsbdmGdbServer getDefault() {
-//       System.err.println("USBDM::Activator::getDefault()");
+   public static Activator getDefault() {
       return plugin;
    }
 
-
    @Override
    protected void initializeImageRegistry(ImageRegistry registry) {
-       super.initializeImageRegistry(registry);
-       Bundle bundle = Platform.getBundle(PLUGIN_ID);
-       
-       ImageDescriptor imageDescriptor;
-       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
-       registry.put(ID_COG_IMAGE, imageDescriptor);
-       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/bug.png"), null));
-       registry.put(ID_BUG_IMAGE, imageDescriptor);
-       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/arrow.png"), null));
-       registry.put(ID_ARROW_IMAGE, imageDescriptor);
+      super.initializeImageRegistry(registry);
+      Bundle bundle = Platform.getBundle(PLUGIN_ID);
+
+      ImageDescriptor imageDescriptor;
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
+      registry.put(ID_COG_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/bug.png"), null));
+      registry.put(ID_BUG_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/arrow.png"), null));
+      registry.put(ID_ARROW_IMAGE, imageDescriptor);
    }
 
    public final static String ID_COG_IMAGE                    = "cog-image";
    public final static String ID_BUG_IMAGE                    = "bug-image";
    public final static String ID_ARROW_IMAGE                  = "arrow-image";
-   
-   public ImageDescriptor getImageDescriptor(String key) {
-      return getImageRegistry().getDescriptor(key);
+
+   /**
+    * Returns an image descriptor based on an key
+    *
+    * @param key Key to lookup image 
+    * 
+    * @return The image descriptor
+    */
+   public static ImageDescriptor getImageDescriptor(String key) {
+      return getDefault().getImageRegistry().getDescriptor(key);
    }
-   
+
    public static String getPluginId() {
       return PLUGIN_ID;
-   }
-   
-   /**
-    * Logs the specified status with this plug-in's log.
-    * 
-    * @param status status to log
-    */
-   public static void log(IStatus status) {
-      getDefault().getLog().log(status);
-   }
-   /**
-    * @since 7.0
-    */
-   public static void log(Throwable t) {
-      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, t.getMessage(), t));
    }
 
    public static BundleContext getBundleContext() {
       return getDefault().getBundle().getBundleContext();
    }
+
+   /**
+    * @since 5.0
+    */
+   static public void log(String msg) {
+      log(msg, null);
+   }
+
+   /**
+    * @since 5.0
+    */
+   static public void log(String msg, Exception e) {
+      getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
+   }
+
+   static public void error(String msg, Exception e) {
+      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
+   }
+
 }

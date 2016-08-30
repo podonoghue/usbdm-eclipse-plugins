@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.peripherals.configuration;
+
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -12,14 +12,15 @@ import org.osgi.framework.BundleContext;
 
 /**
  * The activator class controls the plug-in life cycle
+ * @since 4.12
  */
 public class Activator extends AbstractUIPlugin {
 
    // The plug-in ID
-   public static final String PLUGIN_ID = "net.sourceforge.usbdm.peripherals.configuration"; //$NON-NLS-1$
+   public static final String PLUGIN_ID = "net.sourceforge.usbdm.gdb.ui"; //$NON-NLS-1$
 
    // The shared instance
-   private static Activator plugin = null;
+   private static Activator plugin;
 
    /**
     * The constructor
@@ -31,7 +32,8 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
+    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
+    * )
     */
    public void start(BundleContext context) throws Exception {
       super.start(context);
@@ -43,7 +45,8 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
+    * )
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
@@ -60,6 +63,7 @@ public class Activator extends AbstractUIPlugin {
       return plugin;
    }
 
+
    @Override
    protected void initializeImageRegistry(ImageRegistry registry) {
       super.initializeImageRegistry(registry);
@@ -68,9 +72,15 @@ public class Activator extends AbstractUIPlugin {
       ImageDescriptor imageDescriptor;
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/cog.png"), null));
       registry.put(ID_COG_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/bug.png"), null));
+      registry.put(ID_BUG_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/arrow.png"), null));
+      registry.put(ID_ARROW_IMAGE, imageDescriptor);
    }
 
    public final static String ID_COG_IMAGE                    = "cog-image";
+   public final static String ID_BUG_IMAGE                    = "bug-image";
+   public final static String ID_ARROW_IMAGE                  = "arrow-image";
 
    /**
     * Returns an image descriptor based on an key
@@ -79,8 +89,8 @@ public class Activator extends AbstractUIPlugin {
     * 
     * @return The image descriptor
     */
-   public static ImageDescriptor getImageDescriptor(String key) {
-      return getDefault().getImageRegistry().getDescriptor(key);
+   public ImageDescriptor getImageDescriptor(String key) {
+      return getImageRegistry().getDescriptor(key);
    }
 
    public static String getPluginId() {
