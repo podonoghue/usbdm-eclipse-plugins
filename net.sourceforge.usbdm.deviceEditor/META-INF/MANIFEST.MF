@@ -2,15 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM DeviceEditor Editor
 Bundle-SymbolicName: net.sourceforge.usbdm.deviceEditor;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.deviceEditor.Activator
-Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.ui,
- net.sourceforge.usbdm.jni;bundle-version="4.12.1",
- net.sourceforge.usbdm.cdt.tools;bundle-version="4.12.1",
- net.sourceforge.usbdm.peripheralDatabase;bundle-version="4.12.1",
- net.sourceforge.usbdm.deviceDatabase;bundle-version="4.12.1",
- org.eclipse.ui.workbench
+Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="5.0.0",
+ net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
+ net.sourceforge.usbdm.jni;bundle-version="5.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
+ org.eclipse.core.runtime,
+ org.eclipse.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.core.resources,
@@ -19,7 +18,6 @@ Import-Package: org.eclipse.core.resources,
  org.eclipse.swt.events,
  org.eclipse.swt.graphics,
  org.eclipse.swt.widgets,
- org.eclipse.ui.texteditor,
  org.eclipse.ui.views.contentoutline
 Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.deviceEditor.editor,

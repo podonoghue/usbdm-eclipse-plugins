@@ -3,13 +3,13 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Name: USBDM GDB Debugger Plugin
 Bundle-Vendor: USBDM
-Bundle-Activator: net.sourceforge.usbdm.gdb.UsbdmGdbServer
+Bundle-Activator: net.sourceforge.usbdm.gdb.ui.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
-Bundle-Version: 4.12.1.qualifier
-Require-Bundle: net.sourceforge.usbdm.constants,
- net.sourceforge.usbdm.deviceDatabase,
- net.sourceforge.usbdm.jni,
+Bundle-Version: 5.0.0.qualifier
+Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
+ net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.debug.ui,
@@ -21,8 +21,7 @@ Require-Bundle: net.sourceforge.usbdm.constants,
  org.eclipse.ui.console,
  org.eclipse.cdt.dsf.ui;bundle-version="2.3.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: net.sourceforge.usbdm.gdb,
- net.sourceforge.usbdm.gdb.server,
+Export-Package:  net.sourceforge.usbdm.gdb.server,
  net.sourceforge.usbdm.gdb.ttyConsole,
  net.sourceforge.usbdm.gdb.ui
 Import-Package: org.eclipse.cdt.core.model,

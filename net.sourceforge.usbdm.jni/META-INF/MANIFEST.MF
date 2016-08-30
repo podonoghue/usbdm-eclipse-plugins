@@ -9,14 +9,15 @@ Bundle-NativeCode:
 Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
-Bundle-Version: 4.12.1.qualifier
-Require-Bundle: org.eclipse.core.runtime
+Bundle-Version: 5.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.jni
 Bundle-Vendor: USBDM
 Bundle-ClassPath: .
-Import-Package: org.eclipse.jface.resource,
+Import-Package: org.eclipse.core.runtime;version="3.4.0",
+ org.eclipse.jface.resource,
  org.eclipse.swt,
  org.eclipse.swt.widgets,
- org.eclipse.ui.plugin
+ org.eclipse.ui.plugin,
+ org.osgi.framework;version="1.8.0"

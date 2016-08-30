@@ -2,10 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM CDT Toolchain
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.tools;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.tools.Activator
-Require-Bundle: net.sourceforge.usbdm.constants,
- net.sourceforge.usbdm.jni,
+Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
+ net.sourceforge.usbdm.jni;bundle-version="5.0.0",
+ net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
@@ -19,4 +21,3 @@ Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.tools.scanners,
  net.sourceforge.usbdm.cdt.utilties
-Import-Package: net.sourceforge.usbdm.packageParser

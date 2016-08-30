@@ -2,20 +2,19 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Peripheral View
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.view;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.view.Activator
-Require-Bundle: org.eclipse.ui,
+Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
+ net.sourceforge.usbdm.jni;bundle-version="5.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
+ net.sourceforge.usbdm.peripherals.usbdm;bundle-version="5.0.0",
+ net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
+ org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.dsf.gdb,
- net.sourceforge.usbdm.constants,
  org.eclipse.cdt.core
 Bundle-ActivationPolicy: lazy
-Import-Package: net.sourceforge.usbdm.constants,
- net.sourceforge.usbdm.deviceDatabase.ui,
- net.sourceforge.usbdm.jni,
- net.sourceforge.usbdm.peripheralDatabase,
- net.sourceforge.usbdm.peripherals.usbdm,
- org.eclipse.cdt.dsf.concurrent,
+Import-Package: org.eclipse.cdt.dsf.concurrent,
  org.eclipse.cdt.dsf.datamodel,
  org.eclipse.cdt.dsf.debug.service,
  org.eclipse.cdt.dsf.debug.service.command,

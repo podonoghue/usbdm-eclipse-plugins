@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Configuration
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.configuration;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.configuration.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime

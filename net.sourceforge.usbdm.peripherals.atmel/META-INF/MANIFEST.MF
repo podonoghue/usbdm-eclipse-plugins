@@ -2,11 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Atmel device peripheral descriptions
 Bundle-SymbolicName: net.sourceforge.usbdm.peripherals.atmel;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.atmel.Activator
 Bundle-Vendor: USBDM
-Require-Bundle: org.eclipse.core.runtime,
- net.sourceforge.usbdm.peripheralDatabase,
- org.eclipse.osgi
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
+Import-Package: org.osgi.framework
+Require-Bundle: net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0"

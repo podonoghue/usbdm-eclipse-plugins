@@ -2,14 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM CDT User Interface
 Bundle-SymbolicName: net.sourceforge.usbdm.cdt.ui;singleton:=true
-Bundle-Version: 4.12.1.qualifier
+Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.ui.Activator
-Require-Bundle: net.sourceforge.usbdm.cdt.tools,
- net.sourceforge.usbdm.constants,
- net.sourceforge.usbdm.deviceDatabase,
- net.sourceforge.usbdm.gdb.ui,
- net.sourceforge.usbdm.jni,
- net.sourceforge.usbdm.peripheralDatabase,
+Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="5.0.0",
+ net.sourceforge.usbdm.constants;bundle-version="5.0.0",
+ net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
+ net.sourceforge.usbdm.gdb.ui;bundle-version="5.0.0",
+ net.sourceforge.usbdm.jni;bundle-version="5.0.0",
+ net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
  org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.cdt.core,
@@ -59,7 +59,6 @@ Import-Package: net.sourceforge.usbdm.deviceEditor.information,
  org.eclipse.cdt.dsf.mi.service.command.commands,
  org.eclipse.cdt.dsf.mi.service.command.output,
  org.eclipse.cdt.dsf.service,
- org.eclipse.core.resources,
  org.eclipse.core.variables,
  org.eclipse.ui.ide
 Bundle-Vendor: USBDM
