@@ -23,7 +23,7 @@ class MyAction extends Action {
       setText(text);
       setToolTipText(toolTip);
       if ((imageId != null) && (Activator.getDefault() != null)) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(imageId);
+         ImageDescriptor imageDescriptor = Activator.getImageDescriptor(imageId);
          setImageDescriptor(imageDescriptor);
       }
    }

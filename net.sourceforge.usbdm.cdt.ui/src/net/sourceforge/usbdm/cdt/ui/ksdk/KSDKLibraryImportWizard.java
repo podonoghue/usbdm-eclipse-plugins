@@ -20,7 +20,7 @@ import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -124,14 +124,15 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
    }
 
    @Override
-   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-      final int WORK_SCALE = 1000;
+   public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
       System.err.println("KSDKLibraryImportWizard.run()");
+      
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
+      monitor.beginTask("Importing KDS Library", 100);
 
       Map<String, String> paramMap = new HashMap<String, String>(); 
             
       try {
-         monitor.beginTask("Importing KDS Library", WORK_SCALE*100);
          kdsLibraryImportWizardPage.getPageData(paramMap);
          
          Device device = getDevice(paramMap.get(UsbdmConstants.TARGET_DEVICE_KEY));
@@ -146,20 +147,20 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
 
          // Create project
          System.err.println("KSDKLibraryImportWizard.run() - Creating project");
-         IProject project = new CDTProjectManager().createCDTProj(paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
+         IProject project = new CDTProjectManager().createCDTProj(paramMap, monitor.newChild(30));
          
          // Apply default device project options
          System.err.println("KSDKLibraryImportWizard.run() - Applying deviceActionLists");
-         ProcessProjectActions.process(this, project, device, deviceActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
+         ProcessProjectActions.process(this, project, device, deviceActionList, paramMap, monitor.newChild(30));
          
          // Apply Library options
          System.err.println("KSDKLibraryImportWizard.run() - Getting libraryActionList");
          ProjectActionList libraryActionList = kdsLibraryImportWizardPage.getProjectActionList();
          
          System.err.println("KSDKLibraryImportWizard.run() - Applying libraryActionList");
-         ProcessProjectActions.process(this, project, device, libraryActionList, paramMap, new SubProgressMonitor(monitor, WORK_SCALE*30));
+         ProcessProjectActions.process(this, project, device, libraryActionList, paramMap, monitor.newChild(30));
 
-         updateConfigurations(project, new SubProgressMonitor(monitor, WORK_SCALE*10));
+         updateConfigurations(project, monitor.newChild(10));
          
       } catch (Exception e) {
          e.printStackTrace();

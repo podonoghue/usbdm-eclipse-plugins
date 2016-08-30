@@ -33,7 +33,7 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
+import net.sourceforge.usbdm.gdb.ui.Activator;
 
 public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
 
@@ -66,12 +66,12 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
     */
    @Execute
    public void stepInitializeFinalLaunchSequence_7_2(RequestMonitor rm) {
-      DsfServicesTracker tracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), getSession().getId());
+      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), getSession().getId());
       fGdbControl = tracker.getService(IGDBControl.class);
       tracker.dispose();
       
         if (fGdbControl == null) {
-         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), IDsfStatusConstants.INTERNAL_ERROR, "Cannot obtain service", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, Activator.getPluginId(), IDsfStatusConstants.INTERNAL_ERROR, "Cannot obtain service", null)); //$NON-NLS-1$
          rm.done();
          return;
       }

@@ -15,7 +15,7 @@ import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -396,8 +396,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    }
 
    @Override
-   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+   public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
       final int WORK_SCALE = 1000;
+      SubMonitor monitor = SubMonitor.convert(progressMonitor, WORK_SCALE);
+
 //      System.err.println("UsbdmNewProjectWizard.run()");
 
       // Used to suppress indexing while project is constructed
@@ -415,15 +417,15 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
 
          // Create project
-         IProject project = new CDTProjectManager().createCDTProj(fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         IProject project = new CDTProjectManager().createCDTProj(fParamMap, monitor.newChild(WORK_SCALE*20));
          
          // Apply device project options
-         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE*20));
          
          // Generate CPP code as needed
-         DeviceInfo.generateFiles(project, new SubProgressMonitor(monitor, WORK_SCALE*5));
+         DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE*5));
 
-         reindexProject(project, new SubProgressMonitor(monitor, WORK_SCALE*20));
+         reindexProject(project, monitor.newChild(WORK_SCALE*20));
          
          // Allow indexing
          CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);

@@ -14,8 +14,6 @@
  */
 package net.sourceforge.usbdm.gdb.ui;
 
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
-
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -52,7 +50,7 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
 
    @Override
    public Image getImage() {
-      ImageDescriptor imageDescriptor = UsbdmGdbServer.getDefault().getImageDescriptor(UsbdmGdbServer.ID_BUG_IMAGE);
+      ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_BUG_IMAGE);
       return imageDescriptor.createImage();
    }
 

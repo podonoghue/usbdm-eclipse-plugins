@@ -2,7 +2,7 @@
 <feature
       id="net.sourceforge.usbdm.cw.feature"
       label="USBDM Codewarrior Feature"
-      version="4.12.1.qualifier"
+      version="5.0.0.qualifier"
       provider-name="USBDM"
       plugin="net.sourceforge.usbdm.cw.debugPlugin"
       os="linux,win32"

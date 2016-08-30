@@ -121,18 +121,13 @@
    </extension>
    <extension
          point="org.eclipse.ui.menus">
-        <menuContribution
+      <menuContribution
+            allPopups="false"
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
                id="net.sourceforge.usbdm.cdt.wizard.menus.usbdmMenu"
                label="USBDM"
-               mnemonic="U"
-               sibling_order="&lt;command&#x0D;&#x0A;                  
-               commandId=&quot;net.sourceforge.usbdm.cdt.wizard.commands.exampleCommand&quot;&#x0D;&#x0A;                  
-               helpContextId=&quot;net.sourceforge.usbdm.cdt.wizard.commands.configureHelp.basic&quot;&#x0D;&#x0A;                  
-               icon=&quot;icons/cog.png&quot;&#x0D;&#x0A;                  
-               id=&quot;net.sourceforge.usbdm.cdt.wizard.menus.exampleMenuItem&quot;&#x0D;&#x0A;                  
-               mnemonic=&quot;E&quot;&gt;&#x0D;&#x0A;            &lt;/command&gt;">
+               mnemonic="U">
             <command
                   commandId="net.sourceforge.usbdm.cdt.wizard.commands.newProjectCommand"
                   icon="icons/cog.png"

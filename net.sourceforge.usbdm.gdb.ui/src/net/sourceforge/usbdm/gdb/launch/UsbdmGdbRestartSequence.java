@@ -27,8 +27,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
+import net.sourceforge.usbdm.gdb.ui.Activator;
 
 /**
  * Runs sequence to restart target
@@ -125,11 +125,11 @@ public class UsbdmGdbRestartSequence extends Sequence {
             public void execute(RequestMonitor rm) {
 //               System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepInitRestartSequence()");
 
-               fTracker    = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
+               fTracker    = new DsfServicesTracker(Activator.getBundleContext(), fSession.getId());
                fGDBBackend = fTracker.getService(IGDBBackend.class);
                if (fGDBBackend == null) {
 //                  System.err.println("Cannot obtain GDBBackend service");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain GDBBackend service")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain GDBBackend service")); //$NON-NLS-1$
                   return;
                }
                fUsbdmGdbInterface = new UsbdmGdbInterface();
@@ -137,25 +137,25 @@ public class UsbdmGdbRestartSequence extends Sequence {
                fCommandControl = fTracker.getService(IGDBControl.class);
                if (fCommandControl == null) {
 //                  System.err.println("Cannot obtain control service");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain control service")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain control service")); //$NON-NLS-1$
                   return;
                }
                fProcService = fTracker.getService(IMIProcesses.class);
                if (fProcService == null) {
 //                  System.err.println("Cannot obtain process service");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain process service")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain process service")); //$NON-NLS-1$
                   return;
                }
                fGdbServerParameters = GdbServerParameters.getInitializedServerParameters(fAttributes);
                if (fGdbServerParameters == null) {
 //                  System.err.println("Unable to obtain server parameters");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Unable to obtain server parameters")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Unable to obtain server parameters")); //$NON-NLS-1$
                   return;
                }
                fRunControl = fTracker.getService(IMIRunControl.class);
                if (fRunControl == null) {
 //                  System.err.println("Unable to obtain run control ");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Unable to obtain run control ")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Unable to obtain run control ")); //$NON-NLS-1$
                   return;
                }
                boolean restartUsesStartup = CDebugUtils.getAttribute(fAttributes, 
@@ -211,7 +211,7 @@ public class UsbdmGdbRestartSequence extends Sequence {
 
                if (fExecutionContext == null) {
 //                  System.err.println("Cannot obtain executionContext");
-                  rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "No executionContext")); //$NON-NLS-1$
+                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "No executionContext")); //$NON-NLS-1$
                   return;
                }
                // Check if target running

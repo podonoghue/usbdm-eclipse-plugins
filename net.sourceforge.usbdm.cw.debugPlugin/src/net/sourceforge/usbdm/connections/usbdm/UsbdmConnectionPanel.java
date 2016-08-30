@@ -3,13 +3,6 @@ package net.sourceforge.usbdm.connections.usbdm;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import net.sourceforge.usbdm.jni.JTAGInterfaceData;
-import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
-import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
-import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
-import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -39,6 +32,12 @@ import com.freescale.cdt.debug.cw.core.ui.publicintf.AbstractPhysicalConnectionP
 import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
 import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
 import com.freescale.cdt.debug.cw.mcu.common.publicintf.ICWGdiInitializationData;
+import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
+import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 public class UsbdmConnectionPanel 
 extends AbstractPhysicalConnectionPanel

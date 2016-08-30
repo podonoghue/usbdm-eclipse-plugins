@@ -13,14 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
-import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
-import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
-import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
-import net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider;
-import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
-import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -48,6 +40,15 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
+import net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
+import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
+import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 /**
  * Dialogue to select device or SVD file
@@ -145,7 +146,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
    public Image getMyImage(String imageId) {
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
-         ImageDescriptor imageDescriptor  = Activator.getDefault().getImageDescriptor(imageId);
+         ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
          image = resManager.createImage(imageDescriptor);
          imageCache.put(imageId, image);
       }

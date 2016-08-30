@@ -9,9 +9,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.jni.UsbdmException;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,6 +17,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.gdb.ui.Activator;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * @since 4.12
@@ -97,7 +98,6 @@ public class GdbServerInterface {
     *  @param shell - The shell to open error dialogues on
     */
    public void startServer(Shell shell) {
-
       if (isServerRunning()) {
          if (shell == null) {
             // Quietly return
@@ -129,6 +129,7 @@ public class GdbServerInterface {
          return;
       }
       try {
+         Activator.log("Starting GDB server");
          ArrayList<String> commandList= serverParameters.getServerCommandLine();
          String[] commandArray = new String[commandList.size()];
          commandArray = commandList.toArray(commandArray);

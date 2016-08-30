@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.gdb.ui;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -222,7 +221,7 @@ public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
     */
    @Override
    public Image getImage() {
-      ImageDescriptor imageDescriptor = UsbdmGdbServer.getDefault().getImageDescriptor(UsbdmGdbServer.ID_ARROW_IMAGE);
+      ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_ARROW_IMAGE);
       return imageDescriptor.createImage();
    }
 
@@ -250,7 +249,7 @@ public class UsbdmRunTab extends AbstractLaunchConfigurationTab {
          runCommands.setText(                         configuration.getAttribute(UsbdmSharedConstants.ATTR_RUN_COMMANDS,       UsbdmSharedConstants.DEFAULT_RUN_COMMANDS));
 
       } catch (CoreException e) {
-         UsbdmGdbServer.getDefault().getLog().log(e.getStatus());
+         Activator.getDefault().getLog().log(e.getStatus());
       }
       optionsChanged(true);
    }

@@ -66,13 +66,13 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public Image getImage(Object element) {
          if ((uncheckedImage == null) && (Activator.getDefault() != null)) {
-            uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+            uncheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
          }
          if ((checkedImage == null) && (Activator.getDefault() != null)) {
-            checkedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+            checkedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
          }
          if ((lockedImage == null) && (Activator.getDefault() != null)) {
-            lockedImage = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+            lockedImage = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
          }
          if (element instanceof AnnotationModelNode) {
             if (!(element instanceof HeadingModelNode) && !((AnnotationModelNode)element).canModify()) {
@@ -151,8 +151,8 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public Image getImage(Object element) {
          if ((errorImage == null) && (Activator.getDefault() != null)) {
-            errorImage   = Activator.getDefault().getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
-            warningImage = Activator.getDefault().getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
+            errorImage   = Activator.getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
+            warningImage = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
          }
          if (element instanceof AnnotationModelNode) {
             switch (((AnnotationModelNode)element).getErrorState()) {

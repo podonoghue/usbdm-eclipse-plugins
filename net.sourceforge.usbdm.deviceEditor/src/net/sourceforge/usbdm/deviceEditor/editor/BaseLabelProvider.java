@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
-import org.eclipse.jface.viewers.IToolTipProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
@@ -15,7 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import net.sourceforge.usbdm.deviceEditor.Activator;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
-abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider, IToolTipProvider{
+abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider {
 
    protected static Image errorImage     = null;
    protected static Image warningImage   = null;
@@ -30,13 +29,13 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
       referenceCount++;
 //      System.err.println("BaseLabelProvider(), ref = " + referenceCount);
       if ((errorImage == null) && (Activator.getDefault() != null)) {
-         errorImage     = Activator.getDefault().getImageDescriptor(Activator.ID_ERROR_NODE_IMAGE).createImage();
-         warningImage   = Activator.getDefault().getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
-         lockedImage    = Activator.getDefault().getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
-         checkedImage   = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
-         uncheckedImage = Activator.getDefault().getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
-         disabledImage  = Activator.getDefault().getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
-         emptyImage     = Activator.getDefault().getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
+         errorImage     = Activator.getImageDescriptor(Activator.ID_ERROR_NODE_IMAGE).createImage();
+         warningImage   = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
+         lockedImage    = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+         checkedImage   = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+         uncheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+         disabledImage  = Activator.getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
+         emptyImage     = Activator.getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
       }
    }
 

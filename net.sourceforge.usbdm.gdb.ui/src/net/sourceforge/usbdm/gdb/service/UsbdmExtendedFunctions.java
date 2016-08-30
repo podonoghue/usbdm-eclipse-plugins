@@ -3,7 +3,8 @@ package net.sourceforge.usbdm.gdb.service;
 import org.eclipse.cdt.dsf.service.AbstractDsfService;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.osgi.framework.BundleContext;
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
+
+import net.sourceforge.usbdm.gdb.ui.Activator;
 
 public class UsbdmExtendedFunctions extends AbstractDsfService implements IUsbdmExtendedFunctions {
 
@@ -13,7 +14,7 @@ public class UsbdmExtendedFunctions extends AbstractDsfService implements IUsbdm
 
    @Override
    protected BundleContext getBundleContext() {
-      return UsbdmGdbServer.getBundleContext();
+      return Activator.getBundleContext();
    }
    
 }

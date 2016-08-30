@@ -21,7 +21,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 public class FileUtility {
 
@@ -225,7 +225,9 @@ public class FileUtility {
     * 
     * @throws Exception
     */
-   public static void copyFile(IProject project, String source, String target, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+   public static void copyFile(IProject project, String source, String target, Map<String, String> variableMap, IProgressMonitor progressMonitor) throws Exception {
+      SubMonitor monitor = SubMonitor.convert(progressMonitor, 100);
+      
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source);
       Path targetPath = projectDirectory.resolve(target);
@@ -234,7 +236,7 @@ public class FileUtility {
          monitor.beginTask("Copy File", 100);
          IFile iFile = project.getFile(targetPath.toString());
          if (!iFile.getParent().exists()) {
-            createFolder(project, iFile.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+            createFolder(project, iFile.getParent().getProjectRelativePath().toString(), monitor.newChild(100));
          }
          copy(sourcePath, targetPath, variableMap);
          iFile.refreshLocal(IResource.DEPTH_ONE, null);

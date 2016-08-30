@@ -10,7 +10,7 @@ import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Stat
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 public class ProjectActionList extends ProjectAction {
 
@@ -212,15 +212,12 @@ public class ProjectActionList extends ProjectAction {
     * 
     * @throws Exception 
     */
-   public Result visit(Visitor visitor, Value value, IProgressMonitor monitor) {
-      final int SCALE = 1000;
-      
-//      System.err.println("ProjectActionList.visit() - " + getId());
+   public Result visit(Visitor visitor, Value value, IProgressMonitor progressMonitor) {
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
+      monitor.beginTask("Visiting", (1+fProjectActionList.size()));
       
       try {
-         monitor.beginTask("Visiting", SCALE*(1+fProjectActionList.size()));
-         
-         Result control = visitor.applyTo(this, value, new SubProgressMonitor(monitor, SCALE));
+         Result control = visitor.applyTo(this, value, monitor.newChild(1));
          switch (control.getStatus()) {
             case EXCEPTION     : 
                // No more actions applied
@@ -234,10 +231,10 @@ public class ProjectActionList extends ProjectAction {
          }
          for (ProjectAction action:fProjectActionList) {
             if (action instanceof ProjectActionList) {
-               control = ((ProjectActionList)action).visit(visitor, value, new SubProgressMonitor(monitor, SCALE));
+               control = ((ProjectActionList)action).visit(visitor, value, monitor.newChild(1));
             }
             else {
-               control = visitor.applyTo(action, value, new SubProgressMonitor(monitor, SCALE));
+               control = visitor.applyTo(action, value, monitor.newChild(1));
             }
             switch (control.getStatus()) {
                case EXCEPTION     : 

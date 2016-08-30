@@ -23,7 +23,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
@@ -47,10 +47,11 @@ public class CDTProjectManager {
     * 
     * @throws Exception
     */
-   public IProject createProject(String projectName, String directoryPath, boolean hasCCNature, IProgressMonitor monitor) throws Exception {
+   public IProject createProject(String projectName, String directoryPath, boolean hasCCNature, IProgressMonitor progressMonitor) throws Exception {
 //    System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
-      final int WORK_SCALE = 1000;
       
+      SubMonitor monitor = SubMonitor.convert(progressMonitor, 100);
+
       IProject project = null;
       try {
          monitor.beginTask("Creating project", IProgressMonitor.UNKNOWN);
@@ -70,7 +71,7 @@ public class CDTProjectManager {
             IPath path = new Path(directoryPath).append(projectName);
             projectDescription.setLocation(path);
          }
-         project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, new SubProgressMonitor(monitor, WORK_SCALE*30));     
+         project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, monitor.newChild(30));     
          Assert.isNotNull(project, "Project not created");
          if (hasCCNature) {
             CCProjectNature.addCCNature(project, monitor);
@@ -81,7 +82,7 @@ public class CDTProjectManager {
          }
          // Open the project if we have to
          if (!project.isOpen()) {
-            project.open(new SubProgressMonitor(monitor, WORK_SCALE*30));
+            project.open(monitor.newChild(30));
          }
       } finally {
          monitor.done();
@@ -104,15 +105,15 @@ public class CDTProjectManager {
     */
    public IProject createCDTProj(
          Map<String, String>  paramMap, 
-         IProgressMonitor     monitor) throws Exception {
+         IProgressMonitor     progressMonitor) throws Exception {
 
-      final int WORK_SCALE = 1000;
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
 
       // Create model project and accompanied descriptions
       IProject project;
 
       try {
-         monitor.beginTask("Create configuration", WORK_SCALE*100);
+         monitor.beginTask("Create configuration",100);
 
          String        projectName   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
          String        directoryPath = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
@@ -124,7 +125,7 @@ public class CDTProjectManager {
          if ((artifactName == null) || (artifactName.length()==0)) {
             artifactName = "${ProjName}";
          }
-         project = createProject(projectName, directoryPath, hasCCNature, new SubProgressMonitor(monitor, WORK_SCALE*70));
+         project = createProject(projectName, directoryPath, hasCCNature, monitor.newChild(70));
 
          CoreModel coreModel = CoreModel.getDefault();
 

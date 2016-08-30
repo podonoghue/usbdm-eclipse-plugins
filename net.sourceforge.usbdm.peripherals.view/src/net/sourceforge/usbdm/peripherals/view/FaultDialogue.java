@@ -126,7 +126,7 @@ public class FaultDialogue extends TitleAreaDialog {
    public Image getMyImage(String imageId) {
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
-         ImageDescriptor imageDescriptor  = Activator.getDefault().getImageDescriptor(imageId);
+         ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
          image = resManager.createImage(imageDescriptor);
          imageCache.put(imageId, image);
       }

@@ -135,7 +135,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
          setText(text);
          setToolTipText(toolTip);
          if ((imageId!= null) && (Activator.getDefault() != null)) {
-            ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(imageId);
+            ImageDescriptor imageDescriptor = Activator.getImageDescriptor(imageId);
             setImageDescriptor(imageDescriptor);
          }
       }
@@ -276,7 +276,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
    public Image getMyImage(String imageId) {
       Image image = imageCache.get(imageId);
       if ((Activator.getDefault() != null) && (image == null)) {
-         ImageDescriptor imageDescriptor  = Activator.getDefault().getImageDescriptor(imageId);
+         ImageDescriptor imageDescriptor  = Activator.getImageDescriptor(imageId);
          image = resManager.createImage(imageDescriptor);
          imageCache.put(imageId, image);
       }
@@ -568,7 +568,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
                return;
             }
             FaultDialogue dialogue = new FaultDialogue(getSite().getShell());
-            dialogue.setTitleImage(Activator.getDefault().getImageDescriptor(Activator.ID_USBDM_IMAGE).createImage());
+            dialogue.setTitleImage(Activator.getImageDescriptor(Activator.ID_USBDM_IMAGE).createImage());
             dialogue.create(peripheralsModel.getGdbInterface());
             dialogue.open();
          }
@@ -576,7 +576,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       openFaultDialogue.setText("Exception Report");
       openFaultDialogue.setToolTipText("Open Target Exception Report");
       if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_EXCEPTION_IMAGE);
+         ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_EXCEPTION_IMAGE);
          openFaultDialogue.setImageDescriptor(imageDescriptor);
       }
 
@@ -591,7 +591,7 @@ public class UsbdmDevicePeripheralsView extends ViewPart implements GdbSessionLi
       filterPeripheralAction.setText("Filter registers");
       filterPeripheralAction.setToolTipText("Only display checked registers");
       if (Activator.getDefault() != null) {
-         ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(Activator.ID_FILTER_IMAGE);
+         ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_FILTER_IMAGE);
          filterPeripheralAction.setImageDescriptor(imageDescriptor);
       }
 

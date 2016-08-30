@@ -57,11 +57,11 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 import net.sourceforge.usbdm.gdb.server.GdbServerInterface;
 import net.sourceforge.usbdm.gdb.server.GdbServerParameters;
 import net.sourceforge.usbdm.gdb.server.GdbServerParameters.GdbServerType;
 import net.sourceforge.usbdm.gdb.ttyConsole.MyConsoleInterface;
+import net.sourceforge.usbdm.gdb.ui.Activator;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
@@ -92,6 +92,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    
    public UsbdmGdbDsfFinalLaunchSequence(DsfSession session, Map<String, Object> attributes, RequestMonitorWithProgress rm) {
       super(session, attributes, rm);
+//      System.err.println("UsbdmGdbDsfFinalLaunchSequence(...)");
       fSession             = session;
       fAttributes          = attributes;
       fDoSyncTarget        = false;
@@ -216,26 +217,26 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    public void stepInitUsbdmGdbDsfFinalLaunchSequence(RequestMonitor rm) {
 //      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepInitUsbdmGdbDsfFinalLaunchSequence()");
       
-      fTracker    = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), fSession.getId());
+      fTracker    = new DsfServicesTracker(Activator.getBundleContext(), fSession.getId());
       fGDBBackend = fTracker.getService(IGDBBackend.class);
       if (fGDBBackend == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain GDBBackend service")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain GDBBackend service")); //$NON-NLS-1$
          return;
       }
       fUsbdmGdbInterface = new UsbdmGdbInterface();
       fCommandControl = fTracker.getService(IGDBControl.class);
       if (fCommandControl == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain control service")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain control service")); //$NON-NLS-1$
          return;
       }
       fProcService = fTracker.getService(IMIProcesses.class);
       if (fProcService == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot obtain process service")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot obtain process service")); //$NON-NLS-1$
          return;
       }
       fGdbServerParameters = GdbServerParameters.getInitializedServerParameters(fAttributes);
       if (fGdbServerParameters == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Unable to obtain server parameters")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Unable to obtain server parameters")); //$NON-NLS-1$
          return;
       }
       // When we are starting to debug a new process, the container is the default process used by GDB.
@@ -272,7 +273,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          }
       } catch (Exception e) {
          e.printStackTrace();
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Failed to open TTY", e)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Failed to open TTY", e)); //$NON-NLS-1$
          return;
       }
       rm.done();
@@ -294,7 +295,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
                gdbServerInterface.startServer();
             } catch (UsbdmException e) {
                e.printStackTrace();
-               rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), e.getMessage(), e)); //$NON-NLS-1$
+               rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), e.getMessage(), e)); //$NON-NLS-1$
                return;
             }
          }
@@ -341,7 +342,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
             }
          }
          if (symbolsFileName == null) {
-            rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Symbol file not found")); //$NON-NLS-1$
+            rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Symbol file not found")); //$NON-NLS-1$
             return;
          }
          // Escape windows path separator characters TWICE, once for Java and once for GDB.						
@@ -370,13 +371,13 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
 //      System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepConnectToTarget()");
 
       if (fGdbServerParameters == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(),"Unable to obtain server parameters")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(),"Unable to obtain server parameters")); //$NON-NLS-1$
          return;
       }
       // Get command line with options from server parameters
       String serverCommandLine = fGdbServerParameters.getCommandLine();
       if (serverCommandLine == null) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(),"Unable to obtain server command line")); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(),"Unable to obtain server command line")); //$NON-NLS-1$
          return;
       }
       List<String> commands = new ArrayList<String>();
@@ -438,7 +439,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          userCmd = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(userCmd);
          queueCommands(Arrays.asList(userCmd.split("\\r?\\n")), rm); //$NON-NLS-1$
       } catch (CoreException e) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot run user defined init commands", e)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot run user defined init commands", e)); //$NON-NLS-1$
       }
    }
 
@@ -471,7 +472,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          }
 
          if (imageFileName == null) {
-            rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Binary file not found")); //$NON-NLS-1$
+            rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Binary file not found")); //$NON-NLS-1$
             return;
          }
 
@@ -526,7 +527,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
             rm.done();
          }
       } catch (CoreException e) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot get inferior arguments", e)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot get inferior arguments", e)); //$NON-NLS-1$
       }    		
    }
 
@@ -543,7 +544,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          clear = fGDBBackend.getClearEnvironment();
          properties = fGDBBackend.getEnvironmentVariables();
       } catch (CoreException e) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot get environment information", e)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot get environment information", e)); //$NON-NLS-1$
          return;
       }
       if (clear == true || properties.size() > 0) {
@@ -657,7 +658,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
          userCmd = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(userCmd);
          queueCommands(Arrays.asList(userCmd.split("\\r?\\n")), rm); //$NON-NLS-1$
       } catch (CoreException e) {
-         rm.done(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), "Cannot run user defined run commands", e)); //$NON-NLS-1$
+         rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "Cannot run user defined run commands", e)); //$NON-NLS-1$
       }
    }
 

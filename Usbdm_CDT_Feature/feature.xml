@@ -2,7 +2,7 @@
 <feature
       id="net.sourceforge.usbdm.cdt.feature"
       label="USBDM Eclipse CDT Feature"
-      version="4.12.1.qualifier"
+      version="5.0.0.qualifier"
       provider-name="USBDM"
       plugin="net.sourceforge.usbdm.constants"
       os="linux,win32"

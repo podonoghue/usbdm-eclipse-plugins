@@ -52,7 +52,7 @@ public class PeripheralConfigurationEditor extends EditorPart implements IDocume
          setText(text);
          setToolTipText(toolTip);
          if ((imageId!= null) && (Activator.getDefault() != null)) {
-            ImageDescriptor imageDescriptor = Activator.getDefault().getImageDescriptor(imageId);
+            ImageDescriptor imageDescriptor = Activator.getImageDescriptor(imageId);
             setImageDescriptor(imageDescriptor);
          }
       }

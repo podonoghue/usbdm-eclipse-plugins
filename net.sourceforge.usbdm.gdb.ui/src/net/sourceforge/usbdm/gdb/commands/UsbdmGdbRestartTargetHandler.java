@@ -15,8 +15,8 @@ import org.eclipse.debug.core.commands.IDebugCommandRequest;
 import org.eclipse.debug.core.commands.IEnabledStateRequest;
 import org.eclipse.debug.core.commands.IRestartHandler;
 
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
 import net.sourceforge.usbdm.gdb.launch.UsbdmGdbRestartSequence;
+import net.sourceforge.usbdm.gdb.ui.Activator;
 
 @SuppressWarnings("restriction")
 public class UsbdmGdbRestartTargetHandler  implements IRestartHandler {
@@ -68,13 +68,13 @@ public class UsbdmGdbRestartTargetHandler  implements IRestartHandler {
       
       final IDMVMContext dataViewContext = getDataViewContext(request);
       if (dataViewContext == null) {
-         request.setStatus(new Status(Status.ERROR, UsbdmGdbServer.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() dataViewContext = null"));
+         request.setStatus(new Status(Status.ERROR, Activator.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() dataViewContext = null"));
          request.done();
          return false;
       }
       final IMIExecutionDMContext executionContext = getExecutionContext(dataViewContext);
       if (executionContext == null) {
-         request.setStatus(new Status(Status.ERROR, UsbdmGdbServer.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() executionContext = null"));
+         request.setStatus(new Status(Status.ERROR, Activator.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() executionContext = null"));
          request.done();
          return false;
       }
@@ -82,7 +82,7 @@ public class UsbdmGdbRestartTargetHandler  implements IRestartHandler {
       try {
          attributes = fLaunch.getLaunchConfiguration().getAttributes();
       } catch (Exception e) {
-         request.setStatus(new Status(Status.ERROR, UsbdmGdbServer.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() failed to get attributes"));
+         request.setStatus(new Status(Status.ERROR, Activator.getPluginId(), "UsbdmGdbRestartTargetHandler.execute() failed to get attributes"));
          request.done();
          return false;
       }

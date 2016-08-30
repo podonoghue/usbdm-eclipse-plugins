@@ -26,7 +26,7 @@ import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-import net.sourceforge.usbdm.gdb.UsbdmGdbServer;
+import net.sourceforge.usbdm.gdb.ui.Activator;
 
 /**
  * Subclass for GDB >= 7.7.
@@ -58,13 +58,13 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSe
     */
    @Execute
    public void stepInitializeJTAGSequence_7_2(RequestMonitor rm) {
-      DsfServicesTracker tracker = new DsfServicesTracker(UsbdmGdbServer.getBundleContext(), getSession().getId());
+      DsfServicesTracker tracker = new DsfServicesTracker(Activator.getBundleContext(), getSession().getId());
       IGDBControl gdbControl = tracker.getService(IGDBControl.class);
       IGDBProcesses procService = tracker.getService(IGDBProcesses.class);
       tracker.dispose();
 
       if (gdbControl == null || procService == null) {
-         rm.setStatus(new Status(IStatus.ERROR, UsbdmGdbServer.getPluginId(), -1, "Cannot obtain service", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, Activator.getPluginId(), -1, "Cannot obtain service", null)); //$NON-NLS-1$
          rm.done();
          return;
       }

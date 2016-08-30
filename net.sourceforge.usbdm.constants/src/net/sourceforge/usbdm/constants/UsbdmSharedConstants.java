@@ -162,13 +162,8 @@ public class UsbdmSharedConstants {
       }
    };
       
-   private static ImageDescriptor usbdmIcon = null;
-
    public static ImageDescriptor getUsbdmIcon() {
-      if (usbdmIcon == null) {
-         usbdmIcon = Activator.getImageDescriptor("/icons/usbdm.png");        //$NON-NLS-1$
-      }
-      return usbdmIcon;
+      return Activator.getImageDescriptor(Activator.ID_USB_ICON_IMAGE);        //$NON-NLS-1$
    }
 
 }

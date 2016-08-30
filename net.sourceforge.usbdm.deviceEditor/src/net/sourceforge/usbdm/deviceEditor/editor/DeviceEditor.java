@@ -379,15 +379,27 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
    DeviceEditorOutlinePage fOutlinePage = null;
 
-   @SuppressWarnings("rawtypes")
+//   @Override
+//   public <T> T getAdapter(Class<T> required) {
+//      if (IContentOutlinePage.class.equals(required)) {
+//         if (fOutlinePage == null) {
+//            fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
+//            fOutlinePage.setInput(getEditorInput());
+//         }
+//         return required.cast(fOutlinePage);
+//      }
+//      return super.getAdapter(required);
+//   }
+
+   @SuppressWarnings({ "rawtypes" })
    @Override
-   public Object getAdapter(Class required) {      
+   public Object getAdapter(Class required) {
       if (IContentOutlinePage.class.equals(required)) {
          if (fOutlinePage == null) {
             fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
             fOutlinePage.setInput(getEditorInput());
          }
-         return fOutlinePage;
+         return required.cast(fOutlinePage);
       }
       return super.getAdapter(required);
    }

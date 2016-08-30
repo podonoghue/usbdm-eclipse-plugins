@@ -11,6 +11,6 @@ public class UsbdmExtendedLaunch extends GdbLaunch {
 
    public UsbdmExtendedLaunch(ILaunchConfiguration launchConfiguration, String mode, ISourceLocator locator) {
       super(launchConfiguration, mode, locator);
-//      System.err.println("...gdb.UsbdmExtendedLaunch()");
+//      System.err.println("UsbdmExtendedLaunch");
    }
 }

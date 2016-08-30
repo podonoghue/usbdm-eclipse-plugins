@@ -25,7 +25,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.core.variables.VariablesPlugin;
 
@@ -53,8 +53,11 @@ public class AddTargetFiles {
     * 
     * @throws Exception 
     */
-   private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor progressMonitor) throws Exception {
 //      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
+      monitor.beginTask("Copying File", 100);
+      
       InputStream contents = null;
       String fileContents;
       try {
@@ -71,14 +74,14 @@ public class AddTargetFiles {
          IFile iFile = projectHandle.getFile(targetPath.toString());
          int remainder = 100;
          if (!iFile.getParent().exists()) {
-            ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+            ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor.newChild(50));
             remainder -= 50;
          }
          // Replace existing, more specific, file
          if (iFile.exists()) {
             if (fileAction.isDoMacroReplacement()) {
 //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
-               iFile.delete(true, new SubProgressMonitor(monitor, remainder));               
+               iFile.delete(true, monitor.newChild(remainder));               
             }
             else {
                throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -133,12 +136,14 @@ public class AddTargetFiles {
     * 
     * @throws Exception
     */
-   private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor progressMonitor) throws Exception {
       //      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
       //      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
       //      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
       //      System.err.println("AddTargetFiles.processItem() targetPath = " + targetPath.toString());
       //      System.err.println("AddTargetFiles.processItem() targetPath.getFileName = " + targetPath.getFileName().toString());
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
+      monitor.beginTask("Copying Files", 100);
 
       sourcePath = resolvePath(sourcePath);
       //      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
@@ -158,7 +163,7 @@ public class AddTargetFiles {
          try {
             monitor.beginTask("Copy Files", 100);
             for (java.nio.file.Path entry: stream) {
-               copyFiles(entry, targetPath.resolve(entry.getFileName()), fileInfo, variableMap, projectHandle, new SubProgressMonitor(monitor, 1));
+               copyFiles(entry, targetPath.resolve(entry.getFileName()), fileInfo, variableMap, projectHandle, monitor.newChild(100));
             }
          } finally {
             monitor.done();
@@ -180,7 +185,10 @@ public class AddTargetFiles {
     * @param monitor
     * @throws Exception
     */
-   private void createLink(Path sourcePath, String target, IProject projectHandle, IProgressMonitor monitor) throws Exception {
+   private void createLink(Path sourcePath, String target, IProject projectHandle, IProgressMonitor progressMonitor) throws Exception {
+      SubMonitor monitor = SubMonitor.convert(progressMonitor);
+      monitor.beginTask("Create Link", 100);
+
       URI                  sourceURI = URIUtil.fromString("file:"+sourcePath.toString());
       IWorkspace           workspace = ResourcesPlugin.getWorkspace();
       IPathVariableManager pathMan   = workspace.getPathVariableManager();
@@ -196,17 +204,17 @@ public class AddTargetFiles {
             IFolder iFolder = projectHandle.getFolder(target);
             if (!iFolder.getParent().exists()) {
                // Create parent directories if necessary
-               ProjectUtilities.createFolder(projectHandle, iFolder.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+               ProjectUtilities.createFolder(projectHandle, iFolder.getParent().getProjectRelativePath().toString(), monitor.newChild(50));
             }
-            iFolder.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, new SubProgressMonitor(monitor, 50));
+            iFolder.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, monitor.newChild(50));
          }
          else {
             IFile iFile = projectHandle.getFile(target);
             if (!iFile.getParent().exists()) {
                // Create parent directories if necessary
-               ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), new SubProgressMonitor(monitor, 50));
+               ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor.newChild(50));
             }
-            iFile.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, new SubProgressMonitor(monitor, 50));
+            iFile.createLink(sourceURI, IResource.ALLOW_MISSING_LOCAL, monitor.newChild(50));
          }
       } finally {
          monitor.done();

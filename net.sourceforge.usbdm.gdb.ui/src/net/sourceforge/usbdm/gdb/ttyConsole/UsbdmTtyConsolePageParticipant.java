@@ -14,9 +14,15 @@ public class UsbdmTtyConsolePageParticipant implements IConsolePageParticipant {
 
    private CloseConsoleAction closeAction;
    
+//   @Override
+//   public <T> T getAdapter(Class<T> adapter) {
+//      return adapter.cast(null);
+//   }
+//
    @Override
-   public Object getAdapter(@SuppressWarnings("rawtypes") Class arg0) {
-      return null;
+   @SuppressWarnings({ "rawtypes" })
+   public Object getAdapter(Class adapter) {
+      return adapter.cast(null);
    }
 
    @Override
