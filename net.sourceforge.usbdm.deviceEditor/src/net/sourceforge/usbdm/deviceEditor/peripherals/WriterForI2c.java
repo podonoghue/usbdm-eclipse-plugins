@@ -32,7 +32,7 @@ public class WriterForI2c extends PeripheralWithState {
    public String getPcrDefinition() {
       return String.format(
             "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t pcrValue  = I2C_DEFAULT_PCR;\n\n"
+            "   static constexpr uint32_t %s  = I2C_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
             );
    }
 

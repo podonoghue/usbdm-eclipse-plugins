@@ -23,7 +23,9 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * <li>Clock register e.g. SIM->SCGC6
  */
 public abstract class Peripheral {
-   
+   /** Name for default PCR value uses in Info classes */
+   public static final String DEFAULT_PCR_VALUE_NAME = "defaultPcrValue";
+
    /** Device information */
    protected final DeviceInfo fDeviceInfo;
 
@@ -523,9 +525,9 @@ public abstract class Peripheral {
     * @return String
     */
    public String getPcrDefinition() {
-      return 
+      return String.format(
             "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t pcrValue  = DEFAULT_PCR;\n\n";
+            "   static constexpr uint32_t %s  = DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME);
    }
 
    /**
@@ -634,7 +636,7 @@ public abstract class Peripheral {
    private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
    private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
    private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s PORT_PCR_MUX(%d)|pcrValue  },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s PORT_PCR_MUX(%d)|"+DEFAULT_PCR_VALUE_NAME+"  },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
@@ -816,7 +818,7 @@ public abstract class Peripheral {
             indent+"   /**\n"+
             indent+"    * Initialise pins used by peripheral\n"+
             indent+"    */\n"+
-            indent+"   static void initPCRs() {\n";
+            indent+"   static void initPCRs(uint32_t pcrValue="+DEFAULT_PCR_VALUE_NAME+") {\n";
 
       final String CLEAR_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
@@ -838,7 +840,13 @@ public abstract class Peripheral {
 
       pinMappingHeaderFile.write(INIT_PCR_FUNCTION_TEMPLATE);
       pinMappingHeaderFile.write(initClocksBuffer);
-      pinMappingHeaderFile.write(pcrInitialiser.getPcrInitStatements(indent));
+      String pcrInitStatements = pcrInitialiser.getPcrInitStatements(indent);
+      if (pcrInitStatements.isEmpty()) {
+         pinMappingHeaderFile.write(indent+"      (void)pcrValue;\n");
+      }
+      else {
+         pinMappingHeaderFile.write(pcrInitStatements);
+      }
       pinMappingHeaderFile.write(indent+"   }\n\n");
       
       pinMappingHeaderFile.write(CLEAR_PCR_FUNCTION_TEMPLATE);

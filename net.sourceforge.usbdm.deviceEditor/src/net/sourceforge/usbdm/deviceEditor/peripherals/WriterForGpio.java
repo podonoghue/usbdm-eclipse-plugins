@@ -44,7 +44,7 @@ public class WriterForGpio extends PeripheralWithState {
    public String getPcrDefinition() {
       return String.format(
             "   //! Value for PCR (including MUX value)\n"+
-            "   static constexpr uint32_t pcrValue  = GPIO_DEFAULT_PCR;\n\n"
+            "   static constexpr uint32_t %s  = GPIO_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
             );
    }
 

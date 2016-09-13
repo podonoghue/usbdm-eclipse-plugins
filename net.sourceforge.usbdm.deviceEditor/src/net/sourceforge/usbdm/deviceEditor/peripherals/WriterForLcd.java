@@ -34,7 +34,7 @@ public class WriterForLcd extends PeripheralWithState {
    public String getPcrDefinition() {
       return String.format(
             "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t pcrValue  = 0;\n\n"
+            "   static constexpr uint32_t %s  = 0;\n\n", DEFAULT_PCR_VALUE_NAME
             );
    }
 

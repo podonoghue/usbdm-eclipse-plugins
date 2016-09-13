@@ -28,7 +28,7 @@ import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
-
+   
    public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlerInstalled";
 
    /** Data about model loaded from file */
