@@ -461,6 +461,14 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
      " *  <o1> %-6s size    <constant>\n"  +
      " */\n";
 
+   public final static String LINKER_FLEXRAM_REGION =
+         "   /* FlexRAM region for non-volatile variables */\n"+
+         "   .flexRAM :\n" + 
+         "   {\n" + 
+         "      . = ALIGN(4);\n" + 
+         "      KEEP(*(.flexRAM))\n" + 
+         "   } > flexRAM\n"; //$NON-NLS-1$
+   
    /**
     * Adds the device memory map information to the paramMap
     * 
@@ -527,7 +535,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                break;
             case MemFlexRAM : 
                name   = String.format("flexRAM%s", getRangeSuffix(flexRamCount++));
-               access = "(rx)";
+               access = "(rw)";
                break;
             default: 
                name   = String.format("unknown%s", getRangeSuffix(unknownCount++));
@@ -579,6 +587,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
       paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
+      if (flexRamCount>0) {
+         paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, LINKER_FLEXRAM_REGION);
+      }
    }
 
    private ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
