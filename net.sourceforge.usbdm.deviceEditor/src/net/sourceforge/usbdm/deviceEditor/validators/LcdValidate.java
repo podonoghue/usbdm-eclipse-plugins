@@ -1,8 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
-import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
+import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -50,11 +53,21 @@ public class LcdValidate extends Validator {
       
       lcd_gcr_rvtrimVar.enable(lcd_gcr_rvenVar.getValueAsBoolean());
       
-      Variable             lcd_gcr_dutyVar     =  getVariable("lcd_gcr_duty");
-      NumericListVariable  backplanesVar       =  (NumericListVariable) getVariable("backplanes");
-//      NumericListVariable  frontplanesVar      =  (NumericListVariable) getVariable("frontplanes");
+      Variable         lcd_gcr_dutyVar     =  getVariable("lcd_gcr_duty");
+      PinListVariable  backplanesVar       =  (PinListVariable) getVariable("backplanes");
+      PinListVariable  frontplanesVar      =  (PinListVariable) getVariable("frontplanes");
       
-      
+      int mappedPinCount = 0;
+      Vector<Signal> table = fPeripheral.getSignalTables().get(0).table;
+      for (int pinIndex=0; pinIndex<table.size(); pinIndex++) {
+         Signal entry = table.get(pinIndex);
+         if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+            continue;
+         }
+         mappedPinCount++;
+      }
+      frontplanesVar.setMinListLength(1);
+      frontplanesVar.setMaxListLength(mappedPinCount);
       backplanesVar.setListLength((int)lcd_gcr_dutyVar.getValueAsLong()+1);
       
       double divider = 1<<(3*lcd_gcr_altdivVar.getValueAsLong());

@@ -1,12 +1,16 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.swt.widgets.Tree;
+
+import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 /**
  * Model for a variable maintained by a provider
  */
-public class VariableModel extends EditableModel implements IModelChangeListener {
+public abstract class VariableModel extends EditableModel implements IModelChangeListener, CellEditorProvider {
 
    protected final Variable fVariable;
    
@@ -42,6 +46,8 @@ public class VariableModel extends EditableModel implements IModelChangeListener
    @Override
    protected void removeMyListeners() {
    }
+   
+   public abstract CellEditor createCellEditor(Tree tree);
    
    /**
     * Check if the string is valid as a value for this Variable

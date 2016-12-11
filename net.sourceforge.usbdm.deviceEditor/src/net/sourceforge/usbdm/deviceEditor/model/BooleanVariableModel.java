@@ -1,10 +1,32 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
+import org.eclipse.swt.widgets.Tree;
+
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class BooleanVariableModel extends VariableModel {
 
+   static class BooleanCellEditor extends CheckboxCellEditor {
+      public BooleanCellEditor(Tree tree) {
+         super(tree);
+         setValueValid(true);
+      }
+
+      @Override
+      protected Object doGetValue() {
+         Boolean value = (Boolean) super.doGetValue();
+         return value;
+      }
+
+      @Override
+      protected void doSetValue(Object value) {
+         super.doSetValue(value);
+      }
+   }
+   
    /**
     * Constructor - Create model from variable
     * 
@@ -55,4 +77,9 @@ public class BooleanVariableModel extends VariableModel {
       }
    }
 
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      return new BooleanCellEditor(tree);
+   }
+   
 }

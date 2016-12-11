@@ -48,7 +48,7 @@ public class TestDeviceEditor {
 //         testEditor(Paths.get("projectFiles/Tests/FRDM_KL25Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles/Tests/FRDM_KL27Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles/Tests/FRDM_KL43Z.usbdmProject"));
-//         testEditor(Paths.get("projectFiles/Tests/FRDM_KL46Z.usbdmProject"));
+         testEditor(Paths.get("projectFiles/Tests/FRDM_KL46Z.usbdmProject"));
 
 //         testEditor(Paths.get("projectFiles/Tests/FRDM_K20D50M.usbdmProject"));
 //         testEditor(Paths.get("projectFiles/Tests/FRDM_K22F.usbdmProject"));
@@ -58,7 +58,7 @@ public class TestDeviceEditor {
 
 //         testEditor(Paths.get("projectFiles/Tests/MK22F12810.usbdmProject"));
 //       testEditor(Paths.get("projectFiles/Tests/MK22D5.usbdmProject"));
-       testEditor(Paths.get("projectFiles/Tests/MK22D7.usbdmProject"));
+//       testEditor(Paths.get("projectFiles/Tests/MK22D7.usbdmProject"));
       } catch (Exception e) {
          e.printStackTrace();
       }

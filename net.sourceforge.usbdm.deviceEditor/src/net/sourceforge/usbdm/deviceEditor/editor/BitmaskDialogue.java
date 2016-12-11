@@ -139,7 +139,7 @@ public class BitmaskDialogue extends Dialog {
     * 
     * @return Comma separated list of check boxes selected e.g. 1,8,45
     */
-   long getResult() {
+   public long getResult() {
       return fValue;
    }
    

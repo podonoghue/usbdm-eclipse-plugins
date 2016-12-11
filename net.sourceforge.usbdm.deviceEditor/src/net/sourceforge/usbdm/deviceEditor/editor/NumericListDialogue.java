@@ -1,35 +1,43 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
 
-public class CheckBoxListDialogue extends Dialog {
-   private final int    fNumBoxes;
-   private final Button fButtons[];
-   private final String fInitialSelections;
-   private       String fResult = null;
+public class NumericListDialogue extends Dialog {
+   /** Number of Spinners */
+   private final int     fNumSpinners;
+   /** The actual Spinners */
+   private final Spinner fSpinners[];
+   /** Initial list of values */
+   private final String  fInitialSelections;
+   /** Resulting list */
+   private       String  fResult = null;
+   /** Maximum value for spinner value */
+   private       int  fMaxValue;
    
    /**
-    * Create dialogue displaying a set of check boxes
+    * Create dialogue displaying a set of pin selection spinners
     * 
     * @param parentShell
-    * @param numBoxes            Number of maximum check box to display (starts at zero)
-    * @param initialSelections   List of initially checked boxes e.g. 1,6,9,24
+    * @param numValues          Number of spinners to display (starts at zero)
+    * @param initialSelections  List of initially spinner values e.g. 1,6,9,24
     */
-   public CheckBoxListDialogue(Shell parentShell, int numBoxes, String initialSelections) {
+   public NumericListDialogue(Shell parentShell, int numValues, int maxValue, String initialSelections) {
      super(parentShell);
-     fNumBoxes = numBoxes;
-     fButtons = new Button[numBoxes];
+     fNumSpinners       = numValues;
+     fSpinners          = new Spinner[numValues];
      fInitialSelections = initialSelections;
+     fMaxValue          = maxValue;
    }
    
    @Override
@@ -43,20 +51,24 @@ public class CheckBoxListDialogue extends Dialog {
       container.setLayout(gl);
       container.layout();
 
-      HashSet<Integer> selections = new HashSet<Integer>();
+//      HashSet<Integer> selections = new HashSet<Integer>();
       
       String[] initialSelections = fInitialSelections.split("[, ]+");
+      List<Integer> selections = new ArrayList<Integer>();
       for (String s:initialSelections) {
          if (s.isEmpty()) {
             continue;
          }
          selections.add(Integer.parseInt(s));
       }
-      for (int i=0; i<fNumBoxes; i++) {
-         fButtons[i] = new Button(container, SWT.CHECK);
-         fButtons[i].setText(Integer.toString(i));
-         if (selections.contains(i)) {
-            fButtons[i].setSelection(true);
+      for (int i=0; i<fNumSpinners; i++) {
+         fSpinners[i] = new Spinner(container, SWT.CHECK);
+         fSpinners[i].setMinimum(0);
+         fSpinners[i].setMaximum(fMaxValue);
+         fSpinners[i].setIncrement(1);
+         fSpinners[i].setSelection(0);
+         if (i<selections.size()) {
+            fSpinners[i].setSelection(selections.get(i));
          }
       }
       parent.layout(true);
@@ -74,11 +86,11 @@ public class CheckBoxListDialogue extends Dialog {
    
    @Override
    protected void okPressed() {
-      StringBuilder sb = new StringBuilder(5*fNumBoxes);
-      for (int index=0; index<fNumBoxes; index++) {
-         Button b = fButtons[index];
-         if ((b != null) && b.getSelection()) {
-            sb.append(Integer.toString(index));
+      StringBuilder sb = new StringBuilder(5*fNumSpinners);
+      for (int index=0; index<fNumSpinners; index++) {
+         Spinner b = fSpinners[index];
+         if ((b != null) && (b.getSelection()>0)) {
+            sb.append(Integer.toString(b.getSelection()));
             sb.append(",");
          }
       }
@@ -102,7 +114,7 @@ public class CheckBoxListDialogue extends Dialog {
       
       String selection = "1  , 2,3    ,4, 29";
       while(true) {
-         CheckBoxListDialogue editor = new CheckBoxListDialogue(shell, 61, selection);
+         NumericListDialogue editor = new NumericListDialogue(shell, 8, 62, selection);
          if  (editor.open() != OK) {
             break;
          }
@@ -121,4 +133,4 @@ public class CheckBoxListDialogue extends Dialog {
       }
       display.dispose();
    }
- } 
+ }

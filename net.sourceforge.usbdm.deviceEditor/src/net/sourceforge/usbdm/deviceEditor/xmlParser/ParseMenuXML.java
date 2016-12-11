@@ -21,6 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -360,6 +361,46 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * Parse &lt;choiceOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception 
+    */
+   private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
+      String  name        = varElement.getAttribute("name");
+      String  key         = varElement.getAttribute("key");
+      if (key.isEmpty()) {
+         key = fProvider.makeKey(name);
+      }
+      key  = substituteKey(key);
+      name = substituteKey(name);
+      boolean isConstant  = Boolean.valueOf(varElement.getAttribute("constant"));
+      String  description = varElement.getAttribute("description");
+      String  value       = varElement.getAttribute("value");
+      String  toolTip     = getToolTip(varElement);
+
+      PinListVariable variable = new PinListVariable(fProvider, name, key);
+      variable.setDescription(description);
+      variable.setToolTip(toolTip);
+      variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
+      if (varElement.hasAttribute("origin")) {
+         variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      try {
+         if (varElement.hasAttribute("size")) {
+            variable.setMaxListLength(getLongAttribute(varElement, "size"));
+         }
+      } catch( NumberFormatException e) {
+         throw new RuntimeException("Illegal min/max value in " + name, e);
+      }
+      fProvider.addVariable(variable);
+      VariableModel model = variable.createModel(parent);
+      model.setName(name);
+      model.setConstant(isConstant);
+      variable.setValue(value);
+   }
+   
+   /**
     * Does some simple substitutions on the key
     *  "$(_instance)" => fProvider.getInstance()
     *  "$(_name)"     => fProvider.getName()
@@ -582,6 +623,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "numericListOption") {
             parseNumericListOption(parentModel, element);
+         }
+         else if (element.getTagName() == "pinListOption") {
+            parsePinListOption(parentModel, element);
          }
          else if (element.getTagName() == "aliasOption") {
             parseAliasOption(parentModel, element);

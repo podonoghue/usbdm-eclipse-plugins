@@ -1,11 +1,40 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ICellEditorValidator;
+import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Tree;
+
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class LongVariableModel extends VariableModel {
 
+   static class NumericTextCellEditor extends TextCellEditor {
+
+      class Validator implements ICellEditorValidator {
+         LongVariableModel fModel;
+         
+         Validator(LongVariableModel model) {
+            fModel = model;
+         }
+         
+         @Override
+         public String isValid(Object value) {
+            return fModel.isValid(value.toString());
+         }
+      }
+      
+      public NumericTextCellEditor(Tree parent, LongVariableModel model) {
+         super(parent, SWT.SINGLE);
+         setValueValid(true);
+         Validator validator =  new Validator(model);
+         setValidator(validator);
+      }
+   }
+   
    /**
     * 
     * @param parent        Parent model
@@ -86,6 +115,11 @@ public class LongVariableModel extends VariableModel {
          sb.append("step="+getValueAsString(getVariable().getStep())+" ");
       }
       return (sb.length() == 0)?null:sb.toString();
+   }
+
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      return new NumericTextCellEditor(tree, this);
    }
    
 }

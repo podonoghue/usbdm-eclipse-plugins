@@ -1,9 +1,38 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.DialogCellEditor;
+import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Tree;
+
+import net.sourceforge.usbdm.deviceEditor.editor.BitmaskDialogue;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
 
 public class BitmaskModel extends VariableModel {
+
+   static class BitmaskEditor extends DialogCellEditor {
+      final BitmaskModel fModel;
+
+      public BitmaskEditor(Tree tree, BitmaskModel model) {
+         super(tree, SWT.NONE);
+         fModel = model;
+      }
+
+      @Override
+      protected Object openDialogBox(Control paramControl) {
+         BitmaskVariable var = fModel.getVariable();
+         BitmaskDialogue dialog = new BitmaskDialogue(paramControl.getShell(), var.getPermittedBits(), var.getValueAsLong());
+         dialog.setBitNameList(var.getBitList());
+         dialog.setTitle(var.getDescription());
+         if (dialog.open() == Window.OK) {
+            return Long.toString(dialog.getResult());
+         };
+         return null;
+      }
+   }
 
    /**
     * 
@@ -17,7 +46,7 @@ public class BitmaskModel extends VariableModel {
    public BitmaskModel(BaseModel parent, BitmaskVariable variable) {
       super(parent, variable);
    }
-   
+
    @Override
    public BitmaskVariable getVariable() {
       return (BitmaskVariable)super.getVariable();
@@ -62,7 +91,7 @@ public class BitmaskModel extends VariableModel {
       StringBuffer sb = new StringBuffer();
       sb.append(super.getToolTip());
       boolean newLineNeeded = sb.length()>0;
-      
+
       if (getVariable().getMin() != Long.MIN_VALUE) {
          if (newLineNeeded) {
             sb.append("\n");
@@ -85,6 +114,11 @@ public class BitmaskModel extends VariableModel {
          sb.append("step="+getValueAsString(getVariable().getStep())+" ");
       }
       return (sb.length() == 0)?null:sb.toString();
+   }
+
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      return new BitmaskEditor(tree, this);
    }
 
 }

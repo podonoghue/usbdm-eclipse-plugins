@@ -3,32 +3,41 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.NumericListVariableModel;
+import net.sourceforge.usbdm.deviceEditor.model.PinListVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
-public class NumericListVariable extends StringVariable {
+public class PinListVariable extends StringVariable {
 
    protected long fMin         = Long.MIN_VALUE;
    protected long fMax         = Long.MAX_VALUE;
    protected int  fMinListSize = 0;
    protected int  fMaxListSize = 0;
+   
+   private final  PeripheralWithState fPeripheral;
+
+   public PeripheralWithState getPeripheral() {
+      return fPeripheral;
+   }
 
    static final String  fDelimeter    = "[, ]+";
    static final Pattern fValuePattern = Pattern.compile("((\\d+[ ,]+)*\\d+[ ]+),?");
-
+   
    /**
     * Creates a numeric list where the order of values is significant
+    * @param fProvider 
     * 
     * @param name
     * @param key
     */
-   public NumericListVariable(String name, String key) {
+   public PinListVariable(PeripheralWithState peripheral, String name, String key) {
       super(name, key);
+      fPeripheral = peripheral;
    }
 
    @Override
    public VariableModel createModel(BaseModel parent) {
-      return new NumericListVariableModel(parent, this);
+      return new PinListVariableModel(parent, this);
    }
 
    @Override
@@ -45,6 +54,9 @@ public class NumericListVariable extends StringVariable {
          }
          else {
             values = value.split(fDelimeter);
+         }
+         if ((fMaxListSize == fMinListSize) && (values.length != fMaxListSize)) {
+            return "Illegal number of elements, Requires == " + fMaxListSize;
          }
          if ((fMaxListSize>0) && (values.length > fMaxListSize)) {
             return "Illegal number of elements, Requires <= " + fMaxListSize;

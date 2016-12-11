@@ -1,5 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
@@ -31,6 +37,43 @@ public class ChoiceVariableModel extends VariableModel {
 
    @Override
    protected void removeMyListeners() {
+   }
+
+   static class ChoiceCellEditor extends ComboBoxCellEditor {
+      public ChoiceCellEditor(Composite tree, String[] choices) {
+         super(tree, choices, SWT.READ_ONLY);
+         setActivationStyle(
+               ComboBoxCellEditor.DROP_DOWN_ON_KEY_ACTIVATION |
+               ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
+         setValueValid(true);
+      }
+
+      @Override
+      protected Object doGetValue() {
+         int index = (Integer) super.doGetValue();
+         String[] items = getItems();
+         if ((index<0) || (index>=items.length)) {
+            index = 0;
+         }
+         String item = items[index];
+         return item;
+      }
+
+      @Override
+      protected void doSetValue(Object value) {
+         String[] items = getItems();
+         for (int index=0; index<items.length; index++) {
+            if (items[index].equalsIgnoreCase(value.toString())) {
+               super.doSetValue(index);
+               return;
+            }
+         }
+      }
+   }
+
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      return new ChoiceCellEditor(tree, getChoices());
    }
 
 }
