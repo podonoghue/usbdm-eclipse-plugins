@@ -10,11 +10,10 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
- * Class to determine oscillator settings
+ * Class to validate Segment LCD settings
  
  * Used for:
- *     osc0
- *     osc0_div
+ *     lcd_mkl
  */
 public class LcdValidate extends Validator {
    
@@ -67,7 +66,7 @@ public class LcdValidate extends Validator {
          mappedPinCount++;
       }
       frontplanesVar.setMinListLength(1);
-      frontplanesVar.setMaxListLength(mappedPinCount);
+      frontplanesVar.setMaxListLength(mappedPinCount-((int)lcd_gcr_dutyVar.getValueAsLong()+1));
       backplanesVar.setListLength((int)lcd_gcr_dutyVar.getValueAsLong()+1);
       
       double divider = 1<<(3*lcd_gcr_altdivVar.getValueAsLong());
