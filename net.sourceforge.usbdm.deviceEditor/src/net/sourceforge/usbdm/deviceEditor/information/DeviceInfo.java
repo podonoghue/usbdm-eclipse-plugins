@@ -87,7 +87,7 @@ public class DeviceInfo extends ObservableModel {
    public enum Mode {ignore, fail};
 
    /** Device families */
-   public enum DeviceFamily {mk, mke, mkl, mkm};
+   public enum DeviceFamily {mk, mke, mkl, mkm, mkv};
 
    /** Path of file containing device hardware description */
    private Path fHardwarePath;

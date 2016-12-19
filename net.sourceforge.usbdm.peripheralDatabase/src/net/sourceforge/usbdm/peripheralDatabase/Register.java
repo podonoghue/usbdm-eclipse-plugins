@@ -122,8 +122,8 @@ public class Register extends Cluster implements Cloneable {
    /** Determines if two registers are equivalent
     * 
     * @param other      Other enumeration to check
-    * @param pattern1   Pattern to apply to name & description of self
-    * @param pattern2   Pattern to apply to name & description of other
+    * @param pattern1   Pattern to apply to name & description of self  "(prefix)(index)(suffix)"
+    * @param pattern2   Pattern to apply to name & description of other "(prefix)(index)(suffix)"
     * 
     * @note Patterns are applied recursively to enumerations etc.
     * 
@@ -132,12 +132,18 @@ public class Register extends Cluster implements Cloneable {
    public boolean equivalent(Register other, String pattern1, String pattern2) {
       boolean verbose = false; //name.equalsIgnoreCase("FCSR") && other.getName().equalsIgnoreCase("FCSR");
       boolean rv = 
-            (this.getWidth()        == other.getWidth()) &&
-            (this.getAccessType()  == other.getAccessType()) &&
-            (this.getResetValue()  == other.getResetValue()) &&
-            (this.getResetMask()   == other.getResetMask()) &&
+            (this.getWidth()       == other.getWidth()) &&
             (this.fields.size()    == other.fields.size()) &&
-            (this.getDimension()   == other.getDimension()) ; 
+            (this.getDimension()   == other.getDimension()); 
+      if (!isIgnoreAccessTypeInEquivalence()) {
+         rv = rv &&
+               (this.getAccessType() == other.getAccessType());
+      }
+      if (!isIgnoreResetValuesInEquivalence()) {
+         rv = rv &&
+               (this.getResetValue()  == other.getResetValue()) &&
+               (this.getResetMask()   == other.getResetMask());
+      }
       if (!rv) {
          if (verbose) {
             System.err.println("Comparing simple structure \""+getName()+"\", \""+other.getName()+"\"=> false");
@@ -573,7 +579,7 @@ public class Register extends Cluster implements Cloneable {
          writederivedfromSVD(writer, standardFormat, owner, indent);
          return;
       }
-      if (ModeControl.isFlattenArrays() && (getDimension()>0)) {
+      if (isFlattenArrays() && (getDimension()>0)) {
          writeFlattenedSVD(writer, standardFormat, owner, indent);
       }
       else {

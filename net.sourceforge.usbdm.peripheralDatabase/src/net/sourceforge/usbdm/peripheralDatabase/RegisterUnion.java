@@ -17,7 +17,7 @@ public class RegisterUnion {
    private long  offset;
    private long  lastWrittenOffset;
    private long  size;
-   private int   suffix = 0;
+   private static int   suffix = 0;
    
    private final Writer       writer;
    private final Peripheral   peripheral;
@@ -27,15 +27,15 @@ public class RegisterUnion {
    
    private final String  nestedStructOpening  = "struct {";
    private final String  nestedStructClosing  = "};\n";
-   private final String  unionOpening        = "union {";
-   private final String  unionClosing        = "};\n";
-   private       boolean sorted = false;
+   private final String  unionOpening         = "union {";
+   private final String  unionClosing         = "};\n";
+   private       boolean sorted               = false;
   
    /**
     * Creates a structure to hold a collection of registers being written to a header file.<br>
-    * It handles assembling them and writing the appropriate structs using the writer.
+    * It handles assembling them and writing the appropriate STRUCTS using the writer.
     *  
-    * @param writer2      Writer to use when outputting the struct
+    * @param writer2     Writer to use when outputting the STRUCTS
     * @param indent      Indent level to indent the structure by
     * @param peripheral  The peripheral containing the registers
     * @param owner       The Peripheral or Cluster that owns the register
@@ -50,7 +50,14 @@ public class RegisterUnion {
    }
 
    /**
-    * Sort the register in the required order for creating struct
+    * Clear suffix for Reserved bytes in STRUCTS
+    */
+   static void clearSuffix() {
+      suffix = 0;
+   }
+   
+   /**
+    * Sort the register in the required order for creating STRUCTS
     */
    private void sort() {
       if (sorted ) {
@@ -81,7 +88,7 @@ public class RegisterUnion {
    /** 
     * Add a register to union
     * 
-    * @param  cluster   Add register to struct/union being assembled
+    * @param  cluster   Add register to STRUCT/UNION being assembled
     * 
     * @throws Exception
     */
@@ -268,16 +275,20 @@ public class RegisterUnion {
       }
       long numElements = size;
       StringBuffer line = new StringBuffer(getIndent(indent));
-      if (((numElements&0x3) == 0) && ((address&0x3) == 0)) {
-         line.append(String.format("__I  uint32_t  RESERVED%d", suffix));
-         numElements /= 4;
-      }
-      else if (((numElements&0x1) == 0) && ((address&0x1) == 0)) {
-         line.append(String.format("__I  uint16_t  RESERVED%d", suffix));
-         numElements /= 2;
-      }
-      else {
-         line.append(String.format("__I  uint8_t   RESERVED%d", suffix));
+      if (ModeControl.isUseBytePadding()) {
+         line.append(String.format("     uint8_t   RESERVED_%d", suffix));
+      } else {
+         if (((numElements&0x3) == 0) && ((address&0x3) == 0)) {
+            line.append(String.format("__I  uint32_t  RESERVED%d", suffix));
+            numElements /= 4;
+         }
+         else if (((numElements&0x1) == 0) && ((address&0x1) == 0)) {
+            line.append(String.format("__I  uint16_t  RESERVED%d", suffix));
+            numElements /= 2;
+         }
+         else {
+            line.append(String.format("__I  uint8_t   RESERVED%d", suffix));
+         }
       }
       if (numElements > 1) {
          line.append(String.format("[%d];", numElements));

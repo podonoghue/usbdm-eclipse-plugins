@@ -332,11 +332,11 @@ public class DevicePeripherals extends ModeControl {
    /**
     * Optimise the peripherals associated with this device.
     * 
-    * This includes :
-    *   * Peripherals that can be derived from earlier peripherals
-    *   * Common prefixes on register names
-    *   * Creation of register arrays (simple arrays of registers)
-    *   * Creation of register clusters (used to represent complex arrays of multiple registers)
+    * This includes :<br>
+    *   <li>Peripherals that can be derived from earlier peripherals<br>
+    *   <li>Common prefixes on register names<br>
+    *   <li>Creation of register arrays (simple arrays of registers)<br>
+    *   <li>Creation of register clusters (used to represent complex arrays of multiple registers)<br>
     * @throws Exception 
     */
    public void optimise() throws Exception {
@@ -440,10 +440,13 @@ public class DevicePeripherals extends ModeControl {
          peripheral.clearInterruptEntries();
          for (InterruptEntry i : interruptEntry) {
             if (getVectorTable().getEntry(i.getIndexNumber()) != null) {
+               InterruptEntry j = getVectorTable().getEntry(i.getIndexNumber());
+               if (i.getName().equals(j.getName())) {
+                  continue;
+               }
                System.err.println("Interrupt vector already allocated");
                System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getIndexNumber(), i.getDescription()));
-               i = getVectorTable().getEntry(i.getIndexNumber());
-               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getIndexNumber(), i.getDescription()));
+               System.err.println(String.format("name=%s, no=%d d=%s", j.getName(), j.getIndexNumber(), j.getDescription()));
                //               throw new Exception("Interrupt vector already allocated");
             }
             else {

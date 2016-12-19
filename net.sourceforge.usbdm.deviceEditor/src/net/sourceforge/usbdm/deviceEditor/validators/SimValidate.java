@@ -77,7 +77,7 @@ public class SimValidate extends Validator {
    private static interface LpClockSelector {
       public void lpClockSelect(String sourceVar, String clockVar) throws Exception;
    }
-   
+
    /**
     * Class to determine oscillator settings
     * @throws Exception 
@@ -107,15 +107,15 @@ public class SimValidate extends Validator {
 
       // RTC
       //=================
-      final Variable     rtcclk_clockVar                 =  getVariable("/RTC/rtcclk_clock");
-      final Variable     rtcclk_gated_clockVar           =  getVariable("/RTC/rtcclk_gated_clock");
-      final Variable     rtc_clkoutVar                   =  getVariable("/RTC/rtc_clkout");
+      final Variable     rtcclk_clockVar                 =  safeGetVariable("/RTC/rtcclk_clock");
+      final Variable     rtcclk_gated_clockVar           =  safeGetVariable("/RTC/rtcclk_gated_clock");
+      final Variable     rtc_clkoutVar                   =  safeGetVariable("/RTC/rtc_clkout");
 
       //
       //=====================
       final Variable system_peripheral_clockVar = getVariable("system_peripheral_clock");
       final Variable sim_sopt2_pllfllselVar     = getVariable("sim_sopt2_pllfllsel");
-      
+
       final Long   pllPostDiv3Value;
       final String pllPostDiv3Origin;
 
@@ -133,14 +133,14 @@ public class SimValidate extends Validator {
          pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
          pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
       }
-      
+
       /**
        * Clock selector used for LPUARTs and TPMs
        */
       LpClockSelector clockSelector = new LpClockSelector() {
          @Override
          public void lpClockSelect(String sourceVar, String clockVarId) throws Exception {
-            
+
             // Clock source select (if present)
             //===================================
             Variable srcVar = safeGetVariable(sourceVar);
@@ -173,7 +173,7 @@ public class SimValidate extends Validator {
             }
          }
       };
-      
+
       // Determine ERCLK32K
       //==================================
       Variable system_erclk32k_clockVar = getVariable("system_erclk32k_clock");
@@ -198,24 +198,25 @@ public class SimValidate extends Validator {
          break;
       }
 
-      // RTC Clock out pin select 
-      //============================
-      Variable sim_sopt2_rtcclkoutselVar = getVariable("sim_sopt2_rtcclkoutsel");
-      switch ((int)sim_sopt2_rtcclkoutselVar.getValueAsLong()) {
-      default:
-         sim_sopt2_rtcclkoutselVar.setValue(0);
-      case 0: // RTC seconds clock = 1Hz
-         rtc_clkoutVar.setValue((rtcclk_clockVar.getValueAsLong()!=0)?1:0);
-         rtc_clkoutVar.setStatus(rtcclk_clockVar.getStatus());
-         rtc_clkoutVar.setOrigin(rtcclk_clockVar+" (1Hz output)");
-         break;
-      case 1: // RTC 32.768kHz oscillator
-         rtc_clkoutVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
-         rtc_clkoutVar.setStatus(rtcclk_gated_clockVar.getStatus());
-         rtc_clkoutVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
-         break;
+      if (rtcclk_clockVar != null) {
+         // RTC Clock out pin select 
+         //============================
+         Variable sim_sopt2_rtcclkoutselVar = getVariable("sim_sopt2_rtcclkoutsel");
+         switch ((int)sim_sopt2_rtcclkoutselVar.getValueAsLong()) {
+         default:
+            sim_sopt2_rtcclkoutselVar.setValue(0);
+         case 0: // RTC seconds clock = 1Hz
+            rtc_clkoutVar.setValue((rtcclk_clockVar.getValueAsLong()!=0)?1:0);
+            rtc_clkoutVar.setStatus(rtcclk_clockVar.getStatus());
+            rtc_clkoutVar.setOrigin(rtcclk_clockVar+" (1Hz output)");
+            break;
+         case 1: // RTC 32.768kHz oscillator
+            rtc_clkoutVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
+            rtc_clkoutVar.setStatus(rtcclk_gated_clockVar.getStatus());
+            rtc_clkoutVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
+            break;
+         }
       }
-
       // Find PLLFLLCLOCK
       //=====================================
       switch ((int)sim_sopt2_pllfllselVar.getValueAsLong()) {
@@ -263,7 +264,7 @@ public class SimValidate extends Validator {
       // UART0 Clock source select (if present)
       //============================
       clockSelector.lpClockSelect("sim_sopt2_uart0src", "system_uart0_clock");
-      
+
       // LPUART Clock source select (if present)
       //========================================
       clockSelector.lpClockSelect("sim_sopt2_lpuartsrc", "system_lpuart_clock");
@@ -383,7 +384,7 @@ public class SimValidate extends Validator {
       else {
          // Clock variable not changed - just validate
          if ((coreDivisor.divisor == 0) || 
-             (system_core_clockVar.getValueAsLong() != (coreDivisor.nearestTargetFrequency))) {
+               (system_core_clockVar.getValueAsLong() != (coreDivisor.nearestTargetFrequency))) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
@@ -419,7 +420,7 @@ public class SimValidate extends Validator {
       else {
          // Clock variable not changed - just validate
          if ((busDivisor.divisor == 0) || 
-             (system_bus_clockVar.getValueAsLong() != (busDivisor.nearestTargetFrequency))) {
+               (system_bus_clockVar.getValueAsLong() != (busDivisor.nearestTargetFrequency))) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
@@ -457,7 +458,7 @@ public class SimValidate extends Validator {
          else {
             // Clock variable not changed - just validate
             if ((flexDivisor.divisor == 0) || 
-                (system_flexbus_clockVar.getValueAsLong() != (flexDivisor.nearestTargetFrequency))) {
+                  (system_flexbus_clockVar.getValueAsLong() != (flexDivisor.nearestTargetFrequency))) {
                severity = Severity.ERROR;
                sb.append("Illegal Frequency\n");
             }
@@ -498,7 +499,7 @@ public class SimValidate extends Validator {
       else {
          // Clock variable not changed - just validate
          if ((flashDivisor.divisor == 0) || 
-            (system_flash_clockVar.getValueAsLong() != (flashDivisor.nearestTargetFrequency))) {
+               (system_flash_clockVar.getValueAsLong() != (flashDivisor.nearestTargetFrequency))) {
             severity = Severity.ERROR;
             sb.append("Illegal Frequency\n");
          }
@@ -530,6 +531,7 @@ public class SimValidate extends Validator {
          for (int divisor=16; divisor>0; divisor--) {
             double frequency = inputFrequency/divisor;
             if (!okValue(divisor, frequency)) {
+//               System.err.println("Rejected f= " + frequency);
                continue;
             }
             if (values++ == 7) {

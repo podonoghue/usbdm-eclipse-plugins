@@ -219,11 +219,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (fieldElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
          Field referencedField = null;
          if (register != null) {
-            referencedField = register.findField(Peripheral.getMappedPeripheralName(fieldElement.getAttribute(DERIVEDFROM_ATTRIB)));
-            if (referencedField == null) {
-               // Try unmapped name
-               referencedField = register.findField(fieldElement.getAttribute(DERIVEDFROM_ATTRIB));
-            }
+            referencedField = register.findField(fieldElement.getAttribute(DERIVEDFROM_ATTRIB));
          }
          if (referencedField == null) {
             throw new Exception("Referenced field cannot be found: \"" + fieldElement.getAttribute(DERIVEDFROM_ATTRIB) + "\"");
@@ -355,7 +351,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (registerElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
          Cluster referencedRegister = null;
          if (cluster != null) {
-            referencedRegister = cluster.findRegister(Peripheral.getMappedPeripheralName(registerElement.getAttribute(DERIVEDFROM_ATTRIB)));
+            referencedRegister = cluster.findRegister(registerElement.getAttribute(DERIVEDFROM_ATTRIB));
             if (referencedRegister == null) {
                // Try unmapped name
                referencedRegister = cluster.findRegister(registerElement.getAttribute(DERIVEDFROM_ATTRIB));
@@ -404,7 +400,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-          register.setName(element.getTextContent());
+          register.setName(mapRegisterName(element.getTextContent()));
          }
          
          else if (element.getTagName() == ADDRESSOFFSET_TAG) {
@@ -412,7 +408,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == DISPLAYNAME_TAG) {
             if ((register.getName() == null) || (register.getName().length() == 0))
-            register.setName(element.getTextContent());
+            register.setName(mapRegisterName(element.getTextContent()));
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
             register.setDescription(element.getTextContent().trim());
@@ -477,6 +473,36 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    }
 
    /**
+    * Maps register names to new format
+    * 
+    * @param name Name to map
+    * 
+    * @return  Mapped name or original if unchanged
+    */
+   static String mapRegisterName(String name) {
+      if (!ModeControl.isMapRegisterNames()) {
+         return name;
+      }
+      final ArrayList<Pair> mappedNames = new ArrayList<Pair>();
+      if (mappedNames.size() == 0) {
+         //TODO - Where register names are mapped
+         mappedNames.add(new Pair(Pattern.compile("^TRNG0_(.*)$"),  "$1"));  // e.g. TRNG0_MCTL => MCTL
+         mappedNames.add(new Pair(Pattern.compile("^CAU_(.*)$"),    "$1"));  // e.g. CAU_LDR_CASR => LDR_CASR
+         mappedNames.add(new Pair(Pattern.compile("^LTC0_(.*)$"),   "$1"));  // e.g. 
+      }
+      for (Pair p : mappedNames) {
+         Matcher matcher = p.regex.matcher(name);
+         if (matcher.matches()) {
+//            String oldName = name;
+            name = matcher.replaceAll(p.replacement);
+//            System.err.println(String.format("getMappedRegisterMacroName() : %s -> %s", oldName, name));
+            break;
+         }
+      }
+      return name;
+   }
+
+   /**
     * Parse a <cluster> element
     * @param peripheral 
     * 
@@ -524,7 +550,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             cluster.setDimensionIndexes(element.getTextContent());
          }
          else if (element.getTagName() == NAME_TAG) {
-            cluster.setName(element.getTextContent());
+            cluster.setName(mapRegisterName(element.getTextContent()));
          }
          else if (element.getTagName() == ADDRESSOFFSET_TAG) {
             cluster.setAddressOffset(getIntElement(element));

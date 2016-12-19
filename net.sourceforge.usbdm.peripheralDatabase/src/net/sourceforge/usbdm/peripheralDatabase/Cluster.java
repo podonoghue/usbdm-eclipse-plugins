@@ -527,7 +527,7 @@ public class Cluster extends ModeControl implements Cloneable {
       sortRegisters();
 
       writer.write(                 indenter+"<cluster>\n");
-      if ((dimensionIndexes!= null) && (dimensionIndexes.size()>0)) {
+      if ((dimensionIndexes != null) && (dimensionIndexes.size()>0)) {
          writer.write(String.format(indenter+"   <dim>%d</dim>\n",                       dimensionIndexes.size()));
          writer.write(String.format(indenter+"   <dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
          writer.write(String.format(indenter+"   <dimIndex>%s</dimIndex>\n",             SVD_XML_BaseParser.escapeString(getDimensionIndexesAsString())));

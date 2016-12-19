@@ -28,20 +28,21 @@ import org.eclipse.core.runtime.IPath;
 
 public class CreatePeripheralDatabase {
    private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
-   private static final  Path MAIN_FOLDER                                  = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
-   @SuppressWarnings("unused")
-   private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
-
-   private static final  Path usbdmFolder            = MAIN_FOLDER.resolve("Internal");
+   private static final  Path MAIN_FOLDER       = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
    //   @SuppressWarnings("unused")
-   private static final  Path usbdmFolder_Check      = MAIN_FOLDER.resolve("Internal.Check");
+   //   private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
+   //
+   //   private static final  Path usbdmFolder            = MAIN_FOLDER.resolve("Internal");
+   //   //   @SuppressWarnings("unused")
+   //   private static final  Path usbdmFolder_Check      = MAIN_FOLDER.resolve("Internal.Check");
+   //
+   //   private static final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+   //
+   //   @SuppressWarnings("unused")
+   //   private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
+   //   @SuppressWarnings("unused")
+   //   private static final  Path freescaleFolder_Check   = MAIN_FOLDER.resolve("Freescale.Check");
 
-   private static final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
-
-   @SuppressWarnings("unused")
-   private static final  Path freescaleFolder        = MAIN_FOLDER.resolve("Freescale");
-   @SuppressWarnings("unused")
-   private static final  Path freescaleFolder_Check   = MAIN_FOLDER.resolve("Freescale.Check");
    private static final  String DEVICE_LIST_FILENAME        = "DeviceList.xml";
    private static final  String CMSIS_SCHEMA_FILENAME       = "CMSIS-SVD_Schema_1_1.xsd";
    private static final  String DEVICE_LIST_SCHEMA_FILENAME = "DeviceListSchema.dtd";
@@ -107,13 +108,13 @@ public class CreatePeripheralDatabase {
                startPattern = null;
             }
          }
-//         if (!include) {
-//            System.err.println("Skipping " + filename);
-//         }
+         //         if (!include) {
+         //            System.err.println("Skipping " + filename);
+         //         }
          return !include;
       }
    }
-   static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger, boolean optimise) throws Exception {
+   static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       int deviceCount = 500;
@@ -132,9 +133,7 @@ public class CreatePeripheralDatabase {
 
                // Read device peripheral database
                DevicePeripherals devicePeripherals = new DevicePeripherals(filePath);
-               if (optimise) {
-                  devicePeripherals.optimise();
-               }
+               devicePeripherals.optimise();
                // Create merged SVD file
                merger.writeDeviceToSVD(devicePeripherals);
             }
@@ -149,12 +148,12 @@ public class CreatePeripheralDatabase {
     *    
     *    @param svdSourceFolderPath - Folder of SVD files to merge
     *    @param svdOutputFolderPath - Destination folder (which is created) with sub-folder of peripherals
-    *    @param optimise            - Whether to apply optimisations when creating SVD files
+    *    @param removeFolder        - Delete destination folder
     * 
     *    @throws IOException 
     *    
     */
-   public static void mergeFiles(Path svdSourceFolderPath, Path svdOutputFolderPath, boolean optimise, boolean removeFolder) throws IOException {
+   public static void mergeFiles(Path svdSourceFolderPath, Path svdOutputFolderPath, boolean removeFolder) throws IOException {
 
       if (Files.exists(svdOutputFolderPath)) {
          if (!removeFolder) {
@@ -178,15 +177,6 @@ public class CreatePeripheralDatabase {
       merger.setXmlExtension(".svd.xml");
       merger.setXmlRootPath(svdOutputFolderPath.toFile());
 
-      // Set optimisations
-      ModeControl.setExtractComplexStructures(optimise);
-      ModeControl.setExtractDerivedPeripherals(optimise);
-      ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setMapFreescaleCommonNames(optimise);
-      ModeControl.setGenerateFreescaleRegisterMacros(optimise);
-      //      ModeControl.setRegenerateAddressBlocks(optimise);
-      ModeControl.setFoldRegisters(optimise);
-
       System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
 
       DirectoryStream.Filter<Path> coldfireDirectoryFilter = new DirectoryStream.Filter<Path>() {
@@ -204,8 +194,8 @@ public class CreatePeripheralDatabase {
       };
 
       try {
-         mergeFiles(svdSourceFolderPath, nonColdfireDirectoryFilter, merger, optimise);
-         mergeFiles(svdSourceFolderPath, coldfireDirectoryFilter,    merger, optimise);
+         mergeFiles(svdSourceFolderPath, nonColdfireDirectoryFilter, merger);
+         mergeFiles(svdSourceFolderPath, coldfireDirectoryFilter,    merger);
          merger.writePeripheralsToSVD();
          merger.writeVectorTablesToSVD();
       } catch (Exception e) {
@@ -232,11 +222,10 @@ public class CreatePeripheralDatabase {
     *    
     *  @param sourceFolderPath       - Folder containing SVD files (must have .svd.xml extension, otherwise ignored)
     *  @param destinationFolderPath  - Folder to write created header file to
-    *  @param optimise
-    *  @param removeFolder
+    *  @param removeFolder           - Delete destination folder
     * @throws Exception 
     */
-   public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean optimise, boolean removeFolder) throws Exception {
+   public static void createHeaderFiles(Path sourceFolderPath, Path destinationFolderPath, boolean removeFolder) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
@@ -248,14 +237,6 @@ public class CreatePeripheralDatabase {
             removeDirectoryTree(destinationFolderPath);
          }
       }
-      // Set optimisations
-      ModeControl.setExtractComplexStructures(optimise);
-      ModeControl.setExtractDerivedPeripherals(optimise);
-      ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setMapFreescaleCommonNames(optimise);
-      ModeControl.setGenerateFreescaleRegisterMacros(optimise);
-      ModeControl.setRegenerateAddressBlocks(false);
-
       if (!Files.exists(destinationFolderPath)) {
          Files.createDirectory(destinationFolderPath);
       }
@@ -278,10 +259,8 @@ public class CreatePeripheralDatabase {
                // Read device description
                DevicePeripherals devicePeripherals = new DevicePeripherals(svdSourceFile);
 
-               if (optimise) {
-                  // Optimise peripheral database
-                  devicePeripherals.optimise();
-               }
+               // Optimise peripheral database
+               devicePeripherals.optimise();
                devicePeripherals.sortPeripherals();
 
                // Create header file
@@ -378,7 +357,7 @@ public class CreatePeripheralDatabase {
       ModeControl.setExtractComplexStructures(false);
       ModeControl.setExtractDerivedPeripherals(false);
       ModeControl.setExtractSimpleRegisterArrays(false);
-      ModeControl.setMapFreescaleCommonNames(false);
+      ModeControl.setMapFreescalePeriperalCommonNames(false);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
       ModeControl.setRegenerateAddressBlocks(false);
       ModeControl.setExpandDerivedPeripherals(true);
@@ -537,7 +516,7 @@ public class CreatePeripheralDatabase {
       }
       // Set options
       ModeControl.setFreescaleFieldNames(true);
-      ModeControl.setMapFreescaleCommonNames(true);
+      ModeControl.setMapFreescalePeriperalCommonNames(true);
       ModeControl.setGenerateFreescaleRegisterMacros(false);
       ModeControl.setUseShiftsInFieldMacros(true);
 
@@ -614,7 +593,7 @@ public class CreatePeripheralDatabase {
       ModeControl.setExtractComplexStructures(optimise);
       ModeControl.setExtractDerivedPeripherals(optimise);
       ModeControl.setExtractSimpleRegisterArrays(optimise);
-      ModeControl.setMapFreescaleCommonNames(optimise);
+      ModeControl.setMapFreescalePeriperalCommonNames(optimise);
       ModeControl.setGenerateFreescaleRegisterMacros(optimise);
       ModeControl.setRegenerateAddressBlocks(optimise);
       //      ModeControl.setExtractCommonPrefix(optimise);
@@ -655,72 +634,131 @@ public class CreatePeripheralDatabase {
     */
 
    /**
-    * @param args
+    * Generates new SVD and header file for the usual minor changes.
+    * This includes merging peripherals 
+    * 
+    * Source "Internal"
+    * Destinations "Internal.Check", "Internal_header.Check"
     */
-   public static void main(String[] args) {
-
-//    firstFileToProcess = ("^MK10D5.*");
-//    firstFileToReject  = ("^MK10D7.*");
-
-//    firstFileToProcess = ("^MK20D5.*");
-//    firstFileToReject  = ("^MK20D7.*");
-
-      //      System.err.println("Starting");
-
-//      firstFileToProcess = ("^MK21.*");
-//      firstFileToReject  = ("^MK24.*");
-//      
-//      firstFileToProcess = ("^MK22F12810.*");
-//      firstFileToReject  = ("^MKE15D7.*");
-
-      //    firstFileToProcess = ("^MK.*");
-//    firstFileToProcess = ("^MK10D7.*");
-//    firstFileToProcess = ("^MK10D5.*");
-//      firstFileToProcess = ("^MKE.*");
-//    firstFileToProcess = ("^MKL.*");
-//      firstFileToProcess = ("^MKL04.*");
-//      firstFileToProcess = ("^MKM.*");
-//      firstFileToProcess = ("^MKV.*");
-//      firstFileToProcess = ("^MKW.*");
-//      firstFileToProcess = ("^SKEA.*");
-      
-  //  firstFileToReject = ("^MK.*");
-//    firstFileToReject = ("^MK10DZ.*");
-//      firstFileToReject = ("^MKE.*");
-//    firstFileToReject = ("^MKL.*");
-//    firstFileToReject = ("^MKL15.*");
-//      firstFileToReject = ("^MKM.*");
-//      firstFileToReject = ("^MKV.*");
-//      firstFileToReject = ("^MKW.*");
-//      firstFileToReject = ("^SKEA*");
+   static void doUsualRegeneration() {
+      final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
+      final  Path usbdmFolder_Check         = MAIN_FOLDER.resolve("Internal.Check");
+      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
 
       try {
-// Generate merged version of SVD files for testing (should be unchanging eventually)
-//         ModeControl.setExpandDerivedRegisters(false);
-//         ModeControl.setFlattenArrays(true);
-//         ModeControl.setRenameSimSources(true);
-//         mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
-// Create Header files from SVD
-//         createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
-//         createHeaderFiles(freescaleFolder,       freescaleHeaderFolder,       false, true);
-//         createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
-
+         // Generate merged version of SVD files for testing (should be unchanging)
          ModeControl.setRegenerateAddressBlocks(true);
          ModeControl.setExtractSimilarFields(true);
+         ModeControl.setExtractComplexStructures(true);
+         ModeControl.setExtractDerivedPeripherals(true);
+         ModeControl.setExtractSimpleRegisterArrays(true);
+         ModeControl.setMapFreescalePeriperalCommonNames(true);
+         ModeControl.setFoldRegisters(true);
+         mergeFiles(usbdmFolder,     usbdmFolder_Check, true);
+         
+         // Turn of optimisation when generating header files
+         ModeControl.setRegenerateAddressBlocks(false);
+         ModeControl.setExtractSimilarFields(false);
+         ModeControl.setExtractComplexStructures(false);
+         ModeControl.setExtractDerivedPeripherals(false);
+         ModeControl.setExtractSimpleRegisterArrays(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setFoldRegisters(false);
+
+         // Header file generation options
+         ModeControl.setGenerateFreescaleRegisterMacros(false);
          ModeControl.setFreescaleFieldNames(true);
-//         if (false) {
-//            mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
-//            createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
-//         }
-         if (true) {
-            mergeFiles(usbdmFolder,     usbdmFolder_Check, true, true);
-//            createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, false, true);
-            createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, false, true);
-         }
+         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseBytePadding(true);
+         createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
+
       } catch (Exception e) {
          e.printStackTrace();
       }
       System.err.flush();
       System.err.println("Done");
+
+   }
+
+   static void doFactoring() {
+      //    @SuppressWarnings("unused")
+      //    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
+      //
+      final  Path usbdmFolder    = MAIN_FOLDER.resolve("Internal");
+      final  Path stage1Folder   = MAIN_FOLDER.resolve("1.stage1Folder");
+      final  Path stage2Folder   = MAIN_FOLDER.resolve("2.stage2Folder");
+      final  Path stage3Folder   = MAIN_FOLDER.resolve("3.stage3Folder");
+      final  Path resultFolder   = MAIN_FOLDER.resolve("9.resultFolder");
+
+      firstFileToProcess = ("^MKE15Z.*");
+      firstFileToReject  = ("^MKL.*");
+
+      try {
+         // Generate merged version of SVD files for testing (should be unchanging eventually)
+         //         ModeControl.setExpandDerivedRegisters(false);
+         //         ModeControl.setFlattenArrays(true);
+         //         ModeControl.setRenameSimSources(true);
+         //         mergeFiles(freescaleFolder, freescaleFolder_Check, true, true);
+         // Create Header files from SVD
+         //         createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
+         //         createHeaderFiles(freescaleFolder,       freescaleHeaderFolder,       false, true);
+         //         createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
+
+         ModeControl.setExtractSimilarFields(true);
+         ModeControl.setExtractDerivedPeripherals(true);
+         ModeControl.setMapFreescalePeriperalCommonNames(true);
+         ModeControl.setFoldRegisters(true);
+         ModeControl.setRenameSimSources(true);
+         ModeControl.setMapRegisterNames(true);
+         
+         // Regenerate with expanded registers to allow merging of overlapping STRUCTS 
+         ModeControl.setFlattenArrays(true);
+         mergeFiles(usbdmFolder, stage1Folder, true);
+
+         // Merge overlapping STRUCTS 
+         ModeControl.setExtractComplexStructures(true);
+         // Create Simple arrays
+         ModeControl.setFlattenArrays(false);
+         ModeControl.setIgnoreResetValuesInEquivalence(true);
+         ModeControl.setIgnoreAccessTypeInEquivalence(true);
+         ModeControl.setExtractSimpleRegisterArrays(true);
+         mergeFiles(stage1Folder, stage2Folder, true);
+
+         // Update the memory blocks
+         ModeControl.setRegenerateAddressBlocks(true);
+         mergeFiles(stage2Folder, stage3Folder, true);
+
+         // Generate the header files
+         mergeFiles(stage3Folder, resultFolder, true);
+
+         // Turn off further optimisations when loading SVD
+         ModeControl.setRegenerateAddressBlocks(false);
+         ModeControl.setExtractSimilarFields(false);
+         ModeControl.setExtractComplexStructures(false);
+         ModeControl.setExtractDerivedPeripherals(false);
+         ModeControl.setExtractSimpleRegisterArrays(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setFoldRegisters(false);
+
+         // Header file generation options
+         ModeControl.setFreescaleFieldNames(true);
+         ModeControl.setGenerateFreescaleRegisterMacros(false);
+         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseBytePadding(true);
+         createHeaderFiles(stage3Folder, resultFolder, false);
+
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      System.err.flush();
+      System.err.println("Done");
+   }
+   /**
+    * @param args
+    */
+   public static void main(String[] args) {
+
+//      doFactoring();
+      doUsualRegeneration();
    }
 }

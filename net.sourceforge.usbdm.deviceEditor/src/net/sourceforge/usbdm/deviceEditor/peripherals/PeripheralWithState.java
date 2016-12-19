@@ -228,7 +228,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       try {
          return fDeviceInfo.getVariable(key);
       } catch (Exception e) {
-         throw new Exception("Variable error in peripheral "+getName(), e);
+         throw new Exception("Variable error in peripheral "+getName()+", var="+key, e);
       }
    }
 

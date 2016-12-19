@@ -240,8 +240,8 @@ public class Field extends ModeControl implements Cloneable {
    /** Determines if two fields are equivalent
     * 
     * @param other      Other enumeration to check
-    * @param pattern1   Pattern to apply to name & description of self
-    * @param pattern2   Pattern to apply to name & description of other
+    * @param pattern1   Pattern to apply to name & description of self  "(prefix)(index)(suffix)"
+    * @param pattern2   Pattern to apply to name & description of other "(prefix)(index)(suffix)"
     * 
     * @note Patterns are applied recursively to enumerations etc.
     * 
@@ -250,9 +250,12 @@ public class Field extends ModeControl implements Cloneable {
    public boolean equivalent(Field other, String pattern1, String pattern2) {
       boolean verbose = false; //name.equalsIgnoreCase("TFWM1") && other.getName().equalsIgnoreCase("TFWM1");
       boolean rv =  
-            (fAccessType == other.fAccessType) &&
             (fBitOffset == other.fBitOffset) &&
             (fBitwidth == other.fBitwidth);
+      if (!isIgnoreAccessTypeInEquivalence()) {
+         rv = rv &&
+               (fAccessType == other.fAccessType);
+      }
       if (!rv) {
          if (verbose) {
             System.err.println("Comparing simple field structure \""+getName()+"\", \""+other.getName()+"\"=> false");
@@ -399,14 +402,14 @@ public class Field extends ModeControl implements Cloneable {
    }
    
    /**
-    * Maps a bit-field macro name for shared definitions (made generic)
+    * Maps a bit-field macro name for shared definitions (make generic)
     * e.g. PORTA_PCR_MUX() -> PORT_PCR_MUX()
     * 
     * @param   Name to map
     * @return  Mapped name (unchanged if not mapped, null if to be deleted)
     */
    static String getMappedBitfieldMacroName(String name) {
-      // TODO - Common names in macros are done here
+      // TODO - Where common names in macros are done
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
@@ -418,6 +421,7 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(AIPS)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(CAN)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(CMP)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(CRC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DAC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMA)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(DMAMUX)[0-9](_.*)$"),                   "$1$2"));
@@ -436,15 +440,24 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(PORT)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(SDHC)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PIT)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(QSPI)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(TRNG)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(LPUART)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(INTC)[0-9](_.*)$"),                     "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
-         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2")); 
+         mappedMacros.add(new Pair(Pattern.compile("^(EMVSIM)\\d(.*)$"),                      "$1$2")); // EMVSIM0_VER_ID_VER_MASK => EMVSIM_VER_ID_VER_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(FLEXIO)\\d(.*)$"),                      "$1$2")); // FLEXIO0_VERID_FEATURE_MASK => FLEXIO_VERID_FEATURE_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(INTMUX)\\d(.*)$"),                      "$1$2")); // INTMUX0_CSR_RST_MASK => INTMUX_CSR_RST_MASK
+         
+         mappedMacros.add(new Pair(Pattern.compile("^(LTC)\\d(.*)$"),                         "$1$2")); // LTC0_MD_ENC_MASK => LTC_MD_ENC_MASK
+         mappedMacros.add(new Pair(Pattern.compile("^(CAU_.*?)\\d*$"),                        "$1")); // CAU_DIRECT_CAU_DIRECT0 => CAU_DIRECT_CAU_DIRECT
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(name);
@@ -458,8 +471,8 @@ public class Field extends ModeControl implements Cloneable {
       return name;
    }
 
-   static final String BITFIELD_MACRO_POS_FORMAT     = "#define %-40s %d";
-   static final String BITFIELD_MACRO_MSK_NUM_FORMAT = "#define %-40s 0x%Xu";
+   static final String BITFIELD_MACRO_POS_FORMAT     = "#define %-40s (%dU)";
+   static final String BITFIELD_MACRO_MSK_NUM_FORMAT = "#define %-40s (0x%XU)";
    static final String BITFIELD_MACRO_MSK_FORMAT     = "#define %-40s (0x%02XUL << %s)";
 //   static final String BITFIELD_MACRO_MSK_FORMAT   = "#define %-40s 0x%Xu";
 //   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((uint32_t)(((uint32_t)(x))<<%s))&%s)";

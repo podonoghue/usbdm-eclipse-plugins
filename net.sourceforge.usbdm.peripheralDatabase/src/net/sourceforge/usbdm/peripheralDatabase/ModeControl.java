@@ -112,7 +112,99 @@ public class ModeControl {
     */
    private static boolean extractSimilarFields = false;
 
+   /**
+    * Whether to always pad structures with bytes rather than larger elements.
+    */
+   private static boolean useBytePadding = false;
+
+   /**
+    * Whether to map register names when loading XML e.g.
+    * <pre>CAU_LDR_CASR => LDR_CASR</pre>
+    * 
+    * @return True is names are to be mapped.
+    */
+   private static boolean fMapRegisterNames = false;
+
+   /**
+    * Control if reset values of a register is considered when checking for equivalence
+    */
+   private static boolean fIgnoreResetValuesInEquivalence = false;
+
+   /**
+    * Control if Access Type of a register is considered when checking for equivalence
+    */
+   private static boolean fIgnoreAccessTypeInEquivalence = false;
+
    public ModeControl() {
+   }
+
+   /**
+    * Indicates if Access Type of a register is considered when checking for equivalence
+    * 
+    * @return True indicates ignoring Access Types
+    */
+   public static boolean isIgnoreAccessTypeInEquivalence() {
+      return fIgnoreAccessTypeInEquivalence;
+   }
+
+   /**
+    * Controls whether Access Type of a register is considered when checking for equivalence
+    * 
+    * @param value True to ignore Access Type
+    */
+   public static void setIgnoreAccessTypeInEquivalence(boolean value) {
+      ModeControl.fIgnoreAccessTypeInEquivalence = value;
+   }
+
+   /**
+    * Indicates if reset values of a register is considered when checking for equivalence
+    * 
+    * @return True indicates ignoring reset values
+    */
+   public static boolean isIgnoreResetValuesInEquivalence() {
+      return fIgnoreResetValuesInEquivalence;
+   }
+
+   /**
+    * Controls whether reset values of a register is considered when checking for equivalence
+    * 
+    * @param value True to ignore reset values
+    */
+   public static void setIgnoreResetValuesInEquivalence(boolean value) {
+      ModeControl.fIgnoreResetValuesInEquivalence = value;
+   }
+
+   /**
+    * Whether to map register names when loading XML e.g.
+    * <pre>CAU_LDR_CASR => LDR_CASR</pre>
+    * 
+    * return True if ignoring reset values
+    */
+   public static boolean isMapRegisterNames() {
+      return fMapRegisterNames;
+   }
+
+   /**
+    * Sets whether to map register names when loading XML
+    * 
+    * @param mapRegisterNames True to map names
+    */
+   public static void setMapRegisterNames(boolean mapRegisterNames) {
+      fMapRegisterNames = mapRegisterNames;
+   }
+
+   /**
+    * Whether to always pad structures with bytes rather than larger elements.
+    */
+   public static boolean isUseBytePadding() {
+      return useBytePadding;
+   }
+
+   /**
+    * Whether to always pad structures with bytes rather than larger elements.
+    */
+   public static void setUseBytePadding(boolean useBytePadding) {
+      ModeControl.useBytePadding = useBytePadding;
    }
 
    /**
@@ -141,7 +233,7 @@ public class ModeControl {
    /**
     * Cause some register names that appears twice to be folded (i.e. 2nd occurrence deleted)
     * 
-    * @param foldRegisters the foldRegisters to set
+    * @param extractSimilarFields True to enable operation
     */
    public static void setExtractSimilarFields(boolean extractSimilarFields) {
       ModeControl.extractSimilarFields = extractSimilarFields;
@@ -164,7 +256,8 @@ public class ModeControl {
    }
 
    /**
-    * Sets some standard differences between ARM header files and Freescale typical<br>
+    * Gets option controlling some standard differences between ARM and Freescale header files<br>
+    * Only affects header file generation
     * <pre>
     *                            Freescale         ARM
     * Field bit masks use        _MASK            _Msk
@@ -176,12 +269,15 @@ public class ModeControl {
    }
 
    /**
-    * Report is using some standard differences between ARM header files and Freescale typical
+    * Gets option controlling some standard differences between ARM and Freescale header files<br>
+    * Only affects header file generation
     * <pre>
     *                             Freescale         ARM
     * Field bit masks use        _MASK            _Msk
     * Field bit offsets use      _SHIFT           _Pos
     * </pre>
+    * 
+    * @param freescaleMode True to enable operation
     */
    public static void setFreescaleFieldNames(boolean freescaleMode) {
       ModeControl.freescaleModeFieldNames = freescaleMode;
@@ -209,6 +305,8 @@ public class ModeControl {
     * Indicates whether to generate Freescale style MACROs to access registers e.g.<br>
     * 
     * <pre>#define CMP1_CR0    (CMP1->CR0)</pre>
+    * 
+    * Only affects header file generation
     */
    public static boolean isGenerateFreescaleRegisterMacros() {
       return generateFreescaleRegisterMacros;
@@ -218,6 +316,8 @@ public class ModeControl {
     * Set whether to generate Freescale style MACROs to access registers e.g.<br>
     * 
     * <pre>#define CMP1_CR0    (CMP1->CR0)</pre>
+    * 
+    * Only affects header file generation
     */
    public static void setGenerateFreescaleRegisterMacros(
          boolean generateFreescaleRegisterMacros) {
@@ -238,7 +338,7 @@ public class ModeControl {
     * 
     * <pre>"PTA" => "GPIOA"</pre>
     */
-   public static void setMapFreescaleCommonNames(boolean mapFreescaleCommonNames) {
+   public static void setMapFreescalePeriperalCommonNames(boolean mapFreescaleCommonNames) {
       ModeControl.mapFreescaleCommonNames = mapFreescaleCommonNames;
    }
 
@@ -291,7 +391,7 @@ public class ModeControl {
    /**
     * Sets whether to recalculate the peripheral address blocks from registers
     * 
-    * @param regenerateAddressBlocks
+    * @param regenerateAddressBlocks True to enable operation
     */
    public static void setRegenerateAddressBlocks(boolean regenerateAddressBlocks) {
       ModeControl.regenerateAddressBlocks = regenerateAddressBlocks;
@@ -466,7 +566,7 @@ public class ModeControl {
 
    /**
     * Maps a Register macro name to a Freescale style name
-    * e.g. DAC0_DATL0 -> DAC0_DAT0L
+    * e.g. DAC0_DATL0 => DAC0_DAT0L
     * 
     * @param   Name to map
     * @return  Mapped name (unchanged if not mapped, null if already mapped)
@@ -488,7 +588,6 @@ public class ModeControl {
          mappedMacros.add(new Pair(Pattern.compile("^(MTBDWT[0-9]?)_COMPARATOR([0-9]+)(.*)$"),     "$1$3$2"));    // e.g. MPU_SP0_EAR -> MPU_EAR0
          mappedMacros.add(new Pair(Pattern.compile("^(DMA[0-9]?)_DMA([0-9]+)(.*)$"),               "$1$3$2"));    // e.g. DMA_DMA0_SAR -> MPU_EAR0
 
-
          mappedMacros.add(new Pair(Pattern.compile("^(DMA)_CH([0-9]+)(_.*)$"),                     "$1$3$2"));    // e.g. DMA_CH0_SAR -> DMA_SAR0
          mappedMacros.add(new Pair(Pattern.compile("^(DTIM)_CH([0-9]+)(_.*)$"),                    "$1$3$2"));    // e.g. DTIM_CH0_DTMR -> DTIM_DTMR0
          mappedMacros.add(new Pair(Pattern.compile("^(FBCS)_CH([0-9]*)(_.*)$"),                    "$1$3$2"));    // e.g. FBCS_CH0_CSAR -> FBCS_CSAR0
@@ -509,7 +608,7 @@ public class ModeControl {
    /**
     * Generates a structure name from a peripheral name
     * e.g. DAC0 -> DAC, GPIOA->GPIO
-    * There are used for the structire names e.g. GPIOA => GPIO_Type
+    * There are used for the structure names e.g. GPIOA => GPIO_Type
     * 
     * @param   Name to map
     * @return  Mapped name (unchanged if not mapped)
@@ -524,7 +623,8 @@ public class ModeControl {
          mappedNames.add(new Pair(Pattern.compile("(^GPIO)[A-F]*$"),  "$1"));  // e.g. GPIOA -> GPIO
          mappedNames.add(new Pair(Pattern.compile("(^FGPIO)[A-F]*$"), "$1"));  // e.g. FGPIOA -> FGPIO
          mappedNames.add(new Pair(Pattern.compile("(^PT)[A-F]*$"),    "$1"));  // e.g. PTA -> PA
-         mappedNames.add(new Pair(Pattern.compile("(^.*?)[0-9]*$"),   "$1"));  // e.g. DMA1 -> DMA
+         mappedNames.add(new Pair(Pattern.compile("(^LTC)[0-9]*$"),   "$1"));  // e.g. LTC0 -> LTC
+//       mappedNames.add(new Pair(Pattern.compile("(^.*?)[0-9]*$"),   "$1"));  // e.g. DMA1 -> DMA
       }
       for (Pair p : mappedNames) {
          Matcher matcher = p.regex.matcher(name);
@@ -688,4 +788,5 @@ public class ModeControl {
             "*/\n";
       writer.write(endGroup);
    }
+
 }

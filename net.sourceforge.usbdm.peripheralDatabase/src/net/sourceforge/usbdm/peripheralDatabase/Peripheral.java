@@ -172,16 +172,18 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @param name
     */
    public void setName(String name) {
-      name = getMappedPeripheralName(name);
-      this.name = name;
+      this.name = getMappedPeripheralName(name);
    }
 
    /**
-    * Set the name to use for the header file struct for this device
+    * Set the name to use for the header file STRUCT for this device
     * 
     * @param name
     */
    public void setHeaderStructName(String name) {
+      if (name.startsWith("TRGMUX")) {
+         System.err.println("Found "+name);
+      }
       headerStructName = name;
    }
 
@@ -198,6 +200,9 @@ public class Peripheral extends ModeControl implements Cloneable {
          return headerStructName;
       }
       headerStructName = getStructNamefromName(name);
+      if (headerStructName.startsWith("TRGMUX")) {
+         System.err.println("Found "+name);
+      }
       return headerStructName;
    }
    
@@ -868,13 +873,14 @@ public class Peripheral extends ModeControl implements Cloneable {
    
    static HashMap<String, String> freescalePeripheralNameMap = null;
    
-   /*
+   /**
     * Maps peripheral names in the data to preferred Freescale names
     */
    public static String getMappedPeripheralName(String name) {
-      if (isMapFreescaleCommonNames()) {
+      if (!isMapFreescaleCommonNames()) {
          return name;
       }
+      // TODO Where Peripheral names are mapped
       if (freescalePeripheralNameMap == null) {
          freescalePeripheralNameMap = new HashMap<String, String>();
          freescalePeripheralNameMap.put("PTA", "GPIOA");
@@ -924,116 +930,136 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
    
-   static HashMap<String, ArrayList<ComplexStructuresInformation>> freescaleComplexStructures = null;
-   
-   public static ArrayList<ComplexStructuresInformation> getFreescaleFreescaleComplexStructures(String name) {
-      //TODO - Where complex structures are defined
-      if (freescaleComplexStructures == null) {
-         freescaleComplexStructures = new HashMap<String,  ArrayList<ComplexStructuresInformation>>(20);
+   public static ArrayList<ComplexStructuresInformation> getComplexStructures(String name) {
+      final HashMap<String, ArrayList<ComplexStructuresInformation>> complexStructures = new HashMap<String,  ArrayList<ComplexStructuresInformation>>(20);
+      if (complexStructures.isEmpty()) {
          ArrayList<ComplexStructuresInformation> entry = null;
 
+         //TODO - Where complex structures are defined
+         /**
+          * Substitution applied to the register name macros <pre>
+          * "@p" => Peripheral name + "_"
+          * "@a" => Cluster base name (name without formatting)
+          * "@f" => Register name
+          * "@i" => index<br>
+          * e.g. "@pTAGVDW@i@f" => "FMC_TAGVDW1S0"
+          */
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(E.R)(\\d+)$",                 "$1","$2","$1", "SP,@p@f@i"));
          entry.add(new ComplexStructuresInformation("^(RGD)(\\d+)_(WORD.*)$",        "$1","$2","$3", "RGD,@p@a@i_@f"));
-         freescaleComplexStructures.put("MPU",  entry);
+         complexStructures.put("MPU",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(DATAW)(\\d+)(S.*)$",          "$1","$2","$3", "DATAW,@pDATAW@i@f"));
          entry.add(new ComplexStructuresInformation("^(TAGVDW)(\\d+)(S.*)$",         "$1","$2","$3", "TAGVDW,@pTAGVDW@i@f"));
-         freescaleComplexStructures.put("FMC",  entry);
+         complexStructures.put("FMC",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(CS|ID|WORD0|WORD1)(\\d+)$",    "$1","$2","$1", "MB,@p@f@i"));
-         freescaleComplexStructures.put("CAN0",  entry);
-         freescaleComplexStructures.put("CAN1",  entry);
-         freescaleComplexStructures.put("CAN2",  entry);
+         complexStructures.put("CAN0",  entry);
+         complexStructures.put("CAN1",  entry);
+         complexStructures.put("CAN2",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(CS[^\\d]+)(\\d+)$",           "$1","$2","$1", "CS,@p@f@i"));
-         freescaleComplexStructures.put("FB",  entry);
+         complexStructures.put("FB",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
-         entry.add(new ComplexStructuresInformation("^(CH)(\\d+)(C1|S|DLY0|DLY1)$",  "$1","$2","$3", "CH,@pCH@i@f"));
+         entry.add(new ComplexStructuresInformation("^(CH)(\\d+)(C1|S|DLY.*)$",      "$1","$2","$3", "CH,@pCH@i@f"));
          entry.add(new ComplexStructuresInformation("^(DAC)(INTC|INT)(\\d+)$",       "$1","$3","$2", "DAC,@pDAC@f@i"));
-         entry.add(new ComplexStructuresInformation("^(PO)(\\d+)(DLY)$",             "$1","$2","$3", "PO,@pPO@i@f"));
-         freescaleComplexStructures.put("PDB0",  entry);
+         complexStructures.put("PDB",  entry);
+         complexStructures.put("PDB0",  entry);
+         
+         entry = new ArrayList<ComplexStructuresInformation>();
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
+         entry.add(new ComplexStructuresInformation("^CTX(\\d+)_(KEY|CTR|RGD)(.*?)(\\d)?$",      "CTX","$1","$2$4", "CTX,@p@a@i_@f"));
+         complexStructures.put("OTFAD",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^([^\\d]+)(\\d+)$",             "$1","$2","$1", "CHANNEL,@p@f@i"));
-         freescaleComplexStructures.put("PIT",  entry);
+         complexStructures.put("PIT",  entry);
+         complexStructures.put("PIT0",  entry);
+         
+         //                                                pattern                             arrayName nameIndex fieldName nameFormat
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(CH)(\\d+)_(CSR|VEC|IER_31_0|IPR_31_0)$", "$1","$2","$3", "CHANNEL,@p@f@i"));
+         complexStructures.put("INTMUX",   entry);
+         complexStructures.put("INTMUX0",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(?:DMA_)?(TCD)(\\d+)_(.*)$",     "$1","$2","$3", "TCD,@p@a@i_@f"));
          entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR.*|DCR)(\\d+)$",     "$1","$2","$1", "DMA,@p@f@i"));
          entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$", "$1","$2","$1", "CH,@p@f@i"));
-         freescaleComplexStructures.put("DMA",   entry);
-         freescaleComplexStructures.put("DMA0",  entry);
-         freescaleComplexStructures.put("DMA1",  entry);
+         complexStructures.put("DMA",   entry);
+         complexStructures.put("DMA0",  entry);
+         complexStructures.put("DMA1",  entry);
          
 //         entry = new ArrayList<ComplexStructuresInformation>();
 //         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR.*|DCR)(\\d+)$",  "$1","$2","$1", "DMA,@p@f@i"));
-//         freescaleComplexStructures.put("DMA",   entry);
+//         complexStructures.put("DMA",   entry);
          
 //         entry = new ArrayList<ComplexStructuresInformation>();
 //         entry.add(new ComplexStructuresInformation("^(SAR|DAR|DSR|DCR|BCR)_?(\\d+)$", "$1","$2","$1", "CH,@p@f@i"));
-//         freescaleComplexStructures.put("DMA",  entry);
+//         complexStructures.put("DMA",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
-         entry.add(new ComplexStructuresInformation("^(C)(\\d+)(.*)$",               "$1","$2","Cn$3", "CONTROLS,@pC@i@f"));
-         freescaleComplexStructures.put("FTM0",  entry);
-         freescaleComplexStructures.put("FTM1",  entry);
-         freescaleComplexStructures.put("FTM2",  entry);
-         freescaleComplexStructures.put("FTM3",  entry);
-         freescaleComplexStructures.put("TPM0",  entry);
-         freescaleComplexStructures.put("TPM1",  entry);
-         freescaleComplexStructures.put("TPM2",  entry);
-         freescaleComplexStructures.put("TPM3",  entry);
+         entry.add(new ComplexStructuresInformation("^(C)(\\d+)(SC|V)$",               "$1","$2","Cn$3", "CONTROLS,@pC@i@f"));
+//         entry.add(new ComplexStructuresInformation("^(C)(\\d+)(V_MIRROR)$",           "$1","$2","Cn$3", "MIRROR,@pC@i@f"));
+         complexStructures.put("FTM0",  entry);
+         complexStructures.put("FTM1",  entry);
+         complexStructures.put("FTM2",  entry);
+         complexStructures.put("FTM3",  entry);
+         complexStructures.put("TPM0",  entry);
+         complexStructures.put("TPM1",  entry);
+         complexStructures.put("TPM2",  entry);
+         complexStructures.put("TPM3",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(DAT)(\\d+)(.*)$",             "$1","$2","$1$3", "DAT,@p@f@i"));
-         freescaleComplexStructures.put("DAC0",  entry);
-         freescaleComplexStructures.put("DAC1",  entry);
+         complexStructures.put("DAC0",  entry);
+         complexStructures.put("DAC1",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(.RS)(\\d+)$",                 "$1","$2","$1",   "SLAVE,@p@f@i"));
 //         entry.add(new ComplexStructuresInformation("^(MGPCR)(\\d+)$",               "$1","$2","$1",   "MASTER,@p@f@i"));
-         freescaleComplexStructures.put("AXBS",  entry);
+         complexStructures.put("AXBS",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(ENDPT)(\\d+)$",               "$1","$2","$1",   "ENDPOINT,@p@f@i"));
-         freescaleComplexStructures.put("USB0",  entry);
+         complexStructures.put("USB0",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(COMP|MASK|FUNCTION)(\\d+)$",  "$1","$2","$1",   "COMPARATOR,@p@f@i"));
-         freescaleComplexStructures.put("DWT",  entry);
+         complexStructures.put("DWT",  entry);
          
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(COMP|MASK|FCT)(\\d+)$",       "$1","$2","$1",   "COMPARATOR,@p@f@i"));
-         freescaleComplexStructures.put("MTBDWT",  entry);
+         complexStructures.put("MTBDWT",  entry);
          
          // ==== Coldfire V2 ====
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(CODE|CTRL|TIME|ID|DATA_WORD_1|DATA_WORD_2|DATA_WORD_3|DATA_WORD_4)_?(\\d+)$",
                "$1","$2","$1", "MB,@p@f@i"));
-         freescaleComplexStructures.put("CANMB",  entry);
+         complexStructures.put("CANMB",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(DTMR|DTXMR|DTER|DTRR|DTCR|DTCN)_?(\\d+)$",
                "$1","$2","$1", "CH,@p@f@i"));
-         freescaleComplexStructures.put("DTIM",  entry);
+         complexStructures.put("DTIM",  entry);
 
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(CSAR|CSMR|CSCR)_?(\\d+)$",
                "$1","$2","$1", "CH,@p@f@i"));
-         freescaleComplexStructures.put("FBCS",  entry);
+         complexStructures.put("FBCS",  entry);
 
 //         entry = new ArrayList<ComplexStructuresInformation>();
 //         entry.add(new ComplexStructuresInformation("^(PORTT(?:E|F|G|H|I|J))(\\d+)$",
 //               "$1","$2","$1", "CH,@p@f@i"));
-//         freescaleComplexStructures.put("GPIO",  entry);
+//         complexStructures.put("GPIO",  entry);
 
       }
-      return freescaleComplexStructures.get(name);
+      return complexStructures.get(name);
    }
    
    /**
@@ -1041,7 +1067,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @throws Exception 
     */
    private void extractComplexStructures() throws Exception {
-      ArrayList<ComplexStructuresInformation> information = getFreescaleFreescaleComplexStructures(this.getName());
+      ArrayList<ComplexStructuresInformation> information = getComplexStructures(this.getName());
       if (information == null) {
          return;
       }
@@ -1081,7 +1107,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 //            System.err.println(String.format("Skipping %s as already deleted", mergeName));
             continue;
          }
-         boolean debug = false; //mergeName.matches("TCD0.*");
+         boolean debug = false;//mergeName.matches("CH0DLY.*");
          if (debug ) {
             System.err.println(String.format("\n    extractComplexStructures(), mergeName=\"%s\"", mergeName));
          }
@@ -1191,10 +1217,9 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    // This is a list of peripherals and particular registers not to turn into arrays
-   static HashMap<String, String> freescaleExcludedCommonRegisterPeripherals = null;
-   public static String getFreescaleExcludedCommonRegisterPeripherals(String name) {
-      if (freescaleExcludedCommonRegisterPeripherals == null) {
-         freescaleExcludedCommonRegisterPeripherals = new HashMap<String,  String>(200);
+   public static String getExcludedCommonRegisterPeripherals(String name) {
+      final HashMap<String, String> freescaleExcludedCommonRegisterPeripherals = new HashMap<String,  String>(200);
+      if (freescaleExcludedCommonRegisterPeripherals.isEmpty()) {
          freescaleExcludedCommonRegisterPeripherals.put("ITM",   "PID.*"); // PIDs are in a strange order
          freescaleExcludedCommonRegisterPeripherals.put("DWT",   "PID.*");
          freescaleExcludedCommonRegisterPeripherals.put("FPB",   "PID.*");
@@ -1203,33 +1228,67 @@ public class Peripheral extends ModeControl implements Cloneable {
          freescaleExcludedCommonRegisterPeripherals.put("ETB",   "PID.*");
          freescaleExcludedCommonRegisterPeripherals.put("ETF",   "PID.*");
          freescaleExcludedCommonRegisterPeripherals.put("FMC",   "PID.*");
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX",".*");    // Registers are odd
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX0",".*");   // Registers are odd
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX1",".*");   // Registers are odd
          freescaleExcludedCommonRegisterPeripherals.put("MCG",   ".*");    // Some odd reg. pairs are better separate
       }
       return freescaleExcludedCommonRegisterPeripherals.get(name);
    }
    
-   // This is a list of peripherals with special matching patterns for register combining
-   static HashMap<String, String> freescalePeripheralRegisterArrayPatterns = null;
-   public static String getFreescalePeripheralRegisterArrayPatterns(String name) {
-      if (freescalePeripheralRegisterArrayPatterns == null) {
-         freescalePeripheralRegisterArrayPatterns = new HashMap<String,  String>(200);
-         freescalePeripheralRegisterArrayPatterns.put("ITM", "(.+)([0-9]+)(.*)$");      // Special pattern for ITM
-         freescalePeripheralRegisterArrayPatterns.put("PDB", "(.+)([0-9]+)(.*)$");      // Special pattern for PDB
+   static class PatternTuple {
+      final Pattern pattern;              // Pattern to match
+      final String  indexPattern;         // String to produce result
+      final String  namePattern;  // String to produce result
+      
+      public PatternTuple(String pattern, String namePattern, String indexPattern) {
+         this.pattern    = Pattern.compile(pattern);
+         this.namePattern = namePattern;
+         this.indexPattern = indexPattern;
       }
-      String pattern = freescalePeripheralRegisterArrayPatterns.get(name);
-      if (pattern == null) {
-         pattern = "(.+)([0-9|A-F|a-f]+)()$";
+      String getBaseRegisterName(String regName) {
+         Matcher m = pattern.matcher(regName);
+         return m.replaceAll(namePattern);
       }
-      return pattern;
+      String getIndex(String regName) {
+         Matcher m = pattern.matcher(regName);
+         return m.replaceAll(indexPattern);
+      }
+   }
+   
+   public static PatternTuple getRegisterArrayPatterns(String name) {
+      // This is a list of peripherals with special matching patterns for register combining
+      final HashMap<String, PatternTuple> freescalePeripheralRegisterArrayPatterns = new HashMap<String, PatternTuple>();
+      if (freescalePeripheralRegisterArrayPatterns.isEmpty()) {
+         freescalePeripheralRegisterArrayPatterns.put("ITM",  new PatternTuple("(.+)([0-9]+)(.*)$", "$1%s$3", "$2")); // Special pattern for ITM
+         freescalePeripheralRegisterArrayPatterns.put("ITM0", new PatternTuple("(.+)([0-9]+)(.*)$", "$1%s$3", "$2")); // Special pattern for ITM
+         freescalePeripheralRegisterArrayPatterns.put("PDB",  new PatternTuple("(.+)([0-9]+)(.*)$", "$1%s$3", "$2")); // Special pattern for PDB
+         freescalePeripheralRegisterArrayPatterns.put("PDB0", new PatternTuple("(.+)([0-9]+)(.*)$", "$1%s$3", "$2")); // Special pattern for PDB
+         freescalePeripheralRegisterArrayPatterns.put("LTC",  new PatternTuple("(.+)_([0-9]+)$",    "$1%s",   "$2"));  // Special pattern for LTC
+         freescalePeripheralRegisterArrayPatterns.put("LTC0", new PatternTuple("(.+)_([0-9]+)$",    "$1%s",   "$2"));  // Special pattern for LTC
+      }
+      PatternTuple pair = freescalePeripheralRegisterArrayPatterns.get(name);
+      if (pair == null) {
+         //           prefix index suffix
+//         pair = new PatternTuple("(.+?)([0-9|A-F|a-f]+)$",  "$1%s", "$2");
+         pair = new PatternTuple("(.+?)(\\d+|[A-F|a-f])$",  "$1%s", "$2");
+      }
+      return pair;
    }
    
    /**
     * Reformats the data to take advantage of simple array structures
+    * 
+    * @throws Exception 
     */
-   private void extractSimpleRegisterArrays() {
+   private void extractSimpleRegisterArrays() throws Exception {
       
+      if (getDerivedFrom() != null) {
+         // Don't process derived peripherals
+         return;
+      }
       // Check if peripheral is excluded
-      String excludedRegisterName = getFreescaleExcludedCommonRegisterPeripherals(this.getName());
+      String excludedRegisterName = getExcludedCommonRegisterPeripherals(getName());
       Pattern excludedRegisterPattern = null;
       if (excludedRegisterName != null) {
          if (excludedRegisterName.isEmpty()) {
@@ -1239,10 +1298,10 @@ public class Peripheral extends ModeControl implements Cloneable {
          // Pattern to exclude register from collection
          excludedRegisterPattern = Pattern.compile(excludedRegisterName);
       }
-      
       // Pattern used to find candidate registers
-      Pattern namePattern = Pattern.compile(getFreescalePeripheralRegisterArrayPatterns(this.getName()));
-      ArrayList<Register>  removedRegisters = new ArrayList<Register>();
+      PatternTuple matchInformation = getRegisterArrayPatterns(getName());
+//      Pattern namePattern = matchInformation.pattern;
+      ArrayList<Register> removedRegisters = new ArrayList<Register>();
       
       sortRegisters();
       
@@ -1250,39 +1309,53 @@ public class Peripheral extends ModeControl implements Cloneable {
          if (!(registers.get(reg1) instanceof Register)) {
             continue;
          }
-         Register mergeReg   = (Register)registers.get(reg1);
+         Register mergeReg = (Register)registers.get(reg1);
          if (mergeReg.getDerivedFrom() != null) {
             // Don't merge derived registers
             continue;
          }
-         String   mergeName  = mergeReg.getName();
-         boolean  debug      = false; // mergeName.matches("FCCOB.*");
-         
-         if (debug) {
-            System.err.println(String.format("\n    extractSimpleRegisterArrays(), mergeName=\"%s\"", mergeName));
+         if (mergeReg.getDimension()>=1) {
+            // Don't merge register arrays
+            continue;
          }
-         if ((excludedRegisterPattern!= null) && excludedRegisterPattern.matcher(mergeName).matches()) {
+         String   mergeName = mergeReg.getName();
+         
+         boolean  debug = false; 
+//         debug = mergeName.matches(".*LDR_C.*");
+         if (debug) {
+            System.err.println(String.format("\n    extractSimpleRegisterArrays(), reg=\"%s\"", getName()+":"+mergeName));
+         }
+         if (mergeName.contains("%s")) {
+            throw new Exception("Merging register which is already merged " + getName()+"."+mergeReg.getName());
+         }
+         if ((excludedRegisterPattern != null) && excludedRegisterPattern.matcher(mergeName).matches()) {
 //            System.err.println("Excluding "+getName()+"."+mergeName);
             continue;
          }
-         Matcher nameMatcher = namePattern.matcher(mergeName);
-         if (!nameMatcher.matches()) {
-            continue;
-         }
-         long                 dimensionIncrement      = (mergeReg.getWidth()+7)/8;
-         long                 rootOffset              = mergeReg.getAddressOffset();
+         
+//         Matcher nameMatcher = namePattern.matcher(mergeName);
+//         if (!nameMatcher.matches()) {
+//            continue;
+//         }
+         /** List of indexes for the elements - extracted from element names */
          ArrayList<String>    dimensionIndexes        = new ArrayList<String>();
-         String               mergeNamePrefix         = nameMatcher.replaceFirst("$1");
-         String               mergeNameMiddle         = nameMatcher.replaceFirst("$2");
-         String               mergeNameSuffix         = nameMatcher.replaceFirst("$3");
-         String               mergeNameIndexPattern   = "(.+)("+mergeNameMiddle+")(.*)";
-         Pattern              mergePatternName        = Pattern.compile("("+mergeNamePrefix+")(.+)("+mergeNameSuffix+")");
-         String               mergeSubstituteName     = mergeNamePrefix+"%s"+mergeNameSuffix;
-         String               mergeDescription        = mergeReg.getDescription();
-         String               descriptionPattern      = "([a-z|A-Z|\\s]+)("+mergeNameMiddle+")([a-z|A-Z|\\s]*)";
-         String               mergePatternDescription = mergeDescription.replaceFirst(descriptionPattern, "$1%s$3");
+
+         /** Increment in bytes to next element - based on element width */
+         long                 dimensionIncrement      = (mergeReg.getWidth()+7)/8;
+         
+         /** Offset of start of array element being constructed */
+         long                 rootOffset              = mergeReg.getAddressOffset();
+
+         /** Index extracted from merge register */
+         String               index                   = matchInformation.getIndex(mergeName);
+         /* Create modified description */
+         String               descriptionPattern      = "([a-z|A-Z|\\s]+)"+index+"([a-z|A-Z|\\s]*)";
+         String               mergePatternDescription = mergeReg.getDescription().replaceFirst(descriptionPattern, "$1%s$2");
+         
          int                  dimension               = 1;
-         dimensionIndexes.add(mergeNameMiddle);
+         dimensionIndexes.add(index);
+         /** Register name with %s substitution for index */
+         String               modifiedRegisterName            = matchInformation.getBaseRegisterName(mergeName);
          
          // Go through other register looking for candidates that match the current register
          // When found add to deleted list.
@@ -1299,7 +1372,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             }
             String   victimName = victimReg.getName();
 
-            boolean debug2 = debug && victimName.matches("FCCOB.*");
+            boolean debug2 = debug && victimName.matches("CTX.*");
             if (debug2) {
                System.err.println(
                      String.format("    extractSimpleRegisterArrays(), comparing %-20s ?= %-20s",
@@ -1309,46 +1382,33 @@ public class Peripheral extends ModeControl implements Cloneable {
             
             // Check if candidate matches the same pattern as original register i.e.
             // Both register name should be the same after applying the regular expression
-            Matcher victimNameMatcher = mergePatternName.matcher(victimName);
-            String s1 = victimNameMatcher.replaceFirst("$1%s$3");
-            if (!s1.equalsIgnoreCase(mergeSubstituteName)) {
-//               if (debug2) {
-//                  System.err.println(
-//                        String.format("    extractSimpleRegisterArrays(), rejecting %-20s != %-20s",
-//                              "\""+mergeName+"\"",
-//                              "\""+victimName+"\""));
-//               }
+            
+            /** Name of register based on victim register */
+            String victimModifiedRegisterName = matchInformation.getBaseRegisterName(victimName);
+
+            if (!victimModifiedRegisterName.equals(modifiedRegisterName)) {
+//               System.err.println(
+//                     String.format("    extractSimpleRegisterArrays(), rejecting %-20s != %-20s",
+//                           "\""+mergeName+"\"",
+//                           "\""+victimName+"\""));
                continue;
             }
             // Extract the variant part of the candidate name
-            String victimNameMiddle  = victimNameMatcher.replaceFirst("$2");
-            
-            // Create a pattern to apply to other parts of the register e.g. description to
-            // improve the matching success
-            String victimNameIndexPattern  = "(.+)("+victimNameMiddle+")(.*)";
-//            if (!mergeSubstituteName.equals(victimPatternName)) {
-//               if (debug) {
-//               System.err.println(
-//                     String.format("    extractSimpleRegisterArrays(), rejected %-20s != %-20s",
-//                        "\""+mergeSubstituteName+"\"",
-//                        "\""+victimPatternName+"\""));
-//               }
-//               continue;
-//            }
+            String victimIndex  = matchInformation.getIndex(victimName);
             
             // Check that the register indexing matches the expected sequence
             if ((rootOffset+(dimension*dimensionIncrement)) != victimReg.getAddressOffset()) {
 //               System.err.println(
 //                     String.format("    extractSimpleRegisterArrays(), failed combining %-20s & %-20s, expected offset 0x%X != 0x%X",
-//                        "\""+mergeReg.getName()+"\"",
-//                        "\""+victimReg.getName()+"\"",
-//                        (rootOffset+(dimension*dimensionIncrement)),
-//                        victimReg.getAddressOffset()
-//                        ));
+//                           "\""+mergeReg.getName()+"\"",
+//                           "\""+victimReg.getName()+"\"",
+//                           (rootOffset+(dimension*dimensionIncrement)),
+//                           victimReg.getAddressOffset()
+//                           ));
                continue;
             }
             // Check if registers are equivalent (apart from indexed stuff)
-            if (!mergeReg.equivalent(victimReg, mergeNameIndexPattern, victimNameIndexPattern)) {
+            if (!mergeReg.equivalent(victimReg, "(.+)("+index+")(.*)", "(.+)("+victimIndex+")(.*)")) {
                continue;
             }
             // Update dimension for index checking
@@ -1358,7 +1418,7 @@ public class Peripheral extends ModeControl implements Cloneable {
             removedRegisters.add(victimReg);
             
             // Add extracted index to dimension indexes for substitution when expanding the register
-            dimensionIndexes.add(victimNameMiddle);
+            dimensionIndexes.add(victimIndex);
 //            System.err.println(
 //                  String.format("    extractSimpleRegisterArrays(), combining %-20s & %-20s as (%s + %s)",
 //                     "\""+mergeReg.getName()+"\"",
@@ -1372,10 +1432,12 @@ public class Peripheral extends ModeControl implements Cloneable {
             for (Register victimReg : removedRegisters) {
                registers.remove(victimReg);
             }
-            mergeReg.setName(mergeSubstituteName);
+            mergeReg.setName(modifiedRegisterName);
             mergeReg.setDescription(mergePatternDescription);
             mergeReg.setDimensionIncrement((int)dimensionIncrement);
             mergeReg.setDimensionIndexes(dimensionIndexes);
+            mergeReg.setResetMask(0);
+            mergeReg.setResetValue(0);
          }
       }
    }
@@ -1383,12 +1445,11 @@ public class Peripheral extends ModeControl implements Cloneable {
    public void optimise() throws Exception {
       sortRegisters(registers);
 
-      // TODO - Modify optimisations done here
-      if (isExtractComplexStructures()) {
-         extractComplexStructures();
-      }
       if (isExtractSimpleRegisterArrays()) {
          extractSimpleRegisterArrays();
+      }
+      if (isExtractComplexStructures()) {
+         extractComplexStructures();
       }
       if (isRegenerateAddressBlocks()) {
          createAddressBlocks();
@@ -1582,13 +1643,15 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    @param writer
     *    @param devicePeripherals
     */
-   public void writeHeaderFileStruct(PrintWriter writer, int indent, Peripheral peripheral) throws Exception {
+   public void writeHeaderFileStruct(PrintWriter writer, int indent) throws Exception {
 
       final String indenter = RegisterUnion.getIndent(indent);
       
       sortRegisters();
       
-      RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, peripheral, 0L);
+      RegisterUnion.clearSuffix();
+      
+      RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, this, 0L);
       
       writer.print(indenter+String.format(DEVICE_OPEN_STRUCT, getName()+" Structure"));
 
@@ -1629,7 +1692,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          return;
       }
       writeGroupPreamble(writer, getGroupName()+"_"+structGroupSuffix, getGroupName()+" struct", "Struct for "+getGroupName());
-      writeHeaderFileStruct(writer, indent, this);
+      writeHeaderFileStruct(writer, indent);
       writeGroupPostamble(writer, getGroupName()+"_"+structGroupSuffix);
    }
 

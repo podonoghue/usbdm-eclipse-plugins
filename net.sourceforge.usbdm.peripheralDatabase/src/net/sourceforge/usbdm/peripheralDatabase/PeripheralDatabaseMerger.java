@@ -44,7 +44,7 @@ public class PeripheralDatabaseMerger {
     * 
     * @param suffix
     * @param uniqueIds 
-    * @param name       null to return perent directory
+    * @param name       null to return parent directory
     * @return
     * @throws Exception 
     */

@@ -167,8 +167,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          Variable     mcg_c6_cme0Var                 =  getVariable("mcg_c6_cme0");
          Variable     mcg_c2_locre0Var               =  getVariable("mcg_c2_locre0");
 
-         Variable     mcg_c8_cme1Var                 =  getVariable("mcg_c8_cme1");
-         Variable     mcg_c8_locre1Var               =  getVariable("mcg_c8_locre1");
+         Variable     mcg_c8_cme1Var                 =  safeGetVariable("mcg_c8_cme1");
+         Variable     mcg_c8_locre1Var               =  safeGetVariable("mcg_c8_locre1");
 
          Variable     mcg_c9_pll_cmeVar              =  safeGetVariable("mcg_c9_pll_cme");
          if (mcg_c9_pll_cmeVar != null) {
@@ -177,8 +177,12 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          mcg_c11_pllcsVar = safeGetVariable("mcg_c11_pllcs");
 
          mcg_c2_locre0Var.enable(mcg_c6_cme0Var.getValueAsBoolean());
-         mcg_c8_locre1Var.enable(mcg_c8_cme1Var.getValueAsBoolean());
 
+         rtcclk_clockVar = safeGetVariable("/RTC/rtcclk_clock");
+         if (rtcclk_clockVar != null) {
+            mcg_c8_locre1Var.enable(mcg_c8_cme1Var.getValueAsBoolean());
+            mcg_c8_cme1Var.enable(rtcclk_clockVar != null);
+         }
          slow_irc_clockVar = getVariable("system_slow_irc_clock");
          fast_irc_clockVar = getVariable("system_fast_irc_clock");
          mcg_sc_fcrdivVar = safeGetVariable("mcg_sc_fcrdiv");
@@ -189,8 +193,6 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
 
          system_irc48m_clockVar = safeGetVariable("system_irc48m_clock");
          usb1pfdclk_ClockVar = safeGetVariable("/MCG/usb1pfdclk_Clock");
-
-         rtcclk_clockVar = getVariable("/RTC/rtcclk_clock");
 
          oscclk_clockVar = getVariable("/OSC0/oscclk_clock");
          osc_cr_erclkenVar = getVariable("/OSC0/osc_cr_erclken");
@@ -285,7 +287,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          oscsel = 0;
       }
       else {
-         oscsel = (int)mcg_c7_oscselVar.getValueAsLong();
+         oscsel = Integer.parseInt(mcg_c7_oscselVar.getSubstitutionValue());
       }
       switch (oscsel) {
       default:
@@ -295,9 +297,11 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          mcg_erc_clockVar.setOrigin(oscclk_clockVar.getOrigin());
          break;
       case 1: // ERC = OSC32KCLK
-         mcg_erc_clockVar.setValue(rtcclk_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(rtcclk_clockVar.getFilteredStatus());
-         mcg_erc_clockVar.setOrigin(rtcclk_clockVar.getOrigin()+"[RTCCLK]");
+         if (rtcclk_clockVar != null) {
+            mcg_erc_clockVar.setValue(rtcclk_clockVar.getValueAsLong());
+            mcg_erc_clockVar.setStatus(rtcclk_clockVar.getFilteredStatus());
+            mcg_erc_clockVar.setOrigin(rtcclk_clockVar.getOrigin()+"[RTCCLK]");
+         }
          break;
       case 2: // ERC = IRC48MCLK
          mcg_erc_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
