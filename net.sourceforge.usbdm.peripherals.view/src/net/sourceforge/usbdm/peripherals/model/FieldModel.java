@@ -234,4 +234,23 @@ public class FieldModel extends BaseModel implements UpdateInterface {
          reg.forceUpdate();
    }
 
+   /**
+    * Gets description of currently selected field value
+    * 
+    * @return Description as string or "" if none
+    */
+   public String getFieldValueDescription() {
+      long fieldValue;
+      try {
+         fieldValue = getValue();
+         for (Enumeration enumeration : getEnumeratedDescription()) {
+            if (enumeration.isSelected(fieldValue)) {
+               return BaseModel.makeShortDescription(enumeration.getCDescription());
+            }
+         }
+      } catch (MemoryException e) {
+      }
+      return "";
+   }
+
 }

@@ -150,7 +150,8 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
          for (Enumeration enumeration : uField.getEnumeratedDescription()) {
             description.append("\n");
             String enumerationValueDescription = enumeration.getName() + ": " + enumeration.getCDescription();
-            if (enumerationValid && enumeration.isSelected(enumerationValue)) {
+            if ((selectionIndex==0) && (enumerationValid && enumeration.isSelected(enumerationValue))) {
+               // Highlight first matching enumeration
                selectionIndex  = description.length();
                selectionLength = enumerationValueDescription.length();
             }

@@ -1,13 +1,5 @@
 package net.sourceforge.usbdm.peripherals.view;
 
-import net.sourceforge.usbdm.peripheralDatabase.Enumeration;
-import net.sourceforge.usbdm.peripherals.model.BaseModel;
-import net.sourceforge.usbdm.peripherals.model.FieldModel;
-import net.sourceforge.usbdm.peripherals.model.MemoryException;
-import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
-import net.sourceforge.usbdm.peripherals.model.RegisterHolder;
-import net.sourceforge.usbdm.peripherals.model.RegisterModel;
-
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ITableColorProvider;
@@ -20,6 +12,12 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+
+import net.sourceforge.usbdm.peripherals.model.BaseModel;
+import net.sourceforge.usbdm.peripherals.model.FieldModel;
+import net.sourceforge.usbdm.peripherals.model.PeripheralModel;
+import net.sourceforge.usbdm.peripherals.model.RegisterHolder;
+import net.sourceforge.usbdm.peripherals.model.RegisterModel;
 
 /**
  * Provides labels for the tree view cells
@@ -96,21 +94,11 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
          return item.safeGetValueAsString();
 
       case UsbdmDevicePeripheralsView.FIELD_INFO_COL: {
-         String description = "";
          if (element instanceof FieldModel) {
-            try {
-               FieldModel field = (FieldModel) element;
-               long fieldValue = field.getValue();
-               for (Enumeration enumeration : field.getEnumeratedDescription()) {
-                  if (enumeration.isSelected(fieldValue)) {
-                     description = BaseModel.makeShortDescription(enumeration.getCDescription());
-                     break;
-                  }
-               }
-            } catch (MemoryException e) {
-            }
+            FieldModel field = (FieldModel) element;
+            return field.getFieldValueDescription();
          }
-         return description;
+         return "";
       }
       case UsbdmDevicePeripheralsView.MODE_COL:
          return item.getAccessMode();
