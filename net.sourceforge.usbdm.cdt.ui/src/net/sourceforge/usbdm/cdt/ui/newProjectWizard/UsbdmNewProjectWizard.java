@@ -21,9 +21,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
@@ -413,23 +411,26 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       try {
          monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
          
-         // Suppress project indexing while project is constructed
-         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
-
          // Create project
-         IProject project = new CDTProjectManager().createCDTProj(fParamMap, monitor.newChild(WORK_SCALE*20));
+         IProject project;
          
-         // Apply device project options
-         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE*20));
-         
-         // Generate CPP code as needed
-         DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE*5));
-
-         reindexProject(project, monitor.newChild(WORK_SCALE*20));
-         
-         // Allow indexing
-         CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
-
+         if (CCorePlugin.getDefault() == null) {
+            Activator.log("CCorePlugin not found (for testing)");
+            return;
+         }
+         try {
+            // Suppress project indexing while project is constructed
+            CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
+            project = new CDTProjectManager().createCDTProj(fParamMap, monitor.newChild(WORK_SCALE * 20));
+            // Apply device project options
+            ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
+            // Generate CPP code as needed
+            DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
+            reindexProject(project, monitor.newChild(WORK_SCALE * 20));
+         } finally {
+            // Allow indexing
+            CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
+         }
          CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
          
       } catch (Exception e) {
@@ -454,23 +455,6 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          }
       }
       return null;
-   }
-
-   /**
-    * @param args
-    */
-   public static void main(String[] args) {
-      Display display = new Display();
-      Shell shell = new Shell(display);
-
-      // Instantiates and initialises the wizard
-      UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
-      wizard.init(null,null);
-      
-      // Instantiates the wizard container with the wizard and opens it
-      WizardDialog dialog = new WizardDialog(shell, wizard);
-      dialog.create();
-      dialog.open();
    }
 
    public Map<String, String> getparamMap() {

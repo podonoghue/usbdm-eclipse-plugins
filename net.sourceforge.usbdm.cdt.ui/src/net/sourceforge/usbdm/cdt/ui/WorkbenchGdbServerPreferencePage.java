@@ -180,8 +180,8 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    public static void main(String[] args) {
       Display display = new Display();
       Shell shell = new Shell(display);
-//      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceArmPage();
-      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceCfv1Page();
+      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceArmPage();
+//      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceCfv1Page();
       shell.setLayout(new FillLayout());
       topPage.init(null);
       topPage.createContents(shell);
