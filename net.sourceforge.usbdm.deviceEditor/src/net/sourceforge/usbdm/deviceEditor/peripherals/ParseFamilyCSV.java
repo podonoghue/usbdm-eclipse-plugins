@@ -285,7 +285,7 @@ public class ParseFamilyCSV {
       if (line.length < 2) {
          throw new RuntimeException("Illegal Peripehral Mapping line");
       }
-      String peripheralName       = line[PERIPHERAL_NAME_COL];
+      String peripheralName = line[PERIPHERAL_NAME_COL];
       Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
       if (peripheral == null) {
          throw new RuntimeException("Unable to find peripheral "+peripheralName);
