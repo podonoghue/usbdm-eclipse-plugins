@@ -145,23 +145,7 @@ public class GdbServerParameters {
    }
    
    /**
-    * Create a GdbServerParameters from the launch configuration
-    * 
-    * @param config Launch configuration to load settings from
-    * 
-    * @return GdbServerParameters or null on error
-    */
-   public static GdbServerParameters getInitializedServerParameters(ILaunchConfiguration config) {
-      try {
-         return getInitializedServerParameters(config.getAttributes());
-      } catch (CoreException e) {
-         e.printStackTrace();
-         return null;
-      }
-   }
-
-   /**
-    * Create a GdbServerParameters from a map of settings
+    * Create a GdbServerParameters from a map of launch settings
     * 
     * @param attributes Map to load settings from
     * 
@@ -183,7 +167,7 @@ public class GdbServerParameters {
             return null;
          }
          gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
-         gdbServerParameters.initializeFrom(attributes);
+         gdbServerParameters.initializeFrom(attributes, UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY);
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -808,30 +792,35 @@ public class GdbServerParameters {
       configuration.setAttribute((key+connectionTimeoutKey),             getConnectionTimeout());
       configuration.setAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents());
       configuration.setAttribute((key+maskInterruptsKey),                isMaskInterrupts());
+      System.err.println("GdbServerParameters.performApply() "+key+catchVLLSxEventsKey+" = "+isCatchVLLSxEvents());
+
    }
    
-   private static final String key = UsbdmDebuggerPanel.USBDM_LAUNCH_ATTRIBUTE_KEY;      
-
    /**
     * Initialises from the launch configuration
     * 
     * @param config Launch configuration to load settings from
+    * @param key    Root key to use for parameters
     * 
     * @throws CoreException
     */
-   public void initializeFrom(ILaunchConfiguration config) throws CoreException {
-      initializeFrom(config.getAttributes());
+   public void initializeFrom(ILaunchConfiguration config, final String key) throws CoreException {
+      initializeFrom(config.getAttributes(), key);
    }
    
    /**
     * Initialises from a map of settings
     * 
-    * @param config Map to load settings from
+    * @param attributes Map to load settings from
+    * @param key        Root key to use for parameters
     * 
     * @throws CoreException
     */
-   private void initializeFrom(Map<String, Object> attributes) throws CoreException {
+   private void initializeFrom(Map<String, Object> attributes, final String key) throws CoreException {
       
+      System.err.println("GdbServerParameters.initializeFrom() " + key + catchVLLSxEventsKey + " = " +
+         CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
+
       // Update from settings 
       setDeviceName(            CDebugUtils.getAttribute(attributes, (key+deviceNameKey),                    getDeviceName()));
       // Map KDS internal name to USBDM name e.g. MK20DN512xxx10 => MK20DN512M10
@@ -866,7 +855,8 @@ public class GdbServerParameters {
       setNvmClockTrimLocation(  CDebugUtils.getAttribute(attributes, (key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
       setConnectionTimeout(     CDebugUtils.getAttribute(attributes, (key+connectionTimeoutKey),             getConnectionTimeout()));
       enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
-      enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+maskInterruptsKey),                isMaskInterrupts()));
+      enableMaskInterrupts(     CDebugUtils.getAttribute(attributes, (key+maskInterruptsKey),                isMaskInterrupts()));
+      System.err.println("GdbServerParameters.initializeFrom() VLLS = " + isCatchVLLSxEvents());
    }
 
    public boolean isUseSemihosting() {

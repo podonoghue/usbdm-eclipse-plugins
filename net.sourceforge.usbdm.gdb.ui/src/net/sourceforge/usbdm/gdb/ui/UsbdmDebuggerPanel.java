@@ -80,108 +80,107 @@ import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
  * @since 4.12
  */
 public class UsbdmDebuggerPanel {
+
+   // Keys used in GDB Launch configurations
+   public  final static String USBDM_LAUNCH_ATTRIBUTE_KEY = "net.sourceforge.usbdm.gdb."; //$NON-NLS-1$
+   public  final static String USBDM_GDB_INTERFACE_TYPE_KEY = USBDM_LAUNCH_ATTRIBUTE_KEY + "interfaceType";
    
-   // Keys used in GDB Launch configurations 
-   public  final static String USBDM_LAUNCH_ATTRIBUTE_KEY   = "net.sourceforge.usbdm.gdb.";               //$NON-NLS-1$
-   public  final static String USBDM_GDB_INTERFACE_TYPE_KEY = USBDM_LAUNCH_ATTRIBUTE_KEY+"interfaceType";
-   private final static String USBDM_GDB_BIN_PATH_KEY       = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbBinPath";    //$NON-NLS-1$
-   private final static String USBDM_GDB_COMMAND_KEY        = USBDM_LAUNCH_ATTRIBUTE_KEY+"gdbCommand";    //$NON-NLS-1$
-   private final static String USBDM_BUILD_TOOL_KEY         = USBDM_LAUNCH_ATTRIBUTE_KEY+"buildToolId";   //$NON-NLS-1$
+   private final static String USBDM_GDB_BIN_PATH_KEY = USBDM_LAUNCH_ATTRIBUTE_KEY + "gdbBinPath"; //$NON-NLS-1$
+   private final static String USBDM_GDB_COMMAND_KEY  = USBDM_LAUNCH_ATTRIBUTE_KEY + "gdbCommand"; //$NON-NLS-1$
+   private final static String USBDM_BUILD_TOOL_KEY   = USBDM_LAUNCH_ATTRIBUTE_KEY + "buildToolId"; //$NON-NLS-1$
 
-   private GdbServerParameters         gdbServerParameters;
-   private ArrayList<USBDMDeviceInfo>  deviceList;
+   private GdbServerParameters         fGdbServerParameters;
+   private ArrayList<USBDMDeviceInfo>  fDeviceList;
 
-   private InterfaceType[]             interfaceTypes;
-   private Combo                       comboInterfaceType;
-   private ModifyListener              comboInterfaceTypeListener;
+   private InterfaceType[]   fInterfaceTypes;
+   private Combo             fComboInterfaceType;
+   private ModifyListener    fComboInterfaceTypeListener;
 
-   private Text                        txtTargetDeviceName;
-   private Button                      btnTargetDeviceSelect;
+   private Text              fTextTargetDeviceName;
+   private Button            fButtonTargetDeviceSelect;
+                             
+   private Combo             fComboBuildTool;
+   private String            fBuildToolsIds[] = null;
+                             
+   private Text              fTextGdbBinPath;
+   private Button            fButtonGdbBinPathBrowse;
+   private Button            fButtonGdbBinPathVariables;
+                             
+   private Text              fTextGdbCommand;
+   private Button            fButtonGdbCommandVariables;
 
-   private Combo                       comboBuildTool;
-   private String                      buildToolsIds[] = null;
+   private Combo             fComboSelectBDM;
+   private Button            fButtonRefreshBDMs;
+   private Label             fLabelBDMInformation;
+   private Button            fButtonRequireExactBdm;
 
-   private Text                        txtGdbBinPath;
-   private Button                      btnGdbBinPathBrowse;
-   private Button                      btnGdbBinPathVariables;
+   private Text              fTextGdbServerPort;
+   private NumberTextAdapter fTextGdbServerPortAdapter;
+   private Button            fButtonUseSemihosting;
+   private Text              fTextGdbTtyPort;
+   private NumberTextAdapter fTextGdbTtyPortAdapter;
+   private Button            fButtonUseDebug;
+   private Button            fButtonExitOnClose;
 
-   private Text                        txtGdbCommand;
-   private Button                      btnGdbCommandVariables;
+   private Combo             fComboInterfaceSpeed;
+   private Button            fButtonAutomaticallyReconnect;
+   private Button            fButtonDriveReset;
+   private Button            fButtonUsePstSignals;
+   private Button            fButtonCatchVLLSsEvents;
+   private Button            fButtonMaskInterrupts;
+   private NumberTextAdapter fConnectionTimeoutTextAdapter;
+   private Combo             fComboSecurityOption;
 
-   private Button                      btnVerboseMode;
+   private EraseMethod[]     fEraseMethods;
+   private Combo             fComboEraseMethod;
 
-   private Combo                       comboSelectBDM;
-   private Button                      btnRefreshBDMs;
-   private Label                       lblBDMInformation;
-   private Button                      btnRequireExactBdm;
+   private TargetVddSelect[] fTargetVdds;
+   private Combo             fComboTargetVdd;
 
-   private Text                        txtGdbServerPort;
-   private NumberTextAdapter           txtGdbServerPortAdapter;
-   private Button                      btnUseSemihosting;
-   private Text                        txtGdbTtyPort;
-   private NumberTextAdapter           txtGdbTtyPortAdapter;
-   private Button                      btnUseDebug;
-   private Button                      btnExitOnClose;
+   private ClockTypes        fClockType;
+   private Button            fButtonTrimTargetClock;
+   private Text              fTextTrimFrequency;
+   private DoubleTextAdapter fTextTrimFrequencyAdapter;
+   private Label             fLabelKhz;
+   private Label             fLabelNvtrimAddress;
+   private Text              fTextNVTRIMAddress;
+   private HexTextAdapter    fTextNVTRIMAddressAdapter;
+   private Label             fLabelHex;
+   private Listener          fListener;
+   private Group             fGroupClockTrim;
+   private Composite         fComposite;
 
-   private Combo                       comboInterfaceSpeed;
-   private Button                      btnAutomaticallyReconnect;
-   private Button                      btnDriveReset;
-   private Button                      btnUsePstSignals;
-   private Button                      btnCatchVLLSsEvents;
-   private Button                      btnMaskInterrupts;
-   private NumberTextAdapter           connectionTimeoutTextAdapter;
-   private Combo                       comboSecurityOption;
+   private Label             fLabelcommandLine;
 
-   private EraseMethod[]               eraseMethods;
-   private Combo                       comboEraseMethod;
+   private int               fSuspendUpdate;
 
-   private TargetVddSelect[]           targetVdds;
-   private Combo                       comboTargetVdd;
-
-   private ClockTypes                  clockType;
-   private Button                      btnTrimTargetClock;
-   private Text                        txtTrimFrequency;
-   private DoubleTextAdapter           txtTrimFrequencyAdapter;
-   private Label                       lblKhz;
-   private Label                       lblNvtrimAddress;
-   private Text                        txtNVTRIMAddress;
-   private HexTextAdapter              txtNVTRIMAddressAdapter;
-   private Label                       lblHex;
-   private Listener                    listener;
-   private Group                       grpClockTrim;
-   private Composite                   composite;
-   
-   private Label                       lblcommandLine;
-   
-   private int                         suspendUpdate;
-   
    public UsbdmDebuggerPanel() {
    }
 
    Shell getShell() {
-      return composite.getShell();
+      return fComposite.getShell();
    }
-   
+
    /**
     * Create contents of the panel
     * 
-    * @param createGDBGroup  - Whether to include the GDB setup group 
+    * @param createGDBGroup Whether to include the GDB setup group
     * 
     * @return The control representing the contents of the panel
     */
    public Control createContents(Composite parent, boolean createGDBGroup) {
-      composite = new Composite(parent, SWT.NONE);
+      fComposite = new Composite(parent, SWT.NONE);
       GridLayout gl = new GridLayout(1, false);
       gl.marginBottom = 0;
-      gl.marginTop    = 0;
-      gl.marginLeft   = 0;
-      gl.marginRight  = 0;
+      gl.marginTop = 0;
+      gl.marginLeft = 0;
+      gl.marginRight = 0;
       gl.marginHeight = 0;
-      gl.marginWidth  = 0;
-      composite.setLayout(gl);
+      gl.marginWidth = 0;
+      fComposite.setLayout(gl);
 
-      //  System.err.println("createControl()");
-      ScrolledComposite sc = new ScrolledComposite(composite, SWT.V_SCROLL|SWT.H_SCROLL);
+      // System.err.println("createControl()");
+      ScrolledComposite sc = new ScrolledComposite(fComposite, SWT.V_SCROLL | SWT.H_SCROLL);
       sc.setExpandHorizontal(true);
       sc.setExpandVertical(true);
 
@@ -206,29 +205,19 @@ public class UsbdmDebuggerPanel {
       createSecurityGroup(holder);
       createTrimGroup(holder);
       createTargetVddGroup(holder);
-      
+
       createCommandLineGroup(comp);
 
-      return composite;
+      return fComposite;
    }
 
-   protected void createCommandLineGroup(Composite parent) {
-      Group group = new Group(parent, SWT.NONE);
-      group.setText("Command line");
-      group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-      GridLayout layout = new GridLayout(1, false);
-      group.setLayout(layout);
-      lblcommandLine = new Label(group, SWT.FILL|SWT.WRAP);
-      lblcommandLine.setToolTipText("Actual command line used to start GDB Server");
-      lblcommandLine.setText("No Command");
-      final GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-      gd.widthHint = 100;
-      gd.heightHint = 80;
-      lblcommandLine.setLayoutData(gd);
-   }
-   
+   /**
+    * Create USBDM Parameters selection Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createUsbdmParametersGroup(Composite parent) {
-      //      System.err.println("createUsbdmControl()");
+      // System.err.println("createUsbdmControl()");
 
       Group group = new Group(parent, SWT.NONE);
       group.setText("USBDM Parameters");
@@ -245,45 +234,51 @@ public class UsbdmDebuggerPanel {
       //
       Label label = new Label(group, SWT.NONE);
       label.setText("Interface:"); //$NON-NLS-1$
-      comboInterfaceType = new Combo(group, SWT.BORDER|SWT.READ_ONLY);
-      interfaceTypes = new InterfaceType[InterfaceType.values().length];
+      fComboInterfaceType = new Combo(group, SWT.BORDER | SWT.READ_ONLY);
+      fInterfaceTypes = new InterfaceType[InterfaceType.values().length];
 
-      comboInterfaceType.select(0);
+      fComboInterfaceType.select(0);
 
       //
       // Create Device selection group
       //
       label = new Label(group, SWT.NONE);
       label.setText("Target Device:");
-      txtTargetDeviceName   = new Text(group, SWT.BORDER|SWT.READ_ONLY|SWT.CENTER);
-      txtTargetDeviceName.setLayoutData(new RowData(200, SWT.DEFAULT));
-      btnTargetDeviceSelect = new Button(group, SWT.NONE);
-      btnTargetDeviceSelect.setText("Device...");
-      btnTargetDeviceSelect.addSelectionListener(new SelectionListener() {
+      fTextTargetDeviceName = new Text(group, SWT.BORDER | SWT.READ_ONLY | SWT.CENTER);
+      fTextTargetDeviceName.setLayoutData(new RowData(200, SWT.DEFAULT));
+      fButtonTargetDeviceSelect = new Button(group, SWT.NONE);
+      fButtonTargetDeviceSelect.setText("Device...");
+      fButtonTargetDeviceSelect.addSelectionListener(new SelectionListener() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             InterfaceType interfaceType = getInterfaceType();
-            DeviceSelector ds = new DeviceSelector(getShell(), interfaceType.targetType, txtTargetDeviceName.getText());
+            DeviceSelector ds = new DeviceSelector(getShell(), interfaceType.targetType, fTextTargetDeviceName.getText());
             if (ds.open() == Window.OK) {
-               txtTargetDeviceName.setText(ds.getText());
-             Device device = ds.getDevice();
-             if (device != null) {
-                suspendUpdate++;
-                clockType = device.getClockType();
-                gdbServerParameters.setClockTrimFrequency(device.getDefaultClockTrimFreq());
-                gdbServerParameters.setNvmClockTrimLocation(device.getDefaultClockTrimNVAddress());
-                populateTrim();
-                suspendUpdate--;
-                doUpdate();
-             }
+               fTextTargetDeviceName.setText(ds.getText());
+               Device device = ds.getDevice();
+               if (device != null) {
+                  fSuspendUpdate++;
+                  fClockType = device.getClockType();
+                  fGdbServerParameters.setClockTrimFrequency(device.getDefaultClockTrimFreq());
+                  fGdbServerParameters.setNvmClockTrimLocation(device.getDefaultClockTrimNVAddress());
+                  populateTrim();
+                  fSuspendUpdate--;
+                  doUpdate();
+               }
             }
          }
+
          @Override
          public void widgetDefaultSelected(SelectionEvent e) {
          }
       });
    }
 
+   /**
+    * Create GDB Parameters selection Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createGdbSetupGroup(Composite parent) {
       Group group = new Group(parent, SWT.NONE);
       GridLayout layout = new GridLayout();
@@ -303,23 +298,23 @@ public class UsbdmDebuggerPanel {
 
       GridLayout layout = new GridLayout();
       layout.numColumns = 4;
-      layout.marginTop  = 0;
+      layout.marginTop = 0;
       comp.setLayout(layout);
       Label label;
 
-      //====================================================================
+      // ====================================================================
       label = new Label(comp, SWT.NONE);
       label.setText("Build Tool:");
-      comboBuildTool = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
+      fComboBuildTool = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN);
       gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
       gd.widthHint = 200;
-      comboBuildTool.setLayoutData(gd);
-      comboBuildTool.addModifyListener(new ModifyListener() {
+      fComboBuildTool.setLayoutData(gd);
+      fComboBuildTool.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
-            suspendUpdate++;
+            fSuspendUpdate++;
             buildToolSelectionChanged();
-            suspendUpdate--;
+            fSuspendUpdate--;
             doUpdate();
          }
       });
@@ -327,54 +322,54 @@ public class UsbdmDebuggerPanel {
       new Label(comp, SWT.NONE);
       new Label(comp, SWT.NONE);
 
-      //====================================================================
+      // ====================================================================
       label = new Label(comp, SWT.NONE);
       label.setText("GDB bin Path: ");
 
-      txtGdbBinPath = new Text(comp, SWT.SINGLE | SWT.BORDER);
+      fTextGdbBinPath = new Text(comp, SWT.SINGLE | SWT.BORDER);
       gd = new GridData(GridData.FILL_HORIZONTAL);
-      txtGdbBinPath.setLayoutData(gd);
-      txtGdbBinPath.addModifyListener(new ModifyListener() {
+      fTextGdbBinPath.setLayoutData(gd);
+      fTextGdbBinPath.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
 
-      btnGdbBinPathBrowse = new Button(comp, SWT.NONE);
-      btnGdbBinPathBrowse.setText("Browse");
-      btnGdbBinPathBrowse.addSelectionListener(new SelectionAdapter() {
+      fButtonGdbBinPathBrowse = new Button(comp, SWT.NONE);
+      fButtonGdbBinPathBrowse.setText("Browse");
+      fButtonGdbBinPathBrowse.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             DirectoryDialog fd = new org.eclipse.swt.widgets.DirectoryDialog(getShell(), SWT.OPEN);
             fd.setText("GCC Path - Select Directory");
             fd.setMessage("Locate GCC bin directory");
-            fd.setFilterPath(txtGdbBinPath.getText());
+            fd.setFilterPath(fTextGdbBinPath.getText());
             String directoryPath = fd.open();
             if (directoryPath != null) {
-               txtGdbBinPath.setText(directoryPath);
+               fTextGdbBinPath.setText(directoryPath);
             }
          }
       });
 
-      btnGdbBinPathVariables = new Button(comp, SWT.NONE);
-      btnGdbBinPathVariables.setText("Variables");
-      btnGdbBinPathVariables.addSelectionListener(new SelectionAdapter() {
+      fButtonGdbBinPathVariables = new Button(comp, SWT.NONE);
+      fButtonGdbBinPathVariables.setText("Variables");
+      fButtonGdbBinPathVariables.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
-            variablesButtonSelected(txtGdbBinPath);
+            variablesButtonSelected(fTextGdbBinPath);
          }
       });
 
-      //====================================================================
+      // ====================================================================
       label = new Label(comp, SWT.NONE);
       label.setText("GDB Command:");
 
-      txtGdbCommand = new Text(comp, SWT.SINGLE | SWT.BORDER);
+      fTextGdbCommand = new Text(comp, SWT.SINGLE | SWT.BORDER);
       gd = new GridData(GridData.FILL_HORIZONTAL);
-      //      gd.horizontalSpan = 1;
-      txtGdbCommand.setLayoutData(gd);
-      txtGdbCommand.addModifyListener(new ModifyListener() {
+      // gd.horizontalSpan = 1;
+      fTextGdbCommand.setLayoutData(gd);
+      fTextGdbCommand.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
@@ -383,12 +378,12 @@ public class UsbdmDebuggerPanel {
 
       label = new Label(comp, SWT.NONE);
 
-      btnGdbCommandVariables = new Button(comp, SWT.NONE);
-      btnGdbCommandVariables.setText("Variables");
-      btnGdbCommandVariables.addSelectionListener(new SelectionAdapter() {
+      fButtonGdbCommandVariables = new Button(comp, SWT.NONE);
+      fButtonGdbCommandVariables.setText("Variables");
+      fButtonGdbCommandVariables.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
-            variablesButtonSelected(txtGdbCommand);
+            variablesButtonSelected(fTextGdbCommand);
          }
       });
    }
@@ -401,64 +396,65 @@ public class UsbdmDebuggerPanel {
       layout.wrap = false;
       comp.setLayout(layout);
 
-      //=====================================================
-      btnVerboseMode = new Button(comp, SWT.CHECK);
-      btnVerboseMode.setText("Verbose console");
-      btnVerboseMode.addSelectionListener(new SelectionAdapter() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            doUpdate();
-         }
-      });
+      // =====================================================
+//      btnVerboseMode = new Button(comp, SWT.CHECK);
+//      btnVerboseMode.setText("Verbose console");
+//      btnVerboseMode.addSelectionListener(new SelectionAdapter() {
+//         @Override
+//         public void widgetSelected(SelectionEvent e) {
+//            doUpdate();
+//         }
+//      });
    }
 
-   /** Create BDM Selection Group
+   /**
+    * Create BDM Selection Group
     * 
-    * @param parent parent of group
+    * @param parent Parent of group
     */
    protected void createPreferredBdmGroup(Composite parent) {
-      //    System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
+      // System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
 
       Group grpSelectBdm = new Group(parent, SWT.NONE);
       grpSelectBdm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
       grpSelectBdm.setText("BDM Selection");
       grpSelectBdm.setLayout(new GridLayout(2, false));
 
-      comboSelectBDM = new Combo(grpSelectBdm, SWT.READ_ONLY);
-      comboSelectBDM.setToolTipText("Allows selection of preferred or required BDM\nfrom those currently attached.");
-      comboSelectBDM.addSelectionListener(new SelectionAdapter() {
+      fComboSelectBDM = new Combo(grpSelectBdm, SWT.READ_ONLY);
+      fComboSelectBDM.setToolTipText("Allows selection of preferred or required BDM\nfrom those currently attached.");
+      fComboSelectBDM.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
-            suspendUpdate++;
+            fSuspendUpdate++;
             updateBdmDescription();
-            suspendUpdate--;
+            fSuspendUpdate--;
             doUpdate();
          }
       });
       GridData gd_comboSelectBDM = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
       gd_comboSelectBDM.minimumWidth = 200;
-      comboSelectBDM.setLayoutData(gd_comboSelectBDM);
-      //      populateBdmChoices(null, false);
-      btnRefreshBDMs = new Button(grpSelectBdm, SWT.NONE);
-      btnRefreshBDMs.setToolTipText("Check for connected BDMs");
-      btnRefreshBDMs.setText("Refresh");
-      btnRefreshBDMs.addSelectionListener(new SelectionAdapter() {
+      fComboSelectBDM.setLayoutData(gd_comboSelectBDM);
+      // populateBdmChoices(null, false);
+      fButtonRefreshBDMs = new Button(grpSelectBdm, SWT.NONE);
+      fButtonRefreshBDMs.setToolTipText("Check for connected BDMs");
+      fButtonRefreshBDMs.setText("Refresh");
+      fButtonRefreshBDMs.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
-            suspendUpdate++;
+            fSuspendUpdate++;
             populateBdmChoices(null, true);
-            suspendUpdate--;
+            fSuspendUpdate--;
             doUpdate();
          }
       });
 
-      lblBDMInformation = new Label(grpSelectBdm, SWT.NONE);
-      lblBDMInformation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-      lblBDMInformation.setToolTipText("Description of selected BDM");
-      lblBDMInformation.setText("BDM Information");
+      fLabelBDMInformation = new Label(grpSelectBdm, SWT.NONE);
+      fLabelBDMInformation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+      fLabelBDMInformation.setToolTipText("Description of selected BDM");
+      fLabelBDMInformation.setText("BDM Information");
 
-      btnRequireExactBdm = new Button(grpSelectBdm, SWT.CHECK);
-      btnRequireExactBdm.setToolTipText("Use only the selected BDM.\nOtherwise selection is preferred BDM.");
-      btnRequireExactBdm.setText("Exact");
-      btnRequireExactBdm.addSelectionListener(new SelectionAdapter() {
+      fButtonRequireExactBdm = new Button(grpSelectBdm, SWT.CHECK);
+      fButtonRequireExactBdm.setToolTipText("Use only the selected BDM.\nOtherwise selection is preferred BDM.");
+      fButtonRequireExactBdm.setText("Exact");
+      fButtonRequireExactBdm.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
@@ -466,36 +462,37 @@ public class UsbdmDebuggerPanel {
 
    }
 
-   /** Create GDB Port selection Group
+   /**
+    * Create GDB Server parameters Group
     * 
-    * @param parent parent of group
+    * @param parent Parent of group
     */
    protected void createGdbServerGroup(Composite parent) {
-      //    System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
+      // System.err.println("UsbdmConnectionPanel::createPreferredBdmGroup()");
 
       Group grpGdbControl = new Group(parent, SWT.NONE);
       grpGdbControl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
       grpGdbControl.setText("GDB Server Control");
-      GridLayout gridLayout = new GridLayout(2,false);
+      GridLayout gridLayout = new GridLayout(2, false);
       grpGdbControl.setLayout(gridLayout);
 
       Label lbl = new Label(grpGdbControl, SWT.NONE);
       lbl.setText("Server Port ");
-      txtGdbServerPort = new Text(grpGdbControl, SWT.BORDER|SWT.FILL);
-      txtGdbServerPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-      txtGdbServerPort.setToolTipText("Port number used for GDB Server connection");
-      txtGdbServerPortAdapter = new NumberTextAdapter("GDB Server port", txtGdbServerPort,  1234);
-      txtGdbServerPort.addModifyListener(new ModifyListener() {
+      fTextGdbServerPort = new Text(grpGdbControl, SWT.BORDER | SWT.FILL);
+      fTextGdbServerPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      fTextGdbServerPort.setToolTipText("Port number used for GDB Server connection");
+      fTextGdbServerPortAdapter = new NumberTextAdapter("GDB Server port", fTextGdbServerPort, 1234);
+      fTextGdbServerPort.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
-      btnUseSemihosting = new Button(grpGdbControl, SWT.CHECK);
-      btnUseSemihosting.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnUseSemihosting.setText("Open semi-hosting TTY");
-      btnUseSemihosting.setToolTipText("Open a TTY console for GDB to connect to");
-      btnUseSemihosting.addSelectionListener(new SelectionAdapter() {
+      fButtonUseSemihosting = new Button(grpGdbControl, SWT.CHECK);
+      fButtonUseSemihosting.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonUseSemihosting.setText("Open semi-hosting TTY");
+      fButtonUseSemihosting.setToolTipText("Open a TTY console for GDB to connect to");
+      fButtonUseSemihosting.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent arg0) {
             doUpdate();
@@ -504,58 +501,65 @@ public class UsbdmDebuggerPanel {
 
       lbl = new Label(grpGdbControl, SWT.NONE);
       lbl.setText("TTY Port ");
-      txtGdbTtyPort = new Text(grpGdbControl, SWT.BORDER);
-      txtGdbTtyPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-      txtGdbTtyPort.setToolTipText("Port number used for GDB TTY connection");
-      txtGdbTtyPortAdapter = new NumberTextAdapter("GDB TTY port", txtGdbTtyPort,  4321);
-      txtGdbTtyPort.addModifyListener(new ModifyListener() {
+      fTextGdbTtyPort = new Text(grpGdbControl, SWT.BORDER);
+      fTextGdbTtyPort.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+      fTextGdbTtyPort.setToolTipText("Port number used for GDB TTY connection");
+      fTextGdbTtyPortAdapter = new NumberTextAdapter("GDB TTY port", fTextGdbTtyPort, 4321);
+      fTextGdbTtyPort.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
 
-      btnUseDebug = new Button(grpGdbControl, SWT.CHECK);
-      btnUseDebug.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnUseDebug.setToolTipText("Use debug version of server.");
-      btnUseDebug.setText("Debug");
-      btnUseDebug.addSelectionListener(new SelectionAdapter() {
+      fButtonUseDebug = new Button(grpGdbControl, SWT.CHECK);
+      fButtonUseDebug.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonUseDebug.setToolTipText("Use debug version of server.");
+      fButtonUseDebug.setText("Debug");
+      fButtonUseDebug.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
       });
-      
-      btnExitOnClose = new Button(grpGdbControl, SWT.CHECK);
-      btnExitOnClose.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnExitOnClose.setToolTipText("Exit the server when the client connection is closed.");
-      btnExitOnClose.setText("Exit on Close");
-      btnExitOnClose.addSelectionListener(new SelectionAdapter() {
+
+      fButtonExitOnClose = new Button(grpGdbControl, SWT.CHECK);
+      fButtonExitOnClose.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonExitOnClose.setToolTipText("Exit the server when the client connection is closed.");
+      fButtonExitOnClose.setText("Exit on Close");
+      fButtonExitOnClose.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
       });
-//      btnPipeServer = new Button(grpGdbControl, SWT.RADIO);
-//      btnPipeServer.setText("Pipe");
-//      btnPipeServer.setToolTipText("Run server as Pipe e.g. target remote | server");
-//      btnPipeServer.addSelectionListener(new SelectionAdapter() {
-//         @Override
-//         public void widgetSelected(SelectionEvent e) {
-//            doUpdate();
-//         }
-//      });
-//      btnSocketServer = new Button(grpGdbControl, SWT.RADIO);
-//      btnSocketServer.setText("Socket");
-//      btnSocketServer.setToolTipText("Run server as separate GUI process using sockets");
-//      btnSocketServer.addSelectionListener(new SelectionAdapter() {
-//         @Override
-//         public void widgetSelected(SelectionEvent e) {
-//            doUpdate();
-//         }
-//      });      
+      // btnPipeServer = new Button(grpGdbControl, SWT.RADIO);
+      // btnPipeServer.setText("Pipe");
+      // btnPipeServer.setToolTipText("Run server as Pipe e.g. target remote |
+      // server");
+      // btnPipeServer.addSelectionListener(new SelectionAdapter() {
+      // @Override
+      // public void widgetSelected(SelectionEvent e) {
+      // doUpdate();
+      // }
+      // });
+      // btnSocketServer = new Button(grpGdbControl, SWT.RADIO);
+      // btnSocketServer.setText("Socket");
+      // btnSocketServer.setToolTipText("Run server as separate GUI process
+      // using sockets");
+      // btnSocketServer.addSelectionListener(new SelectionAdapter() {
+      // @Override
+      // public void widgetSelected(SelectionEvent e) {
+      // doUpdate();
+      // }
+      // });
    }
 
+   /**
+    * Create Connection parameters Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createConnectionGroup(Composite comp) {
 
       Group grpConnectionControl = new Group(comp, SWT.NONE);
@@ -563,12 +567,12 @@ public class UsbdmDebuggerPanel {
       grpConnectionControl.setLayout(new GridLayout(2, false));
       grpConnectionControl.setText("Connection Control"); //$NON-NLS-1$
 
-      comboInterfaceSpeed = new Combo(grpConnectionControl, SWT.READ_ONLY);
-      comboInterfaceSpeed.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      comboInterfaceSpeed.setItems(JTAGInterfaceData.getConnectionSpeeds());
-      comboInterfaceSpeed.setToolTipText("Connection speed to use for BDM communications");
-      comboInterfaceSpeed.select(4);
-      comboInterfaceSpeed.addModifyListener(new ModifyListener() {
+      fComboInterfaceSpeed = new Combo(grpConnectionControl, SWT.READ_ONLY);
+      fComboInterfaceSpeed.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fComboInterfaceSpeed.setItems(JTAGInterfaceData.getConnectionSpeeds());
+      fComboInterfaceSpeed.setToolTipText("Connection speed to use for BDM communications");
+      fComboInterfaceSpeed.select(4);
+      fComboInterfaceSpeed.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
@@ -579,69 +583,67 @@ public class UsbdmDebuggerPanel {
       lbl.setText("Timeout");
       Text txtConnectionTimeout = new Text(grpConnectionControl, SWT.BORDER);
       txtConnectionTimeout.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-      txtConnectionTimeout.setToolTipText("How long to wait for an unresponsive target\n"+
-                                          "(e.g. target may be in VLLSx mode)\n"+
-                                          "0 indicates indefinite wait");
-      
-      connectionTimeoutTextAdapter = new NumberTextAdapter("Timeout", txtConnectionTimeout,  10);
-//      txtConnectionTimeout.setLayoutData(new GridData(30, 16));
+      txtConnectionTimeout.setToolTipText("How long to wait for an unresponsive target\n" + "(e.g. target may be in VLLSx mode)\n" + "0 indicates indefinite wait");
+
+      fConnectionTimeoutTextAdapter = new NumberTextAdapter("Timeout", txtConnectionTimeout, 10);
+      // txtConnectionTimeout.setLayoutData(new GridData(30, 16));
       txtConnectionTimeout.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
-      
-      btnAutomaticallyReconnect = new Button(grpConnectionControl, SWT.CHECK);
-      btnAutomaticallyReconnect.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnAutomaticallyReconnect.setToolTipText("Automatically re-sync with the target whenever target state is polled."); //$NON-NLS-1$
-      btnAutomaticallyReconnect.setText("Auto reconnect"); //$NON-NLS-1$
-      btnAutomaticallyReconnect.addSelectionListener(new SelectionAdapter() {
+
+      fButtonAutomaticallyReconnect = new Button(grpConnectionControl, SWT.CHECK);
+      fButtonAutomaticallyReconnect.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonAutomaticallyReconnect.setToolTipText("Automatically re-sync with the target whenever target state is polled."); //$NON-NLS-1$
+      fButtonAutomaticallyReconnect.setText("Auto reconnect"); //$NON-NLS-1$
+      fButtonAutomaticallyReconnect.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
       });
 
-      btnCatchVLLSsEvents = new Button(grpConnectionControl, SWT.CHECK);
-      btnCatchVLLSsEvents.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnCatchVLLSsEvents.setToolTipText("Halt on resets due to VLLSx wakeup"); //$NON-NLS-1$
-      btnCatchVLLSsEvents.setText("Catch VLLS events"); //$NON-NLS-1$
-      btnCatchVLLSsEvents.addSelectionListener(new SelectionAdapter() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            doUpdate();
-         }
-      });
-      
-      btnMaskInterrupts = new Button(grpConnectionControl, SWT.CHECK);
-      btnMaskInterrupts.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnMaskInterrupts.setToolTipText("Mask interrupts when stepping"); //$NON-NLS-1$
-      btnMaskInterrupts.setText("Mask Interrupts"); //$NON-NLS-1$
-      btnMaskInterrupts.addSelectionListener(new SelectionAdapter() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            doUpdate();
-         }
-      });
-      
-      btnDriveReset = new Button(grpConnectionControl, SWT.CHECK);
-      btnDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnDriveReset.setToolTipText("Drive target reset pin to reset the target."); //$NON-NLS-1$
-      btnDriveReset.setText("Hardware RESET"); //$NON-NLS-1$
-      btnDriveReset.setBounds(0, 0, 140, 16);
-      btnDriveReset.addSelectionListener(new SelectionAdapter() {
+      fButtonCatchVLLSsEvents = new Button(grpConnectionControl, SWT.CHECK);
+      fButtonCatchVLLSsEvents.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonCatchVLLSsEvents.setToolTipText("Halt on resets due to VLLSx wakeup"); //$NON-NLS-1$
+      fButtonCatchVLLSsEvents.setText("Catch VLLS events"); //$NON-NLS-1$
+      fButtonCatchVLLSsEvents.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
       });
 
-      btnUsePstSignals = new Button(grpConnectionControl, SWT.CHECK);
-      btnUsePstSignals.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      btnUsePstSignals.setToolTipText("Use PST signal to determine execution state of target.");
-      btnUsePstSignals.setText("Use PST signals");
-      btnUsePstSignals.addSelectionListener(new SelectionAdapter() {
+      fButtonMaskInterrupts = new Button(grpConnectionControl, SWT.CHECK);
+      fButtonMaskInterrupts.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonMaskInterrupts.setToolTipText("Mask interrupts when stepping"); //$NON-NLS-1$
+      fButtonMaskInterrupts.setText("Mask Interrupts"); //$NON-NLS-1$
+      fButtonMaskInterrupts.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            doUpdate();
+         }
+      });
+
+      fButtonDriveReset = new Button(grpConnectionControl, SWT.CHECK);
+      fButtonDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonDriveReset.setToolTipText("Drive target reset pin to reset the target."); //$NON-NLS-1$
+      fButtonDriveReset.setText("Hardware RESET"); //$NON-NLS-1$
+      fButtonDriveReset.setBounds(0, 0, 140, 16);
+      fButtonDriveReset.addSelectionListener(new SelectionAdapter() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+            doUpdate();
+         }
+      });
+
+      fButtonUsePstSignals = new Button(grpConnectionControl, SWT.CHECK);
+      fButtonUsePstSignals.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fButtonUsePstSignals.setToolTipText("Use PST signal to determine execution state of target.");
+      fButtonUsePstSignals.setText("Use PST signals");
+      fButtonUsePstSignals.addSelectionListener(new SelectionAdapter() {
          @Override
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
@@ -649,6 +651,11 @@ public class UsbdmDebuggerPanel {
       });
    }
 
+   /**
+    * Create Erase parameters Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createEraseGroup(Composite comp) {
 
       Group grpEraseOptions = new Group(comp, SWT.NONE);
@@ -660,9 +667,9 @@ public class UsbdmDebuggerPanel {
       rowLayout.justify = true;
 
       grpEraseOptions.setLayout(rowLayout);
-      comboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
-      comboEraseMethod.setToolTipText("Erase method used before programming");
-      comboEraseMethod.addModifyListener(new ModifyListener() {
+      fComboEraseMethod = new Combo(grpEraseOptions, SWT.READ_ONLY);
+      fComboEraseMethod.setToolTipText("Erase method used before programming");
+      fComboEraseMethod.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
@@ -670,12 +677,13 @@ public class UsbdmDebuggerPanel {
       });
    }
 
-   /** Create Security Selection Group
+   /**
+    * Create Security Selection Group
     * 
-    * @param parent parent of group
+    * @param parent Parent of group
     */
    protected void createSecurityGroup(Composite parent) {
-      //    System.err.println("UsbdmConnectionPanel::createSecurityGroup()");
+      // System.err.println("UsbdmConnectionPanel::createSecurityGroup()");
 
       Group grpSelectsecurity = new Group(parent, SWT.NONE);
       grpSelectsecurity.setText("Security Options");
@@ -686,25 +694,30 @@ public class UsbdmDebuggerPanel {
       rowLayout.justify = true;
       grpSelectsecurity.setLayout(rowLayout);
 
-      comboSecurityOption = new Combo(grpSelectsecurity, SWT.READ_ONLY);
-      comboSecurityOption.setToolTipText("Security options applied to the target when programming ");
+      fComboSecurityOption = new Combo(grpSelectsecurity, SWT.READ_ONLY);
+      fComboSecurityOption.setToolTipText("Security options applied to the target when programming ");
 
       // Must be added in ordinal order
-      comboSecurityOption.add(SecurityOptions.SECURITY_IMAGE.toString());
-      comboSecurityOption.add(SecurityOptions.SECURITY_UNSECURED.toString());
-      comboSecurityOption.add(SecurityOptions.SECURITY_SMART.toString());
-      comboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
+      fComboSecurityOption.add(SecurityOptions.SECURITY_IMAGE.toString());
+      fComboSecurityOption.add(SecurityOptions.SECURITY_UNSECURED.toString());
+      fComboSecurityOption.add(SecurityOptions.SECURITY_SMART.toString());
+      fComboSecurityOption.select(SecurityOptions.SECURITY_SMART.ordinal());
 
-      comboSecurityOption.addSelectionListener(new SelectionAdapter() {
+      fComboSecurityOption.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
-            suspendUpdate++;
+            fSuspendUpdate++;
             updateBdmDescription();
-            suspendUpdate--;
+            fSuspendUpdate--;
             doUpdate();
          }
-      });   
+      });
    }
 
+   /**
+    * Create Target Vdd parameters Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createTargetVddGroup(Composite comp) {
 
       Group grpTargetVddSupply = new Group(comp, SWT.NONE);
@@ -718,128 +731,153 @@ public class UsbdmDebuggerPanel {
 
       grpTargetVddSupply.setLayout(rowLayout);
 
-      targetVdds = new TargetVddSelect[TargetVddSelect.values().length];
-      comboTargetVdd = new Combo(grpTargetVddSupply, SWT.READ_ONLY);
-      comboTargetVdd.setToolTipText("Target Vdd supplied from BDM to target");
-      comboTargetVdd.addSelectionListener(new SelectionAdapter() {
+      fTargetVdds = new TargetVddSelect[TargetVddSelect.values().length];
+      fComboTargetVdd = new Combo(grpTargetVddSupply, SWT.READ_ONLY);
+      fComboTargetVdd.setToolTipText("Target Vdd supplied from BDM to target");
+      fComboTargetVdd.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
             doUpdate();
          }
       });
 
       int index = 0;
-      for (TargetVddSelect targetVdd :TargetVddSelect.values()) {
+      for (TargetVddSelect targetVdd : TargetVddSelect.values()) {
          if (targetVdd.ordinal() > TargetVddSelect.BDM_TARGET_VDD_5V.ordinal()) {
             continue;
          }
-         comboTargetVdd.add(targetVdd.toString());
-         targetVdds[index++] = targetVdd;
-         comboTargetVdd.select(comboTargetVdd.getItemCount()-1);
+         fComboTargetVdd.add(targetVdd.toString());
+         fTargetVdds[index++] = targetVdd;
+         fComboTargetVdd.select(fComboTargetVdd.getItemCount() - 1);
       }
    }
 
+   /**
+    * Create Clock Trim parameters Group
+    * 
+    * @param parent Parent of group
+    */
    protected void createTrimGroup(Composite comp) {
 
-      grpClockTrim = new Group(comp, SWT.NONE);
-      grpClockTrim.setText("Internal Clock Trim"); //$NON-NLS-1$
-      grpClockTrim.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
+      fGroupClockTrim = new Group(comp, SWT.NONE);
+      fGroupClockTrim.setText("Internal Clock Trim"); //$NON-NLS-1$
+      fGroupClockTrim.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 
-      grpClockTrim.setLayout(new GridLayout(3, false));
+      fGroupClockTrim.setLayout(new GridLayout(3, false));
 
-      btnTrimTargetClock = new Button(grpClockTrim, SWT.CHECK);
-      btnTrimTargetClock.setText("Frequency"); //$NON-NLS-1$
-      btnTrimTargetClock.setToolTipText("Enable trimming of target internal clock source\r\nto given frequency."); //$NON-NLS-1$
-      btnTrimTargetClock.addSelectionListener(new SelectionAdapter() {
+      fButtonTrimTargetClock = new Button(fGroupClockTrim, SWT.CHECK);
+      fButtonTrimTargetClock.setText("Frequency"); //$NON-NLS-1$
+      fButtonTrimTargetClock.setToolTipText("Enable trimming of target internal clock source\r\nto given frequency."); //$NON-NLS-1$
+      fButtonTrimTargetClock.addSelectionListener(new SelectionAdapter() {
          public void widgetSelected(SelectionEvent e) {
-            suspendUpdate++;
-            enableTrim(((Button)e.getSource()).getSelection());
-            suspendUpdate--;
+            fSuspendUpdate++;
+            enableTrim(((Button) e.getSource()).getSelection());
+            fSuspendUpdate--;
             doUpdate();
          }
       });
 
-      txtTrimFrequency = new Text(grpClockTrim, SWT.BORDER);
-      txtTrimFrequencyAdapter = new DoubleTextAdapter(txtTrimFrequency);
-      txtTrimFrequency.setTextLimit(7);
-      txtTrimFrequencyAdapter.setDoubleValue(0.0);
-      txtTrimFrequency.setToolTipText(""); //$NON-NLS-1$
+      fTextTrimFrequency = new Text(fGroupClockTrim, SWT.BORDER);
+      fTextTrimFrequencyAdapter = new DoubleTextAdapter(fTextTrimFrequency);
+      fTextTrimFrequency.setTextLimit(7);
+      fTextTrimFrequencyAdapter.setDoubleValue(0.0);
+      fTextTrimFrequency.setToolTipText(""); //$NON-NLS-1$
       GridData gd_txtTrimFrequency = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
       gd_txtTrimFrequency.widthHint = 65;
       gd_txtTrimFrequency.minimumWidth = 65;
-      txtTrimFrequency.setLayoutData(gd_txtTrimFrequency);
-      txtTrimFrequency.addModifyListener(new ModifyListener() {
+      fTextTrimFrequency.setLayoutData(gd_txtTrimFrequency);
+      fTextTrimFrequency.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
 
-      lblKhz = new Label(grpClockTrim, SWT.NONE);
-      lblKhz.setToolTipText(
-            "The frequency to trim the internal clock source to.\r\n" +
-            "Note this is NOT the bus clock frequency.");
-      lblKhz.setText("kHz"); //$NON-NLS-1$
+      fLabelKhz = new Label(fGroupClockTrim, SWT.NONE);
+      fLabelKhz.setToolTipText("The frequency to trim the internal clock source to.\r\n" + "Note this is NOT the bus clock frequency.");
+      fLabelKhz.setText("kHz"); //$NON-NLS-1$
 
-      lblNvtrimAddress = new Label(grpClockTrim, SWT.NONE);
+      fLabelNvtrimAddress = new Label(fGroupClockTrim, SWT.NONE);
       GridData gd_lblNvtrimAddress = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-      lblNvtrimAddress.setLayoutData(gd_lblNvtrimAddress);
-      lblNvtrimAddress.setText("NVTRIM "); //$NON-NLS-1$
-      lblNvtrimAddress.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
-      //      new Label(grpClockTrim, SWT.NONE);
+      fLabelNvtrimAddress.setLayoutData(gd_lblNvtrimAddress);
+      fLabelNvtrimAddress.setText("NVTRIM "); //$NON-NLS-1$
+      fLabelNvtrimAddress.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
+      // new Label(fGroupClockTrim, SWT.NONE);
 
-      txtNVTRIMAddress = new Text(grpClockTrim, SWT.BORDER);
-      txtNVTRIMAddressAdapter = new HexTextAdapter("NVTRIM Address", txtNVTRIMAddress, 0);
-      txtNVTRIMAddressAdapter.setRange(0, 0xFFFF);
+      fTextNVTRIMAddress = new Text(fGroupClockTrim, SWT.BORDER);
+      fTextNVTRIMAddressAdapter = new HexTextAdapter("NVTRIM Address", fTextNVTRIMAddress, 0);
+      fTextNVTRIMAddressAdapter.setRange(0, 0xFFFF);
       GridData gd_txtNVTRIMAddress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
       gd_txtNVTRIMAddress.widthHint = 65;
       gd_txtNVTRIMAddress.minimumWidth = 65;
-      txtNVTRIMAddress.setLayoutData(gd_txtNVTRIMAddress);
-      txtNVTRIMAddress.addModifyListener(new ModifyListener() {
+      fTextNVTRIMAddress.setLayoutData(gd_txtNVTRIMAddress);
+      fTextNVTRIMAddress.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent e) {
             doUpdate();
          }
       });
 
-      lblHex = new Label(grpClockTrim, SWT.NONE);
-      lblHex.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
-      lblHex.setText("hex"); //$NON-NLS-1$
+      fLabelHex = new Label(fGroupClockTrim, SWT.NONE);
+      fLabelHex.setToolTipText("Address of non-volatile memory location to write the trim value to."); //$NON-NLS-1$
+      fLabelHex.setText("hex"); //$NON-NLS-1$
    }
 
-   /**   Add interface names to Interface combo
+   /**
+    * Create Command Line display Group
     * 
-    *    @param interfaceTypeToSelect Used as initial selection
+    * @param parent Parent of group
+    */
+   protected void createCommandLineGroup(Composite parent) {
+      Group group = new Group(parent, SWT.NONE);
+      group.setText("Command line");
+      group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+      GridLayout layout = new GridLayout(1, false);
+      group.setLayout(layout);
+      fLabelcommandLine = new Label(group, SWT.FILL | SWT.WRAP);
+      fLabelcommandLine.setToolTipText("Actual command line used to start GDB Server");
+      fLabelcommandLine.setText("No Command");
+      final GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+      gd.widthHint = 100;
+      gd.heightHint = 80;
+      fLabelcommandLine.setLayoutData(gd);
+   }
+
+   /**
+    * Add interface names to Interface combo
+    * 
+    * @param interfaceTypeToSelect
+    *           Used as initial selection
     */
    private void populateInterfaceTypes(InterfaceType interfaceTypeToSelect) {
-//      System.err.println("populateInterfaceTypes() "+ interfaceTypeToSelect);
+      // System.err.println("populateInterfaceTypes() "+ interfaceTypeToSelect);
       int index = 0;
-      if (comboInterfaceTypeListener != null) {
-         comboInterfaceType.removeModifyListener(comboInterfaceTypeListener);
+      if (fComboInterfaceTypeListener != null) {
+         fComboInterfaceType.removeModifyListener(fComboInterfaceTypeListener);
       }
-      comboInterfaceType.removeAll();
+      fComboInterfaceType.removeAll();
       for (InterfaceType interfaceType : InterfaceType.values()) {
-         comboInterfaceType.add(interfaceType.toString());
-         interfaceTypes[index++] = interfaceType;
+         fComboInterfaceType.add(interfaceType.toString());
+         fInterfaceTypes[index++] = interfaceType;
       }
-      if (comboInterfaceTypeListener == null) {
-         comboInterfaceTypeListener = new ModifyListener() { 
+      if (fComboInterfaceTypeListener == null) {
+         fComboInterfaceTypeListener = new ModifyListener() {
             @Override
             public void modifyText(ModifyEvent e) {
-//               System.err.println("populateInterfaceTypes().modifyText()");
-               String value = comboInterfaceType.getText();
-               if (!value.equals(comboInterfaceType.getData())) {
-                  comboInterfaceType.setData(value);
-                  if (value.length()>0) {
-                     suspendUpdate++;
+               // System.err.println("populateInterfaceTypes().modifyText()");
+               String value = fComboInterfaceType.getText();
+               if (!value.equals(fComboInterfaceType.getData())) {
+                  fComboInterfaceType.setData(value);
+                  if (value.length() > 0) {
+                     fSuspendUpdate++;
                      try {
                         populateGdbServerControls();
                      } catch (Exception e1) {
                         e1.printStackTrace();
                      }
-                     String deviceName = gdbServerParameters.getDeviceName();
-                     txtTargetDeviceName.setText(deviceName);
+                     String deviceName = fGdbServerParameters.getDeviceName();
+                     fTextTargetDeviceName.setText(deviceName);
                      populateBuildTools();
-                     suspendUpdate--;
+                     fSuspendUpdate--;
                      doUpdate();
                   }
                }
@@ -847,326 +885,325 @@ public class UsbdmDebuggerPanel {
          };
       }
       // Add watchers for user data entry
-      comboInterfaceType.addModifyListener(comboInterfaceTypeListener);
+      fComboInterfaceType.addModifyListener(fComboInterfaceTypeListener);
 
       if (interfaceTypeToSelect != null) {
          // Select the required interface
-         comboInterfaceType.setText(interfaceTypeToSelect.toString());
+         fComboInterfaceType.setText(interfaceTypeToSelect.toString());
       }
    }
 
-   /**  
+   /**
     * Sets Interface type
-    *   
+    * 
     * @param interfaceType
     */
    public void setInterface(InterfaceType interfaceType, boolean fixed) {
       populateInterfaceTypes(interfaceType);
-      comboInterfaceType.setText(interfaceType.toString());
-      comboInterfaceType.setEnabled(!fixed);
+      fComboInterfaceType.setText(interfaceType.toString());
+      fComboInterfaceType.setEnabled(!fixed);
    }
-
-//   private void setInterface(InterfaceType interfaceType) {
-//      setInterface(interfaceType, false);
-//   }
-//   
-//   @SuppressWarnings("unused")
-//   private void setInterface(String interfaceTypeName) {
-//      InterfaceType interfaceType = InterfaceType.valueOf(interfaceTypeName);
-//      setInterface(interfaceType);
-//   }
 
    private InterfaceType getInterfaceType() {
-      int deviceIndex = comboInterfaceType.getSelectionIndex();
-      if (deviceIndex<0) {
+      int deviceIndex = fComboInterfaceType.getSelectionIndex();
+      if (deviceIndex < 0) {
          deviceIndex = 0;
       }
-      return interfaceTypes[deviceIndex];
+      return fInterfaceTypes[deviceIndex];
    }
 
-   /** Populate multiple fields from the gdbServerParameters
+   /**
+    * Populate multiple fields from the fGdbServerParameters<br>
     * 
-    *  It will update gdbServerParameters to default if incompatible with current interface type
-    *  
-    * @throws Exception 
+    * It will update fGdbServerParameters to default if incompatible with current
+    * interface type
+    * 
+    * @throws Exception
     */
    private void populateGdbServerControls() throws Exception {
       InterfaceType interfaceType = getInterfaceType();
-      if ((gdbServerParameters == null) || (gdbServerParameters.getInterfaceType() != interfaceType)) {
+      if ((fGdbServerParameters == null) || (fGdbServerParameters.getInterfaceType() != interfaceType)) {
          // Make GDB server parameters consistent with interface
-         gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
+         System.err.println("UsbdmDebuggerPanel.populateGdbServerControls() new fGdbServerParameters");
+         setGdbServerParameters(GdbServerParameters.getDefaultServerParameters(interfaceType));
       }
       loadGdbServerParameters();
    }
 
    protected void setTargetDevice(String deviceName) {
-      gdbServerParameters.setDeviceName(deviceName);
-      txtTargetDeviceName.setText(deviceName);
+      fGdbServerParameters.setDeviceName(deviceName);
+      fTextTargetDeviceName.setText(deviceName);
    }
 
    /**
-    *  Populate the Build Tool combo
-    *  Build tool list depends on current interface
-    *  Tries to maintain currently selected build tool if possible
+    * Populate the Build Tool combo Build tool list depends on current interface
+    * Tries to maintain currently selected build tool if possible
     */
    private void populateBuildTools() {
 
-      if (comboBuildTool == null) {
+      if (fComboBuildTool == null) {
          return;
       }
-      String currentBuildTool = comboBuildTool.getText();
+      String currentBuildTool = fComboBuildTool.getText();
       Hashtable<String, ToolInformationData> toolData = ToolInformationData.getToolInformationTable();
 
-      if (buildToolsIds == null) {
-         buildToolsIds = new String[toolData.size()+1];
+      if (fBuildToolsIds == null) {
+         fBuildToolsIds = new String[toolData.size() + 1];
       }
-      comboBuildTool.removeAll();
+      fComboBuildTool.removeAll();
       final String customSettings = "Custom Settings";
       // Add Custom Settings entry
       int index = 0;
-      comboBuildTool.add(customSettings);
-      buildToolsIds[index++] = "";
+      fComboBuildTool.add(customSettings);
+      fBuildToolsIds[index++] = "";
 
       String defaultBuildTool = customSettings;
-      for (ToolInformationData toolInfo:toolData.values()) {
+      for (ToolInformationData toolInfo : toolData.values()) {
          if (!toolInfo.applicableTo(getInterfaceType())) {
             continue;
          }
-         comboBuildTool.add(toolInfo.getDescription());
+         fComboBuildTool.add(toolInfo.getDescription());
          if (defaultBuildTool.equals(customSettings)) {
             // First added tool becomes default
             defaultBuildTool = toolInfo.getDescription();
          }
-         buildToolsIds[index++] = toolInfo.getBuildToolId();
+         fBuildToolsIds[index++] = toolInfo.getBuildToolId();
       }
       // Set to default
-      comboBuildTool.setText(defaultBuildTool);
+      fComboBuildTool.setText(defaultBuildTool);
       // try to set to last selected
-      comboBuildTool.setText(currentBuildTool);
+      fComboBuildTool.setText(currentBuildTool);
    }
 
    private String getBuildToolId() {
-      int index = comboBuildTool.getSelectionIndex();
-      if ((index<0) || (index > buildToolsIds.length)) {
+      int index = fComboBuildTool.getSelectionIndex();
+      if ((index < 0) || (index > fBuildToolsIds.length)) {
          return "";
       }
-      return buildToolsIds[index];
+      return fBuildToolsIds[index];
    }
 
-   /** Populates the BDM choice control
+   /**
+    * Populates the BDM choice control
     * 
-    * @param previousDevice A String representing the serial number of a previously selected device.
-    *                       This will be made the currently selected device (even if not connected).
-    * @param scanForBdms    If true a scan is made for currently connected BDMs
+    * @param previousDevice
+    *           A String representing the serial number of a previously selected
+    *           device. This will be made the currently selected device (even if
+    *           not connected).
+    * @param scanForBdms
+    *           If true a scan is made for currently connected BDMs
     */
    private void populateBdmChoices(String previousDevice, boolean scanForBdms) {
-//      System.err.println("populateBdmChoices(\'"+previousDevice+"\', "+scanForBdms+")\n");
+      // System.err.println("populateBdmChoices(\'"+previousDevice+"\',
+      // "+scanForBdms+")\n");
 
       if (scanForBdms) {
          // scan for connected BDMs
-         //         System.err.println("populateBdmChoices() - looking for BDMs...");
-         deviceList = Usbdm.getDeviceList();
-      }
-      else {
+         // System.err.println("populateBdmChoices() - looking for BDMs...");
+         fDeviceList = Usbdm.getDeviceList();
+      } else {
          // Don't scan for BDMs - use an empty list
-         deviceList = new ArrayList<USBDMDeviceInfo>(); 
+         fDeviceList = new ArrayList<USBDMDeviceInfo>();
       }
       // Always add a null device
-      //      System.err.println("populateBdmChoices() - Adding nullDevice");
-      deviceList.add(0, USBDMDeviceInfo.nullDevice);
+      // System.err.println("populateBdmChoices() - Adding nullDevice");
+      fDeviceList.add(0, USBDMDeviceInfo.nullDevice);
 
       String preferredDevice;
       // Check if non-default preferred device
-      if ((previousDevice != null) && (!previousDevice.trim().isEmpty()) && 
-            (!previousDevice.equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber))) {
+      if ((previousDevice != null) && (!previousDevice.trim().isEmpty()) && (!previousDevice.equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber))) {
          // Set as preferred device
          preferredDevice = previousDevice;
-         //         System.err.println("populateBdmChoices() preferredDevice = previousDevice = \'"+preferredDevice+"\'\n");
-      }
-      else {
+         // System.err.println("populateBdmChoices() preferredDevice =
+         // previousDevice = \'"+preferredDevice+"\'\n");
+      } else {
          // Use currently selected device (if any) as preferred
-         preferredDevice = comboSelectBDM.getText();
+         preferredDevice = fComboSelectBDM.getText();
          if (preferredDevice.isEmpty()) {
             // Use dummy device
             preferredDevice = USBDMDeviceInfo.nullDevice.deviceSerialNumber;
          }
-         //         System.err.println("populateBdmChoices() preferredDevice = currentDevice = \'"+preferredDevice+"\'\n");
+         // System.err.println("populateBdmChoices() preferredDevice =
+         // currentDevice = \'"+preferredDevice+"\'\n");
       }
       // Add devices to combo
-      comboSelectBDM.removeAll();
-      ListIterator<Usbdm.USBDMDeviceInfo> it = deviceList.listIterator();
+      fComboSelectBDM.removeAll();
+      ListIterator<Usbdm.USBDMDeviceInfo> it = fDeviceList.listIterator();
       while (it.hasNext()) {
          USBDMDeviceInfo di = it.next();
-         //         System.err.println( "populateBdmChoices() Adding BDM = " + di.deviceSerialNumber);
-         comboSelectBDM.add(di.deviceSerialNumber);
+         // System.err.println( "populateBdmChoices() Adding BDM = " +
+         // di.deviceSerialNumber);
+         fComboSelectBDM.add(di.deviceSerialNumber);
       }
-      int index = comboSelectBDM.indexOf(preferredDevice);
+      int index = fComboSelectBDM.indexOf(preferredDevice);
       if (index >= 0) {
          // Preferred device is present
-         comboSelectBDM.select(index);
-         //         System.err.println("populateBdmChoices() selecting device by index = \'"+comboSelectBDM.getText()+"\'\n");
-      }
-      else {
+         fComboSelectBDM.select(index);
+         // System.err.println("populateBdmChoices() selecting device by index =
+         // \'"+fComboSelectBDM.getText()+"\'\n");
+      } else {
          // Preferred device is not present
          if ((previousDevice == null) || (previousDevice.trim().isEmpty())) {
             // If no previous device just select first BDM
-            comboSelectBDM.select(0);
-            //            System.err.println("populateBdmChoices() Selecting 1st device = \'"+comboSelectBDM.getText()+"\'\n");
-         }
-         else {
-            // Add dummy device representing previously used device, make preferred
-            deviceList.add(new USBDMDeviceInfo("Previously selected device (not connected)", previousDevice, new BdmInformation()));
-            comboSelectBDM.add(previousDevice);
-            comboSelectBDM.setText(previousDevice);
-          //  System.err.println("populateBdmChoices() Adding preferredDevice = \'"+comboSelectBDM.getText()+"\'\n");
+            fComboSelectBDM.select(0);
+            // System.err.println("populateBdmChoices() Selecting 1st device =
+            // \'"+fComboSelectBDM.getText()+"\'\n");
+         } else {
+            // Add dummy device representing previously used device, make
+            // preferred
+            fDeviceList.add(new USBDMDeviceInfo("Previously selected device (not connected)", previousDevice, new BdmInformation()));
+            fComboSelectBDM.add(previousDevice);
+            fComboSelectBDM.setText(previousDevice);
+            // System.err.println("populateBdmChoices() Adding preferredDevice =
+            // \'"+fComboSelectBDM.getText()+"\'\n");
          }
       }
       updateBdmDescription();
    }
 
-   /**  Populate the erase methods
+   /**
+    * Populate the erase methods
     * 
-    *   These are filtered by gdbServerParameters
+    * These are filtered by fGdbServerParameters
     */
    private void populateEraseMethods() {
-      String eraseMethod = comboEraseMethod.getText();
-      eraseMethods = new EraseMethod[EraseMethod.values().length];
+      String eraseMethod = fComboEraseMethod.getText();
+      fEraseMethods = new EraseMethod[EraseMethod.values().length];
       int index = 0;
-      comboEraseMethod.removeAll();
-      for (EraseMethod method :EraseMethod.values()) {
-         if (gdbServerParameters.isAllowedEraseMethod(method)) {
-            comboEraseMethod.add(method.toString());
-            eraseMethods[index++] = method;
+      fComboEraseMethod.removeAll();
+      for (EraseMethod method : EraseMethod.values()) {
+         if (fGdbServerParameters.isAllowedEraseMethod(method)) {
+            fComboEraseMethod.add(method.toString());
+            fEraseMethods[index++] = method;
          }
       }
-      comboEraseMethod.select(comboEraseMethod.getItemCount()-1);
-      comboEraseMethod.setText(eraseMethod);      
+      fComboEraseMethod.select(fComboEraseMethod.getItemCount() - 1);
+      fComboEraseMethod.setText(eraseMethod);
    }
 
    private void setEraseMethod(EraseMethod eraseMethod) {
-    //  System.err.println("setEraseMethod() "+ eraseMethod.toString());
-      comboEraseMethod.setText(eraseMethod.toString());
+      // System.err.println("setEraseMethod() "+ eraseMethod.toString());
+      fComboEraseMethod.setText(eraseMethod.toString());
    }
 
    @SuppressWarnings("unused")
    private void setEraseMethod(String eraseMethodName) {
-    //  System.err.println("setEraseMethod() "+ eraseMethodName);
+      // System.err.println("setEraseMethod() "+ eraseMethodName);
       EraseMethod eraseMethod = EraseMethod.valueOf(eraseMethodName);
       setEraseMethod(eraseMethod);
    }
 
    private EraseMethod getEraseMethod() {
-      int index = comboEraseMethod.getSelectionIndex();
+      int index = fComboEraseMethod.getSelectionIndex();
       if (index < 0) {
-         return gdbServerParameters.getPreferredEraseMethod();
-      }
-      else {
-         return eraseMethods[index];
+         return fGdbServerParameters.getPreferredEraseMethod();
+      } else {
+         return fEraseMethods[index];
       }
    }
 
    private void setTargetVdd(TargetVddSelect targetVdd) {
-    //  System.err.println("TargetVddSelect() "+ targetVdd.toString());
-      comboTargetVdd.setText(targetVdd.toString());
+      // System.err.println("TargetVddSelect() "+ targetVdd.toString());
+      fComboTargetVdd.setText(targetVdd.toString());
    }
 
    @SuppressWarnings("unused")
    private void setTargetVdd(String targetVddName) {
-    //  System.err.println("TargetVddSelect() "+ targetVddName);
+      // System.err.println("TargetVddSelect() "+ targetVddName);
       TargetVddSelect targetVdd = TargetVddSelect.valueOf(targetVddName);
       setTargetVdd(targetVdd);
    }
 
    private TargetVddSelect getTargetVdd() {
-      int index = comboTargetVdd.getSelectionIndex();
+      int index = fComboTargetVdd.getSelectionIndex();
       if (index < 0) {
          return TargetVddSelect.BDM_TARGET_VDD_OFF;
-      }
-      else {
-         return targetVdds[index];
+      } else {
+         return fTargetVdds[index];
       }
    }
 
    private void setTimeout(int delayInSeconds) {
-    //  System.err.println("setTimeout() "+ delayInSeconds);
-      connectionTimeoutTextAdapter.setDecimalValue(delayInSeconds);
+      // System.err.println("setTimeout() "+ delayInSeconds);
+      fConnectionTimeoutTextAdapter.setDecimalValue(delayInSeconds);
    }
 
    private int getTimeout() {
-      return connectionTimeoutTextAdapter.getDecimalValue();
+      return fConnectionTimeoutTextAdapter.getDecimalValue();
    }
 
    private void setSecurityOption(SecurityOptions securityOption) {
-    //  System.err.println("setSecurityOption() "+ securityOption.toString());
-      comboSecurityOption.setText(securityOption.toString());
+      // System.err.println("setSecurityOption() "+ securityOption.toString());
+      fComboSecurityOption.setText(securityOption.toString());
    }
 
    @SuppressWarnings("unused")
    private void setSecurityOption(String securityOptionName) {
-    //  System.err.println("getSecurityOption() "+ securityOptionName);
+      // System.err.println("getSecurityOption() "+ securityOptionName);
       SecurityOptions securityOption = SecurityOptions.valueOf(securityOptionName);
       setSecurityOption(securityOption);
    }
 
    private SecurityOptions getSecurityOption() {
-      int index = comboSecurityOption.getSelectionIndex();
+      int index = fComboSecurityOption.getSelectionIndex();
       if (index < 0) {
          return SecurityOptions.SECURITY_SMART;
-      }
-      else {
+      } else {
          return SecurityOptions.values()[index];
       }
    }
 
-   /** Update Trim control group
+   /**
+    * Update Trim control group
     * 
-    * @param enabled Whether trimming is enabled
+    * @param enabled
+    *           Whether trimming is enabled
     * 
     * @note The entire group will be disabled if the clock is not valid
     */
    private void enableTrim(boolean enabled) {
-      boolean groupEnabled = (clockType != ClockTypes.INVALID) && (clockType != ClockTypes.EXTERNAL);
+      boolean groupEnabled = (fClockType != ClockTypes.INVALID) && (fClockType != ClockTypes.EXTERNAL);
 
-      btnTrimTargetClock.setEnabled(groupEnabled);
-      txtTrimFrequency.setEnabled(groupEnabled&enabled);
-      lblKhz.setEnabled(groupEnabled&enabled);
-      lblNvtrimAddress.setEnabled(groupEnabled&enabled);
-      txtNVTRIMAddress.setEnabled(groupEnabled&enabled);
-      lblHex.setEnabled(groupEnabled&enabled);
-      btnTrimTargetClock.setSelection(enabled);
+      fButtonTrimTargetClock.setEnabled(groupEnabled);
+      fTextTrimFrequency.setEnabled(groupEnabled & enabled);
+      fLabelKhz.setEnabled(groupEnabled & enabled);
+      fLabelNvtrimAddress.setEnabled(groupEnabled & enabled);
+      fTextNVTRIMAddress.setEnabled(groupEnabled & enabled);
+      fLabelHex.setEnabled(groupEnabled & enabled);
+      fButtonTrimTargetClock.setSelection(enabled);
    }
 
    private void populateTrim() {
-      enableTrim(                                gdbServerParameters.isTrimClock());
-      txtTrimFrequencyAdapter.setDoubleValue(    gdbServerParameters.getClockTrimFrequency()/1000.0);
-      txtNVTRIMAddressAdapter.setValue(          gdbServerParameters.getNvmClockTrimLocation());
+      enableTrim(fGdbServerParameters.isTrimClock());
+      fTextTrimFrequencyAdapter.setDoubleValue(fGdbServerParameters.getClockTrimFrequency() / 1000.0);
+      fTextNVTRIMAddressAdapter.setValue(fGdbServerParameters.getNvmClockTrimLocation());
    }
 
    private int getInterfaceSpeed() {
-      return JTAGInterfaceData.ClockSpeed.parse(comboInterfaceSpeed.getText()).getFrequency();
+      return JTAGInterfaceData.ClockSpeed.parse(fComboInterfaceSpeed.getText()).getFrequency();
    }
 
    protected void disableUnusedControls() {
       boolean enableThese;
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_SPEED);
-      comboInterfaceSpeed.setEnabled(enableThese);
-      comboInterfaceSpeed.setVisible(enableThese);
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_RESET);
-      btnDriveReset.setEnabled(enableThese);
-      btnDriveReset.setVisible(enableThese);
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_PST);
-      btnUsePstSignals.setEnabled(enableThese);         
-      btnUsePstSignals.setVisible(enableThese);
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_VLLSCATCH);
-      btnCatchVLLSsEvents.setEnabled(enableThese);         
-      btnCatchVLLSsEvents.setVisible(enableThese);
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_MASKINTS);
-      btnMaskInterrupts.setEnabled(enableThese);         
-      btnMaskInterrupts.setVisible(enableThese);
-      enableThese = gdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_CLKTRIM);
-      grpClockTrim.setVisible(enableThese);
-      btnTrimTargetClock.setEnabled(enableThese);         
-      btnTrimTargetClock.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_SPEED);
+      fComboInterfaceSpeed.setEnabled(enableThese);
+      fComboInterfaceSpeed.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_RESET);
+      fButtonDriveReset.setEnabled(enableThese);
+      fButtonDriveReset.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_PST);
+      fButtonUsePstSignals.setEnabled(enableThese);
+      fButtonUsePstSignals.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_VLLSCATCH);
+      fButtonCatchVLLSsEvents.setEnabled(enableThese);
+      fButtonCatchVLLSsEvents.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_MASKINTS);
+      fButtonMaskInterrupts.setEnabled(enableThese);
+      fButtonMaskInterrupts.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_CLKTRIM);
+      fGroupClockTrim.setVisible(enableThese);
+      fButtonTrimTargetClock.setEnabled(enableThese);
+      fButtonTrimTargetClock.setVisible(enableThese);
    }
 
    private void variablesButtonSelected(Text text) {
@@ -1179,31 +1216,32 @@ public class UsbdmDebuggerPanel {
    private void buildToolSelectionChanged() {
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(getBuildToolId());
       if (toolInfo != null) {
-         txtGdbCommand.setText("${"+toolInfo.getPrefixVariableName()+"}"+UsbdmSharedConstants.GDB_NAME);
-         txtGdbBinPath.setText("${"+toolInfo.getPathVariableName()+"}");
+         fTextGdbCommand.setText("${" + toolInfo.getPrefixVariableName() + "}" + UsbdmSharedConstants.GDB_NAME);
+         fTextGdbBinPath.setText("${" + toolInfo.getPathVariableName() + "}");
       }
-      txtGdbCommand.setEnabled(toolInfo == null);
-      btnGdbCommandVariables.setEnabled(toolInfo == null);
+      fTextGdbCommand.setEnabled(toolInfo == null);
+      fButtonGdbCommandVariables.setEnabled(toolInfo == null);
 
-      txtGdbBinPath.setEnabled(toolInfo == null);
-      btnGdbBinPathBrowse.setEnabled(toolInfo == null);
-      btnGdbBinPathVariables.setEnabled(toolInfo == null);
+      fTextGdbBinPath.setEnabled(toolInfo == null);
+      fButtonGdbBinPathBrowse.setEnabled(toolInfo == null);
+      fButtonGdbBinPathVariables.setEnabled(toolInfo == null);
    }
 
    /**
-    *   Updates the description of the selected BDM
+    * Updates the description of the selected BDM
     */
    private void updateBdmDescription() {
-      if (lblBDMInformation != null) {
-         int index = comboSelectBDM.getSelectionIndex();
+      if (fLabelBDMInformation != null) {
+         int index = fComboSelectBDM.getSelectionIndex();
          if (index >= 0) {
-            String deviceDescription = deviceList.get(index).deviceDescription;
-            lblBDMInformation.setText(deviceDescription);
+            String deviceDescription = fDeviceList.get(index).deviceDescription;
+            fLabelBDMInformation.setText(deviceDescription);
          }
       }
    }
 
-   /**  Try to get interface type from project via ILaunchConfiguration
+   /**
+    * Try to get interface type from project via ILaunchConfiguration
     * 
     * @param configuration
     * @return
@@ -1212,12 +1250,13 @@ public class UsbdmDebuggerPanel {
 
       String buildToolsId = null;
       try {
-         //ToDo   Consider using -      ICProject projectHandle = CDebugUtils.verifyCProject(configuration);
-         String projectName    = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME,            (String)null);
-         String projectBuildId = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_BUILD_CONFIG_ID, (String)null);
+         // ToDo Consider using - ICProject projectHandle =
+         // CDebugUtils.verifyCProject(configuration);
+         String projectName = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME, (String) null);
+         String projectBuildId = configuration.getAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_BUILD_CONFIG_ID, (String) null);
 
-         //  System.err.println("projectName    = "+projectName);
-         //  System.err.println("projectBuildId = "+projectBuildId);
+         // System.err.println("projectName = "+projectName);
+         // System.err.println("projectBuildId = "+projectBuildId);
 
          if ((projectName != null) && (projectBuildId != null)) {
             ICProject projectHandle = CoreModel.getDefault().getCModel().getCProject(projectName);
@@ -1230,124 +1269,136 @@ public class UsbdmDebuggerPanel {
                      option = toolChain.getOptionBySuperClassId("net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools");
                   }
                   if (option != null) {
-                     //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getId() = "+option.getId());
-                     //  System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getName() = "+option.getName());
+                     // System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getId()
+                     // = "+option.getId());
+                     // System.err.println("option(net.sourceforge.usbdm.cdt.arm.toolchain.buildtools).getName()
+                     // = "+option.getName());
                      buildToolsId = option.getStringValue();
-            	  }
+                  }
                }
             }
          }
       } catch (Exception e) {
-          e.printStackTrace();
+         e.printStackTrace();
       }
-    //  System.err.println("Selected Build Tools ID = " + buildToolsId);
+      // System.err.println("Selected Build Tools ID = " + buildToolsId);
 
       ToolInformationData toolInformationData = null;
       if (buildToolsId != null) {
          toolInformationData = ToolInformationData.get(buildToolsId);
       }
-    //  System.err.println("Selected Build Tools = " + toolInformationData);
+      // System.err.println("Selected Build Tools = " + toolInformationData);
       return toolInformationData;
    }
 
    public void setGdbServerParameters(GdbServerParameters gdbServerParameters) {
-      this.gdbServerParameters = gdbServerParameters;
+      System.err.println("UsbdmDebuggerPanel.setGdbServerParameters()");
+
+      fGdbServerParameters = gdbServerParameters;
    }
 
    public GdbServerParameters getGdbServerParameters() {
-      return gdbServerParameters;
+      return fGdbServerParameters;
    }
 
    public boolean saveGdbServerParametersAsDefault() throws Exception {
       saveGdbServerParameters();
-      return gdbServerParameters.saveSettingsAsDefault();
-   }
-   
-   /** 
-    * Loads multiple fields from the current gdbServerParameters
-    */
-   private void loadGdbServerParameters() {
-    //  System.err.println("loadGdbServerParameters()");
-    //  System.err.print(gdbServerParameters.toString());
-      if (gdbServerParameters == null) {
-         return;
-      }
-      txtTargetDeviceName.setText(               gdbServerParameters.getDeviceName());
-      populateBdmChoices(                        gdbServerParameters.getBdmSerialNumber(), true);
-      btnRequireExactBdm.setSelection(           gdbServerParameters.isBdmSerialNumberMatchRequired());
-      txtGdbServerPortAdapter.setDecimalValue(   gdbServerParameters.getGdbServerPortNumber());
-      txtGdbTtyPortAdapter.setDecimalValue(      gdbServerParameters.getGdbTtyPortNumber());
-      btnUseSemihosting.setSelection(            gdbServerParameters.isUseSemihosting());
-      btnUseDebug.setSelection(                  gdbServerParameters.isUseDebugVersion());
-      btnExitOnClose.setSelection(               gdbServerParameters.isExitOnClose());
-      comboInterfaceSpeed.setText(              
-            ClockSpeed.findSuitable(             gdbServerParameters.getInterfaceFrequency()).toString());
-      btnAutomaticallyReconnect.setSelection(    gdbServerParameters.getAutoReconnect().name() != AutoConnect.AUTOCONNECT_NEVER.name());
-      btnDriveReset.setSelection(                gdbServerParameters.isUseReset());
-      btnUsePstSignals.setSelection(             gdbServerParameters.isUsePstSignals());
-      btnCatchVLLSsEvents.setSelection(          gdbServerParameters.isCatchVLLSxEvents());
-      btnMaskInterrupts.setSelection(            gdbServerParameters.isMaskInterrupts());
-      // Update list to match gdbServerParameters
-      populateEraseMethods();
-      setEraseMethod(                            gdbServerParameters.getEraseMethod());
-      setTargetVdd(                              gdbServerParameters.getTargetVdd());
-      setSecurityOption(                         gdbServerParameters.getSecurityOption());
-      setTimeout(                                gdbServerParameters.getConnectionTimeout());
-      populateTrim();
-      disableUnusedControls();
-   }
-
-   /** 
-    * Save multiple fields to the current gdbServerParameters
-    */
-   private void saveGdbServerParameters() {
-      //      System.err.println("saveGdbServerParameters()");
-
-      gdbServerParameters.setDeviceName(                       txtTargetDeviceName.getText());
-      gdbServerParameters.setBdmSerialNumber(                  comboSelectBDM.getText());
-      gdbServerParameters.enableBdmSerialNumberMatchRequired(  btnRequireExactBdm.getSelection());
-      gdbServerParameters.setGdbServerPortNumber(              txtGdbServerPortAdapter.getDecimalValue());
-      gdbServerParameters.setGdbTtyPortNumber(                 txtGdbTtyPortAdapter.getDecimalValue());
-      gdbServerParameters.enableUseSemiHosting(                btnUseSemihosting.getSelection());
-      gdbServerParameters.enableUseDebugVersion(               btnUseDebug.getSelection());
-      gdbServerParameters.enableExitOnClose(                   btnExitOnClose.getSelection());
-      gdbServerParameters.setInterfaceFrequency(               getInterfaceSpeed());
-      gdbServerParameters.setAutoReconnect(                    btnAutomaticallyReconnect.getSelection()?AutoConnect.AUTOCONNECT_ALWAYS:AutoConnect.AUTOCONNECT_NEVER);
-      gdbServerParameters.enableUseReset(                      btnDriveReset.getSelection());
-      gdbServerParameters.enableUsePstSignals(                 btnUsePstSignals.getSelection());
-      gdbServerParameters.enableCatchVLLSxEvents(              btnCatchVLLSsEvents.getSelection());
-      gdbServerParameters.enableMaskInterrupts(                btnMaskInterrupts.getSelection());
-      gdbServerParameters.setEraseMethod(                      getEraseMethod());
-      gdbServerParameters.setSecurityOption(                   getSecurityOption());
-      gdbServerParameters.setTargetVdd(                        getTargetVdd());
-      gdbServerParameters.enableTrimClock(                     btnTrimTargetClock.getSelection());
-      gdbServerParameters.setClockTrimFrequency(          (int)Math.round(txtTrimFrequencyAdapter.getDoubleValue()*1000));
-      gdbServerParameters.setNvmClockTrimLocation(             txtNVTRIMAddressAdapter.getHexValue());
-      gdbServerParameters.setConnectionTimeout(                getTimeout());
+      return fGdbServerParameters.saveSettingsAsDefault();
    }
 
    /**
-    * Initialises the given launch configuration with default values for this panel. 
-    * This method is called when a new launch configuration is created
-    * such that the configuration can be initialized with
-    * meaningful values. This method may be called before this
-    * tab's control is created.
+    * Loads multiple dialogue fields from the current fGdbServerParameters
+    */
+   private void loadGdbServerParameters() {
+//       System.err.println("loadGdbServerParameters()");
+      // System.err.print(fGdbServerParameters.toString());
+      if (fGdbServerParameters == null) {
+         System.err.println("loadGdbServerParameters() fGdbServerParameters == null");
+         return;
+      }
+      fSuspendUpdate++;
+      System.err.println("UsbdmDebuggerPanel.loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
+      fTextTargetDeviceName.setText(fGdbServerParameters.getDeviceName());
+      populateBdmChoices(fGdbServerParameters.getBdmSerialNumber(), true);
+      fButtonRequireExactBdm.setSelection(fGdbServerParameters.isBdmSerialNumberMatchRequired());
+      fTextGdbServerPortAdapter.setDecimalValue(fGdbServerParameters.getGdbServerPortNumber());
+      fTextGdbTtyPortAdapter.setDecimalValue(fGdbServerParameters.getGdbTtyPortNumber());
+      fButtonUseSemihosting.setSelection(fGdbServerParameters.isUseSemihosting());
+      fButtonUseDebug.setSelection(fGdbServerParameters.isUseDebugVersion());
+      fButtonExitOnClose.setSelection(fGdbServerParameters.isExitOnClose());
+      fComboInterfaceSpeed.setText(ClockSpeed.findSuitable(fGdbServerParameters.getInterfaceFrequency()).toString());
+      fButtonAutomaticallyReconnect.setSelection(fGdbServerParameters.getAutoReconnect().name() != AutoConnect.AUTOCONNECT_NEVER.name());
+      fButtonDriveReset.setSelection(fGdbServerParameters.isUseReset());
+      fButtonUsePstSignals.setSelection(fGdbServerParameters.isUsePstSignals());
+      fButtonCatchVLLSsEvents.setSelection(fGdbServerParameters.isCatchVLLSxEvents());
+      System.err.println("loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
+
+      fButtonMaskInterrupts.setSelection(fGdbServerParameters.isMaskInterrupts());
+      // Update list to match fGdbServerParameters
+      populateEraseMethods();
+      setEraseMethod(fGdbServerParameters.getEraseMethod());
+      setTargetVdd(fGdbServerParameters.getTargetVdd());
+      setSecurityOption(fGdbServerParameters.getSecurityOption());
+      setTimeout(fGdbServerParameters.getConnectionTimeout());
+      populateTrim();
+      disableUnusedControls();
+      fSuspendUpdate--;
+   }
+
+   /**
+    * Save multiple dialogue fields to the current fGdbServerParameters
+    */
+   private void saveGdbServerParameters() {
+      System.err.println("saveGdbServerParameters()");
+
+      fGdbServerParameters.setDeviceName(fTextTargetDeviceName.getText());
+      fGdbServerParameters.setBdmSerialNumber(fComboSelectBDM.getText());
+      fGdbServerParameters.enableBdmSerialNumberMatchRequired(fButtonRequireExactBdm.getSelection());
+      fGdbServerParameters.setGdbServerPortNumber(fTextGdbServerPortAdapter.getDecimalValue());
+      fGdbServerParameters.setGdbTtyPortNumber(fTextGdbTtyPortAdapter.getDecimalValue());
+      fGdbServerParameters.enableUseSemiHosting(fButtonUseSemihosting.getSelection());
+      fGdbServerParameters.enableUseDebugVersion(fButtonUseDebug.getSelection());
+      fGdbServerParameters.enableExitOnClose(fButtonExitOnClose.getSelection());
+      fGdbServerParameters.setInterfaceFrequency(getInterfaceSpeed());
+      fGdbServerParameters.setAutoReconnect(fButtonAutomaticallyReconnect.getSelection() ? AutoConnect.AUTOCONNECT_ALWAYS : AutoConnect.AUTOCONNECT_NEVER);
+      fGdbServerParameters.enableUseReset(fButtonDriveReset.getSelection());
+      fGdbServerParameters.enableUsePstSignals(fButtonUsePstSignals.getSelection());
+      fGdbServerParameters.enableCatchVLLSxEvents(fButtonCatchVLLSsEvents.getSelection());
+      fGdbServerParameters.enableMaskInterrupts(fButtonMaskInterrupts.getSelection());
+      fGdbServerParameters.setEraseMethod(getEraseMethod());
+      fGdbServerParameters.setSecurityOption(getSecurityOption());
+      fGdbServerParameters.setTargetVdd(getTargetVdd());
+      fGdbServerParameters.enableTrimClock(fButtonTrimTargetClock.getSelection());
+      fGdbServerParameters.setClockTrimFrequency((int) Math.round(fTextTrimFrequencyAdapter.getDoubleValue() * 1000));
+      fGdbServerParameters.setNvmClockTrimLocation(fTextNVTRIMAddressAdapter.getHexValue());
+      fGdbServerParameters.setConnectionTimeout(getTimeout());
+   }
+
+   /**
+    * Initialises the given launch configuration with default values for this
+    * panel. This method is called when a new launch configuration is created
+    * such that the configuration can be initialized with meaningful values.
+    * This method may be called before this tab's control is created.
+    * 
+    * @note No meaningful defaults as too dependent on device type
     * 
     * @param configuration launch configuration
     */
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+      System.err.println("UsbdmDebuggerPanel.setDefaults()");
    }
 
    /**
-    * Initialises this panel's controls with values from the given launch configuration. 
-    * This method is called when a configuration is selected to view or edit, after this
-    * tab's control has been created.
+    * Initialises this panel's controls with values from the given launch
+    * configuration. This method is called when a configuration is selected to
+    * view or edit, after this tab's control has been created.
     * 
-    * @param configuration launch configuration
-    * @throws Exception 
+    * @param configuration
+    *           launch configuration
+    * @throws Exception
     */
    public void initializeFrom(ILaunchConfiguration configuration) throws Exception {
-    //  System.err.println("initializeFrom()");
+      System.err.println("UsbdmDebuggerPanel.initializeFrom() "+configuration);
 
       try {
          // Get interface type from settings
@@ -1355,124 +1406,133 @@ public class UsbdmDebuggerPanel {
          ToolInformationData toolInformationData = null;
 
          if (configuration != null) {
-            String interfaceTypeName = configuration.getAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, (String)null);
+            System.err.println("UsbdmDebuggerPanel.initializeFrom() #1 "+configuration);
+            String interfaceTypeName = configuration.getAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, (String) null);
             if (interfaceTypeName != null) {
                interfaceType = InterfaceType.valueOf(interfaceTypeName);
-             //  System.err.println("Setting interface to launch saved value = "+interfaceType.toString());
+               System.err.println("Setting interface to launch saved value = "+interfaceType.toString());
             }
             // Try to get tool information from project via configuration
             toolInformationData = getToolInformationDataFromConfig(configuration);
          }
 
          Boolean discardSettings = (configuration == null);
-         if ((interfaceType == null) || 
-               ((toolInformationData != null) && !toolInformationData.applicableTo(interfaceType))) {
-            // Interface type not set or incompatible - reset
+         if ((interfaceType == null) || ((toolInformationData != null) && !toolInformationData.applicableTo(interfaceType))) {
+            // Interface type not set or incompatible - reset settings
+            System.err.println("UsbdmDebuggerPanel.initializeFrom() #2 "+configuration);
             discardSettings = true;
-          //  System.err.println("Interface type is missing or incompatible");
+            // System.err.println("Interface type is missing or incompatible");
             // Interface type not set or incompatible - reset
             if (toolInformationData == null) {
-               // Use a default
+               // Use ARM as default
                interfaceType = InterfaceType.T_ARM;
-             //  System.err.println("Setting interface to default = "+interfaceType.toString());
-            }
-            else {
+               // System.err.println("Setting interface to default =
+               // "+interfaceType.toString());
+            } else {
                // Use tool default
                interfaceType = toolInformationData.getPreferredInterfaceType();
-             //  System.err.println("Setting interface to tool default = "+interfaceType.toString());
+               // System.err.println("Setting interface to tool default =
+               // "+interfaceType.toString());
             }
          }
-       //  System.err.println("Interface = "+interfaceType.toString());
+         // System.err.println("Interface = "+interfaceType.toString());
 
-         // Load clean settings
-         gdbServerParameters = GdbServerParameters.getDefaultServerParameters(interfaceType);
-
-         // Update from configuration (if appropriate)
-         if (!discardSettings) {
-            // Only load if appropriate to current interface
-          //  System.err.println("Loading gdbServerParameters from settings");
-            gdbServerParameters.initializeFrom(configuration);
-         }
          // Populate & set the initial interface
          populateInterfaceTypes(interfaceType);
 
-         // Load into controls
-       //  System.err.println("Loading gdbServerParameters into controls");
-         populateGdbServerControls();
+         // Load default settings for this target
+         System.err.println("UsbdmDebuggerPanel.initializeFrom() new fGdbServerParameters");
+         setGdbServerParameters(GdbServerParameters.getDefaultServerParameters(interfaceType));
 
+         // Update from configuration (if appropriate)
          if (!discardSettings) {
+            System.err.println("UsbdmDebuggerPanel.initializeFrom() #3 "+configuration);
+            // Only load if appropriate to current interface
+            System.err.println("Loading fGdbServerParameters from settings");
+            fGdbServerParameters.initializeFrom(configuration, USBDM_LAUNCH_ATTRIBUTE_KEY);
+            System.err.println("UsbdmDebuggerPanel.initializeFrom() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
+
+         }
+         // Load GDB Server parameters into controls
+         // System.err.println("Loading fGdbServerParameters into controls");
+         loadGdbServerParameters();
+         
+         if (!discardSettings) {
+            System.err.println("UsbdmDebuggerPanel.initializeFrom() #4 "+configuration);
             // Only load settings if appropriate to interface
 
-            txtGdbBinPath.setText(configuration.getAttribute(USBDM_GDB_BIN_PATH_KEY, ""));
-            txtGdbCommand.setText(configuration.getAttribute(USBDM_GDB_COMMAND_KEY, ""));
+            fTextGdbBinPath.setText(configuration.getAttribute(USBDM_GDB_BIN_PATH_KEY, ""));
+            fTextGdbCommand.setText(configuration.getAttribute(USBDM_GDB_COMMAND_KEY, ""));
 
-            String buildToolId = configuration.getAttribute(USBDM_BUILD_TOOL_KEY, ""); 
+            String buildToolId = configuration.getAttribute(USBDM_BUILD_TOOL_KEY, "");
             ToolInformationData toolInfo = ToolInformationData.get(buildToolId);
             if (toolInfo != null) {
-               comboBuildTool.setText(ToolInformationData.get(buildToolId).getDescription());
-            }
-            else {
-               comboBuildTool.select(0);
+               fComboBuildTool.setText(ToolInformationData.get(buildToolId).getDescription());
+            } else {
+               fComboBuildTool.select(0);
             }
             buildToolSelectionChanged();
 
-            boolean verboseModeAttr = false; //configuration.getAttribute( ATTR_DEBUGGER_VERBOSE_MODE, false);
-            btnVerboseMode.setSelection(verboseModeAttr);
+//            boolean verboseModeAttr = false; // configuration.getAttribute(
+//                                             // ATTR_DEBUGGER_VERBOSE_MODE,
+//                                             // false);
+//            btnVerboseMode.setSelection(verboseModeAttr);
          }
       } catch (CoreException e) {
          e.printStackTrace();
       }
    }
-   
+
    /**
     * Copies values from this Panel into the given launch configuration.
     * 
-    * @param configuration launch configuration
+    * @param configuration
+    *           launch configuration
     */
    public void performApply(ILaunchConfigurationWorkingCopy configuration) {
+      System.err.println("UsbdmDebuggerPanel.performApply()");
 
       // Save GDB settings
       saveGdbServerParameters();
-      gdbServerParameters.performApply(configuration, USBDM_LAUNCH_ATTRIBUTE_KEY);
-
+      fGdbServerParameters.performApply(configuration, USBDM_LAUNCH_ATTRIBUTE_KEY);
+      
       configuration.setAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, getInterfaceType().name());
 
-      configuration.setAttribute(USBDM_BUILD_TOOL_KEY,               getBuildToolId());
-      configuration.setAttribute(USBDM_GDB_COMMAND_KEY,              txtGdbCommand.getText().trim());
-      configuration.setAttribute(USBDM_GDB_BIN_PATH_KEY,             txtGdbBinPath.getText().trim());
+      configuration.setAttribute(USBDM_BUILD_TOOL_KEY, getBuildToolId());
+      configuration.setAttribute(USBDM_GDB_COMMAND_KEY, fTextGdbCommand.getText().trim());
+      configuration.setAttribute(USBDM_GDB_BIN_PATH_KEY, fTextGdbBinPath.getText().trim());
 
       // DSF GDB Launcher needs this
-      String gdbPath = txtGdbBinPath.getText().trim();
+      String gdbPath = fTextGdbBinPath.getText().trim();
       if (gdbPath.length() != 0) {
          gdbPath += File.separator;
       }
-      gdbPath += txtGdbCommand.getText().trim();
-//      System.err.println("UsbdmDebuggerTab.performApply() gdbPath = \'" + gdbPath + "\'");
+      gdbPath += fTextGdbCommand.getText().trim();
       configuration.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME, gdbPath);
    }
 
    private void doUpdate() {
-      if (suspendUpdate>0) {
+      if (fSuspendUpdate > 0) {
          return;
       }
       saveGdbServerParameters();
-      if (listener != null) {
-         listener.handleEvent(new Event());
+      if (fListener != null) {
+         fListener.handleEvent(new Event());
       }
-      txtGdbTtyPort.setEnabled(btnUseSemihosting.getSelection());
-      lblcommandLine.setText(gdbServerParameters.getServerCommandLineAsString());
+      fTextGdbTtyPort.setEnabled(fButtonUseSemihosting.getSelection());
+      fLabelcommandLine.setText(fGdbServerParameters.getServerCommandLineAsString());
    }
 
    public void addListener(int eventType, Listener listener) {
       if (eventType == SWT.CHANGED) {
-         this.listener = listener;
+         this.fListener = listener;
       }
    }
 
    /**
     * ========================================================================
     */
-   
+
    /**
     * @param args
     */
@@ -1496,7 +1556,7 @@ public class UsbdmDebuggerPanel {
       usbdmTab.addListener(SWT.CHANGED, new Listener() {
          @Override
          public void handleEvent(Event event) {
-//            System.err.println("Changed");
+            // System.err.println("Changed");
          }
       });
       shell.open();
@@ -1504,6 +1564,6 @@ public class UsbdmDebuggerPanel {
          if (!display.readAndDispatch())
             display.sleep();
       }
-      display.dispose(); 
+      display.dispose();
    }
 }
