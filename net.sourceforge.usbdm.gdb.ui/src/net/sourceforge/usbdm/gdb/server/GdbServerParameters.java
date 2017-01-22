@@ -792,7 +792,7 @@ public class GdbServerParameters {
       configuration.setAttribute((key+connectionTimeoutKey),             getConnectionTimeout());
       configuration.setAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents());
       configuration.setAttribute((key+maskInterruptsKey),                isMaskInterrupts());
-      System.err.println("GdbServerParameters.performApply() "+key+catchVLLSxEventsKey+" = "+isCatchVLLSxEvents());
+//      System.err.println("GdbServerParameters.performApply() "+key+catchVLLSxEventsKey+" = "+isCatchVLLSxEvents());
 
    }
    
@@ -818,8 +818,8 @@ public class GdbServerParameters {
     */
    private void initializeFrom(Map<String, Object> attributes, final String key) throws CoreException {
       
-      System.err.println("GdbServerParameters.initializeFrom() " + key + catchVLLSxEventsKey + " = " +
-         CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
+//      System.err.println("GdbServerParameters.initializeFrom() " + key + catchVLLSxEventsKey + " = " +
+//         CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
 
       // Update from settings 
       setDeviceName(            CDebugUtils.getAttribute(attributes, (key+deviceNameKey),                    getDeviceName()));
@@ -856,7 +856,7 @@ public class GdbServerParameters {
       setConnectionTimeout(     CDebugUtils.getAttribute(attributes, (key+connectionTimeoutKey),             getConnectionTimeout()));
       enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
       enableMaskInterrupts(     CDebugUtils.getAttribute(attributes, (key+maskInterruptsKey),                isMaskInterrupts()));
-      System.err.println("GdbServerParameters.initializeFrom() VLLS = " + isCatchVLLSxEvents());
+//      System.err.println("GdbServerParameters.initializeFrom() VLLS = " + isCatchVLLSxEvents());
    }
 
    public boolean isUseSemihosting() {

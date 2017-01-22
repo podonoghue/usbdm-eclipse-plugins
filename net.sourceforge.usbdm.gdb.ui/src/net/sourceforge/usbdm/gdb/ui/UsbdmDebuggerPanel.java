@@ -924,7 +924,6 @@ public class UsbdmDebuggerPanel {
       InterfaceType interfaceType = getInterfaceType();
       if ((fGdbServerParameters == null) || (fGdbServerParameters.getInterfaceType() != interfaceType)) {
          // Make GDB server parameters consistent with interface
-         System.err.println("UsbdmDebuggerPanel.populateGdbServerControls() new fGdbServerParameters");
          setGdbServerParameters(GdbServerParameters.getDefaultServerParameters(interfaceType));
       }
       loadGdbServerParameters();
@@ -1292,8 +1291,7 @@ public class UsbdmDebuggerPanel {
    }
 
    public void setGdbServerParameters(GdbServerParameters gdbServerParameters) {
-      System.err.println("UsbdmDebuggerPanel.setGdbServerParameters()");
-
+//      System.err.println("UsbdmDebuggerPanel.setGdbServerParameters()");
       fGdbServerParameters = gdbServerParameters;
    }
 
@@ -1317,7 +1315,7 @@ public class UsbdmDebuggerPanel {
          return;
       }
       fSuspendUpdate++;
-      System.err.println("UsbdmDebuggerPanel.loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
+//      System.err.println("UsbdmDebuggerPanel.loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
       fTextTargetDeviceName.setText(fGdbServerParameters.getDeviceName());
       populateBdmChoices(fGdbServerParameters.getBdmSerialNumber(), true);
       fButtonRequireExactBdm.setSelection(fGdbServerParameters.isBdmSerialNumberMatchRequired());
@@ -1331,7 +1329,7 @@ public class UsbdmDebuggerPanel {
       fButtonDriveReset.setSelection(fGdbServerParameters.isUseReset());
       fButtonUsePstSignals.setSelection(fGdbServerParameters.isUsePstSignals());
       fButtonCatchVLLSsEvents.setSelection(fGdbServerParameters.isCatchVLLSxEvents());
-      System.err.println("loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
+//      System.err.println("loadGdbServerParameters() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
 
       fButtonMaskInterrupts.setSelection(fGdbServerParameters.isMaskInterrupts());
       // Update list to match fGdbServerParameters
@@ -1349,7 +1347,7 @@ public class UsbdmDebuggerPanel {
     * Save multiple dialogue fields to the current fGdbServerParameters
     */
    private void saveGdbServerParameters() {
-      System.err.println("saveGdbServerParameters()");
+//      System.err.println("saveGdbServerParameters()");
 
       fGdbServerParameters.setDeviceName(fTextTargetDeviceName.getText());
       fGdbServerParameters.setBdmSerialNumber(fComboSelectBDM.getText());
@@ -1385,7 +1383,7 @@ public class UsbdmDebuggerPanel {
     * @param configuration launch configuration
     */
    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-      System.err.println("UsbdmDebuggerPanel.setDefaults()");
+//      System.err.println("UsbdmDebuggerPanel.setDefaults()");
    }
 
    /**
@@ -1398,7 +1396,7 @@ public class UsbdmDebuggerPanel {
     * @throws Exception
     */
    public void initializeFrom(ILaunchConfiguration configuration) throws Exception {
-      System.err.println("UsbdmDebuggerPanel.initializeFrom() "+configuration);
+//      System.err.println("UsbdmDebuggerPanel.initializeFrom() "+configuration);
 
       try {
          // Get interface type from settings
@@ -1406,11 +1404,11 @@ public class UsbdmDebuggerPanel {
          ToolInformationData toolInformationData = null;
 
          if (configuration != null) {
-            System.err.println("UsbdmDebuggerPanel.initializeFrom() #1 "+configuration);
+//            System.err.println("UsbdmDebuggerPanel.initializeFrom() #1 "+configuration);
             String interfaceTypeName = configuration.getAttribute(USBDM_GDB_INTERFACE_TYPE_KEY, (String) null);
             if (interfaceTypeName != null) {
                interfaceType = InterfaceType.valueOf(interfaceTypeName);
-               System.err.println("Setting interface to launch saved value = "+interfaceType.toString());
+//               System.err.println("Setting interface to launch saved value = "+interfaceType.toString());
             }
             // Try to get tool information from project via configuration
             toolInformationData = getToolInformationDataFromConfig(configuration);
@@ -1419,7 +1417,7 @@ public class UsbdmDebuggerPanel {
          Boolean discardSettings = (configuration == null);
          if ((interfaceType == null) || ((toolInformationData != null) && !toolInformationData.applicableTo(interfaceType))) {
             // Interface type not set or incompatible - reset settings
-            System.err.println("UsbdmDebuggerPanel.initializeFrom() #2 "+configuration);
+//            System.err.println("UsbdmDebuggerPanel.initializeFrom() #2 "+configuration);
             discardSettings = true;
             // System.err.println("Interface type is missing or incompatible");
             // Interface type not set or incompatible - reset
@@ -1441,16 +1439,14 @@ public class UsbdmDebuggerPanel {
          populateInterfaceTypes(interfaceType);
 
          // Load default settings for this target
-         System.err.println("UsbdmDebuggerPanel.initializeFrom() new fGdbServerParameters");
+//         System.err.println("UsbdmDebuggerPanel.initializeFrom() new fGdbServerParameters");
          setGdbServerParameters(GdbServerParameters.getDefaultServerParameters(interfaceType));
 
          // Update from configuration (if appropriate)
          if (!discardSettings) {
-            System.err.println("UsbdmDebuggerPanel.initializeFrom() #3 "+configuration);
             // Only load if appropriate to current interface
-            System.err.println("Loading fGdbServerParameters from settings");
+//            System.err.println("Loading fGdbServerParameters from settings");
             fGdbServerParameters.initializeFrom(configuration, USBDM_LAUNCH_ATTRIBUTE_KEY);
-            System.err.println("UsbdmDebuggerPanel.initializeFrom() VLLS = " + fGdbServerParameters.isCatchVLLSxEvents());
 
          }
          // Load GDB Server parameters into controls
@@ -1458,9 +1454,7 @@ public class UsbdmDebuggerPanel {
          loadGdbServerParameters();
          
          if (!discardSettings) {
-            System.err.println("UsbdmDebuggerPanel.initializeFrom() #4 "+configuration);
             // Only load settings if appropriate to interface
-
             fTextGdbBinPath.setText(configuration.getAttribute(USBDM_GDB_BIN_PATH_KEY, ""));
             fTextGdbCommand.setText(configuration.getAttribute(USBDM_GDB_COMMAND_KEY, ""));
 
@@ -1490,7 +1484,7 @@ public class UsbdmDebuggerPanel {
     *           launch configuration
     */
    public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-      System.err.println("UsbdmDebuggerPanel.performApply()");
+//      System.err.println("UsbdmDebuggerPanel.performApply()");
 
       // Save GDB settings
       saveGdbServerParameters();

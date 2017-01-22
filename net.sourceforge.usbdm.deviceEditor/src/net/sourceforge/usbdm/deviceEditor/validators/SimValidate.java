@@ -302,12 +302,12 @@ public class SimValidate extends Validator {
                         break;
                      }
                   }
-                  if (pllCalcValue>0) {
+                  if (pllCalcValue>=0) {
                      break;
                   }
                }
                sim_clkdiv2_usbVar.enable(true);
-               if (pllCalcValue>0) {
+               if (pllCalcValue>=0) {
                   ((ChoiceVariable)sim_clkdiv2_usbVar).setRawValue(pllCalcValue);
                   sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
                   sim_clkdiv2_usbVar.setLocked(true);

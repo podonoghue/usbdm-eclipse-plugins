@@ -714,6 +714,9 @@ public class ParseMenuXML extends XML_BaseParser {
    void parseChoices(Variable variable, Element menuElement) throws Exception {
       ArrayList<Pair> entries = new ArrayList<Pair>();
       String defaultValue = null;
+//      if (variable.getName().startsWith("clk_recovery_ctrl")) {
+//         System.err.println("Found "+variable.getName());
+//      }
 
       for (Node node = menuElement.getFirstChild();
             node != null;
