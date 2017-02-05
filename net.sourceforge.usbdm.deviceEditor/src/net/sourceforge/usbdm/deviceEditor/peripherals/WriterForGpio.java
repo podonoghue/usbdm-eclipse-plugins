@@ -110,7 +110,10 @@ public class WriterForGpio extends PeripheralWithState {
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       // TODO - Consider changes
-      modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
+      // GPIOx -> PORTx
+      modifyVectorTable(vectorTable, 
+            "^"+fName.replace("GPIO", "PORT")+"()", 
+            fName.replaceAll("GPIO", "Port"));
    }
 
 

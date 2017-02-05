@@ -293,7 +293,43 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return value.equalsIgnoreCase("true");
    }
 
+   /**
+    * Search vector table for handler and replace with class static method name.<br>
+    * Uses class name to create handler name<br>
+    * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
+    * and replaces with class name e.g. <b>FTM0_IRQHandler</b> => <b>USBDM::Ftm0::irqHandler</b><br>
+    * Overridden to do special replacement
+    * 
+    * @param vectorTable  Vector table to search
+    */
+   @Override
+   public void modifyVectorTable(VectorTable vectorTable) {
+      modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
+   }
+
+   /**
+    * Search vector table for handler and replace with class static method name.<br>
+    * 
+    * @param vectorTable  Vector table to search
+    * @param pattern      Pattern to match against handler name
+    */
    public void modifyVectorTable(VectorTable vectorTable, String pattern) {
+      modifyVectorTable(vectorTable, pattern, getClassName());
+   }
+
+   /**
+    * Search vector table for handler and replace with class static method name
+    * 
+    * @param vectorTable  Vector table to search
+    * 
+    * @param pattern      Pattern to look for e.g. "^FTM((\\d+)?).*". 
+    *                     Must contain 1 group which is preserved
+    * @param className    Base name of handler, usually class name e.g. Ftm2 
+    */
+   public void modifyVectorTable(VectorTable vectorTable, String pattern, String className) {
+      if (!isCTrueValue(IRQ_HANDLER_INSTALLED_SYMBOL)) {
+         return;
+      }
       final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean handlerSet = false;
       Pattern p = Pattern.compile(pattern);
@@ -301,11 +337,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               if (isCTrueValue(IRQ_HANDLER_INSTALLED_SYMBOL)) {
-                  entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+getClassName()+"::irq"+m.group(1)+"Handler");
-                  entry.setClassMemberUsedAsHandler(true);
-                  handlerSet = true;
-               }
+               entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+className+"::irq"+m.group(1)+"Handler");
+               entry.setClassMemberUsedAsHandler(true);
+               handlerSet = true;
             }
          }
          if (handlerSet) {
@@ -315,11 +349,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
    
-   @Override
-   public void modifyVectorTable(VectorTable vectorTable) {
-      modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
-   }
-
    ArrayList<Validator> validators = new ArrayList<Validator>();
    
    public void addValidator(Validator validator) {
