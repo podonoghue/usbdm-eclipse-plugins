@@ -817,6 +817,8 @@ public abstract class Peripheral {
       final String INIT_PCR_FUNCTION_TEMPLATE = 
             indent+"   /**\n"+
             indent+"    * Initialise pins used by peripheral\n"+
+            indent+"    * \n"+
+            indent+"    * @param pcrValue PCR value controlling pin options\n"+
             indent+"    */\n"+
             indent+"   static void initPCRs(uint32_t pcrValue="+DEFAULT_PCR_VALUE_NAME+") {\n";
 
