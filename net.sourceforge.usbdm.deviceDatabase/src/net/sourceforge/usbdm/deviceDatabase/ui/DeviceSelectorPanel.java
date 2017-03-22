@@ -389,9 +389,9 @@ public class DeviceSelectorPanel extends Composite {
             currentSubFamily = null;
             subFamilyTree = null;
          }
-         if (device.getName().startsWith("MKV4")) {
-            System.err.println("Found " +device.getName());
-         }
+//         if (device.getName().startsWith("MKV4")) {
+//            System.err.println("Found " +device.getName());
+//         }
          String subFamily = getSubFamilyNamePrefix(device.getName());
          if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
             subFamilyTree = findCategoryNode(familyTree, subFamily);
