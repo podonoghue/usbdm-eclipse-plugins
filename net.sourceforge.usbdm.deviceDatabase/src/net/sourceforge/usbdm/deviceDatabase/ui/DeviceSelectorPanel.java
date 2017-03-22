@@ -212,7 +212,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^(FRDM).*$",        "Freedom boards (FRDM)"),
             new Pair("^(TWR).*$",         "Tower boards (TWR)"),
             new Pair("^(STM32).*$",       "ST Micro ($1)"),
-            new Pair("^([a-zA-Z]+).*$",   "Other ($1)"),
+            new Pair("^([a-zA-Z]+).*$",   "$1"),
       };
       Pair[] cfv1Patterns = {
             new Pair("^(MCF[0-9]*).*$",   "$1"),
@@ -267,6 +267,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M10)$",     "$1xxx$2 (100MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M12)$",     "$1xxx$2 (120MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M15)$",     "$1xxx$2 (150MHz)"),
+            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M16)$",     "$1xxx$2 (160MHz)"),
             new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M18)$",     "$1xxx$2 (180MHz)"),
             //            new Pair("^([a-zA-Z]+[0-9]*).*$",
       };
@@ -300,7 +301,7 @@ public class DeviceSelectorPanel extends Composite {
             return m.replaceAll(pattern.substitution);
          }
       }
-      return name;
+      return "Unsorted";
    }
 
    /**
@@ -387,6 +388,9 @@ public class DeviceSelectorPanel extends Composite {
             familyTree = new CategoryModel(root, family);
             currentSubFamily = null;
             subFamilyTree = null;
+         }
+         if (device.getName().startsWith("MKV4")) {
+            System.err.println("Found " +device.getName());
          }
          String subFamily = getSubFamilyNamePrefix(device.getName());
          if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
