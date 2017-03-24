@@ -234,11 +234,15 @@ public class GdbServerParameters {
    }
 
    public String getBdmSerialNumber() {
+      if ((bdmSerialNumber == null) || bdmSerialNumber.trim().isEmpty()) {
+         // Treat null or empty as null device (= ANY device)
+         return USBDMDeviceInfo.nullDevice.deviceSerialNumber;
+      }
       return bdmSerialNumber;
    }
 
    public void setBdmSerialNumber(String serialNumber, boolean serialNumberMatchRequired ) {
-      this.bdmSerialNumber = "";
+      this.bdmSerialNumber = USBDMDeviceInfo.nullDevice.deviceSerialNumber;
       if (serialNumber != null) {
          serialNumber = serialNumber.trim();
          if (!serialNumber.isEmpty()) {

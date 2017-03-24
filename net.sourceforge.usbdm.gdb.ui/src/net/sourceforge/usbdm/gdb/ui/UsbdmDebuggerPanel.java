@@ -985,17 +985,21 @@ public class UsbdmDebuggerPanel {
    /**
     * Populates the BDM choice control
     * 
-    * @param previousDevice
+    * @param preferredDevice
     *           A String representing the serial number of a previously selected
     *           device. This will be made the currently selected device (even if
     *           not connected).
     * @param scanForBdms
     *           If true a scan is made for currently connected BDMs
     */
-   private void populateBdmChoices(String previousDevice, boolean scanForBdms) {
+   private void populateBdmChoices(String preferredDevice, boolean scanForBdms) {
       // System.err.println("populateBdmChoices(\'"+previousDevice+"\',
       // "+scanForBdms+")\n");
 
+      if ((preferredDevice == null) || preferredDevice.trim().isEmpty()) {
+         // Treat null or empty as null device (= ANY device)
+         preferredDevice =  USBDMDeviceInfo.nullDevice.deviceSerialNumber;
+      }
       if (scanForBdms) {
          // scan for connected BDMs
          // System.err.println("populateBdmChoices() - looking for BDMs...");
@@ -1004,28 +1008,11 @@ public class UsbdmDebuggerPanel {
          // Don't scan for BDMs - use an empty list
          fDeviceList = new ArrayList<USBDMDeviceInfo>();
       }
-      // Always add a null device
+      // Always add a null device as 1st entry
       // System.err.println("populateBdmChoices() - Adding nullDevice");
       fDeviceList.add(0, USBDMDeviceInfo.nullDevice);
 
-      String preferredDevice;
-      // Check if non-default preferred device
-      if ((previousDevice != null) && (!previousDevice.trim().isEmpty()) && (!previousDevice.equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber))) {
-         // Set as preferred device
-         preferredDevice = previousDevice;
-         // System.err.println("populateBdmChoices() preferredDevice =
-         // previousDevice = \'"+preferredDevice+"\'\n");
-      } else {
-         // Use currently selected device (if any) as preferred
-         preferredDevice = fComboSelectBDM.getText();
-         if (preferredDevice.isEmpty()) {
-            // Use dummy device
-            preferredDevice = USBDMDeviceInfo.nullDevice.deviceSerialNumber;
-         }
-         // System.err.println("populateBdmChoices() preferredDevice =
-         // currentDevice = \'"+preferredDevice+"\'\n");
-      }
-      // Add devices to combo
+      // Add all devices to combo
       fComboSelectBDM.removeAll();
       ListIterator<Usbdm.USBDMDeviceInfo> it = fDeviceList.listIterator();
       while (it.hasNext()) {
@@ -1041,21 +1028,14 @@ public class UsbdmDebuggerPanel {
          // System.err.println("populateBdmChoices() selecting device by index =
          // \'"+fComboSelectBDM.getText()+"\'\n");
       } else {
-         // Preferred device is not present
-         if ((previousDevice == null) || (previousDevice.trim().isEmpty())) {
-            // If no previous device just select first BDM
-            fComboSelectBDM.select(0);
-            // System.err.println("populateBdmChoices() Selecting 1st device =
-            // \'"+fComboSelectBDM.getText()+"\'\n");
-         } else {
-            // Add dummy device representing previously used device, make
-            // preferred
-            fDeviceList.add(new USBDMDeviceInfo("Previously selected device (not connected)", previousDevice, new BdmInformation()));
-            fComboSelectBDM.add(previousDevice);
-            fComboSelectBDM.setText(previousDevice);
-            // System.err.println("populateBdmChoices() Adding preferredDevice =
-            // \'"+fComboSelectBDM.getText()+"\'\n");
-         }
+         // Preferred device is not present.
+         // This must be a previously selected device that is now not present.
+         // Add dummy device representing previously used device and make preferred
+         fDeviceList.add(new USBDMDeviceInfo("Previously selected device (not connected)", preferredDevice, new BdmInformation()));
+         fComboSelectBDM.add(preferredDevice);
+         fComboSelectBDM.setText(preferredDevice);
+         // System.err.println("populateBdmChoices() Adding preferredDevice =
+         // \'"+fComboSelectBDM.getText()+"\'\n");
       }
       updateBdmDescription();
    }
