@@ -108,6 +108,7 @@ public class WriteFamilyCpp {
          System.err.println("Failed to write Info for peripheral " + peripheral);
          e.printStackTrace();
       }
+      writer.flush();
    }
    /**
     * Write all Peripheral Information Classes<br>
@@ -125,8 +126,10 @@ public class WriteFamilyCpp {
     * @throws IOException 
     */
    private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
       
+      writer.openUsbdmDocumentationGroup();
+
       writer.write(
             "/** Class to static check signal mapping is valid */\n"+
             "template<class Info, int signalNum> class CheckSignal {\n"+
@@ -163,8 +166,10 @@ public class WriteFamilyCpp {
          writePeripheralInformationClass(writer, groups, fDeviceInfo.getPeripherals().get(key));
       }
       groups.closeGroup();
+      writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.write("\n");
+      writer.flush();
    }
 
    /**
@@ -228,16 +233,16 @@ public class WriteFamilyCpp {
          if (!peripheral.getGroupName().equals(groupName)) {
             if (groupName != null) {
                // Terminate previous group
-               fWriter.writeCloseGroup();
+               fWriter.closeDocumentationGroup();
             }
             groupName = peripheral.getGroupName();
-            fWriter.writeStartGroup(peripheral);
+            fWriter.openDocumentationGroup(peripheral);
          }
       }
       public void closeGroup() throws IOException {
          if (groupName != null) {
             // Terminate last group
-            fWriter.writeCloseGroup();
+            fWriter.closeDocumentationGroup();
          }
       }
    }
@@ -284,7 +289,8 @@ public class WriteFamilyCpp {
 
       writeIncludes(writer);
       
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
+      writer.openUsbdmDocumentationGroup();
 
       DocumentationGroups startGroup = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
@@ -316,7 +322,9 @@ public class WriteFamilyCpp {
       startGroup.closeGroup();
       writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
       writer.write("extern void "+DO_PIN_MAPPING_FUNCTION+"();\n");
+      writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
+      writer.flush();
    }
 
    private void writePinMappingFunction(DocumentUtilities writer) throws Exception {
@@ -536,6 +544,7 @@ public class WriteFamilyCpp {
       }
       writer.write(TABLE_CLOSE);
       writer.write(DOCUMENTATION_CLOSE);
+      writer.flush();
    }
    
    /**
@@ -587,14 +596,16 @@ public class WriteFamilyCpp {
       writer.writeCppFilePreamble(
             HARDWARE_BASEFILENAME+".cpp", fDeviceInfo.getSourceFilename(),
             DeviceInfo.VERSION, 
-            "Pin declarations for "+fDeviceInfo.getDeviceVariantName());
+            "Pin initialisation for "+fDeviceInfo.getDeviceVariantName());
 
       writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME+".h");
       writer.write("\n");
 
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE);
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
+      writer.openUsbdmDocumentationGroup();
       writePinMappingFunction(writer);
       writer.writeCppFilePostAmble();
+      writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.close();
    }

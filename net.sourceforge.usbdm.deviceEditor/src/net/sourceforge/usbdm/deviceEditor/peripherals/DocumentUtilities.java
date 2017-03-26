@@ -3,6 +3,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Stack;
 
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 
@@ -20,6 +21,9 @@ public class DocumentUtilities {
    /** Writer to use */
    private final BufferedWriter fWriter;
 
+   /** Stack of documentation group names */
+   private Stack<String> fGroupStack = new Stack<String>();
+
    /** Name of current group */
    private String fCurrentGroupName = null;
    
@@ -31,45 +35,24 @@ public class DocumentUtilities {
       fWriter.close();
    }
 
-   /**
-    * Write open group comment
-    * <pre><code>
-    * /**                                                                    
-    *  * @addtogroup  <i><b>groupName groupTitle</i></b>                   
-    *  * @brief       <i><b>groupBrief</i></b>  
-    *  * @{                                                                   
-    *  *&#47;</code></pre>
-    * 
-    * @param template   Template used to describe the group
-    * 
-    * @throws IOException
-    */
-   public void writeStartGroup(Peripheral peripheral) throws IOException {
-      writeStartGroup(peripheral.getGroupName(), peripheral.getGroupTitle(), peripheral.getGroupBriefDescription());
+   void pushGroup(String groupName) {
+      fGroupStack.push(groupName);
+      fCurrentGroupName = fGroupStack.peek();
    }
 
-   /**
-    * Conditionally write open group comment
-    * <pre><code>
-    * /**                                                                    
-    *  * @addtogroup  <i><b>groupName groupTitle</i></b>                   
-    *  * @brief       <i><b>groupBrief</i></b>  
-    *  * @{                                                                   
-    *  *&#47;</code></pre>
-    * 
-    * @param template   Template used to describe the group
-    * @param groupDone  Indicates if group has already been done
-    * 
-    * @throws IOException
-    */
-   void conditionallyWriteGroup(Peripheral baseWriter, boolean groupDone) throws IOException {
-      if (groupDone) {
-         return;
+   void popGroup() {
+      if (fGroupStack.isEmpty()) {
+         throw new RuntimeException("Trying to close non-existent Documentation Group");
       }
-      writeStartGroup(baseWriter);
+      fGroupStack.pop();
+      fCurrentGroupName = null;
+      if (!fGroupStack.isEmpty()) {
+         fCurrentGroupName = fGroupStack.peek();
+      }
    }
+   
    /**
-    * Write open group comment
+    * Opens a nested documentation group
     * <pre><code>
     * /**                                                                    
     *  * @addtogroup  <i><b>groupName groupTitle</i></b>                   
@@ -83,11 +66,11 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public void writeStartGroup(String groupName, String groupTitle, String groupBrief) throws IOException {
+   void openDocumentationGroup(String groupName, String groupTitle, String groupBrief) throws IOException {
       if (groupName == null) {
          groupName = "";
       }
-      fCurrentGroupName = groupName;
+      pushGroup(groupName);
 
       final String startGroup1 = 
             "/**\n"+
@@ -103,8 +86,65 @@ public class DocumentUtilities {
       }
       fWriter.write(String.format(startGroup3));
    }   
+   
    /**
-    * Write close group comment 
+    * Opens a nested documentation group for a peripheral
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <i><b>peripheral.groupName peripheral.groupTitle</i></b>                   
+    *  * @brief       <i><b>peripheral.groupBrief</i></b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param peripheral Peripheral used to obtain description etc.
+    * 
+    * @throws IOException
+    */
+   void openDocumentationGroup(Peripheral peripheral) throws IOException {
+      openDocumentationGroup(peripheral.getGroupName(), peripheral.getGroupTitle(), peripheral.getGroupBriefDescription());
+   }
+
+   /**
+    * Conditionally opens a nested documentation group for a peripheral
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <i><b>peripheral.groupName peripheral.groupTitle</i></b>                   
+    *  * @brief       <i><b>peripheral.groupBrief</i></b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param peripheral Peripheral used to obtain description etc.
+    * @param groupDone  Indicates if group has already been done
+    * 
+    * @throws IOException
+    */
+   void conditionallyOpenDocumentationGroup(Peripheral peripheral, boolean groupDone) throws IOException {
+      if (groupDone) {
+         return;
+      }
+      openDocumentationGroup(peripheral);
+   }
+   
+   /**
+    * Opens default USBDM_group
+    * <pre><code>
+    * /**                                                                    
+    *  * @addtogroup  <b>USBDM_Group USBDM Peripheral Interface</b>                   
+    *  * @brief       <b>Hardware Peripheral Interface and library</b>  
+    *  * @{                                                                   
+    *  *&#47;</code></pre>
+    * 
+    * @param peripheral Peripheral used to obtain description etc.
+    * @param groupDone  Indicates if group has already been done
+    * 
+    * @throws IOException
+    */
+   void openUsbdmDocumentationGroup() throws IOException {
+      openDocumentationGroup("USBDM_Group", "USBDM Peripheral Interface", "Hardware Peripheral Interface and library");
+   }
+   
+   /**
+    * Closes a nested documentation group 
     * <pre><code>
     * /**                                                                    
     *  * @}                                                                   
@@ -112,17 +152,14 @@ public class DocumentUtilities {
     * 
     * @throws IOException
     */
-   public void writeCloseGroup() throws IOException {
-      if (fCurrentGroupName == null) {
-         throw new RuntimeException("Closing non-open group");
-      }
+   void closeDocumentationGroup() throws IOException {
       final String endGroup = 
             "/** \n"+
-            " * End %s\n"+
+            " * End group %s\n"+
             " * @}\n"+
             " */\n";
       fWriter.write(String.format(endGroup, fCurrentGroupName));
-      fCurrentGroupName = null;
+      popGroup();
    }
 
    final String HEADER_FILE_PREFIX = "PROJECT_HEADERS_";
@@ -266,7 +303,30 @@ public class DocumentUtilities {
    /**
     * Write namespace open
     * <pre><code>
-    *  namespace "<i><b>USBDM</i></b>" {
+    *  /* 
+    *   * <b><i>description</i></b>
+    *   *&#47;
+    *  namespace "<i><b><b><i>namespace</i></b></i></b>" {
+    * </code></pre>
+    * 
+    * @param namespace   Namespace to use
+    * @param description Description to use
+    * 
+    * @throws IOException
+    */
+   public void writeOpenNamespace(String namespace, String description) throws IOException {
+      if (description != null) {
+         fWriter.write(String.format("/**\n * %s\n */\n", description));
+      }
+      fWriter.write(String.format("namespace %s {\n\n", namespace));
+      nameSpaceStack.push(namespace);
+      fWriter.flush();
+   }
+
+   /**
+    * Write namespace open
+    * <pre><code>
+    *  namespace "<i><b><b><i>namespace</i></b></i></b>" {
     * </code></pre>
     * 
     * @param namespace  Namespace to use
@@ -274,9 +334,7 @@ public class DocumentUtilities {
     * @throws IOException
     */
    public void writeOpenNamespace(String namespace) throws IOException {
-      fWriter.write(String.format("namespace %s {\n\n", namespace));
-      nameSpaceStack.push(namespace);
-      fWriter.flush();
+      writeOpenNamespace(namespace, null);
    }
 
    /**
@@ -822,7 +880,8 @@ public class DocumentUtilities {
    }
 
    /**
-    * Writes a simple banner
+    * Writes a simple banner.<br>
+    * Any new-lines in the banner will be used to break the banner into multiple formatted lines.
     * <pre><code>
     * /**
     *  * <b><i>banner...</b></i>
@@ -830,7 +889,7 @@ public class DocumentUtilities {
     *  *&#47;
     * </code></pre>
     * 
-    * @param fileName   Filename to use in #include directive
+    * @param banner   String to be printed as banner 
     * 
     * @throws IOException
     */

@@ -212,6 +212,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                   fFactory.getDeviceInfo().generateCppFiles();
                }
             } catch (Exception e) {
+               e.printStackTrace();
                monitor.done();
                return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
             }

@@ -11,7 +11,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
-
 /**
  * Represents a peripheral.<br>
  * Includes
@@ -390,7 +389,7 @@ public abstract class Peripheral {
     * @return name
     */
    public String getGroupBriefDescription() {
-      return "Pins used for "+getTitle();
+      return "Abstraction for "+getTitle();
    }
 
    /**
@@ -763,7 +762,10 @@ public abstract class Peripheral {
       // Macro indicating presence of peripheral
       pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED", "");
 
-      pinMappingHeaderFile.writeDocBanner("Peripheral information for " + getGroupTitle());
+      pinMappingHeaderFile.writeDocBanner(
+            "Peripheral information for " + getGroupTitle() + "\n" + 
+            "This may include pin information, constants, register addresses, and default register values,\n" + 
+            "along with simple accessor functions.");
 
       // Open class
       pinMappingHeaderFile.write(String.format(
