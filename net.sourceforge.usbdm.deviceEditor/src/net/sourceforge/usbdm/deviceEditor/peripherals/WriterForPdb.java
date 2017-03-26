@@ -14,7 +14,7 @@ public class WriterForPdb extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Programmable Dely Block";
+      return "Programmable Delay Block";
    }
 
    @Override
