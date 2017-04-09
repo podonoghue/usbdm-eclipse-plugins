@@ -37,6 +37,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEnet;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtfl;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
@@ -1189,7 +1190,7 @@ public class DeviceInfo extends ObservableModel {
                "FTFL", "$2", "$3",
                "(FTFL)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForFtfl.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(RNG(A)?)(\\d)?(.*)",
