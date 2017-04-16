@@ -13,7 +13,8 @@
       <choice value="eeprom256Bytes" name="256 bytes" />
       <choice value="eeprom512Bytes" name="512 bytes" />
       <choice value="eeprom1KBytes"  name="1K bytes" />
-      <choice value="eeprom2KBytes"  name="2K bytes" isDefault="true"/>
+      <choice value="eeprom2KBytes"  name="2K bytes" />
+      <choice value="eeprom4KBytes"  name="4K bytes" isDefault="true"/>
    </choiceOption>
    
    <choiceOption name="FlashPartition" 
@@ -52,6 +53,7 @@
       \t   eeprom512Bytes,
       \t   eeprom1KBytes,
       \t   eeprom2KBytes,
+      \t   eeprom4KBytes,
       \t};\n\n
       
       \t/** Selects division of FlexNVM between flash and EEPROM backing storage */
@@ -65,7 +67,7 @@
       \t};\n\n
       
       \t/**
-      \t * Selects division of the two regions of EEPROM (if supported on device)
+      \t * Selects division of the EEPROM into two regions 
       \t * This allows A/B regions to have different wear characteristics
       \t */
       \tenum PartitionSplit {
@@ -87,6 +89,7 @@
 
       \t//! FlexNVM - EEPROM partition
       \tstatic constexpr PartitionSplit partitionSplit = $(FlexNVM_Partition);\n\n
+      
    ]]></template>
 
 </devicePage>

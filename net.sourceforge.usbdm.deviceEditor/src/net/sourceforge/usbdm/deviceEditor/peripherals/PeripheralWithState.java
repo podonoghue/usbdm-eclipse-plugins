@@ -37,6 +37,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Map of parameters for peripheral */
    protected HashMap<String, String> fParamMap = new HashMap<String,String>();
 
+   /** Map of parameters for peripheral */
+   protected HashMap<String, String> fConstantMap = new HashMap<String,String>();
+
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
@@ -85,7 +88,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception 
     */
    public void loadModels() throws Exception {
-      fData = loadModels(getVersion());
+      fData = loadModels(getPeripheralModelName());
       if (fData == null) {
          return;
       }
@@ -101,7 +104,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          }
       }
    }
-   
 
    /**
     * Load the models for this class of peripheral
@@ -109,11 +111,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return
     * @throws Exception 
     */
-   private final Data loadModels(String name) throws Exception {
+   /**
+    * 
+    * @param modelName  Name of the model for this peripheral. Used as name of file to load.
+    * 
+    * @return 
+    * @throws Exception
+    */
+   private final Data loadModels(String modelName) throws Exception {
       try {
-         return ParseMenuXML.parseFile(name, null, this);
+         return ParseMenuXML.parseFile(modelName, null, this);
       } catch (Exception e) {
-         throw new Exception("Failed to load model "+name+" for Peripheral " + getName(), e);
+         throw new Exception("Failed to load model "+modelName+" for Peripheral " + getName(), e);
       }
    }
    
@@ -129,7 +138,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
+      pinMappingHeaderFile.write("   // Template:" + getPeripheralModelName()+"\n\n");
       CodeTemplate template = fData.fTemplate.get("");
       if (template != null) {
          //TODO - add dimension
@@ -389,7 +398,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    @Override
    public String toString() {
-      return this.getClassName()+"("+getName()+", "+getVersion()+")";
+      return this.getClassName()+"("+getName()+", "+getPeripheralModelName()+")";
    }
 
    /**
@@ -411,6 +420,41 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return fParamMap;
    }
    
+   /**
+    * Get parameter value
+    * 
+    * @param key Key to use for parameter<br>
+    * If the key starts at root it is used unchanged otherwise the peripheral name will be pre-pended.<br>
+    * e.g. xxx => /ftfl/xxx, /xxx => /xxx (unchanged)
+    *  
+    * @return parameter value or null if not present
+    */
+   public String getParam(String key) {
+      if (!key.startsWith("/")) {
+         key = "/"+getName()+"/"+key;
+      }
+      return fParamMap.get(key);
+   }
+   
+   /**
+    * Add constant
+    * 
+    * @param key
+    * @param value
+    */
+   public void addConstant(String key, String value) {
+      fConstantMap.put(key, value);
+   }
+
+   /**
+    * Get constant map
+    * 
+    * @return
+    */
+   public Map<String, String> getConstantMap() {
+      return fConstantMap;
+   }
+   
    @Override
    protected void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
       for (String key:getParamMap().keySet()) {
@@ -420,6 +464,20 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          documentUtilities.writeAttribute("value", value);
          documentUtilities.closeTag();
       }
+   }
+
+   
+   /**
+    * Gets the model name for the peripheral<br>
+    * Defaults to name based on peripheral e.g. ftm<br>
+    * May be overridden by <b><i>peripheral_file</i></b> parameter from device file
+    */
+   public String getPeripheralModelName() {
+      String peripheralFile = getParam("peripheral_file");
+      if (peripheralFile != null) {
+         return peripheralFile;
+      }
+      return super.getPeripheralModelName();
    }
 
 }

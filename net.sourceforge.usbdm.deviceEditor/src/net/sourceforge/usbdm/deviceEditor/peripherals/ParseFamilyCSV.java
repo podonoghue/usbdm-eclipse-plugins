@@ -402,6 +402,12 @@ public class ParseFamilyCSV {
          }
          parseParamInfoLine(line);
       }
+      for(String[] line:grid) {
+         if (line.length < 2) {
+            continue;
+         }
+         parseConstantInfoLine(line);
+      }
    }
 
    private void parseParamInfoLine(String[] line) {
@@ -416,6 +422,18 @@ public class ParseFamilyCSV {
       peripheral.addParam(line[2], line[3]);
    }
 
+   private void parseConstantInfoLine(String[] line) {
+      if (!line[0].equalsIgnoreCase("Constant")) {
+         return;
+      }
+      if (line.length != 4) {
+         throw new RuntimeException("Illegal Constant line");
+      }
+      
+      PeripheralWithState peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
+      peripheral.addConstant(line[2], line[3]);
+   }
+   
    /**
     * Parse preliminary information from file
     * 

@@ -140,7 +140,7 @@ public abstract class Peripheral {
     * Return version name of peripheral<br>
     * Defaults to name based on peripheral e.g. Ftm
     */
-   public String getVersion() {
+   public String getPeripheralModelName() {
       return ((fVersion!=null) && !fVersion.isEmpty())?fVersion:getClassBaseName().toLowerCase();
    }
 
@@ -271,9 +271,9 @@ public abstract class Peripheral {
       documentUtilities.writeAttribute("baseName", fBaseName);
       documentUtilities.writeAttribute("instance", fInstance);
 
-      String versioName = WriteFamilyXML.getPeripheralMap().get(fName);
-      if (versioName != null) {
-         documentUtilities.writeAttribute("version", versioName);
+      String versionName = WriteFamilyXML.getPeripheralMap().get(fName);
+      if (versionName != null) {
+         documentUtilities.writeAttribute("version", versionName);
       }
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());

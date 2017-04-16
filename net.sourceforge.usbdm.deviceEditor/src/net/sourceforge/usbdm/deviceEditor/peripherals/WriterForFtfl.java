@@ -10,9 +10,24 @@ public class WriterForFtfl extends PeripheralWithState {
       super(basename, instance, deviceInfo);
    }
 
+//   /**
+//    * Return version name of peripheral<br>
+//    * Defaults to name based on peripheral e.g. Ftm
+//    */
+//   public String getVersion() {
+//      return ((fVersion!=null) && !fVersion.isEmpty())?fVersion:getClassBaseName().toLowerCase();
+//   }
+
+
    @Override
    public String getTitle() {
       return "Flash Memory Module";
    }
+
+//   public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
+//      System.err.println("ParamMap = " + getParamMap());
+//      System.err.println("Version = " + getPeripheralModelName());
+//      
+//   }
 
 }

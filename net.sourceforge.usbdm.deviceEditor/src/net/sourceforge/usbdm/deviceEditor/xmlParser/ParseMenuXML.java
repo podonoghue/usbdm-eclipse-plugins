@@ -944,10 +944,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void parsePage(BaseModel parent, Element element) throws Exception {
-      String name = element.getAttribute("name");
-      if (name.equalsIgnoreCase("MCG")) {
-         System.err.println("MCG");
-      }
+//      String name = element.getAttribute("name");
+//      if (name.equalsIgnoreCase("MCG")) {
+//         System.err.println("MCG");
+//      }
       if (element.getTagName() == "fragment") {
          for (Node node = element.getFirstChild();
                node != null;

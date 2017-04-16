@@ -13,7 +13,8 @@
       <choice value="eeprom256Bytes" name="256 bytes" />
       <choice value="eeprom512Bytes" name="512 bytes" />
       <choice value="eeprom1KBytes"  name="1K bytes" />
-      <choice value="eeprom2KBytes"  name="2K bytes" isDefault="true"/>
+      <choice value="eeprom2KBytes"  name="2K bytes" />
+      <choice value="eeprom4KBytes"  name="4K bytes" isDefault="true"/>
    </choiceOption>
    
    <choiceOption name="FlashPartition" 
@@ -35,9 +36,10 @@
    </choiceOption>
 
    <projectActionList id = "flash_files" >
-      <copy source="Project_Headers/flash.h" target="Project_Headers/flash.h" replace="true"  derived="true" />
-      <copy source="Project_Headers/ftfl.h"  target="Project_Headers/ftfl.h"  replace="true"  derived="true" />
-      <copy source="Sources/ftfl.cpp"        target="Sources/ftfl.cpp"        replace="true"  derived="true" />
+      <copy source="Project_Headers/flash.h"           target="Project_Headers/flash.h"           replace="true"  derived="true" />
+      <copy source="Project_Headers/ftfl.h"            target="Project_Headers/ftfl.h"            replace="true"  derived="true" />
+      <copy source="Sources/ftfl_64k_flexrom.cpp"      target="Sources/ftfl.cpp"                  replace="true"  derived="true" />
+      <copy source="Snippets/nonvolatile_example.cpp"  target="Snippets/nonvolatile_example.cpp"  replace="true"  derived="true" />
    </projectActionList>
 
    <constant name="FlashType" id="/Flash/FlashType" key="/Flash/FlashType" value="ftfl" />
@@ -52,26 +54,32 @@
       \t   eeprom512Bytes,
       \t   eeprom1KBytes,
       \t   eeprom2KBytes,
+      \t   eeprom4KBytes,
       \t};\n\n
       
       \t/** Selects division of FlexNVM between flash and EEPROM backing storage */
       \tenum PartitionSel {
-      \t   partition_flash32K_eeprom0K,
-      \t   partition_flash24K_eeprom8K,
-      \t   partition_flash16K_eeprom16K,
-      \t   partition_flash8K_eeprom24K,
-      \t   partition_flash0K_eeprom32K,
-
+      \t   partition_flash64K_eeprom0K,
+      \t   partition_flash32K_eeprom32K,
+      \t   partition_flash0K_eeprom64K,
+      \t
       \t   // All EEPROM
-      \t   partition_flash0K_eeprom_all = partition_flash0K_eeprom32K,
+      \t   partition_flash0K_eeprom_all = partition_flash0K_eeprom64K,
       \t};\n\n
       
       \t/**
-      \t * Selects division of the two regions of EEPROM (if supported on device)
+      \t * Selects division of the EEPROM into two regions 
       \t * This allows A/B regions to have different wear characteristics
       \t */
       \tenum PartitionSplit {
-      \t   partition_default=0x30, //! Single partition
+      \t   partition_A1_B7_8ths = 0x00,                 //! A=1/8, B=7/8
+      \t   partition_A2_B6_8ths = 0x10,                 //! A=2/8=1/4, B=6/8=3/4
+      \t   partition_A4_B4_8ths = 0x30,                 //! A=4/8=1/2, B=4/8=1/2
+      \t   partition_A1_B3_4ths = partition_A2_B6_8ths, //! A=2/8=1/4, B=6/8=3/4
+      \t   partition_A1_B1_2ths = partition_A4_B4_8ths, //! A=4/8=1/2, B=4/8=1/2
+      \t
+      \t   // Default - A = B = 1/2
+      \t   partition_default=partition_A4_B4_8ths,      //! Equal partitions
       \t};\n\n
    
       \t//! FlexNVM - EEPROM size
@@ -82,6 +90,7 @@
 
       \t//! FlexNVM - EEPROM partition
       \tstatic constexpr PartitionSplit partitionSplit = $(FlexNVM_Partition);\n\n
+      
    ]]></template>
 
 </devicePage>

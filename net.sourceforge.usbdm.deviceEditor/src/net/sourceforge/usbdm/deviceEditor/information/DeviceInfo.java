@@ -240,7 +240,7 @@ public class DeviceInfo extends ObservableModel {
    /**
     * Create device hardware description from given file<br>
     * 
-    * @param filePath   Path to <b>.usbdmProject</b> or <b>.usbdmHardware</b> file
+    * @param filePath   Path to <b>.usbdmProject</b>, <b>.usbdmHardware</b> or <b>.csv</b> file
     * 
     * @return Create hardware description for device
     * 
