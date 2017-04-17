@@ -7,7 +7,7 @@ package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 | 16 Nov 13 | Fixed path lookup for resource files (e.g. header files) on linux   4.10.6.100
 | 16 Nov 13 | Added default files header & vector files based upon subfamily      4.10.6.100
 +============================================================================================
-*/
+ */
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,7 +65,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private DeviceSelectorPanel   fDeviceSelector;
    private String                fBuildToolIds[] = null;
    private Boolean               fHasChanged     = true;
-   
+
    private String                fBuildToolId = null;
    Map<String, String>           fPageData    = null;
 
@@ -106,7 +106,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          job.schedule();
       }      
    }
-   
+
    /**
     *  Validates control & sets error message
     */
@@ -120,7 +120,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             message = message+" (Matching devices: "+fDeviceSelector.getMatchingDevices()+")";
          }
       }
-//      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
+      //      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
       setErrorMessage(message);
       if (message == null) {
          updateState();
@@ -132,7 +132,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       fBuildToolsCombo.removeAll();
       Hashtable<String, ToolInformationData> toolInformationData = ToolInformationData.getToolInformationTable();
       fBuildToolIds = new String[toolInformationData.size()];
-      
+
       int index = 0;
       for (ToolInformationData toolInformation:toolInformationData.values()) {
          if (toolInformation.applicableTo(fInterfaceType)) {
@@ -144,7 +144,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       fBuildToolsCombo.setText(currentTool);
       updateBuildToolId();
    }
-   
+
    private void updateBuildToolId() {
       int buildToolIndex = fBuildToolsCombo.getSelectionIndex();
       if (buildToolIndex<0) {
@@ -152,7 +152,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       fBuildToolId = fBuildToolIds[fBuildToolsCombo.getSelectionIndex()];
    }
-   
+
    private void createUsbdmParametersControl(Composite parent) {
 
       IDialogSettings dialogSettings = getDialogSettings();
@@ -189,7 +189,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             updateBuildToolId();
          }
       }
-      
+
       /*
        * Device selection group
        * ============================================================
@@ -221,7 +221,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          fDeviceSelector.setDevice("FRDM_K64F");
       }
    }
-     
+
    /* (non-Javadoc)
     * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
     */
@@ -237,7 +237,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    public String getBuildToolsId() {
       return fBuildToolId;
    }
-   
+
    static String getRangeSuffix(int count) {
       if (count == 0) {
          return "   "; //$NON-NLS-1$
@@ -268,8 +268,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          return null;
       }
       IPath resourceFolder = applicationPath.append(resourceDirectory);
-//      System.err.println("UsbdmProjectPage.findExternalFile(), resourceFolder = " + resourceFolder);
-      
+      //      System.err.println("UsbdmProjectPage.findExternalFile(), resourceFolder = " + resourceFolder);
+
       IPath   filePath = null;
       boolean success     = false;
       boolean stillTrying = true;
@@ -311,26 +311,26 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          }
          fileName = m.replaceAll("$1$2");
          filePath = resourceFolder.append(fileName);
-//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+         //         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && filePath.toFile().isDirectory()) {
             success = true;
             continue;
          }
          filePath = filePath.addFileExtension(preferredExtension);
-//         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
+         //         System.err.println("UsbdmProjectPage.findExternalFile(), checking = " + filePath.toOSString());
          if (filePath.toFile().exists() && !filePath.toFile().isDirectory()) {
             success = true;
             continue;
          }
       } while (!success && stillTrying);
-      
+
       if (success) {
-//         System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
+         //         System.err.println("UsbdmProjectPage.findExternalFile(), found = " + filePath.toOSString());
          return filePath.toPortableString();
       }
       return null;
    }
-   
+
    /**
     * Get external header file
     * 
@@ -339,7 +339,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * @return  URL
     */
    private String getExternalProjectHeaderFile(Device device) {
-      
+
       // Try using subFamily header file
       String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
       if (externalHeaderFile == null) { 
@@ -355,7 +355,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       return externalHeaderFile;
    }
-   
+
    /**
     * Get external vector table file
     * 
@@ -366,12 +366,12 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private String getExternalVectorTable(Device device) {
 
       String externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, device.getName(), "c");
-      
+
       if (externalVectorTableFile == null) { 
          String deviceSubFamily = device.getSubFamily();
          if (deviceSubFamily != null) {
             // Try to get subFamily header file
-//            System.err.println("Looking for subFamily vector table file: " + deviceSubFamily + ".c"); //$NON-NLS-1$
+            //            System.err.println("Looking for subFamily vector table file: " + deviceSubFamily + ".c"); //$NON-NLS-1$
             externalVectorTableFile = findExternalFile(UsbdmConstants.VECTOR_TABLE_PATH, deviceSubFamily, "c");
          }
       }
@@ -380,7 +380,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       return externalVectorTableFile;
    }
-   
+
    /**
     * Adds C Device attributes
     * 
@@ -400,14 +400,14 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             if (deviceSubFamily.equals(UsbdmConstants.SUB_FAMILY_CFV1)) {
                parameters +=   
                      "#ifndef SOPT1\n" +
-                     String.format("#define SOPT1 (*(uint8_t*) 0x%X)\n",soptAddress) +
-                     "#endif\n";
+                           String.format("#define SOPT1 (*(uint8_t*) 0x%X)\n",soptAddress) +
+                           "#endif\n";
             }
             else if (deviceSubFamily.equals(UsbdmConstants.SUB_FAMILY_CFV1_PLUS)) {
                parameters +=   
                      "#ifndef SIM_COPC\n" +
-                     String.format("#define SIM_COPC (*(uint8_t*) (0x%X+0x0A))\n",soptAddress) +
-                     "#endif\n";
+                           String.format("#define SIM_COPC (*(uint8_t*) (0x%X+0x0A))\n",soptAddress) +
+                           "#endif\n";
             }
             break;
          case T_CFVX:
@@ -417,58 +417,66 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       paramMap.put(UsbdmConstants.C_DEVICE_PARAMETERS_KEY, parameters);
    }
-   
-   public final static String MAP_PREFIX = 
-         "MEMORY\n" + //$NON-NLS-1$
-         "{\n";         //$NON-NLS-1$
-   
-   public final static String MAP_SUFFIX = 
-         "};\n";         //$NON-NLS-1$
-   
-   // Default memory maps
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_V1 = 
-         "  /* Default Map - Unknow device */\n" +              //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   
-   public final static String LINKER_MEMORY_MAP_COLDFIRE_Vx = 
-         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   
-   public final static String LINKER_MEMORY_MAP_KINETIS = 
-         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-         "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-         "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-         "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-         "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-   
-   public final static String LINKER_STACK_SIZE =
-         "__stack_size = 0x100;   /* required amount of stack */"; //$NON-NLS-1$
-   
-   public final static String LINKER_HEAP_SIZE =
-         "__heap_size  = 0x100;   /* required amount of heap  */"; //$NON-NLS-1$
-   
-   public final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
-   
-   public final static String MEM_DOCUMENTATION = 
-     "/*\n"                             +
-     " *  <o>  %-6s address <constant>\n" +
-     " *  <o1> %-6s size    <constant>\n"  +
-     " */\n";
 
-   public final static String LINKER_FLEXRAM_REGION =
-         "   /* FlexRAM region for non-volatile variables */\n"+
-         "   .flexRAM :\n" + 
-         "   {\n" + 
-         "      . = ALIGN(4);\n" + 
-         "      KEEP(*(.flexRAM))\n" + 
-         "   } > flexRAM\n"; //$NON-NLS-1$
-   
+   private final static String MAP_PREFIX = 
+         "MEMORY\n" + //$NON-NLS-1$
+               "{\n";         //$NON-NLS-1$
+
+   private final static String MAP_SUFFIX = 
+         "};\n";         //$NON-NLS-1$
+
+//   // Default memory maps
+//   private final static String LINKER_MEMORY_MAP_COLDFIRE_V1 = 
+//         "  /* Default Map - Unknow device */\n" +              //$NON-NLS-1$
+//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
+//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
+//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
+//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
+//
+//   private final static String LINKER_MEMORY_MAP_COLDFIRE_Vx = 
+//         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
+//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
+//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
+//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
+//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
+//
+//   private final static String LINKER_MEMORY_MAP_KINETIS = 
+//         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
+//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
+//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
+//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
+//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
+//
+//   private final static String LINKER_STACK_SIZE =
+//         "__stack_size = 0x100;   /* required amount of stack */"; //$NON-NLS-1$
+//
+//   private final static String LINKER_HEAP_SIZE =
+//         "__heap_size  = 0x100;   /* required amount of heap  */"; //$NON-NLS-1$
+//
+   private final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
+
+   private final static String MEM_DOCUMENTATION = 
+         "/*\n"                             +
+               " *  <o>  %-6s address <constant>\n" +
+               " *  <o1> %-6s size    <constant>\n"  +
+               " */\n";
+
+   private final static String LINKER_FLEXNVM_REGION =
+         "   /* flexNVM flash region */\n"+
+               "   .flexNVM (NOLOAD) :\n" + 
+               "   {\n" + 
+               "      . = ALIGN(4);\n" + 
+               "      KEEP(*(.flexNVM))\n" + 
+               "   } > flexNVM\n\n"; //$NON-NLS-1$
+
+   private final static String LINKER_FLEXRAM_REGION =
+               "   /* FlexRAM region for non-volatile variables */\n"+
+               "   .flexRAM :\n" + 
+               "   {\n" + 
+               "      . = ALIGN(4);\n" + 
+               "      KEEP(*(.flexRAM))\n" + 
+               "   } > flexRAM\n\n"; //$NON-NLS-1$
+
    /**
     * Adds the device memory map information to the paramMap
     * 
@@ -477,20 +485,20 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     */
    private void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
 
-//      int flashRangeCount = 0;
-//      int ramRangeCount   = 0;
+      //      int flashRangeCount = 0;
+      //      int ramRangeCount   = 0;
       int ioRangeCount    = 0;
       int flexNVMCount    = 0;
       int flexRamCount    = 0;
       int unknownCount    = 0;
       long ramSize        = 0x100;
       long flashSize      = 0x1000;
-      
+
       StringBuilder memoryMap = new StringBuilder(String.format(
             "/*\n" +
-            " * Memory Map generated by USBDM New Project Wizard for %s\n" +
-            " */\n", device.getName())); //$NON-NLS-1$
-      
+                  " * Memory Map generated by USBDM New Project Wizard for %s\n" +
+                  " */\n", device.getName())); //$NON-NLS-1$
+
       memoryMap.append(MAP_PREFIX);
       long gdbGuardAddress = -1;
       ArrayList<MemoryRange> ramRegions   = new ArrayList<MemoryRange>();
@@ -505,23 +513,23 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             String access = "";
             switch (memoryRegion.getMemoryType()) {
             case MemRAM   :
-//               if (ramRangeCount == 0) {
-//                  // 1st RAM region - contains stack
-//                  ramSize = (memoryRange.end-memoryRange.start+1);
-//                  gdbGuardAddress = memoryRange.end+1;
-//               }
-//               name   = String.format("ram%s", getRangeSuffix(ramRangeCount++));
-//               access = "(rwx)";
+               //               if (ramRangeCount == 0) {
+               //                  // 1st RAM region - contains stack
+               //                  ramSize = (memoryRange.end-memoryRange.start+1);
+               //                  gdbGuardAddress = memoryRange.end+1;
+               //               }
+               //               name   = String.format("ram%s", getRangeSuffix(ramRangeCount++));
+               //               access = "(rwx)";
                ramRegions.add(memoryRange);
                memoryRange = null;
                continue;
             case MemFLASH : 
-//               if (flashRangeCount == 0) {
-//                  // 1st FLASH region - contains stack
-//                  flashSize = (memoryRange.end-memoryRange.start+1);
-//               }
-//               name   = String.format("rom%s", getRangeSuffix(flashRangeCount++));
-//               access = "(rx)";
+               //               if (flashRangeCount == 0) {
+               //                  // 1st FLASH region - contains stack
+               //                  flashSize = (memoryRange.end-memoryRange.start+1);
+               //               }
+               //               name   = String.format("rom%s", getRangeSuffix(flashRangeCount++));
+               //               access = "(rx)";
                flashRegions.add(memoryRange);
                memoryRange = null;
                continue;
@@ -551,7 +559,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       flashRegions = coalesce(flashRegions);
       // 1st FLASH region
       flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
-      
+
       int    suffix  = 0;
       String capName = "ROM"; 
       String name    = "rom"; 
@@ -581,15 +589,20 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
       }
       memoryMap.append(MAP_SUFFIX);
-      
+
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
       paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
       paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
-      if (flexRamCount>0) {
-         paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, LINKER_FLEXRAM_REGION);
+      StringBuilder sb = new StringBuilder();
+      if (flexNVMCount>0) {
+         sb.append(LINKER_FLEXNVM_REGION);
       }
+      if (flexRamCount>0) {
+         sb.append(LINKER_FLEXRAM_REGION);
+      }
+      paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, sb.toString());
    }
 
    private ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
@@ -612,11 +625,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    }
 
    static final String VECTOR_TABLE_INTRO = 
-   "/* \n" +
-   " * Default Map\n"+
-   " * ============================\n"+
-   " */\n";
-   
+         "/* \n" +
+               " * Default Map\n"+
+               " * ============================\n"+
+               " */\n";
+
    DevicePeripherals getDevicePeripherals(final Device device) {
       DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
       DevicePeripherals devicePeripherals = factory.getDevicePeripherals(device.getName());
@@ -625,7 +638,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       return devicePeripherals;
    }
-   
+
    /**
     * Adds device specific attributes to map
     * 
@@ -637,11 +650,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       // Try to locate device specific header file
       String externalHeaderFile = getExternalProjectHeaderFile(device);
-//      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
+      //      System.err.println("Result for device header file: \'" + externalHeaderFile + "\'"); //$NON-NLS-1$
 
       // Try to locate device specific vector table file
       String externalVectorTableFile = getExternalVectorTable(device);
-//      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
+      //      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
       addLinkerMemoryMap(device, paramMap);
       addDatabaseValues(paramMap, device);
@@ -649,8 +662,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
       paramMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY,    String.valueOf(device.getDefaultClockTrimNVAddress()));            
 
-//      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
-//      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
+      //      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
+      //      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
 
       try {
          if (externalVectorTableFile.isEmpty()) {
@@ -662,7 +675,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             }
             if (cVectorTable == null) {
                // Generate default vector tables
-//               System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
+               //               System.err.println("UsbdmProjectParametersPage.addDeviceAttributes() - generating default vector table");
                switch(fInterfaceType) {
                case T_ARM: 
                default:
@@ -684,7 +697,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalHeaderFile);
       paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,   externalVectorTableFile);
    }
-   
+
    /**
     * Gets data from this page as a map
     * 
@@ -722,7 +735,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       Map<String, String> pageData = new HashMap<String, String>();
 
       Device device = getDevice();
-//      System.err.println("UsbdmProjectParametersPage_2.updatePageData() device = " + ((device==null)?"null":device.getName()));
+      //      System.err.println("UsbdmProjectParametersPage_2.updatePageData() device = " + ((device==null)?"null":device.getName()));
       if (device == null) {
          return;
       }
@@ -743,14 +756,14 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       pageData.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
       pageData.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
       pageData.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
-      
+
       pageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
 
-//      System.err.println("getPageData() - #2");
+      //      System.err.println("getPageData() - #2");
       addDeviceAttributes(device, pageData);
       fPageData = pageData;
-      
-//      System.err.println("UsbdmProjectParametersPage_2.updatePageData() - exit");
+
+      //      System.err.println("UsbdmProjectParametersPage_2.updatePageData() - exit");
    }
 
    public Device getDevice() {
@@ -771,7 +784,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       fHasChanged = false;
       return hasChanged;
    }
-   
+
    public void saveSettings() {
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings != null) {
@@ -779,7 +792,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          dialogSettings.put(fInterfaceType.name()+UsbdmConstants.TARGET_DEVICE_KEY,  fDeviceSelector.getDeviceName());
       }
    }
-   
+
    /**
     * Test main
     * 
@@ -792,7 +805,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       shell.setText("Project Parameters");
       shell.setLayout(new FillLayout());
       shell.setSize(500, 350);
-      
+
       Composite composite = new Composite(shell, SWT.NONE);
       composite.setLayout(new FillLayout());
 
