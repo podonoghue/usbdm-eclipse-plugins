@@ -763,7 +763,7 @@ public abstract class Peripheral {
       pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED", "");
 
       pinMappingHeaderFile.writeDocBanner(
-            "Peripheral information for " + getGroupTitle() + "\n" + 
+            "Peripheral information for " + getGroupTitle() + ".\n\n" + 
             "This may include pin information, constants, register addresses, and default register values,\n" + 
             "along with simple accessor functions.");
 

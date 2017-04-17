@@ -123,8 +123,10 @@
       <peripheral baseName="FTFL"     instance=""         version="ftfl">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtfl" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_FTFL_MASK" />
-         <param key="eepromSize"    value="USBDM_KINETIS_2K_EEPROM" />
-         <param key="flexramSize"   value="USBDM_KINETIS_32K_FLEXRAM" />
+         <param key="dflash_phrase_size" value="4" />
+         <param key="pflash_sector_size" value="1024" />
+         <param key="dflash_sector_size" value="1024" />
+         <param key="pflash_phrase_size" value="4" />
          <param key="peripheral_file" value="ftfl_32k_flexrom" />
       </peripheral>
       <peripheral baseName="FTM"      instance="">
