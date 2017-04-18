@@ -113,8 +113,30 @@ public class ParseMenuXML extends XML_BaseParser {
       return element.getAttribute("toolTip").replaceAll("\\\\n( +)", "\n");
    }
    
+   private Variable existingVariableCheck(String name, String key, Class<?> clazz) {
+      Variable newVariable = null;
+      Variable existingVariable = fProvider.safeGetVariable(key);
+      if (existingVariable == null) {
+         // New variable
+         try {
+            newVariable = (Variable) clazz.getConstructor(String.class, String.class).newInstance(name, key);
+            fProvider.addVariable(newVariable);
+         } catch (Exception e) {
+            throw new RuntimeException("Unable to create variable!");
+         }
+      }
+      else {
+         if (!existingVariable.getClass().equals(clazz)) {
+            throw new RuntimeException("Overridden variable has wrong type");
+         }
+         newVariable = existingVariable;
+      }
+      return newVariable;
+      
+   }
+   
    /**
-    * Parse &lt;intOption&gt; element<br>
+    * Parse &lt;longOption&gt; element<br>
     * 
     * @param varElement
     */
@@ -135,8 +157,8 @@ public class ParseMenuXML extends XML_BaseParser {
       String  value       = varElement.getAttribute("value");
       String  units       = varElement.getAttribute("units");
       
-      LongVariable variable = new LongVariable(name, key);
-      fProvider.addVariable(variable);
+      LongVariable variable = (LongVariable) existingVariableCheck(name, key, LongVariable.class);
+      
       variable.setDescription(description);
       variable.setToolTip(toolTip);
       variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
@@ -163,7 +185,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;intOption&gt; element<br>
+    * Parse &lt;bitmaskOption&gt; element<br>
     * 
     * @param varElement
     */
@@ -202,7 +224,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;intOption&gt; element<br>
+    * Parse &lt;doubleOption&gt; element<br>
     * 
     * @param varElement
     */
@@ -298,13 +320,12 @@ public class ParseMenuXML extends XML_BaseParser {
       String  value       = varElement.getAttribute("value");
       String  toolTip     = getToolTip(varElement);
 
-      Variable variable = new StringVariable(name, key);
+      StringVariable variable = (StringVariable) existingVariableCheck(name, key, StringVariable.class);
       variable.setDescription(description);
       variable.setToolTip(toolTip);
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
-      fProvider.addVariable(variable);
       VariableModel model = variable.createModel(parent);
       model.setName(name);
       model.setConstant(isConstant);
@@ -414,7 +435,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;aliasOption&gt; element<br>
     * 
     * @param stringElement
     * @throws Exception 
@@ -425,6 +446,9 @@ public class ParseMenuXML extends XML_BaseParser {
       // Key is used to refer to external variable without validation error
       String  name         = stringElement.getAttribute("name");
       String  key          = stringElement.getAttribute("key");
+      String  description  = stringElement.getAttribute("description");
+      String  toolTip      = getToolTip(stringElement);
+      
       if (key.isEmpty()) {
          key = name;
       }
@@ -444,12 +468,24 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return;
       }
+      if (!description.isEmpty()) {
+         if ((variable.getDescription() != null) && !variable.getDescription().isEmpty()) {
+            throw new RuntimeException("Alias tries to change description for " + key);
+         }
+         variable.setDescription(description);
+      }
+      if (!toolTip.isEmpty()) {
+         if ((variable.getToolTip() != null) && !variable.getToolTip().isEmpty()) {
+            throw new RuntimeException("Alias tries to change toolTip for " + key);
+         }
+         variable.setToolTip(toolTip);
+      }
       VariableModel model = variable.createModel(parent);
       model.setConstant(isConstant);
    }
    
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;binaryOption&gt; element<br>
     * 
     * @param varElement
     * @throws Exception 

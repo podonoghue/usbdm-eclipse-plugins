@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,9 +36,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEnet;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtfl;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
@@ -1180,17 +1181,17 @@ public class DeviceInfo extends ObservableModel {
                "FTFA", "$2", "$3",
                "(FTFA)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForFlash.class);
          createPeripheralTemplateInformation(
                "FTFE", "$2", "$3",
                "(FTFE)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForFlash.class);
          createPeripheralTemplateInformation(
                "FTFL", "$2", "$3",
                "(FTFL)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForFtfl.class);
+               WriterForFlash.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(RNG(A)?)(\\d)?(.*)",
