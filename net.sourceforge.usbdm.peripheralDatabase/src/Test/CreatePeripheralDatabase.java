@@ -690,9 +690,6 @@ public class CreatePeripheralDatabase {
       final  Path stage3Folder   = MAIN_FOLDER.resolve("3.stage3Folder");
       final  Path resultFolder   = MAIN_FOLDER.resolve("9.resultFolder");
 
-      firstFileToProcess = ("^MKE15Z.*");
-      firstFileToReject  = ("^MKL.*");
-
       try {
          // Generate merged version of SVD files for testing (should be unchanging eventually)
          //         ModeControl.setExpandDerivedRegisters(false);
@@ -757,6 +754,9 @@ public class CreatePeripheralDatabase {
     * @param args
     */
    public static void main(String[] args) {
+
+//      firstFileToProcess = ("^MKE16F.*");
+//      firstFileToReject  = ("^MKL.*");
 
 //      doFactoring();
       doUsualRegeneration();
