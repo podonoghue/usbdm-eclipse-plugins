@@ -8,8 +8,8 @@ set /p PASS=Enter Certificate Password:
 cls
 if [%PASS%] == []  goto done
 
-set KEYTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\keytool.exe"
-set SIGNTOOL="c:\Program Files\Java\jdk1.8.0_60\bin\jarsigner.exe"
+set KEYTOOL="C:\Program Files\Java\jdk1.8.0_131\bin\keytool.exe"
+set SIGNTOOL="C:\Program Files\Java\jdk1.8.0_131\bin\jarsigner.exe"
 set STORE="C:\Apps\Certificates\cacerts"
 set ALIAS=myKey
 rem set ALIAS={0483c6d5-103a-436c-bca0-dfe8ad043339}
