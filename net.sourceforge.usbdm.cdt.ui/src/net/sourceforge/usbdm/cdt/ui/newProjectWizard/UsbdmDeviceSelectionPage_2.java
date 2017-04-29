@@ -45,6 +45,7 @@ import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion;
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
+import net.sourceforge.usbdm.deviceDatabase.MemoryType;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
@@ -425,34 +426,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private final static String MAP_SUFFIX = 
          "};\n";         //$NON-NLS-1$
 
-//   // Default memory maps
-//   private final static String LINKER_MEMORY_MAP_COLDFIRE_V1 = 
-//         "  /* Default Map - Unknow device */\n" +              //$NON-NLS-1$
-//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-//
-//   private final static String LINKER_MEMORY_MAP_COLDFIRE_Vx = 
-//         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-//
-//   private final static String LINKER_MEMORY_MAP_KINETIS = 
-//         "  /* Default Map - Unknow device  */\n" +             //$NON-NLS-1$
-//               "  rom (rx)  : ORIGIN = 0x00000000, LENGTH = 128K\n"+  //$NON-NLS-1$
-//               "  ram (rwx) : ORIGIN = 0x00800000, LENGTH = 24K\n"+   //$NON-NLS-1$
-//               "  gpio (rw) : ORIGIN = 0x00c00000, LENGTH = 16\n"+    //$NON-NLS-1$
-//               "  io (rw)   : ORIGIN = 0x00ff8000, LENGTH = 32K\n";   //$NON-NLS-1$
-//
-//   private final static String LINKER_STACK_SIZE =
-//         "__stack_size = 0x100;   /* required amount of stack */"; //$NON-NLS-1$
-//
-//   private final static String LINKER_HEAP_SIZE =
-//         "__heap_size  = 0x100;   /* required amount of heap  */"; //$NON-NLS-1$
-//
    private final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
 
    private final static String MEM_DOCUMENTATION = 
@@ -490,6 +463,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       int ioRangeCount    = 0;
       int flexNVMCount    = 0;
       int flexRamCount    = 0;
+      int romCount        = 0;
       int unknownCount    = 0;
       long ramSize        = 0x100;
       long flashSize      = 0x1000;
@@ -511,25 +485,13 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             MemoryRange memoryRange = it1.next();
             String name   = "";
             String access = "";
-            switch (memoryRegion.getMemoryType()) {
+            MemoryType memType = memoryRegion.getMemoryType();
+            switch (memType) {
             case MemRAM   :
-               //               if (ramRangeCount == 0) {
-               //                  // 1st RAM region - contains stack
-               //                  ramSize = (memoryRange.end-memoryRange.start+1);
-               //                  gdbGuardAddress = memoryRange.end+1;
-               //               }
-               //               name   = String.format("ram%s", getRangeSuffix(ramRangeCount++));
-               //               access = "(rwx)";
                ramRegions.add(memoryRange);
                memoryRange = null;
                continue;
             case MemFLASH : 
-               //               if (flashRangeCount == 0) {
-               //                  // 1st FLASH region - contains stack
-               //                  flashSize = (memoryRange.end-memoryRange.start+1);
-               //               }
-               //               name   = String.format("rom%s", getRangeSuffix(flashRangeCount++));
-               //               access = "(rx)";
                flashRegions.add(memoryRange);
                memoryRange = null;
                continue;
@@ -545,12 +507,25 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                name   = String.format("flexRAM%s", getRangeSuffix(flexRamCount++));
                access = "(rw)";
                break;
-            default: 
-               name   = String.format("unknown%s", getRangeSuffix(unknownCount++));
+            case MemROM:
+               name   = String.format("rom%s", getRangeSuffix(romCount++));
+               access = "(rx)";
+               break;
+            case MemDFlash:
+            case MemEEPROM:
+            case MemInvalid:
+            case MemPFlash:
+            case MemPRAM:
+            case MemPROM:
+            case MemXRAM:
+            case MemXROM:
+            default:
+               name   = memType.xmlName+String.format("%s", getRangeSuffix(unknownCount++));
                access = "(r)";
                break;
             }
             if (memoryRange.getName() != null) {
+               // Use supplied name
                name = memoryRange.getName();
             }
             memoryMap.append(String.format(MEM_FORMAT, name, access, memoryRange.start, memoryRange.end-memoryRange.start+1));
@@ -561,14 +536,14 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
 
       int    suffix  = 0;
-      String capName = "ROM"; 
-      String name    = "rom"; 
+      String capName = "FLASH"; 
+      String name    = "flash"; 
       for(MemoryRange flashRegion:flashRegions) {
          memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
          memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", flashRegion.start, flashRegion.end-flashRegion.start+1));
          suffix++;
-         capName = "ROM" + suffix; 
-         name    = "rom" + suffix; 
+         capName = "FLASH" + suffix; 
+         name    = "flash" + suffix; 
       }
 
       ramRegions = coalesce(ramRegions);
