@@ -27,6 +27,7 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.jni.Usbdm;
@@ -391,19 +392,26 @@ public class DeviceDatabase {
       if (documentElement == null) {
          throw new Exception("DeviceDatabase.parseDocument() - failed to get documentElement");
       }
-      for (Node node = documentElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
+      NodeList sharedInformationNodeList = documentElement.getElementsByTagName("sharedInformation");
+      // Process all shared information
+      for (int index=0; index<sharedInformationNodeList.getLength(); index++) {
+         Node node = sharedInformationNodeList.item(index);
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         Element element = (Element) node;
-         if (element.getTagName() == "sharedInformation") {
-            parseSharedInformationElements(element);
+         parseSharedInformationElements((Element) node);
+         
+      }
+      
+      sharedInformationNodeList = documentElement.getElementsByTagName("deviceList");
+      // Process all device information
+      for (int index=0; index<sharedInformationNodeList.getLength(); index++) {
+         Node node = sharedInformationNodeList.item(index);
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
          }
-         else if (element.getTagName() == "deviceList") {
-            parseDeviceList(element);
-         }
+         parseDeviceList((Element) node);
+         
       }
       valid = true;
    }
@@ -511,12 +519,11 @@ public class DeviceDatabase {
 
       try {
          //  Using factory get an instance of document builder
-         
          dbf.setXIncludeAware(true);
          dbf.setNamespaceAware(true);
 
          DocumentBuilder db = dbf.newDocumentBuilder();
-
+         
          //  Parse using builder to get DOM representation of the XML file
          dom = db.parse(databasePath.toOSString());
       } catch (Exception e) {
