@@ -235,15 +235,8 @@
             tooltip="Create USBDM Launch configuration">
             <visibleWhen>
                <and>
-                  <iterate operator="or">
-                     <test
-                           property="org.eclipse.core.resources.projectNature"
-                           value="org.eclipse.cdt.core.cnature">
-                     </test>
-                     <test
-                           property="org.eclipse.core.resources.projectNature"
-                           value="org.eclipse.cdt.core.ccnature">
-                     </test>
+                  <iterate operator="and">
+	                  <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature"/>
                   </iterate>
                   <not>
                      <iterate operator="and">
