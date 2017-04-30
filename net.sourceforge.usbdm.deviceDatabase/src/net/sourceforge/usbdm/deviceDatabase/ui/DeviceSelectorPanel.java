@@ -212,6 +212,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("^(FRDM).*$",        "Freedom boards (FRDM)"),
             new Pair("^(TWR).*$",         "Tower boards (TWR)"),
             new Pair("^(STM32).*$",       "ST Micro ($1)"),
+            new Pair("^(LPC).*$",         "NXP LPC ($1)"),
             new Pair("^([a-zA-Z]+).*$",   "$1"),
       };
       Pair[] cfv1Patterns = {
@@ -257,6 +258,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("(FRDM[-_][a-zA-Z]*).*$",                            "$1"),
             new Pair("(TWR[-_].*)$",                                      "$1"),
             new Pair("^(STM32F[0-9]*).*$",                                "$1"),
+            new Pair("^(LPC[0-9]*[A-Z|a-z]+).*$",                         "$1"),
             new Pair("^(PK[0-9]*).*$",                                    "$1"),
             new Pair("^(S9KEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",                 "$1xxx$2"),
             new Pair("^(MKE02)Z.*(M2)$",                                  "$1xxx$2 (20MHz)"),
