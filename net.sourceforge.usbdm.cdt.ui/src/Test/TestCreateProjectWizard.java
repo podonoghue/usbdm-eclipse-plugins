@@ -15,7 +15,7 @@ public class TestCreateProjectWizard {
       // Instantiates and initialises the wizard
       UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
       wizard.init(null,null);
-      
+
       // Instantiates the wizard container with the wizard and opens it
       WizardDialog dialog = new WizardDialog(shell, wizard);
       dialog.create();

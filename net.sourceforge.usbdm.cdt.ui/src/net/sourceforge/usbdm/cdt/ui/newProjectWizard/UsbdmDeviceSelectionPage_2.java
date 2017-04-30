@@ -72,7 +72,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
    public UsbdmDeviceSelectionPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
-      fInterfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
+      try {
+         fInterfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
+      } catch (Exception e) {
+         fInterfaceType = InterfaceType.T_ARM;
+      }
       setTitle(PAGE_TITLE);
       setDescription("Select project parameters");
       setPageComplete(false);
