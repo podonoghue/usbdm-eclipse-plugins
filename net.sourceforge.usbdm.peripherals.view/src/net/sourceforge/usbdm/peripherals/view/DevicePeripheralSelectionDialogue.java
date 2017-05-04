@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
-
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
@@ -26,15 +25,12 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -47,7 +43,6 @@ import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
 import net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider;
 import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
-import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
 import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvider;
 
 /**
@@ -354,15 +349,6 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       return devicePeripherals;
    }
    
-   /*
-    * (non-Javadoc)
-    * @see org.eclipse.jface.dialogs.Dialog#getInitialSize()
-    */
-   @Override
-   protected Point getInitialSize() {
-     return new Point(800, 400);
-   }
-   
    /**
     * Get selected device
     * 
@@ -370,45 +356,5 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
     */
    public SVDIdentifier getSVDId() {
       return svdIdentifier;
-   }
-
-   /**
-    * Test main
-    * 
-    * @param args
-    * @throws Exception 
-    */
-   public static void main(String[] args) throws Exception {
-      Display display = new Display();
-      Shell shell = new Shell(display);
-      shell.setText("Selection");
-      shell.setLayout(new FillLayout());
-
-//      SVDIdentifier svdIdentifier = new SVDIdentifier(Paths.get("C:/Program Files (x86)/pgo/USBDM 4.11.1.70/DeviceData/Device.SVD/Freescale/MK10D7.svd.xml"));
-      SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:FRDM_K64F]");
-//      SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:S9KEAZN8]");
-      svdIdentifier = new SVDIdentifier(svdIdentifier.toString());
-      DevicePeripheralSelectionDialogue dialogue = new DevicePeripheralSelectionDialogue(shell, svdIdentifier);
-//      DeviceSelectDialogue dialogue = new DeviceSelectDialogue(shell, "C:/Users/podonoghue/Development/USBDM/ARM_Devices/Generated/STMicro/STM32F40x.svd.xml");
-      int result = dialogue.open();
-      if (result != Window.OK) {
-         // Cancelled etc
-         System.err.println("fileOrDevicename = Cancelled");
-         return;
-      }
-      SVDIdentifier svdID = dialogue.getSVDId();
-      System.err.println("svdID = " + svdID);
-      System.err.println("svdID.getDeviceName = " + svdID.getDeviceName());
-      DevicePeripheralsProviderInterface pif = new DevicePeripheralsProviderInterface();
-      DevicePeripherals devicePeripherals = pif.getDevice(svdID);
-      System.err.println("devicePeripherals = " + devicePeripherals);
-      
-      devicePeripherals = dialogue.getDevicePeripherals(); 
-      System.err.println("deviceOrFilename = " + devicePeripherals.getName());
-      System.err.println("devicePeripherals = " + devicePeripherals);
-      UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(null, devicePeripherals);
-      System.err.println("peripheralModel = " + peripheralModel);
-      
-      display.dispose();
    }
 } 
