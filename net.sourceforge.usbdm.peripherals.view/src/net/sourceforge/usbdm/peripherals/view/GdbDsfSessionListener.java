@@ -22,9 +22,18 @@ import net.sourceforge.usbdm.peripherals.usbdm.UsbdmPeripheralDescriptionProvide
 
 public class GdbDsfSessionListener implements SessionStartedListener, SessionEndedListener {
 
-   private static GdbDsfSessionListener                 singleton           = null;
-   private HashMap<String, UsbdmDevicePeripheralsModel> dsfSessions         = null;
-   private ArrayList<GdbSessionListener>                gdbSessionListeners = null;
+   /**
+    * Singleton
+    */
+   private static GdbDsfSessionListener  singleton = null;
+   /**
+    * Used to track DSF sessions and associated device information
+    */
+   private HashMap<String, UsbdmDevicePeripheralsModel> dsfSessions = null;
+   /**
+    * Used to track listeners to this GdbDsfSessionListener
+    */
+   private ArrayList<GdbSessionListener> gdbSessionListeners = null;
    
    private GdbDsfSessionListener() {
 //      System.err.println("GdbDsfSessionListener()");      
@@ -32,7 +41,7 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
    }
 
    /**
-    * @return listener singleton
+    * @return DSF session listener singleton
     */
    public static synchronized GdbDsfSessionListener getListener() {
       if (singleton == null) {
@@ -72,7 +81,7 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
     */
    void addExistingSessions() {
       // Add any existing sessions
-      dsfSessions         = new HashMap<String, UsbdmDevicePeripheralsModel>();
+      dsfSessions = new HashMap<String, UsbdmDevicePeripheralsModel>();
       for (DsfSession dsfSession : DsfSession.getActiveSessions()) {
          addSession(dsfSession.getId());
          sessionStarted(dsfSession);
@@ -159,7 +168,7 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
    /**
     * Adds a session and associated model to dsfSessions
     * 
-    * @param event Event indicating session exists
+    * @param sessionId DSF Session id used to track session
     *  
     * @return true => new session was added, 
     *     <br>false => session already exists

@@ -6,7 +6,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
 import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 import net.sourceforge.usbdm.peripherals.model.UsbdmDevicePeripheralsModel;
 import net.sourceforge.usbdm.peripherals.view.DevicePeripheralSelectionDialogue;
@@ -22,7 +21,8 @@ public class TestDevicePeripheralSelectionDialogue {
       DevicePeripheralSelectionDialogue dialogue;
       try {
          //      SVDIdentifier svdIdentifier = new SVDIdentifier(Paths.get("C:/Program Files (x86)/pgo/USBDM 4.11.1.70/DeviceData/Device.SVD/Freescale/MK10D7.svd.xml"));
-         SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:FRDM_K64F]");
+//         SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:FRDM_K64F]");
+         SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:path=C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-plugins/net.sourceforge.usbdm.peripherals.stmicro/data/STM32F40x.svd.xml]");
          //      SVDIdentifier svdIdentifier = new SVDIdentifier("[SVDIdentifier:usbdm.arm.devices:S9KEAZN8]");
          svdIdentifier = new SVDIdentifier(svdIdentifier.toString());
          dialogue = new DevicePeripheralSelectionDialogue(shell, svdIdentifier);
@@ -40,16 +40,17 @@ public class TestDevicePeripheralSelectionDialogue {
       }
       SVDIdentifier svdID = dialogue.getSVDId();
       System.err.println("svdID = " + svdID);
-      System.err.println("svdID.getDeviceName = " + svdID.getDeviceName());
-      DevicePeripheralsProviderInterface pif = new DevicePeripheralsProviderInterface();
-      DevicePeripherals devicePeripherals = pif.getDevice(svdID);
-      System.err.println("devicePeripherals = " + devicePeripherals);
+      try {
+         System.err.println("svdID.getDeviceName = " + svdID.getDeviceName());
+         DevicePeripherals devicePeripherals = svdID.getDevicePeripherals();
+         System.err.println("devicePeripherals (from SVDID) = " + devicePeripherals);
 
-      devicePeripherals = dialogue.getDevicePeripherals(); 
-      System.err.println("deviceOrFilename = " + devicePeripherals.getName());
-      System.err.println("devicePeripherals = " + devicePeripherals);
-      UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(null, devicePeripherals);
-      System.err.println("peripheralModel = " + peripheralModel);
+         System.err.println("deviceOrFilename = " + devicePeripherals.getName());
+         UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(null, svdID);
+         System.err.println("peripheralModel = " + peripheralModel);
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
 
       display.dispose();
    }

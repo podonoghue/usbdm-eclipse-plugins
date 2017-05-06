@@ -37,20 +37,26 @@ public class TestPeripheralView {
 
          String os    = System.getProperty("os.name");            
          System.err.println("os.name      => "+os );
-         
+
          Path path = null;
          if ((os != null) && os.toUpperCase().contains("LINUX")) {
             path = Paths.get("/usr/share/usbdm/DeviceData/Device.SVD/Internal/");
          } else {
-            path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal");}
-         
+            path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+         }
+//
+//         DeviceFileList fileList = new DeviceFileList(path.resolve("DeviceList.xml"));
+//         Path name = fileList.getSvdFilename("LPC11U24_401");
+//         System.err.println("Name = " + name);
+
          view.createPartControl(composite);
-         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
-//         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
+         //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
+         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("LPC13xx.svd.xml"));
+         //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MK22F51212.svd.xml"));
          UsbdmDevicePeripheralsModel peripheralsModel = UsbdmDevicePeripheralsModel.createModel(null, svdId);
 
-         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
-         //    peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MKL25Z4.svd.xml", null);
+         //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK20D5.svd.xml", null);
          //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK10D10.svd.xml", null);
          //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK11D5.svd.xml", null);
          //      peripheralsModel = new UsbdmDevicePeripheralsModel(path+"MK64F12.svd.xml", null);
