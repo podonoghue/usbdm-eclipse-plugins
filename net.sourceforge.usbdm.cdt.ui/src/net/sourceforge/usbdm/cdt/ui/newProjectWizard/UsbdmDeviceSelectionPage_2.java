@@ -354,6 +354,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       if (externalHeaderFile == null) {
          // Try under alias name
          externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getAlias(), "h");
+      }
+      if (externalHeaderFile == null) {
+         externalHeaderFile = new DevicePeripheralsFactory().lookupHeaderFileName(device.getName());
+         // Try under alias name
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, externalHeaderFile, "h");
       }      
       if (externalHeaderFile == null) {
          externalHeaderFile = "";
