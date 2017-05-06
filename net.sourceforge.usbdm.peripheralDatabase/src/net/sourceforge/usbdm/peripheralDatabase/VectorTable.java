@@ -256,10 +256,6 @@ public abstract class VectorTable extends ModeControl {
     * @param standardFormat
     */
    public void writeSVDInterruptEntries(PrintWriter writer, boolean standardFormat) {
-      if (!standardFormat) {
-         writer.print("&"+PeripheralDatabaseMerger.VECTOR_TABLE_ENTITY+";\n");
-         return;
-      }
       // List devices using this table
       if (getUsedBy().size()>0) {
          writer.print(deviceListPreamble);
@@ -379,4 +375,13 @@ public abstract class VectorTable extends ModeControl {
       return sb.toString();
    }
 
+   /**
+    * Get relative vector table path
+    * 
+    * @return
+    * @throws Exception
+    */
+   public String getRelativePath() throws Exception {
+      return PeripheralDatabaseMerger.VECTOR_FOLDER+"/"+getName()+PeripheralDatabaseMerger.XML_EXTENSION;
+   }
 }

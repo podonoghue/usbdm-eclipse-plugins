@@ -7,7 +7,6 @@ import java.util.Map;
 
 import net.sourceforge.usbdm.peripheralDatabase.Cluster;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
 import net.sourceforge.usbdm.peripheralDatabase.Peripheral;
 import net.sourceforge.usbdm.peripheralDatabase.Register;
 import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
@@ -16,21 +15,25 @@ public class CreateDeviceEditorSkeleton {
    
    public static Map<String, String> getPeripherals(String name) {
       final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+      HashMap<String, String> map = new HashMap<String, String>();
       
       SVDIdentifier svdId = new SVDIdentifier(path.resolve(name));
-      DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
-      DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
-
-      HashMap<String, String> map = new HashMap<String, String>();
-      for (Peripheral peripheral:devicePeripherals.getPeripherals()) {
-         String filename;
-         String pName = peripheral.getName();
-         while (peripheral.getDerivedFrom() != null) {
-            peripheral = peripheral.getDerivedFrom();
+      
+      DevicePeripherals devicePeripherals;
+      try {
+         devicePeripherals = svdId.getDevicePeripherals();
+         for (Peripheral peripheral:devicePeripherals.getPeripherals()) {
+            String filename;
+            String pName = peripheral.getName();
+            while (peripheral.getDerivedFrom() != null) {
+               peripheral = peripheral.getDerivedFrom();
+            }
+            filename = peripheral.getSourceFilename();
+//            System.err.println(String.format("Peripheral %-20s %-20s", pName, filename));
+            map.put(pName, filename.toLowerCase());
          }
-         filename = peripheral.getSourceFilename();
-//         System.err.println(String.format("Peripheral %-20s %-20s", pName, filename));
-         map.put(pName, filename.toLowerCase());
+      } catch (Exception e) {
+         e.printStackTrace();
       }
       return map;
    }

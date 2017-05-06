@@ -66,6 +66,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String VTORPRESENT_TAG          = "vtorPresent";
    static final String GROUPNAME_TAG            = "groupName";
    static final String HEADERSTRUCTNAME_TAG     = "headerStructName";
+   static final String HEADERDEFINITIONSPREFIX  = "headerDefinitionsPrefix";
    static final String ISDEFAULT_TAG            = "isDefault";
    static final String INTERRUPT_TAG            = "interrupt";
    static final String INTERRUPTS_TAG           = "interrupts";
@@ -197,6 +198,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == ENUMERATEDVALUE_TAG) {
             field.addEnumeration(parseEnumeratedValue(field, element));
+         }
+         else if (element.getTagName() == NAME_TAG) {
+            //TODO: Implement <name>
          }
          else {
             throw new Exception("Unexpected field in ENUMERATEDVALUES', value = \'"+element.getTagName()+"\'");
@@ -813,6 +817,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             }
             peripheral.addInterruptEntry(interruptEntry);
          }
+         else if (element.getTagName() == ADDRESSBLOCK_TAG ){
+            peripheral.addAddressBlock(parseAddressBlock(element));
+         }
          else if (derived) {
             throw new Exception("Unexpected field in derived PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
@@ -827,9 +834,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == SIZE_TAG) {
             peripheral.setWidth(getIntElement(element));
-         }
-         else if (element.getTagName() == ADDRESSBLOCK_TAG ){
-            peripheral.addAddressBlock(parseAddressBlock(element));
          }
          else if (element.getTagName() == REGISTERS_TAG) {
             parseRegisters(peripheral, element);
@@ -958,7 +962,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             vectorTable.setName(element.getTextContent());
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
-            vectorTable.setDescription(element.getTextContent().trim());
+            vectorTable.setDescription(element.getTextContent().trim().replaceAll("\n", " "));
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
             InterruptEntry entry = parseInterrupt(element);
@@ -1079,6 +1083,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == VENDOREXTENSIONS_TAG) {
             parseVendorExtensions(devicePeripherals, element);
+         }
+         else if (element.getTagName() == HEADERDEFINITIONSPREFIX) {
+            // TODO <headerDefinitionsPrefix>
          }
          else {
             throw new Exception("Unexpected field in DEVICE, value = \'"+element.getTagName()+"\'");

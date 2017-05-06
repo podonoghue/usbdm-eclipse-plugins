@@ -8,10 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Vector;
 
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
-import net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider;
-
 import org.eclipse.core.runtime.FileLocator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;

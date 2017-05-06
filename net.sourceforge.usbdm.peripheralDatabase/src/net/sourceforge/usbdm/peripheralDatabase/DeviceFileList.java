@@ -1,12 +1,8 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -14,7 +10,7 @@ import org.w3c.dom.Node;
 
 public class DeviceFileList extends SVD_XML_BaseParser {
    
-   private HashMap<String, String> deviceList = new HashMap<String, String>();
+   private ArrayList<DeviceSvdInfo> deviceList = new ArrayList<DeviceSvdInfo>();
 
    /**
     *  Creates device name map from deviceFileList file
@@ -73,13 +69,13 @@ public class DeviceFileList extends SVD_XML_BaseParser {
     * 
     * @throws Exception
     */
-   private HashMap<String, String> parseDeviceList(Element documentElement) throws Exception {
+   private ArrayList<DeviceSvdInfo> parseDeviceList(Element documentElement) throws Exception {
       if (documentElement == null) {
          System.out.println("DeviceDatabase.parseDocument() - failed to get documentElement");
          return null;
       }
 
-      HashMap<String, String> deviceList = null;
+      ArrayList<DeviceSvdInfo> deviceList = null;
 
       for (Node node = documentElement.getFirstChild();
             node != null;
@@ -90,9 +86,9 @@ public class DeviceFileList extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == "device") {
             if (deviceList == null) {
-               deviceList = new HashMap<String,String>();
+               deviceList = new ArrayList<DeviceSvdInfo>();
             }
-            deviceList.put(element.getAttribute("name"), element.getTextContent());
+            deviceList.add(new DeviceSvdInfo(element.getAttribute("name"), element.getAttribute("svdFileName"), element.getAttribute("pattern")));
          }
          else {
             throw new Exception("Unexpected field in DEVICELIST', value = \'"+element.getTagName()+"\'");
@@ -101,24 +97,20 @@ public class DeviceFileList extends SVD_XML_BaseParser {
       return deviceList;
    }
    
-   public static class Pair {
+   public static class DeviceSvdInfo {
       public String deviceName;
-      public String mappedDeviceName;
+      public String deviceNamePattern;
+      public String svdName;
       
-      public Pair(String deviceName, String mappedDeviceName) {
-         this.deviceName       = deviceName;
-         this.mappedDeviceName = mappedDeviceName;
+      public DeviceSvdInfo(String deviceName, String svdName, String deviceNamePattern) {
+         this.deviceName        = deviceName;
+         this.svdName           = svdName;
+         this.deviceNamePattern = deviceNamePattern;
       }
    }
    
-   public ArrayList<DeviceFileList.Pair> getArrayList() {
-      ArrayList<DeviceFileList.Pair> arrayList = new ArrayList<DeviceFileList.Pair>();
-      Iterator<Entry<String, String>> it = deviceList.entrySet().iterator();
-      while (it.hasNext()) {
-          Entry<String, String> pairs = it.next();
-          arrayList.add(new DeviceFileList.Pair(pairs.getKey(), pairs.getValue()));
-      }
-      return arrayList;
+   public ArrayList<DeviceSvdInfo> getArrayList() {
+      return deviceList;
    }
    
    /**
@@ -128,27 +120,55 @@ public class DeviceFileList extends SVD_XML_BaseParser {
     */
    public Vector<String> getDeviceList() {
       Vector<String> list = new Vector<String>();
-      Iterator<Entry<String, String>> it = deviceList.entrySet().iterator();
-      while (it.hasNext()) {
-          Entry<String, String> pairs = it.next();
-          list.add(pairs.getKey());
+      for (DeviceSvdInfo entry:deviceList) {
+         list.add(entry.deviceName);
       }
       return list;
    }
    
    /**
-    * Determine the filename of the SVD file for the device (without any extension)
+    * Determine the base file name for the deviceName.<br>
+    * This can be used to construct the name of either the header file or the SVD file.
     * 
     * @param deviceName
     * 
     * @return filename if found e.g. MK11D5, or null if not found
     */
-   public Path getSvdFilename(String deviceName) {
-      String path = deviceList.get(deviceName);
-      if (path == null) {
-         return null;
+   public String getBaseFilename(String deviceName) {
+      for (DeviceSvdInfo entry:deviceList) {
+         // Use pattern if it exists
+         if (!entry.deviceNamePattern.isEmpty() && deviceName.matches(entry.deviceNamePattern)) {
+            return entry.svdName;
+         }
+         // Try name directly
+         if (deviceName.equalsIgnoreCase(entry.deviceName)) {
+            return entry.svdName;
+         }
       }
-      return Paths.get(path);
+      return null;
    }
+
+//   /**
+//    * Determine the relative path of the SVD file for the device (without any extension)
+//    * 
+//    * @param deviceName
+//    * 
+//    * @return filename if found e.g. MK11D5, or null if not found
+//    */
+//   public Path getSvdRelativePath(String deviceName) {
+//      return Paths.get(getBaseFilename(deviceName));
+//      
+////      for (DeviceSvdInfo entry:deviceList) {
+////         // Use pattern if it exists
+////         if (!entry.deviceNamePattern.isEmpty() && deviceName.matches(entry.deviceNamePattern)) {
+////            return Paths.get(entry.svdName);
+////         }
+////         // Try name directly
+////         if (deviceName.equalsIgnoreCase(entry.deviceName)) {
+////            return Paths.get(entry.svdName);
+////         }
+////      }
+////      return null;
+//   }
 
 }

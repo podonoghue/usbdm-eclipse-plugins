@@ -1,111 +1,122 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 public class PeripheralDatabaseMerger {
 
+
    // Where to write files
-   IPath xmlRootPath   = Path.EMPTY;
-   String xmlExtension = ".svd.xml";
-   
-   public void setXmlExtension(String xmlExtension) {
-      this.xmlExtension = xmlExtension;
-   }
-   
-   public void setXmlRootPath(File file ) {
-      xmlRootPath = new Path(file.getAbsolutePath());
-   }
-   
-   public IPath getXmlRootPath() {
-      return xmlRootPath;
-   }
-   
-   public IPath getXmlFilepath(String fileName) {
-      IPath path = xmlRootPath.append(fileName+xmlExtension);
-//      System.out.println("PeripheralDatabaseMerger.getXmlFilepath() => \"" + path.toOSString() + "\"");
-      return path;
+   private Path   xmlRootPath   = Paths.get("");
+
+   public final static String PERIPHERAL_FOLDER = "peripherals";
+   public final static String VECTOR_FOLDER     = "vectorTables";
+   public final static String XML_EXTENSION     = ".svd.xml";
+
+   public void setXmlRootPath(File file) {
+      xmlRootPath = file.toPath();
    }
 
-   private final String peripheralFolder = "peripherals";
-   private final String vectorFolder     = "vectorTables";
-   
+   public Path getXmlRootPath() {
+      return xmlRootPath;
+   }
+
+   /**
+    * Returns path to peripheral file
+    * 
+    * @param basename base name of peripheral file
+    * @return
+    */
+   public Path getDevicePath(String basename) {
+      return getXmlRootPath().resolve(basename+XML_EXTENSION);
+   }
+
+   /**
+    * Returns path to peripheral file
+    * 
+    * @param basename base name of peripheral file
+    * @return
+    */
+   public Path getPeripheralPath(String basename) {
+      return getXmlRootPath().resolve(PERIPHERAL_FOLDER).resolve(basename+XML_EXTENSION);
+   }
+
+   /**
+    * Returns path to vector table file
+    * 
+    * @param basename base name of vector table file
+    * @return
+    */
+   public Path getVectorTablePath(String basename) {
+      return getXmlRootPath().resolve(VECTOR_FOLDER).resolve(basename+XML_EXTENSION);
+   }
+
+   private final HashSet<String> uniqueFilenames = new HashSet<String>();
+
    /**
     * Create file name for a peripheral
     * 
-    * @param suffix
-    * @param uniqueIds 
-    * @param name       null to return parent directory
-    * @return
-    * @throws Exception 
+    * @param uniqueFilenames  Table used to prevent name collisions
+    * @param peripheral Peripheral to create file name for
+    * 
+    * @return Name based on peripheral. Names are unique.
+    * 
+    * @throws Exception
     */
-   private IPath getPeripheralFilepath(HashSet<String> uniqueIds, Peripheral peripheral) throws Exception {
-      String name;
-      if (peripheral == null) {
-         return getXmlFilepath(peripheralFolder).removeFileExtension().removeFileExtension();
-      }
-      if (peripheral.getDerivedFrom() != null) {
-         name = peripheral.getName()+"_from_"+peripheral.getDerivedFrom().getName();
-      }
-      else {
-         name = peripheral.getName();
-      }
+   private String getPeripheralFilename(Peripheral peripheral) throws Exception {
       if (ModeControl.isRenameSimSource() && (peripheral.getName().equals("SIM") && peripheral.getUsedBy().size() == 1)) {
          peripheral.setSourceFilename("SIM_" + peripheral.getUsedBy().get(0));
       }
-      String uniqueId = peripheral.getSourceFilename();
-      if ((uniqueId == null) && (uniqueIds == null)) {
+      String filename = peripheral.getSourceFilename();
+      if (filename == null) {
+         // Create filename
+         String name;
+         if (peripheral.getDerivedFrom() != null) {
+            name = peripheral.getName()+"_from_"+peripheral.getDerivedFrom().getName();
+         }
+         else {
+            name = peripheral.getName();
+         }
+         filename = name + "_" + peripheral.getUsedBy().get(0);
+         peripheral.setSourceFilename(filename);
+      }
+      if (uniqueFilenames.contains(filename)) {
          throw new Exception("Peripheral should have unique ID set");
       }
-      int index = 0;
-      if (uniqueId == null) {
-         uniqueId = name + "_" + peripheral.getUsedBy().get(0);
-      }
-      if (uniqueIds != null) {
-         // Generate new uniqueId as needed
-         while ((uniqueId == null) || uniqueIds.contains(uniqueId)) {
-            uniqueId = name+"_"+index++;
-         }
-      }
-      peripheral.setSourceFilename(uniqueId);
-      return getXmlFilepath(peripheralFolder+Path.SEPARATOR+uniqueId);
+      return filename;
    }
 
    int uniqueVectorTableIdNumber = 0;
    HashSet<String> usedVectorTableFilenames = new HashSet<String>();
-   
+
    /**
     * Create file name for a vectorTable
     * 
-    * @param suffix
-    * @param uniqueIds 
-    * @param name       null to return perent directory
-    * @return
-    * @throws Exception 
+    * @param vectorTable
+    * 
+    * @return Name based on vectorTable. Names are unique.
+    * 
+    * @throws Exception
     */
-   private IPath getVectorTableFilepath(VectorTable vectorTable) throws Exception {
-      String name;
-      if (vectorTable == null) {
-         return getXmlFilepath(vectorFolder).removeFileExtension().removeFileExtension();
-      }
-      name = vectorTable.getName();
+   private String getVectorTableFilename(VectorTable vectorTable) throws Exception {
+
+      String name = vectorTable.getName();
       if ((name == null) || (name.length() == 0)) {
          name = currentDeviceName+"_VectorTable";
+         vectorTable.setName(name);
       }
       if (usedVectorTableFilenames.contains(name)) {
-         name = name + uniqueVectorTableIdNumber++;
+         throw new Exception("Non-unique vector table name");
       }
-      vectorTable.setName(name);
-      return getXmlFilepath(vectorFolder+Path.SEPARATOR+name);
+      return name;
    }
 
    /**
@@ -114,49 +125,50 @@ public class PeripheralDatabaseMerger {
     * @throws FileNotFoundException
     * @throws Exception
     */
-   public void writePeripheralsToSVD() throws FileNotFoundException, Exception {
+   public void writePeripheralsToSVD() throws Exception {
       Iterator<Entry<String, ArrayList<Peripheral>>> it = peripheralMap.entrySet().iterator();
-      if (it.hasNext()) {
-         // Make directory for peripherals
-         getPeripheralFilepath(null, null).toFile().mkdir();
-      }
+      // Make directory for peripherals
+      getXmlRootPath().resolve(PERIPHERAL_FOLDER).toFile().mkdir();
       while (it.hasNext()) {
          Entry<String, ArrayList<Peripheral>> pairs = it.next();
          for (Peripheral peripheral : pairs.getValue()) {
-            PrintWriter writer = new PrintWriter(getPeripheralFilepath(null, peripheral).toFile());
+            PrintWriter writer = new PrintWriter(getPeripheralPath(getPeripheralFilename(peripheral)).toFile());
             // Written with no owner so defaults are NOT inherited 
             peripheral.writeSVD(writer, false, null);
             writer.close();
          }
       }
    }
-   
+
    /**
     * This writes each vector table to a separate file
     * 
     * @throws FileNotFoundException
     * @throws Exception
     */
-   public void writeVectorTablesToSVD() throws FileNotFoundException, Exception {
-      getVectorTableFilepath(null).toFile().mkdir();
+   public void writeVectorTablesToSVD() throws Exception {
+      getXmlRootPath().resolve(VECTOR_FOLDER).toFile().mkdir();
       for (VectorTable vectorTable : vectorTableList) {
-         PrintWriter writer = new PrintWriter(getVectorTableFilepath(vectorTable).toFile());
+         PrintWriter writer = new PrintWriter(getVectorTablePath(getVectorTableFilename(vectorTable)).toFile());
          vectorTable.writeSVDInterruptEntries(writer, true);
          writer.close();
       }
    }
-   
+
    HashMap<String, ArrayList<Peripheral>> peripheralMap   = new HashMap<String, ArrayList<Peripheral>>(200);
    ArrayList<VectorTable>                 vectorTableList = new ArrayList<VectorTable>();
 
-   private IPath addVectortableToList(DevicePeripherals device) throws Exception {
+   private void addVectortableToList(DevicePeripherals device) throws Exception {
       VectorTable newVectorTable = device.getVectorTable();
       int index;
       for(index=0; index<vectorTableList.size(); index++) {
          VectorTable vectorTable = vectorTableList.get(index);
          if (newVectorTable.equals(vectorTable)) {
+            // Add usage information
             vectorTable.addUsedBy(device.getName());
-            return getVectorTableFilepath(vectorTable);
+            // Remove redundant VT
+            device.setVectorTable(vectorTable);
+            return;
          }
       }
       // First time the vector table is used - clear references
@@ -165,102 +177,87 @@ public class PeripheralDatabaseMerger {
 
       // Add to list of know peripherals
       vectorTableList.add(newVectorTable);
-      
-      return getVectorTableFilepath(newVectorTable);      
    }
-   
+
    /**
     * Adds a peripheral to the list of shared peripherals
     * 
     * @param  device
     * @param  newPeripheral
     * 
-    * @return Path of SVD file representing the (shared) peripheral
     * @throws Exception 
     */
-   private IPath addPeripheralToMap(DevicePeripherals device, Peripheral newPeripheral) throws Exception {
+   void addPeripheralToMap(DevicePeripherals device, Peripheral newPeripheral) throws Exception {
       if (newPeripheral.getDerivedFrom() != null) {
-         return null;
+         // Already derived - ignore
+         return;
       }
       // TODO - Where common peripherals are factored out
       ArrayList<Peripheral> peripheralList = peripheralMap.get(newPeripheral.getName());
       if (peripheralList == null) {
-         peripheralList = new  ArrayList<Peripheral>(20);
+         // First peripheral of that name
+         peripheralList = new ArrayList<Peripheral>(20);
          peripheralMap.put(newPeripheral.getName(), peripheralList);
       }
-      int index;
-      HashSet<String> uniqueIds = new HashSet<String>();
-      for(index=0; index<peripheralList.size(); index++) {
+      // Check if equivalent to an exiting peripheral
+      for(int index=0; index<peripheralList.size(); index++) {
          Peripheral peripheral = peripheralList.get(index);
-         uniqueIds.add(peripheral.getSourceFilename());
          if (newPeripheral.equivalent(peripheral)) {
+            // Found equivalent
             peripheral.addUsedBy(device.getName());
-            return getPeripheralFilepath(null, peripheral);
+            newPeripheral.setFilename(peripheral.getFilename());
+            return;
          }
       }
-      // First time the device is used - clear references
+      // First time the device is used - clear references etc
       newPeripheral.clearUsedBy();
       newPeripheral.addUsedBy(device.getName());
 
+      // Add unique file path
+      newPeripheral.setFilename(getPeripheralFilename(newPeripheral));
+
       // Add to list of know peripherals
       peripheralList.add(newPeripheral);
-      
-      return getPeripheralFilepath(uniqueIds, newPeripheral);      
    }
 
-   private final String preambleStart =  
+   private final String xmlPreamble =  
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-         "<!DOCTYPE device\n" + 
-         "[\n"
-       ;
+               "<!DOCTYPE device>\n"
+               ;
 
-   private final String preambleEnd =  
-         "]>\n"
-         ;
-   
-   private final String systemEntityFormatString = "<!ENTITY %-12s SYSTEM \"%s\">\n";
    private String currentDeviceName;
 
    public final static String VECTOR_TABLE_ENTITY = "VECTOR_TABLE";
-   
+
    /**
     * Writes a description of the device to a SVD file.
     * Adds device peripherals to the list of shared peripherals.
     * Uses ENTITY references for the (shared) peripherals used by the device.
     * 
-    * @param device
+    * @param  device
     * @throws FileNotFoundException
     * @throws Exception
     */
-   public void writeDeviceToSVD(DevicePeripherals device) throws FileNotFoundException, Exception {
-      
-      this.currentDeviceName = device.getName();
-      IPath devicePath = getXmlFilepath(device.getName());
+   public void writeDeviceToSVD(DevicePeripherals device) throws Exception {
+
+      currentDeviceName = device.getName();
+
+      Path devicePath = getDevicePath(device.getName());
+
       PrintWriter writer = new PrintWriter(devicePath.toFile());
-      writer.print(preambleStart);
+      writer.print(xmlPreamble);
 
       device.optimise();
       device.sortPeripheralsByName();
-      
-      IPath filename = addVectortableToList(device).makeRelativeTo(getXmlRootPath());
-      writer.print(String.format(systemEntityFormatString, VECTOR_TABLE_ENTITY, filename));
-      
+
+      // Look for shared vector tables
+      addVectortableToList(device);
+
       for (Peripheral peripheral : device.getPeripherals()) {
-         if (peripheral.getDerivedFrom() == null) {
-            // Look up shared peripheral reference - adds new one as needed
-            IPath peripheralPath = addPeripheralToMap(device, peripheral).makeRelativeTo(getXmlRootPath());
-            writer.print(String.format(systemEntityFormatString, peripheral.getName(), peripheralPath));
-         }
-//         else {
-//            StringWriter sWriter = new StringWriter();
-//            PrintWriter pWriter = new PrintWriter(sWriter);
-//            peripheral.writeSVD(pWriter, false, device);
-//            String entity = SVD_XML_BaseParser.escapeString(sWriter.toString());
-//            writer.print(String.format(entityFormatString, peripheral.getName(), entity));
-//         }
+         // Searches for shared peripheral reference and adds new one as needed
+         addPeripheralToMap(device, peripheral);
       }
-      writer.print(preambleEnd);
-      device.writeSVD(writer, false);
+      device.writeSVD(writer, false, 20);
       writer.close();
    }
 

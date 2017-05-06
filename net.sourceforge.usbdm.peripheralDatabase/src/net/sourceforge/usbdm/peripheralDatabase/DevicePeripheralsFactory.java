@@ -5,7 +5,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -77,11 +76,26 @@ public class DevicePeripheralsFactory {
    /**
     *  Creates peripheral database for device
     * 
+    *  @param path Path to SVD file
+    *  
+    *  @return device peripheral description or null on error
+    * @throws Exception 
+    */
+   public DevicePeripherals getDevicePeripherals(Path path) throws Exception {
+
+      if (path.toFile().isFile()) {
+       return new DevicePeripherals(path);
+    }
+      return null;
+   }
+   /**
+    *  Creates peripheral database for device
+    * 
     *  @param name Name of SVD file e.g. "MK20D5", default extensions will be tried e.g. ".xml"
     *  
     *  @return device peripheral description or null on error
     */
-   public DevicePeripherals getDevicePeripherals(Path name) {
+   public DevicePeripherals getDevicePeripherals(String name) {
       DevicePeripherals devicePeripherals = null;
 
       // Parse the XML file into the XML internal DOM representation
@@ -103,102 +117,80 @@ public class DevicePeripheralsFactory {
       }
       return devicePeripherals;
    }
-
+   
    /**
-    *  Creates peripheral database for device
+    * Determine the base file name for the deviceName.<br>
+    * This can be used to construct the name of either the header file or the SVD file.
     * 
-    *  @param name Where to load database from. <br>
-    *  <li> This may be the name of device e.g. "MK20D5" (Mapped names will also be tried)
-    *  <li> Path of a device file (absolute or relative)
-    *  
-    *  @return device peripheral description or null on error
+    * @param deviceName
+    * 
+    * @return filename if found e.g. MK11D5, or null if not found
     */
-   public DevicePeripherals getDevicePeripherals(String name) {
-      boolean doneBoth = false;
-      while (true) {
-         DevicePeripherals devicePeripherals = null;
-         // Try file list
-         if (fDeviceFileList != null) {
-            devicePeripherals = getDevicePeripherals(fDeviceFileList, name);
-            if (devicePeripherals != null) {
-               return devicePeripherals;
-            }
-         }
-         // Try name as file name
-         devicePeripherals = getDevicePeripherals(Paths.get(name));
-         if (devicePeripherals != null) {
-            return devicePeripherals;
-         }
-         if (doneBoth) {
-            return null;
-         }
-         // Try again with mapped name
-         name = getMappedSvdName(name);
-         if (name == null) {
-            return null;
-         }
-         doneBoth = true;
+   public String lookupHeaderFileName(String devicename) {
+      if (fDeviceFileList == null) {
+         return null;
       }
+      return fDeviceFileList.getBaseFilename(devicename);
    }
-
+   
    /**
     *  Creates peripheral database for device
     * 
     *  @param deviceList   Device list file to use as index
-    *  @param device       Device name as appears in deviceList file
+    *  @param deviceName   Device name as appears in deviceList file
     *  
     *  @return device peripheral description or null on error
     */
-   public DevicePeripherals getDevicePeripherals(DeviceFileList deviceList, String device) {
+   public DevicePeripherals getDevicePeripherals(DeviceFileList deviceList, String deviceName) {
       try {
-         Path path = deviceList.getSvdFilename(device);
-         if (path != null) {
+         String filename = deviceList.getBaseFilename(deviceName);
+         if (filename != null) {
 //            System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Trying filelist \""+device+"\" - found");
-            return getDevicePeripherals(path);
+            return getDevicePeripherals(filename);
          }
       } catch (Exception e) {
          e.printStackTrace();
-         System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception for device: " + device);
+         System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception for device: " + deviceName);
          System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception: reason: " + e.getMessage());
       }
       return null;
    }
 
-   private static class PatternPair {
-      Pattern p;
-      String  m;
-      public PatternPair(Pattern p, String m) {
-         this.p = p;
-         this.m = m;
-      }
-   }
-   private ArrayList<PatternPair> mappedNames = null;
+//   private static class PatternPair {
+//      Pattern p;
+//      String  m;
+//      public PatternPair(Pattern p, String m) {
+//         this.p = p;
+//         this.m = m;
+//      }
+//   }
+//   private ArrayList<PatternPair> mappedNames = null;
 
-   /**
-    * Maps raw device name to generic name e.g. MK11DN512M5 -> MK11D5
-    * 
-    * @param originalName name to map
-    * 
-    * @return mapped name or null if not mapped
-    */
-   private String getMappedSvdName(String originalName) {
-      if (mappedNames == null) {
-         mappedNames = new ArrayList<PatternPair>();
-         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}M(\\d+)$"), "$1$2"));  // MK11DN512M5 -> MK11D5
-         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?1M0M(\\d+)$"),     "$1$2"));  // MK10FN1M0M5 -> MK10D5
-         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}Z$"),       "$1Z10")); // MK10DN512Z  -> MK10DZ10
-         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}$"),        "$15"));   // MK10DN128   -> MK10D5
-         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?1M0$"),            "$112"));  // MK10FN1M0   -> MK10F12
-      }
-      for (PatternPair pair : mappedNames ) {
-         Pattern p = pair.p;
-         Matcher m = p.matcher(originalName);
-         if (m.matches()) {
-            return m.replaceAll(pair.m);
-         }
-      }
-      return null;
-   }
+//   /**
+//    * Maps raw device name to generic name e.g. MK11DN512M5 -> MK11D5
+//    * 
+//    * @param originalName name to map
+//    * 
+//    * @return mapped name or null if not mapped
+//    */
+//   private String getMappedSvdName(String originalName) {
+//      if (mappedNames == null) {
+//         mappedNames = new ArrayList<PatternPair>();
+//         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}M(\\d+)$"), "$1$2"));  // MK11DN512M5 -> MK11D5
+//         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?1M0M(\\d+)$"),     "$1$2"));  // MK10FN1M0M5 -> MK10D5
+//         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}Z$"),       "$1Z10")); // MK10DN512Z  -> MK10DZ10
+//         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?\\d{2,}$"),        "$15"));   // MK10DN128   -> MK10D5
+//         mappedNames.add(new PatternPair(Pattern.compile("^([^\\d]+\\d+[D|F|Z])[N|X]?1M0$"),            "$112"));  // MK10FN1M0   -> MK10F12
+//      }
+//      for (PatternPair pair : mappedNames ) {
+//         Pattern p = pair.p;
+//         Matcher m = p.matcher(originalName);
+//         if (m.matches()) {
+//            return m.replaceAll(pair.m);
+//         }
+//      }
+//      return null;
+//   }
 
    /**
     * Get list of devices

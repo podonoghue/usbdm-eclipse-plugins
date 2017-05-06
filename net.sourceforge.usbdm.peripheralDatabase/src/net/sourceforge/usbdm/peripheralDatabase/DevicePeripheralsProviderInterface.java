@@ -124,11 +124,11 @@ public class DevicePeripheralsProviderInterface {
     * 
     * @param svdIdentifier
     * @return
+    * @throws Exception 
     */
-   public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) {
+   public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) throws Exception {
       if (svdIdentifier == null) {
-         System.err.println("DevicePeripherals.getDevice() null svdIdentifier");
-         return null;
+         throw new Exception("DevicePeripheralsProviderInterface.getDevice() null svdIdentifier");
       }
       DevicePeripherals devicePeripherals = null;
       if (svdIdentifier.getPath() != null) {
@@ -143,23 +143,24 @@ public class DevicePeripheralsProviderInterface {
          }
       }
       if (devicePeripherals == null) {
-         System.err.println("DevicePeripherals.getDevice() failed for device = " + svdIdentifier);
+         throw new Exception("DevicePeripheralsProviderInterface.getDevice() failed for device = " + svdIdentifier);
       }
       return devicePeripherals;
    }
+   
    /**
     * Get provider from ID
     * 
     * @param providerId
     * @return
+    * @throws Exception 
     */
-   public IPeripheralDescriptionProvider getProvider(final String providerId) {
+   public IPeripheralDescriptionProvider getProvider(final String providerId) throws Exception {
 //      System.err.println("IPeripheralDescriptionProvider.getProvider() looking for providerId = " + providerId);
 
       IExtensionRegistry registry = Platform.getExtensionRegistry();
       if (registry == null) {
-         System.err.println("DevicePeripherals.getProvider() failed to get registry");
-         return null;
+         throw new Exception("DevicePeripheralsProviderInterface.getProvider() failed to get registry ");
       }
       IConfigurationElement[] config = registry.getConfigurationElementsFor(PeripheralDescriptionProvider_ID);
 
@@ -179,8 +180,7 @@ public class DevicePeripheralsProviderInterface {
       if (peripheralDescriptionProvider.size() > 0) {
          return peripheralDescriptionProvider.get(0);
       }
-      System.err.println("DevicePeripherals.getProvider() failed to get provider for " + providerId);
-      return null;
+      throw new Exception("DevicePeripheralsProviderInterface.getProvider() failed to get provider for " + providerId);
    }
    /**
     * Get provider namer from ID

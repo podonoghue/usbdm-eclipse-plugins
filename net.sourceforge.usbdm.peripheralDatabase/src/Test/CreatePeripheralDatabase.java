@@ -19,7 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.peripheralDatabase.DeviceFileList;
-import net.sourceforge.usbdm.peripheralDatabase.DeviceFileList.Pair;
+import net.sourceforge.usbdm.peripheralDatabase.DeviceFileList.DeviceSvdInfo;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.ModeControl;
 import net.sourceforge.usbdm.peripheralDatabase.PeripheralDatabaseMerger;
@@ -174,7 +174,6 @@ public class CreatePeripheralDatabase {
 
       PeripheralDatabaseMerger merger = new PeripheralDatabaseMerger();
 
-      merger.setXmlExtension(".svd.xml");
       merger.setXmlRootPath(svdOutputFolderPath.toFile());
 
       System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
@@ -292,11 +291,11 @@ public class CreatePeripheralDatabase {
    /**
     * Sorts list of device names
     */
-   private static void sortDeviceNames(ArrayList<Pair> usedBy) {
-      Collections.sort(usedBy, new Comparator<Pair>() {
+   private static void sortDeviceNames(ArrayList<Pair> devicePairList) {
+      Collections.sort(devicePairList, new Comparator<Pair>() {
          @Override
          public int compare(Pair pair1, Pair pair2) {
-            int compare = (pair1.mappedDeviceName.compareTo(pair2.mappedDeviceName));
+            int compare = (pair1.fileName.compareTo(pair2.fileName));
             if (compare != 0) {
                return compare;
             }
@@ -331,6 +330,16 @@ public class CreatePeripheralDatabase {
       });
    }
 
+   static class Pair {
+      String deviceName;
+      String fileName;
+      
+      Pair(String deviceName, String fileName) {
+         this.deviceName = deviceName;
+         this.fileName   = fileName;
+      }
+   };
+   
    /**
     * Creates a minimal set of device SVD files by looking for equivalent devices.
     * A separate XML file is created that maps a device to a SVD file (deviceList.xml).
@@ -353,7 +362,7 @@ public class CreatePeripheralDatabase {
 
       ArrayList<DevicePeripherals> deviceList = new ArrayList<DevicePeripherals>();
 
-      // Set optimisations
+      // Set optimizations
       ModeControl.setExtractComplexStructures(false);
       ModeControl.setExtractDerivedPeripherals(false);
       ModeControl.setExtractSimpleRegisterArrays(false);
@@ -408,27 +417,19 @@ public class CreatePeripheralDatabase {
       }
       System.err.println();
 
-
       // Copy devices to target directory (expanded!)
       // Produce sorted list of device->svd file
       // List of copied devices to check for mapping clashes
-      HashSet<String> copiedMappedFiles = new HashSet<String>();
       ArrayList<Pair> devicePairList    = new ArrayList<Pair>();
 
       for (DevicePeripherals device : deviceList) {
-         String deviceName                = device.getName();
-         String mappedDestinationFileName = deviceName;//DeviceFileList.getMappedSvdName(device.getName());
-         if (copiedMappedFiles.contains(mappedDestinationFileName)) {
-            throw new Exception(String.format("Mapped name collision %s => %s", deviceName, mappedDestinationFileName));
-         }
+         String deviceName = device.getName();
          // Add reference to self
-         devicePairList.add(new Pair(deviceName, mappedDestinationFileName));
-         device.setName(mappedDestinationFileName);
          for (String equivalentDevice : device.getEquivalentDevices()) {
             // Add references from other devices
-            devicePairList.add(new Pair(equivalentDevice, mappedDestinationFileName));
+            devicePairList.add(new Pair(equivalentDevice, deviceName));
          }
-         device.writeSVD(destinationFolderPath.resolve(mappedDestinationFileName+".svd.xml"));
+         device.writeSVD(destinationFolderPath.resolve(deviceName+".svd.xml"));
       }
       sortDeviceNames(devicePairList);
 
@@ -441,7 +442,7 @@ public class CreatePeripheralDatabase {
          writer.print(openDeviceList);
 
          for (Pair pair : devicePairList) {
-            writer.print(String.format(deviceEntry, "<device name=\""+pair.deviceName+"\">", pair.mappedDeviceName));
+            writer.print(String.format(deviceEntry, "<device name=\""+pair.deviceName+"\">", pair.fileName));
          }
          writer.print(closeDeviceList);
          writer.print(xmlPostamble);
@@ -454,21 +455,7 @@ public class CreatePeripheralDatabase {
          }
       }
       Files.copy(MAIN_FOLDER.getParent().resolve(CMSIS_SCHEMA_FILENAME),       destinationFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(MAIN_FOLDER.getParent().resolve(DEVICE_LIST_SCHEMA_FILENAME),  destinationFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME),  StandardCopyOption.REPLACE_EXISTING);
-   }
-
-   /**
-    * Tests access to reduced SVD file set (using deviceList.xml)
-    * 
-    * @param deviceListPath
-    * @throws Exception
-    */
-   static void checkDeviceList(Path deviceListPath) throws Exception {
-
-      DeviceFileList deviceFileList = new DeviceFileList(deviceListPath);
-      Path svdFilename = deviceFileList.getSvdFilename("MK20DX128M5");
-      System.err.println(String.format("Test : %-20s => \"%s\"", "MK20DX128M5", svdFilename));
-      System.err.println(String.format("Test : %-20s => \"%s\"", "MK10DN64",    deviceFileList.getSvdFilename("MK10DN64")));
+      Files.copy(MAIN_FOLDER.getParent().resolve(DEVICE_LIST_SCHEMA_FILENAME), destinationFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
    }
 
    /**
@@ -531,34 +518,34 @@ public class CreatePeripheralDatabase {
       DeviceFileList deviceFileList = new DeviceFileList(sourceFolderPath.resolve(DEVICE_LIST_FILENAME));
 
       // Get full list of devices
-      ArrayList<Pair> list = deviceFileList.getArrayList();
+      ArrayList<DeviceSvdInfo> list = deviceFileList.getArrayList();
 
       // Map of already copied files to prevent multiple copying
       HashSet<String> copiedFiles = new HashSet<String>();
 
       for (int index = 0; index < list.size(); index++) {
-         Pair pair = list.get(index);
+         DeviceSvdInfo pair = list.get(index);
          if (fileFilter.skipFile(pair.deviceName)) {
             continue;
          }
          System.err.println("Processing File : \""+pair.deviceName+"\"");
          try {
             // Don't produce the same file!
-            if (copiedFiles.contains(pair.mappedDeviceName)) {
+            if (copiedFiles.contains(pair.svdName)) {
                continue;
             }
-            copiedFiles.add(pair.mappedDeviceName);
+            copiedFiles.add(pair.svdName);
 
             // Read device description
-            DevicePeripherals devicePeripherals = new DevicePeripherals(sourceFolderPath.resolve(pair.mappedDeviceName+".svd.xml"));
+            DevicePeripherals devicePeripherals = new DevicePeripherals(sourceFolderPath.resolve(pair.svdName+".svd.xml"));
 
             devicePeripherals.sortPeripherals();
 
-            devicePeripherals.setName(pair.mappedDeviceName);
+            devicePeripherals.setName(pair.svdName);
 
             devicePeripherals.addEquivalentDevice(pair.deviceName);
             for (int index2 = index+1; index2 < list.size(); index2++) {
-               if (pair.mappedDeviceName.equalsIgnoreCase(list.get(index2).mappedDeviceName)) {
+               if (pair.svdName.equalsIgnoreCase(list.get(index2).svdName)) {
                   devicePeripherals.addEquivalentDevice(list.get(index2).deviceName);
                }
             }
@@ -601,16 +588,16 @@ public class CreatePeripheralDatabase {
       destinationFolderPath.toFile().mkdir();
 
       DeviceFileList deviceFileList = new DeviceFileList(sourceFolderPath.resolve(DEVICE_LIST_FILENAME));
-      ArrayList<Pair> list = deviceFileList.getArrayList();
+      ArrayList<DeviceSvdInfo> list = deviceFileList.getArrayList();
 
-      for (Pair pair : list) {
+      for (DeviceSvdInfo pair : list) {
          if (fileFilter.skipFile(pair.deviceName)) {
             continue;
          }
-         System.err.println("Processing File : \""+pair.mappedDeviceName+"\"");
+         System.err.println("Processing File : \""+pair.svdName+"\"");
          try {
             // Read device description
-            DevicePeripherals devicePeripherals = new DevicePeripherals(sourceFolderPath.resolve(pair.mappedDeviceName+".svd.xml"));
+            DevicePeripherals devicePeripherals = new DevicePeripherals(sourceFolderPath.resolve(pair.svdName+".svd.xml"));
 
             // Optimise peripheral database
             devicePeripherals.optimise();
@@ -755,8 +742,10 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) {
 
-//      firstFileToProcess = ("^MKE16F.*");
-//      firstFileToReject  = ("^MKL.*");
+//    firstFileToProcess = ("^MKE16F.*");
+//    firstFileToReject  = ("^MKL.*");
+//    firstFileToProcess = ("^LPC.*");
+//    firstFileToReject  = ("^M.*");
 
 //      doFactoring();
       doUsualRegeneration();

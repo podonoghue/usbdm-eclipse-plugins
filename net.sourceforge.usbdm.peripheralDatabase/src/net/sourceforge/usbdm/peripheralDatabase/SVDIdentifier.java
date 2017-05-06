@@ -9,75 +9,142 @@ import java.util.regex.Pattern;
  * Class to identify a SVD file 
  */
 public class SVDIdentifier {
-   final private String        providerId;
-   private String              deviceName;
-   private Path                path;
+   private String        fProviderId = null;
+   private String        fDeviceName = null;
+   private Path          fPath = null;
    /**
-    * Create null identifier
+    * Cached value
+    */
+   private DevicePeripherals   fDevicePeripherals = null;
+   
+   /**
+    * Create empty SVDIdentifier
     */
    public SVDIdentifier() {
-      this.providerId = "";
-      this.deviceName = "";
    }
    /**
+    * Create SVDIdentifier from Provider ID and device name
     * 
     * @param id            Unique identifier for provider 
     * @param deviceName    Name of device (or regex)
     */
    public SVDIdentifier(String id, String deviceName) {
-      this.providerId = id;
-      this.deviceName = deviceName;
+      this.fProviderId = id;
+      this.fDeviceName = deviceName;
    }
    /**
+    * Create SVDIdentifier from path to SVD file
     * 
     * @param id            Unique identifier for provider 
-    * @param deviceName    Name of device (or regex)
+    * @param fDeviceName    Name of device (or regex)
     */
    public SVDIdentifier(Path path) {
-      this.providerId = "";
-      this.deviceName = "";
-      this.path       = path;
+      this.fProviderId = "";
+      this.fPath       = path;
+      this.fDeviceName = null;
    }
    /**
+    * Create identifier from string representation of SVDID
     * 
+    * @param identification
+    * 
+    * @throws Exception on illegal format
     */
    public SVDIdentifier(String identification) throws Exception {
-      Pattern p1 = Pattern.compile("\\[SVDIdentifier:([^:]*):([^:]*).*\\]");
-      Matcher m1 = p1.matcher(identification);
-      if (m1.matches()) {
-         // Identifies provider
-         this.providerId = m1.group(1);
-         this.deviceName = m1.group(2);
-         this.path       = null;
+      Pattern pPath = Pattern.compile("\\[SVDIdentifier:path=(.*)\\]$");
+      Matcher mPath = pPath.matcher(identification);
+      if (mPath.matches()) {
+         // Uses path
+         this.fProviderId = "";
+         this.fPath       = Paths.get(mPath.group(1));
+         this.fDeviceName = null;
          return;
       }
-      Pattern p2 = Pattern.compile("\\[SVDIdentifier=(.*)\\]$");
-      Matcher m2 = p2.matcher(identification);
-      if (m2.matches()) {
-         // Uses path
-         this.path = Paths.get(m2.group(1));
+      Pattern pProvider = Pattern.compile("\\[SVDIdentifier:([^:]*):([^:]*).*\\]");
+      Matcher mProvider = pProvider.matcher(identification);
+      if (mProvider.matches()) {
+         // Identifies provider
+         this.fProviderId = mProvider.group(1);
+         this.fDeviceName = mProvider.group(2);
+         this.fPath       = null;
+         return;
       }
-      System.err.println("Illegal identification: " + identification);
-      throw new Exception("Invalid identification, should be \'[SVDIdentifier:provider:deviceName]\'");
+      throw new Exception("Invalid SVDID string: '"+identification+"'");
    }
+   
+   /**
+    * Get provider id
+    * 
+    * @return
+    */
    public String getproviderId() {
-      return providerId;
+      return fProviderId;
    }
+   /**
+    * Get string representation 
+    */
    @Override
    public String toString() {
-      if (path != null) {
-         return "[SVDIdentifier:path=" + path + "]";
+      if (fPath != null) {
+         return "[SVDIdentifier:path=" + fPath + "]";
       }
-      return "[SVDIdentifier:" + providerId + ":" + deviceName + "]";
+      return "[SVDIdentifier:" + fProviderId + ":" + fDeviceName + "]";
    }
-   public String getDeviceName() {
-      return deviceName;
+   /**
+    * Get device name
+    * 
+    * @return
+    * @throws Exception 
+    */
+   public String getDeviceName() throws Exception {
+      if (fDeviceName == null) {
+         fDeviceName = getDevicePeripherals().getName();
+      }
+      return fDeviceName;
    }
+   /**
+    * Set device name
+    * 
+    * @param deviceName
+    */
    public void setDeviceName(String deviceName) {
-      this.deviceName = deviceName;
+      this.fDeviceName = deviceName;
    }
+   /**
+    * Get path to SVD (if present)
+    * 
+    * @return
+    */
    public Path getPath() {
-      return path;
+      return fPath;
+   }
+   
+   /**
+    * Get Device Peripherals for this SVD
+    * 
+    * @return Device Peripherals
+    * @throws Exception if can't locate device peripherals
+    */
+   public DevicePeripherals getDevicePeripherals() throws Exception {
+      if (fDevicePeripherals == null) {
+         DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
+         fDevicePeripherals = devicePeripheralsProviderInterface.getDevice(this);
+      }
+      return fDevicePeripherals;
+   }
+
+   /**
+    * Checks if the SVDIdentifier is valid i.e. refers to an existing device
+    * @return
+    */
+   public boolean isValid() {
+      try {
+         return (getDevicePeripherals() != null);
+      } catch (Exception e) {
+//         e.printStackTrace();
+         System.err.println(e.getMessage());
+      }
+      return false;
    }
 }
   
