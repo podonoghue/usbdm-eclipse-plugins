@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Shell;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelectorPanel;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
-public class TestDeviseSelectionPanel {
+public class TestDeviceSelectionPanel {
 
    public static void main(String[] args) {
       Display display = new Display();

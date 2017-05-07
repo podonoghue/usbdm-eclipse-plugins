@@ -4,11 +4,12 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Vector;
 
-// Represents a collection of related memory ranges
-//
-// This may be used to represent a non-contiguous range of memory locations that are related
-// e.g. two ranges of Flash that are controlled by the same Flash controller as occurs in some HCS08s
-//
+/** 
+ * Represents a collection of related memory ranges
+ *
+ * This may be used to represent a non-contiguous range of memory locations that are related
+ * e.g. two ranges of Flash that are controlled by the same Flash controller as occurs in some HCS08s
+ */
 public class MemoryRegion {
 
    public static class MemoryRange implements Comparable<MemoryRange> {
@@ -60,12 +61,13 @@ public class MemoryRegion {
       name         = null;
    }
 
-   //! Add a memory range to this memory region
-   //!
-   //! @param startAddress - start address (inclusive)
-   //! @param endAddress   - end address (inclusive)
-   //! @param pageNo       - page number (if used)
-   //!
+   /** 
+    * Add a memory range to this memory region
+    *
+    * @param startAddress - start address (inclusive)
+    * @param endAddress   - end address (inclusive)
+    * @param pageNo       - page number (if used)
+    */
    public void addRange (MemoryRegion.MemoryRange memoryRange) {
       if (memoryRanges.size() == memoryRanges.capacity()) {
          int newCapacity = 2*memoryRanges.capacity();
@@ -77,12 +79,13 @@ public class MemoryRegion {
       memoryRanges.add(memoryRanges.size(), memoryRange);
    }
 
-   //! Add a memory range to this memory region
-   //!
-   //! @param startAddress - start address (inclusive)
-   //! @param endAddress   - end address (inclusive)
-   //! @param pageNo       - page number (if used)
-   //!
+   /**  
+    *  Add a memory range to this memory region
+    * 
+    *  @param startAddress - start address (inclusive)
+    *  @param endAddress   - end address (inclusive)
+    *  @param pageNo       - page number (if used)
+    */ 
    public void addRange(int startAddress, int endAddress) {
       addRange(new MemoryRange(startAddress, endAddress));
    }
@@ -91,22 +94,25 @@ public class MemoryRegion {
       return memoryRanges.iterator();
    }
 
-   //! Indicates if the memory region is of a programmable type e.g Flash, eeprom etc.
-   //!
-   //! @return - true/false result
-   //!
+   /** 
+    *  Indicates if the memory region is of a programmable type e.g Flash, eeprom etc.
+    *
+    *  @return - true/false result
+    */
    public boolean isProgrammableMemory() {
       return type.isProgrammable;
    }
 
-   //! Get name of memory type
-   //!
+   /**
+    *   Get name of memory type
+    */ 
    public String getMemoryTypeName() {
       return type.name;
    }
 
-   //! Get type of memory
-   //!
+   /**  
+    * Get type of memory
+    */ 
    public MemoryType getMemoryType() {
       return type;
    }
@@ -123,6 +129,11 @@ public class MemoryRegion {
       return rv; 
    }
 
+   /**
+    * Set the memory region name
+    * 
+    * @param name
+    */
    public void setName(String name) {
       this.name = name;
    }
@@ -133,4 +144,5 @@ public class MemoryRegion {
    public String getName() {
       return name;
    }
+
 }

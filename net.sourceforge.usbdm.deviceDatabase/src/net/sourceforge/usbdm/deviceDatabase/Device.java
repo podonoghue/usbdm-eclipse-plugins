@@ -9,7 +9,9 @@
 package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -25,7 +27,6 @@ public class Device implements Cloneable {
    private String                   alias;
    private Vector<MemoryRegion>     memoryRegions;
    private FileList                 fileList;
-//   private ProjectActionList        projectActionList;
    private String                   family;
    private String                   subFamily;
    private String                   hardware;
@@ -36,7 +37,10 @@ public class Device implements Cloneable {
    private int                      clockNvAddress;
    private int                      clockTrimFrequency;
    private boolean                  hidden;
-  
+   
+   /** List of erase methods available for this memory type */
+   private ArrayList<EraseMethod>   eraseMethods = new ArrayList<EraseMethod>();
+
    /**
     * Constructor
     * 
@@ -54,7 +58,6 @@ public class Device implements Cloneable {
       memoryRegions      = new Vector<MemoryRegion>();
       family             = null;
       subFamily          = null;
-//      projectActionList  = null;
    }
 
    /** Returns the default non-volatile flash location for the clock trim value
@@ -454,6 +457,33 @@ public class Device implements Cloneable {
       Device clone = (Device)aliasedDevice.clone();
       clone.name = name;
       return clone;
+   }
+
+   /**
+    * Add erase method
+    * 
+    * @param method Method to add
+    */
+   public void addEraseMethod(String method) {
+      eraseMethods.add(EraseMethod.valueOf(method));
+   }
+   
+   /**
+    * Add erase method
+    * 
+    * @param method Method to add
+    */
+   public void addEraseMethod(EraseMethod method) {
+      eraseMethods.add(method);
+   }
+   
+   /**
+    * Get erase methods available for this memory
+    * 
+    * @return List of erase methods
+    */
+   public List<EraseMethod> getEraseMethods() {
+      return eraseMethods;
    }
 
 }

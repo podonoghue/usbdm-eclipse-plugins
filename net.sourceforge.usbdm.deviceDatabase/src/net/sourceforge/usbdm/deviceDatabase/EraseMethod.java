@@ -11,13 +11,34 @@ public enum EraseMethod {
    ;
    private final int    mask;
    private final String name;
+
+   /**
+    * Create a EraseMethod
+    * 
+    * @param mask Mask for erase method
+    * @param name Name of erase method
+    */
    EraseMethod(int mask, String name) {
       this.mask = mask;
       this.name = name;
    }
+   
+   /**
+    * Get mask for erase method
+    * 
+    * @return
+    */
    public int getMask() {
       return mask;
    }
+   
+   /**
+    * Get EraseMethod for mask
+    * 
+    * @param mask
+    * 
+    * @return
+    */
    public static EraseMethod valueOf(int mask) {
       for (EraseMethod type:values()) {
          if (type.mask == mask) {
@@ -26,6 +47,28 @@ public enum EraseMethod {
       }
       return ERASE_MASS;
    }
+   
+   /**
+    * Get EraseMethod from friendly name
+    * 
+    * @param name
+    * @return
+    * @throws Exception 
+    */
+   static EraseMethod getEraseMethod(String name) throws Exception {
+      for (EraseMethod em:EraseMethod.values()) {
+         if (em.name.equalsIgnoreCase(name)) {
+            return em;
+         }
+      }
+      throw new Exception("Invalid Enumeration name " + name);
+   }
+   
+   /**
+    * Get friendly name
+    * 
+    * @return
+    */
    public String getName() {
       return name;
    }

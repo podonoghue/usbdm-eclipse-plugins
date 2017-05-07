@@ -220,11 +220,9 @@ public class DeviceDatabase {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         //         System.err.println("parseMemoryElements() " + node.getNodeName());
          Element element = (Element) node;
          if (element.getTagName() == "memoryRange") {
             MemoryRange memoryRange = parseMemoryRange(element);
-            //               System.err.println("parseMemoryElements() " + memoryRange.toString());
             memoryRegion.addRange(memoryRange);
          }
          // Ignore other node types <flexNVMInfoRef> etc. 
@@ -232,6 +230,20 @@ public class DeviceDatabase {
       return memoryRegion;
    }
    
+   private EraseMethod parseEraseMethod(Element element) throws Exception {
+      
+      String type  = element.getAttribute("type");
+
+      EraseMethod method = EraseMethod.ERASE_SELECTIVE;
+      try {
+         method = EraseMethod.getEraseMethod(type);
+      } catch (Exception e) {
+         e.printStackTrace();
+         throw new Exception("Illegal erase method \'" + type + "\'");
+      }
+      return method;
+   }
+
    /**
     * Parse a <device> element
     * 
@@ -305,6 +317,10 @@ public class DeviceDatabase {
          }
          else if (element.getTagName() == "soptAddress") {
             device.setSoptAddress(getIntAttribute(element, "value"));
+         }
+         else if (element.getTagName() == "eraseMethod") {
+            EraseMethod method = parseEraseMethod(element);
+            device.addEraseMethod(method);
          }
       }
       return device;
