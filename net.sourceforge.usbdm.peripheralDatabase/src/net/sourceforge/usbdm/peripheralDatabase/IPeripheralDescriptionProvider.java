@@ -46,4 +46,23 @@ public interface IPeripheralDescriptionProvider {
     * @return Device peripherals
     */
    public DevicePeripherals getDevicePeripherals(String deviceName);
+   
+   /**
+    * Determine the base file name for the deviceName.<br>
+    * This can be used to construct the name of either the header file or the SVD file.
+    * 
+    * @param deviceName
+    * 
+    * @return Filename if found e.g. MK11D5, or null if device is not found
+    */
+   String getMappedFilename(String deviceName);
+
+   /**
+    * Determine the mapped device name for the deviceName e.g. MK10DxxxM5
+    * 
+    * @param deviceName
+    * 
+    * @return Device name if found e.g. MK10DxxxM5, or null if device is not found
+    */
+   String getMappedDeviceName(String deviceName);
 }

@@ -148,27 +148,25 @@ public class DeviceFileList extends SVD_XML_BaseParser {
       return null;
    }
 
-//   /**
-//    * Determine the relative path of the SVD file for the device (without any extension)
-//    * 
-//    * @param deviceName
-//    * 
-//    * @return filename if found e.g. MK11D5, or null if not found
-//    */
-//   public Path getSvdRelativePath(String deviceName) {
-//      return Paths.get(getBaseFilename(deviceName));
-//      
-////      for (DeviceSvdInfo entry:deviceList) {
-////         // Use pattern if it exists
-////         if (!entry.deviceNamePattern.isEmpty() && deviceName.matches(entry.deviceNamePattern)) {
-////            return Paths.get(entry.svdName);
-////         }
-////         // Try name directly
-////         if (deviceName.equalsIgnoreCase(entry.deviceName)) {
-////            return Paths.get(entry.svdName);
-////         }
-////      }
-////      return null;
-//   }
+   /**
+    * Determine the mapped device name for the deviceName e.g. MK10DxxxM5
+    * 
+    * @param deviceName
+    * 
+    * @return Device name if found e.g. MK10DxxxM5, or null if device is not found
+    */
+   public String getMappedDeviceName(String deviceName) {
+      for (DeviceSvdInfo entry:deviceList) {
+         // Use pattern if it exists
+         if (!entry.deviceNamePattern.isEmpty() && deviceName.matches(entry.deviceNamePattern)) {
+            return entry.deviceName;
+         }
+         // Try name directly
+         if (deviceName.equalsIgnoreCase(entry.deviceName)) {
+            return entry.deviceName;
+         }
+      }
+      return null;
+   }
 
 }

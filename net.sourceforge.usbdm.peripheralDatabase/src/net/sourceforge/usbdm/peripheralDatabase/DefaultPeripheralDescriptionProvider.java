@@ -63,9 +63,28 @@ public class DefaultPeripheralDescriptionProvider implements IPeripheralDescript
       }
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider#getDevicePeripherals(java.lang.String)
+    */
    @Override
    public DevicePeripherals getDevicePeripherals(String deviceName) {
       return fDevicePeripheralsFactory.getDevicePeripherals(deviceName);
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider#getMappedFilename(java.lang.String)
+    */
+   @Override
+   public String getMappedFilename(String deviceName) {
+      return fDevicePeripheralsFactory.getMappedFileName(deviceName);
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.peripheralDatabase.IPeripheralDescriptionProvider#getMappedDeviceName(java.lang.String)
+    */
+   @Override
+   public String getMappedDeviceName(String deviceName) {
+      return fDevicePeripheralsFactory.getMappedDeviceName(deviceName);
    }
 
    /**

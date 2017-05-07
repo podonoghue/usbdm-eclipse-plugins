@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -159,7 +160,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
          }
          comboDeviceName.select(0);
       } catch (Exception e) {
-         e.printStackTrace();
+         System.err.println("DevicePeripheralSelectionDialogue.populateDeviceList()"+e.getMessage());
       }
    }
 
@@ -234,18 +235,38 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
       btnDeviceSelect.setToolTipText("Select internal USBDM\ndevice by category");
       btnDeviceSelect.addSelectionListener(new SelectionListener() {
          @Override
-         public void widgetSelected(SelectionEvent e) {
+         public void widgetSelected(SelectionEvent event) {
             // Open dialogue to select device
             DeviceSelector ds = new DeviceSelector(getShell(), targetType , comboDeviceName.getText());
             if (ds.open() == Window.OK) {
-                  int providerIndex = providerIds.indexOf(UsbdmPeripheralDescriptionProvider.ID);
-                  if (providerIndex<0) {
-                     providerIndex = 0;
+               // Map device name to SVD file name
+               String message = null;
+               try {
+                  IPeripheralDescriptionProvider provider = devicePeriperalsProviderInterface.getProvider(UsbdmPeripheralDescriptionProvider.ID);
+                  String mappedName = provider.getMappedDeviceName(ds.getText());
+                  if (mappedName == null) {
+                     message = "Cannot locate SVD file for device";
                   }
-                  comboManufacturerSelect.select(providerIndex);
-                  populateDeviceList();
-                  comboDeviceName.setText(ds.getText());
-                  updateSvdId();
+                  else {
+//                     System.err.println("Mapped name = " + mappedName);
+                     int providerIndex = providerIds.indexOf(UsbdmPeripheralDescriptionProvider.ID);
+                     if (providerIndex<0) {
+                        providerIndex = 0;
+                     }
+                     comboManufacturerSelect.select(providerIndex);
+                     populateDeviceList();
+                     comboDeviceName.setText(mappedName);
+                     updateSvdId();
+                  }
+               } catch (Exception e) {
+                  message = "Cannot locate SVD for device\nReason " + e.getMessage();
+               }
+               if (message != null) {
+                  MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.CANCEL);
+                  messageBox.setText("Error");
+                  messageBox.setMessage(message);
+                  messageBox.open();
+               }
             }
             validate();
          }
@@ -306,7 +327,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
     * @param svdId
     */
    void setSvdIdentifier(SVDIdentifier svdId) {
-      System.err.println("setSvdIdentifier("+svdId+")");
+//      System.err.println("setSvdIdentifier("+svdId+")");
       fSvdIdentifier = svdId;
 
       if (fSvdIdentifier == null) {
@@ -329,7 +350,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
          try {
             comboDeviceName.setText(fSvdIdentifier.getDeviceName());
          } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.err.println("DevicePeripheralSelectionDialogue.setSvdIdentifier()"+e.getMessage());
          }
          updateSvdId();
       }
@@ -339,7 +360,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
     * Update SVD from dialogue information
     */
    void updateSvdId() {
-      System.err.println("updateSvdId()");
+//      System.err.println("updateSvdId()");
       SVDIdentifier svdId = null;
       try {
          if (chkUseExternalSVDFile.getSelection()) {
@@ -363,7 +384,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
     * Validate dialogue contents and update status area etc.
     */
    private void validate() {
-      System.err.println("validate()");
+//      System.err.println("validate()");
       final boolean useExternalSVDFile = chkUseExternalSVDFile.getSelection();
       for (Control child : grpExternal.getChildren()) {
          child.setEnabled(useExternalSVDFile);
@@ -388,7 +409,7 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
          try {
             fDescription = fSvdIdentifier.getDevicePeripherals().getDescription();
          } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("DevicePeripheralSelectionDialogue.validate()"+e.getMessage());
          }
       }
       if (message != null) {

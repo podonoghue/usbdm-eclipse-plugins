@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.peripherals.usbdm;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.peripheralDatabase.DefaultPeripheralDescriptionProvider;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 
 public class UsbdmPeripheralDescriptionProvider extends DefaultPeripheralDescriptionProvider {
 
@@ -37,6 +38,8 @@ public class UsbdmPeripheralDescriptionProvider extends DefaultPeripheralDescrip
       for (String s : fileNames) {
          System.err.println("Name = " + s);
       }
+      DevicePeripherals devicePeripherals = provider.getDevicePeripherals("LPC11Uxx");
+      System.err.println(devicePeripherals);
    }
 
 }

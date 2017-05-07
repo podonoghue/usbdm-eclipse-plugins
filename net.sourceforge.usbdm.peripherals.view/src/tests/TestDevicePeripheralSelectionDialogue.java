@@ -35,17 +35,17 @@ public class TestDevicePeripheralSelectionDialogue {
       int result = dialogue.open();
       if (result != Window.OK) {
          // Cancelled etc
-         System.err.println("fileOrDevicename = Cancelled");
+         System.err.println("**** Cancelled ****");
          return;
       }
       SVDIdentifier svdID = dialogue.getSVDId();
       System.err.println("svdID = " + svdID);
       try {
-         System.err.println("svdID.getDeviceName = " + svdID.getDeviceName());
+         System.err.println("svdID.getDeviceName() = " + svdID.getDeviceName());
          DevicePeripherals devicePeripherals = svdID.getDevicePeripherals();
-         System.err.println("devicePeripherals (from SVDID) = " + devicePeripherals);
+         System.err.println("svdID.getDevicePeripherals() = " + devicePeripherals);
 
-         System.err.println("deviceOrFilename = " + devicePeripherals.getName());
+         System.err.println("devicePeripherals.getName() = " + devicePeripherals.getName());
          UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(null, svdID);
          System.err.println("peripheralModel = " + peripheralModel);
       } catch (Exception e) {

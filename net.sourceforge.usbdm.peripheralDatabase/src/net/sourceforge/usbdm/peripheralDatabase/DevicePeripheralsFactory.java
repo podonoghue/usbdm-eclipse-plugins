@@ -22,7 +22,8 @@ public class DevicePeripheralsFactory {
    /**
     * Creates factory using given path to device folder
     * 
-    * @param folderPath
+    * @param folderPath Path of folder containing SCD files and optional DeviceList.xml index file
+    * 
     * @throws Exception 
     */
    public DevicePeripheralsFactory(Path folderPath) {
@@ -76,13 +77,14 @@ public class DevicePeripheralsFactory {
    /**
     *  Creates peripheral database for device
     * 
-    *  @param path Path to SVD file
+    *  @param path Full path to SVD file
     *  
     *  @return device peripheral description or null on error
-    * @throws Exception 
+    *  
+    *  @throws Exception 
     */
    public DevicePeripherals getDevicePeripherals(Path path) throws Exception {
-
+      
       if (path.toFile().isFile()) {
        return new DevicePeripherals(path);
     }
@@ -91,18 +93,23 @@ public class DevicePeripheralsFactory {
    /**
     *  Creates peripheral database for device
     * 
-    *  @param name Name of SVD file e.g. "MK20D5", default extensions will be tried e.g. ".xml"
+    *  @param deviceName Name of device or SVD file name e.g. "MK20D5", default extensions will be tried e.g. ".xml"
     *  
     *  @return device peripheral description or null on error
     */
-   public DevicePeripherals getDevicePeripherals(String name) {
+   public DevicePeripherals getDevicePeripherals(String deviceName) {
       DevicePeripherals devicePeripherals = null;
 
+      // Check for mapping file
+      if (fDeviceFileList != null) {
+         // Map device name to SVD file name
+         deviceName = fDeviceFileList.getBaseFilename(deviceName);
+      }
       // Parse the XML file into the XML internal DOM representation
       try {
          for (String extension : new String[]{"", ".svd", ".xml", ".svd.xml"}) {
-            // Resolve against default path
-            Path filename = fFolderPath.resolve(name+extension);
+            // Resolve against folder path
+            Path filename = fFolderPath.resolve(deviceName+extension);
             if (Files.isRegularFile(filename)) {
 //               System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Trying \""+filename+"\" - found");
                devicePeripherals = new DevicePeripherals(filename);
@@ -112,7 +119,7 @@ public class DevicePeripheralsFactory {
          }
       } catch (Exception e) {
          e.printStackTrace();
-         System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception for device: " + name);
+         System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception for device: " + deviceName);
          System.err.println("DevicePeripheralsFactory.getDevicePeripherals() - Exception: reason: " + e.getMessage());
       }
       return devicePeripherals;
@@ -124,13 +131,27 @@ public class DevicePeripheralsFactory {
     * 
     * @param deviceName
     * 
-    * @return filename if found e.g. MK11D5, or null if not found
+    * @return filename if found e.g. MK11D5, or null if device is not found
     */
-   public String lookupHeaderFileName(String devicename) {
+   public String getMappedFileName(String devicename) {
       if (fDeviceFileList == null) {
          return null;
       }
       return fDeviceFileList.getBaseFilename(devicename);
+   }
+   
+   /**
+    * Determine the mapped device name for the deviceName e.g. MK10DxxxM5
+    * 
+    * @param deviceName
+    * 
+    * @return Device name if found e.g. MK10DxxxM5, or null if device is not found
+    */
+   public String getMappedDeviceName(String devicename) {
+      if (fDeviceFileList == null) {
+         return null;
+      }
+      return fDeviceFileList.getMappedDeviceName(devicename);
    }
    
    /**
@@ -258,5 +279,6 @@ public class DevicePeripheralsFactory {
       System.err.println("Done");
       System.err.flush();
    }
+
 
 }

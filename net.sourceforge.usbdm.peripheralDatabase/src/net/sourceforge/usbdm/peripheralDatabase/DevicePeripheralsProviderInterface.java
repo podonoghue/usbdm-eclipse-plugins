@@ -138,9 +138,7 @@ public class DevicePeripheralsProviderInterface {
       }
       else {
          IPeripheralDescriptionProvider provider = getProvider(svdIdentifier.getproviderId());
-         if (provider != null) {
-            devicePeripherals = provider.getDevicePeripherals(svdIdentifier.getDeviceName());
-         }
+         devicePeripherals = provider.getDevicePeripherals(svdIdentifier.getDeviceName());
       }
       if (devicePeripherals == null) {
          throw new Exception("DevicePeripheralsProviderInterface.getDevice() failed for device = " + svdIdentifier);

@@ -51,12 +51,13 @@ public class DevicePeripherals extends ModeControl {
    }
 
    /**
-    * Create DevicePeripherals using given folder
+    * Create DevicePeripherals using given path to SVD file
     * 
-    * @param folder
+    * @param path  Path to SVD file
+    * 
     * @throws Exception 
     */
-   public DevicePeripherals(Path folder) throws Exception {
+   public DevicePeripherals(Path path) throws Exception {
       name              = "";
       version           = "0.0";
       description       = "";
@@ -71,7 +72,7 @@ public class DevicePeripherals extends ModeControl {
       equivalentDevices = new ArrayList<String>();
       vectorTable       = null;
 
-      SVD_XML_Parser.parseDocument(folder, this);
+      SVD_XML_Parser.parseDocument(path, this);
    }
 
    public void addPeripheral(Peripheral peripheral) {
