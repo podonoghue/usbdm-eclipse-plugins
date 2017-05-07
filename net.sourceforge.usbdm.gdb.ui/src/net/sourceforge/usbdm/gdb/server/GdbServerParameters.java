@@ -791,8 +791,8 @@ public class GdbServerParameters {
       configuration.setAttribute((key+securityOptionKey),                getSecurityOption().name());
       configuration.setAttribute((key+targetVddKey),                     getTargetVdd().name());
       configuration.setAttribute((key+trimClockKey),                     isTrimClock());
-      configuration.setAttribute((key+clockTrimFrequencyKey),            getClockTrimFrequency());
-      configuration.setAttribute((key+nvmClockTrimLocationKey),          (int)getNvmClockTrimLocation());
+      configuration.setAttribute((key+clockTrimFrequencyKey),            Long.toString(getClockTrimFrequency()));
+      configuration.setAttribute((key+nvmClockTrimLocationKey),          Long.toHexString(getNvmClockTrimLocation()));
       configuration.setAttribute((key+connectionTimeoutKey),             getConnectionTimeout());
       configuration.setAttribute((key+catchVLLSxEventsKey),              isCatchVLLSxEvents());
       configuration.setAttribute((key+maskInterruptsKey),                isMaskInterrupts());
@@ -855,8 +855,23 @@ public class GdbServerParameters {
       setTargetVdd(TargetVddSelect.valueOf( 
                                 CDebugUtils.getAttribute(attributes, (key+targetVddKey),                     getTargetVdd().name())));
       enableTrimClock(          CDebugUtils.getAttribute(attributes, (key+trimClockKey),                     isTrimClock()));
-      setClockTrimFrequency(    CDebugUtils.getAttribute(attributes, (key+clockTrimFrequencyKey),            getClockTrimFrequency()));
-      setNvmClockTrimLocation(  CDebugUtils.getAttribute(attributes, (key+nvmClockTrimLocationKey),     (int)getNvmClockTrimLocation()));
+      Object obj = null; 
+      try {
+         obj = attributes.get(key+clockTrimFrequencyKey);
+         if (obj != null){
+            setClockTrimFrequency((Integer.valueOf(obj.toString())));
+         }
+      } catch (NumberFormatException e) {
+         System.err.println("Illegal format in "+clockTrimFrequencyKey+", "+obj.toString());
+      }
+      try {
+         obj = attributes.get(key+nvmClockTrimLocationKey);
+         if (obj != null){
+            setNvmClockTrimLocation(Integer.valueOf(obj.toString(), 16));
+         }
+      } catch (NumberFormatException e) {
+         System.err.println("Illegal format in "+nvmClockTrimLocationKey+", "+obj.toString());
+      }
       setConnectionTimeout(     CDebugUtils.getAttribute(attributes, (key+connectionTimeoutKey),             getConnectionTimeout()));
       enableCatchVLLSxEvents(   CDebugUtils.getAttribute(attributes, (key+catchVLLSxEventsKey),              isCatchVLLSxEvents()));
       enableMaskInterrupts(     CDebugUtils.getAttribute(attributes, (key+maskInterruptsKey),                isMaskInterrupts()));
