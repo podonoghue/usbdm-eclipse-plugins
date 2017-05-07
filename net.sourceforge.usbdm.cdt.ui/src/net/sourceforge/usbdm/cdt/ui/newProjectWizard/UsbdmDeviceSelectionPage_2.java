@@ -70,6 +70,12 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private String                fBuildToolId = null;
    Map<String, String>           fPageData    = null;
 
+   /**
+    * Create page
+    * 
+    * @param paramMap               
+    * @param usbdmNewProjectWizard
+    */
    public UsbdmDeviceSelectionPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
       try {
@@ -96,7 +102,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          Job job = new Job("Updating configuration") {
             protected IStatus run(IProgressMonitor monitor) {
                monitor.beginTask("Updating Pages...", 10);
-               updatePageData();
+               createPageData();
                Display.getDefault().asyncExec(new Runnable() {
                   @Override
                   public void run() {
@@ -356,7 +362,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getAlias(), "h");
       }
       if (externalHeaderFile == null) {
-         externalHeaderFile = new DevicePeripheralsFactory().lookupHeaderFileName(device.getName());
+         externalHeaderFile = new DevicePeripheralsFactory().getMappedFileName(device.getName());
          // Try under alias name
          externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, externalHeaderFile, "h");
       }      
@@ -398,7 +404,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * @param device           Device being used
     * @param deviceSubFamily 
     */
-   private void addDatabaseValues(Map<String, String> paramMap, Device device) {
+   private void addDeviceCodeValues(Map<String, String> paramMap, Device device) {
       String parameters = "";
       long soptAddress = device.getSoptAddress();
       String deviceSubFamily = device.getFamily();
@@ -467,8 +473,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     */
    private void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
 
-      //      int flashRangeCount = 0;
-      //      int ramRangeCount   = 0;
       int ioRangeCount    = 0;
       int flexNVMCount    = 0;
       int flexRamCount    = 0;
@@ -627,8 +631,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * Adds device specific attributes to map
     * 
     * @param paramMap Map to add attributes to
+    * @param device   Device needed to obtain attributes
     */
-   private void addDeviceAttributes(Device device, Map<String, String> paramMap) {
+   private void addDeviceAttributes(Map<String, String> paramMap, Device device) {
       if (device == null) {
          return;
       }
@@ -641,10 +646,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       //      System.err.println("Result for vector table file: \'" + externalVectorTableFile + "\'"); //$NON-NLS-1$
 
       addLinkerMemoryMap(device, paramMap);
-      addDatabaseValues(paramMap, device);
-
-      paramMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
-      paramMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY,    String.valueOf(device.getDefaultClockTrimNVAddress()));            
+      addDeviceCodeValues(paramMap, device);
 
       //      System.err.println("Header file: " + externalHeaderFile); //$NON-NLS-1$
       //      System.err.println("Vector file: " + externalVectorTableFile);  //$NON-NLS-1$
@@ -715,37 +717,34 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
    }
 
-   private synchronized void updatePageData()  {
-      Map<String, String> pageData = new HashMap<String, String>();
+   private synchronized void createPageData()  {
 
-      Device device = getDevice();
-      //      System.err.println("UsbdmProjectParametersPage_2.updatePageData() device = " + ((device==null)?"null":device.getName()));
-      if (device == null) {
-         return;
-      }
-      pageData.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
+      fPageData = new HashMap<String, String>();
+      
+      fPageData.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
 
       String buildToolsId = getBuildToolsId();
       ToolInformationData toolInfo = ToolInformationData.getToolInformationTable().get(buildToolsId);
       if (toolInfo == null) {
-         pageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
-         pageData.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
+         fPageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "");    
+         fPageData.put(UsbdmConstants.GDB_COMMAND_KEY,         "gdb");
       }
       else {
-         pageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
-         pageData.put(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
+         fPageData.put(UsbdmConstants.BUILD_TOOLS_BIN_PATH_KEY, "${"+toolInfo.getPathVariableName()+"}");
+         fPageData.put(UsbdmConstants.GDB_COMMAND_KEY,          "${"+toolInfo.getPrefixVariableName()+"}gdb");
       }
-      pageData.put(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
-      pageData.put(UsbdmConstants.TARGET_DEVICE_KEY,           device.getName());
-      pageData.put(UsbdmConstants.TARGET_DEVICE_NAME_KEY,      device.getName().toLowerCase());
-      pageData.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
-      pageData.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
+      fPageData.put(UsbdmConstants.BUILD_TOOLS_ID_KEY,          buildToolsId);    
 
-      pageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
+      fPageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
 
-      //      System.err.println("getPageData() - #2");
-      addDeviceAttributes(device, pageData);
-      fPageData = pageData;
+      Device device = getDevice();
+      if (device == null) {
+         return;
+      }
+      addDeviceAttributes(fPageData, device);
+      
+      // Add launch parameters from device information
+      LaunchParameterUtilities.addLaunchParameters(fPageData, device, null);
 
       //      System.err.println("UsbdmProjectParametersPage_2.updatePageData() - exit");
    }

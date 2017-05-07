@@ -14,7 +14,8 @@ public class UsbdmConstants {
    public static final String GCC_COMMAND_WINDOWS              = "gcc.exe";                //$NON-NLS-1$
    
    // These constants are used for project template and paramMap keys
-   public final static Object PROJECT_ARTIFACT_KEY             = "projectArtifactName";    //$NON-NLS-1$
+   public final static String PROJECT_ARTIFACT_KEY             = "projectArtifactName";    //$NON-NLS-1$
+   public final static String BIN_PATH_KEY                     = "binPath";                //$NON-NLS-1$
    public final static String PROJECT_HOME_PATH_KEY            = "projectHomePath";        //$NON-NLS-1$
    public final static String PROJECT_OUTPUT_TYPE_KEY          = "outputType";             //$NON-NLS-1$
    public final static String PROJECT_NAME_KEY                 = "projectName";            //$NON-NLS-1$
@@ -38,6 +39,7 @@ public class UsbdmConstants {
    public final static String LINKER_HEAP_SIZE_KEY             = "linkerHeapSize";         //$NON-NLS-1$
    public final static String LINKER_EXTRA_REGION_KEY          = "linkerExtraRegions";     //$NON-NLS-1$
    public final static String EXTERNAL_HEADER_FILE_KEY         = "externalHeaderFile";     //$NON-NLS-1$
+   public final static String ERASE_METHOD_KEY                 = "eraseMethod";            //$NON-NLS-1$
    public final static String EXTERNAL_VECTOR_TABLE_KEY        = "externalVectorTable";    //$NON-NLS-1$
    public final static String C_DEVICE_PARAMETERS_KEY          = "cDeviceParameters";      //$NON-NLS-1$
    public final static String USBDM_APPLICATION_PATH_KEY       = "usbdmApplicationPath";   //$NON-NLS-1$

@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+        id="net.sourceforge.usbdm.cdt.ui.LaunchShortcut"
+        class="net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmLaunchShortcut"
+        label="USBDM C++ session"
+        icon="icons/cog.png"	
+        modes="run, debug">
+         <description
+           description="Run as USBDM GDB session"
+           mode="run">
+         </description>
+         <description
+           description="Debug as USBDM GDB session"
+           mode="debug">
+         </description>
+         <contextualLaunch>
+           <enablement>
+             <with variable="selection">
+               <count value="1"/>
+               <iterate>
+                   <or>
+                     <instanceof value="org.eclipse.cdt.core.model.IBinary"/>
+                     <instanceof value="org.eclipse.cdt.core.model.ICProject"/>
+                     <test
+                           forcePluginActivation="true"
+                           property="org.eclipse.cdt.launch.isExecutable"/>
+                     <test
+                           forcePluginActivation="true"
+                           property="org.eclipse.cdt.launch.isCProject"/>
+                     <and>
+                       <instanceof value="org.eclipse.ui.IFileEditorInput"/>
+                       <adapt type="org.eclipse.core.resources.IResource">
+                         <adapt type="org.eclipse.cdt.core.model.ICElement"/>
+                       </adapt>
+                     </and>
+                   </or>
+               </iterate>
+             </with>
+           </enablement>
+         </contextualLaunch>       
+      </shortcut>
+   </extension>
    <extension
          point="org.eclipse.ui.commands">
       <category
