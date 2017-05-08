@@ -115,11 +115,11 @@ public class UsbdmConstants {
    public static final String PREFIX_NOT_SET    = "PREFIX NOT SET";
 
    // Fixed paths within created projects
-   public static final String PROJECT_PROJECT_HEADERS_PATH  = "Project_Headers";
-   public static final String PROJECT_PROJECT_SETTINGS_PATH = "Project_Settings";
-   public static final String PROJECT_SOURCES_PATH          = "Sources";
+//   public static final String PROJECT_PROJECT_HEADERS_PATH  = "Project_Headers";
+//   public static final String PROJECT_PROJECT_SETTINGS_PATH = "Project_Settings";
+//   public static final String PROJECT_SOURCES_PATH          = "Sources";
+//   public static final String PROJECT_SNIPPETS_PATH         = "Snippets";
    public static final String PROJECT_START_UP_CODE_PATH    = "Startup_Code";
-   public static final String PROJECT_SNIPPETS_PATH         = "Snippets";
    public static final String PROJECT_VECTOR_C_PATH         = PROJECT_START_UP_CODE_PATH+"/vectors.c";
    public static final String PROJECT_VECTOR_CPP_PATH       = PROJECT_START_UP_CODE_PATH+"/vectors.cpp";
 }

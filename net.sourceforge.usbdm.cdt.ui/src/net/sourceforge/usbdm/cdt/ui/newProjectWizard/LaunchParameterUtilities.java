@@ -92,13 +92,10 @@ public class LaunchParameterUtilities {
       }
       
       if ((elements.length == 1) && (elements[0] instanceof IBinary)) {
-         IBinary res[] = new IBinary[1];
-         res[0] = (IBinary) elements[0];
-         return res;
+         return new IBinary[]{(IBinary) elements[0]};
       }
       
       final List<IBinary>  results = new ArrayList<IBinary>();
-      ProgressMonitorDialog dialog = new ProgressMonitorDialog(null);
 
       IRunnableWithProgress runnable = new IRunnableWithProgress() {
          @Override
@@ -138,7 +135,7 @@ public class LaunchParameterUtilities {
       };
 
       try {
-         dialog.run(true, true, runnable);
+         new ProgressMonitorDialog(null).run(true, false, runnable);
       } catch (InterruptedException e) {
          return null;
       } catch (InvocationTargetException e) {

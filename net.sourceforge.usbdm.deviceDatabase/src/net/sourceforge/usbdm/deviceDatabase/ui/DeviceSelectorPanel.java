@@ -5,6 +5,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -359,55 +363,60 @@ public class DeviceSelectorPanel extends Composite {
    
    /**
     * Build the model representing the device choices
+    * @param pm 
     * 
     * @return
+    * @throws InterruptedException 
     */
-   BaseModel buildTreeModel() {
+   void buildTreeModel(IProgressMonitor pm, BaseModel root) throws InterruptedException {
       fDeviceName = null;
 
-      BaseModel root = new BaseModel(null, "root");
       if ((fDeviceDatabase == null) || (fDeviceDatabase.getTargetType() != fTargetType)) {
          fDeviceDatabase = new DeviceDatabase(fTargetType);
       }
       if (!fDeviceDatabase.isValid()) {
          fDeviceText.setText("<Device database invalid>");
-         return root;
+         return;
       }
       String currentFamily     = null;
       BaseModel familyTree     = null;
       String currentSubFamily  = null;
       BaseModel subFamilyTree  = null;
       for (Device device : fDeviceDatabase.getDeviceList()) {
-         if (device.isHidden()) {
-            continue;
+         IProgressMonitor sub = new SubProgressMonitor(pm, 1);
+         try {
+            if (device.isHidden()) {
+               continue;
+            }
+            String family = getFamilyName(device.getName());
+            if ((familyTree == null) || (currentFamily == null) || !currentFamily.equalsIgnoreCase(family)) {
+               familyTree = findCategoryNode(root, family);
+            }
+            if (familyTree == null) {
+               currentFamily = family;
+               familyTree = new CategoryModel(root, family);
+               currentSubFamily = null;
+               subFamilyTree = null;
+            }
+            String subFamily = getSubFamilyNamePrefix(device.getName());
+            if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
+               subFamilyTree = findCategoryNode(familyTree, subFamily);
+            }
+            if (subFamilyTree == null) {
+               currentSubFamily = subFamily;
+               subFamilyTree = new CategoryModel(familyTree, currentSubFamily);
+            }
+            if (device.getName().equalsIgnoreCase(currentSubFamily)) {
+               continue;
+            }
+            new DeviceModel(subFamilyTree, device.getName());
+            if (pm.isCanceled()) {
+               throw new InterruptedException();
+            } 
+         } finally {
+            sub.done();
          }
-         String family = getFamilyName(device.getName());
-         if ((familyTree == null) || (currentFamily == null) || !currentFamily.equalsIgnoreCase(family)) {
-            familyTree = findCategoryNode(root, family);
-         }
-         if (familyTree == null) {
-            currentFamily = family;
-            familyTree = new CategoryModel(root, family);
-            currentSubFamily = null;
-            subFamilyTree = null;
-         }
-//         if (device.getName().startsWith("MKV4")) {
-//            System.err.println("Found " +device.getName());
-//         }
-         String subFamily = getSubFamilyNamePrefix(device.getName());
-         if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
-            subFamilyTree = findCategoryNode(familyTree, subFamily);
-         }
-         if (subFamilyTree == null) {
-            currentSubFamily = subFamily;
-            subFamilyTree = new CategoryModel(familyTree, currentSubFamily);
-         }
-         if (device.getName().equalsIgnoreCase(currentSubFamily)) {
-            continue;
-         }
-         new DeviceModel(subFamilyTree, device.getName());
       }
-      return root;
    }
    
    /**
@@ -420,7 +429,30 @@ public class DeviceSelectorPanel extends Composite {
    public void setTargetType(TargetType targetType) {
       fTargetType = targetType;
       fDeviceName = null;
-      fModel      = buildTreeModel();
+      fModel      = null;
+      
+      ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
+
+      fModel = new BaseModel(null, "root");
+
+      IRunnableWithProgress runnable = new IRunnableWithProgress() {
+         @Override
+         public void run(IProgressMonitor pm) throws InterruptedException {
+            pm.beginTask( "Looking for executables", 1000);
+            try {
+               buildTreeModel(pm, fModel);
+            } finally {
+               pm.done();
+            }
+         }
+      };
+
+      try {
+         dialog.run(true, true, runnable);
+      } catch (Exception e) {
+         System.err.println("DeviceSelectorPanel.setTargetType() failed "+e.getMessage());
+         return;
+      }
       fViewer.setInput(fModel);
    }
 
