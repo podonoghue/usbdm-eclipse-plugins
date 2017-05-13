@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.security.acl.Owner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,7 +38,8 @@ public class Peripheral extends ModeControl implements Cloneable {
    private ArrayList<AddressBlock>   fAddressBlocks          = new ArrayList<AddressBlock>();
    private ArrayList<Cluster>        fRegisters              = new ArrayList<Cluster>();
    private boolean                   fRefreshAll;
-   private String                    fFilename               = null;  
+   private String                    fFilename               = null;
+   private DevicePeripherals         fOwner                  = null;  
    private static HashSet<String>    fConflictedNames        = new HashSet<String>();
    private static HashSet<String>    fTypedefsTable          = new HashSet<String>();
    
@@ -164,6 +166,9 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return
     */
    public String getName() {
+      if ((fOwner != null) && (fOwner.isUseHeaderDefinitionsPrefix())) {
+         return fOwner.getHeaderDefinitionsPrefix()+fName;
+      }
       return fName;
    }
 
@@ -191,17 +196,19 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return name
     */
    public String getHeaderStructName() {
+      String prefix = "";
+      if ((fOwner != null) && (fOwner.isUseHeaderDefinitionsPrefix())) {
+         prefix = fOwner.getHeaderDefinitionsPrefix();
+      }
+
       if (fDerivedFrom != null) {
-         return fDerivedFrom.getHeaderStructName();
+         return prefix+fDerivedFrom.getHeaderStructName();
       }
       if ((fHeaderStructName != null) && (!fHeaderStructName.isEmpty())) {
-         return fHeaderStructName;
+         return prefix+fHeaderStructName;
       }
       fHeaderStructName = getStructNamefromName(fName);
-      if (fHeaderStructName.startsWith("TRGMUX")) {
-         System.err.println("Found "+fName);
-      }
-      return fHeaderStructName;
+      return prefix+fHeaderStructName;
    }
    
    /**
@@ -1891,6 +1898,16 @@ public class Peripheral extends ModeControl implements Cloneable {
          System.err.println("Derived  = " + getDerivedFrom());
       }
       return PeripheralDatabaseMerger.PERIPHERAL_FOLDER+"/"+getFilename()+PeripheralDatabaseMerger.XML_EXTENSION;
+   }
+
+   /**
+    * Set current owner of peripheral<br>
+    * Used during header file writing
+    * 
+    * @param device
+    */
+   public void setOwner(DevicePeripherals device) {
+      fOwner = device;
    }
 
 }

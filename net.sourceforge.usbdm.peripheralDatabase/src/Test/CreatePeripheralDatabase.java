@@ -737,6 +737,7 @@ public class CreatePeripheralDatabase {
       System.err.flush();
       System.err.println("Done");
    }
+   
    /**
     * @param args
     */
@@ -744,8 +745,8 @@ public class CreatePeripheralDatabase {
 
 //    firstFileToProcess = ("^MKE16F.*");
 //    firstFileToReject  = ("^MKL.*");
-//    firstFileToProcess = ("^LPC.*");
-//    firstFileToReject  = ("^M.*");
+    firstFileToProcess = ("^LPC.*");
+    firstFileToReject  = ("^M.*");
 
 //      doFactoring();
       doUsualRegeneration();

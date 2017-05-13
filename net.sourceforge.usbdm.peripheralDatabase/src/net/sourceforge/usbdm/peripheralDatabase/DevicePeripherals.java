@@ -507,6 +507,7 @@ public class DevicePeripherals extends ModeControl {
       writer.println(String.format("   <version>%s</version>", ((getVersion()==null)?"0.0":getVersion())));
       writer.println(String.format("   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
       cpu.writeSVD(writer, standardFormat, this);
+      writer.println(String.format("   <headerDefinitionsPrefix>%s</headerDefinitionsPrefix>", getHeaderDefinitionsPrefix()));
       writer.println(String.format("   <addressUnitBits>%d</addressUnitBits>", getAddressUnitBits()));
       writer.println(String.format("   <width>%d</width>", getWidth()));
       writer.println("   <peripherals>");
@@ -711,6 +712,9 @@ public class DevicePeripherals extends ModeControl {
    }
 
    HashSet<String> excludedPeripherals = null;
+   
+   private String  headerDefinitionsPrefix;
+   private boolean useHeaderDefinitionsPrefix;
 
    /**
     * Indicates id a peripheral is excluded from the generated header files
@@ -757,6 +761,8 @@ public class DevicePeripherals extends ModeControl {
       DateFormat dateFormat = new SimpleDateFormat("yyyy/MM");
       Date date = new Date();
 
+      setUseHeaderDefinitionsPrefix(true);
+
       writer.print(String.format(HEADER_FILE_INTRO, 
             getName(), 
             getName(), getEquivalentDevicesList(), getVersion(), dateFormat.format(date), 
@@ -781,6 +787,7 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            peripheral.setOwner(this);
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
 
             // typedef defining registers for each peripheral
@@ -800,6 +807,7 @@ public class DevicePeripherals extends ModeControl {
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
             writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
+            peripheral.setOwner(null);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
       }
@@ -809,6 +817,7 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            peripheral.setOwner(this);
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer, this);
@@ -821,6 +830,7 @@ public class DevicePeripherals extends ModeControl {
                peripheral.writeHeaderFileRegisterMacro(writer);
             }
             writeGroupPostamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix);
+            peripheral.setOwner(null);
          }
          writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_POSTAMBLE));
 
@@ -831,7 +841,9 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            peripheral.setOwner(this);
             writer.print(String.format(BASE_ADDRESS_FORMAT, peripheral.getName()+PTR_BASE, peripheral.getBaseAddress()));
+            peripheral.setOwner(null);
          }
          // Peripheral definitions
          writer.print(PERIPHERAL_DECLARATION_INTRO);
@@ -840,13 +852,17 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
+            peripheral.setOwner(this);
             writer.print(String.format(PERIPHERAL_DECLARATION_FORMAT, peripheral.getName(), "volatile "+peripheral.getSafeHeaderStructName()+TYPE_DEF_SUFFIX, peripheral.getName()+PTR_BASE));
+            peripheral.setOwner(null);
          }
       }
       writeGroupPostamble(writer, periphGroupSuffix);
 
       writer.print(String.format(CPP_CLOSING));
       writer.print(String.format(HEADER_FILE_POSTAMBLE, getName().toUpperCase()));
+      
+      setUseHeaderDefinitionsPrefix(false);
    }
    /**
     * Create a vector table suitable for use in C code
@@ -871,6 +887,45 @@ public class DevicePeripherals extends ModeControl {
       } catch (Exception e) {
          e.printStackTrace();
       }
+   }
+
+   /**
+    * Set header file prefix
+    * 
+    * @param headerDefinitionsPrefix Header definitions prefix
+    */
+   public void setHeaderDefinitionsPrefix(String headerDefinitionsPrefix) {
+      this.headerDefinitionsPrefix = headerDefinitionsPrefix;
+   }
+
+   /**
+    * Get header file prefix
+    * 
+    * return Header definitions prefix
+    */
+   public String getHeaderDefinitionsPrefix() {
+      if (headerDefinitionsPrefix == null) {
+         return "";
+      }
+      return headerDefinitionsPrefix;
+   }
+
+   /**
+    * Indicates whether the peripheral name is prefixed with the header file prefix
+    * 
+    * @return
+    */
+   public boolean isUseHeaderDefinitionsPrefix() {
+      return useHeaderDefinitionsPrefix;
+   }
+
+   /**
+    * Set whether to prefix peripheral name with the header file prefix
+    * 
+    * @param useHeaderDefinitionsPrefix
+    */
+   public void setUseHeaderDefinitionsPrefix(boolean useHeaderDefinitionsPrefix) {
+      this.useHeaderDefinitionsPrefix = useHeaderDefinitionsPrefix;
    }
 
    //   /**
