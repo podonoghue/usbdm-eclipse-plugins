@@ -9,12 +9,14 @@
 package net.sourceforge.usbdm.deviceDatabase;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethods;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethod;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethods;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.packageParser.FileList;
 import net.sourceforge.usbdm.packageParser.PackageParser;
@@ -22,25 +24,28 @@ import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 public class Device implements Cloneable {
 
-   private String                   name;
-   private boolean                  defaultDevice;
-   private String                   alias;
-   private Vector<MemoryRegion>     memoryRegions;
-   private FileList                 fileList;
-   private String                   family;
-   private String                   subFamily;
-   private String                   hardware;
-   private long                     soptAddress;
-   private TargetType               targetType;
-   private ClockTypes               clockType;
-   private int                      clockAddres;
-   private int                      clockNvAddress;
-   private int                      clockTrimFrequency;
-   private boolean                  hidden;
+   private String                   fName;
+   private boolean                  fDefaultDevice;
+   private String                   fAlias;
+   private Vector<MemoryRegion>     fMemoryRegions;
+   private FileList                 fFileList;
+   private String                   fFamily;
+   private String                   fSubFamily;
+   private String                   fHardware;
+   private long                     fSoptAddress;
+   private TargetType               fTargetType;
+   private ClockTypes               fClockType;
+   private int                      fClockAddres;
+   private int                      fClockNvAddress;
+   private int                      fClockTrimFrequency;
+   private boolean                  fHidden;
    
-   /** List of erase methods available for this memory type */
-   private ArrayList<EraseMethod>   eraseMethods = new ArrayList<EraseMethod>();
+   /** Erase methods available */
+   private EraseMethods             fEraseMethods;
 
+   /** Available reset methods */
+   private ResetMethods             fResetMethods;
+   
    /**
     * Constructor
     * 
@@ -48,16 +53,18 @@ public class Device implements Cloneable {
     * @param name       Name of device
     */
    public Device(TargetType targetType, String name) {
-      this.name          = name;
-      this.defaultDevice = false;
-      this.targetType    = targetType;
+      fName         = name;
+      fTargetType   = targetType;
+      
+      fEraseMethods = new EraseMethods();
+      fResetMethods = new ResetMethods();
       
       setClockType(ClockTypes.INVALID);
       setClockAddres(0);
       
-      memoryRegions      = new Vector<MemoryRegion>();
-      family             = null;
-      subFamily          = null;
+      fMemoryRegions      = new Vector<MemoryRegion>();
+      fFamily             = null;
+      fSubFamily          = null;
    }
 
    /** Returns the default non-volatile flash location for the clock trim value
@@ -116,7 +123,7 @@ public class Device implements Cloneable {
     *
     */
    public int getDefaultClockTrimNVAddress() {
-      return getDefaultClockTrimNVAddress(targetType, clockType);
+      return getDefaultClockTrimNVAddress(fTargetType, fClockType);
    }
 
    /**
@@ -163,7 +170,7 @@ public class Device implements Cloneable {
     *
     */
    public int getDefaultClockTrimFreq()  {
-      return getDefaultClockTrimFreq(clockType);
+      return getDefaultClockTrimFreq(fClockType);
    }
 
    /**
@@ -172,7 +179,7 @@ public class Device implements Cloneable {
     * @param memoryRegion
     */
    void addMemoryRegion(MemoryRegion memoryRegion) {
-      memoryRegions.add(memoryRegion);
+      fMemoryRegions.add(memoryRegion);
    }
 
    /**
@@ -181,7 +188,7 @@ public class Device implements Cloneable {
     * @return
     */
    public Iterator<MemoryRegion> getMemoryRegionIterator() {
-      return memoryRegions.iterator();
+      return fMemoryRegions.iterator();
    }
 
    /* (non-Javadoc)
@@ -189,11 +196,11 @@ public class Device implements Cloneable {
     */
    @Override
    public String toString() {
-      String rv = String.format("%-12s", name+",");
-      if (soptAddress != 0) {
-         rv += String.format(",SOPT=0x%X", soptAddress);
+      String rv = String.format("%-12s", fName+",");
+      if (fSoptAddress != 0) {
+         rv += String.format(",SOPT=0x%X", fSoptAddress);
       }
-      rv += memoryRegions.toString();
+      rv += fMemoryRegions.toString();
 //      if (defaultDevice) {
 //         rv += ("(default)");
 //      }
@@ -246,7 +253,7 @@ public class Device implements Cloneable {
     * Note: not checked
     */
    public void setDefault() {
-      defaultDevice = true;
+      fDefaultDevice = true;
    }
    /**
     * Indicates if this device is the default
@@ -254,159 +261,159 @@ public class Device implements Cloneable {
     * @return
     */
    public boolean isDefault() {
-      return defaultDevice;
+      return fDefaultDevice;
    }
    /**
     * @param name
     */
    public void setAlias(String name) {
-      alias = name;
+      fAlias = name;
    }
    /**
     * @return
     */
    public boolean isAlias() {
-      return alias != null;
+      return fAlias != null;
    }
    /**
     * @return
     */
    public String getAlias() {
-      return alias;
+      return fAlias;
    }
    /**
     * @return
     */
    public String getName() {
-      return name;
+      return fName;
    }
    /**
     * @param family
     */
    public void setFamily(String family) {
-      this.family = family;
+      this.fFamily = family;
    }
    /**
     * @return
     */
    public String getFamily() {
-      return family;
+      return fFamily;
    }
    /**
     * @param subFamily
     */
    public void setSubFamily(String subFamily) {
-      this.subFamily = subFamily;
+      this.fSubFamily = subFamily;
    }
    /**
     * @return
     */
    public String getSubFamily() {
-      return subFamily;
+      return fSubFamily;
    }
    
    /**
     * @return the hardware
     */
    public String getHardware() {
-      return hardware;
+      return fHardware;
    }
 
    /**
     * @param hardware the hardware to set
     */
    public void setHardware(String hardware) {
-      this.hardware = hardware;
+      this.fHardware = hardware;
    }
 
    /**
     * @param soptAddress
     */
    public void setSoptAddress(long soptAddress) {
-      this.soptAddress = soptAddress;
+      this.fSoptAddress = soptAddress;
    }
    /**
     * @return
     */
    public long getSoptAddress() {
-      return soptAddress;
+      return fSoptAddress;
    }
 
    /**
     * @return
     */
    public ClockTypes getClockType() {
-      return clockType;
+      return fClockType;
    }
 
    /**
     * @param clockType
     */
    public void setClockType(ClockTypes clockType) {
-      this.clockType = clockType;
+      this.fClockType = clockType;
    }
 
    /**
     * @return
     */
    public int getClockAddres() {
-      return clockAddres;
+      return fClockAddres;
    }
 
    /**
     * @param clockAddres
     */
    public void setClockAddres(int clockAddres) {
-      this.clockAddres = clockAddres;
+      this.fClockAddres = clockAddres;
    }
 
    /**
     * @return
     */
    public int getClockNvAddress() {
-      return clockNvAddress;
+      return fClockNvAddress;
    }
 
    /**
     * @param clockNvAddress
     */
    public void setClockNvAddress(int clockNvAddress) {
-      this.clockNvAddress = clockNvAddress;
+      this.fClockNvAddress = clockNvAddress;
    }
 
    /**
     * @return
     */
    public int getClockTrimFrequency() {
-      return clockTrimFrequency;
+      return fClockTrimFrequency;
    }
 
    /**
     * @param clockTrimFrequency
     */
    public void setClockTrimFrequency(int clockTrimFrequency) {
-      this.clockTrimFrequency = clockTrimFrequency;
+      this.fClockTrimFrequency = clockTrimFrequency;
    }
 
    /**
     * @return
     */
    public boolean isDefaultDevice() {
-      return defaultDevice;
+      return fDefaultDevice;
    }
 
    /**
     * @return
     */
    public TargetType getTargetType() {
-      return targetType;
+      return fTargetType;
    }
 
    /**
     * @return
     */
    public FileList getFileListMap() {
-      return fileList;
+      return fFileList;
    }
 
    /**
@@ -415,23 +422,23 @@ public class Device implements Cloneable {
    public void addToFileList(FileList fileList) {
       if (getFileListMap() == null) {
          // New map
-         this.fileList = new FileList();
+         this.fFileList = new FileList();
       }
-      this.fileList.add(fileList);
+      this.fFileList.add(fileList);
    }
 
    /**
     * @param hidden
     */
    public void setHidden(boolean hidden) {
-      this.hidden = hidden;
+      this.fHidden = hidden;
   }
 
    /**
     * @return
     */
    public boolean isHidden() {
-      return hidden;
+      return fHidden;
   }
 
    /**
@@ -455,26 +462,59 @@ public class Device implements Cloneable {
 
    public static Device shallowCopy(String name, Device aliasedDevice) throws CloneNotSupportedException {
       Device clone = (Device)aliasedDevice.clone();
-      clone.name = name;
+      clone.fName = name;
       return clone;
    }
 
    /**
-    * Add erase method
+    * **************************************************
+    */
+   /**
+    * Add reset method
     * 
     * @param method Method to add
     */
-   public void addEraseMethod(String method) {
-      eraseMethods.add(EraseMethod.valueOf(method));
+   public void setResetMethod(ResetMethods methods) {
+      fResetMethods = methods;
    }
    
+   /**
+    * Get reset methods available
+    * 
+    * @return List of erase methods
+    */
+   public ResetMethods getResetMethods() {
+      return fResetMethods;
+   }
+
+   /**
+    * Get preferred reset method
+    * 
+    * @return method Preferred method
+    */
+   public ResetMethod getPreferredResetMethod() {
+      return fResetMethods.getPreferredMethod();
+   }
+
+   /**
+    * Set preferred reset method
+    * 
+    * @param method Preferred method
+    */
+   public void setPreferredResetMethod(ResetMethod method) {
+      fResetMethods.setPreferredMethod(method);
+   }
+
+   /**
+    * **************************************************
+    */
    /**
     * Add erase method
     * 
     * @param method Method to add
     */
-   public void addEraseMethod(EraseMethod method) {
-      eraseMethods.add(method);
+   public void setEraseMethod(EraseMethods methods) {
+      fEraseMethods = methods;
    }
    
    /**
@@ -482,8 +522,26 @@ public class Device implements Cloneable {
     * 
     * @return List of erase methods
     */
-   public List<EraseMethod> getEraseMethods() {
-      return eraseMethods;
+   public EraseMethods getEraseMethods() {
+      return fEraseMethods;
+   }
+
+   /**
+    * Get preferred erase method
+    * 
+    * @return method Preferred method
+    */
+   public EraseMethod getPreferredEraseMethod() {
+      return fEraseMethods.getPreferredMethod();
+   }
+
+   /**
+    * Set preferred erase method
+    * 
+    * @param method Preferred method
+    */
+   public void setPreferredEraseMethod(EraseMethod method) {
+      fEraseMethods.setPreferredMethod(method);
    }
 
 }

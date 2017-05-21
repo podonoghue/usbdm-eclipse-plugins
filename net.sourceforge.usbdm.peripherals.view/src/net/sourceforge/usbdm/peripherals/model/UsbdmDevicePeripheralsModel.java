@@ -211,7 +211,7 @@ public class UsbdmDevicePeripheralsModel {
 
       if ((svdId == null) || !svdId.isValid()) {
          deviceModel.setName("No device loaded");
-         throw new IllegalArgumentException("svdId is null or invalid");
+         throw new IllegalArgumentException("svdId is null or invalid: "+svdId.toString());
       }
       DevicePeripherals devicePeripherals = null;
       try {

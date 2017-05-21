@@ -85,10 +85,10 @@ public class DevicePeripheralsFactory {
     */
    public DevicePeripherals getDevicePeripherals(Path path) throws Exception {
       
-      if (path.toFile().isFile()) {
-       return new DevicePeripherals(path);
-    }
-      return null;
+      if (!path.toFile().isFile()) {
+         throw new Exception("Path to SVD file is not valid \'" + path + "\'");
+      }
+      return new DevicePeripherals(path);
    }
    /**
     *  Creates peripheral database for device

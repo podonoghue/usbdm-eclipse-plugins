@@ -12,7 +12,9 @@ import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumeratedOptionMo
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.ErrorNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Modifier;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.OptionHeadingModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.OptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Polarity;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Range;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
 
@@ -67,7 +69,7 @@ public class AnnotationParser {
    private final static String  wizardStartString           = "<<<\\s*Use\\s*Configuration\\s*Wizard\\s*in\\s*Context\\s*Menu\\s*>>>";
    private final static String  wizardEndString             = "<<<\\s*end\\s*of\\s*configuration\\s*section\\s*>>>";
 
-   private final static String  wizardAnnotationString      = "<\\s*(?<control>[ehioqs]|/e|/h|info|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>\\s*(?<text>[^<]*)";
+   private final static String  wizardAnnotationString      = "<\\s*(?<control>\\!?[ehioqs]|/e|/h|info|pllConfigure)\\s*(?<offset>\\d+)?(\\s*\\.\\s*(?<fStart>\\d+)(\\s*\\.\\.\\s*(?<fEnd>\\d+))?)?\\s*>\\s*(?<text>[^<]*)";
    private final static String  nameString                  = "<\\s*name\\s*=\\s*(?<nameBody>.*?)\\s*>";
    private final static String  selectionString             = "<\\s*selection\\s*=\\s*(?<selectionBody>.*?)\\s*>";
 
@@ -146,7 +148,7 @@ public class AnnotationParser {
       return node;
    }
 
-   private void createAnnotation(String control, int offset, BitField bitField, String text) throws Exception {
+   private void createAnnotation(String control, int offset, BitField bitField, String text, Polarity polarity) throws Exception {
       //      System.err.println(String.format("createAnnotation(<%s%d> %s) 1", control, offset, text));
       Pattern p = Pattern.compile("(.*?)\\s*\\*/");
       Matcher m = p.matcher(text);
@@ -177,7 +179,9 @@ public class AnnotationParser {
          // Start of Heading with enable
          // May specify bit-field 
          // May specify offset
-         AnnotationModelNode heading = annotationModel.new OptionHeadingModelNode(text, offset, bitField);
+         // May specify inversion (using !)
+         OptionHeadingModelNode heading = annotationModel.new OptionHeadingModelNode(text, offset, bitField);
+         heading.setPolarity(polarity);
          currentNode.addChild(heading);
          currentNode       = heading;
          currentOption     = (OptionModelNode) heading;
@@ -212,7 +216,9 @@ public class AnnotationParser {
          // Binary option for bit values which can be set via a check-box or selection
          // May specify bit-field 
          // May specify offset
-         currentOption = annotationModel.new BinaryOptionModelNode(text, offset, bitField);
+         BinaryOptionModelNode optionNode = annotationModel.new BinaryOptionModelNode(text, offset, bitField);
+         optionNode.setPolarity(polarity);
+         currentOption = optionNode;
          currentNode.addChild(currentOption);
          currentEnumValue  = null;
       }
@@ -333,7 +339,7 @@ public class AnnotationParser {
    }
 
    private void parseComment(String buff) throws Exception {
-      if (buff.startsWith("//!") || buff.startsWith("/*!")) {
+      if (buff.startsWith("//!") || buff.startsWith("/*!") || buff.startsWith("/**")) {
          // Ignore these as may contain markup
          return;
       }
@@ -366,6 +372,12 @@ public class AnnotationParser {
                String text         = "";
 
                control = m.group("control").trim();
+               // Check for inversion
+               Polarity polarity = Polarity.ACTIVE_HIGH;
+               if (control.startsWith("!")) {
+                  control = control.substring(1);
+                  polarity = Polarity.ACTIVE_LOW;
+               }
                if (m.group("offset") != null) {
                   offset = Integer.decode(m.group("offset").trim());
                }
@@ -383,7 +395,7 @@ public class AnnotationParser {
                if (fieldStart >= 0) {
                   bitField = new BitField(fieldStart,  fieldEnd);
                }
-               createAnnotation(control, offset, bitField, text);
+               createAnnotation(control, offset, bitField, text, polarity);
             }
             else if (m.group("range") != null) {
                long startValue   = 0;

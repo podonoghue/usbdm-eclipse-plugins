@@ -1079,6 +1079,7 @@ public class AnnotationModel {
       public Message getMessage() {
          return errorMessage;
       }
+
    }
 
    /**
@@ -1853,6 +1854,44 @@ public class AnnotationModel {
       }
    }
 
+   static enum Polarity {
+      ACTIVE_HIGH,
+      ACTIVE_LOW;
+      
+      /**
+       * Interprets the value taking into account the polarity
+       * 
+       * @param value
+       * 
+       * @return true/false interpretation
+       */
+      boolean apply(boolean value) {
+         switch (this) {
+         case ACTIVE_HIGH:
+            return value;
+         case ACTIVE_LOW:
+            return !value;
+         }
+         return false;
+      }
+      /**
+       * Interprets the value taking into account the polarity
+       * 
+       * @param value
+       * 
+       * @return true/false interpretation
+       */
+      boolean apply(int value) {
+         switch (this) {
+         case ACTIVE_HIGH:
+            return value != 0;
+         case ACTIVE_LOW:
+            return value == 0;
+         }
+         return false;
+      }
+   };
+   
    /**
     * Represents a two value option e.g. true/false, enabled/disabled
     * <pre>
@@ -1866,9 +1905,13 @@ public class AnnotationModel {
 
       /** Text to display of false */
       String   falseValueText = "false";
+      
       /** Text to display of true */
       String   trueValueText  = "true";
       
+      /** Indicates node is active-high or active-low */
+      private Polarity  fPolarity = Polarity.ACTIVE_HIGH;
+
       /**
        * Constructor<br>
        * Represents a binary (two value) node in the document
@@ -1899,6 +1942,7 @@ public class AnnotationModel {
          super.copyFrom(other);
          this.falseValueText = ((BinaryOptionModelNode)other).falseValueText;
          this.trueValueText  = ((BinaryOptionModelNode)other).trueValueText;
+         this.fPolarity      = ((BinaryOptionModelNode)other).getPolarity();
       }
       
       @Override
@@ -1938,6 +1982,20 @@ public class AnnotationModel {
       }
 
       /**
+       * Gets value but captures any exceptions<br>
+       * Uses polarity to determine active value
+       * 
+       * @return
+       */
+      public Boolean safeGetActiveValue() {
+         try {
+            return getPolarity().apply((Boolean)getValue());
+         } catch (Exception e) {
+         }
+         return false;
+      }
+      
+      /**
        * Gets value but captures any exceptions
        * 
        * @return
@@ -1950,6 +2008,25 @@ public class AnnotationModel {
          }
       }
       
+      /**
+       * Sets polarity of node<br>
+       * Only applies to boolean nodes
+       * 
+       * @param polarity
+       */
+      public void setPolarity(Polarity polarity) {
+         fPolarity = polarity;
+      }
+      
+      /**
+       * Indicates polarity of node<br>
+       * Only applies to boolean nodes
+       * 
+       * @return polarity
+       */
+      public Polarity getPolarity() {
+         return fPolarity;
+      }
    }
 
    /**
@@ -1998,7 +2075,7 @@ public class AnnotationModel {
       @Override
       public void addChild(AnnotationModelNode child) {
          super.addChild(child);
-         child.setEnabled(isEnabled() && safeGetValue());
+         child.setEnabled(isEnabled() && getPolarity().apply(safeGetValue()));
       }
 
       @Override
@@ -2009,7 +2086,7 @@ public class AnnotationModel {
       @Override
       public Object getValue() throws Exception {
          Boolean value = (Boolean) super.getValue();
-         setChildrenEnabled(isEnabled() && value);
+         setChildrenEnabled(isEnabled() && getPolarity().apply(value));
          return value;
       }
    }
@@ -2123,6 +2200,11 @@ public class AnnotationModel {
          indent = INDENT_STRING.length();
       }
       return INDENT_STRING.substring(0, indent);
+   }
+
+   public void setInverted(boolean inverted) {
+      // TODO Auto-generated method stub
+      
    }
 
 }

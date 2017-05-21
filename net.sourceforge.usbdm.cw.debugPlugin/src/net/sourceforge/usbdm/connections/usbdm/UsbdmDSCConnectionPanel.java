@@ -55,7 +55,7 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
       gdiDllName              = UsbdmCommon.DSC_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.DSC_DebugGdiWrapperLib;
 	  
-      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_NONE);
       permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
       permittedEraseMethods.add(EraseMethod.ERASE_ALL);
@@ -114,7 +114,6 @@ public class UsbdmDSCConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreDSCDefaultSettings() {
 //      System.err.println("UsbdmDSCConnectionPanel.restoreDSCDefaultSettings(bool)");
-      eraseMethod                   = defaultEraseMethod;
       bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
       bdmOptions.connectionSpeed    = defaultBdmOptions.connectionSpeed;
       bdmOptions.connectionSpeed    = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();

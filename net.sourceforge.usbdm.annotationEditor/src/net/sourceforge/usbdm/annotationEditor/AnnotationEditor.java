@@ -79,7 +79,7 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
                return lockedImage;
             }
             if (element instanceof BinaryOptionModelNode) {
-               return ((Boolean)((BinaryOptionModelNode)element).safeGetValue())?checkedImage:uncheckedImage;
+               return ((Boolean)((BinaryOptionModelNode)element).safeGetActiveValue())?checkedImage:uncheckedImage;
             }
             if (element instanceof NumericOptionModelNode) {
                BitField field = ((NumericOptionModelNode)element).getBitField();

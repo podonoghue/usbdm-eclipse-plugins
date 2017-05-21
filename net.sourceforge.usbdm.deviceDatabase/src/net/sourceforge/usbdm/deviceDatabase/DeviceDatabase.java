@@ -31,6 +31,10 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.usbdm.deviceDatabase.MemoryRegion.MemoryRange;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.EraseMethods;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethod;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethods;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.jni.UsbdmJniConstants;
@@ -137,11 +141,12 @@ public class DeviceDatabase {
       boolean endGiven    = element.hasAttribute("end");
       boolean sizeGiven   = element.hasAttribute("size");
 
-      long memoryStartAddress  = 0;
-      long memoryMiddleAddress = 0;
-      long memoryEndAddress    = 0;
-      long memorySize          = 0;
-      boolean addressOK = true;
+      long   memoryStartAddress  = 0;
+      long   memoryMiddleAddress = 0;
+      long   memoryEndAddress    = 0;
+      long   memorySize          = 0;
+      boolean addressOK          = true;
+      
       try {
          if (startGiven) {
             memoryStartAddress  = getIntAttribute(element, "start");
@@ -230,20 +235,101 @@ public class DeviceDatabase {
       return memoryRegion;
    }
    
-   private EraseMethod parseEraseMethod(Element element) throws Exception {
-      
-      String type  = element.getAttribute("type");
+   /**
+    * Parse <eraseMethods> element
+    * 
+    * @param eraseElement
+    * @return
+    * @throws Exception
+    */
+   private EraseMethods parseEraseMethods(Element eraseElement) throws Exception {
 
-      EraseMethod method = EraseMethod.ERASE_SELECTIVE;
-      try {
-         method = EraseMethod.getEraseMethod(type);
-      } catch (Exception e) {
-         e.printStackTrace();
-         throw new Exception("Illegal erase method \'" + type + "\'");
+      EraseMethods eraseMethods = new EraseMethods();
+      
+      for (Node node = eraseElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         // <eraseMethod> node
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "eraseMethod") {
+            String sMethod     = element.getAttribute("method");
+            EraseMethod method = EraseMethod.ERASE_TARGETDEFAULT;
+            try {
+               method = EraseMethod.getEraseMethodFromName(sMethod);
+               eraseMethods.addMethod(method);
+            } catch (Exception e) {
+               e.printStackTrace();
+               throw new Exception("Illegal erase method \'" + sMethod + "\'");
+            }
+            if(element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+               eraseMethods.setPreferredMethod(method);
+            }
+         }
+         else {
+            throw new Exception("Illegal node in <eraseMethods> \'" + element + "\'");
+         }
       }
-      return method;
+      return eraseMethods;
    }
 
+   /**
+    * Parse <resetMethods> element
+    * 
+    * @param resetElement
+    * @return
+    * @throws Exception
+    */
+   private ResetMethods parseResetMethods(Element resetElement) throws Exception {
+
+      ResetMethods resetMethods = new ResetMethods();
+      
+      for (Node node = resetElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         // <resetMethod> node
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         if (element.getTagName() == "resetMethod") {
+            String sMethod     = element.getAttribute("method");
+            ResetMethod method = null;
+            try {
+               method = ResetMethod.getResetMethodFromName(sMethod);
+               resetMethods.addMethod(method);
+            } catch (Exception e) {
+               e.printStackTrace();
+               throw new Exception("Illegal reset method \'" + sMethod + "\'");
+            }
+            if(element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+               resetMethods.setPreferredMethod(method);
+            }
+         }
+         else {
+            throw new Exception("Illegal node in <resetMethods> \'" + element + "\'");
+         }
+      }
+      return resetMethods;
+   
+   }
+
+   @SuppressWarnings("unchecked")
+   <T> T getSharedInformation(String id, Class<T> theClass) throws Exception {
+      Object ref = sharedInformation.get(id);
+      if (ref == null) {
+         throw new Exception("Unable to find shared element ID = " + id + "of class" + theClass.getName());
+      }
+      
+      if (!theClass.isInstance(ref)) {
+         throw new Exception(
+               "Shared element ID = " + id + "of wrong type. Expected "+ theClass.getName() + ", found + " + ref.getClass());
+      }
+      return (T) ref;
+   }
+   
    /**
     * Parse a <device> element
     * 
@@ -319,8 +405,16 @@ public class DeviceDatabase {
             device.setSoptAddress(getIntAttribute(element, "value"));
          }
          else if (element.getTagName() == "eraseMethod") {
-            EraseMethod method = parseEraseMethod(element);
-            device.addEraseMethod(method);
+            device.setEraseMethod(parseEraseMethods(element));
+         }
+         else if (element.getTagName() == "eraseMethodRef") {
+            device.setEraseMethod(getSharedInformation(element.getAttribute("ref"), EraseMethods.class));
+         }
+         else if (element.getTagName() == "resetMethod") {
+            device.setResetMethod(parseResetMethods(element));
+         }
+         else if (element.getTagName() == "resetMethodRef") {
+            device.setResetMethod(getSharedInformation(element.getAttribute("ref"), ResetMethods.class));
          }
       }
       return device;
@@ -350,14 +444,24 @@ public class DeviceDatabase {
             }
             sharedInformation.put(key, memoryRegion);
          }
+         else if (element.getTagName() == "resetMethods") {
+            ResetMethods resetMethods = parseResetMethods(element);
+            String key = element.getAttribute("id");
+            if (key == null) {
+               throw new Exception("parseSharedInformationElements() - null key");
+            }
+            sharedInformation.put(key, resetMethods);
+         }
+         else if (element.getTagName() == "eraseMethods") {
+            EraseMethods eraseMethods = parseEraseMethods(element);
+            String key = element.getAttribute("id");
+            if (key == null) {
+               throw new Exception("parseSharedInformationElements() - null key");
+            }
+            sharedInformation.put(key, eraseMethods);
+         }
          else if (element.getTagName() == "projectActionList") {
             throw new Exception("<projectActionList> is no longer supported in device database");
-//            ProjectActionList actionList = parseProjectActionListElement(element);
-//            String key = element.getAttribute("id");
-//            if (key == null) {
-//               throw new Exception("parseSharedInformationElements() - null key");
-//            }
-//            sharedInformation.put(key, actionList);
          }
          // Ignore other node types <flashProgram> <tclScript> <securityEntry> <flexNVMInfo> 
       }

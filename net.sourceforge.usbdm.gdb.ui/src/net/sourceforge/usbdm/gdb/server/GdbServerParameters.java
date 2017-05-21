@@ -25,7 +25,7 @@ import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
 import net.sourceforge.usbdm.jni.Usbdm.ExtendedOptions;
-import net.sourceforge.usbdm.jni.Usbdm.ResetType;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethod;
 import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
@@ -48,7 +48,8 @@ public class GdbServerParameters {
    private boolean               useDebugVersion;
    private boolean               exitOnClose;
    
-   private EraseMethod           eraseMethod = EraseMethod.ERASE_MASS;
+   private EraseMethod           eraseMethod = EraseMethod.ERASE_TARGETDEFAULT;
+   private ResetMethod           resetMethod = ResetMethod.RESET_TARGETDEFAULT;
    private boolean               trimClock;
    private int                   clockTrimFrequency;
    private long                  nvmClockTrimLocation;
@@ -57,8 +58,6 @@ public class GdbServerParameters {
                                  
    private ExtendedOptions       extendedOptions;
                                  
-   private EraseMethod           preferredEraseMethod;
-   private ResetType             preferredResetType;
    private int                   allowedEraseMethods;
    private int                   requiredDialogueComponents;
    
@@ -79,6 +78,7 @@ public class GdbServerParameters {
    private static final String   useResetKey                     = "driveReset";
    private static final String   usePstSignalsKey                = "usePstSignals";
    private static final String   eraseMethodKey                  = "eraseMethod";
+   private static final String   resetMethodKey                  = "resetMethod";
    private static final String   securityOptionKey               = "securityOption";
    private static final String   targetVddKey                    = "targetVdd";
    private static final String   trimClockKey                    = "trimClock";
@@ -88,23 +88,25 @@ public class GdbServerParameters {
    private static final String   catchVLLSxEventsKey             = "catchVLLSxEvents";
    private static final String   maskInterruptsKey               = "maskInterrupts";
    
+   private static final int      E_TARGETDEFAULT   = (1<<EraseMethod.ERASE_TARGETDEFAULT.ordinal());
    private static final int      E_SELECTIVE_MASK  = (1<<EraseMethod.ERASE_SELECTIVE.ordinal());
    private static final int      E_ALL_MASK        = (1<<EraseMethod.ERASE_ALL.ordinal());
    private static final int      E_NONE_MASK       = (1<<EraseMethod.ERASE_NONE.ordinal());
    private static final int      E_MASS_MASK       = (1<<EraseMethod.ERASE_MASS.ordinal());
-   private static final int      armMethods        = E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK|E_MASS_MASK;
-   private static final int      cfv1Methods       = E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK|E_MASS_MASK;
-   private static final int      cfvxMethods       = E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK;
+   private static final int      armMethods        = E_TARGETDEFAULT|E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK|E_MASS_MASK;
+   private static final int      cfv1Methods       = E_TARGETDEFAULT|E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK|E_MASS_MASK;
+   private static final int      cfvxMethods       = E_TARGETDEFAULT|E_SELECTIVE_MASK|E_ALL_MASK|E_NONE_MASK;
                                  
-   public  static final int      NEEDS_SPEED       = 1<<0;  // Mask indicating Interface requires Speed selection
-   public  static final int      NEEDS_RESET       = 1<<1;  // Mask indicating Interface requires Reset selection
-   public  static final int      NEEDS_PST         = 1<<2;  // Mask indicating Interface requires PST selection 
-   public  static final int      NEEDS_CLOCK       = 1<<3;  // Mask indicating Interface requires Clock selection   
-   public  static final int      NEEDS_VLLSCATCH   = 1<<4;  // Mask indicating Interface requires VLLSCatch selection
-   public  static final int      NEEDS_CLKTRIM     = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
-   public  static final int      NEEDS_MASKINTS    = 1<<6;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_SPEED         = 1<<0;  // Mask indicating Interface requires Speed selection
+   public  static final int      NEEDS_RESET         = 1<<1;  // Mask indicating Interface requires Reset selection
+   public  static final int      NEEDS_PST           = 1<<2;  // Mask indicating Interface requires PST selection 
+   public  static final int      NEEDS_CLOCK         = 1<<3;  // Mask indicating Interface requires Clock selection   
+   public  static final int      NEEDS_VLLSCATCH     = 1<<4;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_CLKTRIM       = 1<<5;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_MASKINTS      = 1<<6;  // Mask indicating Interface requires VLLSCatch selection
+   public  static final int      NEEDS_RESET_METHODS = 1<<7;  // Mask indicating Interface requires Reset method selection
    
-   private static final int      armDialogueNeeds  = NEEDS_RESET|NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
+   private static final int      armDialogueNeeds  = NEEDS_RESET_METHODS|NEEDS_SPEED|NEEDS_VLLSCATCH|NEEDS_MASKINTS;
    private static final int      cfv1DialogueNeeds = NEEDS_RESET|NEEDS_CLOCK|NEEDS_CLKTRIM;
    private static final int      cfvxDialogueNeeds = NEEDS_SPEED|NEEDS_PST;
            
@@ -177,7 +179,6 @@ public class GdbServerParameters {
    protected static class ArmGdbServerParameters extends GdbServerParameters {
       public ArmGdbServerParameters() throws Exception {
          super(InterfaceType.T_ARM);
-         setPreferredEraseMethod(EraseMethod.ERASE_MASS);
          setAllowedEraseMethods(armMethods);
          setRequiredDialogueComponents(armDialogueNeeds);
          loadDefaultSettings();
@@ -187,7 +188,6 @@ public class GdbServerParameters {
    protected static class Cfv1GdbServerParameters extends GdbServerParameters {
       public Cfv1GdbServerParameters() throws Exception {
          super(InterfaceType.T_CFV1);
-         setPreferredEraseMethod(EraseMethod.ERASE_MASS);
          setAllowedEraseMethods(cfv1Methods);
          setRequiredDialogueComponents(cfv1DialogueNeeds);
          loadDefaultSettings();
@@ -197,7 +197,6 @@ public class GdbServerParameters {
    protected static class CfvxGdbServerParameters extends GdbServerParameters {
       public CfvxGdbServerParameters() throws Exception {
          super(InterfaceType.T_CFVX);
-         setPreferredEraseMethod(EraseMethod.ERASE_ALL);
          setAllowedEraseMethods(cfvxMethods);
          setRequiredDialogueComponents(cfvxDialogueNeeds);
          loadDefaultSettings();
@@ -221,7 +220,7 @@ public class GdbServerParameters {
       enableExitOnClose(false);
       setNvmClockTrimLocation(-1);
       setClockTrimFrequency(0);
-      setEraseMethod(EraseMethod.ERASE_MASS);
+      setEraseMethod(EraseMethod.ERASE_TARGETDEFAULT);
       enableCatchVLLSxEvents(false);
       try {
          extendedOptions = Usbdm.getDefaultExtendedOptions(interfaceType.toTargetType());
@@ -295,7 +294,16 @@ public class GdbServerParameters {
       return "-port="+getGdbServerPortNumber();
    }
 
+   /**
+    * Get TTY port number as option<br>
+    * May be null if semi-hosting is disabled
+    * 
+    * @return String e.g. "-tty=1234" or null
+    */
    public String getGdbTtyPortNumberAsOption() {
+      if (!useSemiHosting) {
+         return null;
+      }
       return "-tty="+getGdbTtyPortNumber();
    }
 
@@ -350,10 +358,40 @@ public class GdbServerParameters {
       return eraseMethod;
    }
 
+   public void setResetMethod(ResetMethod resetMethod) {
+      this.resetMethod = resetMethod;
+   }
+   
+   public ResetMethod getResetMethod() {
+      return resetMethod;
+   }
+
+   /**
+    * Get string option for Erase Method.<br>
+    * May be null if current value is the default
+    * 
+    * @return String e.g. "-erase=Selective" or null
+    */
    private String getEraseMethodAsOption() {
-	      return "-erase="+eraseMethod.getOptionName();
-	   }
-	   
+      if (eraseMethod == EraseMethod.ERASE_TARGETDEFAULT) {
+         return null;
+      }
+      return "-erase="+eraseMethod.getOptionName();
+   }
+   
+   /**
+    * Get string option for Reset Method.<br>
+    * May be null if current value is the default
+    * 
+    * @return String e.g. "-resetMethod=Mass" or null
+    */
+   private String getResetMethodAsOption() {
+      if (resetMethod == ResetMethod.RESET_TARGETDEFAULT) {
+         return null;
+      }
+      return "-resetMethod="+resetMethod.getOptionName();
+   }
+   
    public void setTargetVdd(TargetVddSelect targetVdd) {
       extendedOptions.targetVdd = targetVdd;
    }
@@ -449,14 +487,6 @@ public class GdbServerParameters {
       extendedOptions.useResetSignal = useReset;
    }
 
-   public EraseMethod getPreferredEraseMethod() {
-      return preferredEraseMethod;
-   }
-
-   protected void setPreferredEraseMethod(EraseMethod preferredEraseMethod) {
-      this.preferredEraseMethod = preferredEraseMethod;
-   }
-
    public void setConnectionTimeout(int connectionTimeout) {
       this.connectionTimeout = connectionTimeout;
    }
@@ -503,14 +533,6 @@ public class GdbServerParameters {
       return getInterfaceType().gdbServerOption;
    }
 
-   public ResetType getPreferredResetType() {
-      return preferredResetType;
-   }
-
-   public void setPreferredResetType(ResetType preferredResetType) {
-      this.preferredResetType = preferredResetType;
-   }
-   
    /**
     * @param  method erase method to check
     * 
@@ -524,8 +546,15 @@ public class GdbServerParameters {
       this.allowedEraseMethods = eraseMethods;
    }
 
-   public boolean isRequiredDialogueComponents(int component) {
-      return (requiredDialogueComponents&component) != 0;
+   /**
+    * Indicates if the feature is required for this GDB interface
+    * 
+    * @param feature Mask indicating the feature
+    * 
+    * @return true if feature is required
+    */
+   public boolean isRequiredDialogueComponent(int feature) {
+      return (requiredDialogueComponents&feature) != 0;
    }
 
    protected void setRequiredDialogueComponents(int requiredDialogueComponents) {
@@ -601,28 +630,43 @@ public class GdbServerParameters {
     * @return ArrayList {"path-to-gdbServer", "args", ...}
     */
    public ArrayList<String> getServerCommandLine() {
-      ArrayList<String> commandList = new ArrayList<String>(20);
+      
+      /** Helper class */
+      class CollectArgs {
+         ArrayList<String> commandList = new ArrayList<String>(20);
+         
+         ArrayList<String> getArgs() {
+            return commandList;
+         }
+         
+         void add(String arg) {
+            if ((arg != null) && (!arg.isEmpty())) {
+               commandList.add(arg);
+            }
+         }
+         void add(String name, String arg) {
+            if ((arg != null) && (!arg.isEmpty())) {
+               commandList.add(name+arg);
+            }
+         }
+      };
+      
+      CollectArgs commandList = new CollectArgs();
       
       commandList.add(getServerPath().toPortableString());
-
       commandList.add(getServerOption());
-
-      if (getDeviceName() != null) {
-         commandList.add("-device="+getDeviceName());
-      }
+      commandList.add("-device=", getDeviceName());
       commandList.add(getGdbServerPortNumberAsOption());
       commandList.add(getGdbTtyPortNumberAsOption());
       if (!getBdmSerialNumber().isEmpty() && !getBdmSerialNumber().equals(USBDMDeviceInfo.nullDevice.deviceSerialNumber)) {
          if (isBdmSerialNumberMatchRequired()) {
-            commandList.add("-requiredBdm="+getBdmSerialNumber());
+            commandList.add("-requiredBdm=", getBdmSerialNumber());
          }
          else {
-            commandList.add("-bdm="+getBdmSerialNumber());
+            commandList.add("-bdm=", getBdmSerialNumber());
          }
       }
-      if (isExitOnClose()) {
-         commandList.add("-exitOnClose");
-      }
+      commandList.add(isExitOnClose()?"-exitOnClose":"");
       if (isTrimClock() && (getClockTrimFrequency() != 0)) {
          commandList.add("-trim="+getClockTrimFrequency());
          if (getNvmClockTrimLocation() > 0) {
@@ -631,26 +675,18 @@ public class GdbServerParameters {
       }
       commandList.add(getPowerParametersAsOption());
       commandList.add(getResetParametersAsOption());
-      String vdd = getTargetVddAsOption();
-      if (vdd != null) {
-         commandList.add(vdd);
-      }
+      commandList.add(getTargetVddAsOption());
       commandList.add(getInterfaceFrequencyAsOption());
       commandList.add(getEraseMethodAsOption());
+      commandList.add(getResetMethodAsOption());
       commandList.add(getSecurityOptionAsOption());
       commandList.add(getConnectionTimeoutParametersAsOption());
       commandList.add(getAutoReconnectAsOption());
-      
-      if (isCatchVLLSxEvents()) {
-         commandList.add("-catchvlls");
-      }
-      if (isMaskInterrupts()) {
-         commandList.add("-maskInterrupts");
-      }
-      if (isUseReset()) {
-         commandList.add("-useReset");
-      }
-      return commandList;
+      commandList.add(isCatchVLLSxEvents()?"-catchvlls":"");
+      commandList.add(isMaskInterrupts()?"-maskInterrupts":"");
+      commandList.add(isUseReset()?"-useReset":"");
+
+      return commandList.getArgs();
    }
    
    public String getServerCommandLineAsString() {
@@ -692,7 +728,8 @@ public class GdbServerParameters {
       setAutoReconnect(AutoConnect.valueOf(           settings.get(getKey(autoReconnectKey),                AutoConnect.AUTOCONNECT_ALWAYS.name())));
       enableUseReset(                                 settings.get(getKey(useResetKey),                     isUseReset()));
       enableUsePstSignals(                            settings.get(getKey(usePstSignalsKey),                isUsePstSignals()));
-      setEraseMethod(EraseMethod.valueOf(             settings.get(getKey(eraseMethodKey),                  getPreferredEraseMethod().name())));
+      setEraseMethod(EraseMethod.getEraseMethod(      settings.get(getKey(eraseMethodKey),                  EraseMethod.ERASE_TARGETDEFAULT.name())));
+      setResetMethod(ResetMethod.getResetMethod(      settings.get(getKey(resetMethodKey),                  ResetMethod.RESET_TARGETDEFAULT.name())));
       setSecurityOption(SecurityOptions.valueOf(      settings.get(getKey(securityOptionKey),               SecurityOptions.SECURITY_SMART.name())));
       setTargetVdd(TargetVddSelect.valueOf(           settings.get(getKey(targetVddKey),                    TargetVddSelect.BDM_TARGET_VDD_OFF.name())));
       enableTrimClock(                                settings.get(getKey(trimClockKey),                    false));
@@ -728,6 +765,7 @@ public class GdbServerParameters {
       settings.put(getKey(useResetKey),                     isUseReset());
       settings.put(getKey(usePstSignalsKey),                isUsePstSignals());
       settings.put(getKey(eraseMethodKey),                  getEraseMethod().name());
+      settings.put(getKey(resetMethodKey),                  getResetMethod().name());
       settings.put(getKey(securityOptionKey),               getSecurityOption().name());
       settings.put(getKey(targetVddKey),                    getTargetVdd().name());
       settings.put(getKey(trimClockKey),                    isTrimClock());
@@ -788,6 +826,7 @@ public class GdbServerParameters {
       configuration.setAttribute((key+useResetKey),                      isUseReset());
       configuration.setAttribute((key+usePstSignalsKey),                 isUsePstSignals());
       configuration.setAttribute((key+eraseMethodKey),                   getEraseMethod().name());
+      configuration.setAttribute((key+resetMethodKey),                   getResetMethod().name());
       configuration.setAttribute((key+securityOptionKey),                getSecurityOption().name());
       configuration.setAttribute((key+targetVddKey),                     getTargetVdd().name());
       configuration.setAttribute((key+trimClockKey),                     isTrimClock());
@@ -848,8 +887,10 @@ public class GdbServerParameters {
                                 CDebugUtils.getAttribute(attributes, (key+autoReconnectKey),                 getAutoReconnect().name())));
       enableUseReset(           CDebugUtils.getAttribute(attributes, (key+useResetKey),                      isUseReset()));
       enableUsePstSignals(      CDebugUtils.getAttribute(attributes, (key+usePstSignalsKey),                 isUsePstSignals()));
-      setEraseMethod(EraseMethod.valueOf(  
-              CDebugUtils.getAttribute(attributes, (key+eraseMethodKey),                   getEraseMethod().name())));
+      setEraseMethod(EraseMethod.getEraseMethod (  
+            CDebugUtils.getAttribute(attributes, (key+eraseMethodKey),                   getEraseMethod().name())));
+      setResetMethod(ResetMethod.getResetMethod (  
+            CDebugUtils.getAttribute(attributes, (key+resetMethodKey),                   getResetMethod().name())));
       setSecurityOption(SecurityOptions.valueOf(  
               CDebugUtils.getAttribute(attributes, (key+securityOptionKey),                getSecurityOption().name())));
       setTargetVdd(TargetVddSelect.valueOf( 

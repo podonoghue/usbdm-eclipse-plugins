@@ -81,7 +81,6 @@ implements ICWGdiInitializationData {
    
    protected ArrayList<USBDMDeviceInfo> deviceList;
 
-   protected EraseMethod            defaultEraseMethod; 
    protected EraseMethod            eraseMethod;
    protected ArrayList<EraseMethod> permittedEraseMethods =  new ArrayList<EraseMethod>();
    
@@ -533,7 +532,7 @@ implements ICWGdiInitializationData {
       for (EraseMethod em : permittedEraseMethods) {
          comboEraseMethod.add(em.toString());
       }
-      comboEraseMethod.setText(defaultEraseMethod.toString());
+      comboEraseMethod.setText(EraseMethod.ERASE_TARGETDEFAULT.getLegibleName());
    }
    
    protected void createSecurityGroup(Composite comp) {
@@ -653,7 +652,7 @@ implements ICWGdiInitializationData {
          securityOption = SecurityOptions.values()[comboSecurityOption.getSelectionIndex()];
       }
       if (comboEraseMethod == null) {
-         eraseMethod = defaultEraseMethod;
+         eraseMethod = EraseMethod.ERASE_TARGETDEFAULT;
       }
       else {
          eraseMethod = permittedEraseMethods.get(comboEraseMethod.getSelectionIndex());
@@ -670,7 +669,7 @@ implements ICWGdiInitializationData {
       useDebugBuild   = false;
       preferredBdm    = "Any connected BDM";   
       securityOption  = SecurityOptions.SECURITY_SMART;
-      eraseMethod     = defaultEraseMethod;
+      eraseMethod     = EraseMethod.ERASE_TARGETDEFAULT;
    }
 
    /**
@@ -701,10 +700,10 @@ implements ICWGdiInitializationData {
          int securityOptionMask = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeySecurityOption), SecurityOptions.SECURITY_UNSECURED.getMask());
          securityOption = SecurityOptions.valueOf(securityOptionMask);
 
-         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), defaultEraseMethod.ordinal());
+         int eraseMethod = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyEraseMethod), EraseMethod.ERASE_TARGETDEFAULT.ordinal());
          EraseMethod em = EraseMethod.values()[eraseMethod];
          if (!permittedEraseMethods.contains(em)) {
-            em = defaultEraseMethod;
+            em = EraseMethod.ERASE_TARGETDEFAULT;
          }
          this.eraseMethod = em;
       } catch (CoreException e) {
@@ -738,7 +737,7 @@ implements ICWGdiInitializationData {
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyResetRecoveryInterval),   bdmOptions.resetRecoveryInterval);
       
       setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeySecurityOption),          securityOption.getMask());
-      setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),             eraseMethod.ordinal());
+      setAttribute(iLaunchConfigurationWorkingCopy, attrib(UsbdmCommon.KeyEraseMethod),             eraseMethod.getOptionName());
 //      try {
 //         Map<String, String> allAttributes = iLaunchConfigurationWorkingCopy.getAttributes();
 //         for (Map.Entry<String, String> entry : allAttributes.entrySet()) {
@@ -763,6 +762,21 @@ implements ICWGdiInitializationData {
          btnUseDebugBuild.addSelectionListener(fListener.getSelectionListener());
          btnAdvancedOptions.addSelectionListener(fListener.getSelectionListener());
       }
+   }
+
+   /**
+    * Loads an string value from configuration
+    * 
+    * @param iLaunchConfiguration       Configuration object to load from
+    * @param key                        Key to use for retrieval
+    * @param defaultValue               Default value if not found
+    * @return                           The value found or default    
+    * @throws CoreException
+    * @note   Always retrieves the attribute as a string as target interface can only access strings
+    */
+   protected String getAttribute(ILaunchConfiguration iLaunchConfiguration, String key, String defaultValue)
+   throws CoreException {
+      return iLaunchConfiguration.getAttribute(key,  String.format("%d", defaultValue));
    }
 
    /**
@@ -805,6 +819,19 @@ implements ICWGdiInitializationData {
    }
 
    /**
+    * Saves an String value to configuration
+    * 
+    * @param paramILaunchConfiguration  Configuration object to store to
+    * @param key                        Key to use
+    * @param value                      Value to write
+    * @throws CoreException
+    */
+   protected void setAttribute(ILaunchConfigurationWorkingCopy paramILaunchConfiguration, String key, String value) {
+      paramILaunchConfiguration.setAttribute(key, value);
+//      System.err.println("setIntAttribute("+key+","+value+")");
+   }
+
+   /**
     * Saves an int value to configuration
     * 
     * @param paramILaunchConfiguration  Configuration object to store to
@@ -844,8 +871,11 @@ implements ICWGdiInitializationData {
       if (lblBDMInformation != null) {
          int index = comboSelectBDM.getSelectionIndex();
          if (index >= 0) {
-            String deviceDescription = deviceList.get(index).deviceDescription;
+            USBDMDeviceInfo bdmInterface = deviceList.get(index);
+            String deviceDescription = bdmInterface.deviceDescription;
             lblBDMInformation.setText(deviceDescription);
+//            btn(bdmInterface.isNullDevice());
+            //XXXX
          }
       }
    }

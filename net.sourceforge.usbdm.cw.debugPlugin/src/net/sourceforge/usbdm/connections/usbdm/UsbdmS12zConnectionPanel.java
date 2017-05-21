@@ -52,7 +52,7 @@ public class UsbdmS12zConnectionPanel extends UsbdmConnectionPanel {
       deviceNameId            = UsbdmCommon.S12Z_DeviceNameAttributeKey;
       gdiDllName              = UsbdmCommon.S12Z_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.S12Z_DebugGdiWrapperLib;
-      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_NONE);
       permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
       permittedEraseMethods.add(EraseMethod.ERASE_ALL);

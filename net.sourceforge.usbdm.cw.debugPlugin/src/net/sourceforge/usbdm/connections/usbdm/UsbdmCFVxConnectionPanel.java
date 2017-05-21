@@ -55,7 +55,7 @@ public class UsbdmCFVxConnectionPanel extends UsbdmConnectionPanel {
       gdiDllName              = UsbdmCommon.CFVx_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.CFVx_DebugGdiWrapperLib;
 	  
-      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_NONE);
       permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
       permittedEraseMethods.add(EraseMethod.ERASE_ALL);

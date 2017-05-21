@@ -5,6 +5,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -64,23 +65,24 @@ public class Usbdm {
     *  Target processor type (interface types)
     */
    public static enum TargetType {
-      T_HCS12     (0),     //!< HC12 or HCS12 target
-      T_HCS08     (1),     //!< HCS08 target
-      T_RS08      (2),     //!< RS08 target
-      T_CFV1      (3),     //!< Coldfire Version 1 target
-      T_CFVx      (4),     //!< Coldfire Version 2,3,4 target
-      T_JTAG      (5),     //!< JTAG target - TAP is set to \b RUN-TEST/IDLE
-      T_EZFLASH   (6),     //!< EzPort Flash interface (SPI?)
-      T_MC56F80xx (7),     //!< JTAG target with MC56F80xx optimised subroutines
-      T_ARM_JTAG  (8),     //!< ARM target using JTAG
-      T_ARM_SWD   (9),     //!< ARM target using SWD
-      T_ARM       (10),    //!< ARM target using either SWD (preferred) or JTAG as supported
+      T_HCS12     (0),      //!< HC12 or HCS12 target
+      T_HCS08     (1),      //!< HCS08 target
+      T_RS08      (2),      //!< RS08 target
+      T_CFV1      (3),      //!< Coldfire Version 1 target
+      T_CFVx      (4),      //!< Coldfire Version 2,3,4 target
+      T_JTAG      (5),      //!< JTAG target - TAP is set to \b RUN-TEST/IDLE
+      T_EZFLASH   (6),      //!< EzPort Flash interface (SPI?)
+      T_MC56F80xx (7),      //!< JTAG target with MC56F80xx optimised subroutines
+      T_ARM_JTAG  (8),      //!< ARM target using JTAG
+      T_ARM_SWD   (9),      //!< ARM target using SWD
+      T_ARM       (10),     //!< ARM target using either SWD (preferred) or JTAG as supported
       T_OFF       (0xFF),
       T_UNKNOWN   (0xFF),
       ;
-      private int mask;
+      private int               mask;
+      
       TargetType(int mask) {
-         this.mask = mask;
+         this.mask                 = mask;
       }
       public int getMask() {
          return mask;
@@ -134,42 +136,312 @@ public class Usbdm {
    };
 
    /**
-    * Selects erase method
+    * Selects reset method
     */
-   public static enum EraseMethod {
-      ERASE_NONE        (0x00, "None",      "No erase done"),                //!< No erase is done
-      ERASE_MASS        (0x01, "Mass",      "Mass erase device"),            //!< A Mass erase operation is done
-      ERASE_ALL         (0x02, "All",       "Block erase entire device"),    //!< All Flash is erased (by Flash Block)
-      ERASE_SELECTIVE   (0x03, "Selective", "Selective erase (by sector)"),  //!< A selective erase (by sector) is done
+   public static enum ResetMethod {
+      RESET_TARGETDEFAULT  (0x00, "TargetDefault",  "Default for the target"),      //!< Depends on target
+      RESET_HARDWARE       (0x01, "Hardware",       "Hardware, usually reset pin"), //!< Hardware = reset pin
+      RESET_SOFTWARE       (0x02, "Software",       "Software method"),             //!< Software = e.g. BKGD reset command or ARM software
+      RESET_VENDOR         (0x03, "Vendor",         "Vendor custom"),               //!< Vendor specific e.g. Kinetsi MDM_AP
+      RESET_NONE           (0x04, "None",           "None"),                        //!< None
       ;
-      private final int    mask;
-      private final String legibleName;
-      private final String optionName;
+      private final int    mask;          // Value used by USBDM interface
+      private final String optionName;    // Name of option - also used in XML
+      private final String legibleName;   // Visible name of option 
 
-      EraseMethod(int mask, String optionName, String legibleName) {
+      /**
+       * @param mask          // Value used by USBDM JNI interface
+       * @param optionName    // Name of option. Used in XML and parameters for GDB server  e.g. "Hardware"
+       * @param legibleName   // Visible name of option e.g. "Hardware, usually reset pin"
+       */
+      ResetMethod(int mask, String optionName, String legibleName) {
          this.mask        = mask;
          this.legibleName = legibleName;
          this.optionName  = optionName;
       }
+      /**
+       * Get value used by USBDM JNI Interface
+       * 
+       * @return USBDM JNI Interface  value
+       */
       public int getMask() {
          return mask;
       }
+      /**
+       * Get EraseMethod from option name
+       * 
+       * @param  name Name to look up e.g. "RESET_VENDOR"
+       * 
+       * @return Reset method or RESET_TARGETDEFAULT if not found
+       * 
+       * @note Only differs from valueOf(String) in that it does not throw exceptions.
+       */
+      public static ResetMethod getResetMethod(String name) {
+         try {
+            return valueOf(name);
+         } catch (Exception e) {
+            return ResetMethod.RESET_TARGETDEFAULT;
+         }
+      }
+      /**
+       * Get EraseMethod from option name
+       * 
+       * @param  name Name to look up e.g. "Software"
+       * 
+       * @return Reset method or RESET_TARGETDEFAULT if not found
+       */
+      public static ResetMethod getResetMethodFromName(String name) {
+         for (ResetMethod em:ResetMethod.values()) {
+            if (em.optionName.equalsIgnoreCase(name)) {
+               return em;
+            }
+         }
+         return ResetMethod.RESET_TARGETDEFAULT;
+      }
+      /**
+       * Get reset method from USBDM JNI interface value
+       * 
+       * @param  mask Mask to look up
+       * 
+       * @return Reset method or RESET_TARGETDEFAULT if not found
+       */
+      public static ResetMethod valueOf(int mask) {
+         for (ResetMethod type:values()) {
+            if (type.mask == mask) {
+               return type;
+            }
+         }
+         return RESET_TARGETDEFAULT;
+      }
+      /**
+       * Get name of method e.g. "Hardware"
+       * 
+       * @return
+       */
+      public String getOptionName() {
+         return optionName;
+      }
+      /**
+       * Get legible name of method e.g. "Hardware, usually reset pin"
+       * 
+       * @return
+       */
+      public String getLegibleName() {
+         return legibleName;
+      }
+      /**
+       * Get Legible name for Erase method
+       */
+      public String toString() {
+         return legibleName;
+      }
+   };
+
+   /**
+    * Represents the allowed reset methods and the preferred method
+    * 
+    * @author podonoghue
+    */
+   static public class ResetMethods {
+      ArrayList<ResetMethod> methods         = new ArrayList<ResetMethod>();
+      ResetMethod            preferredMethod = ResetMethod.RESET_TARGETDEFAULT;
+      
+      public ResetMethods() {
+         methods.add(ResetMethod.RESET_TARGETDEFAULT);
+         methods.add(ResetMethod.RESET_NONE);
+      }
+      /**
+       * Add reset method
+       * 
+       * @param method Method to add
+       */
+      public void addMethod(ResetMethod method) {
+         methods.add(method);
+      }
+      
+      /**
+       * Get reset methods available for this memory
+       * 
+       * @return List of reset methods
+       */
+      public List<ResetMethod> getMethods() {
+         return methods;
+      }
+
+      /**
+       * Get preferred reset method
+       * 
+       * @return Preferred method
+       */
+      public ResetMethod getPreferredMethod() {
+         return preferredMethod;
+      }
+
+      /**
+       * Set preferred reset method
+       * 
+       * @param method Preferred method
+       */
+      public void setPreferredMethod(ResetMethod preferredMethod) {
+         this.preferredMethod = preferredMethod;
+      }
+
+   }
+   
+   /**
+    * Reresents erase method
+    */
+   public static enum EraseMethod {
+      ERASE_TARGETDEFAULT    (0x00, "TargetDefault",  "Default for the target"),       //!< Depends on target
+      ERASE_NONE             (0x01, "None",           "No erase done"),                //!< No erase is done
+      ERASE_MASS             (0x02, "Mass",           "Mass erase device"),            //!< A Mass erase operation is done
+      ERASE_ALL              (0x03, "All",            "Block erase entire device"),    //!< All Flash is erased (by Flash Block)
+      ERASE_SELECTIVE        (0x04, "Selective",      "Selective erase (by sector)"),  //!< A selective erase (by sector) is done
+      ;
+      private final int    mask;          // Value used by USBDM interface
+      private final String optionName;    // Name of option - also used in XML
+      private final String legibleName;   // Visible name of option
+      
+      /**
+       * @param mask          // Value used by USBDM JNI interface
+       * @param optionName    // Name of option - also used in XML
+       * @param legibleName   // Visible name of option
+       */
+      EraseMethod(int mask, String optionName, String legibleName) {
+         this.mask        = mask;
+         this.optionName  = optionName;
+         this.legibleName = legibleName;
+      }
+      
+      /**
+       * Get value used by USBDM JNI Interface
+       * 
+       * @return USBDM JNI Interface  value
+       */
+      public int getMask() {
+         return mask;
+      }
+      /**
+       * Get erase method from USBDM JNI interface value
+       * 
+       * @param mask Mask to look up
+       * 
+       * @return erase method or ERASE_TARGETDEFAULT if not found
+       */
       public static EraseMethod valueOf(int mask) {
          for (EraseMethod type:values()) {
             if (type.mask == mask) {
                return type;
             }
          }
-         return ERASE_MASS;
+         return ERASE_TARGETDEFAULT;
       }
-      public String toString() {
-         return legibleName;
+      /**
+       * Get EraseMethod from option name
+       * 
+       * @param   name Name to look up e.g. "ERASE_SELECTIVE"
+       * 
+       * @return erase method or ERASE_TARGETDEFAULT if not found
+       * 
+       * @note Only differs from valueOf(String) in that it does not throw exceptions.
+       */
+      public static EraseMethod getEraseMethod(String name) {
+         try {
+            return valueOf(name);
+         } catch (Exception e) {
+            return ERASE_TARGETDEFAULT;
+         }
       }
+      /**
+       * Get EraseMethod from option name
+       * 
+       * @param  name Name to look up e.g. "Software"
+       * 
+       * @return erase method or ERASE_TARGETDEFAULT if not found
+       */
+      public static EraseMethod getEraseMethodFromName(String name) {
+         for (EraseMethod em:EraseMethod.values()) {
+            if (em.optionName.equalsIgnoreCase(name)) {
+               return em;
+            }
+         }
+         return ERASE_TARGETDEFAULT;
+      }
+      /**
+       * Get name of method e.g. "Selective"
+       * 
+       * @return
+       */
       public String getOptionName() {
          return optionName;
       }
+      /**
+       * Get legible name of method e.g. "Selective erase (by sector)"
+       * 
+       * @return
+       */
+      public String getLegibleName() {
+         return legibleName;
+      }
+      /**
+       * Get Legible name for Erase method
+       */
+      public String toString() {
+         return legibleName;
+      }
    };
 
+   /**
+    * Represents the allowed erase methods and the preferred method
+    * 
+    * @author podonoghue
+    */
+   static public class EraseMethods {
+      ArrayList<EraseMethod> methods         = new ArrayList<EraseMethod>();
+      EraseMethod            preferredMethod = EraseMethod.ERASE_TARGETDEFAULT;
+      
+      public EraseMethods() {
+         methods.add(EraseMethod.ERASE_TARGETDEFAULT);
+         methods.add(EraseMethod.ERASE_NONE);
+      }
+      /**
+       * Add erase method
+       * 
+       * @param method Method to add
+       */
+      public void addMethod(EraseMethod method) {
+         methods.add(method);
+      }
+      
+      /**
+       * Get erase methods available for this memory
+       * 
+       * @return List of erase methods
+       */
+      public List<EraseMethod> getMethods() {
+         return methods;
+      }
+
+      /**
+       * Get preferred erase method
+       * 
+       * @return Preferred method
+       */
+      public EraseMethod getPreferredMethod() {
+         return preferredMethod;
+      }
+
+      /**
+       * Set preferred erase method
+       * 
+       * @param method Preferred method
+       */
+      public void setPreferredMethod(EraseMethod preferredMethod) {
+         this.preferredMethod = preferredMethod;
+      }
+
+   }
+   
    /**
     * Selects erase method
     */
@@ -180,18 +452,36 @@ public class Usbdm {
       SECURITY_SECURED   (0x01, "Secured",   "Default secured configuration"),                 //!< Security region is forced to a default unsecured state
       SECURITY_CUSTOM    (0x04, "Custom",    "Custom Settings"),                               //!< Custom settings used (not implemented)
       ;
-      private final int    mask;
-      private final String legibleName;
-      private final String optionName;
+      private final int    mask;          // Value used by USBDM JNI interface
+      private final String legibleName;   // Visible name
+      private final String optionName;    // Name of option - also used in XML
 
+      /**
+       * @param mask          // Value used by USBDM JNI interface
+       * @param optionName    // Name of option - also used in XML e.g. "Unsecured"
+       * @param legibleName   // Visible name of option e.g. "Default unsecured configuration"
+       */
       SecurityOptions(int mask, String optionName, String legibleName) {
          this.mask        = mask;
          this.legibleName = legibleName;
          this.optionName  = optionName;
       }
+
+      /**
+       * Get value used by USBDM JNI Interface
+       * 
+       * @return USBDM JNI Interface  value
+       */
       public int getMask() {
          return mask;
       }
+      /**
+       * Get security option from USBDM JNI interface value
+       * 
+       * @param mask
+       * 
+       * @return erase method or ERASE_TARGETDEFAULT if not found
+       */
       public static SecurityOptions valueOf(int mask) {
          for (SecurityOptions type:values()) {
             if (type.mask == mask) {
@@ -200,11 +490,24 @@ public class Usbdm {
          }
          return SECURITY_UNSECURED;
       }
-      public String toString() {
-         return legibleName;
-      }
+      /**
+       * Get name of option e.g. "Unsecured"
+       * 
+       * @return
+       */
       public String getOptionName() {
          return optionName;
+      }
+      /**
+       * Get legible name of option e.g. "Default unsecured configuration"
+       * 
+       * @return
+       */
+      public String getLegibleName() {
+         return legibleName;
+      }
+      public String toString() {
+         return legibleName;
       }
    };
 
@@ -1441,6 +1744,9 @@ public class Usbdm {
          return "  Description   = "+deviceDescription+";\n" +
          	    "  Serial Number = "+deviceSerialNumber+";\n" +
          		 "  Information   = \n"+bdmInfo.toString();
+      }
+      public boolean isNullDevice() {
+         return this == nullDevice; 
       }
    };
 

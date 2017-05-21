@@ -55,7 +55,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
       gdiDllName              = UsbdmCommon.ARM_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.ARM_DebugGdiWrapperLib;
 	  
-      defaultEraseMethod      = EraseMethod.ERASE_ALL; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_NONE);
       permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
       permittedEraseMethods.add(EraseMethod.ERASE_ALL);
@@ -113,7 +113,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
     */
    protected void restoreARMDefaultSettings() {
 //      System.err.println("UsbdmARMConnectionPanel.restoreARMDefaultSettings(bool)");
-      eraseMethod                   = defaultEraseMethod;
+      eraseMethod                   = EraseMethod.ERASE_TARGETDEFAULT;
       bdmOptions.autoReconnect      = defaultBdmOptions.autoReconnect;
       bdmOptions.connectionSpeed    = defaultBdmOptions.connectionSpeed;
       bdmOptions.connectionSpeed    = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
@@ -144,6 +144,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
       try {
          bdmOptions.autoReconnect       = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyAutomaticReconnect),  bdmOptions.autoReconnect);
          bdmOptions.connectionSpeed     = getAttribute(iLaunchConfiguration, attrib(UsbdmCommon.KeyConnectionSpeed),    bdmOptions.connectionSpeed);
+         // Round off to available value
          bdmOptions.connectionSpeed     = JTAGInterfaceData.ClockSpeed.findSuitable(bdmOptions.connectionSpeed).getFrequency();
       } catch (Exception e) {
          e.printStackTrace();

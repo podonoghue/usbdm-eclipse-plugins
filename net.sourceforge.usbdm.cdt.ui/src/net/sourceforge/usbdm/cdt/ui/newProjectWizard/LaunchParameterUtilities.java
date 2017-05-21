@@ -19,7 +19,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.EraseMethod;
 
 public class LaunchParameterUtilities {
 
@@ -38,42 +37,19 @@ public class LaunchParameterUtilities {
       variableMap.put(UsbdmConstants.TARGET_DEVICE_FAMILY_KEY,    device.getFamily());
       variableMap.put(UsbdmConstants.TARGET_DEVICE_SUBFAMILY_KEY, device.getSubFamily());
 
-      variableMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,       String.valueOf(device.getDefaultClockTrimFreq()));            
-      variableMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY,    String.valueOf(device.getDefaultClockTrimNVAddress()));            
+      variableMap.put(UsbdmConstants.CLOCK_TRIM_FREQUENCY_KEY,    String.valueOf(device.getDefaultClockTrimFreq()));            
+      variableMap.put(UsbdmConstants.NVM_CLOCK_TRIM_LOCATION_KEY, String.valueOf(device.getDefaultClockTrimNVAddress()));            
+      variableMap.put(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());          
+      variableMap.put(UsbdmConstants.RESET_METHOD_KEY,            device.getPreferredResetMethod().getOptionName());
 
       String projectName = variableMap.get(UsbdmConstants.PROJECT_NAME_KEY);
       if (binPath == null) {
          // Add default path to binary
-         variableMap.put(UsbdmConstants.BIN_PATH_KEY,                   "Debug/"+projectName+".elf");            
+         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
       }
       else {
          // Add path to binary
-         variableMap.put(UsbdmConstants.BIN_PATH_KEY,                   binPath.toPortableString());            
-      }
-      List<EraseMethod> eraseMethods = device.getEraseMethods();
-      if (!eraseMethods.isEmpty()) {
-         EraseMethod preferedEm = null;
-         for (EraseMethod em:eraseMethods) {
-            switch (em) {
-            case ERASE_MASS:
-               preferedEm = EraseMethod.ERASE_MASS;
-               break;
-            case ERASE_ALL:
-               if ((preferedEm == null) || (preferedEm != EraseMethod.ERASE_MASS)) {
-                  preferedEm = EraseMethod.ERASE_ALL;
-               }
-               break;
-            case ERASE_SELECTIVE:
-               if ((preferedEm == null) || (preferedEm == EraseMethod.ERASE_NONE)) {
-                  preferedEm = EraseMethod.ERASE_SELECTIVE;
-               }
-               break;
-            case ERASE_NONE:
-               break;
-            }
-         }
-         // Set erase method
-         variableMap.put(UsbdmConstants.ERASE_METHOD_KEY, preferedEm.toString());
+         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());            
       }
    }
 

@@ -94,6 +94,7 @@ public class DevicePeripheralsProviderInterface {
        */
       public abstract void run(IPeripheralDescriptionProvider provider);
    }
+   
    /**
     * Used to obtain names of providers
     * 

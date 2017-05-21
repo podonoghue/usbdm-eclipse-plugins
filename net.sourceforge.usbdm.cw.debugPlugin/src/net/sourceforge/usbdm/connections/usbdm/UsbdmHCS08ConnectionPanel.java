@@ -51,7 +51,7 @@ public class UsbdmHCS08ConnectionPanel extends UsbdmConnectionPanel {
       gdiDllName              = UsbdmCommon.HCS08_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.HCS08_DebugGdiWrapperLib;
 	  
-      defaultEraseMethod      = EraseMethod.ERASE_MASS; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_NONE);
       permittedEraseMethods.add(EraseMethod.ERASE_SELECTIVE);
       permittedEraseMethods.add(EraseMethod.ERASE_ALL);

@@ -41,7 +41,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -51,7 +50,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -72,6 +70,7 @@ import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.AutoConnect;
 import net.sourceforge.usbdm.jni.Usbdm.BdmInformation;
 import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+import net.sourceforge.usbdm.jni.Usbdm.ResetMethod;
 import net.sourceforge.usbdm.jni.Usbdm.SecurityOptions;
 import net.sourceforge.usbdm.jni.Usbdm.TargetVddSelect;
 import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
@@ -123,6 +122,9 @@ public class UsbdmDebuggerPanel {
    private Button            fButtonExitOnClose;
 
    private Combo             fComboInterfaceSpeed;
+   private Label             fResetLabel;
+   private Combo             fComboResetMethod;
+   private ResetMethod[]     fResetMethods;
    private Button            fButtonAutomaticallyReconnect;
    private Button            fButtonDriveReset;
    private Button            fButtonUsePstSignals;
@@ -583,7 +585,7 @@ public class UsbdmDebuggerPanel {
       lbl.setText("Timeout");
       Text txtConnectionTimeout = new Text(grpConnectionControl, SWT.BORDER);
       txtConnectionTimeout.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-      txtConnectionTimeout.setToolTipText("How long to wait for an unresponsive target\n" + "(e.g. target may be in VLLSx mode)\n" + "0 indicates indefinite wait");
+      txtConnectionTimeout.setToolTipText("How many seconds to wait for an unresponsive target\n" + "(e.g. target may be in VLLSx mode)\n" + "0 indicates indefinite wait");
 
       fConnectionTimeoutTextAdapter = new NumberTextAdapter("Timeout", txtConnectionTimeout, 10);
       // txtConnectionTimeout.setLayoutData(new GridData(30, 16));
@@ -627,9 +629,23 @@ public class UsbdmDebuggerPanel {
          }
       });
 
+      fResetLabel = new Label(grpConnectionControl, SWT.NONE);
+      fResetLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fResetLabel.setText("Reset Method");
+      fComboResetMethod = new Combo(grpConnectionControl, SWT.READ_ONLY);
+      fComboResetMethod.setToolTipText("Reset method used");
+      fComboResetMethod.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+      fComboResetMethod.addModifyListener(new ModifyListener() {
+         @Override
+         public void modifyText(ModifyEvent e) {
+            doUpdate();
+         }
+      });
+
       fButtonDriveReset = new Button(grpConnectionControl, SWT.CHECK);
       fButtonDriveReset.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-      fButtonDriveReset.setToolTipText("Drive target reset pin to reset the target."); //$NON-NLS-1$
+      fButtonDriveReset.setToolTipText("Drive target reset pin when resetting the target.\n"+
+      "May be applied with another method"); //$NON-NLS-1$
       fButtonDriveReset.setText("Hardware RESET"); //$NON-NLS-1$
       fButtonDriveReset.setBounds(0, 0, 140, 16);
       fButtonDriveReset.addSelectionListener(new SelectionAdapter() {
@@ -1056,13 +1072,34 @@ public class UsbdmDebuggerPanel {
             fEraseMethods[index++] = method;
          }
       }
-      fComboEraseMethod.select(fComboEraseMethod.getItemCount() - 1);
+      fComboEraseMethod.select(0);
       fComboEraseMethod.setText(eraseMethod);
    }
 
-   private void setEraseMethod(EraseMethod eraseMethod) {
-      // System.err.println("setEraseMethod() "+ eraseMethod.toString());
-      fComboEraseMethod.setText(eraseMethod.toString());
+   /**
+    * Populate the reset methods
+    */
+   private void populateResetMethods() {
+      String resetMethod = fComboResetMethod.getText();
+      fResetMethods = new ResetMethod[ResetMethod.values().length];
+      int index = 0;
+      fComboResetMethod.removeAll();
+      for (ResetMethod method : ResetMethod.values()) {
+         fComboResetMethod.add(method.toString());
+         fResetMethods[index++] = method;
+      }
+      fComboResetMethod.select(0);
+      fComboResetMethod.setText(resetMethod);
+   }
+
+   private void setEraseMethod(EraseMethod method) {
+      // System.err.println("setEraseMethod() "+ method.toString());
+      fComboEraseMethod.setText(method.toString());
+   }
+
+   private void setResetMethod(ResetMethod method) {
+      // System.err.println("setResetMethod() "+ method.toString());
+      fComboResetMethod.setText(method.toString());
    }
 
    @SuppressWarnings("unused")
@@ -1075,9 +1112,18 @@ public class UsbdmDebuggerPanel {
    private EraseMethod getEraseMethod() {
       int index = fComboEraseMethod.getSelectionIndex();
       if (index < 0) {
-         return fGdbServerParameters.getPreferredEraseMethod();
+         return EraseMethod.ERASE_TARGETDEFAULT;
       } else {
          return fEraseMethods[index];
+      }
+   }
+
+   private ResetMethod getResetMethod() {
+      int index = fComboResetMethod.getSelectionIndex();
+      if (index < 0) {
+         return ResetMethod.RESET_TARGETDEFAULT;
+      } else {
+         return fResetMethods[index];
       }
    }
 
@@ -1164,22 +1210,27 @@ public class UsbdmDebuggerPanel {
 
    protected void disableUnusedControls() {
       boolean enableThese;
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_SPEED);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_SPEED);
       fComboInterfaceSpeed.setEnabled(enableThese);
       fComboInterfaceSpeed.setVisible(enableThese);
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_RESET);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_RESET_METHODS);
+      fResetLabel.setEnabled(enableThese);
+      fResetLabel.setVisible(enableThese);
+      fComboResetMethod.setEnabled(enableThese);
+      fComboResetMethod.setVisible(enableThese);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_RESET);
       fButtonDriveReset.setEnabled(enableThese);
       fButtonDriveReset.setVisible(enableThese);
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_PST);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_PST);
       fButtonUsePstSignals.setEnabled(enableThese);
       fButtonUsePstSignals.setVisible(enableThese);
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_VLLSCATCH);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_VLLSCATCH);
       fButtonCatchVLLSsEvents.setEnabled(enableThese);
       fButtonCatchVLLSsEvents.setVisible(enableThese);
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_MASKINTS);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_MASKINTS);
       fButtonMaskInterrupts.setEnabled(enableThese);
       fButtonMaskInterrupts.setVisible(enableThese);
-      enableThese = fGdbServerParameters.isRequiredDialogueComponents(GdbServerParameters.NEEDS_CLKTRIM);
+      enableThese = fGdbServerParameters.isRequiredDialogueComponent(GdbServerParameters.NEEDS_CLKTRIM);
       fGroupClockTrim.setVisible(enableThese);
       fButtonTrimTargetClock.setEnabled(enableThese);
       fButtonTrimTargetClock.setVisible(enableThese);
@@ -1213,8 +1264,10 @@ public class UsbdmDebuggerPanel {
       if (fLabelBDMInformation != null) {
          int index = fComboSelectBDM.getSelectionIndex();
          if (index >= 0) {
-            String deviceDescription = fDeviceList.get(index).deviceDescription;
+            USBDMDeviceInfo bdmInterface = fDeviceList.get(index);
+            String deviceDescription = bdmInterface.deviceDescription;
             fLabelBDMInformation.setText(deviceDescription);
+            fButtonRequireExactBdm.setEnabled(!bdmInterface.isNullDevice());
          }
       }
    }
@@ -1314,7 +1367,9 @@ public class UsbdmDebuggerPanel {
       fButtonMaskInterrupts.setSelection(fGdbServerParameters.isMaskInterrupts());
       // Update list to match fGdbServerParameters
       populateEraseMethods();
+      populateResetMethods();
       setEraseMethod(fGdbServerParameters.getEraseMethod());
+      setResetMethod(fGdbServerParameters.getResetMethod());
       setTargetVdd(fGdbServerParameters.getTargetVdd());
       setSecurityOption(fGdbServerParameters.getSecurityOption());
       setTimeout(fGdbServerParameters.getConnectionTimeout());
@@ -1344,6 +1399,7 @@ public class UsbdmDebuggerPanel {
       fGdbServerParameters.enableCatchVLLSxEvents(fButtonCatchVLLSsEvents.getSelection());
       fGdbServerParameters.enableMaskInterrupts(fButtonMaskInterrupts.getSelection());
       fGdbServerParameters.setEraseMethod(getEraseMethod());
+      fGdbServerParameters.setResetMethod(getResetMethod());
       fGdbServerParameters.setSecurityOption(getSecurityOption());
       fGdbServerParameters.setTargetVdd(getTargetVdd());
       fGdbServerParameters.enableTrimClock(fButtonTrimTargetClock.getSelection());
@@ -1501,43 +1557,5 @@ public class UsbdmDebuggerPanel {
       if (eventType == SWT.CHANGED) {
          this.fListener = listener;
       }
-   }
-
-   /**
-    * ========================================================================
-    */
-
-   /**
-    * @param args
-    */
-   public static void main(String[] args) {
-      Display display = new Display();
-
-      Shell shell = new Shell(display);
-
-      shell.setLayout(new FillLayout());
-
-      shell.setSize(600, 450);
-
-      UsbdmDebuggerPanel usbdmTab = new UsbdmDebuggerPanel();
-      usbdmTab.createContents(shell, true);
-      try {
-         usbdmTab.initializeFrom(null);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      usbdmTab.setInterface(InterfaceType.T_ARM, false);
-      usbdmTab.addListener(SWT.CHANGED, new Listener() {
-         @Override
-         public void handleEvent(Event event) {
-            // System.err.println("Changed");
-         }
-      });
-      shell.open();
-      while (!shell.isDisposed()) {
-         if (!display.readAndDispatch())
-            display.sleep();
-      }
-      display.dispose();
    }
 }

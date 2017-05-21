@@ -13,7 +13,7 @@ public final class USBDMConnectionPanelTestFactory {
 //      UsbdmConnectionPanel panel = new UsbdmRS08ConnectionPanel(parent, swtstyle);
 //      UsbdmConnectionPanel panel = new UsbdmHCS08ConnectionPanel(parent, swtstyle);
 //      UsbdmConnectionPanel panel = new UsbdmDSCConnectionPanel(parent, swtstyle);
-//      UsbdmConnectionPanel panel = new UsbdmHCS12ConnectionPanel(parent, swtstyle);
+//      UsbdmConnectionPanel panel = new UsbdmS12zConnectionPanel(parent, swtstyle);
       panel.create();
       return panel;
    }

@@ -55,11 +55,6 @@ public class UsbdmCommon {
    public static final int BDM_CLK_ALT         = 0;  //!< - Force ALT clock (CLKSW = 0)
    public static final int BDM_CLK_NORMAL      = 1;  //!< - Force Normal clock (CLKSW = 1)
 
-   public static final int ERASE_NONE      = 0;
-   public static final int ERASE_MASS      = 1;
-   public static final int ERASE_ALL       = 2;
-   public static final int ERASE_SELECTIVE = 3;
-   
  //! BDM interface options
  //!
    public static class BdmOptions {

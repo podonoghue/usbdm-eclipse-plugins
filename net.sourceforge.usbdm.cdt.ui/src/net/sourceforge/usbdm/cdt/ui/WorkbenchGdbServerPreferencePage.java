@@ -2,22 +2,15 @@ package net.sourceforge.usbdm.cdt.ui;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
-import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel;
-
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
+import net.sourceforge.usbdm.gdb.ui.UsbdmDebuggerPanel;
 
 public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
 
@@ -38,7 +31,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       }
 
       @Override
-      protected Control createContents(Composite parent) {
+      public Control createContents(Composite parent) {
          return super.createContents(parent);
       }
    }
@@ -57,7 +50,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       }
 
       @Override
-      protected Control createContents(Composite parent) {
+      public Control createContents(Composite parent) {
          return super.createContents(parent);
       }
    }
@@ -76,7 +69,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
       }
 
       @Override
-      protected Control createContents(Composite parent) {
+      public Control createContents(Composite parent) {
          return super.createContents(parent);
       }
    }
@@ -106,7 +99,7 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    }
 
    @Override
-   protected Control createContents(Composite parent) {
+   public Control createContents(Composite parent) {
       Control control = usbdmDebuggerPanel.createContents(parent, false);
       usbdmDebuggerPanel.setInterface(interfaceType, true);
       return control;         
@@ -175,36 +168,11 @@ public abstract class WorkbenchGdbServerPreferencePage extends PreferencePage {
    }
 
    /**
-    * @param args
+    * Get server command line
+    * 
+    * @return
     */
-   public static void main(String[] args) {
-      Display display = new Display();
-      Shell shell = new Shell(display);
-      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceArmPage();
-//      final WorkbenchGdbServerPreferencePage topPage = new WorkbenchPreferenceCfv1Page();
-      shell.setLayout(new FillLayout());
-      topPage.init(null);
-      topPage.createContents(shell);
-      Button btn = new Button(shell, SWT.NONE);
-      btn.setText("Save");
-      btn.addSelectionListener(new SelectionAdapter() {
-         @Override
-         public void widgetSelected(SelectionEvent e) {
-            topPage.saveSettings();
-            ArrayList<String> commandList = topPage.usbdmDebuggerPanel.getGdbServerParameters().getServerCommandLine();
-            String commandArray[] = new String[commandList.size()];
-            commandArray = commandList.toArray(commandArray);
-            for (String s : commandArray) { 
-               System.err.print(s + " ");
-            }
-            System.err.print("\n");
-         }
-      });
-      shell.open();
-      while (!shell.isDisposed()) {
-         if (!display.readAndDispatch())
-            display.sleep();
-      }
-      display.dispose();
+   public ArrayList<String> getServerCommandLine() {
+       return usbdmDebuggerPanel.getGdbServerParameters().getServerCommandLine();
    }
 }

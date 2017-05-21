@@ -50,7 +50,7 @@ public class UsbdmRS08ConnectionPanel extends UsbdmConnectionPanel {
       deviceNameId            = UsbdmCommon.RS08_DeviceNameAttributeKey;
       gdiDllName              = UsbdmCommon.RS08_GdiWrapperLib;
       gdiDebugDllName         = UsbdmCommon.RS08_DebugGdiWrapperLib;
-      defaultEraseMethod      = EraseMethod.ERASE_MASS; 
+      permittedEraseMethods.add(EraseMethod.ERASE_TARGETDEFAULT);
       permittedEraseMethods.add(EraseMethod.ERASE_MASS);
    }
 
