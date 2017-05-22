@@ -48,7 +48,8 @@ public class CreatePeripheralDatabase {
    private static final  String DEVICE_LIST_SCHEMA_FILENAME = "DeviceListSchema.dtd";
 
    private static String firstFileToProcess = null;
-   private static String firstFileToReject = null;
+   private static String firstFileToReject  = null;
+   private static String filesToReject      = null;
 
    static void copyFile(IPath source, IPath destination) throws IOException {
       System.err.println("Copying "+source.toOSString()+" -> \n        "+destination.toOSString());
@@ -116,6 +117,7 @@ public class CreatePeripheralDatabase {
    }
    static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
+      Pattern rejectPattern = Pattern.compile(filesToReject);
 
       int deviceCount = 500;
       DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath.toAbsolutePath(), directoryFilter);
@@ -126,6 +128,9 @@ public class CreatePeripheralDatabase {
          if (Files.isRegularFile(filePath)) {
             String fileName = filePath.getFileName().toString();
             if (fileFilter.skipFile(fileName)) {
+               continue;
+            }
+            if (rejectPattern.matcher(fileName).matches()) {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
@@ -742,11 +747,11 @@ public class CreatePeripheralDatabase {
     * @param args
     */
    public static void main(String[] args) {
-
+      filesToReject = ("^LPC.*");
 //    firstFileToProcess = ("^MKE16F.*");
 //    firstFileToReject  = ("^MKL.*");
-    firstFileToProcess = ("^LPC.*");
-    firstFileToReject  = ("^M.*");
+//    firstFileToProcess = ("^LPC.*");
+//    firstFileToReject  = ("^M.*");
 
 //      doFactoring();
       doUsualRegeneration();
