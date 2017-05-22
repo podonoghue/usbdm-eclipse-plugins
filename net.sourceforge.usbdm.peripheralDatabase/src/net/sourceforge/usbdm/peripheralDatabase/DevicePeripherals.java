@@ -507,7 +507,10 @@ public class DevicePeripherals extends ModeControl {
       writer.println(String.format("   <version>%s</version>", ((getVersion()==null)?"0.0":getVersion())));
       writer.println(String.format("   <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
       cpu.writeSVD(writer, standardFormat, this);
-      writer.println(String.format("   <headerDefinitionsPrefix>%s</headerDefinitionsPrefix>", getHeaderDefinitionsPrefix()));
+      String headerDefinitionPrefix = getHeaderDefinitionsPrefix();
+      if (headerDefinitionPrefix.length() > 0) {
+         writer.println(String.format("   <headerDefinitionsPrefix>%s</headerDefinitionsPrefix>", getHeaderDefinitionsPrefix()));
+      }
       writer.println(String.format("   <addressUnitBits>%d</addressUnitBits>", getAddressUnitBits()));
       writer.println(String.format("   <width>%d</width>", getWidth()));
       writer.println("   <peripherals>");
