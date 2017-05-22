@@ -74,7 +74,7 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
       
       IBinary bin = null;
       if (results.length == 0) {
-         handleFail("Binary not found");
+         handleFail("Binary not found\nPlease build target");
       } else if (results.length > 1) {
          bin = chooseBinary(results, mode);
       } else {
