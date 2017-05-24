@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.eclipse.cdt.core.model.IBinary;
 import org.eclipse.cdt.debug.core.CDebugUtils;
+import org.eclipse.cdt.ui.CElementLabelProvider;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -17,22 +18,44 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.ILaunchShortcut;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
-
-import net.sourceforge.usbdm.cdt.ui.handlers.CreateLaunchConfigurationHandler;
+import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 
 public class UsbdmLaunchShortcut implements ILaunchShortcut {
 
+   /**
+    * Locates a launchable entity in the given active editor, and launches an application in the specified mode. 
+    * This launch configuration shortcut is responsible for progress reporting as well as error handling, in 
+    * the event that a launchable entity cannot be found, or launching fails.
+    * 
+    * @param editor - the active editor in the workbench
+    * @param mode - one of the launch modes defined by the launch manager
+    */
    @Override
    public void launch(IEditorPart editor, String mode) {
       searchAndLaunch(new Object[] { editor.getEditorInput() }, mode);
    }
 
+   /**
+    * Locates a launchable entity in the given selection and launches an application in the specified mode. 
+    * This launch configuration shortcut is responsible for progress reporting as well as error handling, 
+    * in the event that a launchable entity cannot be found, or launching fails.
+    * 
+    * @param  selection - workbench selection
+    * @param  mode - one of the launch modes defined by the launch manager
+    */
    @Override
    public void launch(ISelection selection, String mode) {
       if (selection instanceof IStructuredSelection) {
@@ -40,10 +63,17 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
       }
    }
 
+   /**
+    * Locates or creates a launchable for the given binary and then launches it
+    * 
+    * @param bin  Binary to create launchable for
+    * @param mode One of the launch modes defined by the launch manager
+    */
    public void launch(IBinary bin, String mode) {
-      ILaunchConfiguration config = findLaunchConfiguration(bin, mode);
-      if (config != null) {
-         DebugUITools.launch(config, mode);
+      try {
+         DebugUITools.launch(findLaunchConfiguration(bin), mode);
+      } catch (Exception e) {
+         handleFail(getActiveWorkbenchShell(), e.getMessage());
       }
    }
 
@@ -63,99 +93,38 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
     * @param mode      Launch mode.
     */
    private void searchAndLaunch(final Object[] elements, String mode) {
-      IBinary[] results = null;
       
-      try {
-         results = LaunchParameterUtilities.searchForExecutable(elements, mode);
-      } catch (Exception e1) {
-         handleFail(e1.getMessage());
+      IBinary[] results = LaunchParameterUtilities.searchForExecutable(elements);
+      
+      if (results.length == 0) {
+         handleFail(getActiveWorkbenchShell(), "Binary not found\nPlease build one target first");
          return;
       }
-      
-      IBinary bin = null;
-      if (results.length == 0) {
-         handleFail("Binary not found\nPlease build target");
-      } else if (results.length > 1) {
-         bin = chooseBinary(results, mode);
-      } else {
-         bin = results[0];
-      }
+      IBinary bin = LaunchParameterUtilities.chooseBinary(getActiveWorkbenchShell(), results);
+      // May be cancelled so quietly check for null
       if (bin != null) {
          launch(bin, mode);
       }
    }
 
-   /**
-    * Prompts the user to select a binary
-    * 
-    * @param results   The list of binaries.
-    * @param mode      Launch mode.
-    *
-    * @return the selected binary or <code>null</code> if none.
-    */
-   protected IBinary chooseBinary(IBinary[] results, String mode) {
-      if (results.length == 0) {
-         return null;
-      }
-      // TODO
-      return results[0];
-//      ILabelProvider programLabelProvider = new CElementLabelProvider() {
-//         @Override
-//         public String getText(Object element) {
-//            if (element instanceof IBinary) {
-//               return ((IBinary) element).getPath().lastSegment();
-//            }
-//            return super.getText(element);
-//         }
-//      };
-//
-//      ILabelProvider qualifierLabelProvider = new CElementLabelProvider() {
-//         @Override
-//         public String getText(Object element) {
-//            if (element instanceof IBinary) {
-//               IBinary bin = (IBinary) element;
-//               StringBuilder name = new StringBuilder();
-//               name.append(bin.getCPU()
-//                     + (bin.isLittleEndian() ? "le" : "be")); //$NON-NLS-1$ //$NON-NLS-2$
-//               name.append(" - "); //$NON-NLS-1$
-//               name.append(bin.getPath().toString());
-//               return name.toString();
-//            }
-//            return super.getText(element);
-//         }
-//      };
-//
-//      TwoPaneElementSelector dialog = new TwoPaneElementSelector(
-//            getActiveWorkbenchShell(), programLabelProvider,
-//            qualifierLabelProvider);
-//      dialog.setElements(binList.toArray());
-//      dialog.setTitle("Messages.LaunchShortcut_Launcher");
-//      dialog.setMessage("Messages.LaunchShortcut_Choose_a_local_application");
-//      dialog.setUpperListLabel("Messages.LaunchShortcut_Binaries");
-//      dialog.setLowerListLabel("Messages.LaunchShortcut_Qualifier");
-//      dialog.setMultipleSelection(false);
-//      if (dialog.open() == Window.OK) {
-//         return (IBinary) dialog.getFirstResult();
-//      }
-//
-//      return null;
-   }
-
-   protected void handleFail(String message) {
-      MessageDialog.openError(getActiveWorkbenchShell(), "Launching failed", message);
+   protected void handleFail(Shell shell, String message) {
+      MessageBox mbox = new MessageBox(shell, SWT.ICON_ERROR|SWT.OK);
+      mbox.setMessage(message);
+      mbox.setText("USBDM - Launching failed");
+      mbox.open();
    }
 
    /**
-    * Locate a configuration to launch for the given type.<br>
+    * Locate a configuration to launch the given binary.<br>
     * If one cannot be found, create one.
     * 
-    * @param bin   The binary to look launch for.
-    * @param mode  Launch mode.
+    * @param bin   The binary to launched
     *
     * @return A re-usable config or <code>null</code> if none.
+    * @throws Exception 
     */
-   protected ILaunchConfiguration findLaunchConfiguration(IBinary bin, String mode) {
-      ILaunchConfiguration configuration = null;
+   protected ILaunchConfiguration findLaunchConfiguration(IBinary bin) throws Exception {
+      
       ILaunchConfigurationType configType = getLaunchConfigType();
       List<ILaunchConfiguration> candidateConfigs = Collections.emptyList();
       IPath binPath = bin.getResource().getProjectRelativePath();
@@ -182,11 +151,11 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
       // IBinary, return it. Otherwise, if there is more than one
       // configuration associated with the IBinary, prompt the user to choose
       // one.
+      ILaunchConfiguration configuration = null;
       int candidateCount = candidateConfigs.size();
       if (candidateCount < 1) {
-         configuration = CreateLaunchConfigurationHandler.createLaunchConfig(getActiveWorkbenchShell(), project, binPath);
-//         handleFail("No Launch configuratins found");
-//         configuration = createConfiguration(bin, mode, true);
+         // Create default launch
+         configuration = LaunchParameterUtilities.createLaunchConfig(getActiveWorkbenchShell(), project, bin);
       } else if (candidateCount == 1) {
          configuration = candidateConfigs.get(0);
       } else {
@@ -195,143 +164,10 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
          // cancelled the dialog, in which case this method returns null,
          // since canceling the dialog should also cancel launching
          // anything.
-         configuration = chooseConfiguration(candidateConfigs, mode);
+         configuration = chooseConfiguration(candidateConfigs);
       }
       return configuration;
    }
-
-   /**
-    * Create a launch configuration based on a binary, and optionally save it
-    * to the underlying resource.
-    *
-    * @param bin   A representation of a binary
-    * @param save  true if the configuration should be saved to the underlying
-    *            resource, and false if it should not be saved.
-    * @return a launch configuration generated for the binary.
-    */
-//   protected ILaunchConfiguration createConfiguration(IBinary bin, String mode, boolean save) {
-//      ILaunchConfiguration config = null;
-//      try {
-//         String binaryPath = bin.getResource().getProjectRelativePath().toString();
-//
-//         ILaunchConfigurationType configType = getLaunchConfigType();
-//         ILaunchConfigurationWorkingCopy wc = configType.newInstance(
-//               null,
-//               getLaunchManager().generateLaunchConfigurationName(
-//                     bin.getElementName()));
-//
-//         // DSF settings...use GdbUIPlugin preference store for defaults
-//         IPreferenceStore preferenceStore = GdbUIPlugin.getDefault()
-//               .getPreferenceStore();
-//         wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_DEBUG_NAME,
-//               preferenceStore.getString(
-//                     IGdbDebugPreferenceConstants.PREF_DEFAULT_GDB_COMMAND));
-//         wc.setAttribute(IGDBLaunchConfigurationConstants.ATTR_GDB_INIT,
-//               preferenceStore.getString(
-//                     IGdbDebugPreferenceConstants.PREF_DEFAULT_GDB_INIT));
-//         wc.setAttribute(
-//               IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_NON_STOP,
-//               preferenceStore.getBoolean(
-//                     IGdbDebugPreferenceConstants.PREF_DEFAULT_NON_STOP));
-//         wc.setAttribute(
-//               IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_REVERSE,
-//               IGDBLaunchConfigurationConstants.DEBUGGER_REVERSE_DEFAULT);
-//         wc.setAttribute(
-//               IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_UPDATE_THREADLIST_ON_SUSPEND,
-//               IGDBLaunchConfigurationConstants.DEBUGGER_UPDATE_THREADLIST_ON_SUSPEND_DEFAULT);
-//         wc.setAttribute(
-//               IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_DEBUG_ON_FORK,
-//               IGDBLaunchConfigurationConstants.DEBUGGER_DEBUG_ON_FORK_DEFAULT);
-//         wc.setAttribute(
-//               IGDBLaunchConfigurationConstants.ATTR_DEBUGGER_TRACEPOINT_MODE,
-//               IGDBLaunchConfigurationConstants.DEBUGGER_TRACEPOINT_MODE_DEFAULT);
-//
-//         wc.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROGRAM_NAME,
-//               binaryPath);
-//         wc.setAttribute(ICDTLaunchConfigurationConstants.ATTR_PROJECT_NAME,
-//               bin.getCProject().getElementName());
-//         wc.setMappedResources(new IResource[] { bin.getResource(),
-//               bin.getResource().getProject() });
-//         wc.setAttribute(
-//               ICDTLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY,
-//               (String) null);
-//
-//         Preferences prefs = InstanceScope.INSTANCE.getNode(DockerLaunchUIPlugin.PLUGIN_ID);
-//
-//         // get the connection from the ConnectionListener which waits for
-//         // any activity
-//         // from the DockerExplorerView
-//         IDockerConnection connection = ConnectionListener.getInstance().getCurrentConnection();
-//         if (connection == null) {
-//            IDockerConnection[] connections = DockerConnectionManager.getInstance().getConnections();
-//            if (connections != null && connections.length > 0)
-//               connection = DockerConnectionManager.getInstance().getConnections()[0];
-//         }
-//
-//         // issue error message if no connections exist
-//         if (connection == null) {
-//            Display.getDefault().syncExec(new Runnable() {
-//
-//               @Override
-//               public void run() {
-//                  MessageDialog.openError(
-//                        Display.getCurrent().getActiveShell(),
-//                        "Messages.LaunchShortcut_Error_Launching",
-//                        "Messages.LaunchShortcut_No_Connections");
-//               }
-//
-//            });
-//            return null;
-//         }
-//
-//         wc.setAttribute(ILaunchConstants.ATTR_CONNECTION_URI, connection.getUri());
-//
-//         // get any default image if specified, otherwise use first
-//         // image in image list for connection
-//         String image = prefs.get(PreferenceConstants.DEFAULT_IMAGE, null);
-//         if (image == null) {
-//            List<IDockerImage> images = connection.getImages();
-//            if (images != null && images.size() > 0)
-//               image = images.get(0).repoTags().get(0);
-//         }
-//
-//         // issue error msg if no images exist
-//         if (image == null) {
-//            Display.getDefault().syncExec(new Runnable() {
-//
-//               @Override
-//               public void run() {
-//                  MessageDialog.openError(
-//                        Display.getCurrent().getActiveShell(),
-//                        "Messages.LaunchShortcut_Error_Launching",
-//                        "Messages.LaunchShortcut_No_Images");
-//               }
-//
-//            });
-//            return null;
-//         }
-//
-//         wc.setAttribute(ILaunchConstants.ATTR_IMAGE, (String) image);
-//
-//         Boolean keepPref = prefs.getBoolean(PreferenceConstants.KEEP_CONTAINER_AFTER_LAUNCH, false);
-//         wc.setAttribute(ILaunchConstants.ATTR_KEEP_AFTER_LAUNCH, keepPref);
-//
-//         // For Debug mode we need to set gdbserver info as well
-//         if (mode.equals(ILaunchManager.DEBUG_MODE)) {
-//            wc.setAttribute(ILaunchConstants.ATTR_GDBSERVER_COMMAND, "gdbserver"); //$NON-NLS-1$
-//            wc.setAttribute(ILaunchConstants.ATTR_GDBSERVER_PORT,    "2345"); //$NON-NLS-1$
-//         }
-//
-//         if (save) {
-//            config = wc.doSave();
-//         } else {
-//            config = wc;
-//         }
-//      } catch (CoreException e) {
-//         e.printStackTrace();
-//      }
-//      return config;
-//   }
 
    protected ILaunchManager getLaunchManager() {
       return DebugPlugin.getDefault().getLaunchManager();
@@ -341,20 +177,17 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
     * Show a selection dialog that allows the user to choose one of the
     * specified launch configurations.
     * 
-    * @param configList
-    *            The list of launch configurations to choose from.
-    * @param mode
-    *            Currently unused.
-    * @return The chosen config, or <code>null</code> if the user cancelled the
-    *         dialog.
+    * @param configList  The list of launch configurations to choose from.
+    * 
+    * @return The chosen config, or <b><code>null</code></b> if the user cancelled the dialog.
     */
-   protected ILaunchConfiguration chooseConfiguration(List<ILaunchConfiguration> configList, String mode) {
+   protected ILaunchConfiguration chooseConfiguration(List<ILaunchConfiguration> configList) {
       
       IDebugModelPresentation labelProvider = DebugUITools.newDebugModelPresentation();
       ElementListSelectionDialog dialog = new ElementListSelectionDialog(getActiveWorkbenchShell(), labelProvider);
       dialog.setElements(configList.toArray());
-      dialog.setTitle("Messages.LaunchShortcut_Launch_Configuration_Selection");
-      dialog.setMessage("Messages.LaunchShortcut_Choose_a_launch_configuration");
+      dialog.setTitle("Launch Configuration Selection");
+      dialog.setMessage("Choose a launch configuration");
       dialog.setMultipleSelection(false);
       int result = dialog.open();
       labelProvider.dispose();
@@ -365,9 +198,15 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
    }
 
    protected Shell getActiveWorkbenchShell() {
-      // TODO
+      IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+      if (window != null) {
+         return window.getShell();
+      }
+      IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+      if (windows.length > 0) {
+         return windows[0].getShell();
+      }
       return null;
-//      return DockerLaunchUIPlugin.getActiveWorkbenchShell();
    }
 
 }

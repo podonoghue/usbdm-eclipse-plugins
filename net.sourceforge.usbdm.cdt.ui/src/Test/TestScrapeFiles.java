@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.regex.Matcher;
 
-import net.sourceforge.usbdm.cdt.ui.handlers.CreateLaunchConfigurationHandler;
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.LaunchParameterUtilities;
 
 public class TestScrapeFiles {
 
@@ -40,7 +40,7 @@ public class TestScrapeFiles {
          System.err.println("============\nScraping "+testFile);
          for (Tuple tuple:tuples) {
             InputStream inputstream = new FileInputStream(testFile);
-            Matcher m = CreateLaunchConfigurationHandler.scrapeFile(inputstream, tuple.match);
+            Matcher m = LaunchParameterUtilities.scrapeFile(inputstream, tuple.match);
             if (m != null) {
                String context = m.group();
                System.err.println(String.format("%-70s",tuple)+" => Found '"+m.replaceAll(tuple.result)+"' within '"+context+"'");
