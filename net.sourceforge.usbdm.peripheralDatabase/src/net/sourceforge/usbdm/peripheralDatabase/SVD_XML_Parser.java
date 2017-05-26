@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
+
+import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
 /**
  * @author podonoghue
@@ -703,6 +703,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          else if (element.getTagName() == VALUE_TAG) {
             interruptEntry.setIndexNumber((int)getIntElement(element));
          }
+         else if (element.getTagName() == PERIPHERAL_TAG) {
+            interruptEntry.setPeripheral(element.getTextContent().trim());
+         }
          else {
             throw new Exception("Unexpected field in INTERRUPT', value = \'"+element.getTagName()+"\'");
          }
@@ -815,7 +818,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             if ((interruptEntry.getDescription() == null) || (interruptEntry.getDescription().length() == 0)) {
                interruptEntry.setDescription(peripheral.getDescription());
             }
+            interruptEntry.setPeripheral(peripheral.getName());
             peripheral.addInterruptEntry(interruptEntry);
+            device.addInterruptEntry(interruptEntry);
          }
          else if (element.getTagName() == ADDRESSBLOCK_TAG ){
             peripheral.addAddressBlock(parseAddressBlock(element));
@@ -857,7 +862,16 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    private static void parsePeripherals(DevicePeripherals device, Element peripheralsElement) throws Exception {
 
 //      System.out.println("parsePeripherals");
-
+      // Collect all the interrupt nodes
+//      NodeList interruptNodes = peripheralsElement.getElementsByTagName(INTERRUPT_TAG);
+//      for (int index=0; index<interruptNodes.getLength(); index++) {
+//         Node node = interruptNodes.item(index);
+//         if (node.getNodeType() != Node.ELEMENT_NODE) {
+//            throw new Exception("Node has wrong type");
+//         }
+//         Element interruptElement = (Element) node;
+//         device.addInterruptEntry(parseInterrupt(interruptElement));
+//      }
       for (Node node = peripheralsElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -985,6 +999,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          else {
             System.err.println("Unexpected field in <interrupts>', value = \'"+element.getTagName()+"\'");
          }
+      }
+      if (vectorTable.getName() == null) {
+         vectorTable.setName(devicePeripherals.getName()+"_VectorTable.svd");
       }
       devicePeripherals.setVectorTable(vectorTable);
    }

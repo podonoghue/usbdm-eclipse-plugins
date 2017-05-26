@@ -225,6 +225,7 @@ public class DevicePeripherals extends ModeControl {
    public VectorTable getVectorTable() throws Exception {
       if (vectorTable == null) {
          vectorTable = VectorTable.factory(getCpu().getName());
+         vectorTable.setName(getName()+"_VectorTable");
       }
       return vectorTable;
    }
@@ -343,7 +344,13 @@ public class DevicePeripherals extends ModeControl {
    public void optimise() throws Exception {
       sortPeripheralsByName();
       for (Peripheral peripheral : peripherals) {
-         peripheral.optimise();
+         try {
+            peripheral.optimise();
+         } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
+            System.err.println("Peripheral: " + peripheral.getName());
+            throw e;
+         }
       }
       if (isExtractDerivedPeripherals()) {
          extractDerivedPeripherals();

@@ -95,17 +95,17 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
    
    /**
-    * Returns a relatively shallow copy of the peripheral
-    * The following may be changed:
-    *    - name
-    *    - description
-    *    - baseAddress
-    *    - groupName
-    *    - sourceFilename
-    *    - prependToName
-    *    - appendToName
-    *    - usedBy
-    *    - interrupts
+    * Returns a relatively shallow copy of the peripheral.<br>
+    * The following are copied but may be later changed:<br>
+    *    <li>name
+    *    <li>description
+    *    <li>baseAddress
+    *    <li>groupName
+    *    <li>sourceFilename
+    *    <li>prependToName
+    *    <li>appendToName
+    *    <li>usedBy
+    *    <li>interrupts
     */
    @Override
    protected Object clone() throws CloneNotSupportedException {
@@ -346,6 +346,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    public void addAddressBlock(AddressBlock addressBlock) throws Exception {
       if (ModeControl.isRegenerateAddressBlocks()) {
          // Discard address blocks when regenerating them
+         return;
       }
       this.fAddressBlocks.add(addressBlock);
    }
@@ -1577,7 +1578,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       if ((owner == null) || (owner.getResetMask() != getResetMask())) {
          writer.println(String.format(    indenter+"   <resetMask>0x%X</resetMask>",       getResetMask()));
       }
-      if (getInterruptEntries() != null) {
+      if (isCollectVectors() && (getInterruptEntries() != null)) {
          for (InterruptEntry interrupt : getInterruptEntries()) {
             interrupt.writeSVD(writer, indent+3);
          }
@@ -1634,11 +1635,12 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.ACCESS_TAG,SVD_XML_BaseParser.escapeString(getAccessType().getPrettyName()), SVD_XML_Parser.ACCESS_TAG));
       }
       boolean doneNewline = false;
-      if (getInterruptEntries() != derived.getInterruptEntries()) {
+      if (!isCollectVectors() && (getInterruptEntries() != derived.getInterruptEntries())) {
          writer.print('\n');
          doneNewline = true;
          for (InterruptEntry interrupt : getInterruptEntries()) {
-            interrupt.writeSVD(writer, indent+3);
+            writer.write(RegisterUnion.getIndent(indent+3));
+            interrupt.writeSVD(writer, -1);
          }
       }
       if (getAddressBlocks() != derived.getAddressBlocks()) {

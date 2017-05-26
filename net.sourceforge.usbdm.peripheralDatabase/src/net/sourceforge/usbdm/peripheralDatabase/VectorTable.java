@@ -264,8 +264,8 @@ public abstract class VectorTable extends ModeControl {
          }
          writer.print(deviceListPostamble);
       }
-      
-      final String indenter = RegisterUnion.getIndent(6);
+      final int indent = 0;
+      final String indenter = RegisterUnion.getIndent(indent);
       writer.print(                       indenter+"<"+SVD_XML_Parser.INTERRUPTS_TAG+">\n");
       if ((getName() != null) && (name.length() > 0)) {
          writer.print(String.format(      indenter+"   <name>%s</name>\n", getName()));
@@ -291,13 +291,14 @@ public abstract class VectorTable extends ModeControl {
             if (vectorNumber<0) {
                continue;
             }
-            String name        = String.format(entry.getName(), vectorNumber);
-            String description = String.format(entry.getDescription(), vectorNumber);
-            writer.print(                 indenter+"   <"+SVD_XML_Parser.INTERRUPT_TAG+">\n");
-            writer.print(String.format(   indenter+"      <name>%s</name>\n", name));
-            writer.print(String.format(   indenter+"      <description>%s</description>\n", SVD_XML_BaseParser.escapeString(description)));
-            writer.print(String.format(   indenter+"      <value>%s</value>\n", vectorNumber));
-            writer.print(                 indenter+"   </"+SVD_XML_Parser.INTERRUPT_TAG+">\n");
+            entry.writeSVD(writer, indent+3);
+//            String name        = String.format(entry.getName(), vectorNumber);
+//            String description = String.format(entry.getDescription(), vectorNumber);
+//            writer.print(                 indenter+"   <"+SVD_XML_Parser.INTERRUPT_TAG+">\n");
+//            writer.print(String.format(   indenter+"      <name>%s</name>\n", name));
+//            writer.print(String.format(   indenter+"      <description>%s</description>\n", SVD_XML_BaseParser.escapeString(description)));
+//            writer.print(String.format(   indenter+"      <value>%s</value>\n", vectorNumber));
+//            writer.print(                 indenter+"   </"+SVD_XML_Parser.INTERRUPT_TAG+">\n");
          }
       }
       writer.print(                       indenter+"</"+SVD_XML_Parser.INTERRUPTS_TAG+">\n\n");

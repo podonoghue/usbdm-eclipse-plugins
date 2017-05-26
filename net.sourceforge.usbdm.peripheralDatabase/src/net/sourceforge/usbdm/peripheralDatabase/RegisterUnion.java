@@ -313,6 +313,9 @@ public class RegisterUnion {
       if (indent>indentString.length()) {
          throw new StringIndexOutOfBoundsException("");
       }
+      if (indent<0) {
+         return "";
+      }
       return indentString.substring(0, indent);
    }
 

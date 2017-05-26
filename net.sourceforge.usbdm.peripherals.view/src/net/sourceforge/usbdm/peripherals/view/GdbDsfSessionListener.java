@@ -61,18 +61,15 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
       if (dsfSession == null) {
          return null;
       }
-      ILaunch launch = (ILaunch)dsfSession.getModelAdapter(ILaunch.class);
-      ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
       String deviceName = null;
       try {
+         ILaunch launch = (ILaunch)dsfSession.getModelAdapter(ILaunch.class);
+         ILaunchConfiguration launchConfiguration = launch.getLaunchConfiguration();
          deviceName = launchConfiguration.getAttribute(UsbdmSharedConstants.LAUNCH_DEVICE_NAME_KEY, "");
       } catch (CoreException e) {
-         e.printStackTrace();
+//         e.printStackTrace();
       }
-      if (deviceName == null) {
-         System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName is null");
-      }
-      System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName = " + deviceName);
+//      System.err.println("GdbDsfSessionListener.getDeviceName() - deviceName = " + deviceName);
       return deviceName;
    }
 
@@ -180,9 +177,9 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
          // New session
          DsfSession dsfSession = DsfSession.getSession(sessionId);
          String     deviceName = getDeviceName(dsfSession);
-         System.err.println("GdbDsfSessionListener.addSession(), deviceName="+deviceName);
+//         System.err.println("GdbDsfSessionListener.addSession(), deviceName="+deviceName);
          SVDIdentifier svdId = new SVDIdentifier(UsbdmPeripheralDescriptionProvider.ID, deviceName);
-         System.err.println("GdbDsfSessionListener.addSession(), svdId="+svdId);
+//         System.err.println("GdbDsfSessionListener.addSession(), svdId="+svdId);
          UsbdmDevicePeripheralsModel peripheralModel = UsbdmDevicePeripheralsModel.createModel(new GdbDsfInterface(dsfSession), svdId);
          dsfSessions.put(sessionId, peripheralModel);
          return true;

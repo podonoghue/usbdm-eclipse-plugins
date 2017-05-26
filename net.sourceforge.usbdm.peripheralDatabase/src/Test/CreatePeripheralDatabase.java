@@ -117,7 +117,10 @@ public class CreatePeripheralDatabase {
    }
    static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
-      Pattern rejectPattern = Pattern.compile(filesToReject);
+      Pattern rejectPattern = null;
+      if (filesToReject != null) {
+         rejectPattern = Pattern.compile(filesToReject);
+      }
 
       int deviceCount = 500;
       DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath.toAbsolutePath(), directoryFilter);
@@ -130,7 +133,7 @@ public class CreatePeripheralDatabase {
             if (fileFilter.skipFile(fileName)) {
                continue;
             }
-            if (rejectPattern.matcher(fileName).matches()) {
+            if ((rejectPattern != null) && rejectPattern.matcher(fileName).matches()) {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
@@ -676,11 +679,12 @@ public class CreatePeripheralDatabase {
       //    @SuppressWarnings("unused")
       //    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
       //
-      final  Path usbdmFolder    = MAIN_FOLDER.resolve("Internal");
-      final  Path stage1Folder   = MAIN_FOLDER.resolve("1.stage1Folder");
-      final  Path stage2Folder   = MAIN_FOLDER.resolve("2.stage2Folder");
-      final  Path stage3Folder   = MAIN_FOLDER.resolve("3.stage3Folder");
-      final  Path resultFolder   = MAIN_FOLDER.resolve("9.resultFolder");
+      final  Path usbdmFolder          = MAIN_FOLDER.resolve("Internal");
+      final  Path stage1Folder         = MAIN_FOLDER.resolve("1.stage1Folder");
+      final  Path stage2Folder         = MAIN_FOLDER.resolve("2.stage2Folder");
+      final  Path stage3Folder         = MAIN_FOLDER.resolve("3.stage3Folder");
+      final  Path resultFolder         = MAIN_FOLDER.resolve("9.resultFolder");
+      final  Path resultHeaderFolder   = MAIN_FOLDER.resolve("9.resultHeaderFolder");
 
       try {
          // Generate merged version of SVD files for testing (should be unchanging eventually)
@@ -692,6 +696,8 @@ public class CreatePeripheralDatabase {
          //         createHeaderFilesFromList(usbdmFolder, headerReducedMergedOptimisedManualFolder, false);
          //         createHeaderFiles(freescaleFolder,       freescaleHeaderFolder,       false, true);
          //         createHeaderFiles(freescaleFolder_Check, freescaleHeaderFolder_Check, false, true);
+
+         ModeControl.setCollectVectors(true);
 
          ModeControl.setExtractSimilarFields(true);
          ModeControl.setExtractDerivedPeripherals(true);
@@ -706,6 +712,7 @@ public class CreatePeripheralDatabase {
 
          // Merge overlapping STRUCTS 
          ModeControl.setExtractComplexStructures(true);
+         
          // Create Simple arrays
          ModeControl.setFlattenArrays(false);
          ModeControl.setIgnoreResetValuesInEquivalence(true);
@@ -734,7 +741,7 @@ public class CreatePeripheralDatabase {
          ModeControl.setGenerateFreescaleRegisterMacros(false);
          ModeControl.setUseShiftsInFieldMacros(false);
          ModeControl.setUseBytePadding(true);
-         createHeaderFiles(stage3Folder, resultFolder, false);
+         createHeaderFiles(stage3Folder, resultHeaderFolder, false);
 
       } catch (Exception e) {
          e.printStackTrace();
@@ -747,7 +754,7 @@ public class CreatePeripheralDatabase {
     * @param args
     */
    public static void main(String[] args) {
-      filesToReject = ("^LPC.*");
+//      filesToReject = ("^LPC.*");
 //    firstFileToProcess = ("^MKE16F.*");
 //    firstFileToReject  = ("^MKL.*");
 //    firstFileToProcess = ("^LPC.*");

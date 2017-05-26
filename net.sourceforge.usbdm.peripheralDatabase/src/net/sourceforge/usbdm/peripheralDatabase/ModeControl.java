@@ -135,6 +135,11 @@ public class ModeControl {
     */
    private static boolean fIgnoreAccessTypeInEquivalence = false;
 
+   /**
+    * Controls if vectors are written for each peripheral or collected
+    */
+   private static boolean fCollectVectors = false;
+
    public ModeControl() {
    }
 
@@ -787,6 +792,24 @@ public class ModeControl {
             " * @}\n"+
             "*/\n";
       writer.write(endGroup);
+   }
+
+   /**
+    * Controls if vectors are written for each peripheral or collected
+    *
+    * @param doCollect
+    */
+   public static void setCollectVectors(boolean doCollect) {
+      fCollectVectors = doCollect;
+   }
+
+   /**
+    * Indicates if vectors are written for each peripheral or collected
+    *
+    * @param doCollect
+    */
+   public static boolean isCollectVectors() {
+      return fCollectVectors;
    }
 
 }
