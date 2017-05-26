@@ -46,13 +46,13 @@ public class CreateLaunchConfigurationHandler implements IHandler {
 
       //      System.err.println("Event source = "+source.toString()+"\n class = "+source.getClass().toString());
       if (!(source instanceof TreeSelection)) {// Ignore
-         System.err.println("Source is not an instance of TreeSelection");
+//         System.err.println("Source is not an instance of TreeSelection");
          return null;
       }
       TreeSelection selection = (TreeSelection) source;
       if (!(selection.getFirstElement() instanceof IProject)) {
          // Must be project
-         System.err.println("Selection.getFirstElement() is not an instance of org.eclipse.cdt.core.model.IProject");
+//         System.err.println("Selection.getFirstElement() is not an instance of org.eclipse.cdt.core.model.IProject");
          return null;
       }  
       IBinary[] results = LaunchParameterUtilities.searchForExecutable(selection.toArray());

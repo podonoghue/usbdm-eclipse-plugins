@@ -140,7 +140,7 @@ public class LaunchParameterUtilities {
          in.close();
          if (m != null) {
             deviceName = m.replaceAll(tuple.result);
-            System.err.println(String.format("%-70s",tuple)+" => Found '"+deviceName+"' within '"+m.group()+"'");
+//            System.err.println(String.format("%-70s",tuple)+" => Found '"+deviceName+"' within '"+m.group()+"'");
          }
       } catch (Exception e) {
       }
@@ -200,10 +200,10 @@ public class LaunchParameterUtilities {
       String deviceName = null;
 
       for (String filePath:probeFiles) {
-         System.err.println("============\nScraping "+filePath);
+//         System.err.println("Scraping "+filePath);
          IFile file = project.getFile(filePath);
          if (!file.exists()) {
-            System.err.println("File \'" + file + "\' doesn't exist");
+//            System.err.println("File \'" + file + "\' doesn't exist");
             continue;
          }
          for (Tuple tuple:tuples) {
@@ -216,7 +216,7 @@ public class LaunchParameterUtilities {
             break;
          }
       }
-
+//      System.err.println("Found candidate target name \'" + deviceName + "\'");
       return deviceName;
    }
 
@@ -233,12 +233,13 @@ public class LaunchParameterUtilities {
       //      System.err.println("Elements.length = " + elements.length);
 
       if ((elements == null) || (elements.length == 0)) {
-         System.err.println("Empty elements[]");
+//         System.err.println("Empty elements[]");
          return new IBinary[0];
       }
 
       if ((elements.length == 1) && (elements[0] instanceof IBinary)) {
-         //         System.err.println("Found elements[0] == binary");
+         IBinary bin = (IBinary) elements[0];
+//         System.err.println("Found elements[0] == binary"+bin.getElementName());
          return new IBinary[]{(IBinary) elements[0]};
       }
 
@@ -258,7 +259,7 @@ public class LaunchParameterUtilities {
                      IResource r = (IResource) ((IAdaptable) elements[i]).getAdapter(IResource.class);
 //                     System.err.println("Checking IResource " + r );
                      if (r != null) {
-                        //                        System.err.println("Found IResource " + r.getName());
+//                        System.err.println("Found IResource " + r.getName());
                         ICProject cproject = CoreModel.getDefault().create(r.getProject());
                         if (cproject != null) {
 //                           System.err.println("Found project " + cproject.getPath() );
@@ -268,7 +269,7 @@ public class LaunchParameterUtilities {
                                  if (!bin.isExecutable()) {
                                     continue;
                                  }
-//                               System.err.println("Found suitable binary " + bin.getPath() );
+//                                 System.err.println("Found suitable binary " + bin.getPath() );
                                  results.add(bin);
                               }
                            } catch (CModelException e) {
@@ -345,14 +346,14 @@ public class LaunchParameterUtilities {
          }
       }
       if (folder == null) {
-         System.err.println("'Project_Settings folder' doesn't exist, creating launch config in root directory");
+//         System.err.println("'Project_Settings folder' doesn't exist, creating launch config in root directory");
          folder = project;
       }
       // Create launch file name e.g. project_debug_USBDM.launch
       IFile launchFile = folder.getFile(new Path(project.getName()+"_"+buildName+"_USBDM.launch"));
 
       if (launchFile.exists()) {
-         System.err.println("File " + launchFile + " already exists");
+//         System.err.println("File " + launchFile + " already exists");
          throw new Exception("Launch configuration \n\"" + launchFile.getName() + "\"\nalready exists");
       }
       // Try to get device name from existing project files
@@ -431,7 +432,7 @@ public class LaunchParameterUtilities {
       TwoPaneElementSelector dialog = new TwoPaneElementSelector(shell, programLabelProvider, qualifierLabelProvider);
       dialog.setElements(binList);
       dialog.setTitle("LaunchShortcut Launcher");
-      dialog.setMessage("Choose a local application");
+      dialog.setMessage("Choose an executable");
       dialog.setUpperListLabel("LaunchShortcut Binaries");
       dialog.setLowerListLabel("LaunchShortcut Qualifier");
       dialog.setMultipleSelection(false);
