@@ -6,9 +6,11 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -262,7 +264,7 @@ public class DeviceSelectorPanel extends Composite {
             new Pair("(FRDM[-_][a-zA-Z]*).*$",                            "$1"),
             new Pair("(TWR[-_].*)$",                                      "$1"),
             new Pair("^(STM32F[0-9]*).*$",                                "$1"),
-            new Pair("^(LPC[0-9]*[A-Z|a-z]+).*$",                         "$1"),
+            new Pair("^(LPC[0-9][0-9][A-Z|a-z]*).*$",                     "$1"),
             new Pair("^(PK[0-9]*).*$",                                    "$1"),
             new Pair("^(S9KEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",                 "$1xxx$2"),
             new Pair("^(MKE02)Z.*(M2)$",                                  "$1xxx$2 (20MHz)"),
@@ -431,29 +433,60 @@ public class DeviceSelectorPanel extends Composite {
       fDeviceName = null;
       fModel      = null;
       
-      ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
+      class ScanConfig extends Job {
 
-      fModel = new BaseModel(null, "root");
+         public ScanConfig() {
+            super("Scanning configurations");
+         }
 
-      IRunnableWithProgress runnable = new IRunnableWithProgress() {
          @Override
-         public void run(IProgressMonitor pm) throws InterruptedException {
-            pm.beginTask( "Looking for executables", 1000);
+         protected IStatus run(IProgressMonitor pm) {
+            pm.beginTask("Scanning configurations", 1000);
+            fModel = new BaseModel(null, "root");
             try {
                buildTreeModel(pm, fModel);
+            } catch (InterruptedException e) {
+               System.err.println("Config scan aborted, reason = "+e.getMessage());
             } finally {
                pm.done();
             }
+            return Status.OK_STATUS;
          }
-      };
-
-      try {
-         dialog.run(true, true, runnable);
-      } catch (Exception e) {
-         System.err.println("DeviceSelectorPanel.setTargetType() failed "+e.getMessage());
-         return;
       }
-      fViewer.setInput(fModel);
+      ScanConfig x = new ScanConfig();
+
+      IProgressMonitor dialog = new NullProgressMonitor();
+
+      IStatus status = x.run(dialog);
+      if (status.isOK()) {
+         fViewer.setInput(fModel);
+      }
+      else {
+         System.err.println("DeviceSelectorPanel.setTargetType() failed "+status.getMessage());
+         fViewer.setInput("Config scan failed");
+      }
+//      ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
+//
+//      fModel = new BaseModel(null, "root");
+//
+//      IRunnableWithProgress runnable = new IRunnableWithProgress() {
+//         @Override
+//         public void run(IProgressMonitor pm) throws InterruptedException {
+//            pm.beginTask( "Scanning configurations", 1000);
+//            try {
+//               buildTreeModel(pm, fModel);
+//            } finally {
+//               pm.done();
+//            }
+//         }
+//      };
+//
+//      try {
+//         dialog.run(true, true, runnable);
+//      } catch (Exception e) {
+//         System.err.println("DeviceSelectorPanel.setTargetType() failed "+e.getMessage());
+//         return;
+//      }
    }
 
    /**
