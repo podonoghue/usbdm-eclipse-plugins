@@ -2201,11 +2201,5 @@ public class AnnotationModel {
       }
       return INDENT_STRING.substring(0, indent);
    }
-
-   public void setInverted(boolean inverted) {
-      // TODO Auto-generated method stub
-      
-   }
-
 }
 

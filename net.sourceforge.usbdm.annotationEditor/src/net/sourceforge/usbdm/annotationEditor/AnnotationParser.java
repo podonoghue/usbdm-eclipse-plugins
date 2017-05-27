@@ -57,11 +57,11 @@ public class AnnotationParser {
    /** Current line number */
    private int                  lineNumber         = 0;
 
-   private final static String VARIABLENAME_GROUP    = "(?<variableName>\\w+)";
-   private final static String CLASS_NAME_GROUP      = "(?<className>\\w[\\w|.]+)";
+   public  final static String VARIABLENAME_GROUP    = "(?<variableName>\\w+)";
+   public  final static String CLASS_NAME_GROUP      = "(?<className>\\w[\\w|.]+)";
    private final static String NUMBER_PATTERN        = "(?:\\+|\\-)?(?:0x)?[0-9|a-f|A-F]*";
-   private final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
-   private final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*(.+?)\\s*";
+   public  final static String ARGS_GROUP            = "\\(\\s*(?<args>"+NUMBER_PATTERN+"(?:\\s*,\\s*("+NUMBER_PATTERN+"))*)\\s*\\)";
+   public  final static String SELECTIONNAME_GROUP   = "\\s*([^,]*)\\s*,\\s*(.+?)\\s*";
 
    private ArrayList<MyValidator> validators         = new ArrayList<MyValidator>();
    private ArrayList<MyValidator> newValidators      = new ArrayList<MyValidator>();
@@ -81,7 +81,7 @@ public class AnnotationParser {
    private final static String modifierPatternString       = "<\\s*#\\s*(?<operation>.)\\s*(?<factor>(0x[0-9a-fA-F]*)|(\\d+))\\s*>";
 
    private final static int     matchFlags         = Pattern.DOTALL;
-   private final static String  wizardPatternString = 
+   public final static String  wizardPatternString = 
          "(?<wizardStart>"+wizardStartString+")|"+
                "(?<wizardEnd>"+wizardEndString+")|"+
                "(?<annotation>"+wizardAnnotationString+")|"+
@@ -268,7 +268,7 @@ public class AnnotationParser {
       }
    }
 
-   private void createEnumerationValue(String name, int value) throws Exception {
+   private void createEnumerationValue(String name, long value) throws Exception {
       //      System.err.println(String.format("createEnumerationValue(%s, 0x%X)", name, value));
       if (currentOption instanceof BinaryOptionModelNode) {
          // A binary annotation but someone decided to name the options!
@@ -340,8 +340,16 @@ public class AnnotationParser {
 
    private void parseComment(String buff) throws Exception {
       if (buff.startsWith("//!") || buff.startsWith("/*!") || buff.startsWith("/**")) {
-         // Ignore these as may contain markup
+         // Ignore these as may contain mark-up
          return;
+      }
+      if (buff.startsWith("/*") || buff.startsWith("//")) {
+         // Discard comment opening characters
+         buff = buff.substring(2);
+      }
+      if (buff.endsWith("*/")) {
+         // Discard comment closing characters
+         buff = buff.substring(0, buff.length()-3);
       }
       Matcher m = wizardPattern.matcher(buff);
       if (!m.find(0)) {
@@ -416,7 +424,7 @@ public class AnnotationParser {
                createRange(useHex, startValue, endValue, stepSize);
             }
             else if (m.group("enumeration") != null) {
-               int    value = Integer.decode(m.group("enumValue"));
+               long    value = Long.decode(m.group("enumValue"))&0xFFFFFFFFL;
                String name  = m.group("enumName").trim();
                createEnumerationValue(name, value);
             }
@@ -660,14 +668,15 @@ public class AnnotationParser {
             //            "<name=oscclk_clock  >", 
             //            "<0-50000000>",
             //            "<i> hello there */",
-            "<o> VOUT33 [VOUT33]",
-            "<info> VOUT33 [VOUT33]",
+//            "<o> VOUT33 [VOUT33]",
+//            "<info> VOUT33 [VOUT33]",
             //            "<selection=GPIOA_1_PIN_SEL,PTA1>",
             //            "<selection=GPIOA_1_PIN_SEL,PTA1 (reset default) >",
             //            "<selection=JTAG_TDO_PIN_SEL,PTA2 (Alias:D3, LED_GREEN)>"
             //            "<1=> this is an enumeration",
-            //            "<0x1=> this is an enumeration",
-            //            "<-1=> this is an enumeration",
+                        "<0xFFFFFFFF=> this is an enumeration",
+                        "<0x1=> this is an enumeration",
+                        "<-1=> this is an enumeration",
             //            "<-0x12=> this is an enumeration",
       };
       Pattern wizardPattern = Pattern.compile(wizardPatternString);

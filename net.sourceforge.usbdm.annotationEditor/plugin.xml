@@ -5,12 +5,12 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="Configuration Editor"
+            name="Configuration Wizard"
             extensions="c,cpp,h,hpp,ld"
             icon="icons/cog.png"
             contributorClass="net.sourceforge.usbdm.annotationEditor.MultiPageEditorContributor"
             class="net.sourceforge.usbdm.annotationEditor.MultiPageAnnotationEditor"
-            id="editorexample.editors.MultiPageEditor">
+            id="net.sourceforge.usbdm.annotationEditor">
       </editor>
    </extension>
    <extension
