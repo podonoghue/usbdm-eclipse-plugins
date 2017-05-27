@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
@@ -912,8 +913,13 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     */
    private static void parseCpu(DevicePeripherals devicePeripherals, Element cpuElement) throws Exception {
 
-      Cpu cpu = new Cpu();
-      
+      NodeList nameNodes = cpuElement.getElementsByTagName(NAME_TAG);
+      if (nameNodes.getLength() != 1) {
+         throw new Exception("Expected single <name> node in <cpu>");
+      }
+      Cpu cpu = new Cpu(nameNodes.item(0).getTextContent());
+
+      nameNodes.item(0).getTextContent();
       for (Node node = cpuElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -922,7 +928,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-            cpu.setName(element.getTextContent());
+            // Already processed
+            continue;
          }
          else if (element.getTagName() == REVISION_TAG) {
             cpu.setRevision(element.getTextContent());

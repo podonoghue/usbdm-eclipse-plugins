@@ -198,7 +198,6 @@ public class Test extends XML_BaseParser {
       try {
          dialogue = parseDocument(Paths.get("data/FTM.xml"));
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
 

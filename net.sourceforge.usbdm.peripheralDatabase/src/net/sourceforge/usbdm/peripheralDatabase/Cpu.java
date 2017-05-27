@@ -17,25 +17,29 @@ public class Cpu extends ModeControl {
    int      nvicPrioBits;
    boolean  vendorSystickConfig;
    
-   public Cpu() {
-      name                = "CM3";       // "CM0", "CM0PLUS", "CM3", "CM4"
-      revision            = "r1p0";      // maybe
-      endian              = "little";
+   public Cpu(String pName) {
+      name                = pName.toUpperCase(); 
+      revision            = "Unknown";
+      endian              = "Unknown";
       mpuPresent          = false;
       fpuPresent          = false;
-      vtorPresent         = true;
+      vtorPresent         = pName.equals("CM0PLUS") || pName.equals("CM3") || pName.equals("CM4");
       nvicPrioBits        = 0;
       vendorSystickConfig = false;
    }
    
    /**
-    * @return the name
+    * Get name of CPU e.g. CM0, CFV1 etc
+    * 
+    * @return the CPU name
     */
    public String getName() {
       return name;
    }
 
    /**
+    * Set name of CPU e.g. CM0, CFV1 etc
+    * 
     * @param name the name to set
     */
    public void setName(String name) {
@@ -185,23 +189,28 @@ public class Cpu extends ModeControl {
       writeGroupPostamble(writer, "Cortex_Core_Configuration");
    }
 
-   String getHeaderFileName() {
+   String getHeaderFileName() throws Exception {
       if (getName().startsWith("CFV1")) {
          return "core_cfv1.h";
       }
-      if (getName().startsWith("CFV2")) {
+      else if (getName().startsWith("CFV2")) {
          return "core_cfv2.h";
       }
-      if (getName().startsWith("CM4")) {
+      else if (getName().equalsIgnoreCase("CM4")) {
          return "core_cm4.h";
       }
-      if (getName().startsWith("CM3")) {
+      else if (getName().equalsIgnoreCase("CM3")) {
          return "core_cm3.h";
       }
-      if (getName().startsWith("CM0")) {
+      else if (getName().equalsIgnoreCase("CM0PLUS")) {
          return "core_cm0plus.h";
       }
-      return "core_cm3.h";
+      else if (getName().equalsIgnoreCase("CM0")) {
+         return "core_cm0.h";
+      }
+      else  {
+         throw new Exception("unhandled CPU type");
+      }
    }
    
    String getVersionIdString() {

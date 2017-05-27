@@ -67,7 +67,7 @@ public class DevicePeripherals extends ModeControl {
       resetMask         =  0xFFFFFFFFL;
       peripherals       = new ArrayList<Peripheral>();
       accessType        = AccessType.ReadWrite;
-      cpu               = new Cpu();
+      cpu               = null;
       sorted            = false;
       equivalentDevices = new ArrayList<String>();
       vectorTable       = null;

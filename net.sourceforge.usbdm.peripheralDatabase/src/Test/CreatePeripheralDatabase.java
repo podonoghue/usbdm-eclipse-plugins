@@ -751,6 +751,41 @@ public class CreatePeripheralDatabase {
    }
    
    /**
+    * Generates new SVD and header file for the usual minor changes.
+    * This includes merging peripherals 
+    * 
+    * Source "Internal"
+    * Destinations "Internal.Check", "Internal_header.Check"
+    */
+   static void doHeaderFiles() {
+      final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
+      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+
+      try {
+         // Turn of optimisation when generating header files
+         ModeControl.setRegenerateAddressBlocks(false);
+         ModeControl.setExtractSimilarFields(false);
+         ModeControl.setExtractComplexStructures(false);
+         ModeControl.setExtractDerivedPeripherals(false);
+         ModeControl.setExtractSimpleRegisterArrays(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setFoldRegisters(false);
+
+         // Header file generation options
+         ModeControl.setGenerateFreescaleRegisterMacros(false);
+         ModeControl.setFreescaleFieldNames(true);
+         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseBytePadding(true);
+         createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
+
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      System.err.flush();
+      System.err.println("Done");
+   }
+
+   /**
     * @param args
     */
    public static void main(String[] args) {
@@ -760,7 +795,8 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^LPC.*");
 //    firstFileToReject  = ("^M.*");
 
+      doHeaderFiles();
 //      doFactoring();
-      doUsualRegeneration();
+//      doUsualRegeneration();
    }
 }
