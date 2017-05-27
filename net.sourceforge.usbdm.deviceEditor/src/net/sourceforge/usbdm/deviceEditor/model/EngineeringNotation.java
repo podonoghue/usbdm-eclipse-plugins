@@ -110,7 +110,6 @@ public class EngineeringNotation {
          try {
             value *= Math.pow(10, suffixPower[suffixes.indexOf(suffix)]);
          } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
          }
       }

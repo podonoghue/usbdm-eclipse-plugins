@@ -29,6 +29,7 @@ public class CreateHardwareFiles {
       if (!xmlDirectory.toFile().exists()) {
          Files.createDirectory(xmlDirectory);
       }
+      // Path to data folder - csv files describing the device
       DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("data").toAbsolutePath(), sourceFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {

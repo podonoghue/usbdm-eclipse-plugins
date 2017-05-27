@@ -928,6 +928,9 @@ public class DeviceInfo extends ObservableModel {
     * Set up templates
     */
    public void initialiseTemplates() throws Exception {
+      /*
+       *  XXX - Add peripheral types here 
+       */
       createPeripheralTemplateInformation(
             "GPIO", "$2", "$4",
             "^(GPIO|PORT)([A-I])(_(\\d+))?$",
@@ -1163,12 +1166,12 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForPower.class);
          createPeripheralTemplateInformation(
-               "$1", "", "$3",
+               "$1", "$2", "$3",
                "(CRC)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForToDo.class);
          createPeripheralTemplateInformation(
-               "$1", "0", "$3",
+               "$1", "$2", "$3",
                "(DMA)(\\d)?(.*)",
                getDeviceFamily(),
                WriterForToDo.class);

@@ -240,7 +240,7 @@ public class LaunchParameterUtilities {
       if ((elements.length == 1) && (elements[0] instanceof IBinary)) {
          IBinary bin = (IBinary) elements[0];
 //         System.err.println("Found elements[0] == binary"+bin.getElementName());
-         return new IBinary[]{(IBinary) elements[0]};
+         return new IBinary[]{(IBinary) bin};
       }
 
       final List<IBinary>  results = new ArrayList<IBinary>();

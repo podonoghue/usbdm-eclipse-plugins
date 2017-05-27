@@ -28,10 +28,6 @@ public class TreeViewModel extends BaseModel {
     * @param viewer
     */
    public void setViewer(TreeViewer viewer) {
-      //XXX Working here
-//      if ((fViewer != null) && (fViewer != viewer)) {
-//         throw new RuntimeException("Viewer already assigned");
-//      }
       fViewer = viewer;
    }
 
