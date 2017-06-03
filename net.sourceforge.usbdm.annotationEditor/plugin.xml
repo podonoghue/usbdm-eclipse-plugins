@@ -6,7 +6,7 @@
          point="org.eclipse.ui.editors">
       <editor
             name="Configuration Wizard"
-            extensions="c,cpp,h,hpp,ld"
+            extensions="c,cpp,h,hpp,ld,cfg"
             icon="icons/cog.png"
             contributorClass="net.sourceforge.usbdm.annotationEditor.MultiPageEditorContributor"
             class="net.sourceforge.usbdm.annotationEditor.MultiPageAnnotationEditor"
