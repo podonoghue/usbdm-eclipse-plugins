@@ -471,12 +471,13 @@ public class Field extends ModeControl implements Cloneable {
       return name;
    }
 
-   static final String BITFIELD_MACRO_POS_FORMAT     = "#define %-40s (%dU)";
-   static final String BITFIELD_MACRO_MSK_NUM_FORMAT = "#define %-40s (0x%XU)";
-   static final String BITFIELD_MACRO_MSK_FORMAT     = "#define %-40s (0x%02XUL << %s)";
+   static final String BITFIELD_MACRO_POS_FORMAT        = "#define %-40s (%dU)";
+   static final String BITFIELD_MACRO_MSK_NUM_FORMAT    = "#define %-40s (0x%XU)";
+   static final String BITFIELD_MACRO_MSK_FORMAT        = "#define %-40s (0x%02XUL << %s)";
 //   static final String BITFIELD_MACRO_MSK_FORMAT   = "#define %-40s 0x%Xu";
 //   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((uint32_t)(((uint32_t)(x))<<%s))&%s)";
-   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((%s)(((%s)(x))<<%s))&%s)";
+   static final String BITFIELD_MACRO_FIELD_FORMAT      = "#define %-40s (((%s)(((%s)(x))<<%s))&%s)";
+   static final String BITFIELD_MACRO_FIELD_NUM_FORMAT  = "#define %-40s (((%s)(((%s)(x))<<%dU))&0x%XUL)";
    static final String BITFIELD_FORMAT_COMMENT       = " /*!< %-40s*/\n";
 
    String getBaseName() {
@@ -513,33 +514,40 @@ public class Field extends ModeControl implements Cloneable {
       }
       String posName   = fieldname+getFieldOffsetSuffixName();
       String mskName   = fieldname+getFieldMaskSuffixName();
+      int    mask      = (int) (((1L<<getBitwidth())-1)<<getBitOffset());
       
       if (isUseShiftsInFieldMacros()) {
+         // Write "#define XXX_YY_MASK (0xXXXXUL << XXX_YY_SHIFT)"
          writer.write(String.format("%-100s%s",
-               String.format(BITFIELD_MACRO_MSK_FORMAT, mskName, ((1L<<getBitwidth())-1), posName), 
-//               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
-               String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
+               String.format(BITFIELD_MACRO_MSK_FORMAT, mskName, ((1L<<getBitwidth())-1), posName), // Value 
+               String.format(BITFIELD_FORMAT_COMMENT,  baseName+"."+getBaseName()+" Mask")));       // Comment
+      }
+      else {
+         // Write "#define XXX_YY_MASK (0xXXXXU)"
+         writer.write(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, mask),  // Value 
+               String.format(BITFIELD_FORMAT_COMMENT,  baseName+"."+getBaseName()+" Mask")));                   // Comment
+      }
+      // Write "#define XXX_YY_SHIFT (XXXXU)"
+      writer.write(String.format("%-100s%s",
+            String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),                 // Value
+            String.format(BITFIELD_FORMAT_COMMENT,  baseName+"."+getBaseName()+" Position"))); // Comment
+
+      String width = getCWidth(fOwner.getWidth());
+      if (isUseShiftsInFieldMacros()) {
+         writer.write(String.format("%-100s%s",
+               String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
+               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 
       }
       else {
          writer.write(String.format("%-100s%s",
-               String.format(BITFIELD_MACRO_MSK_NUM_FORMAT, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
-//               String.format(BitfieldMacroMskFormat, mskName, ((1L<<getBitwidth())-1)<<getBitOffset()), 
-               String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Mask")));
+               String.format(BITFIELD_MACRO_FIELD_NUM_FORMAT, fieldname+"(x)", width, width, getBitOffset(), mask), 
+               String.format(BITFIELD_FORMAT_COMMENT,    baseName+"."+getBaseName()+" Field"))); 
       }
-      writer.write(String.format("%-100s%s",
-            String.format(BITFIELD_MACRO_POS_FORMAT, posName, getBitOffset()),      
-            String.format(BITFIELD_FORMAT_COMMENT,  baseName+": "+getBaseName()+" Position")));      
-
-//      if (getBitwidth()>1) {
-         String width = getCWidth(fOwner.getWidth());
-         writer.write(String.format("%-100s%s",
-               String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", width, width, posName, mskName), 
-               String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
 //         writer.write(String.format("%-100s%s",
 //            String.format(BITFIELD_MACRO_FIELD_FORMAT, fieldname+"(x)", posName, mskName), 
 //            String.format(BITFIELD_FORMAT_COMMENT,    baseName, getBaseName()+" Field"))); 
 //         String.format(BitfieldFormatComment,    baseName+": "+getBaseName()+" Field"))); 
-//      }
    }
 
    public void setDerivedFrom(Field oField) {

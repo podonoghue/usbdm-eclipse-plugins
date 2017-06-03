@@ -700,9 +700,9 @@ public class ModeControl {
    }
    
    /**
-    * Indicates whether to use shifts in filed macros
+    * Indicates whether to use shifts in field macros
     *  
-    * @return the useShiftsInFiledMacros
+    * @return the useShiftsInFieldMacros
     */
    public static boolean isUseShiftsInFieldMacros() {
       return useShiftsInFieldMacros;
