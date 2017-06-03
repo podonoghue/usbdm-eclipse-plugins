@@ -19,7 +19,8 @@ public class TestCreateCpp {
 
    public static void main(String[] args) throws Exception {
       
-      Path directory = Paths.get("");
+      Path directory     = Paths.get("BulkTesting");
+      Path dataDirectory = Paths.get("data");
       
       // Locate header output directory  
       Path headerDirectory = directory.resolve("Project_Headers");
@@ -28,6 +29,9 @@ public class TestCreateCpp {
       Path sourcesDirectory = directory.resolve("Sources");
 
       // Create output directories if needed  
+      if (!directory.toFile().exists()) {
+         Files.createDirectory(directory);
+      }
       if (!headerDirectory.toFile().exists()) {
          Files.createDirectory(headerDirectory);
       }
@@ -35,7 +39,7 @@ public class TestCreateCpp {
          Files.createDirectory(sourcesDirectory);
       }
 
-      DirectoryStream<Path> folderStream = Files.newDirectoryStream(directory.resolve("data").toAbsolutePath(), csvFilter);
+      DirectoryStream<Path> folderStream = Files.newDirectoryStream(dataDirectory.toAbsolutePath(), csvFilter);
       for (Path filePath : folderStream) {
          if (!Files.isRegularFile(filePath)) {
             continue;

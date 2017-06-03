@@ -139,6 +139,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
       pinMappingHeaderFile.write("   // Template:" + getPeripheralModelName()+"\n\n");
+      if (fData == null) {
+//         System.err.println("No fData for " + getName());
+         return;
+      }
+//      System.err.println("fData for " + getName());
       CodeTemplate template = fData.fTemplate.get("");
       if (template != null) {
          //TODO - add dimension
