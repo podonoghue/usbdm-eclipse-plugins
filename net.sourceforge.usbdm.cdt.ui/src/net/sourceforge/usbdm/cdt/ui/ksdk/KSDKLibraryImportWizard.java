@@ -147,7 +147,7 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
 
          // Create project
          System.err.println("KSDKLibraryImportWizard.run() - Creating project");
-         IProject project = new CDTProjectManager().createCDTProj(paramMap, monitor.newChild(30));
+         IProject project = new CDTProjectManager().createUSBDMProject(paramMap, monitor.newChild(30));
          
          // Apply default device project options
          System.err.println("KSDKLibraryImportWizard.run() - Applying deviceActionLists");

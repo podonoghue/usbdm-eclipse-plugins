@@ -50,7 +50,7 @@ public class LaunchParameterUtilities {
     * 
     * @param paramMap Map to add attributes to
     * @param device   Device needed to obtain attributes
-    * @param binPath  Path to binary (may be null for default path)
+    * @param binPath  Path to binary (may be null)
     */
    public static void addLaunchParameters(Map<String, String> variableMap, Device device, IPath binPath) {
 
@@ -64,15 +64,15 @@ public class LaunchParameterUtilities {
       variableMap.put(UsbdmConstants.ERASE_METHOD_KEY,            device.getPreferredEraseMethod().getOptionName());          
       variableMap.put(UsbdmConstants.RESET_METHOD_KEY,            device.getPreferredResetMethod().getOptionName());
 
-      if (binPath == null) {
-         // Add default path to binary
-         String projectName = variableMap.get(UsbdmConstants.PROJECT_NAME_KEY);
-         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
-      }
-      else {
+      if (binPath != null) {
          // Add path to binary
          variableMap.put(UsbdmConstants.BIN_PATH_KEY,  binPath.toPortableString());            
       }
+//      if (binPath == null) {
+//         // Add default path to binary
+//         String projectName = variableMap.get(UsbdmConstants.PROJECT_NAME_KEY);
+//         variableMap.put(UsbdmConstants.BIN_PATH_KEY,  "Debug/"+projectName+".elf");            
+//      }
    }
 
 

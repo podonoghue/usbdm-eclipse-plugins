@@ -15,11 +15,13 @@ import org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.internal.core.ManagedProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -31,8 +33,6 @@ import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 
 @SuppressWarnings({ "restriction", "unused" })
 public class CDTProjectManager {
-
-   static final String ccNature     = org.eclipse.cdt.core.CCProjectNature.CC_NATURE_ID;
 
    /**
     * Create basic CDT project
@@ -49,7 +49,6 @@ public class CDTProjectManager {
     */
    public IProject createProject(String projectName, String directoryPath, boolean hasCCNature, IProgressMonitor progressMonitor) throws Exception {
 //    System.err.println(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
-      
       SubMonitor monitor = SubMonitor.convert(progressMonitor, 100);
 
       IProject project = null;
@@ -60,29 +59,20 @@ public class CDTProjectManager {
          IWorkspaceRoot      wrkSpaceRoot       = workspace.getRoot();
          final IProject      newProjectHandle   = wrkSpaceRoot.getProject(projectName);
 
-         // Turn off Auto-build in workspace
-         // TODO - should restore to original after project construction?
-         IWorkspaceDescription workspaceDesc = workspace.getDescription();
-         workspaceDesc.setAutoBuilding(false);
-         workspace.setDescription(workspaceDesc);
-
          IProjectDescription projectDescription = workspace.newProjectDescription(projectName);
          if ((directoryPath != null) && (!directoryPath.isEmpty())) {
             IPath path = new Path(directoryPath).append(projectName);
             projectDescription.setLocation(path);
          }
-         project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, monitor.newChild(30));     
+         project = CCorePlugin.getDefault().createCDTProject(projectDescription, newProjectHandle, monitor.newChild(80));     
          Assert.isNotNull(project, "Project not created");
+         UsbdmProjectNature.addNature(project, monitor.newChild(5));
+
          if (hasCCNature) {
-            CCProjectNature.addCCNature(project, monitor);
+            CCProjectNature.addCCNature(project, monitor.newChild(5));
          }
-         UsbdmProjectNature.addNature(project, monitor);
-         if (hasCCNature && !project.hasNature(ccNature)) {
-            System.err.println("C++ Nature is missing!");
-         }
-         // Open the project if we have to
-         if (!project.isOpen()) {
-            project.open(monitor.newChild(30));
+         if (!(hasCCNature && !project.hasNature(CCProjectNature.CC_NATURE_ID))) {
+            CCProjectNature.addCCNature(project, monitor.newChild(5));
          }
       } finally {
          monitor.done();
@@ -103,9 +93,7 @@ public class CDTProjectManager {
     * 
     * @throws Exception
     */
-   public IProject createCDTProj(
-         Map<String, String>  paramMap, 
-         IProgressMonitor     progressMonitor) throws Exception {
+   public IProject createUSBDMProject( Map<String, String> paramMap, IProgressMonitor progressMonitor) throws Exception {
 
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
 
@@ -165,8 +153,19 @@ public class CDTProjectManager {
             projectDescription.createConfiguration(ManagedBuildManager.CFG_DATA_PROVIDER_ID, data);
          }
          Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
+
          coreModel.setProjectDescription(project, projectDescription);
-         
+//         if (hasCCNature) {
+//            System.err.println("Info - adding CCProjectNature");
+//            CCProjectNature.addCCNature(project, monitor);
+//         }
+         if (!(hasCCNature && !project.hasNature(CCProjectNature.CC_NATURE_ID))) {
+            CCProjectNature.addCCNature(project, monitor.newChild(5));
+         }
+         CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
+         if (!(hasCCNature && !project.hasNature(CCProjectNature.CC_NATURE_ID))) {
+            CCProjectNature.addCCNature(project, monitor.newChild(5));
+         }
       } finally {
          monitor.done();
       }

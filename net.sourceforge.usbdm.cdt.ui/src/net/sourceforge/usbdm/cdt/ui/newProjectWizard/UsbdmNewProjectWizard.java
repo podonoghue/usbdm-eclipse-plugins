@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.model.CoreModel;
@@ -13,6 +14,9 @@ import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -25,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
@@ -45,7 +50,7 @@ import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnableWithProgress {
    
    private UsbdmNewProjectPage_1                fUsbdmNewProjectPage_1 = null;
-   private UsbdmDeviceSelectionPage_2         fUsbdmProjectParametersPage_2 = null;
+   private UsbdmDeviceSelectionPage_2           fUsbdmProjectParametersPage_2 = null;
    private ArrayList<UsbdmDynamicOptionPage_N>  fDynamicWizardPages  = null;
    private ArrayList<WizardPageInformation>     fWizardPageInformation = new ArrayList<WizardPageInformation>();
    private ProjectActionList                    fProjectActionList = null;
@@ -364,6 +369,12 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       }
    }
 
+   /**
+    * Re-index the C project
+    * 
+    * @param project Project to index
+    * @param monitor Progress monitor
+    */
    public void reindexProject(IProject project, IProgressMonitor monitor) {
       try {
          monitor.beginTask("Update configuration", IProgressMonitor.UNKNOWN);
@@ -407,12 +418,18 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
             return true;
          }
       }; 
+      // Turn off Auto-build in workspace
+      // TODO - should restore to original after project construction?
+      IWorkspace            workspace     = ResourcesPlugin.getWorkspace();
+      IWorkspaceDescription workspaceDesc = workspace.getDescription();
+      workspaceDesc.setAutoBuilding(false);
+      try {
+         workspace.setDescription(workspaceDesc);
+      } catch (CoreException e1) {
+      }
 
       try {
          monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
-         
-         // Create project
-         IProject project;
          
          if (CCorePlugin.getDefault() == null) {
             Activator.log("CCorePlugin not found (for testing)");
@@ -421,17 +438,29 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          try {
             // Suppress project indexing while project is constructed
             CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
-            project = new CDTProjectManager().createCDTProj(fParamMap, monitor.newChild(WORK_SCALE * 20));
+            
+            // Create project
+            IProject  project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
+
             // Apply device project options
             ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
+            
             // Generate CPP code as needed
             DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
+            
             reindexProject(project, monitor.newChild(WORK_SCALE * 20));
+
+            CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
+            boolean       hasCCNature   = Boolean.valueOf(fParamMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
+            if (hasCCNature) {
+               System.err.println("Last ditch adding CC nature");
+               CCProjectNature.addCCNature(project, monitor.newChild(5));
+            }
+
          } finally {
             // Allow indexing
             CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
          }
-         CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
          
       } catch (Exception e) {
          e.printStackTrace();

@@ -1,13 +1,13 @@
 package net.sourceforge.usbdm.cdt.ui.newProjectWizard;
 
-import org.eclipse.cdt.core.CCProjectNature;
+import org.eclipse.cdt.core.CProjectNature;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 public class UsbdmProjectNature implements IProjectNature {
-   public static final String USBDM_NATURE = "net.sourceforge.usbdm.cdt.usbdmNature";
+   public static final String USBDM_NATURE_ID = "net.sourceforge.usbdm.cdt.usbdmNature";
 
    private IProject fProject = null;
    
@@ -30,11 +30,11 @@ public class UsbdmProjectNature implements IProjectNature {
    }
    
    public static void addNature(IProject project, IProgressMonitor monitor) throws CoreException {
-      CCProjectNature.addNature(project, UsbdmProjectNature.USBDM_NATURE, monitor);
+      CProjectNature.addNature(project, UsbdmProjectNature.USBDM_NATURE_ID, monitor);
    }
    
    public static void removeNature(IProject project, IProgressMonitor monitor) throws CoreException {
-      CCProjectNature.removeNature(project, UsbdmProjectNature.USBDM_NATURE, monitor);
+      CProjectNature.removeNature(project, UsbdmProjectNature.USBDM_NATURE_ID, monitor);
    }
    
 }
