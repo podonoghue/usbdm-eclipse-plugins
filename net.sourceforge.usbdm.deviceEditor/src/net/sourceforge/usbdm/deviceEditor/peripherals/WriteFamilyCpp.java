@@ -427,7 +427,7 @@ public class WriteFamilyCpp {
    private final String DOCUMENTATION_OPEN = 
          "/**\n"+
          " *\n"+
-         " * @mainpage Summary\n";
+         " * @page PinSummary Pin Mapping\n";
       
    private final String TABLE_OPEN = 
          " *\n"+
