@@ -459,7 +459,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
    private final static String LINKER_FLEXRAM_REGION =
                "   /* FlexRAM region for non-volatile variables */\n"+
-               "   .flexRAM :\n" + 
+               "   .flexRAM (NOLOAD) :\n" + 
                "   {\n" + 
                "      . = ALIGN(4);\n" + 
                "      KEEP(*(.flexRAM))\n" + 
@@ -474,8 +474,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private void addLinkerMemoryMap(Device device, Map<String, String> paramMap) {
 
       int ioRangeCount    = 0;
-      int flexNVMCount    = 0;
-      int flexRamCount    = 0;
       int romCount        = 0;
       int unknownCount    = 0;
       long ramSize        = 0x100;
@@ -488,8 +486,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
       memoryMap.append(MAP_PREFIX);
       long gdbGuardAddress = -1;
-      ArrayList<MemoryRange> ramRegions   = new ArrayList<MemoryRange>();
-      ArrayList<MemoryRange> flashRegions = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> ramRegions    = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> flashRegions  = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> flexNVMRegions = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> flexRAMRegions = new ArrayList<MemoryRange>();
       for (Iterator<MemoryRegion> it = device.getMemoryRegionIterator();
             it.hasNext();) {
          MemoryRegion memoryRegion = it.next();
@@ -502,22 +502,18 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             switch (memType) {
             case MemRAM   :
                ramRegions.add(memoryRange);
-               memoryRange = null;
                continue;
             case MemFLASH : 
                flashRegions.add(memoryRange);
-               memoryRange = null;
+               continue;
+            case MemFlexRAM : 
+               flexRAMRegions.add(memoryRange);
+               continue;
+            case MemFlexNVM : 
+               flexNVMRegions.add(memoryRange);
                continue;
             case MemIO    : 
                name   = String.format("io%s", getRangeSuffix(ioRangeCount++));
-               access = "(rw)";
-               break;
-            case MemFlexNVM : 
-               name   = String.format("flexNVM%s", getRangeSuffix(flexNVMCount++));
-               access = "(rx)";
-               break;
-            case MemFlexRAM : 
-               name   = String.format("flexRAM%s", getRangeSuffix(flexRamCount++));
                access = "(rw)";
                break;
             case MemROM:
@@ -544,16 +540,41 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             memoryMap.append(String.format(MEM_FORMAT, name, access, memoryRange.start, memoryRange.end-memoryRange.start+1));
          }
       }
+
+      flexRAMRegions = coalesce(flexRAMRegions);
+      int    suffix  = 0;
+      String capName = "Flex RAM"; 
+      String name    = "flexRAM"; 
+      for(MemoryRange region:flexRAMRegions) {
+         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rw)", region.start, region.end-region.start+1));
+         suffix++;
+         capName = "Flex NVM" + suffix; 
+         name    = "flexNVM" + suffix; 
+      }
+
+      flexNVMRegions = coalesce(flexNVMRegions);
+      suffix  = 0;
+      capName = "Flex NVM"; 
+      name    = "flexNVM"; 
+      for(MemoryRange region:flexNVMRegions) {
+         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", region.start, region.end-region.start+1));
+         suffix++;
+         capName = "Flex NVM" + suffix; 
+         name    = "flexNVM" + suffix; 
+      }
+
       flashRegions = coalesce(flashRegions);
       // 1st FLASH region
       flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
 
-      int    suffix  = 0;
-      String capName = "FLASH"; 
-      String name    = "flash"; 
-      for(MemoryRange flashRegion:flashRegions) {
+      suffix  = 0;
+      capName = "FLASH"; 
+      name    = "flash"; 
+      for(MemoryRange region:flashRegions) {
          memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", flashRegion.start, flashRegion.end-flashRegion.start+1));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", region.start, region.end-region.start+1));
          suffix++;
          capName = "FLASH" + suffix; 
          name    = "flash" + suffix; 
@@ -566,9 +587,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       suffix  = 0;
       capName = "RAM"; 
       name    = "ram"; 
-      for(MemoryRange ramRegion:ramRegions) {
+      for(MemoryRange region:ramRegions) {
          memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", ramRegion.start, ramRegion.end-ramRegion.start+1));
+         memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", region.start, region.end-region.start+1));
          capName = "RAM" + suffix; 
          name    = "ram" + suffix; 
       }
@@ -584,11 +605,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
       paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
       StringBuilder sb = new StringBuilder();
-      if (flexNVMCount>0) {
-         sb.append(LINKER_FLEXNVM_REGION);
-      }
-      if (flexRamCount>0) {
+      if (flexRAMRegions.size()>0) {
          sb.append(LINKER_FLEXRAM_REGION);
+      }
+      if (flexNVMRegions.size()>0) {
+         sb.append(LINKER_FLEXNVM_REGION);
       }
       paramMap.put(UsbdmConstants.LINKER_EXTRA_REGION_KEY, sb.toString());
    }
