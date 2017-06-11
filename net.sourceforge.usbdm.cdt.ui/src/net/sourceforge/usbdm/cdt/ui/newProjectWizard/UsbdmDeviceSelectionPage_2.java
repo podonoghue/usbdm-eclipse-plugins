@@ -540,7 +540,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             memoryMap.append(String.format(MEM_FORMAT, name, access, memoryRange.start, memoryRange.end-memoryRange.start+1));
          }
       }
-
       flexRAMRegions = coalesce(flexRAMRegions);
       int    suffix  = 0;
       String capName = "Flex RAM"; 
@@ -566,9 +565,15 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
 
       flashRegions = coalesce(flashRegions);
-      // 1st FLASH region
-      flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
-
+      if (flashRegions.size() == 0) {
+         // Should never happen!
+         System.err.println("Error = flashSize == 0!");
+         flashSize = 0;
+      }
+      else {
+         // 1st FLASH region
+         flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
+      }
       suffix  = 0;
       capName = "FLASH"; 
       name    = "flash"; 
@@ -581,8 +586,15 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
 
       ramRegions = coalesce(ramRegions);
-      // 1st RAM region contains stack
-      ramSize         = (ramRegions.get(0).end-ramRegions.get(0).start+1);
+      if (ramRegions.size() == 0) {
+         // Should never happen!
+         System.err.println("Error = ramSize == 0!");
+         ramSize = 0;
+      }
+      else {
+         // 1st RAM region contains stack
+         ramSize = (ramRegions.get(0).end-ramRegions.get(0).start+1);
+      }
       gdbGuardAddress = ramRegions.get(0).end+1;
       suffix  = 0;
       capName = "RAM"; 
@@ -615,6 +627,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    }
 
    private ArrayList<MemoryRange> coalesce(ArrayList<MemoryRange> regions) {
+      if (regions.size() <= 1) {
+         // Return unchanged
+         return regions;
+      }
       ArrayList<MemoryRange> newRegions = new ArrayList<MemoryRange>();
       Collections.sort(regions);
       long start = regions.get(0).start;
