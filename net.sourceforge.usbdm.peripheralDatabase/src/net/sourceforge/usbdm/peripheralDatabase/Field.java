@@ -336,7 +336,7 @@ public class Field extends ModeControl implements Cloneable {
     */
    public void writeSVD(Writer writer, boolean standardFormat, Register owner, int indent) throws IOException {
       final String indenter = RegisterUnion.getIndent(indent);
-      if (fDerivedFrom!=null) {
+      if (fDerivedFrom != null) {
          writer.write(String.format(indenter+"<field derivedFrom=\"%s\" >", fDerivedFrom.getName()));
          if (!fDerivedFrom.getName().equals(getName()) && (getName().length()>0)) {
             writer.write(String.format(" <name>%s</name>",               SVD_XML_BaseParser.escapeString(getName())));
@@ -344,9 +344,7 @@ public class Field extends ModeControl implements Cloneable {
          if (!fDerivedFrom.getDescription().equals(getDescription()) && (getDescription().length()>0)) {
             writer.write(String.format(" <description>%s</description>", SVD_XML_BaseParser.escapeString(getDescription())));
          }
-         if (fDerivedFrom.getBitOffset() != getBitOffset()) {
-            writer.write(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
-         }
+         writer.write(String.format(" <bitOffset>%d</bitOffset>",     getBitOffset()));
          if (fDerivedFrom.getBitwidth() != getBitwidth()) {
             writer.write(String.format(" <bitWidth>%d</bitWidth>",       getBitwidth()));
          }

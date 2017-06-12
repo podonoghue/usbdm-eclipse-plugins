@@ -123,26 +123,26 @@ import java.io.PrintWriter;
        * @param writer Where to write
        * @param indent Indent to use.  If negative then entry will be written as a single line.
        */
-      public void writeSVD(PrintWriter writer, int indent) {
+      public void writeSVD(PrintWriter writer, int indent, boolean writeOwner) {
          if (indent<0) {
             writer.print(              "<interrupt>");
             writer.print(String.format("<name>%s</name>", fName));
+            writer.print(String.format("<description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.print(String.format("<value>%d</value>", fIndex));
-            if (fAssociatedPeripheral != null) {
+            if (writeOwner && (fAssociatedPeripheral != null)) {
                writer.print(String.format("<peripheral>%s</peripheral>", fAssociatedPeripheral));
             }
-            writer.print(String.format("<description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.println(            "</interrupt>");
          }
          else {
             final String indenter = RegisterUnion.getIndent(indent);
             writer.println(              indenter+"<interrupt>");
             writer.println(String.format(indenter+"   <name>%s</name>", fName));
+            writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.println(String.format(indenter+"   <value>%d</value>", fIndex));
-            if (fAssociatedPeripheral != null) {
+            if (writeOwner && (fAssociatedPeripheral != null)) {
                writer.println(String.format(indenter+"   <peripheral>%s</peripheral>", fAssociatedPeripheral));
             }
-            writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.println(              indenter+"</interrupt>");
          }
       }

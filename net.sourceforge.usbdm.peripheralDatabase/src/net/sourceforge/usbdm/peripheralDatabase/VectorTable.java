@@ -291,7 +291,7 @@ public abstract class VectorTable extends ModeControl {
             if (vectorNumber<0) {
                continue;
             }
-            entry.writeSVD(writer, indent+3);
+            entry.writeSVD(writer, indent+3, true);
 //            String name        = String.format(entry.getName(), vectorNumber);
 //            String description = String.format(entry.getDescription(), vectorNumber);
 //            writer.print(                 indenter+"   <"+SVD_XML_Parser.INTERRUPT_TAG+">\n");

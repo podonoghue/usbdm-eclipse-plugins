@@ -504,9 +504,7 @@ public class Register extends Cluster implements Cloneable {
       if (!getDescription().equals(derived.getDescription())) {
          writer.write(String.format(" <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      if (getAddressOffset() != derived.getAddressOffset()) {
-         writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
-      }
+      writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
       if (!getAccessType().equals(derived.getAccessType())) {
          writer.write(String.format(" <access>%s</access>",                 getAccessType().getPrettyName()));
       }

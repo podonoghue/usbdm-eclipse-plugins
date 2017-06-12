@@ -287,7 +287,16 @@ public class Peripheral extends ModeControl implements Cloneable {
     * 
     */
    public void setPrependToName(String prependToName) {
-      this.fPrependToName = prependToName;
+      prependToName = prependToName.trim();
+      if (prependToName.equals((getName()+"_"))) {
+         // Discard
+         prependToName = "";
+      }
+      if (prependToName.equals(getName())) {
+         // Discard
+         prependToName = "";
+      }
+      fPrependToName = prependToName;
    }
 
    /**
@@ -1580,7 +1589,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
       if (isCollectVectors() && (getInterruptEntries() != null)) {
          for (InterruptEntry interrupt : getInterruptEntries()) {
-            interrupt.writeSVD(writer, indent+3);
+            interrupt.writeSVD(writer, indent+3, false);
          }
       }
       if (getAddressBlocks() != null) {
@@ -1640,7 +1649,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          doneNewline = true;
          for (InterruptEntry interrupt : getInterruptEntries()) {
             writer.write(RegisterUnion.getIndent(indent+3));
-            interrupt.writeSVD(writer, -1);
+            interrupt.writeSVD(writer, -1, false);
          }
       }
       if (getAddressBlocks() != derived.getAddressBlocks()) {
