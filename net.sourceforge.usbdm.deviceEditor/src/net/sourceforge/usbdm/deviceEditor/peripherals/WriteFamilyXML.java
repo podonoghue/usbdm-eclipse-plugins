@@ -31,7 +31,7 @@ public class WriteFamilyXML {
    private DeviceInfo fDeviceInfo;
 
    public static Map<String, String> getPeripherals(String name) throws Exception {
-      final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+      final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/Stationery/Device.SVD/Internal/");
       
       SVDIdentifier svdId = new SVDIdentifier(path.resolve(name+".svd.xml"));
       DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 
@@ -63,9 +64,13 @@ public abstract class BaseModel {
    protected void update() {
       // Necessary to propagate error messages up the tree
 //      updateAncestors();
-      StructuredViewer viewer = getViewer();
+      final StructuredViewer viewer = getViewer();
       if (viewer != null) {
-         viewer.update(this, null);
+         Display.getDefault().asyncExec(new Runnable() {
+         public void run() {
+            viewer.update(this, null);
+         }
+      });
       }
    }
    

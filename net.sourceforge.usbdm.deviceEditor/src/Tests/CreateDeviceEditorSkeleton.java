@@ -14,7 +14,7 @@ import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 public class CreateDeviceEditorSkeleton {
    
    public static Map<String, String> getPeripherals(String name) {
-      final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+      final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/Stationery/Device.SVD/Internal/");
       HashMap<String, String> map = new HashMap<String, String>();
       
       SVDIdentifier svdId = new SVDIdentifier(path.resolve(name));
@@ -45,7 +45,7 @@ public class CreateDeviceEditorSkeleton {
     */
    public static void main(String[] args) {
 //      Map<String, String> map = getPeripherals("MK66F18.svd.xml");
-      Map<String, String> map = getPeripherals("MK20D5");
+      Map<String, String> map = getPeripherals("MK20D5.svd.xml");
       for (String key:map.keySet()) {
          String p = map.get(key);
          System.err.println(String.format("%-20s => %-20s", key, p));
