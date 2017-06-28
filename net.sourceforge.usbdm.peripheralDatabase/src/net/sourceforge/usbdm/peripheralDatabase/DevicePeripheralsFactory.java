@@ -16,7 +16,7 @@ public class DevicePeripheralsFactory {
    private Path                fFolderPath      = null;
    private DeviceFileList      fDeviceFileList  = null;
 
-   private static final String USBDM_SVD_DEFAULT_PATH     = "DeviceData/Device.SVD/Internal";
+   private static final String USBDM_SVD_DEFAULT_PATH     = "Stationery/Device.SVD/Internal";
    private static final String USBDM_SVD_DEFAULT_FILELIST = "DeviceList.xml";
 
    /**

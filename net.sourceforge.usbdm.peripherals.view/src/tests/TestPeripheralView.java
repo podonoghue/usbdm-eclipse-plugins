@@ -40,9 +40,9 @@ public class TestPeripheralView {
 
          Path path = null;
          if ((os != null) && os.toUpperCase().contains("LINUX")) {
-            path = Paths.get("/usr/share/usbdm/DeviceData/Device.SVD/Internal/");
+            path = Paths.get("/usr/share/usbdm/Stationery/Device.SVD/Internal/");
          } else {
-            path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/DeviceData/Device.SVD/Internal/");
+            path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/Stationery/Device.SVD/Internal/");
          }
 //
 //         DeviceFileList fileList = new DeviceFileList(path.resolve("DeviceList.xml"));

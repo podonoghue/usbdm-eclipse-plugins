@@ -28,7 +28,7 @@ import org.eclipse.core.runtime.IPath;
 
 public class CreatePeripheralDatabase {
    private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
-   private static final  Path MAIN_FOLDER       = PACKAGE_FOLDER.resolve("DeviceData/Device.SVD");
+   private static final  Path MAIN_FOLDER       = PACKAGE_FOLDER.resolve("Stationery/Device.SVD");
    //   @SuppressWarnings("unused")
    //   private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
    //
@@ -795,8 +795,8 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^LPC.*");
 //    firstFileToReject  = ("^M.*");
 
-//      firstFileToProcess = ("^MK10.*");
-//      firstFileToReject  = ("^MK11.*");
+//      firstFileToProcess = ("^MK28.*");
+//      firstFileToReject  = ("^MK30.*");
 
 //      doHeaderFiles();
 //      doFactoring();
