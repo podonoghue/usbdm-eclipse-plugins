@@ -36,6 +36,8 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
    private Label           fLocationText;
    private Button          fUseDefaultLocationButton;
    private Button          fUseSemiHosting;
+   private Button          fUseFloatingPointInScanf;
+   private Button          fUseFloatingPointInPrintf;
    private Boolean         fHasCCNature         = false;
    private InterfaceType   fInterfaceType       = null;
    private Boolean         fHasChanged          = true;
@@ -269,6 +271,58 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       return group;
    }
    
+   private Control createFloatChoiceControl(final Composite parent) {
+      GridLayout layout;
+
+      Group group = new Group(parent, SWT.NONE);
+      group.setText("Library Options");
+      //
+      layout = new GridLayout(1, false);
+      group.setLayout(layout);
+      
+      fUseFloatingPointInScanf = new Button(group, SWT.CHECK);
+      fUseFloatingPointInScanf.setText("Floating point in scanf()");
+      fUseFloatingPointInScanf.setToolTipText("Allow floating point (%f format) in scanf() - increases CODE size and RAM usage");
+      fUseFloatingPointInScanf.addSelectionListener(new SelectionListener() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+         validate();
+         }
+         @Override
+         public void widgetDefaultSelected(SelectionEvent e) {
+         }
+      });
+
+      fUseFloatingPointInPrintf = new Button(group, SWT.CHECK);
+      fUseFloatingPointInPrintf.setText("Floating point in printf()");
+      fUseFloatingPointInPrintf.setToolTipText("Allow floating point (%f format) in printf() - increases CODE size and RAM usage");
+      fUseFloatingPointInPrintf.addSelectionListener(new SelectionListener() {
+         @Override
+         public void widgetSelected(SelectionEvent e) {
+         validate();
+         }
+         @Override
+         public void widgetDefaultSelected(SelectionEvent e) {
+         }
+      });
+
+      IDialogSettings dialogSettings = getDialogSettings();
+      if (dialogSettings != null) {
+          try {
+             String useFloatingPointInScanf = dialogSettings.get(UsbdmConstants.USE_FLOATINGPOINT_IN_SCANF_KEY);
+             if (useFloatingPointInScanf != null) {
+               fUseFloatingPointInScanf.setSelection(Boolean.valueOf(useFloatingPointInScanf));
+             }
+             String useFloatingPointInPrintf = dialogSettings.get(UsbdmConstants.USE_FLOATINGPOINT_IN_PRINTF_KEY);
+             if (useFloatingPointInPrintf != null) {
+               fUseFloatingPointInPrintf.setSelection(Boolean.valueOf(useFloatingPointInPrintf));
+             }
+          } catch (Exception e) {
+          }
+       }
+      return group;
+   }
+   
    private Control createProjectOutcome(final Composite parent) {
       GridLayout layout;
 
@@ -340,6 +394,10 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
+      control = createFloatChoiceControl(composite);
+      gd = new GridData(SWT.FILL, SWT.NONE, true, false);
+      control.setLayoutData(gd);
+      
       control = createProjectOutcome(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
@@ -382,10 +440,12 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
    public void saveSettings() {
       IDialogSettings dialogSettings = getDialogSettings();
       if (dialogSettings != null) {
-         dialogSettings.put(UsbdmConstants.INTERFACE_TYPE_KEY,       fInterfaceType.ordinal());
-         dialogSettings.put(UsbdmConstants.HAS_CC_NATURE_KEY,        fHasCCNature);
-         dialogSettings.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,  fCreateStaticLibrary);
-         dialogSettings.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,    fUseSemiHosting.getSelection());
+         dialogSettings.put(UsbdmConstants.INTERFACE_TYPE_KEY,              fInterfaceType.ordinal());
+         dialogSettings.put(UsbdmConstants.HAS_CC_NATURE_KEY,               fHasCCNature);
+         dialogSettings.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,         fCreateStaticLibrary);
+         dialogSettings.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,           fUseSemiHosting.getSelection());
+         dialogSettings.put(UsbdmConstants.USE_FLOATINGPOINT_IN_SCANF_KEY,  fUseFloatingPointInScanf.getSelection());
+         dialogSettings.put(UsbdmConstants.USE_FLOATINGPOINT_IN_PRINTF_KEY, fUseFloatingPointInPrintf.getSelection());
       }
    }
 
@@ -428,12 +488,14 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
     * semiHosting      Indicates semi-hosting is desired (true/false)
     */
    public void getPageData(Map<String, String> paramMap) {
-      paramMap.put(UsbdmConstants.PROJECT_NAME_KEY,         fProjectNameText.getText().trim());
-      paramMap.put(UsbdmConstants.PROJECT_HOME_PATH_KEY,    getProjectLocation());
-      paramMap.put(UsbdmConstants.INTERFACE_TYPE_KEY,       fInterfaceType.name());
-      paramMap.put(UsbdmConstants.HAS_CC_NATURE_KEY,        fHasCCNature.toString());
-      paramMap.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,  getProjectOutputType());
-      paramMap.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,    Boolean.valueOf(fUseSemiHosting.getSelection()).toString());
+      paramMap.put(UsbdmConstants.PROJECT_NAME_KEY,                 fProjectNameText.getText().trim());
+      paramMap.put(UsbdmConstants.PROJECT_HOME_PATH_KEY,            getProjectLocation());
+      paramMap.put(UsbdmConstants.INTERFACE_TYPE_KEY,               fInterfaceType.name());
+      paramMap.put(UsbdmConstants.HAS_CC_NATURE_KEY,                fHasCCNature.toString());
+      paramMap.put(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY,          getProjectOutputType());
+      paramMap.put(UsbdmConstants.SEMI_HOSTING_TYPE_KEY,            Boolean.valueOf(fUseSemiHosting.getSelection()).toString());
+      paramMap.put(UsbdmConstants.USE_FLOATINGPOINT_IN_SCANF_KEY,   Boolean.valueOf(fUseFloatingPointInScanf.getSelection()).toString());
+      paramMap.put(UsbdmConstants.USE_FLOATINGPOINT_IN_PRINTF_KEY,  Boolean.valueOf(fUseFloatingPointInPrintf.getSelection()).toString());
    }
 
 }
