@@ -97,8 +97,6 @@ public class DevicePeripheralsProviderInterface {
    
    /**
     * Used to obtain names of providers
-    * 
-    * @author podonoghue
     */
    class ListProviderNames extends IApplyTo {
       ListProviderNames(IConfigurationElement[] config) {

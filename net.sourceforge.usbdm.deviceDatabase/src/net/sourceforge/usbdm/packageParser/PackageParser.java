@@ -444,7 +444,13 @@ public class PackageParser {
       if (projectActionListElement.hasAttribute("id")) {
          id = projectActionListElement.getAttribute("id");
       }
+      boolean doOnceOnly = false;
+      if (projectActionListElement.hasAttribute("doOnceOnly")) {
+         doOnceOnly = Boolean.valueOf(projectActionListElement.getAttribute("doOnceOnly"));
+      }
       ProjectActionList projectActionList = new ProjectActionList(id);
+      projectActionList.setDoOnceOnly(doOnceOnly);
+      
       //    System.err.println("parseProjectActionListElement(): " +  id);
 
       IPath root;

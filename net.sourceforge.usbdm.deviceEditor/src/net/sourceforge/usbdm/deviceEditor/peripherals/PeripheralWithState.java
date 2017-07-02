@@ -161,14 +161,15 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    /**
+    * @param processProjectActions 
     * @param project
     * @param monitor
     * 
     * @throws Exception
     */
-   public void regenerateProjectFiles(IProject project, IProgressMonitor monitor) throws Exception {
+   public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
       Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
-      ProcessProjectActions.process(project, fData.fProjectActionList, symbolMap, monitor);
+      processProjectActions.process(project, fData.fProjectActionList, symbolMap, monitor);
    }
 
    /**

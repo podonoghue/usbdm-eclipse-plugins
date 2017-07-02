@@ -26,6 +26,7 @@ import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
@@ -1629,10 +1630,11 @@ public class DeviceInfo extends ObservableModel {
       generateVectorTable(variableMap);
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       
+      ProcessProjectActions processProjectActions = new ProcessProjectActions();
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
-            ((PeripheralWithState) p).regenerateProjectFiles(null, new NullProgressMonitor());
+            ((PeripheralWithState) p).regenerateProjectFiles(processProjectActions, null, new NullProgressMonitor());
          }
       }
 
@@ -1657,10 +1659,11 @@ public class DeviceInfo extends ObservableModel {
       generateVectorTable(variableMap);
       FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, monitor);
       
+      ProcessProjectActions processProjectActions = new ProcessProjectActions();
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
-            ((PeripheralWithState) p).regenerateProjectFiles(project, monitor);
+            ((PeripheralWithState) p).regenerateProjectFiles(processProjectActions, project, monitor);
          }
       }
    }

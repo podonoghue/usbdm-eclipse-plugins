@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
@@ -28,7 +29,12 @@ import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
 public class ProcessProjectActions {
  
-   public static void process(
+   final HashSet<String> previousActions = new HashSet<String>();
+   
+   public ProcessProjectActions() {
+   }
+   
+   public void process(
          final IProject              projectHandle, 
          final ProjectActionList     actionList,
          final Map<String,String>    variableMap, 
@@ -37,7 +43,7 @@ public class ProcessProjectActions {
       if (actionList == null) {
          return;
       }
-
+      System.err.println("ProcessProjectActions.process " + actionList.getId());
       final ApplyOptions applyOptions = new ApplyOptions(projectHandle);
 
       class MyVisitor implements ProjectActionList.Visitor {
@@ -63,6 +69,14 @@ public class ProcessProjectActions {
                }
                else if (action instanceof ProjectActionList) {
                   ProjectActionList projectActionList = (ProjectActionList) action;
+                  if (projectActionList.isDoOnceOnly()) {
+                     if (previousActions.contains(projectActionList.getId())) {
+                        // Don't repeat action
+                        System.err.println("ProcessProjectActions.process - not repeating action " + projectActionList.getId());
+                        return new Result(Status.PRUNE);
+                     }
+                     previousActions.add(projectActionList.getId());
+                  }
                   return new Result(projectActionList.applies(variableMap)?Status.CONTINUE:Status.PRUNE);
                }
                else if (action instanceof ProjectCustomAction) {

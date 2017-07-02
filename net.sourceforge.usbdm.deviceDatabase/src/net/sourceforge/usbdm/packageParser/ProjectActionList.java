@@ -14,6 +14,9 @@ import org.eclipse.core.runtime.SubMonitor;
 
 public class ProjectActionList extends ProjectAction {
 
+   /** Indicates if the action list should be done once only if encountered multiple times */
+   private boolean fDoOnceOnly = false;
+
    public static class Value {
       private Object returnValue;
 
@@ -255,6 +258,22 @@ public class ProjectActionList extends ProjectAction {
    @Override
    public String toString() {
       return String.format("ProjectActionList[ID=%s, #children=%d]", getId(), fProjectActionList.size());
+   }
+
+   /**
+    * Indicates if the action list should be done once only if encountered multiple times
+    *
+    * @param doOnceOnly
+    */
+   public void setDoOnceOnly(boolean doOnceOnly) {
+      fDoOnceOnly = doOnceOnly;
+   }
+
+   /**
+    * Indicates if the action list should be done once only if encountered multiple times
+    */
+   public boolean isDoOnceOnly() {
+      return fDoOnceOnly;
    }
 
 }
