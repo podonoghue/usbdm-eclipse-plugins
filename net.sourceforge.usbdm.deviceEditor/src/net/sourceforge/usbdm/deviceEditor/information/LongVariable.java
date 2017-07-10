@@ -217,14 +217,11 @@ public class LongVariable extends Variable {
     * @param min Maximum value
     */
    public void setMax(long max) {
-      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
       fMax = max;
       if (fDefault>fMax) {
          fDefault = fMax;
       }
-      if (statusChanged) {
          notifyStatusListeners();
-      }
    }
 
    /**

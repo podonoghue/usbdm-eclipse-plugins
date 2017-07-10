@@ -112,7 +112,7 @@ public class PdbValidate extends Validator {
          pdb_mod_period = (pdb_mod+1)*pdb_period;
          pdb_mod_periodVar.setValue(pdb_mod_period);
          pdb_mod_periodVar.setOrigin(pdbClockOrigin+" period * PDB modulo");
-         pdb_mod_periodVar.setMax((pdb_modVar.getMax()+1)*pdb_period);
+         pdb_mod_periodVar.setMax((pdb_modVar.getMax()+1.5)*pdb_period);
          pdb_idly_delayVar.setValue((pdb_idly+1)*pdb_period);
          pdb_idly_delayVar.setOrigin(pdbClockOrigin+" period * PDB idly");
          modChanged = true;
@@ -126,7 +126,7 @@ public class PdbValidate extends Validator {
          }
          else if (variable.equals(pdb_mod_periodVar)) {
             // Calculate rounded value
-            pdb_mod        = Math.round((pdb_mod_period/pdb_period)-1);
+            pdb_mod        = Math.max(0, Math.round((pdb_mod_period/pdb_period)-1));
             pdb_mod_period = (pdb_mod+1)*pdb_period;
             // Update
             pdb_modVar.setValue(pdb_mod);
@@ -139,7 +139,7 @@ public class PdbValidate extends Validator {
          }
          else if (variable.equals(pdb_idly_delayVar)) {
             // Calculate rounded value
-            pdb_idly = Math.round((pdb_idly_delay/pdb_period)-1);
+            pdb_idly = Math.max(0, Math.round((pdb_idly_delay/pdb_period)-1));
             // Update
             pdb_idlyVar.setValue(pdb_idly);
             // Need to show effect of rounding
@@ -147,7 +147,7 @@ public class PdbValidate extends Validator {
          }
       }
       if (modChanged) {
-         pdb_idly_delayVar.setMax(pdb_mod_period);
+         pdb_idly_delayVar.setMax((pdb_mod+1.5)*pdb_period);
          pdb_idlyVar.setMax(pdb_mod);
       }
    }
@@ -188,49 +188,37 @@ public class PdbValidate extends Validator {
       pdb_chX_dly1_delayVar.enable(dly1Enable);
       
       // Get current values
-      Long   pdb_chX_dly0       = pdb_chX_dly0Var.getRawValueAsLong();
-      Double pdb_chX_dly0_delay = pdb_chX_dly0_delayVar.getRawValueAsDouble();
-      Long   pdb_chX_dly1       = pdb_chX_dly1Var.getRawValueAsLong();
-      Double pdb_chX_dly1_delay = pdb_chX_dly1_delayVar.getRawValueAsDouble();
+      long   pdb_chX_dly0       = pdb_chX_dly0Var.getRawValueAsLong();
+      double pdb_chX_dly0_delay = pdb_chX_dly0_delayVar.getRawValueAsDouble();
+      long   pdb_chX_dly1       = pdb_chX_dly1Var.getRawValueAsLong();
+      double pdb_chX_dly1_delay = pdb_chX_dly1_delayVar.getRawValueAsDouble();
       
       if (clockChanged) {
-         pdb_chX_dly0_delayVar.setValue(pdb_period*pdb_chX_dly0);
          pdb_chX_dly0_delayVar.setOrigin(pdbClockOrigin+" period * pdb_ch"+channel+"_dly0");
-         pdb_chX_dly0_delayVar.setMax(pdb_mod_period);
-         pdb_chX_dly1_delayVar.setValue(pdb_period*pdb_chX_dly1);
          pdb_chX_dly1_delayVar.setOrigin(pdbClockOrigin+" period * pdb_ch"+channel+"_dly1");
-         pdb_chX_dly1_delayVar.setMax(pdb_mod_period);
       }
-      else if (modChanged) {
+      if (modChanged) {
          pdb_chX_dly0Var.setMax(pdb_mod);
-         pdb_chX_dly0_delayVar.setMax(pdb_mod_period);
          pdb_chX_dly1Var.setMax(pdb_mod);
-         pdb_chX_dly1_delayVar.setMax(pdb_mod_period);
       }
-      else if (variable != null) {
-         if (variable.equals(pdb_chX_dly0Var)) {
-            pdb_chX_dly0_delayVar.setValue(pdb_period*pdb_chX_dly0);
-         }
-         else if (variable.equals(pdb_chX_dly0_delayVar)) {
+      if (variable != null) {
+         if (variable.equals(pdb_chX_dly0_delayVar)) {
             // Calculate rounded value
-            pdb_chX_dly0 = Math.round(pdb_chX_dly0_delay/pdb_period);
+            pdb_chX_dly0 = Math.max(0, Math.round((pdb_chX_dly0_delay/pdb_period)-1));
             // Update
             pdb_chX_dly0Var.setValue(pdb_chX_dly0);
-            // Need to show effect of rounding
-            pdb_chX_dly0_delayVar.setValue(pdb_period*pdb_chX_dly0);
-         }
-         else if (variable.equals(pdb_chX_dly1Var)) {
-            pdb_chX_dly1_delayVar.setValue(pdb_period*pdb_chX_dly1);
          }
          else if (variable.equals(pdb_chX_dly1_delayVar)) {
             // Calculate rounded value
-            pdb_chX_dly1 = Math.round(pdb_chX_dly1_delay/pdb_period);
+            pdb_chX_dly1 = Math.max(0, Math.round((pdb_chX_dly1_delay/pdb_period)-1));
             // Update
             pdb_chX_dly1Var.setValue(pdb_chX_dly1);
-            // Need to show effect of rounding
-            pdb_chX_dly1_delayVar.setValue(pdb_period*pdb_chX_dly1);
          }
       }
+      pdb_chX_dly0_delayVar.setValue(pdb_period*(pdb_chX_dly0+1));
+      pdb_chX_dly1_delayVar.setValue(pdb_period*(pdb_chX_dly1+1));
+      pdb_chX_dly0_delayVar.setMax((pdb_mod+1.5)*pdb_period);
+      pdb_chX_dly1_delayVar.setMax((pdb_mod+1.5)*pdb_period);
    }
    
    /**
@@ -263,31 +251,24 @@ public class PdbValidate extends Validator {
       pdb_intX_int_delayVar.enable(triggerEnable);
       
       // Get current values
-      Long   pdb_intX_int       = pdb_intX_intVar.getRawValueAsLong();
-      Double pdb_intX_int_delay = pdb_intX_int_delayVar.getRawValueAsDouble();
+      long   pdb_intX_int       = pdb_intX_intVar.getRawValueAsLong();
+      double pdb_intX_int_delay = pdb_intX_int_delayVar.getRawValueAsDouble();
       
       if (clockChanged) {
-         pdb_intX_int_delayVar.setValue(pdb_period*pdb_intX_int);
          pdb_intX_int_delayVar.setOrigin(pdbClockOrigin+" period * pdb_int"+channel+"_int");
-         pdb_intX_int_delayVar.setMax(pdb_mod_period);
       }
-      else if (modChanged) {
-         pdb_intX_intVar.setMax(pdb_mod);
-         pdb_intX_int_delayVar.setMax(pdb_mod_period);
-      }
-      else if (variable != null) {
-         if (variable.equals(pdb_intX_intVar)) {
-            pdb_intX_int_delayVar.setValue(pdb_period*pdb_intX_int);
-         }
-         else if (variable.equals(pdb_intX_int_delayVar)) {
+      if (variable != null) {
+         if (variable.equals(pdb_intX_int_delayVar)) {
             // Calculate rounded value
-            pdb_intX_int = Math.round(pdb_intX_int_delay/pdb_period);
+            pdb_intX_int = Math.max(0, Math.round((pdb_intX_int_delay/pdb_period)-1));
             // Update
             pdb_intX_intVar.setValue(pdb_intX_int);
             // Need to show effect of rounding
-            pdb_intX_int_delayVar.setValue(pdb_period*pdb_intX_int);
          }
       }
+      pdb_intX_intVar.setMax(pdb_mod);
+      pdb_intX_int_delayVar.setMax((pdb_mod+1.5)*pdb_period);
+      pdb_intX_int_delayVar.setValue(pdb_period*(pdb_intX_int+1));
    }
    
    /**
@@ -322,49 +303,35 @@ public class PdbValidate extends Validator {
       pdb_poX_dly_dly2_delayVar.enable(dlyEnable);
       
       // Get current values
-      Long   pdb_poX_dly_dly1       = pdb_poX_dly_dly1Var.getRawValueAsLong();
-      Double pdb_poX_dly_dly1_delay = pdb_poX_dly_dly1_delayVar.getRawValueAsDouble();
-      Long   pdb_poX_dly_dly2       = pdb_poX_dly_dly2Var.getRawValueAsLong();
-      Double pdb_poX_dly_dly2_delay = pdb_poX_dly_dly2_delayVar.getRawValueAsDouble();
+      long   pdb_poX_dly_dly1       = pdb_poX_dly_dly1Var.getRawValueAsLong();
+      double pdb_poX_dly_dly1_delay = pdb_poX_dly_dly1_delayVar.getRawValueAsDouble();
+      long   pdb_poX_dly_dly2       = pdb_poX_dly_dly2Var.getRawValueAsLong();
+      double pdb_poX_dly_dly2_delay = pdb_poX_dly_dly2_delayVar.getRawValueAsDouble();
       
       if (clockChanged) {
-         pdb_poX_dly_dly1_delayVar.setValue(pdb_period*pdb_poX_dly_dly1);
          pdb_poX_dly_dly1_delayVar.setOrigin(pdbClockOrigin+" period * pdb_po"+channel+"_dly_dly1");
-         pdb_poX_dly_dly1_delayVar.setMax(pdb_mod_period);
-         pdb_poX_dly_dly2_delayVar.setValue(pdb_period*pdb_poX_dly_dly2);
          pdb_poX_dly_dly2_delayVar.setOrigin(pdbClockOrigin+" period * pdb_po"+channel+"_dly_dly2");
-         pdb_poX_dly_dly2_delayVar.setMax(pdb_mod_period);
       }
-      else if (modChanged) {
-         pdb_poX_dly_dly1Var.setMax(pdb_mod);
-         pdb_poX_dly_dly1_delayVar.setMax(pdb_mod_period);
-         pdb_poX_dly_dly2Var.setMax(pdb_mod);
-         pdb_poX_dly_dly2_delayVar.setMax(pdb_mod_period);
-      }
-      else if (variable != null) {
-         if (variable.equals(pdb_poX_dly_dly1Var)) {
-            pdb_poX_dly_dly1_delayVar.setValue(pdb_period*pdb_poX_dly_dly1);
-         }
-         else if (variable.equals(pdb_poX_dly_dly1_delayVar)) {
+      if (variable != null) {
+         if (variable.equals(pdb_poX_dly_dly1_delayVar)) {
             // Calculate rounded value
-            pdb_poX_dly_dly1 = Math.round(pdb_poX_dly_dly1_delay/pdb_period);
+            pdb_poX_dly_dly1 = Math.max(0, Math.round((pdb_poX_dly_dly1_delay/pdb_period)-1));
             // Update
             pdb_poX_dly_dly1Var.setValue(pdb_poX_dly_dly1);
-            // Need to show effect of rounding
-            pdb_poX_dly_dly1_delayVar.setValue(pdb_period*pdb_poX_dly_dly1);
-         }
-         else if (variable.equals(pdb_poX_dly_dly2Var)) {
-            pdb_poX_dly_dly2_delayVar.setValue(pdb_period*pdb_poX_dly_dly2);
          }
          else if (variable.equals(pdb_poX_dly_dly2_delayVar)) {
             // Calculate rounded value
-            pdb_poX_dly_dly2 = Math.round(pdb_poX_dly_dly2_delay/pdb_period);
+            pdb_poX_dly_dly2 = Math.max(0, Math.round((pdb_poX_dly_dly2_delay/pdb_period)-1));
             // Update
             pdb_poX_dly_dly2Var.setValue(pdb_poX_dly_dly2);
-            // Need to show effect of rounding
-            pdb_poX_dly_dly2_delayVar.setValue(pdb_period*pdb_poX_dly_dly2);
          }
       }
+      pdb_poX_dly_dly1Var.setMax(pdb_mod);
+      pdb_poX_dly_dly1_delayVar.setMax((pdb_mod+1.5)*pdb_period);
+      pdb_poX_dly_dly2Var.setMax(pdb_mod);
+      pdb_poX_dly_dly2_delayVar.setMax((pdb_mod+1.5)*pdb_period);
+      pdb_poX_dly_dly1_delayVar.setValue(pdb_period*(pdb_poX_dly_dly1+1));
+      pdb_poX_dly_dly2_delayVar.setValue(pdb_period*(pdb_poX_dly_dly2+1));
    }
    
    /**
