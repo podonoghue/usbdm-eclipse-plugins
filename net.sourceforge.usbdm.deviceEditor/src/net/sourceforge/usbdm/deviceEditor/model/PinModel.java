@@ -106,9 +106,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    }
 
    @Override
-   public String getDescription() {
-      setDescription(getPinUseDescription());
-      return super.getDescription();
+   public String getSimpleDescription() {
+      return getPinUseDescription();
    }
 
    /**
@@ -140,12 +139,12 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     * May return an error message from the pin mapping instead.
     */
    @Override
-   Message getMessage() {
-      Message rv = fPin.getMappedSignal().getMessage();
+   Status getStatus() {
+      Status rv = fPin.getMappedSignal().getMessage();
       if (rv != null) {
          return rv;
       }
-      return super.getMessage();
+      return super.getStatus();
    }
 
    @Override

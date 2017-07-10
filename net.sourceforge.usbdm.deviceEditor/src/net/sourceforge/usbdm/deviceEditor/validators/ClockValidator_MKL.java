@@ -5,8 +5,8 @@ import java.util.ListIterator;
 
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable    ;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -239,14 +239,14 @@ public class ClockValidator_MKL extends BaseClockValidator {
       if (mcg_c1_irclkenVar.getValueAsBoolean()) {
          // Enabled
          system_mcgirclk_clockVar.setValue(system_mcgir_ungated_clock.getValueAsLong());
-         system_mcgirclk_clockVar.setStatus((Message)null);
+         system_mcgirclk_clockVar.setStatus((Status)null);
          system_mcgirclk_clockVar.enable(true);
          mcg_c1_irefstenVar.enable(true);
       }
       else {
          // Disabled
          system_mcgirclk_clockVar.setValue(0);
-         system_mcgirclk_clockVar.setStatus(new Message("Disabled by mcg_c1_irclken", Severity.OK));
+         system_mcgirclk_clockVar.setStatus(new Status("Disabled by mcg_c1_irclken", Severity.OK));
          system_mcgirclk_clockVar.enable(false);
          mcg_c1_irefstenVar.enable(false);
       }
@@ -274,7 +274,7 @@ public class ClockValidator_MKL extends BaseClockValidator {
          break;
       case 2: // ERC = IRC48MCLK
          mcg_erc_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus((Message)null);
+         mcg_erc_clockVar.setStatus((Status)null);
          mcg_erc_clockVar.setOrigin("IRC48MCLK");
          break;
       }
@@ -416,12 +416,12 @@ public class ClockValidator_MKL extends BaseClockValidator {
          if (failedPreCondition==null) {
             usb1pfdclk_ClockVar.enable(true);
             usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL"); 
-            usb1pfdclk_ClockVar.setStatus((Message)null);
+            usb1pfdclk_ClockVar.setStatus((Status)null);
          }
          else {
             usb1pfdclk_ClockVar.enable(false);
             usb1pfdclk_ClockVar.setOrigin("Clock from USB HS PLL (disabled)"); 
-            usb1pfdclk_ClockVar.setStatus(new Message(failedPreCondition, Severity.WARNING));
+            usb1pfdclk_ClockVar.setStatus(new Status(failedPreCondition, Severity.WARNING));
          }
       }
       // Internal PLL
@@ -451,7 +451,7 @@ public class ClockValidator_MKL extends BaseClockValidator {
       }
       else {
          pll0OutputFrequency.enable(false);
-         pll0OutputFrequency.setStatus(new Message("PLL is disabled", Severity.WARNING));
+         pll0OutputFrequency.setStatus(new Status("PLL is disabled", Severity.WARNING));
       }
       // Internal PLL
       system_mcgpllclk_clockVar.setValue(pll0OutputFrequency.getValueAsLong());
@@ -470,7 +470,7 @@ public class ClockValidator_MKL extends BaseClockValidator {
       }
       else {
          system_mcgfllclk_clockVar.enable(false);
-         system_mcgfllclk_clockVar.setStatus(new Message("Fll is disabled", Severity.WARNING));
+         system_mcgfllclk_clockVar.setStatus(new Status("Fll is disabled", Severity.WARNING));
       }
       mcg_c4_dmx32Var.enable(fllEnabled);
       mcg_c4_drst_drsVar.enable(fllEnabled);
@@ -478,14 +478,14 @@ public class ClockValidator_MKL extends BaseClockValidator {
       // Main clock mode
       //===============================
 
-      Message clock_mode_Status = null;
+      Status clock_mode_Status = null;
       switch (clock_mode) {
       default:
       case ClockMode_None:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
          system_mcgoutclk_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
-         system_mcgoutclk_clockVar.setStatus((Message)null);
-         clock_mode_Status = new Message("No clock settings are applied", Severity.WARNING);
+         system_mcgoutclk_clockVar.setStatus((Status)null);
+         clock_mode_Status = new Status("No clock settings are applied", Severity.WARNING);
          break;
       case ClockMode_FEI:
          system_mcgoutclk_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());

@@ -5,8 +5,8 @@ import java.util.TreeSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
 public class PllConfigure {
    private final long PLL_IN_MIN;
@@ -24,7 +24,7 @@ public class PllConfigure {
    private final int  PLL_POST_DIV;
    
    /** Status of PLL i.e. whether a divider etc could be calculated */
-   private Message pllStatus;
+   private Status pllStatus;
 
    /**
     * Validates PLL related variables
@@ -148,17 +148,17 @@ public class PllConfigure {
          String msg = String.format("PLL not usable with input clock frequency %sHz\nRange: [%s,%s]", 
                EngineeringNotation.convert(mcg_erc_clock,3),
                EngineeringNotation.convert(PLL_IN_MIN,3),EngineeringNotation.convert(PLL_IN_MAX,3));
-         Message status = new Message(msg, Severity.WARNING);
+         Status status = new Status(msg, Severity.WARNING);
          pllInputFrequencyNode.setStatus(status);
          pllStatus = status;
       }
       else {
          // PLL in is valid
-         pllInputFrequencyNode.setStatus((Message)null);
+         pllInputFrequencyNode.setStatus((Status)null);
 
          // Check PLL out
          StringBuilder status = new StringBuilder();
-         Message.Severity severity = Severity.OK;
+         Status.Severity severity = Severity.OK;
          if (!pllOutputValid) {
             // PLL Output invalid
             status.append("Not possible to generate desired PLL frequency from input clock\n");
@@ -189,7 +189,7 @@ public class PllConfigure {
             needComma = true;
             status.append(EngineeringNotation.convert(freq, 3)+"Hz");
          }
-         pllStatus = new Message(status.toString(), severity);
+         pllStatus = new Status(status.toString(), severity);
       }
    }
 
@@ -198,7 +198,7 @@ public class PllConfigure {
     * 
     * @return
     */
-   public Message getPllStatus() {
+   public Status getPllStatus() {
       return pllStatus;
    }
 }

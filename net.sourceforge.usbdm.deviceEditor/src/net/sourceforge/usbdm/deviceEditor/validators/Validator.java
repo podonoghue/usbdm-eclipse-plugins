@@ -78,7 +78,7 @@ public abstract class Validator {
     * @throws Exception 
     */
    BooleanVariable getBooleanVariable(String key) throws Exception {
-      Variable variable = fPeripheral.getVariable(key);
+      Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
       if (!(variable instanceof BooleanVariable)) {
          throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
       }
@@ -148,7 +148,7 @@ public abstract class Validator {
    DoubleVariable getDoubleVariable(String key) throws Exception {
       Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
       if (!(variable instanceof DoubleVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+         throw new ClassCastException("Variable " + variable + "cannot be cast to DoubleVariable");
       }
       return (DoubleVariable) variable;
    }
@@ -166,7 +166,7 @@ public abstract class Validator {
          return null;
       }
       if (!(variable instanceof DoubleVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+         throw new ClassCastException("Variable " + variable + "cannot be cast to DoubleVariable");
       }
       return (DoubleVariable) variable;
    }
@@ -210,7 +210,7 @@ public abstract class Validator {
          if (var == null) {
             System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
          }
-         if (var != null) {
+         else {
             var.addListener(fPeripheral);
          }
       }

@@ -124,7 +124,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * @return
     */
    private TabModel createParameterModels() {
-      System.err.println("createParameterModels()");
+//      System.err.println("createParameterModels()");
       //XXX Working here
 //      if (fParameterModels != null) {
 ////         for (Object m:fParameterModels.getChildren()) {

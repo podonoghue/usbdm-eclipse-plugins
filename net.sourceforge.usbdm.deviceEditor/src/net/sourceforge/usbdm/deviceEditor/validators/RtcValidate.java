@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -22,7 +22,7 @@ public class RtcValidate extends Validator {
    private   static final long EXTERNAL_EXTAL_RANGE_MAX = 40000L;
 
    /** External Crystal frequency error message */
-   private   static final Message OSCCLK32K_CLOCK_WARNING_MSG = new Message(String.format(
+   private   static final Status OSCCLK32K_CLOCK_WARNING_MSG = new Status(String.format(
       "External crystal frequency not suitable for RTCCLK32\n"+
       "Range [%sHz,%sHz]",           
       EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE_MIN, 3),
@@ -66,7 +66,7 @@ public class RtcValidate extends Validator {
       //
       // Check suitability of OSC for OSC32KCLK
       long rtcclk_input_freq = rtc_input_freqVar.getValueAsLong();
-      Message inputStatus = null;
+      Status inputStatus = null;
       if ((rtcclk_input_freq < EXTERNAL_EXTAL_RANGE_MIN) || (rtcclk_input_freq > EXTERNAL_EXTAL_RANGE_MAX)) {
          inputStatus = OSCCLK32K_CLOCK_WARNING_MSG;
          rtcclk_clockVar.setOrigin("RTCCLK (invalid range)");
@@ -86,8 +86,8 @@ public class RtcValidate extends Validator {
       }
       else {
          // Disabled
-         rtcclk_clockVar.setStatus(new Message("RTCCLK Disabled by rtc_cr_osce", Severity.WARNING));
-         rtc_input_freqVar.setStatus((Message)null);
+         rtcclk_clockVar.setStatus(new Status("RTCCLK Disabled by rtc_cr_osce", Severity.WARNING));
+         rtc_input_freqVar.setStatus((Status)null);
       }
       rtcclk_clockVar.enable(rtc_cr_osce);
       rtc_cr_scpVar.enable(rtc_cr_osce);
@@ -101,7 +101,7 @@ public class RtcValidate extends Validator {
       // RTC Clocks
       //==============================
       Long    rtcclk_clockValue  = rtcclk_clockVar.getValueAsLong();
-      Message rtcclk_clockStatus = rtcclk_clockVar.getStatus();
+      Status rtcclk_clockStatus = rtcclk_clockVar.getStatus();
       String  rtcclk_clockOrigin = rtcclk_clockVar.getOrigin();
 
       if (rtc_cr_clkoVar.getValueAsBoolean()) {
@@ -112,7 +112,7 @@ public class RtcValidate extends Validator {
       }
       else {
          rtcclk_gated_clockVar.setValue(0L);
-         rtcclk_gated_clockVar.setStatus(new Message("Disabled by rtc_cr_clko", Severity.WARNING));
+         rtcclk_gated_clockVar.setStatus(new Status("Disabled by rtc_cr_clko", Severity.WARNING));
          rtcclk_gated_clockVar.setOrigin(rtcclk_clockOrigin);
          rtcclk_gated_clockVar.enable(false);
       }

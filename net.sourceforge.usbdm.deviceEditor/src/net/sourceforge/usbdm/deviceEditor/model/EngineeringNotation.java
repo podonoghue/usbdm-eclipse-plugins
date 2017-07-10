@@ -85,6 +85,10 @@ public class EngineeringNotation {
    public static double parse(String num) {
       double value = 0.0;
       
+      if (num.equalsIgnoreCase("Infinity")) {
+         System.err.println("WARNING: EngineeringNotation.parse() - loading infinite double");
+         return Double.POSITIVE_INFINITY;
+      }
       Matcher matcher = NUMBER_PATTERN.matcher(num);
       if (!matcher.matches()) {
          throw new NumberFormatException("Illegal number: "+num);

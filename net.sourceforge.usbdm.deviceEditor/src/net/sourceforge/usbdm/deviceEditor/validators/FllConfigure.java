@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
 /**
  * Class to determine FLL divider settings
@@ -50,7 +50,7 @@ class FllConfigure {
    public final int mcg_c4_drst_drs;
    
    /** Returns the status of the FLL i.e. whether input and output values are valid */
-   private Message fllStatus;
+   private Status fllStatus;
    
    /**
     * Find suitable FLL divider (frdiv)
@@ -164,7 +164,7 @@ class FllConfigure {
 
       if ((fllStatus != null) && (fllStatus.getSeverity().greaterThan(Severity.OK))) {
          // Invalid input
-         fllStatus = new Message(fllStatus.getRawMessage()+": Invalid FLL input", Severity.WARNING);
+         fllStatus = new Status(fllStatus.getSimpleText()+": Invalid FLL input", Severity.WARNING);
          fllInputFrequencyVar.setStatus(fllStatus);
          fllInputFrequencyVar.setValue(0);
          system_mcgffclk_clockVar.setStatus(fllStatus);
@@ -239,12 +239,12 @@ class FllConfigure {
          fllInputFrequencyVar.setValue(Math.round(nearestFrequency));
          String msgText = String.format("Unable to find suitable FLL divisor for input frequency of %s", 
                EngineeringNotation.convert(availableClock, 3));
-         fllStatus = new Message(msgText, Severity.WARNING);
+         fllStatus = new Status(msgText, Severity.WARNING);
          fllInputFrequencyVar.setStatus(fllStatus);
          mcg_c1_frdiv    = nearest_frdiv;
          mcg_c4_drst_drs = 0;
          system_mcgffclk_clockVar.setValue(Math.round(nearestFrequency));
-         system_mcgffclk_clockVar.setStatus((Message)null);
+         system_mcgffclk_clockVar.setStatus((Status)null);
          return;
       }
 
@@ -253,10 +253,10 @@ class FllConfigure {
 
       // Record FLL input details
       system_mcgffclk_clockVar.setValue(inputFrequency);
-      system_mcgffclk_clockVar.setStatus((Message)null);
+      system_mcgffclk_clockVar.setStatus((Status)null);
 
       fllInputFrequencyVar.setValue(inputFrequency);
-      fllInputFrequencyVar.setStatus((Message)null);
+      fllInputFrequencyVar.setStatus((Status)null);
 
       // Determine possible output frequencies & check against desired value
       //=======================================================================
@@ -296,7 +296,7 @@ class FllConfigure {
          needComma = true;
          sb.append(EngineeringNotation.convert(freq, 5)+"Hz");
       }
-      fllStatus = new Message (sb.toString(), severity);
+      fllStatus = new Status (sb.toString(), severity);
       if (system_mcgfllclk_clockVar.isEnabled()) {
          system_mcgfllclk_clockVar.setValue(fllTargetFrequency);
       }
@@ -308,7 +308,7 @@ class FllConfigure {
     * 
     * @return Message 
     */
-   public Message getFllStatus() {
+   public Status getFllStatus() {
       return fllStatus;
    }
 }

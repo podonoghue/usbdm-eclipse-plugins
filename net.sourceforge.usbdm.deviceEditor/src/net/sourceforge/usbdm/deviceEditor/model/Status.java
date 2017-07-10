@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class Message {
+public class Status {
 
    public enum Severity {
       OK, INFO, WARNING, ERROR;
@@ -30,29 +30,29 @@ public class Message {
    };
 
    private final Severity fSeverity;
-   private final String   fMessage;
+   private final String   fText;
    
    @Override
    public boolean equals(Object obj) {
-      if (!(obj instanceof Message)) {
+      if (!(obj instanceof Status)) {
          return false;
       }
       if (obj == this) {
          return true;
       }
-      Message other = (Message) obj;
-      return (fSeverity == other.fSeverity) && (fMessage.equalsIgnoreCase(other.fMessage));
+      Status other = (Status) obj;
+      return (fSeverity == other.fSeverity) && (fText.equalsIgnoreCase(other.fText));
    }
 
    public boolean equals(String msg) {
-      return fMessage.equalsIgnoreCase(msg);
+      return fText.equalsIgnoreCase(msg);
    }
 
    @Override
    public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((fMessage == null) ? 0 : fMessage.hashCode());
+      result = prime * result + ((fText == null) ? 0 : fText.hashCode());
       result = prime * result + ((fSeverity == null) ? 0 : fSeverity.hashCode());
       return result;
    }
@@ -62,8 +62,8 @@ public class Message {
     * 
     * @param message Message text
     */
-   public Message(String message) {
-      this.fMessage = message;
+   public Status(String message) {
+      this.fText = message;
       this.fSeverity = Severity.ERROR;
    }
    
@@ -73,8 +73,8 @@ public class Message {
     * @param message    Message text
     * @param severity   Severity level
     */
-   public Message(String message, Severity severity) {
-      this.fMessage  = message;
+   public Status(String message, Severity severity) {
+      this.fText  = message;
       this.fSeverity = severity;
    }
    
@@ -101,18 +101,18 @@ public class Message {
    }
 
    /**
-    * Returns message text
+    * Returns message text with severity prefix e.g. WARNING:....
     * @return
     */
-   public String getMessage() {
-      return fSeverity.name() + ": " + fMessage;
+   public String getText() {
+      return fSeverity.name() + ": " + fText;
    }
    /**
     * Returns message text without severity prefix
     * @return
     */
-   public String getRawMessage() {
-      return fMessage;
+   public String getSimpleText() {
+      return fText;
    }
    /**
     * Returns severity level of message
@@ -125,7 +125,7 @@ public class Message {
 
    @Override
    public String toString() {
-      return fMessage;
+      return fText;
    }
    
 }

@@ -29,7 +29,9 @@ public class ChoiceVariable extends Variable {
    }
 
    /**
-    * Sets variable value
+    * Sets variable value.<br>
+    * Listeners are informed if the variable changes.<br>
+    * Special strings "Reserved" and "Default" are translated to the {@link #fDefault} value
     * 
     * @param value The value to set as a String
     * 
@@ -64,10 +66,11 @@ public class ChoiceVariable extends Variable {
    }
    
    /**
-    * Convert object to required type
+    * Convert object to suitable type for this variable
     * 
     * @param value
-    * @return
+    * 
+    * @return Converted object
     */
    public String translate(Object value) {
       if (value instanceof String) {

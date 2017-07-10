@@ -2,19 +2,21 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
  * Class to determine oscillator settings
- 
+
  * Used for:
  *     osc0
  *     osc0_div
  */
 public class LptmrValidate extends Validator {
-   
+
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/MCG/system_mcgirclk_clock",
@@ -33,74 +35,154 @@ public class LptmrValidate extends Validator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      
+
+//      System.err.println("LptmrValidate.validate("+variable+")");
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);
          addedExternalVariables = true;
       }
-      // OSC
+      // Variables
       //=================================
-      DoubleVariable    clockFrequencyVar          =  (DoubleVariable) getVariable("clockFrequency");
-      DoubleVariable    clockPeriodVar             =  (DoubleVariable) getVariable("clockPeriod");
-      DoubleVariable    maximumPeriodVar           =  (DoubleVariable) getVariable("maximumPeriod");
+      DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");
+      DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
+      DoubleVariable    maximumPeriodVar           =  getDoubleVariable("maximumPeriod");
+
       Variable          lptmr_psr_pcsVar           =  getVariable("lptmr_psr_pcs");
+      BooleanVariable   lptmr_psr_pbypVar          =  getBooleanVariable("lptmr_psr_pbyp");
       Variable          lptmr_psr_prescalerVar     =  getVariable("lptmr_psr_prescaler");
-      Variable          lptmr_cmrVar               =  getVariable("lptmr_cmr");
-      Variable          lptmr_psr_pbypVar          =  getVariable("lptmr_psr_pbyp");
-//      Variable     system_mcgirclk_clockVar   =  getVariable("/MCG/system_mcgirclk_clock");
-//      Variable     system_low_power_clockVar  =  getVariable("/MCG/system_low_power_clock");
-//      Variable     system_erclk32k_clockVar   =  getVariable("/SIM/system_erclk32k_clock");
-//      Variable     system_oscerclk_clockVar   =  getVariable("/OSC0/system_oscerclk_clock");
-      
-      if (variable == lptmr_cmrVar) {
-         
-      }
-      Variable clockSource = null;
-      
-      double clockFrequency;
-      
+      BooleanVariable   lptmr_csr_tmsVar           =  getBooleanVariable("lptmr_csr_tms");
+      Variable          lptmr_csr_tpsVar           =  getVariable("lptmr_csr_tps");
+      Variable          lptmr_csr_tppVar           =  getVariable("lptmr_csr_tpp");
+
+      LongVariable      lptmr_cmrVar               =  getLongVariable("lptmr_cmr");
+      DoubleVariable    lptmr_cmrPeriodVar         =  getDoubleVariable("lptmr_cmrPeriod");
+      DoubleVariable    lptmr_cmrFrequencyVar      =  getDoubleVariable("lptmr_cmrFrequency");
+
+      // Enable/disable parameters that depend on mode
+      boolean lptmr_csr_tms = lptmr_csr_tmsVar.getValueAsBoolean();
+      lptmr_csr_tpsVar.enable(lptmr_csr_tms);
+      lptmr_csr_tppVar.enable(lptmr_csr_tms);
+      lptmr_cmrPeriodVar.enable(!lptmr_csr_tms);
+      lptmr_cmrFrequencyVar.enable(!lptmr_csr_tms);
+
+      Variable clockSourceVar = null;
+
       switch((int)lptmr_psr_pcsVar.getValueAsLong()) {
       default:
          lptmr_psr_pcsVar.setValue(0);
       case 0: 
-         clockSource = getVariable("/MCG/system_mcgirclk_clock");
+         clockSourceVar = getVariable("/MCG/system_mcgirclk_clock");
          break;
       case 1:
-         clockSource = getVariable("/MCG/system_low_power_clock");
+         clockSourceVar = getVariable("/MCG/system_low_power_clock");
          break;
       case 2:
-         clockSource = getVariable("/SIM/system_erclk32k_clock");
+         clockSourceVar = getVariable("/SIM/system_erclk32k_clock");
          break;
       case 3:
-         clockSource = getVariable("/OSC0/system_oscerclk_clock");
+         clockSourceVar = getVariable("/OSC0/system_oscerclk_clock");
          break;
       }
-      clockFrequency = clockSource.getValueAsLong();
-      if (lptmr_psr_pbypVar.getValueAsBoolean()) {
-         lptmr_psr_prescalerVar.enable(false);
-         lptmr_psr_prescalerVar.setOrigin("Disabled by lptmr_psr_pbyp");
-      }
-      else {
-         lptmr_psr_prescalerVar.enable(true);
+      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
+//      System.err.println("clockSourceVar = "+clockSourceVar);
+
+      boolean clockChanged = (variable == null) || // Initial setup
+            (variable == lptmr_psr_pcsVar) ||      // Clock source change
+            (variable == clockSourceVar) ||        // Change in the clock source
+            (variable == lptmr_psr_pbypVar) ||
+            (variable == lptmr_psr_prescalerVar);
+
+      // Current values
+      double clockFrequency = clockSourceVar.getValueAsLong();
+      if (!lptmr_psr_pbypVar.getValueAsBoolean()) {
+         // Clock divider used
          clockFrequency = clockFrequency/(1L<<(lptmr_psr_prescalerVar.getValueAsLong()+1));
-         lptmr_psr_prescalerVar.setOrigin(null);
       }
-      clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setOrigin(clockSource.getOrigin());
-      clockFrequencyVar.setStatus(clockSource.getStatus());
-      clockPeriodVar.setOrigin(clockSource.getOrigin());
-      clockPeriodVar.setStatus(clockSource.getStatus());
-      if (clockFrequency == 0) {
-         clockFrequencyVar.enable(false);
-         clockPeriodVar.enable(false);
-         clockPeriodVar.setValue(0.0);
+      double clockPeriod    = (clockFrequency==0)?0:(1/clockFrequency);
+
+      if (variable == lptmr_psr_pbypVar) {
+         // Update bypass affected things
+         if (lptmr_psr_pbypVar.getValueAsBoolean()) {
+            // Clock divider bypassed
+            lptmr_psr_prescalerVar.enable(false);
+            lptmr_psr_prescalerVar.setOrigin("Disabled by lptmr_psr_pbyp");
+            clockFrequencyVar.setOrigin(clockSourceVar.getOrigin());
+            clockPeriodVar.setOrigin(clockSourceVar.getOrigin());
+         }
+         else {
+            // Clock divider used
+            lptmr_psr_prescalerVar.enable(true);
+            lptmr_psr_prescalerVar.setOrigin(null);
+            clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " frequency divided by lptmr_psr_prescaler");
+            clockPeriodVar.setOrigin(clockSourceVar.getOrigin() + " period multiplied by lptmr_psr_prescaler");
+         }
       }
-      else {
-         clockFrequencyVar.enable(true);
-         clockPeriodVar.enable(true);
-         clockPeriodVar.setValue(1/clockFrequency);
+      if (clockChanged) {
+         // Update clockFrequency, clockPeriod
+         clockFrequencyVar.setValue(clockFrequency);
+         clockFrequencyVar.setStatus(clockSourceVar.getStatus());
+         clockPeriodVar.setStatus(clockSourceVar.getStatus());
+         if (clockFrequency == 0) {
+            clockFrequencyVar.enable(false);
+            clockPeriodVar.enable(false);
+            clockPeriod = 0.0;
+            clockPeriodVar.setValue(clockPeriod);
+         }
+         else {
+            clockFrequencyVar.enable(true);
+            clockPeriodVar.enable(true);
+            clockPeriod = 1/clockFrequency;
+            clockPeriodVar.setValue(clockPeriod);
+         }
       }
-      maximumPeriodVar.setValue(clockPeriodVar.getValueAsDouble()*65536);
+      
+      double maximumPeriod = clockPeriod*65536;
+      maximumPeriodVar.setValue(maximumPeriod);
+      lptmr_cmrPeriodVar.setMax(maximumPeriod);
+      long lptmr_cmr      = lptmr_cmrVar.getValueAsLong();
+
+      if (clockChanged) {
+         Double cmrFrequency = clockFrequency/lptmr_cmr; // cmr==0 produced infinity which is OK!
+         Double cmrPeriod    = clockPeriod*lptmr_cmr;
+         lptmr_cmrPeriodVar.setValue(cmrPeriod);
+         lptmr_cmrFrequencyVar.setValue(cmrFrequency);
+      }
+      else if (variable != null) {
+         if (variable.equals(lptmr_cmrVar)) {
+            Double cmrFrequency = clockFrequency/lptmr_cmr; // cmr==0 produced infinity which is OK!
+            Double cmrPeriod    = clockPeriod*lptmr_cmr;
+            lptmr_cmrPeriodVar.setValue(cmrPeriod);
+            lptmr_cmrFrequencyVar.setValue(cmrFrequency);
+         }
+         else if (variable.equals(lptmr_cmrPeriodVar)) {
+            // Calculate rounded value
+            lptmr_cmr = Math.round(lptmr_cmrPeriodVar.getValueAsDouble()*clockFrequency);
+            Double cmrFrequency = clockFrequency/lptmr_cmr; // cmr==0 produced infinity which is OK!
+            Double cmrPeriod    = clockPeriod*lptmr_cmr;
+            // Update
+            lptmr_cmrVar.setValue(lptmr_cmr);
+            // Need to show effect of rounding
+            lptmr_cmrPeriodVar.setValue(cmrPeriod);
+            lptmr_cmrFrequencyVar.setValue(cmrFrequency);
+         }
+         else if (variable.equals(lptmr_cmrFrequencyVar)) {
+            // Calculate rounded value
+            Double cmrFrequency = lptmr_cmrFrequencyVar.getValueAsDouble();
+            if (cmrFrequency<=(clockFrequency/65535)) {
+               lptmr_cmr = 65535;
+            }
+            else {
+               lptmr_cmr = Math.round(clockFrequency/cmrFrequency);
+            }
+            cmrFrequency = clockFrequency/lptmr_cmr; // cmr==0 produced infinity which is OK!
+            Double cmrPeriod    = clockPeriod*lptmr_cmr;
+            // Update
+            lptmr_cmrVar.setValue(lptmr_cmr);
+            // Need to show effect of rounding
+            lptmr_cmrPeriodVar.setValue(cmrPeriod);
+            lptmr_cmrFrequencyVar.setValue(cmrFrequency);
+         }
+      }
    }
 
 }

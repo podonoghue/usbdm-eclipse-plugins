@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 /**
  * Implements a change listener interface
- *
  */
 public class ObservableModel {
 

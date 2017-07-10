@@ -106,8 +106,8 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
     * May return an error message from the pin mapping instead.
     */
    @Override
-   Message getMessage() {
-      Message rv = null;
+   Status getStatus() {
+      Status rv = null;
       MappingInfo currentMapping = fSignal.getMappedPin();
       if (currentMapping != null) {
          rv = currentMapping.getMessage();
@@ -115,14 +115,14 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       if (rv != null) {
          return rv;
       }
-      return super.getMessage();
+      return super.getStatus();
    }
 
    @Override
-   public String getDescription() {
+   public String getSimpleDescription() {
       MappingInfo currentMapping = fSignal.getMappedPin();
       if (currentMapping != null) {
-         setDescription(currentMapping.getPin().getPinUseDescription());
+         return currentMapping.getPin().getPinUseDescription();
       }
       return super.getDescription();
    }

@@ -8,8 +8,8 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -151,7 +151,7 @@ public class SimValidate extends Validator {
                   srcVar.setValue(0);
                case 0: // Disabled
                   clockVar.setValue(0);
-                  clockVar.setStatus((Message)null);
+                  clockVar.setStatus((Status)null);
                   clockVar.setOrigin("Disabled");
                   break;
                case 1: // Peripheral Clock / CLKDIV3
@@ -378,7 +378,7 @@ public class SimValidate extends Validator {
          }
          sb.append(coreDivisor.divisors);
          system_core_clockVar.setValue(coreDivisor.nearestTargetFrequency);
-         system_core_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_core_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
       }
       else {
@@ -389,7 +389,7 @@ public class SimValidate extends Validator {
             sb.append("Illegal Frequency\n");
          }
          sb.append(coreDivisor.divisors);
-         system_core_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_core_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv1Var.setValue(coreDivisor.divisor);
       }
 
@@ -414,7 +414,7 @@ public class SimValidate extends Validator {
          }
          sb.append(busDivisor.divisors);
          system_bus_clockVar.setValue(busDivisor.nearestTargetFrequency);
-         system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
       }
       else {
@@ -425,7 +425,7 @@ public class SimValidate extends Validator {
             sb.append("Illegal Frequency\n");
          }
          sb.append(busDivisor.divisors);
-         system_bus_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_bus_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv2Var.setValue(busDivisor.divisor);
       }
 
@@ -452,7 +452,7 @@ public class SimValidate extends Validator {
             }
             sb.append(flexDivisor.divisors);
             system_flexbus_clockVar.setValue(flexDivisor.nearestTargetFrequency);
-            system_flexbus_clockVar.setStatus(new Message(sb.toString(), severity));
+            system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
             sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
          }
          else {
@@ -463,13 +463,13 @@ public class SimValidate extends Validator {
                sb.append("Illegal Frequency\n");
             }
             sb.append(flexDivisor.divisors);
-            system_flexbus_clockVar.setStatus(new Message(sb.toString(), severity));
+            system_flexbus_clockVar.setStatus(new Status(sb.toString(), severity));
             sim_clkdiv1_outdiv3Var.setValue(flexDivisor.divisor);
          }
       }
       else if (system_flexbus_clockVar != null) {
          system_flexbus_clockVar.enable(false);
-         system_flexbus_clockVar.setStatus(new Message("Function not available on this device", Severity.OK));
+         system_flexbus_clockVar.setStatus(new Status("Function not available on this device", Severity.OK));
       }
 
       // Flash Clock
@@ -493,7 +493,7 @@ public class SimValidate extends Validator {
          }
          sb.append(flashDivisor.divisors);
          system_flash_clockVar.setValue(flashDivisor.nearestTargetFrequency);
-         system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
       }
       else {
@@ -504,7 +504,7 @@ public class SimValidate extends Validator {
             sb.append("Illegal Frequency\n");
          }
          sb.append(flashDivisor.divisors);
-         system_flash_clockVar.setStatus(new Message(sb.toString(), severity));
+         system_flash_clockVar.setStatus(new Status(sb.toString(), severity));
          sim_clkdiv1_outdiv4Var.setValue(flashDivisor.divisor);
       }
    }

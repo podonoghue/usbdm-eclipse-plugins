@@ -5,7 +5,7 @@ import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
 /**
  * Model for a variable maintained by a provider
@@ -57,7 +57,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
     * @return Description of error or null if valid
     */
    public String isValid(String value) {
-      return getVariable().isValid(value);
+      return fVariable.isValid(value);
    }
 
    /**
@@ -94,22 +94,18 @@ public abstract class VariableModel extends EditableModel implements IModelChang
    }
 
    @Override
-   public String getDescription() {
-      String description = super.getDescription();
-      if (description == null) {
-         description = fVariable.getDescription();
-      }
-      return description;
+   public String getSimpleDescription() {
+      return fVariable.getDescription();
    }
 
    @Override
    public String getToolTip() {
-      return fVariable.getToolTip();
+      return fVariable.getDisplayToolTip();
    }
 
    @Override
-   Message getMessage() {
-      Message rv =  super.getMessage();
+   Status getStatus() {
+      Status rv =  super.getStatus();
       if ((rv != null) && rv.greaterThan(Severity.INFO)) {
          return rv;
       }

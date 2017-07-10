@@ -52,6 +52,37 @@ public class LongVariable extends Variable {
    }
 
    @Override
+   public String getDisplayToolTip() {
+
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getDisplayToolTip());
+      boolean newLineNeeded = sb.length()>0;
+      
+      if (getMin() != Long.MIN_VALUE) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("min="+getValueAsString(getMin())+" ");
+      }
+      if (getMax() != Long.MAX_VALUE) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("max="+getValueAsString(getMax())+" ");
+      }
+      if (getStep() != 1) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("step="+getValueAsString(getStep())+" ");
+      }
+      return (sb.length() == 0)?null:sb.toString();
+   }
+
+   @Override
    public double getValueAsDouble() {
       return getValueAsLong();
    }
@@ -117,10 +148,11 @@ public class LongVariable extends Variable {
    }
 
    /**
-    * Convert object to required type
+    * Convert object to suitable type for this variable
     * 
     * @param value
-    * @return
+    * 
+    * @return Converted object
     */
    private long translate(Object value) {
       try {
@@ -141,14 +173,19 @@ public class LongVariable extends Variable {
          }
          throw new Exception("Object "+ value + "(" + value.getClass()+") Not compatible with LongVariable");
       } catch (Exception e) {
-//         e.printStackTrace();
+         e.printStackTrace();
       }
       return fDefault;
    }
 
    @Override
    public boolean setValue(Object value) {
-      return setValue(translate(value));
+      try {
+         return setValue(translate(value));
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      return false;
    }
    
    @Override
@@ -157,26 +194,36 @@ public class LongVariable extends Variable {
    }
 
    /**
-    * Set minimum value
+    * Set minimum value.<br>
+    * Status listeners are informed of any change.
     * 
     * @param min Minimum value
     */
    public void setMin(long min) {
+      boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
       fMin = min;
       if (fDefault<fMin) {
          fDefault = fMin;
       }
+      if (statusChanged) {
+         notifyStatusListeners();
+      }
    }
 
    /**
-    * Set maximum value
+    * Set maximum value.<br>
+    * Status listeners are informed of any change.
     * 
     * @param min Maximum value
     */
    public void setMax(long max) {
+      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
       fMax = max;
       if (fDefault>fMax) {
          fDefault = fMax;
+      }
+      if (statusChanged) {
+         notifyStatusListeners();
       }
    }
 

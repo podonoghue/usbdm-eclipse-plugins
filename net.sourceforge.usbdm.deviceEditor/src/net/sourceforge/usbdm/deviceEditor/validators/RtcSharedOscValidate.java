@@ -3,8 +3,8 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -76,7 +76,7 @@ public class RtcSharedOscValidate extends Validator {
       else {
          rtc_1hz_clockVar.enable(false);
          rtc_1hz_clockVar.setValue(0);
-         rtc_1hz_clockVar.setStatus(new Message("Disabled by rtc_cr_clko", Severity.WARNING));
+         rtc_1hz_clockVar.setStatus(new Status("Disabled by rtc_cr_clko", Severity.WARNING));
       }
    }
 }

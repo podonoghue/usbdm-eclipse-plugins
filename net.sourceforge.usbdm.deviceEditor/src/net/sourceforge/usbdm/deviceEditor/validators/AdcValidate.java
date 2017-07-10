@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -28,6 +29,7 @@ public class AdcValidate extends Validator {
 
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
+         "/MCG/system_irc48m_clock",
          "/SIM/system_bus_clock",
          "/OSC0/system_oscerclk_clock",
          "/SIM/system_bus_clock",
@@ -48,59 +50,62 @@ public class AdcValidate extends Validator {
          addToWatchedVariables(externalVariables);
          addedExternalVariables = true;
       }
-      // OSC
+      // Variables
       //=================================
-      DoubleVariable clockFrequencyVar;
-      Variable adc_cfg1_adiclkVar;
-      Variable adc_cfg1_adivVar;
-      Variable adcInternalClockVar;
-      Variable system_bus_clockVar;
-      Variable system_oscerclk_clockVar;
-      Variable adc_cfg1_adlpcVar;
-      Variable adc_cfg2_adhscVar;
-      Variable adc_cfg1_modeVar;
+      DoubleVariable clockFrequencyVar    = (DoubleVariable) getVariable("clockFrequency");
+      Variable adc_cfg1_adiclkVar         = getVariable("adc_cfg1_adiclk");
+      Variable adc_cfg1_adivVar           = getVariable("adc_cfg1_adiv");
+      Variable adcInternalClockVar        = getVariable("adcInternalClock");
 
-      clockFrequencyVar = (DoubleVariable) getVariable("clockFrequency");
-      adc_cfg1_adiclkVar = getVariable("adc_cfg1_adiclk");
-      adc_cfg1_adivVar = getVariable("adc_cfg1_adiv");
-      adcInternalClockVar = getVariable("adcInternalClock");
+      Variable system_bus_clockVar        = getVariable("/SIM/system_bus_clock");
+      Variable system_oscerclk_clockVar   = getVariable("/OSC0/system_oscerclk_clock");
 
-      system_bus_clockVar = getVariable("/SIM/system_bus_clock");
-      system_oscerclk_clockVar = getVariable("/OSC0/system_oscerclk_clock");
+      Variable adc_cfg1_adlpcVar          = getVariable("adc_cfg1_adlpc");
+      Variable adc_cfg2_adhscVar          = getVariable("adc_cfg2_adhsc");
+      Variable adc_cfg1_modeVar           = getVariable("adc_cfg1_mode");
 
-      adc_cfg1_adlpcVar = getVariable("adc_cfg1_adlpc");
-      adc_cfg2_adhscVar = getVariable("adc_cfg2_adhsc");
-      adc_cfg1_modeVar = getVariable("adc_cfg1_mode");
-
+      // Varies with power settings etc
       adcInternalClockVar.setValue(ADC_CLOCK_VALUES[(int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong())]);
 
-      Variable clockSource = null;
+      LongVariable system_irc48m_clockVar = safeGetLongVariable("/MCG/system_irc48m_clock");
+      
+      Variable clockSourceVar = null;
       double clockFrequency;
 
       switch((int)adc_cfg1_adiclkVar.getValueAsLong()) {
       case 0: 
-         clockSource = system_bus_clockVar;
+         clockSourceVar = system_bus_clockVar;
          clockFrequency = system_bus_clockVar.getValueAsLong();
+         break;
+      case 1:
+         /* 
+          * TODO - better method of clock selection
+          * ALTCLK2: Varies with device but assume irc48m if available else busClock/2
+          */
+         if (system_irc48m_clockVar != null) {
+            clockSourceVar = system_irc48m_clockVar;
+            clockFrequency = system_irc48m_clockVar.getValueAsLong();
+         }
+         else {
+            clockSourceVar = system_bus_clockVar;
+            clockFrequency = system_bus_clockVar.getValueAsLong()/2.0;
+         }
+         break;
+      case 2:
+         clockSourceVar = system_oscerclk_clockVar;
+         clockFrequency = system_oscerclk_clockVar.getValueAsLong();
          break;
       default:
          adc_cfg1_adiclkVar.setValue(1);
-      case 1:
-         clockSource = system_bus_clockVar;
-         clockFrequency = system_bus_clockVar.getValueAsLong()/2.0;
-         break;
-      case 2:
-         clockSource = system_oscerclk_clockVar;
-         clockFrequency = system_oscerclk_clockVar.getValueAsLong();
-         break;
       case 3:
-         clockSource = adcInternalClockVar;
+         clockSourceVar = adcInternalClockVar;
          clockFrequency = adcInternalClockVar.getValueAsLong();
          break;
       }
       clockFrequency = clockFrequency/(1L<<adc_cfg1_adivVar.getValueAsLong());
       clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setStatus(clockSource.getFilteredStatus());
-      clockFrequencyVar.setOrigin(clockSource.getOrigin());
+      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
+      clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " divided by adc_cfg1_adiv");
 
       if (adc_cfg1_modeVar.getValueAsLong()>=2) {
          clockFrequencyVar.setMin(FADC_HIGH_RES_MIN);

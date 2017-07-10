@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.deviceEditor.model.Message;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
@@ -25,7 +25,7 @@ public class MappingInfo extends ObservableModel {
    private boolean fSelected;
 
    /** Message associated with mapping e.g. conflict etc*/
-   private Message fMessage = null;
+   private Status fMessage = null;
    
    private boolean fBusy = false;
    
@@ -157,7 +157,7 @@ public class MappingInfo extends ObservableModel {
     * @return 
     */
    public boolean isConflicted() {
-      return (fMessage!= null) && (fMessage.greaterThan(Message.Severity.OK));
+      return (fMessage!= null) && (fMessage.greaterThan(Status.Severity.OK));
    }
 
    /**
@@ -166,7 +166,7 @@ public class MappingInfo extends ObservableModel {
     * @return Message to display
     */
    public void setMessage(String msg) {
-      Message message = null;
+      Status message = null;
       if (msg.isEmpty()) {
          msg = null;
       }
@@ -176,7 +176,7 @@ public class MappingInfo extends ObservableModel {
          }
       }
       else {
-         message = new Message(msg, Message.Severity.ERROR);
+         message = new Status(msg, Status.Severity.ERROR);
          if (message.equals(fMessage)) {
             return;
          }
@@ -190,7 +190,7 @@ public class MappingInfo extends ObservableModel {
     * 
     * @return Message or null if none
     */
-   public Message getMessage() {
+   public Status getMessage() {
       return fMessage;
    }
 

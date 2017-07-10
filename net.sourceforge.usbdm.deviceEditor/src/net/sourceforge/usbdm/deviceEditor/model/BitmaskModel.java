@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Tree;
 
 import net.sourceforge.usbdm.deviceEditor.editor.BitmaskDialogue;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
 public class BitmaskModel extends VariableModel {
 
@@ -74,14 +74,14 @@ public class BitmaskModel extends VariableModel {
    }
 
    @Override
-   Message getMessage() {
-      Message msg = super.getMessage();
+   Status getStatus() {
+      Status msg = super.getStatus();
       if ((msg != null) && msg.greaterThan(Severity.WARNING)) {
          return msg;
       }
       String message = isValid(getValueAsString());
       if (message != null) {
-         msg = new Message(message);
+         msg = new Status(message);
       }
       return msg;
    }

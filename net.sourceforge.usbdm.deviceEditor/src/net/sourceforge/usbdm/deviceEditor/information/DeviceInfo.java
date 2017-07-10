@@ -1465,6 +1465,7 @@ public class DeviceInfo extends ObservableModel {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
          }
+         // Quietly set values of persistent variables
          for (String key:fVariables.keySet()) {
             String value = settings.get(key);
             if (value != null) {
@@ -1474,10 +1475,42 @@ public class DeviceInfo extends ObservableModel {
                }
             }
          }
+//         System.err.println("Notify changes of persistent variables");
+         /*
+          * Notify changes of persistent variables, 
+          * even on variables that were not loaded
+          * Shouldn't be necessary
+          */
+         for (String key:fVariables.keySet()) {
+            Variable var = fVariables.get(key);
+            if (!var.isDerived()) {
+               var.notifyListeners();
+            }
+         }
+//         System.err.println("Make sure peripherals have been updated");
+         /*
+          * Make sure peripherals have been updated 
+          */
          for (String peripheralName:fPeripheralsMap.keySet()) {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             if (peripheral instanceof PeripheralWithState) {
                ((PeripheralWithState)peripheral).variableChanged(null);
+            }
+         }
+         /**
+          * Sanity check - (usually) no persistent variables should change value initially
+          */
+         for (String key:fVariables.keySet()) {
+            String value = settings.get(key);
+            if (value != null) {
+               Variable var = fVariables.get(key);
+               if (!var.isDerived()) {
+                  if (!var.getPersistentValue().equals(value)) {
+                     System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getName());
+                     System.err.println("Set value     = " + value);
+                     System.err.println("Current value = " + var.getPersistentValue());
+                  }
+               }
             }
          }
       } catch (Exception e) {
@@ -1497,7 +1530,7 @@ public class DeviceInfo extends ObservableModel {
     * Save persistent settings to the given path
     */
    public void saveSettingsAs(Path path) {
-      System.err.println("DeviceInfo.saveSettingsAs("+path.toAbsolutePath()+")");
+//      System.err.println("DeviceInfo.saveSettingsAs("+path.toAbsolutePath()+")");
       fProjectSettingsPath = path;
       Settings settings = new Settings("USBDM");
       settings.put(DEVICE_NAME_SETTINGS_KEY, fDeviceName);

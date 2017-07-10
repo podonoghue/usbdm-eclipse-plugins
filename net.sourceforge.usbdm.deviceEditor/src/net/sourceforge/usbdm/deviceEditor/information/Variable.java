@@ -1,10 +1,10 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.Message;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-import net.sourceforge.usbdm.deviceEditor.model.Message.Severity;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
 public abstract class Variable extends ObservableModel {
    
@@ -54,7 +54,7 @@ public abstract class Variable extends ObservableModel {
    private String fToolTip = null;
    
    /** Status of variable */
-   private Message fStatus = null;
+   private Status fStatus = null;
    
    /** Origin of variable value */
    private String fOrigin = null;
@@ -63,19 +63,6 @@ public abstract class Variable extends ObservableModel {
    private boolean fDerived = false;
 
    private final boolean debug = false;
-
-   /** Default value for variable */
-//   private String fDefaultValue;
-   
-//   /**
-//    * Constructor
-//    * 
-//    * @param name Name to display to user. Also used as default key.
-//    */
-//   public Variable(String name) {
-//      fName = name;
-//      fKey  = name;
-//   }
 
    /**
     * Constructor
@@ -112,18 +99,20 @@ public abstract class Variable extends ObservableModel {
    /**
     * Get the variable value as a string for use in substitutions
     * 
-    * @return the Value
+    * @return String for text substitutions (in C code)
     */
    public abstract String getSubstitutionValue();
 
    /**
     * Get variable value as a string suitable for user display
-    * @return
+    * 
+    * @return String for display
     */
    public abstract String getValueAsString();
    
    /**
-    * Sets variable value
+    * Sets variable value<br>
+    * Listeners are informed if the variable changes
     * 
     * @param value The value to set
     * 
@@ -146,21 +135,12 @@ public abstract class Variable extends ObservableModel {
    public abstract String getPersistentValue();
 
    /**
-    * Set the variable value as a string for use in restoring state<br>
+    * Set the variable value from a string used in restoring state<br>
     * Listeners are not affected
     * 
-    * @param value The raw (substitution) value
+    * @param value The value to restore
     */
    public abstract void setPersistentValue(String value);
-
-   /**
-    * Get variable value as long without reference to whether it is enabled
-    * 
-    * @return
-    */
-   public long getRawValueAsLong() {
-      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
-   }
 
    /**
     * Sets variable default value
@@ -177,7 +157,7 @@ public abstract class Variable extends ObservableModel {
    
    @Override
    public String toString() {
-      return String.format(getSimpleClassName()+"(Name=%s, Key=%s, value=%s (%s)", getName(), getKey(), getSubstitutionValue(), getValueAsString());
+      return String.format(getSimpleClassName()+"(Name=%s, Key=%s, value=%s (%s))", getName(), getKey(), getSubstitutionValue(), getValueAsString());
    }
 
    /**
@@ -191,10 +171,10 @@ public abstract class Variable extends ObservableModel {
          return;
       }
       if (message == null) {
-         setStatus((Message)null);
+         setStatus((Status)null);
       }
       else {
-         setStatus(new Message(message));
+         setStatus(new Status(message));
       }
    }
 
@@ -203,7 +183,7 @@ public abstract class Variable extends ObservableModel {
     * 
     * @param message
     */
-   public void setStatus(Message message) {
+   public void setStatus(Status message) {
       if ((fStatus == null) && (message == null)) {
          // No change
          return;
@@ -221,10 +201,13 @@ public abstract class Variable extends ObservableModel {
     * 
     * @return
     */
-   public Message getStatus() {
-      String msg = isValid();
-      if (msg != null) {
-         return new Message(msg, Severity.WARNING);
+   public Status getStatus() {
+      if (!isEnabled()) {
+         return null;
+      }
+      String status = isValid();
+      if (status != null) {
+         return new Status(status, Severity.ERROR);
       }
       return fStatus;
    }
@@ -235,7 +218,7 @@ public abstract class Variable extends ObservableModel {
     * 
     * @return
     */
-   public Message getFilteredStatus() {
+   public Status getFilteredStatus() {
       if ((fStatus != null) && (fStatus.getSeverity().greaterThan(Severity.INFO))) {
          return fStatus;
       }
@@ -243,7 +226,9 @@ public abstract class Variable extends ObservableModel {
    }
 
    /**
-    * Get the origin of signal value
+    * Get the origin of variable value<br>
+    * This is intended to indicate how the value originated or is derived (calculated)<br>
+    * Defaults to the description if not explicitly set by setOrigin().
     * 
     * @return The origin
     */
@@ -252,7 +237,7 @@ public abstract class Variable extends ObservableModel {
    }
 
    /**
-    * Set the origin of signal value
+    * Set the origin of variable value
     * 
     * @param origin The origin to set
     */
@@ -302,13 +287,49 @@ public abstract class Variable extends ObservableModel {
    }
 
    /**
-    * Get the variable value as a long
+    * Get value as a boolean without reference to whether it is enabled
+    * 
+    * @return value as boolean
+    */
+   public boolean getRawValueAsBoolean() {
+      throw new RuntimeException("Variable " + getName() + " doesn't have a boolean representation");
+   }
+
+   /**
+    * Get the value as a long
     * 
     * @return Value in user format as long
     */
    public long getValueAsLong() {
       throw new RuntimeException(this+"("+getClass()+") is not compatible with long" );
       }
+
+   /**
+    * Get variable value as long without reference to whether it is enabled
+    * 
+    * @return
+    */
+   public long getRawValueAsLong() {
+      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
+   }
+
+   /**
+    * Get value as a double if representable
+    * 
+    * @return value as double
+    */
+   public double getValueAsDouble() {
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with double" );
+   }
+
+   /**
+    * Get value as a double without reference to whether it is enabled
+    * 
+    * @return value as double
+    */
+   public double getRawValueAsDouble() {
+      throw new RuntimeException("Variable " + getName() + " doesn't have a double representation");
+   }
 
    /**
     * Checks if the value is valid for assignment to this variable
@@ -331,9 +352,9 @@ public abstract class Variable extends ObservableModel {
    }
    
    /**
-    * Checks is a character is 'plausible' for this  variable<br>
+    * Checks is a character is 'plausible' for this variable<br>
     * Used to validate initial text entry in dialogues<br>
-    * Allows entry of illegal strings while editing even though current result is invalid
+    * Used to restrict key entry when editing.
     * 
     * @param character Character to validate
     * 
@@ -356,6 +377,7 @@ public abstract class Variable extends ObservableModel {
       }
       fEnabled = enabled;
       notifyListeners();
+      notifyStatusListeners();
       return true;
    }
 
@@ -396,16 +418,30 @@ public abstract class Variable extends ObservableModel {
    /**
     * Get tool tip
     * 
-    * @return
+    * @return toolTip
     */
    public String getToolTip() {
+      return fToolTip;
+   }
+
+   /**
+    * Get tool tip.<br>
+    * This will be constructed from:
+    * <li>Status e.g. warning etc. {@link #setStatus(Status)}
+    * <li>Explicitly set Tooltip {@link #setToolTip(String)}
+    * <li>Origin {@link #setOrigin(String origin)})
+    * 
+    * @return String
+    */
+   public String getDisplayToolTip() {
       StringBuilder sb = new StringBuilder();
-      if (fStatus != null) {
-         if (fStatus.greaterThan(Message.Severity.WARNING)) {
-            sb.append(fStatus.getMessage());
+      Status status = getStatus();
+      if (status != null) {
+         if (status.greaterThan(Status.Severity.WARNING)) {
+            sb.append(status.getText());
          }
-         else if (fStatus != null) {
-            sb.append(fStatus.getRawMessage());
+         else if (status != null) {
+            sb.append(status.getSimpleText());
          }
       }
       if (fToolTip != null) {
@@ -427,19 +463,17 @@ public abstract class Variable extends ObservableModel {
    /**
     * Creates model for displaying this variable
     * 
-    * @param parent
-    * @return
+    * @param parent Parent for the new model
+    * 
+    * @return {@link VariableModel}
     */
    public abstract VariableModel createModel(BaseModel parent);
 
-   public double getValueAsDouble() {
-      throw new RuntimeException(this+"("+getClass()+") is not compatible with double" );
-   }
-
-   public double getRawValueAsDouble() {
-      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
-   }
-
+   /**
+    * Print string if debugging on
+    * 
+    * @param string
+    */
    public void debugPrint(String string) {
       if (debug) {
          System.err.println(string);
@@ -447,7 +481,7 @@ public abstract class Variable extends ObservableModel {
    }
    
    /** 
-    * Sets if this variable is derived (calculated) from other variables 
+    * Set if this variable is derived (calculated) from other variables 
     * 
     * @param derived 
     */
@@ -456,29 +490,12 @@ public abstract class Variable extends ObservableModel {
    }
    
    /** 
-    * Gets if this variable is derived (calculated) from other variables 
+    * Get if this variable is derived (calculated) from other variables 
     * 
     * @return  
     */
    public boolean isDerived() {
       return fDerived;
    }
-//   /**
-//    * Sets default value for variable
-//    * 
-//    * @param defaultValue
-//    */
-//   public void setDefaultValue(String defaultValue) {
-//      fDefaultValue = defaultValue;
-//   }
-//
-//   /**
-//    * Sets default value for variable
-//    * 
-//    * @param defaultValue
-//    */
-//   public String getDefaultValue(String defaultValue) {
-//      return fDefaultValue;
-//   }
 
 }

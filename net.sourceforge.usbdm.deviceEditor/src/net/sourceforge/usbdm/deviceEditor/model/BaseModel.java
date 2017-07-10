@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.StructuredViewer;
-import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 
@@ -66,11 +65,7 @@ public abstract class BaseModel {
 //      updateAncestors();
       final StructuredViewer viewer = getViewer();
       if (viewer != null) {
-         Display.getDefault().asyncExec(new Runnable() {
-         public void run() {
             viewer.update(this, null);
-         }
-      });
       }
    }
    
@@ -104,7 +99,7 @@ public abstract class BaseModel {
    protected       String            fToolTip = "";
    
    /** Information/Warning/Error message */
-   protected Message fMessage = null;
+   protected Status fMessage = null;
 
    /** Controls logging */
    protected boolean fLogging = false;
@@ -231,15 +226,25 @@ public abstract class BaseModel {
     * 
     * @return string
     */
-   public String getDescription() {
-      String description = fDescription;
-      Message message = getMessage();
-      if ((message != null) && (message.greaterThan(Message.Severity.OK))) {
-         if (message.greaterThan(Message.Severity.INFO)) {
-            description = message.getMessage();
+   public String getSimpleDescription() {
+      return fDescription;
+   }
+   
+   /**
+    * Gets description of element.<br>
+    * If the status is not <b>null</b> or more severe than <b>Status.Severity.OK</b> then the status text is returned instead.
+    * 
+    * @return string Description
+    */
+   public final String getDescription() {
+      String description = getSimpleDescription();
+      Status status = getStatus();
+      if ((status != null) && (status.greaterThan(Status.Severity.OK))) {
+         if (status.greaterThan(Status.Severity.INFO)) {
+            description = status.getText();
          }
          else {
-            description = message.getRawMessage();
+            description = status.getSimpleText();
          }
          // Truncate to single line
          int eolIndex = description.indexOf('\n');
@@ -251,16 +256,6 @@ public abstract class BaseModel {
          System.err.println("Getting description "+fName+" => "+description);
       }
       return description;
-   }
-
-   /**
-    * 
-    * Gets description of element
-    * 
-    * @return string
-    */
-   public String getShortDescription() {
-      return fDescription;
    }
 
    /**
@@ -284,14 +279,14 @@ public abstract class BaseModel {
    /**
     * Set node message as error
     * 
-    * @param message Message to set (may be null)
+    * @param status Status to set (may be null to clear status)
     */
-   public void setMessage(String message) {
-      Message msg = null;
-      if ((message != null) && !message.isEmpty()) {
-         msg = new Message(message, Message.Severity.ERROR);
+   public void setStatus(String status) {
+      Status msg = null;
+      if ((status != null) && !status.isEmpty()) {
+         msg = new Status(status, Status.Severity.ERROR);
       }
-      setMessage(msg);
+      setStatus(msg);
    }
 
    /**
@@ -299,20 +294,20 @@ public abstract class BaseModel {
     * 
     * @param message Message to set (may be null)
     */
-   void setMessage(Message message) {
+   void setStatus(Status message) {
       fMessage = message;
    }
    
    /**
-    * Get message that applies to this node<br>
-    * Note - Error messages are propagated from children
+    * Get status that applies to this node<br>
+    * Note - Error status is propagated from children
     * 
     * @return
     */
-   Message getMessage() {
+   Status getStatus() {
       // Search children for error
-      Message rv = fMessage;
-      if ((rv != null) && rv.greaterThan(Message.Severity.WARNING)) {
+      Status rv = fMessage;
+      if ((rv != null) && rv.greaterThan(Status.Severity.WARNING)) {
          return rv;
       }
       if (fChildren == null) {
@@ -320,8 +315,8 @@ public abstract class BaseModel {
       }
       for (Object node:fChildren) {
          BaseModel child = (BaseModel) node;
-         Message m = child.getMessage();
-         if ((m != null) && m.greaterThan(Message.Severity.WARNING)) {
+         Status m = child.getStatus();
+         if ((m != null) && m.greaterThan(Status.Severity.WARNING)) {
             return m;
          }
       }
@@ -335,8 +330,8 @@ public abstract class BaseModel {
     * @return
     */
    public boolean isError() {
-      Message msg = getMessage();
-      return (msg != null) && (msg.greaterThan(Message.Severity.WARNING));
+      Status msg = getStatus();
+      return (msg != null) && (msg.greaterThan(Status.Severity.WARNING));
    }
 
    /** 
@@ -345,8 +340,8 @@ public abstract class BaseModel {
     * @return
     */
    public boolean isWarning() {
-      Message msg = getMessage();
-      return (msg != null) && (msg.greaterThan(Message.Severity.INFO));
+      Status msg = getStatus();
+      return (msg != null) && (msg.greaterThan(Status.Severity.INFO));
    }
 
    /** 
@@ -377,12 +372,14 @@ public abstract class BaseModel {
       if (tip == null) {
          tip = "";
       }
-      Message message = getMessage();
-      if ((message != null) && (message.greaterThan(Message.Severity.WARNING))) {
-         tip += (tip.isEmpty()?"":"\n")+message.getMessage();
-      }
-      else if (message != null) {
-         tip += (tip.isEmpty()?"":"\n")+message.getRawMessage();
+      Status message = getStatus();
+      if (message != null) {
+         if (message.greaterThan(Status.Severity.WARNING)) {
+            tip += (tip.isEmpty()?"":"\n")+message.getText();
+         }
+         else {
+            tip += (tip.isEmpty()?"":"\n")+message.getSimpleText();
+         }
       }
       return (tip.isEmpty())?null:tip;
    }
@@ -402,7 +399,7 @@ public abstract class BaseModel {
     * @param mappedNodes
     * @return
     */
-   protected Message checkConflicts(Map<String, List<MappingInfo>> mappedNodes) {
+   protected Status checkConflicts(Map<String, List<MappingInfo>> mappedNodes) {
       return null;
    }
 

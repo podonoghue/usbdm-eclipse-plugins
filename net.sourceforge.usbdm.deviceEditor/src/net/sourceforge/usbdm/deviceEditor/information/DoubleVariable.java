@@ -1,8 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.DoubleVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class DoubleVariable extends Variable {
@@ -43,6 +43,30 @@ public class DoubleVariable extends Variable {
       super(name, key);
       setValue(value);
       setDefault(value);
+   }
+
+   @Override
+   public String getDisplayToolTip() {
+
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getDisplayToolTip());
+      boolean newLineNeeded = sb.length()>0;
+      
+      if (getMin() != Double.NEGATIVE_INFINITY) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("min="+getValueAsString(getMin())+" ");
+      }
+      if (getMax() != Double.POSITIVE_INFINITY) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("max="+getValueAsString(getMax())+" ");
+      }
+      return (sb.length() == 0)?null:sb.toString();
    }
 
    @Override
@@ -106,10 +130,11 @@ public class DoubleVariable extends Variable {
    }
 
    /**
-    * Convert object to required type
+    * Convert object to suitable type for this variable
     * 
     * @param value
-    * @return
+    * 
+    * @return Converted object
     */
    private double translate(Object value) {
       try {
@@ -148,26 +173,36 @@ public class DoubleVariable extends Variable {
    }
 
    /**
-    * Set minimum value
+    * Set minimum value.<br>
+    * Status listeners are informed of any change.
     * 
-    * @param min Minimum value in user format
+    * @param min Minimum value
     */
    public void setMin(double min) {
+      boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
       fMin = min;
       if (fDefault<fMin) {
          fDefault = fMin;
       }
+      if (statusChanged) {
+         notifyStatusListeners();
+      }
    }
 
    /**
-    * Set maximum value
+    * Set maximum value.<br>
+    * Status listeners are informed of any change.
     * 
-    * @param min Maximum value
+    * @param max Maximum value
     */
    public void setMax(double max) {
+      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
       fMax = max;
       if (fDefault>fMax) {
          fDefault = fMax;
+      }
+      if (statusChanged) {
+         notifyStatusListeners();
       }
    }
 
@@ -203,6 +238,11 @@ public class DoubleVariable extends Variable {
       fUnits = units;
    }
 
+   @Override
+   public String isValid() {
+      return isValid(fValue);
+   }
+   
    /**
     * Checks if the value is valid for assignment to this variable
     * 

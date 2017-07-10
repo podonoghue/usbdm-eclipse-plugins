@@ -26,9 +26,10 @@ public class BooleanVariable extends Variable {
    }
 
    /**
-    * Set value as boolean
+    * Sets variable value<br>
+    * Listeners are informed if the variable changes
     * 
-    * @param value Value as boolean
+    * @param value The value to set
     * 
     * @return True if variable actually changed value
     */
@@ -43,10 +44,11 @@ public class BooleanVariable extends Variable {
    }
    
    /**
-    * Convert object to required type
+    * Convert object to suitable type for this variable
     * 
     * @param value
-    * @return
+    * 
+    * @return Converted object
     */
    private boolean translate(Object value) {
       if (value instanceof Boolean) {
@@ -151,5 +153,10 @@ public class BooleanVariable extends Variable {
    @Override
    public void setPersistentValue(String value) {
       fValue = translate(value);
+   }
+
+   @Override
+   public boolean getRawValueAsBoolean() {
+      return fValue;
    }
 }
