@@ -12,12 +12,13 @@
 #define E_NO_ERROR  0
 #define E_TOO_SMALL 1
 #define E_TOO_LARGE 2
+typedef int ErrorCode;
 
 int setErrorCode(int err) {
    return err;
 }
 
-static int getPdbDividers(float period, uint32_t &multValue, int &prescaleValue, uint32_t &mod) {
+static Err getPdbDividers(float period, uint32_t &multValue, int &prescaleValue, uint32_t &mod) {
 
    // Multiplier factors for prescale divider
    static const int   multFactors[] = {1,10,20,40};
@@ -75,6 +76,44 @@ void testPdb() {
       }
    }
 }
+
+/**
+ * Set period of timer
+ *
+ * @param[in]  period Period in seconds as a float
+ *
+ * @note May enable and adjust the pre-scaler to appropriate value.
+ *
+ * @return true => success, false => failed to find suitable values for PBYP & PRESCALE
+ */
+static ErrorCode setPeriod(float period) {
+   float    inputClock = Info::getInputClockFrequency();
+   int      prescaleFactor=1;
+   uint32_t prescalerValue=0;
+   while (prescalerValue<=16) {
+      float    clock = inputClock/prescaleFactor;
+      uint32_t mod   = round(period*clock);
+      if (mod < MINIMUM_RESOLUTION) {
+         // Too short a period for 1% resolution
+         return setErrorCode(E_TOO_SMALL);
+      }
+      if (mod <= 65535) {
+         // Disable LPTMR before prescale change
+         uint32_t csr = lptmr->CSR;
+         lptmr->CSR = 0;
+         __DSB();
+         lptmr->CMR  = mod;
+         lptmr->PSR  = (lptmr->PSR & ~(LPTMR_PSR_PRESCALE_MASK|LPTMR_PSR_PBYP_MASK))|LPTMR_PSR_PRESCALE(prescalerValue-1)|LPTMR_PSR_PBYP(prescalerValue==0);
+         lptmr->CSR  = csr;
+         return E_NO_ERROR;
+      }
+      prescalerValue++;
+      prescaleFactor <<= 1;
+   }
+   // Too long a period
+   return setErrorCode(E_TOO_LARGE);
+}
+};
 
 
 /**
