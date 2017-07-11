@@ -2,7 +2,9 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -38,59 +40,82 @@ public class FtmValidate extends Validator {
       }
       // OSC
       //=================================
-      DoubleVariable    clockFrequencyVar          =  (DoubleVariable) getVariable("clockFrequency");
-      DoubleVariable    clockPeriodVar             =  (DoubleVariable) getVariable("clockPeriod");
-      DoubleVariable    maximumPeriodVar           =  (DoubleVariable) getVariable("maximumPeriod");
+      DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");
+      DoubleVariable    clockPeriodVar             =  getDoubleVariable("clockPeriod");
       Variable          ftm_sc_clksVar             =  getVariable("ftm_sc_clks");
       Variable          ftm_sc_psVar               =  getVariable("ftm_sc_ps");
+      LongVariable      ftm_modVar                 =  getLongVariable("ftm_mod");
+      DoubleVariable    ftm_mod_periodVar          =  getDoubleVariable("ftm_mod_period");
+      BooleanVariable   ftm_sc_cpwmsVar            =  getBooleanVariable("ftm_sc_cpwms");
       
-      Variable clockSource = null;
-      
-      double clockFrequency;
+      Variable clockSourceVar = null;
       
       switch((int)ftm_sc_clksVar.getValueAsLong()) {
       case 0: 
-         clockSource = null;
+         clockSourceVar = new DoubleVariable("Disabled", "/Ftm/Disabled");
+         clockSourceVar.setOrigin("Disabled");
+         clockSourceVar.setValue(0.0);
          break;
       default:
          ftm_sc_clksVar.setValue(1);
       case 1:
-         clockSource = getVariable("/SIM/system_bus_clock");
+         clockSourceVar = getVariable("/SIM/system_bus_clock");
          break;
       case 2:
-         clockSource = getVariable("/MCG/system_mcgffclk_clock");
+         clockSourceVar = getVariable("/MCG/system_mcgffclk_clock");
          break;
       case 3:
-         clockSource = getVariable("ftmExternalClock");
+         clockSourceVar = getVariable("ftmExternalClock");
          break;
       }
-      if (clockSource == null){
-         clockFrequencyVar.setValue(0.0);
-         clockFrequencyVar.enable(false);
-         clockFrequencyVar.setOrigin("Disabled");
-         clockPeriodVar.enable(false);
-         clockPeriodVar.setValue(0.0);
-         clockPeriodVar.setOrigin("Disabled");
-      }
-      else {
-         clockFrequency = clockSource.getValueAsLong();
-         clockFrequency = clockFrequency/(1L<<ftm_sc_psVar.getValueAsLong());
-         clockFrequencyVar.setValue(clockFrequency);
-         if (clockFrequency == 0) {
-            clockFrequencyVar.enable(false);
-            clockPeriodVar.enable(false);
-            clockPeriodVar.setValue(0.0);
+      double clockFrequency = clockSourceVar.getValueAsDouble();
+      String clockOrigin = clockSourceVar.getOrigin();
+
+      clockFrequency = clockFrequency/(1L<<ftm_sc_psVar.getValueAsLong());
+      
+      clockFrequencyVar.setValue(clockFrequency);
+      clockFrequencyVar.setOrigin(clockOrigin + " frequency / prescaler");
+      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
+
+      clockPeriodVar.setOrigin(clockOrigin + " period * prescaler");
+      clockPeriodVar.setStatus(clockSourceVar.getFilteredStatus());
+      
+      clockFrequencyVar.enable(clockFrequency != 0);
+      clockPeriodVar.enable(clockFrequency != 0);
+      ftm_mod_periodVar.enable(clockFrequency != 0);
+
+      if (clockFrequency != 0){
+         long ftm_mod = ftm_modVar.getValueAsLong();
+
+         double clockPeriod = 1/clockFrequency;
+         
+         clockPeriod = 1.0/clockFrequency;
+         clockPeriodVar.setValue(clockPeriod);
+         
+         boolean ftm_sc_cpwms = ftm_sc_cpwmsVar.getValueAsBoolean();
+         
+         double ftm_mod_period = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
+         
+         if (variable != null) {
+            // Update selectively
+            if (variable.equals(ftm_mod_periodVar)) {
+               ftm_mod_period = ftm_mod_periodVar.getValueAsDouble();
+               // Calculate rounded value
+               if (ftm_sc_cpwms) {
+                  ftm_mod        = Math.max(0, Math.round((ftm_mod_period/clockPeriod)/2));
+               }
+               else {
+                  ftm_mod        = Math.max(0, Math.round((ftm_mod_period/clockPeriod)-1));
+               }
+               ftm_mod_period = clockPeriod * (ftm_sc_cpwms?(2*(ftm_mod)):((ftm_mod+1)));
+               // Update
+               ftm_modVar.setValue(ftm_mod);
+            }
          }
-         else {
-            clockFrequencyVar.enable(true);
-            clockPeriodVar.enable(true);
-            clockPeriodVar.setValue(1/clockFrequency);
-         }
-         maximumPeriodVar.setValue(clockPeriodVar.getValueAsDouble()*65536);
-         clockFrequencyVar.setOrigin(clockSource.getOrigin());
-         clockFrequencyVar.setStatus(clockSource.getFilteredStatus());
-         clockPeriodVar.setOrigin(clockSource.getOrigin());
-         clockPeriodVar.setStatus(clockSource.getFilteredStatus());
+         double ftm_mod_periodMax = clockPeriod * (ftm_sc_cpwms?(2*(65535.5)):((65536.5)));
+         ftm_mod_periodVar.setValue(ftm_mod_period);
+         ftm_mod_periodVar.setMax(ftm_mod_periodMax);
+         
       }
    }
 
