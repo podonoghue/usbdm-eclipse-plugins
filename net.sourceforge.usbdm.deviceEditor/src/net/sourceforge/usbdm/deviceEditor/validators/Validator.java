@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -101,6 +102,40 @@ public abstract class Validator {
          throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
       }
       return (BooleanVariable) variable;
+   }
+
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found
+    * @throws Exception 
+    */
+   ChoiceVariable getChoiceVariable(String key) throws Exception {
+      Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
+      if (!(variable instanceof ChoiceVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+      }
+      return (ChoiceVariable) variable;
+   }
+
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found or null
+    */
+   ChoiceVariable safeGetChoiceVariableVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof ChoiceVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+      }
+      return (ChoiceVariable) variable;
    }
 
    /**
