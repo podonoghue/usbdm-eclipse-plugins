@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
@@ -49,13 +50,14 @@ public class ParseMenuXML extends XML_BaseParser {
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
 
    public static class Data {
-      public final BaseModel                    fRootModel;
-      public final Map<String, CodeTemplate>    fTemplate;
-      public final ArrayList<Validator>         fValidators;
-      public final ProjectActionList            fProjectActionList;
+      private final BaseModel                    fRootModel;
+      private final Map<String, CodeTemplate>    fTemplates;
+      private final ArrayList<Validator>         fValidators;
+      private final ProjectActionList            fProjectActionList;
+      
       public Data(BaseModel model, HashMap<String, CodeTemplate> templates, ArrayList<Validator> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
-         fTemplate   = templates;
+         fTemplates  = templates;
          if (validators == null) {
             // Empty list rather than null
             fValidators = new ArrayList<Validator>();
@@ -65,6 +67,72 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          fProjectActionList = projectActionList;
       }
+      
+      /**
+       * Combines key and namespace to generate a unique key
+       * 
+       * @param key
+       * @param namespace
+       * 
+       * @return
+       */
+      static public String makeKey(String key, String namespace) {
+         if (!namespace.equals("all")) {
+            key = namespace+"."+key;
+         }
+         return key;
+      }
+      /**
+       * Get validators
+       * 
+       * @return
+       */
+      public ArrayList<Validator> getValidators() {
+         return fValidators;
+      }
+      
+      /**
+       * Get Action list
+       * 
+       * @return
+       */
+      public ProjectActionList getProjectActionList() {
+         return fProjectActionList;
+      }
+      
+      /**
+       * Get root model
+       * 
+       * @return
+       */
+      public BaseModel getRootModel() {
+         return fRootModel;
+      }
+
+      /**
+       * Get map of all templates
+       * 
+       * @return
+       */
+      public Map<String, CodeTemplate> getTemplates() {
+         return fTemplates;
+      }
+      /**
+       * Get template with given key in the given namespace
+       * 
+       * @param namespace  Namespace "info", "class", "usbdm", "all"
+       * @param key        Key for template (may be "")
+       * @return
+       */
+      public String getTemplate(String namespace, String key) {
+         key = makeKey(key, namespace);
+         CodeTemplate template = fTemplates.get(key);
+         if (template == null) {
+            return "";
+         }
+         return template.getTemplate();
+      }
+      
    }
 
    /** Name of model (filename) */
@@ -151,6 +219,25 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
+    * Check if element has derivedFrom 
+    * 
+    * @param   varElement  Element to parse
+    * 
+    * @return  Derived from variable if it exists
+    */
+   Variable getDerived(Element varElement) {      
+      Variable otherVariable = null;
+      String derivedFromName = varElement.getAttribute("derivedFrom");
+      if (!derivedFromName.isEmpty()) {
+         derivedFromName = fProvider.makeKey(derivedFromName);
+         otherVariable = fProvider.safeGetVariable(derivedFromName);
+         if (otherVariable == null) {
+            throw new RuntimeException("derivedFromName variable not found for " + derivedFromName);
+         }
+      }
+      return otherVariable;
+   }
+   /**
     * Parse attributes common to most variables<br>
     * Also creates model.
     * Processes the following attributes:
@@ -171,18 +258,10 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private Variable parseCommonAttributes(BaseModel parent, Element varElement, Class<?> clazz) {
       
-      Variable variable = createVariable(varElement, clazz);
+      Variable variable      = createVariable(varElement, clazz);
+      Variable otherVariable = getDerived(varElement);
       
-//      if (variable.getName().equalsIgnoreCase("pdb_mod_period")) {
-//         System.err.println("Found " + variable.getName());
-//      }
-      String derivedFromName = varElement.getAttribute("derivedFrom");
-      if (!derivedFromName.isEmpty()) {
-         derivedFromName = fProvider.makeKey(derivedFromName);
-         Variable otherVariable = fProvider.safeGetVariable(derivedFromName);
-         if (otherVariable == null) {
-            throw new RuntimeException("derivedFromName variable not found for " + derivedFromName);
-         }
+      if (otherVariable != null) {
          variable.setDescription(otherVariable.getDescription());
          variable.setToolTip(otherVariable.getToolTip());
          variable.setOrigin(otherVariable.getOrigin());
@@ -283,7 +362,6 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
       ChoiceVariable variable = (ChoiceVariable) parseCommonAttributes(parent, varElement, ChoiceVariable.class);
-
       parseChoices(variable, varElement);
    }
 
@@ -336,6 +414,9 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
 
       BooleanVariable variable = (BooleanVariable) parseCommonAttributes(parent, varElement, BooleanVariable.class);
+      if (Boolean.valueOf(varElement.getAttribute("derivedFrom"))) {
+         
+      }
       parseChoices(variable, varElement);
    }
 
@@ -381,16 +462,23 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseAliasOption(BaseModel parent, Element stringElement) throws Exception {
       // Key and name are interchangeable
-      // Name is an ID and can be used for validation checks within the file.
-      // Key is used to refer to external variable without validation error
+      // Name is an IDREF and can be used for validation checks within the file.
+      // Key is used to refer to an external variable without validation error
+      // DisplayName is used for GUI (model)
       String  name         = stringElement.getAttribute("name");
-      String  displayName  = stringElement.getAttribute("displayName");
       String  key          = stringElement.getAttribute("key");
+      String  displayName  = stringElement.getAttribute("displayName");
       String  description  = stringElement.getAttribute("description");
       String  toolTip      = getToolTip(stringElement);
 
+      if (!key.isEmpty() && !name.isEmpty()) {
+         throw new RuntimeException("Both name and key provided for <alias>, key='" + key +"', name='" + name + "'");
+      }
       if (key.isEmpty()) {
          key = name;
+      }
+      if (key.isEmpty()) {
+         throw new RuntimeException("Alias requires either name or key "+displayName);
       }
       key  = substituteKey(key);
       key = fProvider.makeKey(key);
@@ -424,30 +512,48 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * 
     * @param parentModel
     * @param element
     */
    private void parseConstant(BaseModel parentModel, Element element) {
+      // Key and name are interchangeable
+      // Name is an ID and can be used for validation checks within the file.
+      // Key is used to refer to an external variable without validation error
       String name       = element.getAttribute("name");
-      String id         = element.getAttribute("id");
       String key        = element.getAttribute("key");
       String value      = element.getAttribute("value");
-      // Accept either key or id (prefer key)
+      boolean isWeak    = Boolean.valueOf(element.getAttribute("weak"));
+      boolean isReplace = Boolean.valueOf(element.getAttribute("replace"));
+      
+      // Accept either key or name (prefer key)
       if (key.isEmpty()) {
-         key = id;
-      }
-      if (key.isEmpty()) {
-         key = fProvider.makeKey(name);
+         key = name;
       }
       if (name.isEmpty()) {
          name = key;
       }
+      key  = fProvider.makeKey(key);
       key  = substituteKey(key);
       name = substituteKey(name);
-      StringVariable var = new StringVariable(name, key);
-      fProvider.addVariable(var);
-      var.setValue(value);
+      Variable var = fProvider.safeGetVariable(key);
+      if (var != null) {
+         if (isWeak) {
+            // Ignore constant
+         }
+         else if (isReplace) {
+            // Replace constant value
+            var.setValue(value);
+            return;
+         }
+         else {
+            throw new RuntimeException("Constant multiply defined, name="+name+", key=" + key);
+         }
+      }
+      else {
+         var = new StringVariable(name, key);
+         fProvider.addVariable(var);
+         var.setValue(value);
+      }
    }
 
    private void parseControlItem(Element element) throws Exception {
@@ -466,7 +572,15 @@ public class ParseMenuXML extends XML_BaseParser {
          fValidators.add(parseValidate(element));
       }
       else if (element.getTagName() == "template") {
-         String templateName = element.getAttribute("name");
+         String name = element.getAttribute("name");
+         String namespace = element.getAttribute("namespace");
+         
+         if (namespace.isEmpty()) {
+            throw new RuntimeException("Template is missing namespace, name='" + name + "'");
+         }
+         if (!name.isEmpty() && !namespace.equals("all")) {
+            throw new RuntimeException("Named templates must have 'all' namespace, name='" + name + "'");
+         }
          Variable dimension = null;
          if (element.hasAttribute("dim")) {
             String dimName = element.getAttribute("dim");
@@ -476,7 +590,7 @@ public class ParseMenuXML extends XML_BaseParser {
                throw new RuntimeException("Alias not found for " + key);
             }
          }
-         addTemplate(templateName, dimension,
+         addTemplate(name, namespace, dimension,
                element.getTextContent().
                replaceAll("^\n\\s*","").
                replaceAll("(\\\\n|\\n)\\s*", "\n").
@@ -600,21 +714,26 @@ public class ParseMenuXML extends XML_BaseParser {
     * Add template<br>
     * If the template exists then the text is appended otherwise it is created.
     * 
-    * @param key        Key used to index templates
-    * @param dimension  Dimension for array templates
+    * @param key        Key used to index template
+    * @param namespace  Namespace for template (info, usbdm, class)
+    * @param dimension  Dimension for array template
     * @param contents   Text for template
     * 
     * @throws Exception 
     */
-   private void addTemplate(String key, Variable dimension, String contents) throws Exception {
+   private void addTemplate(String key, String namespace, Variable dimension, String contents) throws Exception {
+      key = Data.makeKey(key, namespace);
+
+      // Check for existing template
       StringBuilder sb = fTemplates.get(key);
       if (sb == null) {
+         // Create new template
          sb = new StringBuilder();
          fTemplates.put(key, sb);
       }
       if (dimension != null) {
          if (fTemplateDimensions.put(key, dimension) != null) {
-            throw new Exception("Template has multiple dimensions");
+            throw new Exception("Template has multiple dimensions key='" + key + "'");
          }
       }
       sb.append(contents);
@@ -655,62 +774,69 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    void parseChoices(Variable variable, Element menuElement) throws Exception {
+      
       ArrayList<Pair> entries = new ArrayList<Pair>();
       String defaultValue = null;
-      //      if (variable.getName().startsWith("clk_recovery_ctrl")) {
-      //         System.err.println("Found "+variable.getName());
-      //      }
-
-      for (Node node = menuElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
+      NodeList choiceNodes = menuElement.getElementsByTagName("choice");
+      for(int index=0; index<choiceNodes.getLength(); index++) {
+         Node node = choiceNodes.item(index);
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "category") {
+         Pair entry = new Pair(element.getAttribute("name"), element.getAttribute("value"));
+         entries.add(entry);
+         if (defaultValue == null) {
+            defaultValue = entry.name;
          }
-         else if (element.getTagName() == "intOption") {
+         if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
+            defaultValue = entry.name;
          }
-         else if (element.getTagName() == "binaryOption") {
+      }
+      if (entries.size()==0) {
+         /**
+          * Should be another variable of the same type to copy from
+          */
+         Variable otherVariable = getDerived(menuElement);
+         if (otherVariable == null) {
+            throw new RuntimeException("No choices found in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
          }
-         else if (element.getTagName() == "choiceOption") {
+         if (otherVariable.getClass() != variable.getClass()) {
+            throw new RuntimeException("Referenced variable of wrong type <"+menuElement.getTagName() + " derivedFrom=\"" + variable.getName()+ "\">");
          }
-         else if (element.getTagName() == "stringOption") {
+         if (variable instanceof BooleanVariable) {
+            BooleanVariable otherVar = (BooleanVariable) otherVariable;
+            BooleanVariable var      = (BooleanVariable) variable;
+            var.setFalseValue(otherVar.getFalseValue());
+            var.setTrueValue(otherVar.getTrueValue());
+            var.setDefault(otherVar.getDefault());
+            var.setValue(otherVar.getDefault());
          }
-         else if (element.getTagName() == "aliasOption") {
+         else if (variable instanceof ChoiceVariable) {
+            ChoiceVariable otherVar = (ChoiceVariable) otherVariable;
+            ChoiceVariable var      = (ChoiceVariable) variable;
+            var.setData(otherVar.getData());
+            var.setDefault(otherVar.getDefault());
+            var.setValue(otherVar.getDefault());
          }
-         else if (element.getTagName() == "choice") {
-            Pair entry = new Pair(element.getAttribute("name"), element.getAttribute("value"));
-            entries.add(entry);
-            if (defaultValue == null) {
-               defaultValue = entry.name;
+      }
+      else {
+         if (variable instanceof BooleanVariable) {
+            if (entries.size()>2) {
+               throw new RuntimeException("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
             }
-            if (element.getAttribute("isDefault").equalsIgnoreCase("true")) {
-               defaultValue = entry.name;
-            }
+            BooleanVariable var = (BooleanVariable) variable;
+            var.setFalseValue(entries.get(0));
+            var.setTrueValue(entries.get(1));
          }
-         else if (element.getTagName() == "signals") {
+         else if (variable instanceof ChoiceVariable) {      
+            Pair theEntries[] = entries.toArray(new Pair[entries.size()]);
+            ChoiceVariable var = (ChoiceVariable)variable;
+            var.setData(theEntries);
          }
-         else {
-            throw new RuntimeException("Unexpected field in <menu>, value = \'"+element.getTagName()+"\'");
-         }
+         variable.setDefault(defaultValue);
+         variable.setValue(defaultValue);
       }
-      if (variable instanceof BooleanVariable) {
-         if ((entries.size()==0)||(entries.size()>2)) {
-            throw new RuntimeException("Wrong number of choices in <binaryOption>, value = "+entries.size());
-         }
-         BooleanVariable var = (BooleanVariable) variable;
-         var.setFalseValue(entries.get(0));
-         var.setTrueValue(entries.get(1));
-      }
-      else if (variable instanceof ChoiceVariable) {      
-         Pair theEntries[] = entries.toArray(new Pair[entries.size()]);
-         ChoiceVariable var = (ChoiceVariable)variable;
-         var.setData(theEntries);
-      }
-      variable.setDefault(defaultValue);
-      variable.setValue(defaultValue);
    }
 
    public static class Validator {
@@ -906,11 +1032,14 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   /**
+    * Represents the template information from the device files.
+    */
    public static class CodeTemplate {
       private final String   fTemplate;
       private final Variable fDimension;
 
-      public CodeTemplate(String   template, Variable dimension) {
+      public CodeTemplate(String template, Variable dimension) {
          fTemplate  = template;
          fDimension = dimension;
       }
@@ -932,7 +1061,6 @@ public class ParseMenuXML extends XML_BaseParser {
       public Variable getDimension() {
          return fDimension;
       }
-
    }
    /**
     * 
@@ -953,7 +1081,7 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) child;
-         //         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
+//         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
          parser.parsePage(parent, element);
       }
       if (parser.fRootModel == null) {
@@ -969,46 +1097,36 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * Parses document from top element
     * 
-    * @param path       Path to model
-    * @param parent     Parent for model
-    * @param provider   Provider for variables used etc.
-    * 
-    * @return Data from document
-    * @throws Exception 
-    */
-   private static Data parseFile(Path path, BaseModel parent, PeripheralWithState provider) throws Exception {
-      if (!path.toFile().exists()) {
-         // Look in USBDM directory
-         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
-      }
-      if (!path.toFile().exists()) {
-         throw new Exception("Unable to locate hardware description file " + path);
-      }
-      return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
-   }
-
-   /**
-    * Parses document from top element
-    * 
     * @param name       Name of model (filename)
     * @param parent     Parent for model
     * @param provider   Provider for variables used etc.
     * 
-    * @return  Data from model
+    * @return Data from model or null if no associated file found
     * @throws Exception 
+    * 
+    * Looks for the file in the following locations in order:
+    * <li>Relative path : Hardware/peripherals
+    * <li>Relative path : Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
+    * <li>Relative path : "USBDM Resource Path"Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
    public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) throws Exception {
       fName = name;
       try {
          // For debug try local directory
-         Path path = Paths.get("hardware/peripherals").resolve(name+".xml");
-         if (Files.isRegularFile(path)) {
-            path = path.toAbsolutePath();
-         }
-         else {
+         Path path = Paths.get("Hardware/Peripherals").resolve(name+".xml");
+         if (!Files.isRegularFile(path)) {
+            // Try testing debug relative path
             path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
          }
-         return parseFile(path, parent, provider);
+         if (!Files.isRegularFile(path)) {
+            // Look in USBDM installation
+            path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+         }
+         if (!Files.isRegularFile(path)) {
+            System.err.println("Warning: failed to find hardware file for "+ name);
+            return null;
+         }
+         return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
       } catch (Exception e) {
          throw new Exception("Failed to parse "+name, e);
       }
