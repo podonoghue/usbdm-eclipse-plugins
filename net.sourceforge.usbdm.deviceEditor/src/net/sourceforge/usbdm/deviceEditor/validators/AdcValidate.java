@@ -2,9 +2,13 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -64,6 +68,11 @@ public class AdcValidate extends Validator {
       Variable adc_cfg2_adhscVar          = getVariable("adc_cfg2_adhsc");
       Variable adc_cfg1_modeVar           = getVariable("adc_cfg1_mode");
 
+      BooleanVariable adc_cfg1_adlsmpVar = getBooleanVariable("adc_cfg1_adlsmp");
+      ChoiceVariable  adc_cfg2_adlstsVar = getChoiceVariable("adc_cfg2_adlsts");
+      
+      adc_cfg2_adlstsVar.enable(adc_cfg1_adlsmpVar.getValueAsBoolean());
+      
       // Varies with power settings etc
       adcInternalClockVar.setValue(ADC_CLOCK_VALUES[(int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong())]);
 
