@@ -149,6 +149,13 @@ public abstract class Variable extends ObservableModel {
     */
    public abstract void setDefault(Object value);
 
+   /**
+    * Gets variable default value
+    * 
+    * @return The default value
+    */
+   public abstract Object getDefault();
+
    private String getSimpleClassName() {
       String s = getClass().toString();
       int index = s.lastIndexOf(".");

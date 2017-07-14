@@ -107,6 +107,10 @@ public class DoubleVariable extends Variable {
       return getValueAsString(getValueAsDouble());
    }
    
+   @Override
+   public Object getDefault() {
+      return fValue;
+   }
    /**
     * Set value as double
     * 
@@ -301,4 +305,5 @@ public class DoubleVariable extends Variable {
    public void setPersistentValue(String value) {
       fValue = translate(value);
    }
+
 }

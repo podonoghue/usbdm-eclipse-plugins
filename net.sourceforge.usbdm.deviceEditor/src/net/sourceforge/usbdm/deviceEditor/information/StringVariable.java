@@ -32,6 +32,10 @@ public class StringVariable extends Variable {
       return isEnabled()?fValue:fDefault;
    }
 
+   @Override
+   public Object getDefault() {
+      return fValue;
+   }
    /**
     * Set value as String
     * 

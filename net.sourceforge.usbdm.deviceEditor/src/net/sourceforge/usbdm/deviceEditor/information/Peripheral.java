@@ -298,7 +298,7 @@ public abstract class Peripheral {
          documentUtilities.writeAttribute("num", irq);
          documentUtilities.closeTag();
       }
-      writeExtraDefinitions(documentUtilities);
+      writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
    }
 
@@ -584,10 +584,31 @@ public abstract class Peripheral {
       pinMappingHeaderFile.write(sb.toString());
    }
 
+   /**
+    * Write extra information within the class
+    *  
+    * @param documentUtilities
+    * @throws IOException
+    */
    public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
-   protected void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+   /**
+    * Write USBDM namespace level information associated with a peripheral
+    * 
+    * @param documentUtilities
+    * @throws IOException
+    */
+   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+   }
+
+   /**
+    * Writes extra definitions to the device XML file
+    * 
+    * @param documentUtilities
+    * @throws IOException
+    */
+   protected void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
    }
 
    /**
@@ -767,6 +788,8 @@ public abstract class Peripheral {
             "This may include pin information, constants, register addresses, and default register values,\n" + 
             "along with simple accessor functions.");
 
+      writeNamespaceInfo(pinMappingHeaderFile);
+      
       // Open class
       pinMappingHeaderFile.write(String.format(
             "class %s {\n"+

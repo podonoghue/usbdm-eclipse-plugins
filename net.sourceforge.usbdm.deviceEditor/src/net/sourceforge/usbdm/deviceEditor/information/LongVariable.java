@@ -125,6 +125,10 @@ public class LongVariable extends Variable {
       return getValueAsLong() != 0;
    }
 
+   @Override
+   public Object getDefault() {
+      return fValue;
+   }
    /**
     * Set value as long
     * 

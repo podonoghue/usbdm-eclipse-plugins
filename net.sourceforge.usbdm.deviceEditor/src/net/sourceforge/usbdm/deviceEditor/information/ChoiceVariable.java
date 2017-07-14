@@ -99,8 +99,8 @@ public class ChoiceVariable extends Variable {
    /**
     * Set value based on Raw value i.e. Substitution value rather than user value
     */
-   public void setRawValue(int pllCalcValue) {
-      String value = Integer.toString(pllCalcValue);
+   public void setRawValue(int intValue) {
+      String value = Integer.toString(intValue);
       int res = -1;
       for (int index=0; index<fData.length; index++) {
          if (fData[index].value.equalsIgnoreCase(value)) {
@@ -109,7 +109,7 @@ public class ChoiceVariable extends Variable {
          }
       }
       if (res<0) {
-         throw new RuntimeException(pllCalcValue + " is not compatible with ChoiceVariable " + getName());
+         throw new RuntimeException(intValue + " is not compatible with ChoiceVariable " + getName());
       }
       fValue = fData[res].name;
    }
@@ -169,6 +169,11 @@ public class ChoiceVariable extends Variable {
       return isEnabled()?fValue:fDefault;
    }
 
+   @Override
+   public Object getDefault() {
+      return fValue;
+   }
+   
    /**
     * Get index of current value in choice entries
     * 

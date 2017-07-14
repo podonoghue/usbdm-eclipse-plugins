@@ -80,6 +80,11 @@ public class BooleanVariable extends Variable {
    }
    
    @Override
+   public Object getDefault() {
+      return fDefault;
+   }
+
+   @Override
    public boolean getValueAsBoolean() {
       return isEnabled()?fValue:fDefault;
    }
@@ -159,4 +164,8 @@ public class BooleanVariable extends Variable {
    public boolean getRawValueAsBoolean() {
       return fValue;
    }
+
+   public void getChoices() {
+   }
+
 }
