@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
@@ -14,7 +13,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
  * @author podonoghue
  *
  */
-public class WriterForPower extends Peripheral {
+public class WriterForPower extends PeripheralWithState {
 
    public WriterForPower(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);

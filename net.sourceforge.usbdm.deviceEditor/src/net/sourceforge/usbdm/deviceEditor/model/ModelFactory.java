@@ -136,8 +136,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
-            BaseModel model = ((IModelEntryProvider) device).getModels(fParameterModels);
-            model.setParent(fParameterModels);
+            ((IModelEntryProvider) device).getModels(fParameterModels);
          }
       }
       return fParameterModels;

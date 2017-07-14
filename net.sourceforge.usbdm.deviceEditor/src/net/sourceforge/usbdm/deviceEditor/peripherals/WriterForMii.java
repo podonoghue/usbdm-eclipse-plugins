@@ -4,13 +4,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
  * Class encapsulating the code for writing an instance of VREF
  */
-public class WriterForMii extends Peripheral {
+public class WriterForMii extends PeripheralWithState {
 
    public WriterForMii(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);

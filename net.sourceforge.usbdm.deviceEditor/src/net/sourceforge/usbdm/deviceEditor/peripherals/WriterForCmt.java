@@ -1,13 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
  * Class encapsulating the code for writing an instance of VREF
  */
-public class WriterForCmt extends Peripheral {
+public class WriterForCmt extends PeripheralWithState {
 
    public WriterForCmt(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);

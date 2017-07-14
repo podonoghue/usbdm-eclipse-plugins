@@ -8,7 +8,7 @@ public interface IModelEntryProvider {
     * Get models contributed by this object
     * 
     * @param parent
-    * @return
+    * @return model or null if none
     */
    public BaseModel getModels(BaseModel parent);
    

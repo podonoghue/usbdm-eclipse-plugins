@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 
 /**
@@ -14,7 +13,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  * @author podonoghue
  *
  */
-public class WriterForDmaMux extends Peripheral {
+public class WriterForDmaMux extends PeripheralWithState {
 
    public WriterForDmaMux(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
@@ -26,22 +25,24 @@ public class WriterForDmaMux extends Peripheral {
    }
 
    @Override
-   public void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+   public void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+      super.writeExtraXMLDefinitions(documentUtilities);
       writeDmaXmlInfo(documentUtilities);
    }
    
    /**
     * Writes enumeration describing DMA slot use
     * 
-    * e.g.<pre>
-    * enum {
-    *    DMA0_SLOT_Disabled                   = 0,
-    *    DMA0_SLOT_UART0_Receive              = 2,
-    *    DMA0_SLOT_UART0_Transmit             = 3,
-    *    ...
-    * };
+    * e.g. <pre>
+    *  &lt;dma&gt;
+    *     &lt;slot source="Disabled"       num="0" /&gt;
+    *     &lt;slot source="UART0_Receive"  num="2" /&gt;
+    *     &lt;slot source="UART0_Transmit" num="3" /&gt;
+    *  &lt;dma&gt;
     * </pre>
+    * 
     * @param writer
+    * 
     * @throws IOException
     */
    private void writeDmaXmlInfo(XmlDocumentUtilities documentUtilities) throws IOException {
@@ -63,35 +64,40 @@ public class WriterForDmaMux extends Peripheral {
 
    @Override
    public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
-      getDmaInfo(documentUtilities);
+   }
+
+   @Override
+   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+      super.writeNamespaceInfo(documentUtilities);
+      writeDmaInfo(documentUtilities);
    }
 
    /**
     * Writes enumeration describing DMA slot use
     * 
     * e.g.<pre>
-    * enum {
-    *    DMA0_SLOT_Disabled                   = 0,
-    *    DMA0_SLOT_UART0_Receive              = 2,
-    *    DMA0_SLOT_UART0_Transmit             = 3,
+    * enum DmaSlot {
+    *    DmaSlot_Disabled       = 0,
+    *    DmaSlot_UART0_Receive  = 2,
+    *    DmaSlot_UART0_Transmit = 3,
     *    ...
     * };
     * </pre>
     * @param writer
     * @throws IOException
     */
-   private void getDmaInfo(DocumentUtilities documentUtilities) throws IOException {
+   private void writeDmaInfo(DocumentUtilities documentUtilities) throws IOException {
       if (getDmaInfoList().size() == 0) {
          return;
       }
       StringBuffer sb = new StringBuffer();
       sb.append(
-            "   /* DMA channel numbers */\n"+
-            "   enum DmaChannels {\n");
+            "/* DMA channel numbers */\n"+
+            "enum DmaSlot {\n");
       for (DmaInfo item:getDmaInfoList()) {
-         sb.append(String.format("      %-45s = %s,\n", "DMA0_SLOT_"+item.dmaSource, item.dmaChannelNumber));
+         sb.append(String.format("   %-35s = %s,\n", "DmaSlot_"+item.dmaSource, item.dmaChannelNumber));
       }
-      sb.append("   };\n");
+      sb.append("};\n\n");
       documentUtilities.write(sb.toString());
    }
 }

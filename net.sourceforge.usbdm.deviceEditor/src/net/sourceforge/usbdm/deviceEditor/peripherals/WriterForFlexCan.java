@@ -1,13 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
  * Class encapsulating the code for writing an instance of VREF
  */
-public class WriterForFlexCan extends Peripheral {
+public class WriterForFlexCan extends PeripheralWithState {
 
    public WriterForFlexCan(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);

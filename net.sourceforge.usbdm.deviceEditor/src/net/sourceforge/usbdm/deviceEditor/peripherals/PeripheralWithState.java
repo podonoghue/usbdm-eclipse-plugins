@@ -75,7 +75,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Get key for variable owned by this peripheral
     * 
     * @param name
-    * @return
+    * 
+    * @return key for the name<br>
+    * If the name is relative then the key will be prefixed with the peripheral path (e.g. ClockFreq => /PDB/ClockFreq)<br>
+    * Otherwise the original name is returned as the key unchanged (e.g. /SIM/system_bus_clock would be unchanged)
     */
    public String makeKey(String name) {
       return keyMaker.makeKey(name);
@@ -88,11 +91,15 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception 
     */
    public void loadModels() throws Exception {
-      fData = loadModels(getPeripheralModelName());
+      try {
+         fData = ParseMenuXML.parseFile(getPeripheralModelName(), null, this);
+      } catch (Exception e) {
+         throw new Exception("Failed to load model "+getPeripheralModelName()+" for Peripheral " + getName(), e);
+      }
       if (fData == null) {
          return;
       }
-      for (ParseMenuXML.Validator v:fData.fValidators) {
+      for (ParseMenuXML.Validator v:fData.getValidators()) {
          try {
             String className = v.getClassName();
             // Get validator class
@@ -105,30 +112,16 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
    }
 
-   /**
-    * Load the models for this class of peripheral
-    * 
-    * @return
-    * @throws Exception 
-    */
-   /**
-    * 
-    * @param modelName  Name of the model for this peripheral. Used as name of file to load.
-    * 
-    * @return 
-    * @throws Exception
-    */
-   private final Data loadModels(String modelName) throws Exception {
-      try {
-         return ParseMenuXML.parseFile(modelName, null, this);
-      } catch (Exception e) {
-         throw new Exception("Failed to load model "+modelName+" for Peripheral " + getName(), e);
-      }
-   }
-   
    @Override
    public BaseModel getModels(BaseModel parent) {
-      return fData.fRootModel;
+      if (fData == null) {
+         return null;
+      }
+      BaseModel model = fData.getRootModel();
+      if (model != null) {
+         model.setParent(parent);
+      }
+      return model;
    }
 
    @Override
@@ -144,22 +137,31 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          return;
       }
 //      System.err.println("fData for " + getName());
-      CodeTemplate template = fData.fTemplate.get("");
+      // Get default template for info class
+      String template = fData.getTemplate("info", "");
       if (template != null) {
-         //TODO - add dimension
-//         Variable dimension = template.getDimension();
-//         if (dimension != null) {
-//            int dim = (int)dimension.getValueAsLong();
-//            for (int index=0; index<dim; index++) {
-//               pinMappingHeaderFile.write(substitute(template.getTemplate()));
-//            }
-//         }
-//         else {
-         pinMappingHeaderFile.write(substitute(template.getTemplate()));
-//         }
+         pinMappingHeaderFile.write(substitute(template));
       }
    }
    
+   @Override
+   public String getTitle() {
+      // TODO Auto-generated method stub
+      return null;
+   }
+
+   @Override
+   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+      super.writeNamespaceInfo(documentUtilities);
+      if (fData == null) {
+         return;
+      }
+      String template = fData.getTemplate("usbdm", "");
+      if ((template != null) && (!template.isEmpty())) {
+         documentUtilities.write(substitute(template));
+      }
+   }
+
    /**
     * @param processProjectActions 
     * @param project
@@ -168,8 +170,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
+      if (fData == null) {
+         return;
+      }
       Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
-      processProjectActions.process(project, fData.fProjectActionList, symbolMap, monitor);
+      processProjectActions.process(project, fData.getProjectActionList(), symbolMap, monitor);
    }
 
    /**
@@ -182,13 +187,17 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
       map.put("_instance", getInstance());
       map.put("_name",     getName());
-      
+
+      if (fData == null) {
+         return map;
+      }
       // Load any named templates
-      for (String key:fData.fTemplate.keySet()) {
-         if (key.isEmpty()) {
+      for (String key:fData.getTemplates().keySet()) {
+         if (key.isEmpty() || key.endsWith(".")) {
+            // Discard unnamed templates
             continue;
          }
-         CodeTemplate fileTemplate = fData.fTemplate.get(key);
+         CodeTemplate fileTemplate = fData.getTemplates().get(key);
 
          // Final template after substitutions
          String substitutedTemplate = null;
@@ -462,7 +471,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
    
    @Override
-   protected void writeExtraDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
+   protected void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
       for (String key:getParamMap().keySet()) {
          String value = getParamMap().get(key);
          documentUtilities.openTag("param");
