@@ -305,7 +305,7 @@ public class Field extends ModeControl implements Cloneable {
          for(Enumeration otherEnumeration : other.fEnumerations) {
             if (enumeration.getName().equals(otherEnumeration.getName())) {
                foundEquivalent = enumeration.equivalent(otherEnumeration);
-               if (foundEquivalent) {
+               if (!foundEquivalent) {
                   break;
                }
             }
