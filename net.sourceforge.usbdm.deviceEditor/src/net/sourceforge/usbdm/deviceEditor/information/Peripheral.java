@@ -883,9 +883,13 @@ public abstract class Peripheral {
    }
      
    /**
-    * Adds variables to map for C++ generation
+    * Search vector table for handler and replace with class static method name.<br>
+    * Uses class name to create handler name<br>
+    * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
+    * and replaces with class name e.g. <b>FTM0_IRQHandler</b> => <b>USBDM::Ftm0::irqHandler</b><br>
+    * Overridden to do special replacement
     * 
-    * @param vectorTable 
+    * @param vectorTable  Vector table to search
     */
    public void modifyVectorTable(VectorTable vectorTable) {
    }

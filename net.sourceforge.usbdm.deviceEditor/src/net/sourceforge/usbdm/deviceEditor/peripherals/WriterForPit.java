@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of PIT
@@ -22,4 +23,5 @@ public class WriterForPit extends PeripheralWithState {
       final String signalNames[] = {"OUT"};
       return getSignalIndex(function, signalNames);
    }
+   
 }

@@ -34,6 +34,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmt;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForConsole;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForControl;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEnet;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm;
@@ -1175,7 +1176,7 @@ public class DeviceInfo extends ObservableModel {
                "$1", "$2", "$3",
                "(DMA)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForDma.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(MPU)(\\d)?(.*)",

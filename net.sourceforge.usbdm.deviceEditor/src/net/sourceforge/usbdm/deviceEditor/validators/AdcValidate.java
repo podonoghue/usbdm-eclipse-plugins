@@ -7,8 +7,6 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.Status;
-import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
@@ -19,11 +17,15 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class AdcValidate extends Validator {
 
+   // Input clock ranges < 13-bit resolution
    private static final long FADC_LOW_RES_MIN  =  1000000;
    private static final long FADC_LOW_RES_MAX  = 18000000;
+   
+   // Input clock ranges 16-bit resolution
    private static final long FADC_HIGH_RES_MIN =  2000000;
    private static final long FADC_HIGH_RES_MAX = 12000000;
 
+   // Internal clock speeds
    private static final long FADC_LP1_HS0_MAX = 2400000;
    private static final long FADC_LP1_HS1_MAX = 4000000;
    private static final long FADC_LP0_HS0_MAX = 5200000;

@@ -317,15 +317,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return value.equalsIgnoreCase("true");
    }
 
-   /**
-    * Search vector table for handler and replace with class static method name.<br>
-    * Uses class name to create handler name<br>
-    * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
-    * and replaces with class name e.g. <b>FTM0_IRQHandler</b> => <b>USBDM::Ftm0::irqHandler</b><br>
-    * Overridden to do special replacement
-    * 
-    * @param vectorTable  Vector table to search
-    */
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");

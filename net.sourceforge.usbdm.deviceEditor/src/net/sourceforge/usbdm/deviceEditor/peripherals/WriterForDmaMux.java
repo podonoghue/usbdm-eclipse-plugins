@@ -92,7 +92,9 @@ public class WriterForDmaMux extends PeripheralWithState {
       }
       StringBuffer sb = new StringBuffer();
       sb.append(
-            "/* DMA channel numbers */\n"+
+            "/** \n" +
+            " * DMA channel numbers \n" +
+            " */\n"+
             "enum DmaSlot {\n");
       for (DmaInfo item:getDmaInfoList()) {
          sb.append(String.format("   %-35s = %s,\n", "DmaSlot_"+item.dmaSource, item.dmaChannelNumber));
