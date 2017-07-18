@@ -21,7 +21,8 @@
    <projectActionList id = "dma_files" >
    dma-memory-example.cpp
       <copy source="Project_Headers/dma-MK.h"          target="Project_Headers/dma.h"             replace="true"  derived="true" />
-      <copy source="snippets/dma-memory-example.cpp"   target="snippets/dma-memory-example.cpp"   replace="true"  derived="true" />
+      <copy source="Snippets/dma-memory-example.cpp"   target="Snippets/dma-memory-example.cpp"   replace="true"  derived="true" />
+      <copy source="Snippets/dma-uart-example.cpp"     target="Snippets/dma-uart-example.cpp"     replace="true"  derived="true" />
    </projectActionList>
 
 </devicePage>
