@@ -429,7 +429,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
       PinListVariable variable = (PinListVariable) parseCommonAttributes(parent, varElement, PinListVariable.class);
-
+      variable.setPeripheral(fProvider);
       try {
          if (varElement.hasAttribute("size")) {
             variable.setMaxListLength(getLongAttribute(varElement, "size"));

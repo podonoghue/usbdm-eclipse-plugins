@@ -42,6 +42,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
+//      System.err.println("Creating "+basename+instance+" "+this.getClass());
    }
 
    private final class KeyMaker implements IKeyMaker {

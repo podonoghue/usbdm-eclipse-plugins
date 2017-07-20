@@ -14,10 +14,14 @@ public class PinListVariable extends StringVariable {
    protected int  fMinListSize = 0;
    protected int  fMaxListSize = 0;
    
-   private final  PeripheralWithState fPeripheral;
+   private PeripheralWithState fPeripheral;
 
    public PeripheralWithState getPeripheral() {
       return fPeripheral;
+   }
+
+   public void setPeripheral(PeripheralWithState peripheral) {
+      fPeripheral = peripheral;
    }
 
    static final String  fDelimeter    = "[, ]+";
@@ -30,9 +34,8 @@ public class PinListVariable extends StringVariable {
     * @param name
     * @param key
     */
-   public PinListVariable(PeripheralWithState peripheral, String name, String key) {
+   public PinListVariable(String name, String key) {
       super(name, key);
-      fPeripheral = peripheral;
    }
 
    @Override
