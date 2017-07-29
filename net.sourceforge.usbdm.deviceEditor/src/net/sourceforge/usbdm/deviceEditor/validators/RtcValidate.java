@@ -42,6 +42,8 @@ public class RtcValidate extends Validator {
    @Override
    public void validate(Variable variable) throws Exception {
       
+      super.validate(variable);
+      
       // OSC
       //=================================
       Variable     rtc_input_freqVar               =  getVariable("rtc_input_freq");
@@ -53,7 +55,7 @@ public class RtcValidate extends Validator {
       Variable     rtc_cr_umVar                    =  getVariable("rtc_cr_um");
       Variable     rtc_cr_supVar                   =  getVariable("rtc_cr_sup");
       Variable     rtc_cr_wpeVar                   =  getVariable("rtc_cr_wpe");
-      Variable     rtc_irqHandlerVar               =  getVariable("irqHandlerInstalled");
+      Variable     irqHandlingMethodVar               =  getVariable("irqHandlingMethod");
       Variable     rtc_irqLevelVar                 =  getVariable("irqLevel");
 
 //      Variable     sim_sopt1_osc32kselVar          =  getVariable("sim_sopt1_osc32ksel");
@@ -95,7 +97,7 @@ public class RtcValidate extends Validator {
       rtc_cr_umVar.enable(rtc_cr_osce);
       rtc_cr_supVar.enable(rtc_cr_osce);
       rtc_cr_wpeVar.enable(rtc_cr_osce);
-      rtc_irqHandlerVar.enable(rtc_cr_osce);
+      irqHandlingMethodVar.enable(rtc_cr_osce);
       rtc_irqLevelVar.enable(rtc_cr_osce);
       
       // RTC Clocks

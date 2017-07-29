@@ -24,6 +24,9 @@ public class LpuartValidate extends Validator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
+      
+      super.validate(variable);
+
       Variable     clockSource = getVariable("clockSource");
       clockSource.setStatus((Status)null);
       clockSource.setOrigin("");

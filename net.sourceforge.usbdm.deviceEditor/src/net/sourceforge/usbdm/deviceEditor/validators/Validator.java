@@ -1,22 +1,105 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
-public abstract class Validator {
+public class Validator {
 
    protected final PeripheralWithState fPeripheral;
 
+   /**
+    * Base validator
+    * 
+    * @param peripheral
+    * @param values
+    */
+   public Validator(PeripheralWithState peripheral, ArrayList<Object> values) {
+      fPeripheral = peripheral;
+   }
+
+   /**
+    * Constructor used by derived classes
+    * 
+    * @param peripheral
+    */
    protected Validator(PeripheralWithState peripheral) {
       fPeripheral = peripheral;
    }
 
-   protected abstract void validate(Variable variable) throws Exception;
+   /**
+    * Validate peripheral settings dialogue
+    * 
+    * @param variable   Variable trigger change leading to validation (may be null)
+    * 
+    * @throws Exception
+    */
+   protected void validate(Variable variable) throws Exception {
+      validateInterrupt(variable);
+   }
 
+   /**
+    * Checks is identifier is a valid C name
+    * 
+    * @param id
+    * 
+    * @return Valid => null<br>
+    *         Invalid => Error string
+    */
+   String checkValidCIdentifier(String id) {
+      if ((id == null) || id.isEmpty()) {
+         return "Illegal name for C identifier";
+      }
+      return null;
+   }
+   /**
+    * Validates the interrupt portion of the dialogue
+    * 
+    * @param variable   Variable trigger change leading to validation (may be null)
+    * 
+    * @throws Exception
+    */
+   protected void validateInterrupt(Variable variable) throws Exception {
+      
+      ChoiceVariable irqHandlingMethodVar         = safeGetChoiceVariable("irqHandlingMethod");
+      StringVariable namedInterruptHandlerVar     = safeGetStringVariable("namedInterruptHandler");
+      LongVariable   irqLevelVar                  = safeGetLongVariable("irqLevel");
+
+     if (irqHandlingMethodVar == null) {
+        return;
+     }
+     
+     switch((int)irqHandlingMethodVar.getValueAsLong()) {
+     default:
+        irqHandlingMethodVar.setValue(0);
+     case 0: // No handler
+        namedInterruptHandlerVar.enable(false);
+        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
+        irqLevelVar.enable(false);
+        irqLevelVar.setOrigin("Disabled by irqHandlingMethod");
+        break;
+     case 1: // Software (Use setCallback() or class method)
+        namedInterruptHandlerVar.enable(false);
+        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
+        irqLevelVar.enable(true);
+        irqLevelVar.setOrigin(null);
+        break;
+     case 2: // Named function
+        namedInterruptHandlerVar.enable(true);
+        namedInterruptHandlerVar.setOrigin(null);
+        namedInterruptHandlerVar.setStatus(checkValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
+        irqLevelVar.enable(true);
+        irqLevelVar.setOrigin(null);
+        break;
+    }
+   }
+   
    protected String getSimpleClassName() {
       String s = getClass().toString();
       int index = s.lastIndexOf(".");
@@ -84,6 +167,42 @@ public abstract class Validator {
          throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
       }
       return (BooleanVariable) variable;
+   }
+
+   /**
+    * Get String Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found or null
+    */
+   StringVariable safeGetStringVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof StringVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to StringVariable");
+      }
+      return (StringVariable) variable;
+   }
+
+   /**
+    * Get Choice Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found or null
+    */
+   ChoiceVariable safeGetChoiceVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof ChoiceVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to ChoiceVariable");
+      }
+      return (ChoiceVariable) variable;
    }
 
    /**

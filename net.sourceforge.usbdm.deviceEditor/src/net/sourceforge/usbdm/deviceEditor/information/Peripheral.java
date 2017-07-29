@@ -883,10 +883,10 @@ public abstract class Peripheral {
    }
      
    /**
-    * Search vector table for handler and replace with class static method name.<br>
-    * Uses class name to create handler name<br>
+    * Search vector table for handler and replace with class static method name or user function name.<br>
     * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
     * and replaces with class name e.g. <b>FTM0_IRQHandler</b> => <b>USBDM::Ftm0::irqHandler</b><br>
+    * Uses class name to create handler name<br>
     * Overridden to do special replacement
     * 
     * @param vectorTable  Vector table to search

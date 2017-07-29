@@ -29,7 +29,7 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
    
-   public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlerInstalled";
+   public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlingMethod";
 
    /** Data about model loaded from file */
    protected Data fData = null;
@@ -293,41 +293,17 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return substitute(input, map);
    }
    
-   /**
-    * Checks if a variable is true when interpreted as a C value <br>
-    * i.e. non-zero or "true"
-    * 
-    * @param key to Access variable
-    * 
-    * @return
-    */
-   public boolean isCTrueValue(String key) {
-      String value = null;
-      try {
-         value = getVariable(keyMaker.makeKey(key)).getSubstitutionValue();
-      } catch (Exception e1) {
-      }
-      if (value == null) {
-         return false;
-      }
-      try {
-         return Long.decode(value) != 0;
-      }
-      catch (NumberFormatException e){
-      }
-      return value.equalsIgnoreCase("true");
-   }
-
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      modifyVectorTable(vectorTable, "^"+fName+"((\\d+)?).*");
+      // Default matching e.g. "^FTM((\\d+)?).*"
+      modifyVectorTable(vectorTable, "^"+getName()+"((\\d+)?).*");
    }
 
    /**
     * Search vector table for handler and replace with class static method name.<br>
     * 
     * @param vectorTable  Vector table to search
-    * @param pattern      Pattern to match against handler name
+    * @param pattern      Pattern to match against standard handler name
     */
    public void modifyVectorTable(VectorTable vectorTable, String pattern) {
       modifyVectorTable(vectorTable, pattern, getClassName());
@@ -343,7 +319,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param className    Base name of handler, usually class name e.g. Ftm2 
     */
    public void modifyVectorTable(VectorTable vectorTable, String pattern, String className) {
-      if (!isCTrueValue(IRQ_HANDLER_INSTALLED_SYMBOL)) {
+
+      Variable irqHandlingMethodVar = safeGetVariable(keyMaker.makeKey(IRQ_HANDLER_INSTALLED_SYMBOL));
+      if ((irqHandlingMethodVar==null) || (irqHandlingMethodVar.getValueAsLong() == 0)) {
          return;
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
@@ -353,7 +331,22 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               entry.setHandlerName(DeviceInfo.NAME_SPACE+"::"+className+"::irq"+m.group(1)+"Handler");
+               String handlerName = "Default_Handler";
+               if (irqHandlingMethodVar.getValueAsLong() == 1) {
+                  // Replace with name of class static method
+                  handlerName = DeviceInfo.NAME_SPACE+"::"+className+"::irq"+m.group(1)+"Handler";
+               }
+               if (irqHandlingMethodVar.getValueAsLong() == 2) {
+                  // Replace with name of user supplied method
+                  Variable namedInterruptHandlerVar = safeGetVariable(keyMaker.makeKey("namedInterruptHandler"));
+                  if (namedInterruptHandlerVar != null) {
+                     String t = namedInterruptHandlerVar.getValueAsString();
+                     if ((t != null) && !t.isEmpty()) {
+                        handlerName = t+m.group(1)+"Handler";
+                     }
+                  }
+               }
+               entry.setHandlerName(handlerName);
                entry.setClassMemberUsedAsHandler(true);
                handlerSet = true;
             }

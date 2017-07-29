@@ -796,7 +796,7 @@ public class CreatePeripheralDatabase {
 //    firstFileToReject  = ("^M.*");
 
 //      firstFileToProcess = ("^MK20.*");
-//      firstFileToReject  = ("^MK22.*");
+//      firstFileToReject  = ("^MK21.*");
 
 //      doHeaderFiles();
 //      doFactoring();

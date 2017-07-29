@@ -92,10 +92,13 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
     *    system_mcgoutclk_clock
     *    system_mcgfllclk_clock
     *    system_mcgpllclk_clock
+    * @throws Exception 
     */
    @Override
-   protected void validate(Variable variable) {
+   protected void validate(Variable variable) throws Exception {
       //      System.err.println(getSimpleClassName()+" Var = "+variable);
+      
+      super.validate(variable);
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

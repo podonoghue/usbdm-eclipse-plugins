@@ -35,6 +35,8 @@ public class LptmrValidate extends Validator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
+      
+      super.validate(variable);
 
 //      System.err.println("LptmrValidate.validate("+variable+")");
       if (!addedExternalVariables) {

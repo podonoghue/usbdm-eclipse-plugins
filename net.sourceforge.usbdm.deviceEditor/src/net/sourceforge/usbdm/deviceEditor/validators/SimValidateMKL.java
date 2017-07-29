@@ -68,6 +68,8 @@ public class SimValidateMKL extends Validator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
+      
+      super.validate(variable);
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

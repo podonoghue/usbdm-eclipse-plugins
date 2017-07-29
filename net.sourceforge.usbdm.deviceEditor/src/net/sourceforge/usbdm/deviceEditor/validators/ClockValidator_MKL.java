@@ -88,6 +88,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
    @Override
    protected void validate(Variable variable) throws Exception {
       //      System.err.println(getSimpleClassName()+" Var = "+variable);
+      
+      super.validate(variable);
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);

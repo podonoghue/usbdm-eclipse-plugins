@@ -43,6 +43,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    @Override
    protected void validate(Variable variable) throws Exception {
       //      System.err.println(getSimpleClassName()+" Var = "+variable);
+      
+      super.validate(variable);
 
       if (!addedExternalVariables) {
          addToWatchedVariables(externalVariables);
