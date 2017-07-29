@@ -5,8 +5,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of GPIO
@@ -104,6 +106,12 @@ public class WriterForGpio extends PeripheralWithState {
       pinMappingHeaderFile.write(sb.toString());
       
       writeInfoTemplate(pinMappingHeaderFile);
+   }
+
+   @Override
+   public void modifyVectorTable(VectorTable vectorTable) {
+      // Default IRQ variable
+      modifyVectorTable(vectorTable, (IrqVariable) safeGetVariable(makeKey("irqHandlingMethod")), "Port"+getInstance());
    }
    
 }
