@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
@@ -295,19 +296,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      // Default matching e.g. "^FTM((\\d+)?).*"
-      modifyVectorTable(vectorTable, "^"+getName()+"((\\d+)?).*");
-   }
-
-   /**
-    * Search vector table for handler and replace with class static method name.<br>
-    * 
-    * @param vectorTable  Vector table to search
-    * @param pattern      Pattern to match against standard handler name<br>
-    *                     The first matching group is incorporated into the handler name.
-    */
-   public void modifyVectorTable(VectorTable vectorTable, String pattern) {
-      modifyVectorTable(vectorTable, pattern, getClassName());
+      // Default IRQ variable
+      modifyVectorTable(vectorTable, (IrqVariable) safeGetVariable(makeKey("irqHandlingMethod")), getClassName());
    }
 
    /**
@@ -319,34 +309,32 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     *                     Must contain 1 group which is preserved
     * @param className    Base name of handler, usually class name e.g. Ftm2 
     */
-   public void modifyVectorTable(VectorTable vectorTable, String pattern, String className) {
+   public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) {
 
-      Variable irqHandlingMethodVar = safeGetVariable(keyMaker.makeKey(IRQ_HANDLER_INSTALLED_SYMBOL));
-      if ((irqHandlingMethodVar==null) || (irqHandlingMethodVar.getValueAsLong() == 0)) {
+      if ((irqVariable==null) || (irqVariable.getValueAsLong() == 0)) {
+         // No modification
          return;
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean handlerSet = false;
+      String pattern = irqVariable.getPattern().replaceAll("%i", getInstance()).replaceAll("%b", getBaseName());
       Pattern p = Pattern.compile(pattern);
       for (InterruptEntry entry:vectorTable.getEntries()) {
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               String handlerName = "Default_Handler";
-               if (irqHandlingMethodVar.getValueAsLong() == 1) {
-                  // Replace with name of class static method
-                  handlerName = DeviceInfo.NAME_SPACE+"::"+className+"::irq"+m.group(1)+"Handler";
+               String modifier = "";
+               if (m.groupCount() > 0) {
+                  modifier = m.group(1);
                }
-               if (irqHandlingMethodVar.getValueAsLong() == 2) {
-                  // Replace with name of user supplied method
-                  Variable namedInterruptHandlerVar = safeGetVariable(keyMaker.makeKey("namedInterruptHandler"));
-                  if (namedInterruptHandlerVar != null) {
-                     String t = namedInterruptHandlerVar.getValueAsString();
-                     if ((t != null) && !t.isEmpty()) {
-                        handlerName = t;
-                     }
-                  }
-                  handlerName = handlerName.replaceAll("%", m.group(1));
+               String handlerName  = "Default_Handler";
+               if (irqVariable.getValueAsLong() == 1) {
+                  // Replace with name of class static method
+                  String classHandler = irqVariable.getClassHandler().replaceAll("%i", getInstance()).replaceAll("%b", getBaseName());
+                  handlerName = DeviceInfo.NAME_SPACE+"::"+className+"::"+classHandler;
+               }
+               if (irqVariable.getValueAsLong() == 2) {
+                  handlerName = irqVariable.getHandlerName().replaceAll("%", modifier);
                }
                entry.setHandlerName(handlerName);
                entry.setClassMemberUsedAsHandler(true);

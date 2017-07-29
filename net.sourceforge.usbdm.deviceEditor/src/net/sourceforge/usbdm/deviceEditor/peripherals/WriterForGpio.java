@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
-import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of GPIO
@@ -107,14 +106,4 @@ public class WriterForGpio extends PeripheralWithState {
       writeInfoTemplate(pinMappingHeaderFile);
    }
    
-   @Override
-   public void modifyVectorTable(VectorTable vectorTable) {
-      // TODO - Consider changes
-      // GPIOx -> PORTx
-      modifyVectorTable(vectorTable, 
-            "^"+fName.replace("GPIO", "PORT")+"()", 
-            fName.replaceAll("GPIO", "Port"));
-   }
-
-
 }

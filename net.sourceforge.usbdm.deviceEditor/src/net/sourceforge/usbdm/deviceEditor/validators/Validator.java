@@ -70,37 +70,37 @@ public class Validator {
     */
    protected void validateInterrupt(Variable variable) throws Exception {
       
-      ChoiceVariable irqHandlingMethodVar         = safeGetChoiceVariable("irqHandlingMethod");
-      StringVariable namedInterruptHandlerVar     = safeGetStringVariable("namedInterruptHandler");
-      LongVariable   irqLevelVar                  = safeGetLongVariable("irqLevel");
-
-     if (irqHandlingMethodVar == null) {
-        return;
-     }
-     
-     switch((int)irqHandlingMethodVar.getValueAsLong()) {
-     default:
-        irqHandlingMethodVar.setValue(0);
-     case 0: // No handler
-        namedInterruptHandlerVar.enable(false);
-        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
-        irqLevelVar.enable(false);
-        irqLevelVar.setOrigin("Disabled by irqHandlingMethod");
-        break;
-     case 1: // Software (Use setCallback() or class method)
-        namedInterruptHandlerVar.enable(false);
-        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
-        irqLevelVar.enable(true);
-        irqLevelVar.setOrigin(null);
-        break;
-     case 2: // Named function
-        namedInterruptHandlerVar.enable(true);
-        namedInterruptHandlerVar.setOrigin(null);
-        namedInterruptHandlerVar.setStatus(isValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
-        irqLevelVar.enable(true);
-        irqLevelVar.setOrigin(null);
-        break;
-    }
+//      ChoiceVariable irqHandlingMethodVar         = safeGetChoiceVariable("irqHandlingMethod");
+//      StringVariable namedInterruptHandlerVar     = safeGetStringVariable("namedInterruptHandler");
+//      LongVariable   irqLevelVar                  = safeGetLongVariable("irqLevel");
+//
+//     if (irqHandlingMethodVar == null) {
+//        return;
+//     }
+//     
+//     switch((int)irqHandlingMethodVar.getValueAsLong()) {
+//     default:
+//        irqHandlingMethodVar.setValue(0);
+//     case 0: // No handler
+//        namedInterruptHandlerVar.enable(false);
+//        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
+//        irqLevelVar.enable(false);
+//        irqLevelVar.setOrigin("Disabled by irqHandlingMethod");
+//        break;
+//     case 1: // Software (Use setCallback() or class method)
+//        namedInterruptHandlerVar.enable(false);
+//        namedInterruptHandlerVar.setOrigin("Disabled by irqHandlingMethod");
+//        irqLevelVar.enable(true);
+//        irqLevelVar.setOrigin(null);
+//        break;
+//     case 2: // Named function
+//        namedInterruptHandlerVar.enable(true);
+//        namedInterruptHandlerVar.setOrigin(null);
+//        namedInterruptHandlerVar.setStatus(isValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
+//        irqLevelVar.enable(true);
+//        irqLevelVar.setOrigin(null);
+//        break;
+//    }
    }
    
    protected String getSimpleClassName() {

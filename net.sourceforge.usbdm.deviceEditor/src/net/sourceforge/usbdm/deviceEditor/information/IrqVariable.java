@@ -21,6 +21,12 @@ public class IrqVariable extends Variable {
    
    /** Default value of variable */
    protected String fDefault;
+   
+   /** Set pattern to match IRQ handler name */
+   private String fPattern = null;
+   
+   /** Class handler name */
+   private String fClassHandler = null;
 
    public IrqVariable(String name, String key) {
       super(name, key);
@@ -34,7 +40,7 @@ public class IrqVariable extends Variable {
     * @return Valid => null<br>
     *         Invalid => Error string
     */
-   private String isValidCIdentifier(String id) {
+   public static String isValidCIdentifier(String id) {
       if (id != null) {
          id = id.replaceAll("%", "");
          if (id.matches("[_a-zA-Z][_a-zA-z0-9]*")) {
@@ -84,6 +90,10 @@ public class IrqVariable extends Variable {
       }
    }
    
+   public String getHandlerName() {
+      return fHandlerName;
+   }
+   
    public Mode getMode() {
       return fMode;
    }
@@ -101,6 +111,11 @@ public class IrqVariable extends Variable {
       return null;
    }
 
+   @Override
+   public long getValueAsLong() {
+      return fMode.ordinal();
+   }
+   
    @Override
    public boolean setValue(Object value) {
       if (getPersistentValue().equals(value.toString())) {
@@ -139,6 +154,9 @@ public class IrqVariable extends Variable {
             fMode = Mode.NotInstalled;
          }
       }
+      else if (isValidCIdentifier(value) != null) {
+         fMode = Mode.NotInstalled;
+         }
       else {
          fMode = Mode.UserMethod;
          fHandlerName = value;
@@ -160,4 +178,41 @@ public class IrqVariable extends Variable {
       return new IrqVariableModel(parent, this);
    }
 
+   /**
+    * Set pattern to match IRQ handler name
+    * 
+    * @param pattern
+    */
+   public void setPattern(String pattern) {
+      fPattern = pattern;
+   }
+
+   /**
+    * Get pattern to match IRQ handler name
+    * 
+    * @return pattern
+    */
+   public String getPattern() {
+      return fPattern;
+   }
+
+   /**
+    * Set name of class method that handles this interrupt
+    * 
+    * @param handler Name of handler
+    */
+   public void setClassHandler(String handler) {
+      fClassHandler = handler;
+   }
+
+   /**
+    * Get name of class method that handles this interrupt
+    * 
+    * return Name of handler
+    */
+   public String getClassHandler() {
+      return fClassHandler;
+   }
+
+   
 }

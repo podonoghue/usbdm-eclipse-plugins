@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -40,7 +41,12 @@ public class WriterForDma extends PeripheralWithState {
 
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      super.modifyVectorTable(vectorTable, "^DMA(_Error|(\\d+)).*");
+      IrqVariable var = (IrqVariable) safeGetVariable(makeKey("irqErrorHandler"));
+      super.modifyVectorTable(vectorTable, var, getClassName());
+      for (int i=0; i<4; i++) {
+         var = (IrqVariable) safeGetVariable(makeKey("irqHandlerChannel"+i));
+         super.modifyVectorTable(vectorTable, var, getClassName());
+      }
    }
 
 }

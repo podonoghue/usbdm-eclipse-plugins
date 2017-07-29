@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -24,8 +25,13 @@ public class WriterForUart extends PeripheralWithState {
       return getSignalIndex(function, signalNames);
    }
 
-//   @Override
-//   public void modifyVectorTable(VectorTable vectorTable) {
-//      super.modifyVectorTable(vectorTable, "^"+getName()+"((_RX_TX|_ERR|_LON)).*");
-//   }
+   @Override
+   public void modifyVectorTable(VectorTable vectorTable) {
+      String names[] = {"txrxHandler", "errorHandler", "lonHandler", "irqHandlingMethod"};
+
+      for (String name : names) {
+         IrqVariable var = (IrqVariable) safeGetVariable(makeKey(name));
+         super.modifyVectorTable(vectorTable, var, getClassName());
+      }
+   }
 }

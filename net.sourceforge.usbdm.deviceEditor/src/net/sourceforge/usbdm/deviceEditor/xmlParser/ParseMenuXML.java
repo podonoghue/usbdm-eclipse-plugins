@@ -427,6 +427,8 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseIrqOption(BaseModel parent, Element varElement) throws Exception {
       
       IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, varElement, IrqVariable.class);
+      variable.setPattern(varElement.getAttribute("pattern"));
+      variable.setClassHandler(varElement.getAttribute("classHandler"));
    }
 
    /**

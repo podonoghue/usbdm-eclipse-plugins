@@ -1,10 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -13,14 +16,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 
-public class IrqDialogue extends Dialog {
-
-   private String       fTitle = "Interrupt handler setup";
+public class IrqDialogue extends TitleAreaDialog {
 
    private String       fValue;
    
@@ -40,28 +43,53 @@ public class IrqDialogue extends Dialog {
     */
    public IrqDialogue(Shell parentShell, String value) {
      super(parentShell);
+     setTitle("Select interrupt handler");
      fOriginalValue = value;
      fValue         = value;
    }
 
+   void validate() {
+      String msg = null;
+      if (fUserMethodButton.getSelection()) {
+         fValue = fText.getText();
+         msg = IrqVariable.isValidCIdentifier(fValue);
+      }
+      Button okButton =  getButton(IDialogConstants.OK_ID);
+      if (okButton != null) {
+         okButton.setEnabled(msg == null);
+      }
+      if (msg != null) {
+         setMessage(msg, IMessageProvider.ERROR);
+      }
+      else {
+         setMessage(null);
+      }
+   }
+   
+   @Override
+   public void create() {
+      super.create();
+      setTitle("Interrupt handler setup");
+      validate();
+   }
+   
    @Override
    protected Control createDialogArea(Composite parent) {
-      Composite container = (Composite) super.createDialogArea(parent);
-
-      GridLayout gl = new GridLayout(2, false);
-      gl.marginLeft = 10;
-      gl.marginRight = 10;
-      gl.marginTop = 10;
-      container.setLayout(gl);
-
-      Group radioGroup = new Group(parent, SWT.NONE);
-      radioGroup.setLayout(new RowLayout(SWT.HORIZONTAL));
-      radioGroup.setText("Mode");
+      Composite area = (Composite) super.createDialogArea(parent);
+      Composite container = new Composite(area, SWT.NONE);
+      container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+      
+      GridLayout layout = new GridLayout(2, false);
+      container.setLayout(layout);
+      
+      Group radioGroup = new Group(container, SWT.NONE);
+      radioGroup.setLayout(new RowLayout(SWT.VERTICAL));
+      radioGroup.setText("Interrupt handler installation");
       radioGroup.setToolTipText("This selection allow the interrupt handler for this peripheral to be installed using several different methods");
       GridData gridData = new GridData();
       gridData.horizontalAlignment = GridData.FILL;
       gridData.grabExcessHorizontalSpace = true;
-      gridData.verticalSpan = 3;
+      gridData.horizontalSpan = 2;
       radioGroup.setLayoutData(gridData);
       
       fDisabledButton     = new Button(radioGroup, SWT.RADIO);
@@ -72,7 +100,8 @@ public class IrqDialogue extends Dialog {
          public void widgetSelected(SelectionEvent e) {
             fValue = IrqVariable.NOT_INSTALLED_VALUE;
             fText.setEnabled(false);
-         }
+            validate();
+            }
       });
       fClassMethodButton  = new Button(radioGroup, SWT.RADIO);
       fClassMethodButton.setText("Class Method");
@@ -82,6 +111,7 @@ public class IrqDialogue extends Dialog {
          public void widgetSelected(SelectionEvent e) {
             fValue = IrqVariable.CLASS_VALUE;
             fText.setEnabled(false);
+            validate();
          }
       });
       fUserMethodButton   = new Button(radioGroup, SWT.RADIO);
@@ -91,29 +121,42 @@ public class IrqDialogue extends Dialog {
          @Override
          public void widgetSelected(SelectionEvent e) {
             fText.setEnabled(true);
+            validate();
          }
       });
 
+      Label label = new Label(container, SWT.NONE);
+      label.setText("C Function ");
+      
+      fText = new Text(container, SWT.BORDER);
+      fText.setToolTipText("Name of C function to execute on interrupt");
+      gridData = new GridData();
+      gridData.horizontalAlignment = GridData.FILL;
+      gridData.grabExcessHorizontalSpace = true;
+      fText.setLayoutData(gridData);
+      fText.addModifyListener(new ModifyListener() {
+         @Override
+         public void modifyText(ModifyEvent arg0) {
+            validate();
+         }
+      });
+      
       switch(IrqVariable.getMode(fOriginalValue)) {
       default:
       case NotInstalled:
          fDisabledButton.setSelection(true);
+         fText.setEnabled(false);
          break;
       case ClassMethod:
          fClassMethodButton.setSelection(true);
+         fText.setEnabled(false);
          break;
       case UserMethod:
          fUserMethodButton.setSelection(true);
+         fText.setEnabled(true);
          break;
       }
 
-      gridData = new GridData();
-      gridData.horizontalAlignment = GridData.FILL;
-      gridData.grabExcessHorizontalSpace = true;
-      gridData.verticalSpan = 3;
-      fText = new Text(parent, SWT.BORDER);
-      fText.setLayoutData(gridData);
-      
       fText.setText(IrqVariable.getHandlerName(fOriginalValue));
 
       parent.layout(true);
@@ -144,12 +187,6 @@ public class IrqDialogue extends Dialog {
       fValue = fOriginalValue;
    }
 
-   @Override
-   protected void configureShell(Shell newShell) {
-     super.configureShell(newShell);
-     newShell.setText(fTitle);
-   }
-
    public static void main(String[] args) {
       Display display = new Display();
 
@@ -178,13 +215,5 @@ public class IrqDialogue extends Dialog {
             display.sleep();
       }
       display.dispose();
-   }
-
-   public String getTitle() {
-      return fTitle;
-   }
-
-   public void setTitle(String fTitle) {
-      this.fTitle = fTitle;
    }
  } 
