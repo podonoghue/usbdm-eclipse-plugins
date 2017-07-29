@@ -1,22 +1,12 @@
 package net.sourceforge.usbdm.deviceEditor.editor;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.FileDialog;
 
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
-import net.sourceforge.usbdm.deviceEditor.model.FilePathModel;
 
 public class ValueColumnEditingSupport extends EditingSupport {
 
@@ -41,9 +31,6 @@ public class ValueColumnEditingSupport extends EditingSupport {
       if (element instanceof CellEditorProvider) {
          CellEditorProvider model = (CellEditorProvider) element;
          return model.createCellEditor(fViewer.getTree());
-      }
-      if (element instanceof FilePathModel) {
-         return new HardwareCellEditor(fViewer.getTree());
       }
       return null;
    }
@@ -70,29 +57,4 @@ public class ValueColumnEditingSupport extends EditingSupport {
       fViewer.update(element, null);
    }
 
-   static class HardwareCellEditor extends DialogCellEditor {
-
-      String currentPath = null;
-      
-      HardwareCellEditor(Composite parent) {
-         super(parent, SWT.NONE);
-      }
-      
-      @Override
-      protected void doSetValue(Object value) {
-         currentPath = (String) value;
-         super.doSetValue(value);
-      }
-
-      @Override
-      protected Object openDialogBox(Control paramControl) { 
-         FileDialog dialog = new FileDialog(paramControl.getShell(), SWT.OPEN);
-         dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.HARDWARE_FILE_EXTENSION});
-         Path path = Paths.get(currentPath).toAbsolutePath();
-         dialog.setFilterPath(path.getParent().toString());
-         dialog.setFileName(path.getFileName().toString());
-         return dialog.open();
-      }
-   }
-   
 }

@@ -303,7 +303,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Search vector table for handler and replace with class static method name.<br>
     * 
     * @param vectorTable  Vector table to search
-    * @param pattern      Pattern to match against standard handler name
+    * @param pattern      Pattern to match against standard handler name<br>
+    *                     The first matching group is incorporated into the handler name.
     */
    public void modifyVectorTable(VectorTable vectorTable, String pattern) {
       modifyVectorTable(vectorTable, pattern, getClassName());
@@ -342,9 +343,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                   if (namedInterruptHandlerVar != null) {
                      String t = namedInterruptHandlerVar.getValueAsString();
                      if ((t != null) && !t.isEmpty()) {
-                        handlerName = t+m.group(1)+"Handler";
+                        handlerName = t;
                      }
                   }
+                  handlerName = handlerName.replaceAll("%", m.group(1));
                }
                entry.setHandlerName(handlerName);
                entry.setClassMemberUsedAsHandler(true);

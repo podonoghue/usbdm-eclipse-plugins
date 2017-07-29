@@ -19,6 +19,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
@@ -414,10 +415,18 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
 
       BooleanVariable variable = (BooleanVariable) parseCommonAttributes(parent, varElement, BooleanVariable.class);
-      if (Boolean.valueOf(varElement.getAttribute("derivedFrom"))) {
-         
-      }
       parseChoices(variable, varElement);
+   }
+
+   /**
+    * Parse &lt;binaryOption&gt; element<br>
+    * 
+    * @param varElement
+    * @throws Exception 
+    */
+   private void parseIrqOption(BaseModel parent, Element varElement) throws Exception {
+      
+      IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, varElement, IrqVariable.class);
    }
 
    /**
@@ -671,6 +680,9 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          else if (element.getTagName() == "binaryOption") {
             parseBinaryOption(parentModel, element);
+         }
+         else if (element.getTagName() == "irqOption") {
+            parseIrqOption(parentModel, element);
          }
          else if (element.getTagName() == "choiceOption") {
             parseChoiceOption(parentModel, element);

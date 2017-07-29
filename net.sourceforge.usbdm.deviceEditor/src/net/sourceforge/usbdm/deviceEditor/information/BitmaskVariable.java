@@ -1,7 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.BitmaskModel;
+import net.sourceforge.usbdm.deviceEditor.model.BitmaskVariableModel;
 
 public class BitmaskVariable extends LongVariable {
 
@@ -35,8 +35,8 @@ public class BitmaskVariable extends LongVariable {
    }
 
    @Override
-   public BitmaskModel createModel(BaseModel parent) {
-      return new BitmaskModel(parent, this);
+   public BitmaskVariableModel createModel(BaseModel parent) {
+      return new BitmaskVariableModel(parent, this);
    }
 
    @Override

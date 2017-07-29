@@ -7,7 +7,6 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 
@@ -16,26 +15,28 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 
 abstract class BaseLabelProvider extends StyledCellLabelProvider  implements IStyledLabelProvider {
 
-   protected static Image errorImage     = null;
-   protected static Image warningImage   = null;
-   protected static Image lockedImage    = null;
-   protected static Image checkedImage   = null;
-   protected static Image uncheckedImage = null;
-   protected static Image disabledImage  = null;
-   protected static Image emptyImage     = null;
-   private   static int   referenceCount = 0;
+   protected static Image errorImage       = null;
+   protected static Image warningImage     = null;
+   protected static Image lockedImage      = null;
+   protected static Image checkedImage     = null;
+   protected static Image uncheckedImage   = null;
+   protected static Image greycheckedImage = null;
+   protected static Image disabledImage    = null;
+   protected static Image emptyImage       = null;
+   private   static int   referenceCount   = 0;
    
    BaseLabelProvider() {
       referenceCount++;
 //      System.err.println("BaseLabelProvider(), ref = " + referenceCount);
       if ((errorImage == null) && (Activator.getDefault() != null)) {
-         errorImage     = Activator.getImageDescriptor(Activator.ID_ERROR_NODE_IMAGE).createImage();
-         warningImage   = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
-         lockedImage    = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
-         checkedImage   = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
-         uncheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
-         disabledImage  = Activator.getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
-         emptyImage     = Activator.getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
+         errorImage         = Activator.getImageDescriptor(Activator.ID_ERROR_NODE_IMAGE).createImage();
+         warningImage       = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
+         lockedImage        = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+         checkedImage       = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+         uncheckedImage     = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+         greycheckedImage   = Activator.getImageDescriptor(Activator.ID_CHECKBOX_GREYED_IMAGE).createImage();
+         disabledImage      = Activator.getImageDescriptor(Activator.ID_DISABLED_IMAGE).createImage();
+         emptyImage         = Activator.getImageDescriptor(Activator.ID_EMPTY_IMAGE).createImage();
       }
    }
 
@@ -121,11 +122,6 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
    }
 
    @Override
-   public Point getToolTipShift(Object object) {
-     return new Point(55, 55);
-   }   
-   
-   @Override
    public void dispose() {
       super.dispose();
 //      System.err.println("BaseLabelProvider.dispose(), ref = " + referenceCount);
@@ -152,6 +148,10 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
       if (uncheckedImage != null) {
          uncheckedImage.dispose();
          uncheckedImage = null;
+      }
+      if (greycheckedImage != null) {
+         greycheckedImage.dispose();
+         greycheckedImage = null;
       }
       if (disabledImage != null) {
          disabledImage.dispose();

@@ -1,6 +1,45 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-public class FilePathModel extends EditableModel {
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.DialogCellEditor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Tree;
+
+import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+
+public class FilePathModel extends EditableModel  implements CellEditorProvider{
+
+   static class HardwareCellEditor extends DialogCellEditor {
+
+      String currentPath = null;
+      
+      HardwareCellEditor(Composite parent) {
+         super(parent, SWT.NONE);
+      }
+      
+      @Override
+      protected void doSetValue(Object value) {
+         currentPath = (String) value;
+         super.doSetValue(value);
+      }
+
+      @Override
+      protected Object openDialogBox(Control paramControl) { 
+         FileDialog dialog = new FileDialog(paramControl.getShell(), SWT.OPEN);
+         dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.HARDWARE_FILE_EXTENSION});
+         Path path = Paths.get(currentPath).toAbsolutePath();
+         dialog.setFilterPath(path.getParent().toString());
+         dialog.setFileName(path.getFileName().toString());
+         return dialog.open();
+      }
+   }
 
    /**  Model factory associated with this model */
    ModelFactory fFactory;
@@ -29,6 +68,11 @@ public class FilePathModel extends EditableModel {
 
    @Override
    protected void removeMyListeners() {
+   }
+
+   @Override
+   public CellEditor createCellEditor(Tree tree) {
+      return new HardwareCellEditor(tree);
    }
 
 }

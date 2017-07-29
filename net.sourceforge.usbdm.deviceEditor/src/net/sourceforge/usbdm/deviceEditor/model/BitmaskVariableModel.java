@@ -11,12 +11,12 @@ import net.sourceforge.usbdm.deviceEditor.editor.BitmaskDialogue;
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
-public class BitmaskModel extends VariableModel {
+public class BitmaskVariableModel extends VariableModel {
 
    static class BitmaskEditor extends DialogCellEditor {
-      final BitmaskModel fModel;
+      final BitmaskVariableModel fModel;
 
-      public BitmaskEditor(Tree tree, BitmaskModel model) {
+      public BitmaskEditor(Tree tree, BitmaskVariableModel model) {
          super(tree, SWT.NONE);
          fModel = model;
       }
@@ -43,7 +43,7 @@ public class BitmaskModel extends VariableModel {
     * 
     * @note Added as child of parent if not null
     */
-   public BitmaskModel(BaseModel parent, BitmaskVariable variable) {
+   public BitmaskVariableModel(BaseModel parent, BitmaskVariable variable) {
       super(parent, variable);
    }
 

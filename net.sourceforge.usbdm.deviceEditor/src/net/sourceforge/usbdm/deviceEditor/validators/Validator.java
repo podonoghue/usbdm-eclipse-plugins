@@ -52,11 +52,14 @@ public class Validator {
     * @return Valid => null<br>
     *         Invalid => Error string
     */
-   String checkValidCIdentifier(String id) {
-      if ((id == null) || id.isEmpty()) {
-         return "Illegal name for C identifier";
+   String isValidCIdentifier(String id) {
+      if (id != null) {
+         id = id.replaceAll("%", "");
+         if (id.matches("[_a-zA-Z][_a-zA-z0-9]*")) {
+            return null;
+         }
       }
-      return null;
+      return "Illegal name for C identifier";
    }
    /**
     * Validates the interrupt portion of the dialogue
@@ -93,7 +96,7 @@ public class Validator {
      case 2: // Named function
         namedInterruptHandlerVar.enable(true);
         namedInterruptHandlerVar.setOrigin(null);
-        namedInterruptHandlerVar.setStatus(checkValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
+        namedInterruptHandlerVar.setStatus(isValidCIdentifier(namedInterruptHandlerVar.getValueAsString()));
         irqLevelVar.enable(true);
         irqLevelVar.setOrigin(null);
         break;

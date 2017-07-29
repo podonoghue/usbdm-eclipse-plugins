@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of UART
@@ -23,4 +24,8 @@ public class WriterForUart extends PeripheralWithState {
       return getSignalIndex(function, signalNames);
    }
 
+//   @Override
+//   public void modifyVectorTable(VectorTable vectorTable) {
+//      super.modifyVectorTable(vectorTable, "^"+getName()+"((_RX_TX|_ERR|_LON)).*");
+//   }
 }

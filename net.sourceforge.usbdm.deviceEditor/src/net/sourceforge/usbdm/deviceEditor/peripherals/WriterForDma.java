@@ -38,8 +38,9 @@ public class WriterForDma extends PeripheralWithState {
       super.writeNamespaceInfo(documentUtilities);
    }
 
+   @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      super.modifyVectorTable(vectorTable, "^DMA((\\d+)?).*");
+      super.modifyVectorTable(vectorTable, "^DMA(_Error|(\\d+)).*");
    }
 
 }

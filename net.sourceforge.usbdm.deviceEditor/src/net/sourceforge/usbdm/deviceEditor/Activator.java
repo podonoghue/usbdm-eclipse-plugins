@@ -82,6 +82,8 @@ public class Activator extends AbstractUIPlugin {
       registry.put(ID_CHECKBOX_CHECKED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-unchecked.png"), null));
       registry.put(ID_CHECKBOX_UNCHECKED_IMAGE, imageDescriptor);
+      imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/checkbox-greyed.png"), null));
+      registry.put(ID_CHECKBOX_GREYED_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/error.png"), null));
       registry.put(ID_ERROR_NODE_IMAGE, imageDescriptor);
       imageDescriptor = ImageDescriptor.createFromURL(FileLocator.find(bundle, new Path("icons/warning.png"), null));
@@ -99,6 +101,7 @@ public class Activator extends AbstractUIPlugin {
    public final static String ID_DISABLED_IMAGE            = "disabled";
    public final static String ID_CHECKBOX_CHECKED_IMAGE    = "checkbox-checked";
    public final static String ID_CHECKBOX_UNCHECKED_IMAGE  = "checkbox-unchecked";
+   public final static String ID_CHECKBOX_GREYED_IMAGE     = "checkbox-greyed";
    public final static String ID_ERROR_NODE_IMAGE          = "error";
    public final static String ID_WARNING_NODE_IMAGE        = "warning";
    public final static String ID_LOCKED_NODE_IMAGE         = "locked";
