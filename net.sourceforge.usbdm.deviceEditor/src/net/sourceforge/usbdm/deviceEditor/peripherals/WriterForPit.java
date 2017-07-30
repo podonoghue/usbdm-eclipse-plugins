@@ -24,15 +24,5 @@ public class WriterForPit extends PeripheralWithState {
       final String signalNames[] = {"OUT"};
       return getSignalIndex(function, signalNames);
    }
-   
-   @Override
-   public void modifyVectorTable(VectorTable vectorTable) {
-      IrqVariable var = (IrqVariable) safeGetVariable(makeKey("irqHandler"));
-      super.modifyVectorTable(vectorTable, var, getClassName());
-      for (int i=0; i<4; i++) {
-         var = (IrqVariable) safeGetVariable(makeKey("irqHandlerChannel"+i));
-         super.modifyVectorTable(vectorTable, var, getClassName());
-      }
-   }
 
 }

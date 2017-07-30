@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -296,8 +297,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      // Default IRQ variable
-      modifyVectorTable(vectorTable, (IrqVariable) safeGetVariable(makeKey("irqHandlingMethod")), getClassName());
+      for (IrqVariable var : irqVariables) {
+         modifyVectorTable(vectorTable, var, getClassName());
+      }
    }
 
    /**
@@ -468,6 +470,26 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          return peripheralFile;
       }
       return super.getPeripheralModelName();
+   }
+
+   ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();
+   
+   /**
+    * Add a Variable describing a IRQ handler setting
+    * 
+    * @param variable
+    */
+   public void addIrqVariable(IrqVariable variable) {
+      irqVariables.add(variable);
+   }
+
+   /**
+    * Get list of Variables describing IRQ handler settings
+    * 
+    * @param variable
+    */
+   public List<IrqVariable> getIrqVariables(IrqVariable variable) {
+      return irqVariables;
    }
 
 }

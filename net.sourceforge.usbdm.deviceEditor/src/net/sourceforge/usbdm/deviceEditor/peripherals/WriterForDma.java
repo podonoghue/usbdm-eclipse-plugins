@@ -3,9 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
-import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -37,16 +35,6 @@ public class WriterForDma extends PeripheralWithState {
    @Override
    public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
       super.writeNamespaceInfo(documentUtilities);
-   }
-
-   @Override
-   public void modifyVectorTable(VectorTable vectorTable) {
-      IrqVariable var = (IrqVariable) safeGetVariable(makeKey("irqErrorHandler"));
-      super.modifyVectorTable(vectorTable, var, getClassName());
-      for (int i=0; i<4; i++) {
-         var = (IrqVariable) safeGetVariable(makeKey("irqHandlerChannel"+i));
-         super.modifyVectorTable(vectorTable, var, getClassName());
-      }
    }
 
 }

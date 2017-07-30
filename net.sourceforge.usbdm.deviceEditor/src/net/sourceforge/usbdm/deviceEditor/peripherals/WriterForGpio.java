@@ -110,8 +110,9 @@ public class WriterForGpio extends PeripheralWithState {
 
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      // Default IRQ variable
-      modifyVectorTable(vectorTable, (IrqVariable) safeGetVariable(makeKey("irqHandlingMethod")), "Port"+getInstance());
+      for (IrqVariable var : irqVariables) {
+         modifyVectorTable(vectorTable, var, "Port"+getInstance());
+      }
    }
    
 }
