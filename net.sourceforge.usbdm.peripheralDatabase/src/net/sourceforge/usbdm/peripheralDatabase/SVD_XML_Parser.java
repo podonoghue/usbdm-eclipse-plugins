@@ -428,6 +428,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             register.setResetMask(getIntElement(element));
          }
          else if (element.getTagName() == DIM_TAG) {
+            // Dim tag is ignored (dimension calculated from <dimIndex> count
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             register.setDimensionIncrement((int) getIntElement(element));

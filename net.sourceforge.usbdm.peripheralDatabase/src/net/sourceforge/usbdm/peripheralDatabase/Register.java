@@ -491,20 +491,23 @@ public class Register extends Cluster implements Cloneable {
       Register derived = (Register) derivedCluster;
 
       if (getDimensionIndexes() != derived.getDimensionIndexes()) {
-         writeDimensionList(writer, indent);
+         writeDimensionList(writer, "", derived);
       }
-      writer.write(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
-
-      if (isHidden() != derived.isHidden()) {
-         writer.write(String.format(" <?hide?>"));
+      if (!getName().equals(derived.getName())) {
+         writer.write(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
       }
-      if (isDoDerivedMacros() != derived.isDoDerivedMacros()) {
+      if (isHidden() && (isHidden() != derived.isHidden())) {
+         writer.write("<?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+      }
+      if (isDoDerivedMacros() && (isDoDerivedMacros() != derived.isDoDerivedMacros())) {
          writer.write(String.format(" <?doDerivedMacros?>"));
       }
       if (!getDescription().equals(derived.getDescription())) {
          writer.write(String.format(" <description>%s</description>",       SVD_XML_BaseParser.escapeString(getDescription())));
       }
-      writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      if (getAddressOffset() != derived.getAddressOffset()) {
+         writer.write(String.format(" <addressOffset>0x%X</addressOffset>", getAddressOffset()));
+      }
       if (!getAccessType().equals(derived.getAccessType())) {
          writer.write(String.format(" <access>%s</access>",                 getAccessType().getPrettyName()));
       }
@@ -522,22 +525,46 @@ public class Register extends Cluster implements Cloneable {
     * 
     *  @param writer          The destination for the XML
     *  @param level           Level of indenting
+    *  @param derivedRegister Register derived from (may be null)
+    *  
     *  @throws IOException 
     */
-   void writeDimensionList(Writer writer, String indent) throws IOException {
+   void writeDimensionList(Writer writer, String indent, Register derivedRegister) throws IOException {
       if (getDimension()>0) {
-         writer.write(String.format(indent+"<dim>%d</dim>\n",                       getDimension()));
-         writer.write(String.format(indent+"<dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
-         writer.write(String.format(  indent+"<dimIndex>"));
-         boolean doComma = false;
-         for (String s : getDimensionIndexes()) {
-            if (doComma) {
-               writer.write(",");
+         if (derivedRegister != null) {
+            if (getDimension() != derivedRegister.getDimension()) {
+               writer.write(String.format("<dim>%d</dim>", getDimension()));
             }
-            doComma = true;
-            writer.write(SVD_XML_BaseParser.escapeString(s));
+            if (getDimensionIncrement() != derivedRegister.getDimensionIncrement()) {
+               writer.write(String.format("<dimIncrement>%d</dimIncrement>", getDimensionIncrement()));
+            }
+            if (!getDimensionIndexes().equals(derivedRegister.getDimensionIndexes())) {
+               writer.write(String.format("<dimIndex>"));
+               boolean doComma = false;
+               for (String s : getDimensionIndexes()) {
+                  if (doComma) {
+                     writer.write(",");
+                  }
+                  doComma = true;
+                  writer.write(SVD_XML_BaseParser.escapeString(s));
+               }
+               writer.write(String.format("</dimIndex>"));
+            }
          }
-         writer.write(String.format("</dimIndex>\n"));
+         else {
+            writer.write(String.format(indent+"<dim>%d</dim>\n",                       getDimension()));
+            writer.write(String.format(indent+"<dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
+            writer.write(String.format(  indent+"<dimIndex>"));
+            boolean doComma = false;
+            for (String s : getDimensionIndexes()) {
+               if (doComma) {
+                  writer.write(",");
+               }
+               doComma = true;
+               writer.write(SVD_XML_BaseParser.escapeString(s));
+            }
+            writer.write(String.format("</dimIndex>\n"));
+         }
       }
    }
    
@@ -583,7 +610,7 @@ public class Register extends Cluster implements Cloneable {
       else {
          final String indenter = RegisterUnion.getIndent(indent);
          writer.write(                 indenter+"<register>\n");
-         writeDimensionList(writer, indenter+"   ");
+         writeDimensionList(writer, indenter+"   ", null);
          writeBaseRegisterSVD(writer, standardFormat, owner, indent, getName(), getAddressOffset());
          writer.write(                 indenter+"</register>\n");
       }
