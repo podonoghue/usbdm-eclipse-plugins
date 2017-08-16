@@ -2667,7 +2667,7 @@
             id="net.sourceforge.usbdm.cdt.wizard.CS_ARM_BuiltinSpecsDetector"
             name="USBDM ARM Built-in Compiler Settings"
             class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmCS_ARM_BuiltinSpecsDetector"
-            parameter="&quot;${usbdm_armLtd_arm_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD  ${INPUTS}">
+            parameter="&quot;${usbdm_armLtd_arm_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD  &quot;${INPUTS}&quot;">
          <language-scope id="org.eclipse.cdt.core.gcc"/>
          <language-scope id="org.eclipse.cdt.core.g++"/>
       </provider>
@@ -2678,7 +2678,7 @@
             id="net.sourceforge.usbdm.cdt.wizard.CS_Coldfire_BuiltinSpecsDetector"
             name="USBDM Coldfire Built-in Compiler Settings"
             class="net.sourceforge.usbdm.cdt.tools.scanners.UsbdmCS_Coldfire_BuiltinSpecsDetector"
-            parameter="&quot;${usbdm_codesourcery_coldfire_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD ${INPUTS}">
+            parameter="&quot;${usbdm_codesourcery_coldfire_prefix}${COMMAND}&quot; ${usbdm_compiler_flags} ${FLAGS} -E -P -v -dD &quot;${INPUTS}&quot;">
          <language-scope id="org.eclipse.cdt.core.gcc"/>
          <language-scope id="org.eclipse.cdt.core.g++"/>
       </provider>
