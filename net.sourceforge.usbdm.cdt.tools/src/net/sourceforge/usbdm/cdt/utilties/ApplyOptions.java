@@ -37,7 +37,7 @@ public class ApplyOptions {
       String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);
       String path     = MacroSubstitute.substitute(projectOption.getPath(),   variableMap);
       String value[]  = projectOption.getValue();
-      boolean replace = projectOption.isReplace();
+      boolean replace = projectOption.doOverwrite();
       String config   = projectOption.getConfig();
       for (int index=0; index<value.length; index++) {
          value[index] = MacroSubstitute.substitute(value[index], variableMap);

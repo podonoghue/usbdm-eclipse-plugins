@@ -39,36 +39,39 @@ import net.sourceforge.usbdm.packageParser.FileAction.PathType;
  */
 public class AddTargetFiles {
 
-   static String readFile(java.nio.file.Path path) throws IOException {
-      byte[] encoded = Files.readAllBytes((java.nio.file.Path) path);
-      return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
+   static byte[] readFile(java.nio.file.Path path) throws IOException {
+      return Files.readAllBytes((java.nio.file.Path) path);
+//      byte[] encoded = Files.readAllBytes((java.nio.file.Path) path);
+//      return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
    }
 
    /**
+    * 
     * @param sourcePath          path of source file
     * @param targetPath          path of target file
-    * @param doMacroReplacement  whether to macro substitution
+    * @param fileAction
     * @param variableMap         macro values
     * @param projectHandle       handle for access to project
+    * @param progressMonitor
     * 
-    * @throws Exception 
+    * @throws Exception
     */
    private void copyFile(Path sourcePath, Path targetPath, FileAction fileAction, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor progressMonitor) throws Exception {
 //      System.err.println(String.format("AddTargetFiles.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
       monitor.beginTask("Copying File", 100);
       
-      InputStream contents = null;
-      String fileContents;
+      byte[] fileContents;
       try {
          fileContents = readFile(sourcePath);
       } catch (IOException e) {
-         throw new Exception("\"" + sourcePath + "\" failed read"); //$NON-NLS-1$ //$NON-NLS-2$
+         throw new Exception("\"" + sourcePath + "\" failed read", e); //$NON-NLS-1$ //$NON-NLS-2$
       }
-      if (fileAction.isDoMacroReplacement()) {
-         fileContents = MacroSubstitute.substitute(fileContents, variableMap);
+      if (fileAction.doMacroReplace()) {
+         // Assume UTF-8
+         String chars =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(fileContents)).toString();
+         fileContents = MacroSubstitute.substitute(chars, variableMap).getBytes();
       }
-      contents = new ByteArrayInputStream(fileContents.getBytes());
       try {
          monitor.beginTask("Copy File", 100);
          IFile iFile = projectHandle.getFile(targetPath.toString());
@@ -79,7 +82,7 @@ public class AddTargetFiles {
          }
          // Replace existing, more specific, file
          if (iFile.exists()) {
-            if (fileAction.isDoMacroReplacement()) {
+            if (fileAction.doFileOverwrite()) {
 //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
                iFile.delete(true, monitor.newChild(remainder));               
             }
@@ -87,7 +90,7 @@ public class AddTargetFiles {
                throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
             }
          }
-         iFile.create(contents, true, null);
+         iFile.create(new ByteArrayInputStream(fileContents), true, null);
          iFile.setDerived(fileAction.isDerived(), monitor);
          iFile.refreshLocal(IResource.DEPTH_ONE, null);
          projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
@@ -127,21 +130,23 @@ public class AddTargetFiles {
    }
    /**
     * 
-    * @param sourcePath          path of source file or directory
-    * @param targetPath          path of target file (if source is a directory then parent is used)
-    * @param doMacroReplacement  whether to macro substitution
-    * @param variableMap         template for macro values
-    * @param projectHandle       handle for access to project
-    * @param monitor
+    * @param sourcePath          Path of source file or directory
+    * @param targetPath          Path of target file (if source is a directory then parent is used)
+    * @param fileInfo            Action
+    * @param variableMap         Template for macro values
+    * @param projectHandle       Handle for access to project
+    * @param progressMonitor
     * 
     * @throws Exception
     */
    private void copyFiles(Path sourcePath, Path targetPath, FileAction fileInfo, Map<String, String> variableMap, IProject projectHandle, IProgressMonitor progressMonitor) throws Exception {
+      
       //      System.err.println("AddTargetFiles.processItem() file  = " + path.toString());
       //      System.err.println("AddTargetFiles.processItem() exists?  = " + Files.exists(path));
       //      System.err.println("AddTargetFiles.processItem() directory?  = " + Files.isDirectory(path));
       //      System.err.println("AddTargetFiles.processItem() targetPath = " + targetPath.toString());
       //      System.err.println("AddTargetFiles.processItem() targetPath.getFileName = " + targetPath.getFileName().toString());
+      
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
       monitor.beginTask("Copying Files", 100);
 
@@ -233,9 +238,11 @@ public class AddTargetFiles {
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
+      
 //      System.err.println("root   = \'" + root.toString() + "\'");
 //      System.err.println("source = \'" + source.toString() + "\'");
 //      System.err.println("target = \'" + target.toString() + "\'");
+      
       if (source.isEmpty()) {
 //         System.err.println("AddTargetFiles.process() - source is empty, fileInfo.getSource() = " + fileInfo.getSource());
          return;
