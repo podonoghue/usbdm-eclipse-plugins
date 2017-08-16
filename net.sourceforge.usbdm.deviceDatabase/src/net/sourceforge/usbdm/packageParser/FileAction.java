@@ -5,11 +5,11 @@ public class FileAction extends ProjectAction {
    private final String    source;
    private final String    target;
    private final FileType  fileType;
-   private       String    root                 = null;
-   private       boolean   doMacroReplacement   = false;
-   private       boolean   doReplace            = false;
-   private       PathType  sourcePathType       = PathType.UNKNOWN;
-   private       boolean   fDerived             = false;
+   private       String    root              = null;
+   private       boolean   fDoMacroReplace   = false;
+   private       boolean   fDoFileOverwrite  = false;
+   private       PathType  sourcePathType    = PathType.UNKNOWN;
+   private       boolean   fDerived          = false;
 
    public enum FileType {
       NORMAL,
@@ -34,29 +34,36 @@ public class FileAction extends ProjectAction {
       return target;
    }
    /**
-    * Indicates whether macro replacement should occur when copied
+    * Indicates whether macro replacement should occur when file is written
     * 
-    * @param doMacroReplacement value to set
+    * @param doMacroReplace value to set
     */
-   public void setDoMacroReplacement(boolean doMacroReplacement) {
-      this.doMacroReplacement = doMacroReplacement;
+   public void setMacroReplace(boolean doMacroReplace) {
+      fDoMacroReplace = doMacroReplace;
    }
    /**
-    * Indicates macro replacement should occur when copied
+    * Indicates macro replacement should occur when file is written
     * 
-    * @param True if replacement should occur
+    * @param True if macro replacement should occur
     */
-   public boolean isDoMacroReplacement() {
-      return doMacroReplacement;
+   public boolean doMacroReplace() {
+      return fDoMacroReplace;
    }
    /**
-    * @param doReplace the doReplace to set
+    * Indicates whether file overwrite should occur when copied
+    * 
+    * @param doOverwrite True to indicate that files should be quietly overwritten
     */
-   public void setDoReplace(boolean doReplace) {
-      this.doReplace = doReplace;
+   public void setFileOverwrite(boolean doOverwrite) {
+      fDoFileOverwrite = doOverwrite;
    }
-   public boolean isDoReplace() {
-      return doReplace;
+   /**
+    * Indicates files should be overwritten when copied
+    * 
+    * @return True if files should be overwritten when copied
+    */
+   public boolean doFileOverwrite() {
+      return fDoFileOverwrite;
    }
    @Override
    public String toString() {

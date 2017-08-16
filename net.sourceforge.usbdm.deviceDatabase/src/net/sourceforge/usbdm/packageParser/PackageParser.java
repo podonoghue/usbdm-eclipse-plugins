@@ -94,7 +94,7 @@ public class PackageParser {
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
                                     //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
-                                    if (!projectConstant.doReplace()) {
+                                    if (!projectConstant.doOverwrite()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
                                           return new Result(new Exception("Repeated constant"));
@@ -180,7 +180,7 @@ public class PackageParser {
                                  else if (action instanceof ProjectConstant) {
                                     ProjectConstant projectConstant = (ProjectConstant) action;
                                     //                                    System.err.println(String.format("PackageParser.getDevicePackageList(): Adding constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
-                                    if (!projectConstant.doReplace()) {
+                                    if (!projectConstant.doOverwrite()) {
                                        String value = variableMap.get(projectConstant.getId());
                                        if ((value != null) && !value.equals(projectConstant.getValue())) {
                                           return new Result(new Exception("Repeated constant"));
@@ -779,15 +779,15 @@ public class PackageParser {
     */
    private static ProjectConstant parseConstantElement(Element projectConstantElement) throws Exception {
       // <constant>
-      String id         = projectConstantElement.getAttribute("id");
-      String value      = projectConstantElement.getAttribute("value");
+      String id            = projectConstantElement.getAttribute("id");
+      String value         = projectConstantElement.getAttribute("value");
       value = value.replaceAll("\\\\n", "\n");
       value = value.replaceAll("\\\\t", "\t");
-      String replace    = projectConstantElement.getAttribute("replace");
-      String weak       = projectConstantElement.getAttribute("weak");
-      boolean doReplace = replace.equalsIgnoreCase("true");
-      boolean isWeak    = weak.equalsIgnoreCase("true");
-      ProjectConstant projectconstant = new ProjectConstant(id, value, doReplace, isWeak);
+      String overwrite     = projectConstantElement.getAttribute("overwrite");
+      String weak          = projectConstantElement.getAttribute("weak");
+      boolean doOverwrite  = overwrite.equalsIgnoreCase("true");
+      boolean isWeak       = weak.equalsIgnoreCase("true");
+      ProjectConstant projectconstant = new ProjectConstant(id, value, doOverwrite, isWeak);
       for (Node node = projectConstantElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -860,6 +860,7 @@ public class PackageParser {
     * @param    fileElement <copy> element
     * 
     * @return   File list described 
+    * 
     * @throws Exception 
     */
    private static FileAction parseCopyElement(Element element) throws Exception {
@@ -884,14 +885,16 @@ public class PackageParser {
          sourcePathType = FileAction.PathType.RELATIVE;
       }
       // Default to true
-      boolean doMacroReplacement = !element.getAttribute("macroReplacement").equalsIgnoreCase("false");
+      boolean doMacroReplace     = !element.getAttribute("macroReplace").equalsIgnoreCase("false");
       // Default to false
-      boolean doReplacement      =  element.getAttribute("replace").equalsIgnoreCase("true");
+      boolean doFileOverwrite    =  element.getAttribute("overwrite").equalsIgnoreCase("true");
       // Default to false
       boolean doDerived          =  element.getAttribute("derived").equalsIgnoreCase("true");
+      
       FileAction fileInfo        = new FileAction(source, target, fileType);
-      fileInfo.setDoMacroReplacement(doMacroReplacement);
-      fileInfo.setDoReplace(doReplacement);
+      
+      fileInfo.setMacroReplace(doMacroReplace);
+      fileInfo.setFileOverwrite(doFileOverwrite);
       fileInfo.setSourcePathType(sourcePathType);
       fileInfo.setDerived(doDerived);
       return fileInfo;
@@ -937,9 +940,9 @@ public class PackageParser {
       if (config.equalsIgnoreCase("all")) {
          config = null;
       }
-      boolean replace = false;
-      if (optionElement.hasAttribute("replace")) {
-         replace = optionElement.getAttribute("replace").equalsIgnoreCase("true");
+      boolean overwrite = false;
+      if (optionElement.hasAttribute("overwrite")) {
+         overwrite = optionElement.getAttribute("overwrite").equalsIgnoreCase("true");
       }
       if (id.isEmpty()) {
          throw new Exception("<projectOption> is missing required attribute");
@@ -959,7 +962,7 @@ public class PackageParser {
       }
       //   System.err.println("parseOptionElement() value = "+values.get(0));
 
-      return new ProjectOption(id, path, values.toArray(new String[values.size()]), config, replace);
+      return new ProjectOption(id, path, values.toArray(new String[values.size()]), config, overwrite);
    }
 
    /**

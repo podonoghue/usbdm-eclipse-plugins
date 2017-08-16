@@ -3,28 +3,28 @@ package net.sourceforge.usbdm.packageParser;
 
 public class ProjectConstant extends ProjectAction {
    protected       String  fValue;
-   protected final boolean fDoReplace;
+   protected final boolean fDoOverwrite;
    protected final boolean fIsWeak;
    
    
-   public ProjectConstant(String id, String value, boolean doReplace, boolean isWeak) {
+   public ProjectConstant(String id, String value, boolean doOverwrite, boolean isWeak) {
       super(id);
-      fValue     = value;
-      fDoReplace = doReplace;
-      fIsWeak    = isWeak;
+      fValue         = value;
+      fDoOverwrite   = doOverwrite;
+      fIsWeak        = isWeak;
    }
    public String getValue() {
       return fValue;
    }
    @Override
    public String toString() {
-      return String.format("ProjectConstant[id=%s, value=%s, doReplace=%s]", getId(), fValue, Boolean.toString(fDoReplace));
+      return String.format("ProjectConstant[id=%s, value=%s, doReplace=%s]", getId(), fValue, Boolean.toString(fDoOverwrite));
    }
    /**
-    * @return true if this constant is to replace earlier definitions
+    * @return true if this constant is to overwrite earlier definitions
     */
-   public boolean doReplace() {
-      return fDoReplace;
+   public boolean doOverwrite() {
+      return fDoOverwrite;
    }
    /**
     * @return true if this constant is a weak value

@@ -407,7 +407,7 @@ public class UsbdmOptionsPanel  extends Composite {
                       // Ignore - assume constant is a default that has been overwritten
                       return CONTINUE;
                    }
-                   if (!projectConstant.doReplace() && !value.equals(projectConstant.getValue())) {
+                   if (!projectConstant.doOverwrite() && !value.equals(projectConstant.getValue())) {
                       return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
                    }
                 }
