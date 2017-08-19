@@ -8,15 +8,19 @@ set /p PASS=Enter Certificate Password:
 cls
 if [%PASS%] == []  goto done
 
-set KEYTOOL="C:\Program Files\Java\jdk1.8.0_131\bin\keytool.exe"
 set SIGNTOOL="C:\Program Files\Java\jdk1.8.0_131\bin\jarsigner.exe"
-set STORE="C:\Apps\Certificates\cacerts"
 set ALIAS=myKey
-rem set ALIAS={0483c6d5-103a-436c-bca0-dfe8ad043339}
-rem set TIMESTAMP_URL=http://www.startssl.com/timestamp
-set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
 
-for %%f in (%HOME_DIR%\plugins\*.jar %HOME_DIR%\features\*.jar) do %SIGNTOOL% %%f  "%ALIAS%" -tsa %TIMESTAMP_URL% -keystore %STORE% -storepass %PASS% -keypass %PASS%
+rem set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
+set TIMESTAMP_URL=http://time.certum.pl/
+set PROVIDER_CONFIG="%HOME_DIR%\Provider.cfg"
+set OWNER="Open Source Developer, Peter O'Donoghue"
+set CERT_CHAIN="%HOME_DIR%\CertificateChain.pem"
+set xx="net.sourceforge.usbdm.annotationEditor_5.0.0.201708160854.jar"
+
+for %%f in (%HOME_DIR%\plugins\*.jar %HOME_DIR%\features\*.jar) do %SIGNTOOL% -certchain %CERT_CHAIN% -keystore NONE -tsa %TIMESTAMP_URL% -storetype PKCS11 -providerClass sun.security.pkcs11.SunPKCS11 -providerArg %PROVIDER_CONFIG% -storepass %PASS% %%f %OWNER% 
+
+rem for %%f in (%HOME_DIR%\plugins\*.jar %HOME_DIR%\features\*.jar) do %SIGNTOOL% %%f  "%ALIAS%" -tsa %TIMESTAMP_URL% -keystore NONE -storepass %PASS% -keypass %PASS%
 goto done
 
 :usage
