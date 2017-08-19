@@ -292,6 +292,11 @@
                   id="net.sourceforge.usbdm.gnu.c.optimization.level.size"
                   command="-Os">
                </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimize debug (-Og)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.debug"
+                  command="-Og">
+               </enumeratedOptionValue>
                <enablement
                   type="CONTAINER_ATTRIBUTE"
                   attribute="defaultValue"
@@ -726,6 +731,11 @@
                   name="Optimise size (-Os)"
                   id="net.sourceforge.usbdm.gnu.c.optimization.level.size"
                   command="-Os">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimize debug (-Og)"
+                  id="net.sourceforge.usbdm.gnu.c.optimization.level.debug"
+                  command="-Og">
                </enumeratedOptionValue>
                <enablement
                      extensionAdjustment="true"
@@ -1200,6 +1210,11 @@
                   name="Optimise size (-Os)"
                   id="net.sourceforge.usbdm.gnu.cpp.optimization.level.size"
                   command="-Os">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                  name="Optimize debug (-Og)"
+                  id="net.sourceforge.usbdm.gnu.cpp.optimization.level.debug"
+                  command="-Og">
                </enumeratedOptionValue>
                <enablement
                      extensionAdjustment="true"
