@@ -34,7 +34,7 @@
 		<link>
 			<name>Documentation.html</name>
 			<type>1</type>
-			<locationURI>PROJECT_LOC/Documentation/html/index.html</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/net.sourceforge.usbdm.help/html/index.html</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
