@@ -43,6 +43,10 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
+<a href="#pro-static-attribs">Static Protected Attributes</a> &#124;
 <a href="class_u_s_b_d_m_1_1_in_endpoint-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">USBDM::InEndpoint&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt; Class Template Reference</div>  </div>
@@ -72,117 +76,108 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab4c18f72dfed89d568ba56b1a8db9073"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_in_endpoint.html#ab4c18f72dfed89d568ba56b1a8db9073">initialise</a> ()</td></tr>
 <tr class="memdesc:ab4c18f72dfed89d568ba56b1a8db9073"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialise endpoint.  <a href="#ab4c18f72dfed89d568ba56b1a8db9073">More...</a><br /></td></tr>
 <tr class="separator:ab4c18f72dfed89d568ba56b1a8db9073"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_u_s_b_d_m_1_1_endpoint___t')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;</a></td></tr>
-<tr class="memitem:aba6e554e51c98eafe6bfb47685485c9a inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#aba6e554e51c98eafe6bfb47685485c9a">Endpoint_T</a> ()</td></tr>
-<tr class="memdesc:aba6e554e51c98eafe6bfb47685485c9a inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#aba6e554e51c98eafe6bfb47685485c9a">More...</a><br /></td></tr>
-<tr class="separator:aba6e554e51c98eafe6bfb47685485c9a inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac30165f46d9c94460068da99271df27e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ac30165f46d9c94460068da99271df27e">getBuffer</a> ()</td></tr>
-<tr class="memdesc:ac30165f46d9c94460068da99271df27e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets pointer to USB data buffer.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#ac30165f46d9c94460068da99271df27e">More...</a><br /></td></tr>
-<tr class="separator:ac30165f46d9c94460068da99271df27e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a697beaa74941678809b0fee163317ac7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a697beaa74941678809b0fee163317ac7">getDataTransferredSize</a> ()</td></tr>
-<tr class="memdesc:a697beaa74941678809b0fee163317ac7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets size of last completed transfer.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a697beaa74941678809b0fee163317ac7">More...</a><br /></td></tr>
-<tr class="separator:a697beaa74941678809b0fee163317ac7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56116e24b0f8a12543196477b5f4acad inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a56116e24b0f8a12543196477b5f4acad">getState</a> ()</td></tr>
-<tr class="memdesc:a56116e24b0f8a12543196477b5f4acad inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return end-point state.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a56116e24b0f8a12543196477b5f4acad">More...</a><br /></td></tr>
-<tr class="separator:a56116e24b0f8a12543196477b5f4acad inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b527332d8667679c7263d057d5a2251 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a3b527332d8667679c7263d057d5a2251">setCallback</a> (void(*callback)(<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>))</td></tr>
-<tr class="memdesc:a3b527332d8667679c7263d057d5a2251 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set callback to execute at end of transaction.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a3b527332d8667679c7263d057d5a2251">More...</a><br /></td></tr>
-<tr class="separator:a3b527332d8667679c7263d057d5a2251 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2923923055b0e6a1bb2b9ac51e369e8e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a2923923055b0e6a1bb2b9ac51e369e8e">doCallback</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>)</td></tr>
-<tr class="memdesc:a2923923055b0e6a1bb2b9ac51e369e8e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do callback if set.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a2923923055b0e6a1bb2b9ac51e369e8e">More...</a><br /></td></tr>
-<tr class="separator:a2923923055b0e6a1bb2b9ac51e369e8e inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf1d1cdb953c5fe73044c184551ceed8 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#adf1d1cdb953c5fe73044c184551ceed8">setNeedZLP</a> (bool needZLP=true)</td></tr>
-<tr class="memdesc:adf1d1cdb953c5fe73044c184551ceed8 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates that the next IN transaction needs to be terminated with ZLP if modulo endpoint size.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#adf1d1cdb953c5fe73044c184551ceed8">More...</a><br /></td></tr>
-<tr class="separator:adf1d1cdb953c5fe73044c184551ceed8 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7548412c549ebc952ad9cec25f087c5f inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a7548412c549ebc952ad9cec25f087c5f">stall</a> () override</td></tr>
-<tr class="memdesc:a7548412c549ebc952ad9cec25f087c5f inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stall endpoint.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a7548412c549ebc952ad9cec25f087c5f">More...</a><br /></td></tr>
-<tr class="separator:a7548412c549ebc952ad9cec25f087c5f inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a422a91d47c0c58be9650400bf986a598 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a422a91d47c0c58be9650400bf986a598">clearStall</a> () override</td></tr>
-<tr class="memdesc:a422a91d47c0c58be9650400bf986a598 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear Stall on endpoint.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a422a91d47c0c58be9650400bf986a598">More...</a><br /></td></tr>
-<tr class="separator:a422a91d47c0c58be9650400bf986a598 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5fdaf3b4326fbb646c399196da3f64b inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#af5fdaf3b4326fbb646c399196da3f64b">initialise</a> ()</td></tr>
-<tr class="memdesc:af5fdaf3b4326fbb646c399196da3f64b inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialise endpoint.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#af5fdaf3b4326fbb646c399196da3f64b">More...</a><br /></td></tr>
-<tr class="separator:af5fdaf3b4326fbb646c399196da3f64b inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4e227c263367f9ffe020c96b348d78b2 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a4e227c263367f9ffe020c96b348d78b2">startTxTransaction</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>, uint8_t bufSize=0, const uint8_t *bufPtr=nullptr)</td></tr>
-<tr class="memdesc:a4e227c263367f9ffe020c96b348d78b2 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start IN transaction [Transmit, device -&gt; host, DATA0/1].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a4e227c263367f9ffe020c96b348d78b2">More...</a><br /></td></tr>
-<tr class="separator:a4e227c263367f9ffe020c96b348d78b2 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab919fd4524ecfff62bd74bc4b147adf1 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ab919fd4524ecfff62bd74bc4b147adf1">initialiseBdtTx</a> ()</td></tr>
-<tr class="memdesc:ab919fd4524ecfff62bd74bc4b147adf1 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure the BDT for next IN [Transmit, device -&gt; host].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#ab919fd4524ecfff62bd74bc4b147adf1">More...</a><br /></td></tr>
-<tr class="separator:ab919fd4524ecfff62bd74bc4b147adf1 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0adb139db03ccffd4a66757133268e42 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a0adb139db03ccffd4a66757133268e42">startRxTransaction</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>, uint8_t bufSize=0, uint8_t *bufPtr=nullptr)</td></tr>
-<tr class="memdesc:a0adb139db03ccffd4a66757133268e42 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start an OUT transaction [Receive, device &lt;- host, DATA0/1].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a0adb139db03ccffd4a66757133268e42">More...</a><br /></td></tr>
-<tr class="separator:a0adb139db03ccffd4a66757133268e42 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5d0bcbe09c28fc28bd830f337b908d7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#af5d0bcbe09c28fc28bd830f337b908d7">initialiseBdtRx</a> ()</td></tr>
-<tr class="memdesc:af5d0bcbe09c28fc28bd830f337b908d7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure the BDT for OUT [Receive, device &lt;- host, DATA0/1].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#af5d0bcbe09c28fc28bd830f337b908d7">More...</a><br /></td></tr>
-<tr class="separator:af5d0bcbe09c28fc28bd830f337b908d7 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e092e5e1ea4536c09af48ef30a5549d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a8e092e5e1ea4536c09af48ef30a5549d">saveRxData</a> ()</td></tr>
-<tr class="memdesc:a8e092e5e1ea4536c09af48ef30a5549d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the data from an OUT packet and advance pointers etc.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a8e092e5e1ea4536c09af48ef30a5549d">More...</a><br /></td></tr>
-<tr class="separator:a8e092e5e1ea4536c09af48ef30a5549d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7789c1a7c2098b0d0e2c2034733c423 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ae7789c1a7c2098b0d0e2c2034733c423">handleOutToken</a> ()</td></tr>
-<tr class="memdesc:ae7789c1a7c2098b0d0e2c2034733c423 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle OUT [Receive, device &lt;- host, DATA0/1].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#ae7789c1a7c2098b0d0e2c2034733c423">More...</a><br /></td></tr>
-<tr class="separator:ae7789c1a7c2098b0d0e2c2034733c423 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ada4115615f2addbcd69b6d67149b484c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ada4115615f2addbcd69b6d67149b484c">handleInToken</a> ()</td></tr>
-<tr class="memdesc:ada4115615f2addbcd69b6d67149b484c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle IN token [Transmit, device -&gt; host].  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#ada4115615f2addbcd69b6d67149b484c">More...</a><br /></td></tr>
-<tr class="separator:ada4115615f2addbcd69b6d67149b484c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_class_u_s_b_d_m_1_1_endpoint"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_u_s_b_d_m_1_1_endpoint')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html">USBDM::Endpoint</a></td></tr>
-<tr class="memitem:abf02a3bf258c5e10059b7fa95077283d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#abf02a3bf258c5e10059b7fa95077283d">Endpoint</a> (int endpointNumber)</td></tr>
-<tr class="memdesc:abf02a3bf258c5e10059b7fa95077283d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="class_u_s_b_d_m_1_1_endpoint.html#abf02a3bf258c5e10059b7fa95077283d">More...</a><br /></td></tr>
-<tr class="separator:abf02a3bf258c5e10059b7fa95077283d inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29f2b39867b017a75d2ce4c8ea55c0b2 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a29f2b39867b017a75d2ce4c8ea55c0b2">~Endpoint</a> ()</td></tr>
-<tr class="separator:a29f2b39867b017a75d2ce4c8ea55c0b2 inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e1e534037ce254bf95738bf0a50848c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a3e1e534037ce254bf95738bf0a50848c">flipOddEven</a> (uint8_t usbStat)</td></tr>
-<tr class="memdesc:a3e1e534037ce254bf95738bf0a50848c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flip active odd/even buffer state.  <a href="class_u_s_b_d_m_1_1_endpoint.html#a3e1e534037ce254bf95738bf0a50848c">More...</a><br /></td></tr>
-<tr class="separator:a3e1e534037ce254bf95738bf0a50848c inherit pub_methods_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac30165f46d9c94460068da99271df27e"><td class="memItemLeft" align="right" valign="top">uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ac30165f46d9c94460068da99271df27e">getBuffer</a> ()</td></tr>
+<tr class="memdesc:ac30165f46d9c94460068da99271df27e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets pointer to USB data buffer.  <a href="#ac30165f46d9c94460068da99271df27e">More...</a><br /></td></tr>
+<tr class="separator:ac30165f46d9c94460068da99271df27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a697beaa74941678809b0fee163317ac7"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a697beaa74941678809b0fee163317ac7">getDataTransferredSize</a> ()</td></tr>
+<tr class="memdesc:a697beaa74941678809b0fee163317ac7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets size of last completed transfer.  <a href="#a697beaa74941678809b0fee163317ac7">More...</a><br /></td></tr>
+<tr class="separator:a697beaa74941678809b0fee163317ac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56116e24b0f8a12543196477b5f4acad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a56116e24b0f8a12543196477b5f4acad">getState</a> ()</td></tr>
+<tr class="memdesc:a56116e24b0f8a12543196477b5f4acad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return end-point state.  <a href="#a56116e24b0f8a12543196477b5f4acad">More...</a><br /></td></tr>
+<tr class="separator:a56116e24b0f8a12543196477b5f4acad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b527332d8667679c7263d057d5a2251"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a3b527332d8667679c7263d057d5a2251">setCallback</a> (void(*callback)(<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>))</td></tr>
+<tr class="memdesc:a3b527332d8667679c7263d057d5a2251"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set callback to execute at end of transaction.  <a href="#a3b527332d8667679c7263d057d5a2251">More...</a><br /></td></tr>
+<tr class="separator:a3b527332d8667679c7263d057d5a2251"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2923923055b0e6a1bb2b9ac51e369e8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a2923923055b0e6a1bb2b9ac51e369e8e">doCallback</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>)</td></tr>
+<tr class="memdesc:a2923923055b0e6a1bb2b9ac51e369e8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do callback if set.  <a href="#a2923923055b0e6a1bb2b9ac51e369e8e">More...</a><br /></td></tr>
+<tr class="separator:a2923923055b0e6a1bb2b9ac51e369e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf1d1cdb953c5fe73044c184551ceed8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#adf1d1cdb953c5fe73044c184551ceed8">setNeedZLP</a> (bool needZLP=true)</td></tr>
+<tr class="memdesc:adf1d1cdb953c5fe73044c184551ceed8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates that the next IN transaction needs to be terminated with ZLP if modulo endpoint size.  <a href="#adf1d1cdb953c5fe73044c184551ceed8">More...</a><br /></td></tr>
+<tr class="separator:adf1d1cdb953c5fe73044c184551ceed8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7548412c549ebc952ad9cec25f087c5f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a7548412c549ebc952ad9cec25f087c5f">stall</a> () override</td></tr>
+<tr class="memdesc:a7548412c549ebc952ad9cec25f087c5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stall endpoint.  <a href="#a7548412c549ebc952ad9cec25f087c5f">More...</a><br /></td></tr>
+<tr class="separator:a7548412c549ebc952ad9cec25f087c5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a422a91d47c0c58be9650400bf986a598"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a422a91d47c0c58be9650400bf986a598">clearStall</a> () override</td></tr>
+<tr class="memdesc:a422a91d47c0c58be9650400bf986a598"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear Stall on endpoint.  <a href="#a422a91d47c0c58be9650400bf986a598">More...</a><br /></td></tr>
+<tr class="separator:a422a91d47c0c58be9650400bf986a598"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e227c263367f9ffe020c96b348d78b2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a4e227c263367f9ffe020c96b348d78b2">startTxTransaction</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>, uint8_t bufSize=0, const uint8_t *bufPtr=nullptr)</td></tr>
+<tr class="memdesc:a4e227c263367f9ffe020c96b348d78b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start IN transaction [Transmit, device -&gt; host, DATA0/1].  <a href="#a4e227c263367f9ffe020c96b348d78b2">More...</a><br /></td></tr>
+<tr class="separator:a4e227c263367f9ffe020c96b348d78b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab919fd4524ecfff62bd74bc4b147adf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ab919fd4524ecfff62bd74bc4b147adf1">initialiseBdtTx</a> ()</td></tr>
+<tr class="memdesc:ab919fd4524ecfff62bd74bc4b147adf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure the BDT for next IN [Transmit, device -&gt; host].  <a href="#ab919fd4524ecfff62bd74bc4b147adf1">More...</a><br /></td></tr>
+<tr class="separator:ab919fd4524ecfff62bd74bc4b147adf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0adb139db03ccffd4a66757133268e42"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a0adb139db03ccffd4a66757133268e42">startRxTransaction</a> (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a>, uint8_t bufSize=0, uint8_t *bufPtr=nullptr)</td></tr>
+<tr class="memdesc:a0adb139db03ccffd4a66757133268e42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start an OUT transaction [Receive, device &lt;- host, DATA0/1].  <a href="#a0adb139db03ccffd4a66757133268e42">More...</a><br /></td></tr>
+<tr class="separator:a0adb139db03ccffd4a66757133268e42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5d0bcbe09c28fc28bd830f337b908d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#af5d0bcbe09c28fc28bd830f337b908d7">initialiseBdtRx</a> ()</td></tr>
+<tr class="memdesc:af5d0bcbe09c28fc28bd830f337b908d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure the BDT for OUT [Receive, device &lt;- host, DATA0/1].  <a href="#af5d0bcbe09c28fc28bd830f337b908d7">More...</a><br /></td></tr>
+<tr class="separator:af5d0bcbe09c28fc28bd830f337b908d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e092e5e1ea4536c09af48ef30a5549d"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a8e092e5e1ea4536c09af48ef30a5549d">saveRxData</a> ()</td></tr>
+<tr class="memdesc:a8e092e5e1ea4536c09af48ef30a5549d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the data from an OUT packet and advance pointers etc.  <a href="#a8e092e5e1ea4536c09af48ef30a5549d">More...</a><br /></td></tr>
+<tr class="separator:a8e092e5e1ea4536c09af48ef30a5549d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7789c1a7c2098b0d0e2c2034733c423"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ae7789c1a7c2098b0d0e2c2034733c423">handleOutToken</a> ()</td></tr>
+<tr class="memdesc:ae7789c1a7c2098b0d0e2c2034733c423"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle OUT [Receive, device &lt;- host, DATA0/1].  <a href="#ae7789c1a7c2098b0d0e2c2034733c423">More...</a><br /></td></tr>
+<tr class="separator:ae7789c1a7c2098b0d0e2c2034733c423"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada4115615f2addbcd69b6d67149b484c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ada4115615f2addbcd69b6d67149b484c">handleInToken</a> ()</td></tr>
+<tr class="memdesc:ada4115615f2addbcd69b6d67149b484c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle IN token [Transmit, device -&gt; host].  <a href="#ada4115615f2addbcd69b6d67149b484c">More...</a><br /></td></tr>
+<tr class="separator:ada4115615f2addbcd69b6d67149b484c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e1e534037ce254bf95738bf0a50848c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a3e1e534037ce254bf95738bf0a50848c">flipOddEven</a> (uint8_t usbStat)</td></tr>
+<tr class="memdesc:a3e1e534037ce254bf95738bf0a50848c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flip active odd/even buffer state.  <a href="#a3e1e534037ce254bf95738bf0a50848c">More...</a><br /></td></tr>
+<tr class="separator:a3e1e534037ce254bf95738bf0a50848c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_attribs_class_u_s_b_d_m_1_1_endpoint"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_class_u_s_b_d_m_1_1_endpoint')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html">USBDM::Endpoint</a></td></tr>
-<tr class="memitem:adf762d5fe744fa331a708b92c6095fd3 inherit pub_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#adf762d5fe744fa331a708b92c6095fd3">fEndpointNumber</a></td></tr>
-<tr class="memdesc:adf762d5fe744fa331a708b92c6095fd3 inherit pub_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">End point number.  <a href="class_u_s_b_d_m_1_1_endpoint.html#adf762d5fe744fa331a708b92c6095fd3">More...</a><br /></td></tr>
-<tr class="separator:adf762d5fe744fa331a708b92c6095fd3 inherit pub_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td colspan="2" onclick="javascript:toggleInherit('pub_static_attribs_class_u_s_b_d_m_1_1_endpoint___t')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;</a></td></tr>
-<tr class="memitem:ad2837223c45e79a2978f4df1aa1f012d inherit pub_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">static constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ad2837223c45e79a2978f4df1aa1f012d">BUFFER_SIZE</a> = EP_MAXSIZE</td></tr>
-<tr class="memdesc:ad2837223c45e79a2978f4df1aa1f012d inherit pub_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of end-point buffer.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#ad2837223c45e79a2978f4df1aa1f012d">More...</a><br /></td></tr>
-<tr class="separator:ad2837223c45e79a2978f4df1aa1f012d inherit pub_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_class_u_s_b_d_m_1_1_endpoint___t')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;</a></td></tr>
-<tr class="memitem:a0d253fe0644693dce6d734ad3251ee39 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a0d253fe0644693dce6d734ad3251ee39">fDataBuffer</a> [EP_MAXSIZE]</td></tr>
-<tr class="memdesc:a0d253fe0644693dce6d734ad3251ee39 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Buffer for Transmit &amp; Receive data.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a0d253fe0644693dce6d734ad3251ee39">More...</a><br /></td></tr>
-<tr class="separator:a0d253fe0644693dce6d734ad3251ee39 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a583eb0eed24b1316cf25948c8a7341db inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a583eb0eed24b1316cf25948c8a7341db">fCallback</a> )(<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> endpointState)</td></tr>
-<tr class="memdesc:a583eb0eed24b1316cf25948c8a7341db inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback used on completion of transaction.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a583eb0eed24b1316cf25948c8a7341db">More...</a><br /></td></tr>
-<tr class="separator:a583eb0eed24b1316cf25948c8a7341db inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c0812603de0a83dd2a8672cdc48dd51 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">volatile uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a6c0812603de0a83dd2a8672cdc48dd51">fDataPtr</a></td></tr>
-<tr class="memdesc:a6c0812603de0a83dd2a8672cdc48dd51 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to external data buffer for transmit/receive.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a6c0812603de0a83dd2a8672cdc48dd51">More...</a><br /></td></tr>
-<tr class="separator:a6c0812603de0a83dd2a8672cdc48dd51 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4640beb63359e1b6a9ff367223a06409 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">volatile uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a4640beb63359e1b6a9ff367223a06409">fDataRemaining</a></td></tr>
-<tr class="memdesc:a4640beb63359e1b6a9ff367223a06409 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of remaining bytes in external data buffer to transmit/receive.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a4640beb63359e1b6a9ff367223a06409">More...</a><br /></td></tr>
-<tr class="separator:a4640beb63359e1b6a9ff367223a06409 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9746fc8e58676a668aa9be7db8f103ce inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">volatile uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a9746fc8e58676a668aa9be7db8f103ce">fDataTransferred</a></td></tr>
-<tr class="memdesc:a9746fc8e58676a668aa9be7db8f103ce inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of data bytes transferred to/from data buffer.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a9746fc8e58676a668aa9be7db8f103ce">More...</a><br /></td></tr>
-<tr class="separator:a9746fc8e58676a668aa9be7db8f103ce inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a010e6342051ed5ee7fe7bec0608c8d99 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">volatile bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a010e6342051ed5ee7fe7bec0608c8d99">fNeedZLP</a></td></tr>
-<tr class="memdesc:a010e6342051ed5ee7fe7bec0608c8d99 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates that the IN transaction needs to be terminated with ZLP if size is a multiple of EP_MAXSIZE.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a010e6342051ed5ee7fe7bec0608c8d99">More...</a><br /></td></tr>
-<tr class="separator:a010e6342051ed5ee7fe7bec0608c8d99 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_class_u_s_b_d_m_1_1_endpoint')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html">USBDM::Endpoint</a></td></tr>
-<tr class="memitem:a7c1cb5ec5cc18c91cbc893e1432597e8 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a7c1cb5ec5cc18c91cbc893e1432597e8">txData1</a></td></tr>
-<tr class="memdesc:a7c1cb5ec5cc18c91cbc893e1432597e8 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data 0/1 Transmit flag.  <a href="class_u_s_b_d_m_1_1_endpoint.html#a7c1cb5ec5cc18c91cbc893e1432597e8">More...</a><br /></td></tr>
-<tr class="separator:a7c1cb5ec5cc18c91cbc893e1432597e8 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17e481272b132a14d535f0023440194c inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a17e481272b132a14d535f0023440194c">rxData1</a></td></tr>
-<tr class="memdesc:a17e481272b132a14d535f0023440194c inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data 0/1 Receive flag.  <a href="class_u_s_b_d_m_1_1_endpoint.html#a17e481272b132a14d535f0023440194c">More...</a><br /></td></tr>
-<tr class="separator:a17e481272b132a14d535f0023440194c inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12454d29855096b1ec3569bd5069d8bf inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a12454d29855096b1ec3569bd5069d8bf">txOdd</a></td></tr>
-<tr class="memdesc:a12454d29855096b1ec3569bd5069d8bf inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odd/Even Transmit buffer flag.  <a href="class_u_s_b_d_m_1_1_endpoint.html#a12454d29855096b1ec3569bd5069d8bf">More...</a><br /></td></tr>
-<tr class="separator:a12454d29855096b1ec3569bd5069d8bf inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac08c8231ddc1e170ed12ee6b3c8cc42 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#aac08c8231ddc1e170ed12ee6b3c8cc42">rxOdd</a></td></tr>
-<tr class="memdesc:aac08c8231ddc1e170ed12ee6b3c8cc42 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odd/Even Receive buffer flag.  <a href="class_u_s_b_d_m_1_1_endpoint.html#aac08c8231ddc1e170ed12ee6b3c8cc42">More...</a><br /></td></tr>
-<tr class="separator:aac08c8231ddc1e170ed12ee6b3c8cc42 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8432ad6a16cff4f48455a9a937d374f6 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a></td></tr>
-<tr class="memdesc:a8432ad6a16cff4f48455a9a937d374f6 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="mdescLeft">&#160;</td><td class="mdescRight">End-point state.  <a href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">More...</a><br /></td></tr>
-<tr class="separator:a8432ad6a16cff4f48455a9a937d374f6 inherit pro_attribs_class_u_s_b_d_m_1_1_endpoint"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td colspan="2" onclick="javascript:toggleInherit('pro_static_attribs_class_u_s_b_d_m_1_1_endpoint___t')"><img src="closed.png" alt="-"/>&#160;Static Protected Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;</a></td></tr>
-<tr class="memitem:a39a5ef9770f0d38c140b61aa67ad4fdd inherit pro_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b___type.html">USB_Type</a> volatile *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a39a5ef9770f0d38c140b61aa67ad4fdd">usb</a> = Info::usb</td></tr>
-<tr class="memdesc:a39a5ef9770f0d38c140b61aa67ad4fdd inherit pro_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to hardware.  <a href="class_u_s_b_d_m_1_1_endpoint___t.html#a39a5ef9770f0d38c140b61aa67ad4fdd">More...</a><br /></td></tr>
-<tr class="separator:a39a5ef9770f0d38c140b61aa67ad4fdd inherit pro_static_attribs_class_u_s_b_d_m_1_1_endpoint___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:adf762d5fe744fa331a708b92c6095fd3"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#adf762d5fe744fa331a708b92c6095fd3">fEndpointNumber</a></td></tr>
+<tr class="memdesc:adf762d5fe744fa331a708b92c6095fd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">End point number.  <a href="#adf762d5fe744fa331a708b92c6095fd3">More...</a><br /></td></tr>
+<tr class="separator:adf762d5fe744fa331a708b92c6095fd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:ad2837223c45e79a2978f4df1aa1f012d"><td class="memItemLeft" align="right" valign="top">static constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#ad2837223c45e79a2978f4df1aa1f012d">BUFFER_SIZE</a> = EP_MAXSIZE</td></tr>
+<tr class="memdesc:ad2837223c45e79a2978f4df1aa1f012d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of end-point buffer.  <a href="#ad2837223c45e79a2978f4df1aa1f012d">More...</a><br /></td></tr>
+<tr class="separator:ad2837223c45e79a2978f4df1aa1f012d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
+<tr class="memitem:a0d253fe0644693dce6d734ad3251ee39"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a0d253fe0644693dce6d734ad3251ee39">fDataBuffer</a> [EP_MAXSIZE]</td></tr>
+<tr class="memdesc:a0d253fe0644693dce6d734ad3251ee39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Buffer for Transmit &amp; Receive data.  <a href="#a0d253fe0644693dce6d734ad3251ee39">More...</a><br /></td></tr>
+<tr class="separator:a0d253fe0644693dce6d734ad3251ee39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a583eb0eed24b1316cf25948c8a7341db"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a583eb0eed24b1316cf25948c8a7341db">fCallback</a> )(<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> endpointState)</td></tr>
+<tr class="memdesc:a583eb0eed24b1316cf25948c8a7341db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback used on completion of transaction.  <a href="#a583eb0eed24b1316cf25948c8a7341db">More...</a><br /></td></tr>
+<tr class="separator:a583eb0eed24b1316cf25948c8a7341db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c0812603de0a83dd2a8672cdc48dd51"><td class="memItemLeft" align="right" valign="top">volatile uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a6c0812603de0a83dd2a8672cdc48dd51">fDataPtr</a></td></tr>
+<tr class="memdesc:a6c0812603de0a83dd2a8672cdc48dd51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to external data buffer for transmit/receive.  <a href="#a6c0812603de0a83dd2a8672cdc48dd51">More...</a><br /></td></tr>
+<tr class="separator:a6c0812603de0a83dd2a8672cdc48dd51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4640beb63359e1b6a9ff367223a06409"><td class="memItemLeft" align="right" valign="top">volatile uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a4640beb63359e1b6a9ff367223a06409">fDataRemaining</a></td></tr>
+<tr class="memdesc:a4640beb63359e1b6a9ff367223a06409"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of remaining bytes in external data buffer to transmit/receive.  <a href="#a4640beb63359e1b6a9ff367223a06409">More...</a><br /></td></tr>
+<tr class="separator:a4640beb63359e1b6a9ff367223a06409"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9746fc8e58676a668aa9be7db8f103ce"><td class="memItemLeft" align="right" valign="top">volatile uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a9746fc8e58676a668aa9be7db8f103ce">fDataTransferred</a></td></tr>
+<tr class="memdesc:a9746fc8e58676a668aa9be7db8f103ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count of data bytes transferred to/from data buffer.  <a href="#a9746fc8e58676a668aa9be7db8f103ce">More...</a><br /></td></tr>
+<tr class="separator:a9746fc8e58676a668aa9be7db8f103ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a010e6342051ed5ee7fe7bec0608c8d99"><td class="memItemLeft" align="right" valign="top">volatile bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a010e6342051ed5ee7fe7bec0608c8d99">fNeedZLP</a></td></tr>
+<tr class="memdesc:a010e6342051ed5ee7fe7bec0608c8d99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates that the IN transaction needs to be terminated with ZLP if size is a multiple of EP_MAXSIZE.  <a href="#a010e6342051ed5ee7fe7bec0608c8d99">More...</a><br /></td></tr>
+<tr class="separator:a010e6342051ed5ee7fe7bec0608c8d99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c1cb5ec5cc18c91cbc893e1432597e8"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a7c1cb5ec5cc18c91cbc893e1432597e8">txData1</a></td></tr>
+<tr class="memdesc:a7c1cb5ec5cc18c91cbc893e1432597e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data 0/1 Transmit flag.  <a href="#a7c1cb5ec5cc18c91cbc893e1432597e8">More...</a><br /></td></tr>
+<tr class="separator:a7c1cb5ec5cc18c91cbc893e1432597e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17e481272b132a14d535f0023440194c"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a17e481272b132a14d535f0023440194c">rxData1</a></td></tr>
+<tr class="memdesc:a17e481272b132a14d535f0023440194c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Data 0/1 Receive flag.  <a href="#a17e481272b132a14d535f0023440194c">More...</a><br /></td></tr>
+<tr class="separator:a17e481272b132a14d535f0023440194c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12454d29855096b1ec3569bd5069d8bf"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a12454d29855096b1ec3569bd5069d8bf">txOdd</a></td></tr>
+<tr class="memdesc:a12454d29855096b1ec3569bd5069d8bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odd/Even Transmit buffer flag.  <a href="#a12454d29855096b1ec3569bd5069d8bf">More...</a><br /></td></tr>
+<tr class="separator:a12454d29855096b1ec3569bd5069d8bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac08c8231ddc1e170ed12ee6b3c8cc42"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#aac08c8231ddc1e170ed12ee6b3c8cc42">rxOdd</a></td></tr>
+<tr class="memdesc:aac08c8231ddc1e170ed12ee6b3c8cc42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Odd/Even Receive buffer flag.  <a href="#aac08c8231ddc1e170ed12ee6b3c8cc42">More...</a><br /></td></tr>
+<tr class="separator:aac08c8231ddc1e170ed12ee6b3c8cc42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8432ad6a16cff4f48455a9a937d374f6"><td class="memItemLeft" align="right" valign="top">volatile <a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a8432ad6a16cff4f48455a9a937d374f6">state</a></td></tr>
+<tr class="memdesc:a8432ad6a16cff4f48455a9a937d374f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">End-point state.  <a href="#a8432ad6a16cff4f48455a9a937d374f6">More...</a><br /></td></tr>
+<tr class="separator:a8432ad6a16cff4f48455a9a937d374f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-attribs"></a>
+Static Protected Attributes</h2></td></tr>
+<tr class="memitem:a39a5ef9770f0d38c140b61aa67ad4fdd"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b___type.html">USB_Type</a> volatile *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html#a39a5ef9770f0d38c140b61aa67ad4fdd">usb</a> = Info::usb</td></tr>
+<tr class="memdesc:a39a5ef9770f0d38c140b61aa67ad4fdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to hardware.  <a href="#a39a5ef9770f0d38c140b61aa67ad4fdd">More...</a><br /></td></tr>
+<tr class="separator:a39a5ef9770f0d38c140b61aa67ad4fdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt;<br />
@@ -228,6 +223,257 @@ template&lt;class Info , int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a422a91d47c0c58be9650400bf986a598"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a422a91d47c0c58be9650400bf986a598">&#9670;&nbsp;</a></span>clearStall()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::clearStall </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Clear Stall on endpoint. </p>
+
+<p>Implements <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#af69b0eb576210da070d86861eed340dc">USBDM::Endpoint</a>.</p>
+
+<p>Reimplemented in <a class="el" href="class_u_s_b_d_m_1_1_control_endpoint.html#ac8c18910916986f40f0b8f4dd640aa53">USBDM::ControlEndpoint&lt; Info, EP0_SIZE &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a2923923055b0e6a1bb2b9ac51e369e8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2923923055b0e6a1bb2b9ac51e369e8e">&#9670;&nbsp;</a></span>doCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::doCallback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Do callback if set. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>State of <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html" title="Class for generic endpoint. ">Endpoint</a> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3e1e534037ce254bf95738bf0a50848c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e1e534037ce254bf95738bf0a50848c">&#9670;&nbsp;</a></span>flipOddEven()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void USBDM::Endpoint::flipOddEven </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>usbStat</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Flip active odd/even buffer state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">usbStat</td><td>Value from USB-&gt;STAT </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac30165f46d9c94460068da99271df27e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac30165f46d9c94460068da99271df27e">&#9670;&nbsp;</a></span>getBuffer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t* <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::getBuffer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets pointer to USB data buffer. </p>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to buffer </dd></dl>
+
+</div>
+</div>
+<a id="a697beaa74941678809b0fee163317ac7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a697beaa74941678809b0fee163317ac7">&#9670;&nbsp;</a></span>getDataTransferredSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::getDataTransferredSize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets size of last completed transfer. </p>
+<dl class="section return"><dt>Returns</dt><dd>Size of transfer </dd></dl>
+
+</div>
+</div>
+<a id="a56116e24b0f8a12543196477b5f4acad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56116e24b0f8a12543196477b5f4acad">&#9670;&nbsp;</a></span>getState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::getState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return end-point state. </p>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="class_u_s_b_d_m_1_1_endpoint.html" title="Class for generic endpoint. ">Endpoint</a> state </dd></dl>
+
+</div>
+</div>
+<a id="ada4115615f2addbcd69b6d67149b484c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada4115615f2addbcd69b6d67149b484c">&#9670;&nbsp;</a></span>handleInToken()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::handleInToken </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Handle IN token [Transmit, device -&gt; host]. </p>
+
+</div>
+</div>
+<a id="ae7789c1a7c2098b0d0e2c2034733c423"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7789c1a7c2098b0d0e2c2034733c423">&#9670;&nbsp;</a></span>handleOutToken()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::handleOutToken </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Handle OUT [Receive, device &lt;- host, DATA0/1]. </p>
+
+</div>
+</div>
 <a id="ab4c18f72dfed89d568ba56b1a8db9073"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab4c18f72dfed89d568ba56b1a8db9073">&#9670;&nbsp;</a></span>initialise()</h2>
 
@@ -263,13 +509,680 @@ template&lt;class Info , int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
 
 </div>
 </div>
+<a id="af5d0bcbe09c28fc28bd830f337b908d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5d0bcbe09c28fc28bd830f337b908d7">&#9670;&nbsp;</a></span>initialiseBdtRx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::initialiseBdtRx </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Configure the BDT for OUT [Receive, device &lt;- host, DATA0/1]. </p>
+<dl class="section note"><dt>Note</dt><dd>No action is taken if already configured </dd>
+<dd>
+Always uses EP_MAXSIZE for packet size accepted </dd></dl>
+
+</div>
+</div>
+<a id="ab919fd4524ecfff62bd74bc4b147adf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab919fd4524ecfff62bd74bc4b147adf1">&#9670;&nbsp;</a></span>initialiseBdtTx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::initialiseBdtTx </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Configure the BDT for next IN [Transmit, device -&gt; host]. </p>
+
+</div>
+</div>
+<a id="a8e092e5e1ea4536c09af48ef30a5549d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e092e5e1ea4536c09af48ef30a5549d">&#9670;&nbsp;</a></span>saveRxData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::saveRxData </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Save the data from an OUT packet and advance pointers etc. </p>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes saved </dd></dl>
+
+</div>
+</div>
+<a id="a3b527332d8667679c7263d057d5a2251"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b527332d8667679c7263d057d5a2251">&#9670;&nbsp;</a></span>setCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::setCallback </td>
+          <td>(</td>
+          <td class="paramtype">void(*)(<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>)&#160;</td>
+          <td class="paramname"><em>callback</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set callback to execute at end of transaction. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback</td><td>The call-back function to execute </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="adf1d1cdb953c5fe73044c184551ceed8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf1d1cdb953c5fe73044c184551ceed8">&#9670;&nbsp;</a></span>setNeedZLP()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::setNeedZLP </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>needZLP</em> = <code>true</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Indicates that the next IN transaction needs to be terminated with ZLP if modulo endpoint size. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">needZLP</td><td>True to indicate need for ZLPs.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>This flag is cleared on each transaction </dd></dl>
+
+</div>
+</div>
+<a id="a7548412c549ebc952ad9cec25f087c5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7548412c549ebc952ad9cec25f087c5f">&#9670;&nbsp;</a></span>stall()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::stall </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Stall endpoint. </p>
+
+<p>Implements <a class="el" href="class_u_s_b_d_m_1_1_endpoint.html#a556aa28b3b1aad9d64844ed027d4e01c">USBDM::Endpoint</a>.</p>
+
+<p>Reimplemented in <a class="el" href="class_u_s_b_d_m_1_1_control_endpoint.html#a683cebedbd71419409f77425606a20d1">USBDM::ControlEndpoint&lt; Info, EP0_SIZE &gt;</a>.</p>
+
+</div>
+</div>
+<a id="a0adb139db03ccffd4a66757133268e42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0adb139db03ccffd4a66757133268e42">&#9670;&nbsp;</a></span>startRxTransaction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::startRxTransaction </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>bufSize</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t *&#160;</td>
+          <td class="paramname"><em>bufPtr</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Start an OUT transaction [Receive, device &lt;- host, DATA0/1]. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>- State to adopt for transaction e.g. EPIdle, EPDataOut, EPStatusOut </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bufSize</td><td>- Size of data to transfer (may be zero) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bufPtr</td><td>- Buffer for data (may be nullptr)</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>The end-point is configured to to accept EP_MAXSIZE packet irrespective of bufSize </dd></dl>
+
+</div>
+</div>
+<a id="a4e227c263367f9ffe020c96b348d78b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e227c263367f9ffe020c96b348d78b2">&#9670;&nbsp;</a></span>startTxTransaction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::startTxTransaction </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>bufSize</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>bufPtr</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Start IN transaction [Transmit, device -&gt; host, DATA0/1]. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">state</td><td>State to adopt for transaction e.g. EPDataIn, EPStatusIn </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bufSize</td><td>Size of buffer to send (may be zero) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">bufPtr</td><td>Pointer to buffer (may be NULL to indicate fDatabuffer is being used directly) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="ad2837223c45e79a2978f4df1aa1f012d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2837223c45e79a2978f4df1aa1f012d">&#9670;&nbsp;</a></span>BUFFER_SIZE</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::BUFFER_SIZE = EP_MAXSIZE</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Size of end-point buffer. </p>
+
+</div>
+</div>
+<a id="a583eb0eed24b1316cf25948c8a7341db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a583eb0eed24b1316cf25948c8a7341db">&#9670;&nbsp;</a></span>fCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void(* <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fCallback) (<a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> endpointState)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Callback used on completion of transaction. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">endpointState</td><td>State of endpoint before completion <br />
+e.g. EPDataOut, EPStatusIn, EPLastIn, EPStatusOut<br />
+The endpoint is in EPIdle state now. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0d253fe0644693dce6d734ad3251ee39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d253fe0644693dce6d734ad3251ee39">&#9670;&nbsp;</a></span>fDataBuffer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fDataBuffer[EP_MAXSIZE]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Buffer for Transmit &amp; Receive data. </p>
+
+</div>
+</div>
+<a id="a6c0812603de0a83dd2a8672cdc48dd51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c0812603de0a83dd2a8672cdc48dd51">&#9670;&nbsp;</a></span>fDataPtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile uint8_t* <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fDataPtr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Pointer to external data buffer for transmit/receive. </p>
+
+</div>
+</div>
+<a id="a4640beb63359e1b6a9ff367223a06409"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4640beb63359e1b6a9ff367223a06409">&#9670;&nbsp;</a></span>fDataRemaining</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile uint16_t <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fDataRemaining</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Count of remaining bytes in external data buffer to transmit/receive. </p>
+
+</div>
+</div>
+<a id="a9746fc8e58676a668aa9be7db8f103ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9746fc8e58676a668aa9be7db8f103ce">&#9670;&nbsp;</a></span>fDataTransferred</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile uint16_t <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fDataTransferred</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Count of data bytes transferred to/from data buffer. </p>
+
+</div>
+</div>
+<a id="adf762d5fe744fa331a708b92c6095fd3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf762d5fe744fa331a708b92c6095fd3">&#9670;&nbsp;</a></span>fEndpointNumber</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int USBDM::Endpoint::fEndpointNumber</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>End point number. </p>
+
+</div>
+</div>
+<a id="a010e6342051ed5ee7fe7bec0608c8d99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a010e6342051ed5ee7fe7bec0608c8d99">&#9670;&nbsp;</a></span>fNeedZLP</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile bool <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::fNeedZLP</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Indicates that the IN transaction needs to be terminated with ZLP if size is a multiple of EP_MAXSIZE. </p>
+
+</div>
+</div>
+<a id="a17e481272b132a14d535f0023440194c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17e481272b132a14d535f0023440194c">&#9670;&nbsp;</a></span>rxData1</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a> USBDM::Endpoint::rxData1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Data 0/1 Receive flag. </p>
+
+</div>
+</div>
+<a id="aac08c8231ddc1e170ed12ee6b3c8cc42"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac08c8231ddc1e170ed12ee6b3c8cc42">&#9670;&nbsp;</a></span>rxOdd</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a> USBDM::Endpoint::rxOdd</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Odd/Even Receive buffer flag. </p>
+
+</div>
+</div>
+<a id="a8432ad6a16cff4f48455a9a937d374f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8432ad6a16cff4f48455a9a937d374f6">&#9670;&nbsp;</a></span>state</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile <a class="el" href="namespace_u_s_b_d_m.html#a124f63fb6f98bc31674386e28e12dacd">EndpointState</a> USBDM::Endpoint::state</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>End-point state. </p>
+
+</div>
+</div>
+<a id="a7c1cb5ec5cc18c91cbc893e1432597e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c1cb5ec5cc18c91cbc893e1432597e8">&#9670;&nbsp;</a></span>txData1</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile <a class="el" href="usb__defs_8h.html#a2633a980a1403684caed4a0d4ee39532">Data0_1</a> USBDM::Endpoint::txData1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Data 0/1 Transmit flag. </p>
+
+</div>
+</div>
+<a id="a12454d29855096b1ec3569bd5069d8bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12454d29855096b1ec3569bd5069d8bf">&#9670;&nbsp;</a></span>txOdd</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile <a class="el" href="usb__defs_8h.html#af6b988a9d91a257d1329d670fe6b17e1">EvenOdd</a> USBDM::Endpoint::txOdd</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Odd/Even Transmit buffer flag. </p>
+
+</div>
+</div>
+<a id="a39a5ef9770f0d38c140b61aa67ad4fdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39a5ef9770f0d38c140b61aa67ad4fdd">&#9670;&nbsp;</a></span>usb</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Info, int ENDPOINT_NUM, int EP_MAXSIZE&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="struct_u_s_b___type.html">USB_Type</a> volatile* <a class="el" href="class_u_s_b_d_m_1_1_endpoint___t.html">USBDM::Endpoint_T</a>&lt; Info, ENDPOINT_NUM, EP_MAXSIZE &gt;::usb = Info::usb</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">protected</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Pointer to hardware. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>Project_Headers/<a class="el" href="usb__endpoint_8h_source.html">usb_endpoint.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:42 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:28 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

@@ -42,6 +42,8 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="class_u_s_b_d_m_1_1_gpio___t-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -63,130 +65,136 @@ Inheritance diagram for USBDM::Gpio_T&lt; Info, bitNum, polarity &gt;:</div>
 </map>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a0a60f103f4e4cd5afd7f381054ec0bbb"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0a60f103f4e4cd5afd7f381054ec0bbb">Pcr</a> = <a class="el" href="class_u_s_b_d_m_1_1_pcr___t.html">Pcr_T</a>&lt; clockMask, pcrAddress, bitNum, GPIO_DEFAULT_PCR &gt;</td></tr>
+<tr class="memdesc:a0a60f103f4e4cd5afd7f381054ec0bbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">PCR associated with this GPIO pin.  <a href="#a0a60f103f4e4cd5afd7f381054ec0bbb">More...</a><br /></td></tr>
+<tr class="separator:a0a60f103f4e4cd5afd7f381054ec0bbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a3114bffda3542ffbb3dcff52cb8f8156"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a3114bffda3542ffbb3dcff52cb8f8156">setPCR</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
+<tr class="memdesc:a3114bffda3542ffbb3dcff52cb8f8156"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set Pin Control Register (PCR) value.  <a href="#a3114bffda3542ffbb3dcff52cb8f8156">More...</a><br /></td></tr>
+<tr class="separator:a3114bffda3542ffbb3dcff52cb8f8156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b0cc222e9e4c0ca537ed5d48719617"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a82b0cc222e9e4c0ca537ed5d48719617">setPCR</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull, <a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength=<a class="el" href="group___peripheral_pin_tables.html#gga41b0e776b3badb014a0fa2c3261d4c57a1a9e23f66080a58ef0a552ce28626b26">PinDriveStrength_Low</a>, <a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode=<a class="el" href="group___peripheral_pin_tables.html#gga30bcd8163a6d2d4cb90f3577ecf5131da85f1bfd2aacae14cf2b1dbc40040de5e">PinDriveMode_PushPull</a>, <a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq=<a class="el" href="group___peripheral_pin_tables.html#ggab6b5944e684e761e86643b29618ebf72a9add7cca308b2a0ea80bc7da82e439ea">PinIrq_None</a>, <a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter=<a class="el" href="group___peripheral_pin_tables.html#ggacfe130faec928dbda2bf5f390058e04aa25b533dabe0ab732d70eb74512bf0409">PinFilter_None</a>, <a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate=<a class="el" href="group___peripheral_pin_tables.html#gga78a40136f7aee020e528dffbdf0e7e39a5b4f05b70fe3b1e6d19b24159beed8fe">PinSlewRate_Fast</a>)</td></tr>
+<tr class="memdesc:a82b0cc222e9e4c0ca537ed5d48719617"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set Pin Control Register (PCR) value.  <a href="#a82b0cc222e9e4c0ca537ed5d48719617">More...</a><br /></td></tr>
+<tr class="separator:a82b0cc222e9e4c0ca537ed5d48719617"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c61f39c26820e4bfdf3bbf6e0ab876e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c61f39c26820e4bfdf3bbf6e0ab876e">setOut</a> ()</td></tr>
+<tr class="memdesc:a7c61f39c26820e4bfdf3bbf6e0ab876e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin as digital output.  <a href="#a7c61f39c26820e4bfdf3bbf6e0ab876e">More...</a><br /></td></tr>
+<tr class="separator:a7c61f39c26820e4bfdf3bbf6e0ab876e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a318f49a6943410c2f47e7cf7ac4c0d76"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">setOutput</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
+<tr class="memdesc:a318f49a6943410c2f47e7cf7ac4c0d76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital output with initial inactive level.  <a href="#a318f49a6943410c2f47e7cf7ac4c0d76">More...</a><br /></td></tr>
+<tr class="separator:a318f49a6943410c2f47e7cf7ac4c0d76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b6fca9a9b41c8b9ac6f863e2dcb65e9"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a2b6fca9a9b41c8b9ac6f863e2dcb65e9">setOutput</a> (<a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength, <a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode=<a class="el" href="group___peripheral_pin_tables.html#gga30bcd8163a6d2d4cb90f3577ecf5131da85f1bfd2aacae14cf2b1dbc40040de5e">PinDriveMode_PushPull</a>, <a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate=<a class="el" href="group___peripheral_pin_tables.html#gga78a40136f7aee020e528dffbdf0e7e39a5b4f05b70fe3b1e6d19b24159beed8fe">PinSlewRate_Fast</a>)</td></tr>
+<tr class="memdesc:a2b6fca9a9b41c8b9ac6f863e2dcb65e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital output with initial inactive level.  <a href="#a2b6fca9a9b41c8b9ac6f863e2dcb65e9">More...</a><br /></td></tr>
+<tr class="separator:a2b6fca9a9b41c8b9ac6f863e2dcb65e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f1a965f061d53ba28f3adf097be0171"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0f1a965f061d53ba28f3adf097be0171">setIn</a> ()</td></tr>
+<tr class="memdesc:a0f1a965f061d53ba28f3adf097be0171"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin as digital input.  <a href="#a0f1a965f061d53ba28f3adf097be0171">More...</a><br /></td></tr>
+<tr class="separator:a0f1a965f061d53ba28f3adf097be0171"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abec6c6d1cea49a48755890bf38a1e7b2"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#abec6c6d1cea49a48755890bf38a1e7b2">setInput</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
+<tr class="memdesc:abec6c6d1cea49a48755890bf38a1e7b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital input.  <a href="#abec6c6d1cea49a48755890bf38a1e7b2">More...</a><br /></td></tr>
+<tr class="separator:abec6c6d1cea49a48755890bf38a1e7b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3a01dd4411de7db7fd0314f6566c07f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae3a01dd4411de7db7fd0314f6566c07f">setInput</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull, <a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq=<a class="el" href="group___peripheral_pin_tables.html#ggab6b5944e684e761e86643b29618ebf72a9add7cca308b2a0ea80bc7da82e439ea">PinIrq_None</a>, <a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter=<a class="el" href="group___peripheral_pin_tables.html#ggacfe130faec928dbda2bf5f390058e04aa25b533dabe0ab732d70eb74512bf0409">PinFilter_None</a>)</td></tr>
+<tr class="memdesc:ae3a01dd4411de7db7fd0314f6566c07f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital input.  <a href="#ae3a01dd4411de7db7fd0314f6566c07f">More...</a><br /></td></tr>
+<tr class="separator:ae3a01dd4411de7db7fd0314f6566c07f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36a7c617bf7aa9638695c00196addde6"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a36a7c617bf7aa9638695c00196addde6">high</a> ()</td></tr>
+<tr class="memdesc:a36a7c617bf7aa9638695c00196addde6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin.  <a href="#a36a7c617bf7aa9638695c00196addde6">More...</a><br /></td></tr>
+<tr class="separator:a36a7c617bf7aa9638695c00196addde6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c5a0ee97c194e298f95d36c8c2e4b1d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c5a0ee97c194e298f95d36c8c2e4b1d">low</a> ()</td></tr>
+<tr class="memdesc:a7c5a0ee97c194e298f95d36c8c2e4b1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear pin.  <a href="#a7c5a0ee97c194e298f95d36c8c2e4b1d">More...</a><br /></td></tr>
+<tr class="separator:a7c5a0ee97c194e298f95d36c8c2e4b1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf99857a13254c3054f9d31b553921fe"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#acf99857a13254c3054f9d31b553921fe">set</a> ()</td></tr>
+<tr class="memdesc:acf99857a13254c3054f9d31b553921fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin.  <a href="#acf99857a13254c3054f9d31b553921fe">More...</a><br /></td></tr>
+<tr class="separator:acf99857a13254c3054f9d31b553921fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a991df09ac3580c23a988c186a5080c58"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a991df09ac3580c23a988c186a5080c58">clear</a> ()</td></tr>
+<tr class="memdesc:a991df09ac3580c23a988c186a5080c58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear pin.  <a href="#a991df09ac3580c23a988c186a5080c58">More...</a><br /></td></tr>
+<tr class="separator:a991df09ac3580c23a988c186a5080c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8364cf8a996649baace08210d7266a55"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">toggle</a> ()</td></tr>
+<tr class="memdesc:a8364cf8a996649baace08210d7266a55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Toggle pin (if output)  <a href="#a8364cf8a996649baace08210d7266a55">More...</a><br /></td></tr>
+<tr class="separator:a8364cf8a996649baace08210d7266a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28f1e04c2a8be2902b4719a5ff495199"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a28f1e04c2a8be2902b4719a5ff495199">setActive</a> ()</td></tr>
+<tr class="memdesc:a28f1e04c2a8be2902b4719a5ff495199"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to active level (if configured as output)  <a href="#a28f1e04c2a8be2902b4719a5ff495199">More...</a><br /></td></tr>
+<tr class="separator:a28f1e04c2a8be2902b4719a5ff495199"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae657bca243faffb9092567116d39773d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae657bca243faffb9092567116d39773d">setInactive</a> ()</td></tr>
+<tr class="memdesc:ae657bca243faffb9092567116d39773d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to inactive level (if configured as output)  <a href="#ae657bca243faffb9092567116d39773d">More...</a><br /></td></tr>
+<tr class="separator:ae657bca243faffb9092567116d39773d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcd3909595f9b0b8a2accc32d887b94f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#adcd3909595f9b0b8a2accc32d887b94f">on</a> ()</td></tr>
+<tr class="memdesc:adcd3909595f9b0b8a2accc32d887b94f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to active level (if configured as output)  <a href="#adcd3909595f9b0b8a2accc32d887b94f">More...</a><br /></td></tr>
+<tr class="separator:adcd3909595f9b0b8a2accc32d887b94f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a371ef2aa9336b3531b6af5512dbdeff0"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a371ef2aa9336b3531b6af5512dbdeff0">off</a> ()</td></tr>
+<tr class="memdesc:a371ef2aa9336b3531b6af5512dbdeff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to inactive level (if configured as output)  <a href="#a371ef2aa9336b3531b6af5512dbdeff0">More...</a><br /></td></tr>
+<tr class="separator:a371ef2aa9336b3531b6af5512dbdeff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9a1a925c685b28befb91bbe0d1b402f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad9a1a925c685b28befb91bbe0d1b402f">write</a> (bool value)</td></tr>
+<tr class="memdesc:ad9a1a925c685b28befb91bbe0d1b402f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write boolean value to pin (if configured as output)  <a href="#ad9a1a925c685b28befb91bbe0d1b402f">More...</a><br /></td></tr>
+<tr class="separator:ad9a1a925c685b28befb91bbe0d1b402f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a465a90bd15a2c3f2646906abe91d6e7b"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a465a90bd15a2c3f2646906abe91d6e7b">isHigh</a> ()</td></tr>
+<tr class="memdesc:a465a90bd15a2c3f2646906abe91d6e7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if pin is high.  <a href="#a465a90bd15a2c3f2646906abe91d6e7b">More...</a><br /></td></tr>
+<tr class="separator:a465a90bd15a2c3f2646906abe91d6e7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd891bd384e699ad04756c1bcb2e3365"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afd891bd384e699ad04756c1bcb2e3365">isLow</a> ()</td></tr>
+<tr class="memdesc:afd891bd384e699ad04756c1bcb2e3365"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if pin is low.  <a href="#afd891bd384e699ad04756c1bcb2e3365">More...</a><br /></td></tr>
+<tr class="separator:afd891bd384e699ad04756c1bcb2e3365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbdf5d40a4da313f9e22434a6cac6081"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#abbdf5d40a4da313f9e22434a6cac6081">read</a> ()</td></tr>
+<tr class="memdesc:abbdf5d40a4da313f9e22434a6cac6081"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value.  <a href="#abbdf5d40a4da313f9e22434a6cac6081">More...</a><br /></td></tr>
+<tr class="separator:abbdf5d40a4da313f9e22434a6cac6081"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae437156ce74d2d45f2d4081fe886cb2c"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae437156ce74d2d45f2d4081fe886cb2c">isActive</a> ()</td></tr>
+<tr class="memdesc:ae437156ce74d2d45f2d4081fe886cb2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if active level.  <a href="#ae437156ce74d2d45f2d4081fe886cb2c">More...</a><br /></td></tr>
+<tr class="separator:ae437156ce74d2d45f2d4081fe886cb2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb39fabc59424f69a2c12d238061742a"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a">isInactive</a> ()</td></tr>
+<tr class="memdesc:afb39fabc59424f69a2c12d238061742a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if inactive level.  <a href="#afb39fabc59424f69a2c12d238061742a">More...</a><br /></td></tr>
+<tr class="separator:afb39fabc59424f69a2c12d238061742a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43410d011fc4918e1e96cdede3a1fc50"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a43410d011fc4918e1e96cdede3a1fc50">isPressed</a> ()</td></tr>
+<tr class="memdesc:a43410d011fc4918e1e96cdede3a1fc50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if active level.  <a href="#a43410d011fc4918e1e96cdede3a1fc50">More...</a><br /></td></tr>
+<tr class="separator:a43410d011fc4918e1e96cdede3a1fc50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa850a09a1353d46072ae9aa1d381e6c6"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#aa850a09a1353d46072ae9aa1d381e6c6">isReleased</a> ()</td></tr>
+<tr class="memdesc:aa850a09a1353d46072ae9aa1d381e6c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if inactive level.  <a href="#aa850a09a1353d46072ae9aa1d381e6c6">More...</a><br /></td></tr>
+<tr class="separator:aa850a09a1353d46072ae9aa1d381e6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0f551126236a691c627730a298f8db0"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae0f551126236a691c627730a298f8db0">readState</a> ()</td></tr>
+<tr class="memdesc:ae0f551126236a691c627730a298f8db0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read value being driven to pin (if configured as output)  <a href="#ae0f551126236a691c627730a298f8db0">More...</a><br /></td></tr>
+<tr class="separator:ae0f551126236a691c627730a298f8db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4ddc1900953606409d48d785392daea"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae4ddc1900953606409d48d785392daea">setIrq</a> (<a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq)</td></tr>
+<tr class="memdesc:ae4ddc1900953606409d48d785392daea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets pin interrupt mode.  <a href="#ae4ddc1900953606409d48d785392daea">More...</a><br /></td></tr>
+<tr class="separator:ae4ddc1900953606409d48d785392daea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f784d0f461906f18d50c92524b7f008"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7f784d0f461906f18d50c92524b7f008">clearIrqFlag</a> ()</td></tr>
+<tr class="memdesc:a7f784d0f461906f18d50c92524b7f008"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear interrupt flag for pin.  <a href="#a7f784d0f461906f18d50c92524b7f008">More...</a><br /></td></tr>
+<tr class="separator:a7f784d0f461906f18d50c92524b7f008"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affee38793fca9c3dd19af17841708518"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#affee38793fca9c3dd19af17841708518">setPullDevice</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull)</td></tr>
+<tr class="memdesc:affee38793fca9c3dd19af17841708518"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pull device on pin.  <a href="#affee38793fca9c3dd19af17841708518">More...</a><br /></td></tr>
+<tr class="separator:affee38793fca9c3dd19af17841708518"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acff9cbdae54d5f58ea6866e93485da5d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#acff9cbdae54d5f58ea6866e93485da5d">setDriveStrength</a> (<a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength)</td></tr>
+<tr class="memdesc:acff9cbdae54d5f58ea6866e93485da5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set drive strength on pin.  <a href="#acff9cbdae54d5f58ea6866e93485da5d">More...</a><br /></td></tr>
+<tr class="separator:acff9cbdae54d5f58ea6866e93485da5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5b1df4f4510cfc2481dbe535bb68518"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac5b1df4f4510cfc2481dbe535bb68518">setDriveMode</a> (<a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode)</td></tr>
+<tr class="memdesc:ac5b1df4f4510cfc2481dbe535bb68518"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set drive mode on pin.  <a href="#ac5b1df4f4510cfc2481dbe535bb68518">More...</a><br /></td></tr>
+<tr class="separator:ac5b1df4f4510cfc2481dbe535bb68518"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5efeec5091788c0145bf53cd776422d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad5efeec5091788c0145bf53cd776422d">setSlewRate</a> (<a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate)</td></tr>
+<tr class="memdesc:ad5efeec5091788c0145bf53cd776422d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set slew rate on pin.  <a href="#ad5efeec5091788c0145bf53cd776422d">More...</a><br /></td></tr>
+<tr class="separator:ad5efeec5091788c0145bf53cd776422d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04d55c5d71fd4737e2954ec27716a286"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a04d55c5d71fd4737e2954ec27716a286">setFilter</a> (<a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter)</td></tr>
+<tr class="memdesc:a04d55c5d71fd4737e2954ec27716a286"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set filter on pin.  <a href="#a04d55c5d71fd4737e2954ec27716a286">More...</a><br /></td></tr>
+<tr class="separator:a04d55c5d71fd4737e2954ec27716a286"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4ca2111c7986ffe1cd76b84df4d2ee3"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ab4ca2111c7986ffe1cd76b84df4d2ee3">lock</a> ()</td></tr>
+<tr class="memdesc:ab4ca2111c7986ffe1cd76b84df4d2ee3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Locks most of the pin properties e.g.  <a href="#ab4ca2111c7986ffe1cd76b84df4d2ee3">More...</a><br /></td></tr>
+<tr class="separator:ab4ca2111c7986ffe1cd76b84df4d2ee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0ef737686080750e7973ff10b0213c8"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#aa0ef737686080750e7973ff10b0213c8">enableNvicInterrupts</a> (bool enable=true)</td></tr>
+<tr class="memdesc:aa0ef737686080750e7973ff10b0213c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable/disable pin interrupts.  <a href="#aa0ef737686080750e7973ff10b0213c8">More...</a><br /></td></tr>
+<tr class="separator:aa0ef737686080750e7973ff10b0213c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0def0ea7fd049c4654f1a269afb31340"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0def0ea7fd049c4654f1a269afb31340">setCallback</a> (<a class="el" href="group___peripheral_pin_tables.html#ga5f1ca3aee5776a61d664d8943b1cc106">PinCallbackFunction</a> callback)</td></tr>
+<tr class="memdesc:a0def0ea7fd049c4654f1a269afb31340"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set callback for ISR.  <a href="#a0def0ea7fd049c4654f1a269afb31340">More...</a><br /></td></tr>
+<tr class="separator:a0def0ea7fd049c4654f1a269afb31340"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:af816f6a5b06e91d774394ba66690bd53"><td class="memItemLeft" align="right" valign="top">static constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio___t.html#af816f6a5b06e91d774394ba66690bd53">irqHandlerInstalled</a> = Info::irqHandlerInstalled</td></tr>
 <tr class="separator:af816f6a5b06e91d774394ba66690bd53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td colspan="2" onclick="javascript:toggleInherit('pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T&lt; Info::clockMask, Info::pcrAddress, Info::gpioAddress, bitNum, polarity &gt;</a></td></tr>
-<tr class="memitem:a919cfbe04a514a513ffd30849aece7b5 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static constexpr volatile <a class="el" href="struct_g_p_i_o___type.html">GPIO_Type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a919cfbe04a514a513ffd30849aece7b5">gpio</a></td></tr>
-<tr class="memdesc:a919cfbe04a514a513ffd30849aece7b5 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPIO associated with this pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a919cfbe04a514a513ffd30849aece7b5">More...</a><br /></td></tr>
-<tr class="separator:a919cfbe04a514a513ffd30849aece7b5 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add45bd11b5acc4674b0d5fa34df83516 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#add45bd11b5acc4674b0d5fa34df83516">BITNUM</a></td></tr>
-<tr class="memdesc:add45bd11b5acc4674b0d5fa34df83516 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit number of accessed bit in port.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#add45bd11b5acc4674b0d5fa34df83516">More...</a><br /></td></tr>
-<tr class="separator:add45bd11b5acc4674b0d5fa34df83516 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac37a21a5864a03c7fe83ffa5835d0a59 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac37a21a5864a03c7fe83ffa5835d0a59">MASK</a></td></tr>
-<tr class="memdesc:ac37a21a5864a03c7fe83ffa5835d0a59 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mask for bit within port.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac37a21a5864a03c7fe83ffa5835d0a59">More...</a><br /></td></tr>
-<tr class="separator:ac37a21a5864a03c7fe83ffa5835d0a59 inherit pub_static_attribs_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_types_class_u_s_b_d_m_1_1_gpio_base___t"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_u_s_b_d_m_1_1_gpio_base___t')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T&lt; Info::clockMask, Info::pcrAddress, Info::gpioAddress, bitNum, polarity &gt;</a></td></tr>
-<tr class="memitem:a0a60f103f4e4cd5afd7f381054ec0bbb inherit pub_types_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0a60f103f4e4cd5afd7f381054ec0bbb">Pcr</a> = <a class="el" href="class_u_s_b_d_m_1_1_pcr___t.html">Pcr_T</a>&lt; clockMask, pcrAddress, bitNum, GPIO_DEFAULT_PCR &gt;</td></tr>
-<tr class="memdesc:a0a60f103f4e4cd5afd7f381054ec0bbb inherit pub_types_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">PCR associated with this GPIO pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0a60f103f4e4cd5afd7f381054ec0bbb">More...</a><br /></td></tr>
-<tr class="separator:a0a60f103f4e4cd5afd7f381054ec0bbb inherit pub_types_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T&lt; Info::clockMask, Info::pcrAddress, Info::gpioAddress, bitNum, polarity &gt;</a></td></tr>
-<tr class="memitem:a3114bffda3542ffbb3dcff52cb8f8156 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a3114bffda3542ffbb3dcff52cb8f8156">setPCR</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
-<tr class="memdesc:a3114bffda3542ffbb3dcff52cb8f8156 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set Pin Control Register (PCR) value.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a3114bffda3542ffbb3dcff52cb8f8156">More...</a><br /></td></tr>
-<tr class="separator:a3114bffda3542ffbb3dcff52cb8f8156 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82b0cc222e9e4c0ca537ed5d48719617 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a82b0cc222e9e4c0ca537ed5d48719617">setPCR</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull, <a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength=PinDriveStrength_Low, <a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode=PinDriveMode_PushPull, <a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq=PinIrq_None, <a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter=PinFilter_None, <a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate=PinSlewRate_Fast)</td></tr>
-<tr class="memdesc:a82b0cc222e9e4c0ca537ed5d48719617 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set Pin Control Register (PCR) value.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a82b0cc222e9e4c0ca537ed5d48719617">More...</a><br /></td></tr>
-<tr class="separator:a82b0cc222e9e4c0ca537ed5d48719617 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c61f39c26820e4bfdf3bbf6e0ab876e inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c61f39c26820e4bfdf3bbf6e0ab876e">setOut</a> ()</td></tr>
-<tr class="memdesc:a7c61f39c26820e4bfdf3bbf6e0ab876e inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin as digital output.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c61f39c26820e4bfdf3bbf6e0ab876e">More...</a><br /></td></tr>
-<tr class="separator:a7c61f39c26820e4bfdf3bbf6e0ab876e inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a318f49a6943410c2f47e7cf7ac4c0d76 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">setOutput</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
-<tr class="memdesc:a318f49a6943410c2f47e7cf7ac4c0d76 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital output with initial inactive level.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">More...</a><br /></td></tr>
-<tr class="separator:a318f49a6943410c2f47e7cf7ac4c0d76 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b6fca9a9b41c8b9ac6f863e2dcb65e9 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a2b6fca9a9b41c8b9ac6f863e2dcb65e9">setOutput</a> (<a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength, <a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode=PinDriveMode_PushPull, <a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate=PinSlewRate_Fast)</td></tr>
-<tr class="memdesc:a2b6fca9a9b41c8b9ac6f863e2dcb65e9 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital output with initial inactive level.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a2b6fca9a9b41c8b9ac6f863e2dcb65e9">More...</a><br /></td></tr>
-<tr class="separator:a2b6fca9a9b41c8b9ac6f863e2dcb65e9 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f1a965f061d53ba28f3adf097be0171 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0f1a965f061d53ba28f3adf097be0171">setIn</a> ()</td></tr>
-<tr class="memdesc:a0f1a965f061d53ba28f3adf097be0171 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin as digital input.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0f1a965f061d53ba28f3adf097be0171">More...</a><br /></td></tr>
-<tr class="separator:a0f1a965f061d53ba28f3adf097be0171 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abec6c6d1cea49a48755890bf38a1e7b2 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#abec6c6d1cea49a48755890bf38a1e7b2">setInput</a> (<a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a> pcrValue=GPIO_DEFAULT_PCR)</td></tr>
-<tr class="memdesc:abec6c6d1cea49a48755890bf38a1e7b2 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital input.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#abec6c6d1cea49a48755890bf38a1e7b2">More...</a><br /></td></tr>
-<tr class="separator:abec6c6d1cea49a48755890bf38a1e7b2 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3a01dd4411de7db7fd0314f6566c07f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae3a01dd4411de7db7fd0314f6566c07f">setInput</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull, <a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq=PinIrq_None, <a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter=PinFilter_None)</td></tr>
-<tr class="memdesc:ae3a01dd4411de7db7fd0314f6566c07f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable pin as digital input.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae3a01dd4411de7db7fd0314f6566c07f">More...</a><br /></td></tr>
-<tr class="separator:ae3a01dd4411de7db7fd0314f6566c07f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36a7c617bf7aa9638695c00196addde6 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a36a7c617bf7aa9638695c00196addde6">high</a> ()</td></tr>
-<tr class="memdesc:a36a7c617bf7aa9638695c00196addde6 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a36a7c617bf7aa9638695c00196addde6">More...</a><br /></td></tr>
-<tr class="separator:a36a7c617bf7aa9638695c00196addde6 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c5a0ee97c194e298f95d36c8c2e4b1d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c5a0ee97c194e298f95d36c8c2e4b1d">low</a> ()</td></tr>
-<tr class="memdesc:a7c5a0ee97c194e298f95d36c8c2e4b1d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c5a0ee97c194e298f95d36c8c2e4b1d">More...</a><br /></td></tr>
-<tr class="separator:a7c5a0ee97c194e298f95d36c8c2e4b1d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf99857a13254c3054f9d31b553921fe inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#acf99857a13254c3054f9d31b553921fe">set</a> ()</td></tr>
-<tr class="memdesc:acf99857a13254c3054f9d31b553921fe inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#acf99857a13254c3054f9d31b553921fe">More...</a><br /></td></tr>
-<tr class="separator:acf99857a13254c3054f9d31b553921fe inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a991df09ac3580c23a988c186a5080c58 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a991df09ac3580c23a988c186a5080c58">clear</a> ()</td></tr>
-<tr class="memdesc:a991df09ac3580c23a988c186a5080c58 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a991df09ac3580c23a988c186a5080c58">More...</a><br /></td></tr>
-<tr class="separator:a991df09ac3580c23a988c186a5080c58 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8364cf8a996649baace08210d7266a55 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">toggle</a> ()</td></tr>
-<tr class="memdesc:a8364cf8a996649baace08210d7266a55 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Toggle pin (if output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">More...</a><br /></td></tr>
-<tr class="separator:a8364cf8a996649baace08210d7266a55 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28f1e04c2a8be2902b4719a5ff495199 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a28f1e04c2a8be2902b4719a5ff495199">setActive</a> ()</td></tr>
-<tr class="memdesc:a28f1e04c2a8be2902b4719a5ff495199 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to active level (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a28f1e04c2a8be2902b4719a5ff495199">More...</a><br /></td></tr>
-<tr class="separator:a28f1e04c2a8be2902b4719a5ff495199 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae657bca243faffb9092567116d39773d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae657bca243faffb9092567116d39773d">setInactive</a> ()</td></tr>
-<tr class="memdesc:ae657bca243faffb9092567116d39773d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to inactive level (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae657bca243faffb9092567116d39773d">More...</a><br /></td></tr>
-<tr class="separator:ae657bca243faffb9092567116d39773d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adcd3909595f9b0b8a2accc32d887b94f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#adcd3909595f9b0b8a2accc32d887b94f">on</a> ()</td></tr>
-<tr class="memdesc:adcd3909595f9b0b8a2accc32d887b94f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to active level (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#adcd3909595f9b0b8a2accc32d887b94f">More...</a><br /></td></tr>
-<tr class="separator:adcd3909595f9b0b8a2accc32d887b94f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a371ef2aa9336b3531b6af5512dbdeff0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a371ef2aa9336b3531b6af5512dbdeff0">off</a> ()</td></tr>
-<tr class="memdesc:a371ef2aa9336b3531b6af5512dbdeff0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pin to inactive level (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a371ef2aa9336b3531b6af5512dbdeff0">More...</a><br /></td></tr>
-<tr class="separator:a371ef2aa9336b3531b6af5512dbdeff0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9a1a925c685b28befb91bbe0d1b402f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad9a1a925c685b28befb91bbe0d1b402f">write</a> (bool value)</td></tr>
-<tr class="memdesc:ad9a1a925c685b28befb91bbe0d1b402f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write boolean value to pin (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad9a1a925c685b28befb91bbe0d1b402f">More...</a><br /></td></tr>
-<tr class="separator:ad9a1a925c685b28befb91bbe0d1b402f inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a465a90bd15a2c3f2646906abe91d6e7b inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a465a90bd15a2c3f2646906abe91d6e7b">isHigh</a> ()</td></tr>
-<tr class="memdesc:a465a90bd15a2c3f2646906abe91d6e7b inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if pin is high.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a465a90bd15a2c3f2646906abe91d6e7b">More...</a><br /></td></tr>
-<tr class="separator:a465a90bd15a2c3f2646906abe91d6e7b inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd891bd384e699ad04756c1bcb2e3365 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afd891bd384e699ad04756c1bcb2e3365">isLow</a> ()</td></tr>
-<tr class="memdesc:afd891bd384e699ad04756c1bcb2e3365 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if pin is low.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#afd891bd384e699ad04756c1bcb2e3365">More...</a><br /></td></tr>
-<tr class="separator:afd891bd384e699ad04756c1bcb2e3365 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbdf5d40a4da313f9e22434a6cac6081 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#abbdf5d40a4da313f9e22434a6cac6081">read</a> ()</td></tr>
-<tr class="memdesc:abbdf5d40a4da313f9e22434a6cac6081 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#abbdf5d40a4da313f9e22434a6cac6081">More...</a><br /></td></tr>
-<tr class="separator:abbdf5d40a4da313f9e22434a6cac6081 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae437156ce74d2d45f2d4081fe886cb2c inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae437156ce74d2d45f2d4081fe886cb2c">isActive</a> ()</td></tr>
-<tr class="memdesc:ae437156ce74d2d45f2d4081fe886cb2c inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if active level.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae437156ce74d2d45f2d4081fe886cb2c">More...</a><br /></td></tr>
-<tr class="separator:ae437156ce74d2d45f2d4081fe886cb2c inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb39fabc59424f69a2c12d238061742a inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a">isInactive</a> ()</td></tr>
-<tr class="memdesc:afb39fabc59424f69a2c12d238061742a inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if inactive level.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a">More...</a><br /></td></tr>
-<tr class="separator:afb39fabc59424f69a2c12d238061742a inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0f551126236a691c627730a298f8db0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae0f551126236a691c627730a298f8db0">readState</a> ()</td></tr>
-<tr class="memdesc:ae0f551126236a691c627730a298f8db0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read value being driven to pin (if configured as output)  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae0f551126236a691c627730a298f8db0">More...</a><br /></td></tr>
-<tr class="separator:ae0f551126236a691c627730a298f8db0 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4ddc1900953606409d48d785392daea inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae4ddc1900953606409d48d785392daea">setIrq</a> (<a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a> pinIrq)</td></tr>
-<tr class="memdesc:ae4ddc1900953606409d48d785392daea inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets pin interrupt mode.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae4ddc1900953606409d48d785392daea">More...</a><br /></td></tr>
-<tr class="separator:ae4ddc1900953606409d48d785392daea inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f784d0f461906f18d50c92524b7f008 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7f784d0f461906f18d50c92524b7f008">clearIrqFlag</a> ()</td></tr>
-<tr class="memdesc:a7f784d0f461906f18d50c92524b7f008 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear interrupt flag for pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7f784d0f461906f18d50c92524b7f008">More...</a><br /></td></tr>
-<tr class="separator:a7f784d0f461906f18d50c92524b7f008 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:affee38793fca9c3dd19af17841708518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#affee38793fca9c3dd19af17841708518">setPullDevice</a> (<a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a> pinPull)</td></tr>
-<tr class="memdesc:affee38793fca9c3dd19af17841708518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set pull device on pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#affee38793fca9c3dd19af17841708518">More...</a><br /></td></tr>
-<tr class="separator:affee38793fca9c3dd19af17841708518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acff9cbdae54d5f58ea6866e93485da5d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#acff9cbdae54d5f58ea6866e93485da5d">setDriveStrength</a> (<a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a> pinDriveStrength)</td></tr>
-<tr class="memdesc:acff9cbdae54d5f58ea6866e93485da5d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set drive strength on pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#acff9cbdae54d5f58ea6866e93485da5d">More...</a><br /></td></tr>
-<tr class="separator:acff9cbdae54d5f58ea6866e93485da5d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5b1df4f4510cfc2481dbe535bb68518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac5b1df4f4510cfc2481dbe535bb68518">setDriveMode</a> (<a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a> pinDriveMode)</td></tr>
-<tr class="memdesc:ac5b1df4f4510cfc2481dbe535bb68518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set drive mode on pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac5b1df4f4510cfc2481dbe535bb68518">More...</a><br /></td></tr>
-<tr class="separator:ac5b1df4f4510cfc2481dbe535bb68518 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5efeec5091788c0145bf53cd776422d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad5efeec5091788c0145bf53cd776422d">setSlewRate</a> (<a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a> pinSlewRate)</td></tr>
-<tr class="memdesc:ad5efeec5091788c0145bf53cd776422d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set slew rate on pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ad5efeec5091788c0145bf53cd776422d">More...</a><br /></td></tr>
-<tr class="separator:ad5efeec5091788c0145bf53cd776422d inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04d55c5d71fd4737e2954ec27716a286 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a04d55c5d71fd4737e2954ec27716a286">setFilter</a> (<a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a> pinFilter)</td></tr>
-<tr class="memdesc:a04d55c5d71fd4737e2954ec27716a286 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set filter on pin.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a04d55c5d71fd4737e2954ec27716a286">More...</a><br /></td></tr>
-<tr class="separator:a04d55c5d71fd4737e2954ec27716a286 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4ca2111c7986ffe1cd76b84df4d2ee3 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ab4ca2111c7986ffe1cd76b84df4d2ee3">lock</a> ()</td></tr>
-<tr class="memdesc:ab4ca2111c7986ffe1cd76b84df4d2ee3 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Locks most of the pin properties e.g.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#ab4ca2111c7986ffe1cd76b84df4d2ee3">More...</a><br /></td></tr>
-<tr class="separator:ab4ca2111c7986ffe1cd76b84df4d2ee3 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0ef737686080750e7973ff10b0213c8 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#aa0ef737686080750e7973ff10b0213c8">enableNvicInterrupts</a> (bool enable=true)</td></tr>
-<tr class="memdesc:aa0ef737686080750e7973ff10b0213c8 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable/disable pin interrupts.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#aa0ef737686080750e7973ff10b0213c8">More...</a><br /></td></tr>
-<tr class="separator:aa0ef737686080750e7973ff10b0213c8 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0def0ea7fd049c4654f1a269afb31340 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0def0ea7fd049c4654f1a269afb31340">setCallback</a> (PinCallbackFunction callback)</td></tr>
-<tr class="memdesc:a0def0ea7fd049c4654f1a269afb31340 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set callback for ISR.  <a href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0def0ea7fd049c4654f1a269afb31340">More...</a><br /></td></tr>
-<tr class="separator:a0def0ea7fd049c4654f1a269afb31340 inherit pub_static_methods_class_u_s_b_d_m_1_1_gpio_base___t"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a919cfbe04a514a513ffd30849aece7b5"><td class="memItemLeft" align="right" valign="top">static constexpr volatile <a class="el" href="struct_g_p_i_o___type.html">GPIO_Type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a919cfbe04a514a513ffd30849aece7b5">gpio</a></td></tr>
+<tr class="memdesc:a919cfbe04a514a513ffd30849aece7b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPIO associated with this pin.  <a href="#a919cfbe04a514a513ffd30849aece7b5">More...</a><br /></td></tr>
+<tr class="separator:a919cfbe04a514a513ffd30849aece7b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add45bd11b5acc4674b0d5fa34df83516"><td class="memItemLeft" align="right" valign="top">static constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#add45bd11b5acc4674b0d5fa34df83516">BITNUM</a></td></tr>
+<tr class="memdesc:add45bd11b5acc4674b0d5fa34df83516"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit number of accessed bit in port.  <a href="#add45bd11b5acc4674b0d5fa34df83516">More...</a><br /></td></tr>
+<tr class="separator:add45bd11b5acc4674b0d5fa34df83516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac37a21a5864a03c7fe83ffa5835d0a59"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ac37a21a5864a03c7fe83ffa5835d0a59">MASK</a></td></tr>
+<tr class="memdesc:ac37a21a5864a03c7fe83ffa5835d0a59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mask for bit within port.  <a href="#ac37a21a5864a03c7fe83ffa5835d0a59">More...</a><br /></td></tr>
+<tr class="separator:ac37a21a5864a03c7fe83ffa5835d0a59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;class Info, const int bitNum, Polarity polarity&gt;<br />
@@ -201,7 +209,1308 @@ class USBDM::Gpio_T&lt; Info, bitNum, polarity &gt;</h3>
   </table>
   </dd>
 </dl>
-</div><h2 class="groupheader">Member Data Documentation</h2>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a0a60f103f4e4cd5afd7f381054ec0bbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a60f103f4e4cd5afd7f381054ec0bbb">&#9670;&nbsp;</a></span>Pcr</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::<a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0a60f103f4e4cd5afd7f381054ec0bbb">Pcr</a> =  <a class="el" href="class_u_s_b_d_m_1_1_pcr___t.html">Pcr_T</a>&lt;clockMask, pcrAddress, bitNum, GPIO_DEFAULT_PCR&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>PCR associated with this GPIO pin. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a991df09ac3580c23a988c186a5080c58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a991df09ac3580c23a988c186a5080c58">&#9670;&nbsp;</a></span>clear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::clear </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Clear pin. </p>
+<p>Pin will be low if configured as an output.</p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is not significant </dd></dl>
+
+</div>
+</div>
+<a id="a7f784d0f461906f18d50c92524b7f008"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f784d0f461906f18d50c92524b7f008">&#9670;&nbsp;</a></span>clearIrqFlag()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::clearIrqFlag </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Clear interrupt flag for pin. </p>
+
+</div>
+</div>
+<a id="aa0ef737686080750e7973ff10b0213c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0ef737686080750e7973ff10b0213c8">&#9670;&nbsp;</a></span>enableNvicInterrupts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::enableNvicInterrupts </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em> = <code>true</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable/disable pin interrupts. </p>
+<p>Convenience wrapper for PCR function</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">enable</td><td>True =&gt; enable, False =&gt; disable </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a36a7c617bf7aa9638695c00196addde6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36a7c617bf7aa9638695c00196addde6">&#9670;&nbsp;</a></span>high()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::high </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin. </p>
+<p>Pin will be high if configured as an output.</p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is not significant </dd></dl>
+
+</div>
+</div>
+<a id="ae437156ce74d2d45f2d4081fe886cb2c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae437156ce74d2d45f2d4081fe886cb2c">&#9670;&nbsp;</a></span>isActive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isActive </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if active level. </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is active.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="a465a90bd15a2c3f2646906abe91d6e7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a465a90bd15a2c3f2646906abe91d6e7b">&#9670;&nbsp;</a></span>isHigh()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isHigh </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if pin is high. </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting value on pin</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is NOT significant </dd></dl>
+
+</div>
+</div>
+<a id="afb39fabc59424f69a2c12d238061742a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb39fabc59424f69a2c12d238061742a">&#9670;&nbsp;</a></span>isInactive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isInactive </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if inactive level. </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is inactive.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="afd891bd384e699ad04756c1bcb2e3365"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd891bd384e699ad04756c1bcb2e3365">&#9670;&nbsp;</a></span>isLow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isLow </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if pin is low. </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting value on pin</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is NOT significant </dd></dl>
+
+</div>
+</div>
+<a id="a43410d011fc4918e1e96cdede3a1fc50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43410d011fc4918e1e96cdede3a1fc50">&#9670;&nbsp;</a></span>isPressed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isPressed </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if active level. </p>
+<p><br />
+Convenience method equivalent to <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae437156ce74d2d45f2d4081fe886cb2c" title="Read pin value and return true if active level. ">isActive()</a></p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is active.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="aa850a09a1353d46072ae9aa1d381e6c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa850a09a1353d46072ae9aa1d381e6c6">&#9670;&nbsp;</a></span>isReleased()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isReleased </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if inactive level. </p>
+<p><br />
+Convenience method equivalent to <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a" title="Read pin value and return true if inactive level. ">isInactive()</a></p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is inactive.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="ab4ca2111c7986ffe1cd76b84df4d2ee3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4ca2111c7986ffe1cd76b84df4d2ee3">&#9670;&nbsp;</a></span>lock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::lock </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Locks most of the pin properties e.g. </p>
+<p>drive strength, pull-device etc. The pin properties remains locked until the next reset </p>
+
+</div>
+</div>
+<a id="a7c5a0ee97c194e298f95d36c8c2e4b1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c5a0ee97c194e298f95d36c8c2e4b1d">&#9670;&nbsp;</a></span>low()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::low </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Clear pin. </p>
+<p>Pin will be low if configured as an output.</p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is not significant </dd></dl>
+
+</div>
+</div>
+<a id="a371ef2aa9336b3531b6af5512dbdeff0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a371ef2aa9336b3531b6af5512dbdeff0">&#9670;&nbsp;</a></span>off()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::off </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin to inactive level (if configured as output) </p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="adcd3909595f9b0b8a2accc32d887b94f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcd3909595f9b0b8a2accc32d887b94f">&#9670;&nbsp;</a></span>on()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::on </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin to active level (if configured as output) </p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="abbdf5d40a4da313f9e22434a6cac6081"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abbdf5d40a4da313f9e22434a6cac6081">&#9670;&nbsp;</a></span>read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::read </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value. </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting pin value.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="ae0f551126236a691c627730a298f8db0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0f551126236a691c627730a298f8db0">&#9670;&nbsp;</a></span>readState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::readState </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read value being driven to pin (if configured as output) </p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting value in output register.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDOR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="acf99857a13254c3054f9d31b553921fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf99857a13254c3054f9d31b553921fe">&#9670;&nbsp;</a></span>set()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::set </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin. </p>
+<p>Pin will be high if configured as an output.</p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is not significant </dd></dl>
+
+</div>
+</div>
+<a id="a28f1e04c2a8be2902b4719a5ff495199"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28f1e04c2a8be2902b4719a5ff495199">&#9670;&nbsp;</a></span>setActive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setActive </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin to active level (if configured as output) </p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="a0def0ea7fd049c4654f1a269afb31340"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0def0ea7fd049c4654f1a269afb31340">&#9670;&nbsp;</a></span>setCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setCallback </td>
+          <td>(</td>
+          <td class="paramtype">PinCallbackFunction&#160;</td>
+          <td class="paramname"><em>callback</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set callback for ISR. </p>
+<dl class="section note"><dt>Note</dt><dd>There is a single callback function for all pins on this port.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">callback</td><td>The function to call on pin interrupt. <br />
+ nullptr to indicate none </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ac5b1df4f4510cfc2481dbe535bb68518"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5b1df4f4510cfc2481dbe535bb68518">&#9670;&nbsp;</a></span>setDriveMode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setDriveMode </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a>&#160;</td>
+          <td class="paramname"><em>pinDriveMode</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set drive mode on pin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveMode</td><td>Pin drive mode (PinPushPull, PinOpenDrain) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="acff9cbdae54d5f58ea6866e93485da5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acff9cbdae54d5f58ea6866e93485da5d">&#9670;&nbsp;</a></span>setDriveStrength()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setDriveStrength </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a>&#160;</td>
+          <td class="paramname"><em>pinDriveStrength</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set drive strength on pin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveStrength</td><td>Pin drive strength to set (PinDriveLow, PinDriveHigh) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a04d55c5d71fd4737e2954ec27716a286"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04d55c5d71fd4737e2954ec27716a286">&#9670;&nbsp;</a></span>setFilter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setFilter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a>&#160;</td>
+          <td class="paramname"><em>pinFilter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set filter on pin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinFilter</td><td>Pin filter option. Either PinFilter_None or PinFilter_Passive </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a0f1a965f061d53ba28f3adf097be0171"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f1a965f061d53ba28f3adf097be0171">&#9670;&nbsp;</a></span>setIn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setIn </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin as digital input. </p>
+<dl class="section note"><dt>Note</dt><dd>Does not affect other pin settings </dd></dl>
+
+</div>
+</div>
+<a id="ae657bca243faffb9092567116d39773d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae657bca243faffb9092567116d39773d">&#9670;&nbsp;</a></span>setInactive()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setInactive </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin to inactive level (if configured as output) </p>
+<dl class="section note"><dt>Note</dt><dd>Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="abec6c6d1cea49a48755890bf38a1e7b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abec6c6d1cea49a48755890bf38a1e7b2">&#9670;&nbsp;</a></span>setInput() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setInput </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a>&#160;</td>
+          <td class="paramname"><em>pcrValue</em> = <code>GPIO_DEFAULT_PCR</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable pin as digital input. </p>
+<p>Configures all Pin Control Register (PCR) values</p>
+<dl class="section note"><dt>Note</dt><dd>Resets the Pin Control Register value (PCR value). </dd>
+<dd>
+Use <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0f1a965f061d53ba28f3adf097be0171" title="Set pin as digital input. ">setIn()</a> for a lightweight change of direction without affecting other pin settings.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcrValue</td><td>PCR value to use in configuring port (excluding MUX value) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae3a01dd4411de7db7fd0314f6566c07f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3a01dd4411de7db7fd0314f6566c07f">&#9670;&nbsp;</a></span>setInput() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setInput </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a>&#160;</td>
+          <td class="paramname"><em>pinPull</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a>&#160;</td>
+          <td class="paramname"><em>pinIrq</em> = <code>PinIrq_None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a>&#160;</td>
+          <td class="paramname"><em>pinFilter</em> = <code>PinFilter_None</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable pin as digital input. </p>
+<p>Configures all Pin Control Register (PCR) values</p>
+<dl class="section note"><dt>Note</dt><dd>Reset the Pin Control Register value (PCR value). </dd>
+<dd>
+Use <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a0f1a965f061d53ba28f3adf097be0171" title="Set pin as digital input. ">setIn()</a> for a lightweight change of direction without affecting other pin settings.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinPull</td><td>One of PinPull_None, PinPull_Up, PinPull_Down </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinIrq</td><td>One of PinIrq_None, etc (defaults to PinIrq_None) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinFilter</td><td>One of PinFilter_None, PinFilter_Passive (defaults to PinFilter_None) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae4ddc1900953606409d48d785392daea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4ddc1900953606409d48d785392daea">&#9670;&nbsp;</a></span>setIrq()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setIrq </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a>&#160;</td>
+          <td class="paramname"><em>pinIrq</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets pin interrupt mode. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinIrq</td><td>Interrupt/DMA mode </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7c61f39c26820e4bfdf3bbf6e0ab876e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c61f39c26820e4bfdf3bbf6e0ab876e">&#9670;&nbsp;</a></span>setOut()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setOut </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pin as digital output. </p>
+<dl class="section note"><dt>Note</dt><dd>Does not affect other pin settings </dd></dl>
+
+</div>
+</div>
+<a id="a318f49a6943410c2f47e7cf7ac4c0d76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a318f49a6943410c2f47e7cf7ac4c0d76">&#9670;&nbsp;</a></span>setOutput() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setOutput </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a>&#160;</td>
+          <td class="paramname"><em>pcrValue</em> = <code>GPIO_DEFAULT_PCR</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable pin as digital output with initial inactive level. </p>
+<p>Configures all Pin Control Register (PCR) values</p>
+<dl class="section note"><dt>Note</dt><dd>Resets the Pin Control Register value (PCR value). </dd>
+<dd>
+Resets the pin value to the inactive state </dd>
+<dd>
+Use <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c61f39c26820e4bfdf3bbf6e0ab876e" title="Set pin as digital output. ">setOut()</a> for a lightweight change of direction without affecting other pin settings.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcrValue</td><td>PCR value to use in configuring port (excluding MUX value). See pcrValue() </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2b6fca9a9b41c8b9ac6f863e2dcb65e9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b6fca9a9b41c8b9ac6f863e2dcb65e9">&#9670;&nbsp;</a></span>setOutput() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setOutput </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a>&#160;</td>
+          <td class="paramname"><em>pinDriveStrength</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a>&#160;</td>
+          <td class="paramname"><em>pinDriveMode</em> = <code>PinDriveMode_PushPull</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a>&#160;</td>
+          <td class="paramname"><em>pinSlewRate</em> = <code>PinSlewRate_Fast</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable pin as digital output with initial inactive level. </p>
+<p>Configures all Pin Control Register (PCR) values</p>
+<dl class="section note"><dt>Note</dt><dd>Resets the Pin Control Register value (PCR value). </dd>
+<dd>
+Resets the pin value to the inactive state </dd>
+<dd>
+Use <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a7c61f39c26820e4bfdf3bbf6e0ab876e" title="Set pin as digital output. ">setOut()</a> for a lightweight change of direction without affecting other pin settings.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveStrength</td><td>One of PinDriveStrength_Low, PinDriveStrength_High </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveMode</td><td>One of PinDriveMode_PushPull, PinDriveMode_OpenDrain (defaults to PinPushPull) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinSlewRate</td><td>One of PinSlewRate_Slow, PinSlewRate_Fast (defaults to PinSlewRate_Fast) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3114bffda3542ffbb3dcff52cb8f8156"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3114bffda3542ffbb3dcff52cb8f8156">&#9670;&nbsp;</a></span>setPCR() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setPCR </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gaffa6cd67e09c3030a40c1433598ba0c4">PcrValue</a>&#160;</td>
+          <td class="paramname"><em>pcrValue</em> = <code>GPIO_DEFAULT_PCR</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set Pin Control Register (PCR) value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pcrValue</td><td>PCR value to use in configuring pin (excluding MUX value). See pcrValue() </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a82b0cc222e9e4c0ca537ed5d48719617"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82b0cc222e9e4c0ca537ed5d48719617">&#9670;&nbsp;</a></span>setPCR() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setPCR </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a>&#160;</td>
+          <td class="paramname"><em>pinPull</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga41b0e776b3badb014a0fa2c3261d4c57">PinDriveStrength</a>&#160;</td>
+          <td class="paramname"><em>pinDriveStrength</em> = <code>PinDriveStrength_Low</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga30bcd8163a6d2d4cb90f3577ecf5131d">PinDriveMode</a>&#160;</td>
+          <td class="paramname"><em>pinDriveMode</em> = <code>PinDriveMode_PushPull</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gab6b5944e684e761e86643b29618ebf72">PinIrq</a>&#160;</td>
+          <td class="paramname"><em>pinIrq</em> = <code>PinIrq_None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gacfe130faec928dbda2bf5f390058e04a">PinFilter</a>&#160;</td>
+          <td class="paramname"><em>pinFilter</em> = <code>PinFilter_None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a>&#160;</td>
+          <td class="paramname"><em>pinSlewRate</em> = <code>PinSlewRate_Fast</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set Pin Control Register (PCR) value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinPull</td><td>One of PinPull_None, PinPull_Up, PinPull_Down </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveStrength</td><td>One of PinDriveStrength_Low, PinDriveStrength_High (defaults to PinDriveLow) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinDriveMode</td><td>One of PinDriveMode_PushPull, PinDriveMode_OpenDrain (defaults to PinPushPull) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinIrq</td><td>One of PinIrq_None, etc (defaults to PinIrq_None) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinFilter</td><td>One of PinFilter_None, PinFilter_Passive (defaults to PinFilter_None) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinSlewRate</td><td>One of PinSlewRate_Slow, PinSlewRate_Fast (defaults to PinSlewRate_Fast) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="affee38793fca9c3dd19af17841708518"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affee38793fca9c3dd19af17841708518">&#9670;&nbsp;</a></span>setPullDevice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setPullDevice </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#gad54854b5479931edb9f84488f3967abe">PinPull</a>&#160;</td>
+          <td class="paramname"><em>pinPull</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set pull device on pin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinPull</td><td>Pin pull control value (PinPull_None, PinPull_Up, PinPull_Down) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ad5efeec5091788c0145bf53cd776422d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5efeec5091788c0145bf53cd776422d">&#9670;&nbsp;</a></span>setSlewRate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::setSlewRate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___peripheral_pin_tables.html#ga78a40136f7aee020e528dffbdf0e7e39">PinSlewRate</a>&#160;</td>
+          <td class="paramname"><em>pinSlewRate</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set slew rate on pin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pinSlewRate</td><td>Slew rate. Either PinSlewRate_Slow or PinSlewRate_Fast </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8364cf8a996649baace08210d7266a55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8364cf8a996649baace08210d7266a55">&#9670;&nbsp;</a></span>toggle()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::toggle </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Toggle pin (if output) </p>
+
+</div>
+</div>
+<a id="ad9a1a925c685b28befb91bbe0d1b402f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9a1a925c685b28befb91bbe0d1b402f">&#9670;&nbsp;</a></span>write()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::write </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write boolean value to pin (if configured as output) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">value</td><td>true/false value</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Polarity is significant </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="add45bd11b5acc4674b0d5fa34df83516"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add45bd11b5acc4674b0d5fa34df83516">&#9670;&nbsp;</a></span>BITNUM</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr int <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::BITNUM</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Bit number of accessed bit in port. </p>
+
+</div>
+</div>
+<a id="a919cfbe04a514a513ffd30849aece7b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a919cfbe04a514a513ffd30849aece7b5">&#9670;&nbsp;</a></span>gpio</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr volatile <a class="el" href="struct_g_p_i_o___type.html">GPIO_Type</a>* <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::gpio</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>GPIO associated with this pin. </p>
+
+</div>
+</div>
 <a id="af816f6a5b06e91d774394ba66690bd53"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af816f6a5b06e91d774394ba66690bd53">&#9670;&nbsp;</a></span>irqHandlerInstalled</h2>
 
@@ -226,13 +1535,37 @@ template&lt;class Info, const int bitNum, Polarity polarity&gt; </div>
 
 </div>
 </div>
+<a id="ac37a21a5864a03c7fe83ffa5835d0a59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac37a21a5864a03c7fe83ffa5835d0a59">&#9670;&nbsp;</a></span>MASK</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint32_t <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::MASK</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mask for bit within port. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>Project_Headers/<a class="el" href="gpio_8h_source.html">gpio.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:41 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:28 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

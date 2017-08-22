@@ -42,17 +42,40 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>Convenience template for FTM hardware.</p>
-<p>The interface is divided into a number of templates:</p><ul>
-<li><a class="el" href="class_u_s_b_d_m_1_1_ftm_base___t.html" title="Base class representing an FTM. ">USBDM::FtmBase_T</a> Representing the shared FTM functionality.</li>
-<li><a class="el" href="class_u_s_b_d_m_1_1_quad_encoder___t.html" title="Template class representing a FTM configured as a Quadrature encoder. ">USBDM::QuadEncoder_T</a> Representing a FTM operating as a quadrature encoder.</li>
-<li><a class="el" href="class_u_s_b_d_m_1_1_ftm_channel___t.html" title="Template class representing a timer channel. ">USBDM::FtmChannel_T</a> Representing individual channels of a single FTM.</li>
+<p>The interface is divided into a number of templates: </p><ul>
+<li>
+<a class="el" href="class_u_s_b_d_m_1_1_ftm_base___t.html" title="Base class representing an FTM. ">USBDM::FtmBase_T</a> Representing the shared FTM functionality. <ul>
+<li>
+<a class="el" href="group___f_t_m___group.html#ga40eef8148b92fd856369e86ca05ce474" title="Class representing FTM0. ">USBDM::Ftm0</a> </li>
+<li>
+<a class="el" href="group___f_t_m___group.html#gaaafbdf6934f96fc92ad97302b8733417" title="Class representing FTM1. ">USBDM::Ftm1</a> </li>
+</ul>
+</li>
+<li>
+<a class="el" href="class_u_s_b_d_m_1_1_quad_encoder___t.html" title="Template class representing a FTM configured as a Quadrature encoder. ">USBDM::QuadEncoder_T</a> Representing a FTM operating as a quadrature encoder. <ul>
+<li>
+<a class="el" href="group___f_t_m___group.html#ga141bd09f3b1fd36c60e7a6f50efb3010" title="Class representing FTM1 as Quadrature encoder Not all FTMs support this mode. ">USBDM::QuadEncoder1</a> </li>
+</ul>
+</li>
+<li>
+<a class="el" href="class_u_s_b_d_m_1_1_ftm_channel___t.html" title="Template class representing a timer channel. ">USBDM::FtmChannel_T</a> Representing individual channels of a single FTM. <ul>
+<li>
+<a class="el" href="class_u_s_b_d_m_1_1_ftm0_channel.html" title="Template class representing a Timer channel. ">USBDM::Ftm0Channel</a> </li>
+<li>
+<a class="el" href="class_u_s_b_d_m_1_1_ftm1_channel.html" title="Template class representing a FTM1 timer channel. ">USBDM::Ftm1Channel</a> </li>
+</ul>
+</li>
 </ul>
 <p>It provides:<br />
 </p><ul>
-<li>Static pin mapping in conjunction with the configuration settings.</li>
-<li>Setting the FTM period in ticks or seconds</li>
-<li>Setting the channel duty cycle in percentage</li>
-<li>Interrupt driven operation is also supported through a callback if <b>enabled in the configuration</b>.</li>
+<li>
+Static pin mapping in conjunction with the configuration settings. </li>
+<li>
+Setting the FTM period in ticks or seconds </li>
+<li>
+Setting the channel duty cycle in percentage </li>
+<li>
+Interrupt driven operation is also supported through a callback if <b>enabled in the configuration</b>. </li>
 </ul>
 <p>This is a template class with static methods.<br />
 <em>It cannot be instantiated.</em></p>
@@ -67,7 +90,7 @@ $(function() {
 <p><b>Usage - PWM</b> </p><div class="fragment"><div class="line"><span class="comment">// Open USBDM namespace.</span></div><div class="line"><span class="comment">// This allows access to USBDM classes and methods without the USBDM:: prefix.</span></div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespace_u_s_b_d_m.html">USBDM</a>;</div><div class="line"></div><div class="line"><span class="comment">// Initialise the timer with initial alignment</span></div><div class="line"><span class="comment">// This affects all channels of the FTM</span></div><div class="line"><a class="code" href="class_u_s_b_d_m_1_1_ftm_base___t.html#a5967229018b5d078769c80e0ecd2dcb3">Ftm0::configure</a>(<a class="code" href="group___f_t_m___group.html#ggac56a93d073d805c5722711233a0d5ad4ab25594c952e749ea152dd3e752f7460e">FtmMode_LeftAlign</a>);</div><div class="line"></div><div class="line"><span class="comment">// Set timer period in ticks</span></div><div class="line"><span class="comment">// This affects all channels of the FTM</span></div><div class="line"><span class="comment">// Timer pre-scaler is not changed</span></div><div class="line"><a class="code" href="class_u_s_b_d_m_1_1_ftm_base___t.html#a0ef38992994a48d3b5fd1b7100d68e71">Ftm0::setPeriodInTicks</a>(500);</div><div class="line"></div><div class="line"><span class="comment">// Set timer period in microseconds</span></div><div class="line"><span class="comment">// This affects all channels of the FTM</span></div><div class="line"><span class="comment">// Timer pre-scaler (tick rate) will be adjusted to accommodate the required period</span></div><div class="line"><a class="code" href="class_u_s_b_d_m_1_1_ftm_base___t.html#a8502927d29721282ad4cfbb5134a8859">Ftm0::setPeriod</a>(125*us);</div><div class="line"></div><div class="line"><span class="comment">// Use FTM0 channel 3</span></div><div class="line"><span class="keyword">using</span> PwmOutput = <a class="code" href="class_u_s_b_d_m_1_1_ftm0_channel.html">Ftm0Channel&lt;3&gt;</a> ;</div><div class="line"></div><div class="line"><span class="comment">// Set channel to generate PWM with active-high pulses</span></div><div class="line">PwmOutput::enable(ftm_pwmHighTruePulses);</div><div class="line"></div><div class="line"><span class="comment">// Set duty cycle as percentage</span></div><div class="line">PwmOutput::setDutyCycle(34);</div><div class="line"></div><div class="line"><span class="comment">// Set duty cycle as percentage (float)</span></div><div class="line">PwmOutput::setDutyCycle(12.25*percent);</div><div class="line"></div><div class="line"><span class="comment">// Set high time in microseconds (float)</span></div><div class="line">PwmOutput::setHighTime(63*us);</div></div><!-- fragment --><p><b>Usage - Quadrature Encoder</b> </p><div class="fragment"><div class="line"><span class="comment">// Open USBDM namespace.</span></div><div class="line"><span class="comment">// This allows access to USBDM classes and methods without the USBDM:: prefix.</span></div><div class="line"><span class="keyword">using namespace </span><a class="code" href="namespace_u_s_b_d_m.html">USBDM</a>;</div><div class="line"></div><div class="line"><span class="comment">// Use FTM1 as the quadrature encoder</span></div><div class="line"><span class="comment">// Not all FTMs support this mode</span></div><div class="line"><span class="keyword">using</span> QuadEncoder = <a class="code" href="group___f_t_m___group.html#ga141bd09f3b1fd36c60e7a6f50efb3010">QuadEncoder1</a>;</div><div class="line"></div><div class="line"><span class="comment">// Enable encoder</span></div><div class="line">QuadEncoder::enable();</div><div class="line"></div><div class="line"><span class="comment">// Set pin filters</span></div><div class="line">QuadEncoder::enableFilter(15);</div><div class="line"></div><div class="line"><span class="comment">// Reset position to zero</span></div><div class="line"><span class="comment">// Movement will be relative to this position</span></div><div class="line">QuadEncoder::resetPosition();</div><div class="line"></div><div class="line"><span class="comment">// Set up callback for quadrature overflow or underflow</span></div><div class="line">QuadEncoder::setTimerOverflowCallback(callBack);</div><div class="line">QuadEncoder::enableTimerOverflowInterrupts();</div><div class="line">QuadEncoder::enableNvicInterrupts();</div><div class="line"></div><div class="line"><span class="keywordflow">for</span> (;;) {</div><div class="line">   <span class="comment">// Report position</span></div><div class="line">   printf(<span class="stringliteral">&quot;Shaft position = %d\n\r&quot;</span>, QuadEncoder::getPosition());</div><div class="line">}</div></div><!-- fragment --> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:38 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:23 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

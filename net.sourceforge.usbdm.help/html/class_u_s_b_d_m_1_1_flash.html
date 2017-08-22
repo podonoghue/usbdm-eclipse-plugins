@@ -42,7 +42,9 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
 <a href="#pro-static-attribs">Static Protected Attributes</a> &#124;
@@ -67,6 +69,38 @@ Inheritance diagram for USBDM::Flash:</div>
 </map>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a7bc21a0c615ff386ebf6ded7bfebce62"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">EepromSel</a> { <br />
+&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62ae40e87a97d8ca9c1b1c5a80325ff161e">eeprom32Bytes</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62acfe3ababc213a34bddcbe55e43df4d22">eeprom64Bytes</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62add9b1202613812f4e1cd20b52e57635b">eeprom128Bytes</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62af0caf8dca198f19a7c7b4000ed3408ac">eeprom256Bytes</a>, 
+<br />
+&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a0b99441298ac53486eac8bb6753eaafa">eeprom512Bytes</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a0c53fd19fd0803c8a20bfd1028fa9cb8">eeprom1KBytes</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1">eeprom2KBytes</a>
+<br />
+ }<tr class="memdesc:a7bc21a0c615ff386ebf6ded7bfebce62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects EEPROM size.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a7bc21a0c615ff386ebf6ded7bfebce62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d8c8c965348deb9873b99561fd9191b"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">PartitionSel</a> { <br />
+&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bad0ec346fcf87d4471052b0448255eb24">partition_flash32K_eeprom0K</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191ba9cd840269f50610d646871e3ff83af20">partition_flash24K_eeprom8K</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bafbd684b0913023e98c00ae97c074af37">partition_flash16K_eeprom16K</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bab72886cd1beaf4c8ef44e60543f3b5c3">partition_flash8K_eeprom24K</a>, 
+<br />
+&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc">partition_flash0K_eeprom32K</a>, 
+<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191ba6d4e2ad8915c11b9edcd044b9ed2bafb">partition_flash0K_eeprom_all</a> = partition_flash0K_eeprom32K
+<br />
+ }<tr class="memdesc:a6d8c8c965348deb9873b99561fd9191b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects division of FlexNVM between flash and EEPROM backing storage.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a6d8c8c965348deb9873b99561fd9191b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cc495be4fed6fc5502a69757abe007c"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">PartitionSplit</a> { <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47">partition_disabled</a> =0x30
+ }<tr class="memdesc:a7cc495be4fed6fc5502a69757abe007c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects division of the EEPROM Not supported on this device.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:a7cc495be4fed6fc5502a69757abe007c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:af515b31ac1de8ed6ddb5bcbd37621f32"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_flash.html#af515b31ac1de8ed6ddb5bcbd37621f32">isFlexRamConfigured</a> ()</td></tr>
@@ -85,6 +119,44 @@ Will wait for flash ready as necessary.  <a href="#af515b31ac1de8ed6ddb5bcbd3762
 <tr class="memitem:a3b4650588b3a2b5317dbf0182cd22488"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_flash.html#a3b4650588b3a2b5317dbf0182cd22488">eraseAll</a> ()</td></tr>
 <tr class="memdesc:a3b4650588b3a2b5317dbf0182cd22488"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mass erase entire <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> memory.  <a href="#a3b4650588b3a2b5317dbf0182cd22488">More...</a><br /></td></tr>
 <tr class="separator:a3b4650588b3a2b5317dbf0182cd22488"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a82a5849c8b94d80f6c475e0a985156fa"><td class="memItemLeft" align="right" valign="top">static constexpr volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a82a5849c8b94d80f6c475e0a985156fa">ftfl</a> = (volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a> *)<a class="el" href="group___f_t_f_l___peripheral__access__layer___g_r_o_u_p.html#ga992508c27fc8b3938ff01e36e90e62fb">FTFL_BasePtr</a></td></tr>
+<tr class="memdesc:a82a5849c8b94d80f6c475e0a985156fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hardware base pointer.  <a href="#a82a5849c8b94d80f6c475e0a985156fa">More...</a><br /></td></tr>
+<tr class="separator:a82a5849c8b94d80f6c475e0a985156fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8913920e79d4134e4156eb6e822f3c2"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ab8913920e79d4134e4156eb6e822f3c2">clockMask</a> = <a class="el" href="group___s_i_m___register___masks___g_r_o_u_p.html#ga24fa87943affabcffbb223ae36f5ebb9">SIM_SCGC6_FTFL_MASK</a></td></tr>
+<tr class="memdesc:ab8913920e79d4134e4156eb6e822f3c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock mask for peripheral.  <a href="#ab8913920e79d4134e4156eb6e822f3c2">More...</a><br /></td></tr>
+<tr class="separator:ab8913920e79d4134e4156eb6e822f3c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af02d9f595087f8831e04b0d7d3f02e77"><td class="memItemLeft" align="right" valign="top">static constexpr volatile uint32_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#af02d9f595087f8831e04b0d7d3f02e77">clockReg</a> = (volatile uint32_t *)(<a class="el" href="group___s_i_m___peripheral__access__layer___g_r_o_u_p.html#ga29f3791cf14f1a39a1d1b6941d07c29d">SIM_BasePtr</a>+offsetof(<a class="el" href="struct_s_i_m___type.html">SIM_Type</a>,SCGC6))</td></tr>
+<tr class="memdesc:af02d9f595087f8831e04b0d7d3f02e77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Address of clock register for peripheral.  <a href="#af02d9f595087f8831e04b0d7d3f02e77">More...</a><br /></td></tr>
+<tr class="separator:af02d9f595087f8831e04b0d7d3f02e77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bc5362ffd60290adc5fc59a93c9fdfc"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a8bc5362ffd60290adc5fc59a93c9fdfc">irqCount</a> = 0</td></tr>
+<tr class="memdesc:a8bc5362ffd60290adc5fc59a93c9fdfc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of IRQs for hardware.  <a href="#a8bc5362ffd60290adc5fc59a93c9fdfc">More...</a><br /></td></tr>
+<tr class="separator:a8bc5362ffd60290adc5fc59a93c9fdfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa117710e0fcecdcaf3cfca2f5586efc4"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#aa117710e0fcecdcaf3cfca2f5586efc4">programFlashSectorSize</a> = 1024</td></tr>
+<tr class="separator:aa117710e0fcecdcaf3cfca2f5586efc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3e946013c2ea45ad1029f40be90f908"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ad3e946013c2ea45ad1029f40be90f908">programFlashPhraseSize</a> = 4</td></tr>
+<tr class="separator:ad3e946013c2ea45ad1029f40be90f908"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade4f04b0080075d6770b740216989ff7"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ade4f04b0080075d6770b740216989ff7">dataFlashSectorSize</a> = 1024</td></tr>
+<tr class="separator:ade4f04b0080075d6770b740216989ff7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1150cd75a5e0a0412297afccaf2b90ee"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a1150cd75a5e0a0412297afccaf2b90ee">dataFlashPhraseSize</a> = 4</td></tr>
+<tr class="separator:a1150cd75a5e0a0412297afccaf2b90ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9860c111a33cd602a1c2c100ff4b94f8"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_eeprom_sizes.html">EepromSizes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a9860c111a33cd602a1c2c100ff4b94f8">eepromSizes</a> []</td></tr>
+<tr class="memdesc:a9860c111a33cd602a1c2c100ff4b94f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">EEPROM Data Set Size Field.  <a href="#a9860c111a33cd602a1c2c100ff4b94f8">More...</a><br /></td></tr>
+<tr class="separator:a9860c111a33cd602a1c2c100ff4b94f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c1c5f5e139f76ef0de50c77d2cd37db"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_partition_information.html">PartitionInformation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a4c1c5f5e139f76ef0de50c77d2cd37db">partitionInformation</a> []</td></tr>
+<tr class="memdesc:a4c1c5f5e139f76ef0de50c77d2cd37db"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> partition information.  <a href="#a4c1c5f5e139f76ef0de50c77d2cd37db">More...</a><br /></td></tr>
+<tr class="separator:a4c1c5f5e139f76ef0de50c77d2cd37db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d7c219b8171f0bcd5f771c17c02e917"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">EepromSel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a0d7c219b8171f0bcd5f771c17c02e917">eepromSel</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1">eeprom2KBytes</a></td></tr>
+<tr class="memdesc:a0d7c219b8171f0bcd5f771c17c02e917"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - EEPROM size.  <a href="#a0d7c219b8171f0bcd5f771c17c02e917">More...</a><br /></td></tr>
+<tr class="separator:a0d7c219b8171f0bcd5f771c17c02e917"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a516326ddb32564cd35065c8f2cddb310"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">PartitionSel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a516326ddb32564cd35065c8f2cddb310">partitionSel</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc">partition_flash0K_eeprom32K</a></td></tr>
+<tr class="memdesc:a516326ddb32564cd35065c8f2cddb310"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> EEPROM partition.  <a href="#a516326ddb32564cd35065c8f2cddb310">More...</a><br /></td></tr>
+<tr class="separator:a516326ddb32564cd35065c8f2cddb310"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a190409df4fbb17c99060c103914cf465"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">PartitionSplit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a190409df4fbb17c99060c103914cf465">partitionSplit</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47">partition_disabled</a></td></tr>
+<tr class="memdesc:a190409df4fbb17c99060c103914cf465"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - EEPROM partition - not available.  <a href="#a190409df4fbb17c99060c103914cf465">More...</a><br /></td></tr>
+<tr class="separator:a190409df4fbb17c99060c103914cf465"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -126,79 +198,103 @@ Static Private Member Functions</h2></td></tr>
 <tr class="memitem:a41956187c599827da368143c9e47b611"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group___f_t_f_l___group.html#gafea2bba032ddf8114c3c5a05d843257e">FlashDriverError_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_flash.html#a41956187c599827da368143c9e47b611">eraseSector</a> (uint8_t *address)</td></tr>
 <tr class="memdesc:a41956187c599827da368143c9e47b611"><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase sector of <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> memory.  <a href="#a41956187c599827da368143c9e47b611">More...</a><br /></td></tr>
 <tr class="separator:a41956187c599827da368143c9e47b611"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td colspan="2" onclick="javascript:toggleInherit('pub_types_class_u_s_b_d_m_1_1_ftfl_info')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html">USBDM::FtflInfo</a></td></tr>
-<tr class="memitem:a7bc21a0c615ff386ebf6ded7bfebce62 inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">EepromSel</a> { <br />
-&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62ae40e87a97d8ca9c1b1c5a80325ff161e">eeprom32Bytes</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62acfe3ababc213a34bddcbe55e43df4d22">eeprom64Bytes</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62add9b1202613812f4e1cd20b52e57635b">eeprom128Bytes</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62af0caf8dca198f19a7c7b4000ed3408ac">eeprom256Bytes</a>, 
-<br />
-&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a0b99441298ac53486eac8bb6753eaafa">eeprom512Bytes</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a0c53fd19fd0803c8a20bfd1028fa9cb8">eeprom1KBytes</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1">eeprom2KBytes</a>
-<br />
- }<tr class="memdesc:a7bc21a0c615ff386ebf6ded7bfebce62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects EEPROM size.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:a7bc21a0c615ff386ebf6ded7bfebce62 inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d8c8c965348deb9873b99561fd9191b inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">PartitionSel</a> { <br />
-&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bad0ec346fcf87d4471052b0448255eb24">partition_flash32K_eeprom0K</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191ba9cd840269f50610d646871e3ff83af20">partition_flash24K_eeprom8K</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bafbd684b0913023e98c00ae97c074af37">partition_flash16K_eeprom16K</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191bab72886cd1beaf4c8ef44e60543f3b5c3">partition_flash8K_eeprom24K</a>, 
-<br />
-&#160;&#160;<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc">partition_flash0K_eeprom32K</a>, 
-<a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191ba6d4e2ad8915c11b9edcd044b9ed2bafb">partition_flash0K_eeprom_all</a> = partition_flash0K_eeprom32K
-<br />
- }<tr class="memdesc:a6d8c8c965348deb9873b99561fd9191b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects division of FlexNVM between flash and EEPROM backing storage.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:a6d8c8c965348deb9873b99561fd9191b inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cc495be4fed6fc5502a69757abe007c inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">PartitionSplit</a> { <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47">partition_disabled</a> =0x30
- }<tr class="memdesc:a7cc495be4fed6fc5502a69757abe007c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Selects division of the EEPROM Not supported on this device.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">More...</a><br /></td></tr>
-</td></tr>
-<tr class="separator:a7cc495be4fed6fc5502a69757abe007c inherit pub_types_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td colspan="2" onclick="javascript:toggleInherit('pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html">USBDM::FtflInfo</a></td></tr>
-<tr class="memitem:a82a5849c8b94d80f6c475e0a985156fa inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a82a5849c8b94d80f6c475e0a985156fa">ftfl</a> = (volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a> *)<a class="el" href="group___f_t_f_l___peripheral__access__layer___g_r_o_u_p.html#ga992508c27fc8b3938ff01e36e90e62fb">FTFL_BasePtr</a></td></tr>
-<tr class="memdesc:a82a5849c8b94d80f6c475e0a985156fa inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hardware base pointer.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a82a5849c8b94d80f6c475e0a985156fa">More...</a><br /></td></tr>
-<tr class="separator:a82a5849c8b94d80f6c475e0a985156fa inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8913920e79d4134e4156eb6e822f3c2 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ab8913920e79d4134e4156eb6e822f3c2">clockMask</a> = <a class="el" href="group___s_i_m___register___masks___g_r_o_u_p.html#ga24fa87943affabcffbb223ae36f5ebb9">SIM_SCGC6_FTFL_MASK</a></td></tr>
-<tr class="memdesc:ab8913920e79d4134e4156eb6e822f3c2 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clock mask for peripheral.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#ab8913920e79d4134e4156eb6e822f3c2">More...</a><br /></td></tr>
-<tr class="separator:ab8913920e79d4134e4156eb6e822f3c2 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af02d9f595087f8831e04b0d7d3f02e77 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr volatile uint32_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#af02d9f595087f8831e04b0d7d3f02e77">clockReg</a> = (volatile uint32_t *)(<a class="el" href="group___s_i_m___peripheral__access__layer___g_r_o_u_p.html#ga29f3791cf14f1a39a1d1b6941d07c29d">SIM_BasePtr</a>+offsetof(<a class="el" href="struct_s_i_m___type.html">SIM_Type</a>,SCGC6))</td></tr>
-<tr class="memdesc:af02d9f595087f8831e04b0d7d3f02e77 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">Address of clock register for peripheral.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#af02d9f595087f8831e04b0d7d3f02e77">More...</a><br /></td></tr>
-<tr class="separator:af02d9f595087f8831e04b0d7d3f02e77 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bc5362ffd60290adc5fc59a93c9fdfc inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a8bc5362ffd60290adc5fc59a93c9fdfc">irqCount</a> = 0</td></tr>
-<tr class="memdesc:a8bc5362ffd60290adc5fc59a93c9fdfc inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of IRQs for hardware.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a8bc5362ffd60290adc5fc59a93c9fdfc">More...</a><br /></td></tr>
-<tr class="separator:a8bc5362ffd60290adc5fc59a93c9fdfc inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa117710e0fcecdcaf3cfca2f5586efc4 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#aa117710e0fcecdcaf3cfca2f5586efc4">programFlashSectorSize</a> = 1024</td></tr>
-<tr class="separator:aa117710e0fcecdcaf3cfca2f5586efc4 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3e946013c2ea45ad1029f40be90f908 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ad3e946013c2ea45ad1029f40be90f908">programFlashPhraseSize</a> = 4</td></tr>
-<tr class="separator:ad3e946013c2ea45ad1029f40be90f908 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade4f04b0080075d6770b740216989ff7 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#ade4f04b0080075d6770b740216989ff7">dataFlashSectorSize</a> = 1024</td></tr>
-<tr class="separator:ade4f04b0080075d6770b740216989ff7 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1150cd75a5e0a0412297afccaf2b90ee inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a1150cd75a5e0a0412297afccaf2b90ee">dataFlashPhraseSize</a> = 4</td></tr>
-<tr class="separator:a1150cd75a5e0a0412297afccaf2b90ee inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9860c111a33cd602a1c2c100ff4b94f8 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_eeprom_sizes.html">EepromSizes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a9860c111a33cd602a1c2c100ff4b94f8">eepromSizes</a> []</td></tr>
-<tr class="memdesc:a9860c111a33cd602a1c2c100ff4b94f8 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">EEPROM Data Set Size Field.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a9860c111a33cd602a1c2c100ff4b94f8">More...</a><br /></td></tr>
-<tr class="separator:a9860c111a33cd602a1c2c100ff4b94f8 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c1c5f5e139f76ef0de50c77d2cd37db inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_partition_information.html">PartitionInformation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a4c1c5f5e139f76ef0de50c77d2cd37db">partitionInformation</a> []</td></tr>
-<tr class="memdesc:a4c1c5f5e139f76ef0de50c77d2cd37db inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> partition information.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a4c1c5f5e139f76ef0de50c77d2cd37db">More...</a><br /></td></tr>
-<tr class="separator:a4c1c5f5e139f76ef0de50c77d2cd37db inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d7c219b8171f0bcd5f771c17c02e917 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">EepromSel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a0d7c219b8171f0bcd5f771c17c02e917">eepromSel</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1">eeprom2KBytes</a></td></tr>
-<tr class="memdesc:a0d7c219b8171f0bcd5f771c17c02e917 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - EEPROM size.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a0d7c219b8171f0bcd5f771c17c02e917">More...</a><br /></td></tr>
-<tr class="separator:a0d7c219b8171f0bcd5f771c17c02e917 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a516326ddb32564cd35065c8f2cddb310 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">PartitionSel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a516326ddb32564cd35065c8f2cddb310">partitionSel</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc">partition_flash0K_eeprom32K</a></td></tr>
-<tr class="memdesc:a516326ddb32564cd35065c8f2cddb310 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> EEPROM partition.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a516326ddb32564cd35065c8f2cddb310">More...</a><br /></td></tr>
-<tr class="separator:a516326ddb32564cd35065c8f2cddb310 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a190409df4fbb17c99060c103914cf465 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memItemLeft" align="right" valign="top">static constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">PartitionSplit</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a190409df4fbb17c99060c103914cf465">partitionSplit</a> = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47">partition_disabled</a></td></tr>
-<tr class="memdesc:a190409df4fbb17c99060c103914cf465 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="mdescLeft">&#160;</td><td class="mdescRight">FlexNVM - EEPROM partition - not available.  <a href="class_u_s_b_d_m_1_1_ftfl_info.html#a190409df4fbb17c99060c103914cf465">More...</a><br /></td></tr>
-<tr class="separator:a190409df4fbb17c99060c103914cf465 inherit pub_static_attribs_class_u_s_b_d_m_1_1_ftfl_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class representing <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> interface. </p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><h2 class="groupheader">Member Enumeration Documentation</h2>
+<a id="a7bc21a0c615ff386ebf6ded7bfebce62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bc21a0c615ff386ebf6ded7bfebce62">&#9670;&nbsp;</a></span>EepromSel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">USBDM::FtflInfo::EepromSel</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Selects EEPROM size. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62ae40e87a97d8ca9c1b1c5a80325ff161e"></a>eeprom32Bytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62acfe3ababc213a34bddcbe55e43df4d22"></a>eeprom64Bytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62add9b1202613812f4e1cd20b52e57635b"></a>eeprom128Bytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62af0caf8dca198f19a7c7b4000ed3408ac"></a>eeprom256Bytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62a0b99441298ac53486eac8bb6753eaafa"></a>eeprom512Bytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62a0c53fd19fd0803c8a20bfd1028fa9cb8"></a>eeprom1KBytes&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1"></a>eeprom2KBytes&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="a6d8c8c965348deb9873b99561fd9191b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d8c8c965348deb9873b99561fd9191b">&#9670;&nbsp;</a></span>PartitionSel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">USBDM::FtflInfo::PartitionSel</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Selects division of FlexNVM between flash and EEPROM backing storage. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191bad0ec346fcf87d4471052b0448255eb24"></a>partition_flash32K_eeprom0K&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191ba9cd840269f50610d646871e3ff83af20"></a>partition_flash24K_eeprom8K&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191bafbd684b0913023e98c00ae97c074af37"></a>partition_flash16K_eeprom16K&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191bab72886cd1beaf4c8ef44e60543f3b5c3"></a>partition_flash8K_eeprom24K&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc"></a>partition_flash0K_eeprom32K&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6d8c8c965348deb9873b99561fd9191ba6d4e2ad8915c11b9edcd044b9ed2bafb"></a>partition_flash0K_eeprom_all&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="a7cc495be4fed6fc5502a69757abe007c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cc495be4fed6fc5502a69757abe007c">&#9670;&nbsp;</a></span>PartitionSplit</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">USBDM::FtflInfo::PartitionSplit</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Selects division of the EEPROM Not supported on this device. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47"></a>partition_disabled&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adf4d02282a3e3260a24b348be9500657"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf4d02282a3e3260a24b348be9500657">&#9670;&nbsp;</a></span>Flash()</h2>
 
@@ -714,6 +810,195 @@ Any flash operations will have completed.</p>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ab8913920e79d4134e4156eb6e822f3c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8913920e79d4134e4156eb6e822f3c2">&#9670;&nbsp;</a></span>clockMask</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint32_t USBDM::FtflInfo::clockMask = <a class="el" href="group___s_i_m___register___masks___g_r_o_u_p.html#ga24fa87943affabcffbb223ae36f5ebb9">SIM_SCGC6_FTFL_MASK</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Clock mask for peripheral. </p>
+
+</div>
+</div>
+<a id="af02d9f595087f8831e04b0d7d3f02e77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af02d9f595087f8831e04b0d7d3f02e77">&#9670;&nbsp;</a></span>clockReg</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr volatile uint32_t* USBDM::FtflInfo::clockReg = (volatile uint32_t *)(<a class="el" href="group___s_i_m___peripheral__access__layer___g_r_o_u_p.html#ga29f3791cf14f1a39a1d1b6941d07c29d">SIM_BasePtr</a>+offsetof(<a class="el" href="struct_s_i_m___type.html">SIM_Type</a>,SCGC6))</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Address of clock register for peripheral. </p>
+
+</div>
+</div>
+<a id="a1150cd75a5e0a0412297afccaf2b90ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1150cd75a5e0a0412297afccaf2b90ee">&#9670;&nbsp;</a></span>dataFlashPhraseSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr unsigned USBDM::FtflInfo::dataFlashPhraseSize = 4</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ade4f04b0080075d6770b740216989ff7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade4f04b0080075d6770b740216989ff7">&#9670;&nbsp;</a></span>dataFlashSectorSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr unsigned USBDM::FtflInfo::dataFlashSectorSize = 1024</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="flash_programming_example_8cpp-example.html#a0">flash_programming_example.cpp</a>.</dd>
+</dl>
+</div>
+</div>
+<a id="a0d7c219b8171f0bcd5f771c17c02e917"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d7c219b8171f0bcd5f771c17c02e917">&#9670;&nbsp;</a></span>eepromSel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62">EepromSel</a> USBDM::FtflInfo::eepromSel = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7bc21a0c615ff386ebf6ded7bfebce62a1599abab874773ca0ffa3c902bb7fde1">eeprom2KBytes</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>FlexNVM - EEPROM size. </p>
+
+</div>
+</div>
+<a id="a9860c111a33cd602a1c2c100ff4b94f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9860c111a33cd602a1c2c100ff4b94f8">&#9670;&nbsp;</a></span>eepromSizes</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_eeprom_sizes.html">EepromSizes</a> USBDM::FtflInfo::eepromSizes[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= {</div><div class="line">         </div><div class="line">         {  32,   0x09, },</div><div class="line">         {  64,   0x08, },</div><div class="line">         {  128,  0x07, },</div><div class="line">         {  256,  0x06, },</div><div class="line">         {  512,  0x05, },</div><div class="line">         {  1024, 0x04, },</div><div class="line">         {  2048, 0x03, },</div><div class="line">   }</div></div><!-- fragment -->
+<p>EEPROM Data Set Size Field. </p>
+
+</div>
+</div>
+<a id="a82a5849c8b94d80f6c475e0a985156fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82a5849c8b94d80f6c475e0a985156fa">&#9670;&nbsp;</a></span>ftfl</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a>* USBDM::FtflInfo::ftfl = (volatile <a class="el" href="struct_f_t_f_l___type.html">FTFL_Type</a> *)<a class="el" href="group___f_t_f_l___peripheral__access__layer___g_r_o_u_p.html#ga992508c27fc8b3938ff01e36e90e62fb">FTFL_BasePtr</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Hardware base pointer. </p>
+
+</div>
+</div>
+<a id="a8bc5362ffd60290adc5fc59a93c9fdfc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bc5362ffd60290adc5fc59a93c9fdfc">&#9670;&nbsp;</a></span>irqCount</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint32_t USBDM::FtflInfo::irqCount = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Number of IRQs for hardware. </p>
+
+</div>
+</div>
 <a id="ab14942f7c69aea01405590c2bbdbcbd0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab14942f7c69aea01405590c2bbdbcbd0">&#9670;&nbsp;</a></span>MINIMUM_BACKING_RATIO</h2>
 
@@ -738,6 +1023,123 @@ Any flash operations will have completed.</p>
 
 </div>
 </div>
+<a id="a4c1c5f5e139f76ef0de50c77d2cd37db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c1c5f5e139f76ef0de50c77d2cd37db">&#9670;&nbsp;</a></span>partitionInformation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="struct_u_s_b_d_m_1_1_ftfl_info_1_1_partition_information.html">PartitionInformation</a> USBDM::FtflInfo::partitionInformation[]</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{</div><div class="line">         </div><div class="line">         { 32*1024, 0*1024 ,  0xFF},</div><div class="line">         { 24*1024, 8*1024 ,  0x01},</div><div class="line">         { 16*1024, 16*1024,  0x0A},</div><div class="line">         { 8*1024,  24*1024,  0x09},</div><div class="line">         { 0*1024,  32*1024,  0x08},</div><div class="line">   }</div></div><!-- fragment -->
+<p><a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> partition information. </p>
+
+</div>
+</div>
+<a id="a516326ddb32564cd35065c8f2cddb310"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a516326ddb32564cd35065c8f2cddb310">&#9670;&nbsp;</a></span>partitionSel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191b">PartitionSel</a> USBDM::FtflInfo::partitionSel = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a6d8c8c965348deb9873b99561fd9191baed2a93d65dd972ac4db42122088a79fc">partition_flash0K_eeprom32K</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>FlexNVM - <a class="el" href="class_u_s_b_d_m_1_1_flash.html" title="Class representing Flash interface. ">Flash</a> EEPROM partition. </p>
+
+</div>
+</div>
+<a id="a190409df4fbb17c99060c103914cf465"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a190409df4fbb17c99060c103914cf465">&#9670;&nbsp;</a></span>partitionSplit</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007c">PartitionSplit</a> USBDM::FtflInfo::partitionSplit = <a class="el" href="class_u_s_b_d_m_1_1_ftfl_info.html#a7cc495be4fed6fc5502a69757abe007cae85a4b6af2279f0302722867ac68ca47">partition_disabled</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>FlexNVM - EEPROM partition - not available. </p>
+
+</div>
+</div>
+<a id="ad3e946013c2ea45ad1029f40be90f908"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3e946013c2ea45ad1029f40be90f908">&#9670;&nbsp;</a></span>programFlashPhraseSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr unsigned USBDM::FtflInfo::programFlashPhraseSize = 4</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa117710e0fcecdcaf3cfca2f5586efc4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa117710e0fcecdcaf3cfca2f5586efc4">&#9670;&nbsp;</a></span>programFlashSectorSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr unsigned USBDM::FtflInfo::programFlashSectorSize = 1024</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">inherited</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="flash_programming_example_8cpp-example.html#a1">flash_programming_example.cpp</a>.</dd>
+</dl>
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>Project_Headers/<a class="el" href="ftfl_8h_source.html">ftfl.h</a></li>
 <li>Sources/<a class="el" href="ftfl_8cpp.html">ftfl.cpp</a></li>
@@ -745,7 +1147,7 @@ Any flash operations will have completed.</p>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:41 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:27 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

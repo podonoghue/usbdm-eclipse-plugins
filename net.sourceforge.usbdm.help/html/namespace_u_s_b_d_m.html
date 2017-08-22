@@ -402,6 +402,9 @@ Typedefs</h2></td></tr>
 <tr class="separator:gab4b4507baaf7335ee093b5940733d4ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga450130ca4348e322d9101571f757236f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_m_p___group.html#ga450130ca4348e322d9101571f757236f">Cmp1</a> = <a class="el" href="class_u_s_b_d_m_1_1_cmp_irq___t.html">CmpIrq_T</a>&lt; <a class="el" href="class_u_s_b_d_m_1_1_cmp1_info.html">Cmp1Info</a> &gt;</td></tr>
 <tr class="separator:ga450130ca4348e322d9101571f757236f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabc79fa463a330299ccab5cb67fef15ec"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#gabc79fa463a330299ccab5cb67fef15ec">Console</a> = <a class="el" href="class_u_s_b_d_m_1_1_uart0.html">USBDM::Uart0</a></td></tr>
+<tr class="memdesc:gabc79fa463a330299ccab5cb67fef15ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps console to UART used.  <a href="group___c_o_n_s_o_l_e___group.html#gabc79fa463a330299ccab5cb67fef15ec">More...</a><br /></td></tr>
+<tr class="separator:gabc79fa463a330299ccab5cb67fef15ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaadb166aff4cab3d893529cb2a89f3dc0"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_m_a___group.html#gaadb166aff4cab3d893529cb2a89f3dc0">DmaCallbackFunction</a>) (void)</td></tr>
 <tr class="memdesc:gaadb166aff4cab3d893529cb2a89f3dc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type definition for DMA interrupt call back.  <a href="group___d_m_a___group.html#gaadb166aff4cab3d893529cb2a89f3dc0">More...</a><br /></td></tr>
 <tr class="separator:gaadb166aff4cab3d893529cb2a89f3dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1257,13 +1260,13 @@ Note the equivalence between modes e.g.  <a href="namespace_u_s_b_d_m.html#a39cb
  }<tr class="memdesc:ga38e5f4cf64d5141f065bfdbeff7f9c67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if any VLLSx modes are enabled.  <a href="group___s_m_c___group.html#ga38e5f4cf64d5141f065bfdbeff7f9c67">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ga38e5f4cf64d5141f065bfdbeff7f9c67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaffadc8fbac22923f33b098ced40731ed"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#gaffadc8fbac22923f33b098ced40731ed">SmcHighSpeedRun</a> { <a class="el" href="group___s_m_c___group.html#ggaffadc8fbac22923f33b098ced40731eda99dc08de3d14e197956d7d041e5ffe61">SmcHighSpeedRun_Disable</a> = 1(0), 
-<a class="el" href="group___s_m_c___group.html#ggaffadc8fbac22923f33b098ced40731eda5a1c75a769a98b6d8e1514f87d8b654d">SmcHighSpeedRun_Enable</a> = 1(1)
+<tr class="memitem:gaffadc8fbac22923f33b098ced40731ed"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#gaffadc8fbac22923f33b098ced40731ed">SmcHighSpeedRun</a> { <a class="el" href="group___s_m_c___group.html#ggaffadc8fbac22923f33b098ced40731eda99dc08de3d14e197956d7d041e5ffe61">SmcHighSpeedRun_Disable</a> = SMC_PMPROT_AHSRUN(0), 
+<a class="el" href="group___s_m_c___group.html#ggaffadc8fbac22923f33b098ced40731eda5a1c75a769a98b6d8e1514f87d8b654d">SmcHighSpeedRun_Enable</a> = SMC_PMPROT_AHSRUN(1)
  }<tr class="memdesc:gaffadc8fbac22923f33b098ced40731ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if HSRUN mode is enabled.  <a href="group___s_m_c___group.html#gaffadc8fbac22923f33b098ced40731ed">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gaffadc8fbac22923f33b098ced40731ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa79327b7edac516e211a453af8e43101"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#gaa79327b7edac516e211a453af8e43101">SmcExitVeryLowPowerOnInt</a> { <a class="el" href="group___s_m_c___group.html#ggaa79327b7edac516e211a453af8e43101a43cc8010217f7801220fb02c313e6b3b">SmcExitVeryLowPowerOnInt_Disable</a> = 1(0), 
-<a class="el" href="group___s_m_c___group.html#ggaa79327b7edac516e211a453af8e43101af657578b9a1a9571bee07f13f1d898f1">SmcExitVeryLowPowerOnInt_Enable</a> = 1(1)
+<tr class="memitem:gaa79327b7edac516e211a453af8e43101"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#gaa79327b7edac516e211a453af8e43101">SmcExitVeryLowPowerOnInt</a> { <a class="el" href="group___s_m_c___group.html#ggaa79327b7edac516e211a453af8e43101a43cc8010217f7801220fb02c313e6b3b">SmcExitVeryLowPowerOnInt_Disable</a> = SMC_PMCTRL_LPWUI(0), 
+<a class="el" href="group___s_m_c___group.html#ggaa79327b7edac516e211a453af8e43101af657578b9a1a9571bee07f13f1d898f1">SmcExitVeryLowPowerOnInt_Enable</a> = SMC_PMCTRL_LPWUI(1)
  }<tr class="memdesc:gaa79327b7edac516e211a453af8e43101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether to exit VLP to Run mode on interrupt.  <a href="group___s_m_c___group.html#gaa79327b7edac516e211a453af8e43101">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gaa79327b7edac516e211a453af8e43101"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1280,9 +1283,9 @@ Note the equivalence between modes e.g.  <a href="namespace_u_s_b_d_m.html#a39cb
  }<tr class="memdesc:gae98572aa728af3ae8d7b73ea8809a944"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets Stop mode.  <a href="group___s_m_c___group.html#gae98572aa728af3ae8d7b73ea8809a944">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gae98572aa728af3ae8d7b73ea8809a944"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga62d64069c2d4c664fcf5545c21fa6810"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#ga62d64069c2d4c664fcf5545c21fa6810">SmcPartialStopMode</a> { <a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810ab3ee942f6a5a60fe256ba743cb634e63">SmcPartialStopMode_Normal</a> = 1(0), 
-<a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810aac119da571d85cd1d7235cd59dab10ff">SmcPartialStopMode_Partial1</a> = 1(1), 
-<a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810a01f85de4f7fb8b1399a624a174995486">SmcPartialStopMode_Partial2</a> = 1(2)
+<tr class="memitem:ga62d64069c2d4c664fcf5545c21fa6810"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#ga62d64069c2d4c664fcf5545c21fa6810">SmcPartialStopMode</a> { <a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810ab3ee942f6a5a60fe256ba743cb634e63">SmcPartialStopMode_Normal</a> = SMC_STOPCTRL_PSTOPO(0), 
+<a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810aac119da571d85cd1d7235cd59dab10ff">SmcPartialStopMode_Partial1</a> = SMC_STOPCTRL_PSTOPO(1), 
+<a class="el" href="group___s_m_c___group.html#gga62d64069c2d4c664fcf5545c21fa6810a01f85de4f7fb8b1399a624a174995486">SmcPartialStopMode_Partial2</a> = SMC_STOPCTRL_PSTOPO(2)
  }<tr class="memdesc:ga62d64069c2d4c664fcf5545c21fa6810"><td class="mdescLeft">&#160;</td><td class="mdescRight">Partial Stop Option<br />
  This field controls whether a Partial Stop mode is entered when STOPM=STOP<br />
 .  <a href="group___s_m_c___group.html#ga62d64069c2d4c664fcf5545c21fa6810">More...</a><br /></td></tr>
@@ -1294,6 +1297,12 @@ Note the equivalence between modes e.g.  <a href="namespace_u_s_b_d_m.html#a39cb
 This bit controls whether the POR detect circuit is enabled in VLLS0 mode.  <a href="group___s_m_c___group.html#ga15af011a9ffe1a128eec8ed58e753cdc">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:ga15af011a9ffe1a128eec8ed58e753cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7cbb09f0a417d86afefc78064ae506b0"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#ga7cbb09f0a417d86afefc78064ae506b0">SmcSleepOnExit</a> { <a class="el" href="group___s_m_c___group.html#gga7cbb09f0a417d86afefc78064ae506b0a347993e7c322a0b71d778a8c7bae50ef">SmcSleepOnExit_Disable</a> = false, 
+<a class="el" href="group___s_m_c___group.html#gga7cbb09f0a417d86afefc78064ae506b0ae9c30ec3389850bb633e5d83a6bc2e87">SmcSleepOnExit_Enable</a> = true
+ }<tr class="memdesc:ga7cbb09f0a417d86afefc78064ae506b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">POR Power Option<br />
+This bit controls whether the POR detect circuit is enabled in VLLS0 mode.  <a href="group___s_m_c___group.html#ga7cbb09f0a417d86afefc78064ae506b0">More...</a><br /></td></tr>
+</td></tr>
+<tr class="separator:ga7cbb09f0a417d86afefc78064ae506b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga31a9c3ee4669c3706c0f9de4124ba133"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___s_m_c___group.html#ga31a9c3ee4669c3706c0f9de4124ba133">SmcLowLeakageStopMode</a> { <br />
 &#160;&#160;<a class="el" href="group___s_m_c___group.html#gga31a9c3ee4669c3706c0f9de4124ba133a8ed8cd7af73db0ac118dba608ddf8dcb">SmcLowLeakageStopMode_VLLS0</a> = SMC_STOPCTRL_VLLSM(0), 
 <a class="el" href="group___s_m_c___group.html#gga31a9c3ee4669c3706c0f9de4124ba133ab78bb17ecd3f7769b40b90cab356b467">SmcLowLeakageStopMode_VLLS1</a> = SMC_STOPCTRL_VLLSM(1), 
@@ -1460,6 +1469,18 @@ This bit controls whether the POR detect circuit is enabled in VLLS0 mode.  <a h
  }<tr class="memdesc:gabf15bc7ef8048619bdfaa0ab024f5230"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration selecting interrupt sources.  <a href="group___u_a_r_t___group.html#gabf15bc7ef8048619bdfaa0ab024f5230">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gabf15bc7ef8048619bdfaa0ab024f5230"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab6fcd19891f1d5347e97908dd41d6168"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#gab6fcd19891f1d5347e97908dd41d6168">Radix</a> { <a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168ad82d894095eebc2e1124673811b2c5f6">Radix_2</a> = 2, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168a289f6e9b82506f557b0bd539434eee84">Radix_8</a> = 8, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168a7196a748234c1a4e667c90f5ea62d129">Radix_10</a> = 10, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168ab06e8923a49de6e9202ba827e95da7f7">Radix_16</a> = 16
+ }</td></tr>
+<tr class="separator:gab6fcd19891f1d5347e97908dd41d6168"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4a7f13860e452eb98b84de35b6f821b4"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#ga4a7f13860e452eb98b84de35b6f821b4">WhiteSpaceType</a> { <a class="el" href="group___u_a_r_t___group.html#gga4a7f13860e452eb98b84de35b6f821b4a64edca18c2c47f12050e97e09b29932c">WhiteSpace</a>
+ }</td></tr>
+<tr class="separator:ga4a7f13860e452eb98b84de35b6f821b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaed9f6b7ba46cc0d8ddc60eed38efcce3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#gaed9f6b7ba46cc0d8ddc60eed38efcce3">EndOfLineType</a> { <a class="el" href="group___u_a_r_t___group.html#ggaed9f6b7ba46cc0d8ddc60eed38efcce3afd24a819a69d9aed6abcad3271e46560">EndOfLine</a>
+ }</td></tr>
+<tr class="separator:gaed9f6b7ba46cc0d8ddc60eed38efcce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga165514357f6dbbd3e222e4363c19d67e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#ga165514357f6dbbd3e222e4363c19d67e">UartDma</a> { <a class="el" href="group___u_a_r_t___group.html#gga165514357f6dbbd3e222e4363c19d67ea7189560a5b9d3d03e013922677c6a61f">UartDma_TxHoldingEmpty</a> = UART_C5_TDMAS(1), 
 <a class="el" href="group___u_a_r_t___group.html#gga165514357f6dbbd3e222e4363c19d67ea1b54966c0b1e58f38f1670447c483591">UartDma_RxFull</a> = UART_C5_RDMAS(1)
  }<tr class="memdesc:ga165514357f6dbbd3e222e4363c19d67e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration selecting direct memory access sources.  <a href="group___u_a_r_t___group.html#ga165514357f6dbbd3e222e4363c19d67e">More...</a><br /></td></tr>
@@ -1482,6 +1503,24 @@ This bit controls whether the POR detect circuit is enabled in VLLS0 mode.  <a h
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a2068aeafaaba7afea505bc0340865a45"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#a2068aeafaaba7afea505bc0340865a45">waitUS</a> (uint32_t usToWait)</td></tr>
+<tr class="memdesc:a2068aeafaaba7afea505bc0340865a45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple delay routine.  <a href="#a2068aeafaaba7afea505bc0340865a45">More...</a><br /></td></tr>
+<tr class="separator:a2068aeafaaba7afea505bc0340865a45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4b50dfe4106221f5205e2b2137cb492"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#ad4b50dfe4106221f5205e2b2137cb492">waitMS</a> (uint32_t msToWait)</td></tr>
+<tr class="memdesc:ad4b50dfe4106221f5205e2b2137cb492"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple delay routine.  <a href="#ad4b50dfe4106221f5205e2b2137cb492">More...</a><br /></td></tr>
+<tr class="separator:ad4b50dfe4106221f5205e2b2137cb492"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6cb81f86e2e51358555fe93d0e9dc69"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#ad6cb81f86e2e51358555fe93d0e9dc69">wait</a> (float seconds)</td></tr>
+<tr class="memdesc:ad6cb81f86e2e51358555fe93d0e9dc69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple delay routine.  <a href="#ad6cb81f86e2e51358555fe93d0e9dc69">More...</a><br /></td></tr>
+<tr class="separator:ad6cb81f86e2e51358555fe93d0e9dc69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b8a3c243c38835652a3a27d72dad4d6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#a8b8a3c243c38835652a3a27d72dad4d6">waitUS</a> (uint32_t usToWait, bool testFn(void))</td></tr>
+<tr class="memdesc:a8b8a3c243c38835652a3a27d72dad4d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Routine to wait for a condition with timeout.  <a href="#a8b8a3c243c38835652a3a27d72dad4d6">More...</a><br /></td></tr>
+<tr class="separator:a8b8a3c243c38835652a3a27d72dad4d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad57efea0af8e4ee30aa90933cf44bfb4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#ad57efea0af8e4ee30aa90933cf44bfb4">waitMS</a> (uint32_t msToWait, bool testFn(void))</td></tr>
+<tr class="memdesc:ad57efea0af8e4ee30aa90933cf44bfb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Routine to wait for a condition with timeout.  <a href="#ad57efea0af8e4ee30aa90933cf44bfb4">More...</a><br /></td></tr>
+<tr class="separator:ad57efea0af8e4ee30aa90933cf44bfb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a364c29adac2b839f2d0aea1250aef469"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#a364c29adac2b839f2d0aea1250aef469">wait</a> (float seconds, bool testFn(void))</td></tr>
+<tr class="memdesc:a364c29adac2b839f2d0aea1250aef469"><td class="mdescLeft">&#160;</td><td class="mdescRight">Routine to wait for a condition with timeout.  <a href="#a364c29adac2b839f2d0aea1250aef469">More...</a><br /></td></tr>
+<tr class="separator:a364c29adac2b839f2d0aea1250aef469"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18a94c6aa906dbe91381100cb5d9a815"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_u_s_b_d_m.html#af5406ca776612b2687e916fb194ffd26">ErrorCode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#a18a94c6aa906dbe91381100cb5d9a815">getError</a> ()</td></tr>
 <tr class="memdesc:a18a94c6aa906dbe91381100cb5d9a815"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get <a class="el" href="namespace_u_s_b_d_m.html" title="Namespace enclosing USBDM classes. ">USBDM</a> error code.  <a href="#a18a94c6aa906dbe91381100cb5d9a815">More...</a><br /></td></tr>
 <tr class="separator:a18a94c6aa906dbe91381100cb5d9a815"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1515,6 +1554,12 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
+<tr class="memitem:ga22ce8c6952a0f55472bca315a2ef642e"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#ga22ce8c6952a0f55472bca315a2ef642e">defaultBaudRate</a> = 115200</td></tr>
+<tr class="memdesc:ga22ce8c6952a0f55472bca315a2ef642e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default baud rate for console.  <a href="group___c_o_n_s_o_l_e___group.html#ga22ce8c6952a0f55472bca315a2ef642e">More...</a><br /></td></tr>
+<tr class="separator:ga22ce8c6952a0f55472bca315a2ef642e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___c_o_n_s_o_l_e___group.html#gabc79fa463a330299ccab5cb67fef15ec">Console</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#ga7ab1ae5607fc5d9c172baec4df3d39e2">console</a></td></tr>
+<tr class="memdesc:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Console instance.  <a href="group___c_o_n_s_o_l_e___group.html#ga7ab1ae5607fc5d9c172baec4df3d39e2">More...</a><br /></td></tr>
+<tr class="separator:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d686c02cb75e7e069e642abe800ecb5"><td class="memItemLeft" align="right" valign="top">volatile uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html#a7d686c02cb75e7e069e642abe800ecb5">SystemMcgffClock</a></td></tr>
 <tr class="memdesc:a7d686c02cb75e7e069e642abe800ecb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">MCGFFCLK - Fixed frequency clock (input to FLL)  <a href="#a7d686c02cb75e7e069e642abe800ecb5">More...</a><br /></td></tr>
 <tr class="separator:a7d686c02cb75e7e069e642abe800ecb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2480,6 +2525,267 @@ err Error code </dd></dl>
 
 </div>
 </div>
+<a id="ad6cb81f86e2e51358555fe93d0e9dc69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6cb81f86e2e51358555fe93d0e9dc69">&#9670;&nbsp;</a></span>wait() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void USBDM::wait </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>seconds</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Simple delay routine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">seconds</td><td>How many seconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 ms (71,582 minutes) </dd>
+<dd>
+Uses busy-waiting</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">seconds</td><td>How many seconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 ms (71,582 minutes) </dd>
+<dd>
+Uses busy-waiting based on Systick timer </dd></dl>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="dma-spi-example_8cpp-example.html#a42">dma-spi-example.cpp</a>, and <a class="el" href="dma-uart-example_8cpp-example.html#a28">dma-uart-example.cpp</a>.</dd>
+</dl>
+</div>
+</div>
+<a id="a364c29adac2b839f2d0aea1250aef469"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a364c29adac2b839f2d0aea1250aef469">&#9670;&nbsp;</a></span>wait() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool USBDM::wait </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>seconds</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>testFn</em>void&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Routine to wait for a condition with timeout. </p>
+<p>Routine to wait for an event with timeout.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">seconds</td><td>How many seconds to busy-wait </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">testFn</td><td>Polling function indicating if waited for condition has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred: true=&gt;event, false=&gt;no event</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">seconds</td><td>How many seconds to busy-wait </td></tr>
+    <tr><td class="paramname">testFn</td><td>Polling function indicating if waited for event has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred: true=&gt;event, false=&gt;no event</dd></dl>
+<p>Note: Accuracy is affected by execution time of function. </p>
+
+</div>
+</div>
+<a id="ad4b50dfe4106221f5205e2b2137cb492"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4b50dfe4106221f5205e2b2137cb492">&#9670;&nbsp;</a></span>waitMS() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void USBDM::waitMS </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>msToWait</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Simple delay routine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">msToWait</td><td>How many milliseconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 ms (71,582 minutes) </dd>
+<dd>
+Uses busy-waiting</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">msToWait</td><td>How many milliseconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 ms (71,582 minutes) </dd>
+<dd>
+Uses busy-waiting based on Systick timer </dd></dl>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmp_8cpp-example.html#a5">cmp.cpp</a>, <a class="el" href="cmsis-cpp-thread-mma845x_8cpp-example.html#a7">cmsis-cpp-thread-mma845x.cpp</a>, <a class="el" href="cmsis-cpp-timer-mma845x_8cpp-example.html#a6">cmsis-cpp-timer-mma845x.cpp</a>, <a class="el" href="digital-example1_8cpp-example.html#a6">digital-example1.cpp</a>, <a class="el" href="ftm-servo-example_8cpp-example.html#a5">ftm-servo-example.cpp</a>, <a class="el" href="fxos8700cq-example_8cpp-example.html#a2">fxos8700cq-example.cpp</a>, <a class="el" href="fxos8700cq_8cpp-example.html#a4">fxos8700cq.cpp</a>, <a class="el" href="hmc5883l-example_8cpp-example.html#a2">hmc5883l-example.cpp</a>, <a class="el" href="llwu-example_8cpp-example.html#a29">llwu-example.cpp</a>, <a class="el" href="mag3310-example_8cpp-example.html#a2">mag3310-example.cpp</a>, <a class="el" href="mag3310_8cpp-example.html#a3">mag3310.cpp</a>, <a class="el" href="mma845x-example_8cpp-example.html#a2">mma845x-example.cpp</a>, and <a class="el" href="mma8491q-example_8cpp-example.html#a1">mma8491q-example.cpp</a>.</dd>
+</dl>
+</div>
+</div>
+<a id="ad57efea0af8e4ee30aa90933cf44bfb4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad57efea0af8e4ee30aa90933cf44bfb4">&#9670;&nbsp;</a></span>waitMS() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool USBDM::waitMS </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>msToWait</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>testFn</em>void&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Routine to wait for a condition with timeout. </p>
+<p>Routine to wait for an event with timeout.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">msToWait</td><td>How many milliseconds to busy-wait </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">testFn</td><td>Function indicating if waited for condition has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred. true=&gt;event, false=&gt;no event</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">msToWait</td><td>How many milliseconds to busy-wait </td></tr>
+    <tr><td class="paramname">testFn</td><td>Polling function indicating if waited for event has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred: true=&gt;event, false=&gt;no event</dd></dl>
+<p>Note: Accuracy is affected by execution time of function. </p>
+
+</div>
+</div>
+<a id="a2068aeafaaba7afea505bc0340865a45"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2068aeafaaba7afea505bc0340865a45">&#9670;&nbsp;</a></span>waitUS() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void USBDM::waitUS </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>usToWait</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Simple delay routine. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">usToWait</td><td>How many microseconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 us (4,294 s) </dd>
+<dd>
+Uses busy-waiting</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">usToWait</td><td>How many microseconds to busy-wait</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Limited to 2^32 us (4,294 s) </dd>
+<dd>
+Uses busy-waiting based on Systick timer </dd></dl>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="fxos8700cq_8cpp-example.html#a3">fxos8700cq.cpp</a>, <a class="el" href="mma845x_8cpp-example.html#a3">mma845x.cpp</a>, <a class="el" href="mma8491q_8cpp-example.html#a0">mma8491q.cpp</a>, and <a class="el" href="tsi-mk-example_8cpp-example.html#a24">tsi-mk-example.cpp</a>.</dd>
+</dl>
+</div>
+</div>
+<a id="a8b8a3c243c38835652a3a27d72dad4d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b8a3c243c38835652a3a27d72dad4d6">&#9670;&nbsp;</a></span>waitUS() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool USBDM::waitUS </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>usToWait</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &#160;</td>
+          <td class="paramname"><em>testFn</em>void&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Routine to wait for a condition with timeout. </p>
+<p>Routine to wait for an event with timeout.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">usToWait</td><td>How many microseconds to busy-wait </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">testFn</td><td>Function indicating if waited for condition has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred. true=&gt;event, false=&gt;no event</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">usToWait</td><td>How many microseconds to busy-wait </td></tr>
+    <tr><td class="paramname">testFn</td><td>Polling function indicating if waited for event has occurred</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Indicate if event occurred: true=&gt;event, false=&gt;no event</dd></dl>
+<p>Note: Accuracy will be poor as affected by execution time of function. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="aebbcce1c48c6bc102668071bc27dba15"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aebbcce1c48c6bc102668071bc27dba15">&#9670;&nbsp;</a></span>bdts</h2>
@@ -2771,7 +3077,7 @@ template&lt;class Info , int EP0_SIZE&gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:41 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:26 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

@@ -58,6 +58,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="derivative_8h_source.html">derivative.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="hardware_8h_source.html">hardware.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="mcg_8h_source.html">mcg.h</a>&quot;</code><br />
+<code>#include &quot;ctype.h&quot;</code><br />
 </div>
 <p><a href="uart_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -103,6 +104,18 @@ Enumerations</h2></td></tr>
  }<tr class="memdesc:gabf15bc7ef8048619bdfaa0ab024f5230"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration selecting interrupt sources.  <a href="group___u_a_r_t___group.html#gabf15bc7ef8048619bdfaa0ab024f5230">More...</a><br /></td></tr>
 </td></tr>
 <tr class="separator:gabf15bc7ef8048619bdfaa0ab024f5230"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab6fcd19891f1d5347e97908dd41d6168"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#gab6fcd19891f1d5347e97908dd41d6168">USBDM::Radix</a> { <a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168ad82d894095eebc2e1124673811b2c5f6">USBDM::Radix_2</a> = 2, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168a289f6e9b82506f557b0bd539434eee84">USBDM::Radix_8</a> = 8, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168a7196a748234c1a4e667c90f5ea62d129">USBDM::Radix_10</a> = 10, 
+<a class="el" href="group___u_a_r_t___group.html#ggab6fcd19891f1d5347e97908dd41d6168ab06e8923a49de6e9202ba827e95da7f7">USBDM::Radix_16</a> = 16
+ }</td></tr>
+<tr class="separator:gab6fcd19891f1d5347e97908dd41d6168"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4a7f13860e452eb98b84de35b6f821b4"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#ga4a7f13860e452eb98b84de35b6f821b4">USBDM::WhiteSpaceType</a> { <a class="el" href="group___u_a_r_t___group.html#gga4a7f13860e452eb98b84de35b6f821b4a64edca18c2c47f12050e97e09b29932c">USBDM::WhiteSpace</a>
+ }</td></tr>
+<tr class="separator:ga4a7f13860e452eb98b84de35b6f821b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaed9f6b7ba46cc0d8ddc60eed38efcce3"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#gaed9f6b7ba46cc0d8ddc60eed38efcce3">USBDM::EndOfLineType</a> { <a class="el" href="group___u_a_r_t___group.html#ggaed9f6b7ba46cc0d8ddc60eed38efcce3afd24a819a69d9aed6abcad3271e46560">USBDM::EndOfLine</a>
+ }</td></tr>
+<tr class="separator:gaed9f6b7ba46cc0d8ddc60eed38efcce3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga165514357f6dbbd3e222e4363c19d67e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___u_a_r_t___group.html#ga165514357f6dbbd3e222e4363c19d67e">USBDM::UartDma</a> { <a class="el" href="group___u_a_r_t___group.html#gga165514357f6dbbd3e222e4363c19d67ea7189560a5b9d3d03e013922677c6a61f">USBDM::UartDma_TxHoldingEmpty</a> = UART_C5_TDMAS(1), 
 <a class="el" href="group___u_a_r_t___group.html#gga165514357f6dbbd3e222e4363c19d67ea1b54966c0b1e58f38f1670447c483591">USBDM::UartDma_RxFull</a> = UART_C5_RDMAS(1)
  }<tr class="memdesc:ga165514357f6dbbd3e222e4363c19d67e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enumeration selecting direct memory access sources.  <a href="group___u_a_r_t___group.html#ga165514357f6dbbd3e222e4363c19d67e">More...</a><br /></td></tr>
@@ -117,7 +130,7 @@ Enumerations</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:38 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:23 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

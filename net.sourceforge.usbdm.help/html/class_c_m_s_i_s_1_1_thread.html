@@ -122,7 +122,7 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Wrapper for <a class="el" href="namespace_c_m_s_i_s.html" title="Namespace enclosing wrapper classes for CMSIS-RTX. ">CMSIS</a> <a class="el" href="class_c_m_s_i_s_1_1_thread.html" title="Wrapper for CMSIS Thread. ">Thread</a>. </p>
-<div class="fragment"><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// Thread example</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keywordtype">void</span> threadExample() {</div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> threadFn = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      <span class="keywordflow">for</span>(;;) {</div><div class="line">         BLUE_LED::toggle();</div><div class="line">         osDelay(2000);</div><div class="line">      }</div><div class="line">   };</div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_thread.html#a6e5f78e844c5e79e9cf1080df673391f">Thread</a> thread(threadFn);</div><div class="line"></div><div class="line">   BLUE_LED::setOutput();</div><div class="line"></div><div class="line">   thread.run();</div><div class="line">   printf(<span class="stringliteral">&quot; thread::getId() = %p\n\r&quot;</span>, thread.getId());</div><div class="line">}</div></div><!-- fragment --> <dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-mail_queue_8cpp-example.html#_a7">cmsis-cpp-mailQueue.cpp</a>, <a class="el" href="cmsis-cpp-message_queue_8cpp-example.html#_a5">cmsis-cpp-messageQueue.cpp</a>, <a class="el" href="cmsis-cpp-thread-mma845x_8cpp-example.html#_a8">cmsis-cpp-thread-mma845x.cpp</a>, and <a class="el" href="cmsis-cpp-thread_8cpp-example.html#_a0">cmsis-cpp-thread.cpp</a>.</dd>
+<div class="fragment"><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// Thread example</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keywordtype">void</span> threadExample() {</div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> threadFn = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      <span class="keywordflow">for</span>(;;) {</div><div class="line">         <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">BLUE_LED::toggle</a>();</div><div class="line">         osDelay(2000);</div><div class="line">      }</div><div class="line">   };</div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_thread.html#a6e5f78e844c5e79e9cf1080df673391f">Thread</a> thread(threadFn);</div><div class="line"></div><div class="line">   <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">BLUE_LED::setOutput</a>();</div><div class="line"></div><div class="line">   thread.run();</div><div class="line">   printf(<span class="stringliteral">&quot; thread::getId() = %p\n\r&quot;</span>, thread.getId());</div><div class="line">}</div></div><!-- fragment --> <dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-mail_queue_8cpp-example.html#_a7">cmsis-cpp-mailQueue.cpp</a>, <a class="el" href="cmsis-cpp-message_queue_8cpp-example.html#_a5">cmsis-cpp-messageQueue.cpp</a>, <a class="el" href="cmsis-cpp-thread-mma845x_8cpp-example.html#_a8">cmsis-cpp-thread-mma845x.cpp</a>, and <a class="el" href="cmsis-cpp-thread_8cpp-example.html#_a2">cmsis-cpp-thread.cpp</a>.</dd>
 </dl></div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a6e5f78e844c5e79e9cf1080df673391f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6e5f78e844c5e79e9cf1080df673391f">&#9670;&nbsp;</a></span>Thread() <span class="overload">[1/2]</span></h2>
@@ -303,7 +303,7 @@ osErrorISR: Cannot be called from interrupt service routines. </dd></dl>
 
 <p>Get thread ID. </p>
 <dl class="section return"><dt>Returns</dt><dd>ID of thread </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-thread_8cpp-example.html#a2">cmsis-cpp-thread.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-thread_8cpp-example.html#a5">cmsis-cpp-thread.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -394,7 +394,7 @@ osErrorISR: Cannot be called from interrupt service routines. </dd></dl>
   </table>
   </dd>
 </dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-mail_queue_8cpp-example.html#a8">cmsis-cpp-mailQueue.cpp</a>, <a class="el" href="cmsis-cpp-message_queue_8cpp-example.html#a6">cmsis-cpp-messageQueue.cpp</a>, and <a class="el" href="cmsis-cpp-thread_8cpp-example.html#a1">cmsis-cpp-thread.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-mail_queue_8cpp-example.html#a8">cmsis-cpp-mailQueue.cpp</a>, <a class="el" href="cmsis-cpp-message_queue_8cpp-example.html#a6">cmsis-cpp-messageQueue.cpp</a>, and <a class="el" href="cmsis-cpp-thread_8cpp-example.html#a4">cmsis-cpp-thread.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -681,7 +681,7 @@ osErrorISR: Cannot be called from interrupt service routines. </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:40 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:26 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

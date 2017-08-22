@@ -114,7 +114,7 @@ Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Wrapper for <a class="el" href="namespace_c_m_s_i_s.html" title="Namespace enclosing wrapper classes for CMSIS-RTX. ">CMSIS</a> <a class="el" href="class_c_m_s_i_s_1_1_timer.html" title="Wrapper for CMSIS Timer. ">Timer</a>. </p>
 <p>A timer allows the scheduling of the execution of a callback function after a particular delay(osTimerOnce mode) or at a regular interval (osTimerPeriodic mode).</p>
-<p>Example: </p><div class="fragment"><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// Timer example</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keywordtype">void</span> timerExample() {</div><div class="line">   <span class="comment">// auto function used as call-backs</span></div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> cb1 = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      RED_LED::toggle();</div><div class="line">   };</div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> cb2 = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      GREEN_LED::toggle();</div><div class="line">   };</div><div class="line"></div><div class="line">   <span class="comment">// Create the two timer being used</span></div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_timer.html">CMSIS::Timer</a> myTimer1(cb1, osTimerPeriodic);</div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_timer.html">CMSIS::Timer</a> myTimer2(cb2, osTimerPeriodic);</div><div class="line"></div><div class="line">   RED_LED::setOutput();</div><div class="line">   GREEN_LED::setOutput();</div><div class="line"></div><div class="line">   <span class="comment">// Start the timers </span></div><div class="line">   myTimer2.start(500);</div><div class="line">   myTimer1.start(1000);</div><div class="line"></div><div class="line">   printf(<span class="stringliteral">&quot; myTimer1::getId() = %p\n\r&quot;</span>, myTimer1.getId());</div><div class="line">   printf(<span class="stringliteral">&quot; myTimer2::getId() = %p\n\r&quot;</span>, myTimer2.getId());</div><div class="line">}</div></div><!-- fragment --> <dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer-mma845x_8cpp-example.html#_a7">cmsis-cpp-timer-mma845x.cpp</a>, and <a class="el" href="cmsis-cpp-timer_8cpp-example.html#_a0">cmsis-cpp-timer.cpp</a>.</dd>
+<p>Example: </p><div class="fragment"><div class="line"><span class="comment">//</span></div><div class="line"><span class="comment">// Timer example</span></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keywordtype">void</span> timerExample() {</div><div class="line">   <span class="comment">// auto function used as call-backs</span></div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> cb1 = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">RED_LED::toggle</a>();</div><div class="line">   };</div><div class="line">   <span class="keyword">static</span> <span class="keyword">auto</span> cb2 = [] (<span class="keyword">const</span> <span class="keywordtype">void</span> *) {</div><div class="line">      <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a8364cf8a996649baace08210d7266a55">GREEN_LED::toggle</a>();</div><div class="line">   };</div><div class="line"></div><div class="line">   <span class="comment">// Create the two timer being used</span></div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_timer.html">CMSIS::Timer</a> myTimer1(cb1, osTimerPeriodic);</div><div class="line">   <span class="keyword">static</span> <a class="code" href="class_c_m_s_i_s_1_1_timer.html">CMSIS::Timer</a> myTimer2(cb2, osTimerPeriodic);</div><div class="line"></div><div class="line">   <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">RED_LED::setOutput</a>();</div><div class="line">   <a class="code" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a318f49a6943410c2f47e7cf7ac4c0d76">GREEN_LED::setOutput</a>();</div><div class="line"></div><div class="line">   <span class="comment">// Start the timers </span></div><div class="line">   myTimer2.start(500);</div><div class="line">   myTimer1.start(1000);</div><div class="line"></div><div class="line">   printf(<span class="stringliteral">&quot; myTimer1::getId() = %p\n\r&quot;</span>, myTimer1.getId());</div><div class="line">   printf(<span class="stringliteral">&quot; myTimer2::getId() = %p\n\r&quot;</span>, myTimer2.getId());</div><div class="line">}</div></div><!-- fragment --> <dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer-mma845x_8cpp-example.html#_a7">cmsis-cpp-timer-mma845x.cpp</a>, and <a class="el" href="cmsis-cpp-timer_8cpp-example.html#_a3">cmsis-cpp-timer.cpp</a>.</dd>
 </dl></div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7048891c78454a81726f341857509169"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7048891c78454a81726f341857509169">&#9670;&nbsp;</a></span>Timer() <span class="overload">[1/3]</span></h2>
@@ -393,7 +393,7 @@ false Failure </dd></dl>
 
 <p>Get timer ID. </p>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="namespace_c_m_s_i_s.html" title="Namespace enclosing wrapper classes for CMSIS-RTX. ">CMSIS</a> <a class="el" href="class_c_m_s_i_s_1_1_timer.html" title="Wrapper for CMSIS Timer. ">Timer</a> ID </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer_8cpp-example.html#a2">cmsis-cpp-timer.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer_8cpp-example.html#a5">cmsis-cpp-timer.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -428,7 +428,7 @@ false Failure </dd></dl>
   </table>
   </dd>
 </dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer_8cpp-example.html#a1">cmsis-cpp-timer.cpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="cmsis-cpp-timer_8cpp-example.html#a4">cmsis-cpp-timer.cpp</a>.</dd>
 </dl>
 </div>
 </div>
@@ -544,7 +544,7 @@ false Failure </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:40 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:26 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

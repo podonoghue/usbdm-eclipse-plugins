@@ -42,7 +42,10 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">console.h File Reference</div>  </div>
 </div><!--header-->
@@ -54,6 +57,18 @@ $(function() {
 </div>
 <p><a href="console_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespace_u_s_b_d_m"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_u_s_b_d_m.html">USBDM</a></td></tr>
+<tr class="memdesc:namespace_u_s_b_d_m"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace enclosing <a class="el" href="namespace_u_s_b_d_m.html" title="Namespace enclosing USBDM classes. ">USBDM</a> classes. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:gabc79fa463a330299ccab5cb67fef15ec"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#gabc79fa463a330299ccab5cb67fef15ec">USBDM::Console</a> = <a class="el" href="class_u_s_b_d_m_1_1_uart0.html">USBDM::Uart0</a></td></tr>
+<tr class="memdesc:gabc79fa463a330299ccab5cb67fef15ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maps console to UART used.  <a href="group___c_o_n_s_o_l_e___group.html#gabc79fa463a330299ccab5cb67fef15ec">More...</a><br /></td></tr>
+<tr class="separator:gabc79fa463a330299ccab5cb67fef15ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a8794de1a71134fc47309ab273b5c961e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="console_8h.html#a8794de1a71134fc47309ab273b5c961e">console_initialise</a> ()</td></tr>
@@ -68,6 +83,15 @@ Functions</h2></td></tr>
 <tr class="memitem:a131802c295063b55b8a7235f95f9f785"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="console_8h.html#a131802c295063b55b8a7235f95f9f785">console_rxChar</a> (void)</td></tr>
 <tr class="memdesc:a131802c295063b55b8a7235f95f9f785"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives a single character over the Console (blocking)  <a href="#a131802c295063b55b8a7235f95f9f785">More...</a><br /></td></tr>
 <tr class="separator:a131802c295063b55b8a7235f95f9f785"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ga22ce8c6952a0f55472bca315a2ef642e"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#ga22ce8c6952a0f55472bca315a2ef642e">USBDM::defaultBaudRate</a> = 115200</td></tr>
+<tr class="memdesc:ga22ce8c6952a0f55472bca315a2ef642e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default baud rate for console.  <a href="group___c_o_n_s_o_l_e___group.html#ga22ce8c6952a0f55472bca315a2ef642e">More...</a><br /></td></tr>
+<tr class="separator:ga22ce8c6952a0f55472bca315a2ef642e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="memItemLeft" align="right" valign="top">Console&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___c_o_n_s_o_l_e___group.html#ga7ab1ae5607fc5d9c172baec4df3d39e2">USBDM::console</a></td></tr>
+<tr class="memdesc:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Console instance.  <a href="group___c_o_n_s_o_l_e___group.html#ga7ab1ae5607fc5d9c172baec4df3d39e2">More...</a><br /></td></tr>
+<tr class="separator:ga7ab1ae5607fc5d9c172baec4df3d39e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>(180.ARM_Peripherals/Project_Headers/console.h) </p>
@@ -170,7 +194,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:37 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:22 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>

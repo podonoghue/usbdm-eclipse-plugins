@@ -134,6 +134,12 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:afb39fabc59424f69a2c12d238061742a"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a">isInactive</a> ()</td></tr>
 <tr class="memdesc:afb39fabc59424f69a2c12d238061742a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if inactive level.  <a href="#afb39fabc59424f69a2c12d238061742a">More...</a><br /></td></tr>
 <tr class="separator:afb39fabc59424f69a2c12d238061742a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43410d011fc4918e1e96cdede3a1fc50"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#a43410d011fc4918e1e96cdede3a1fc50">isPressed</a> ()</td></tr>
+<tr class="memdesc:a43410d011fc4918e1e96cdede3a1fc50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if active level.  <a href="#a43410d011fc4918e1e96cdede3a1fc50">More...</a><br /></td></tr>
+<tr class="separator:a43410d011fc4918e1e96cdede3a1fc50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa850a09a1353d46072ae9aa1d381e6c6"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#aa850a09a1353d46072ae9aa1d381e6c6">isReleased</a> ()</td></tr>
+<tr class="memdesc:aa850a09a1353d46072ae9aa1d381e6c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read pin value and return true if inactive level.  <a href="#aa850a09a1353d46072ae9aa1d381e6c6">More...</a><br /></td></tr>
+<tr class="separator:aa850a09a1353d46072ae9aa1d381e6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0f551126236a691c627730a298f8db0"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae0f551126236a691c627730a298f8db0">readState</a> ()</td></tr>
 <tr class="memdesc:ae0f551126236a691c627730a298f8db0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read value being driven to pin (if configured as output)  <a href="#ae0f551126236a691c627730a298f8db0">More...</a><br /></td></tr>
 <tr class="separator:ae0f551126236a691c627730a298f8db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -568,6 +574,76 @@ template&lt;uint32_t clockMask, uint32_t pcrAddress, uint32_t gpioAddress, int b
 <dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
 <dd>
 Polarity is NOT significant </dd></dl>
+
+</div>
+</div>
+<a id="a43410d011fc4918e1e96cdede3a1fc50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43410d011fc4918e1e96cdede3a1fc50">&#9670;&nbsp;</a></span>isPressed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;uint32_t clockMask, uint32_t pcrAddress, uint32_t gpioAddress, int bitNum, Polarity polarity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isPressed </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if active level. </p>
+<p><br />
+Convenience method equivalent to <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#ae437156ce74d2d45f2d4081fe886cb2c" title="Read pin value and return true if active level. ">isActive()</a></p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is active.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
+
+</div>
+</div>
+<a id="aa850a09a1353d46072ae9aa1d381e6c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa850a09a1353d46072ae9aa1d381e6c6">&#9670;&nbsp;</a></span>isReleased()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;uint32_t clockMask, uint32_t pcrAddress, uint32_t gpioAddress, int bitNum, Polarity polarity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html">USBDM::GpioBase_T</a>&lt; clockMask, pcrAddress, gpioAddress, bitNum, polarity &gt;::isReleased </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read pin value and return true if inactive level. </p>
+<p><br />
+Convenience method equivalent to <a class="el" href="class_u_s_b_d_m_1_1_gpio_base___t.html#afb39fabc59424f69a2c12d238061742a" title="Read pin value and return true if inactive level. ">isInactive()</a></p>
+<dl class="section return"><dt>Returns</dt><dd>true/false reflecting if pin is inactive.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This reads the PDIR </dd>
+<dd>
+Polarity is significant </dd></dl>
 
 </div>
 </div>
@@ -1625,7 +1701,7 @@ template&lt;uint32_t clockMask, uint32_t pcrAddress, uint32_t gpioAddress, int b
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 12 2017 08:54:42 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 21 2017 07:45:28 for USBDM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.13
 </small></address>
