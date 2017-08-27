@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -155,6 +156,39 @@ public class Validator {
       return false;
    }
    
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found
+    * @throws Exception 
+    */
+   IrqVariable getIrqVariable(String key) throws Exception {
+      Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
+      if (!(variable instanceof IrqVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to IrqVariable");
+      }
+      return (IrqVariable) variable;
+   }
+
+   /**
+    * Get String Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found or null
+    */
+   IrqVariable safeGetIrqVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof IrqVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to IrqVariable");
+      }
+      return (IrqVariable) variable;
+   }
 
    /**
     * Get Boolean Variable from associated peripheral 
@@ -166,6 +200,24 @@ public class Validator {
     */
    BooleanVariable getBooleanVariable(String key) throws Exception {
       Variable variable = fPeripheral.getVariable(fPeripheral.makeKey(key));
+      if (!(variable instanceof BooleanVariable)) {
+         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+      }
+      return (BooleanVariable) variable;
+   }
+
+   /**
+    * Get Boolean Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return Variable found or null
+    */
+   BooleanVariable safeGetBooleanVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
       if (!(variable instanceof BooleanVariable)) {
          throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
       }
@@ -206,24 +258,6 @@ public class Validator {
          throw new ClassCastException("Variable " + variable + "cannot be cast to ChoiceVariable");
       }
       return (ChoiceVariable) variable;
-   }
-
-   /**
-    * Get Boolean Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return Variable found or null
-    */
-   BooleanVariable safeGetBooleanVariable(String key) {
-      Variable variable = safeGetVariable(key);
-      if (variable == null) {
-         return null;
-      }
-      if (!(variable instanceof BooleanVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
-      }
-      return (BooleanVariable) variable;
    }
 
    /**
@@ -334,14 +368,10 @@ public class Validator {
     * @param key  Key to lookup variable
     * 
     * @return
+    * @throws Exception 
     */
-   Variable safeGetVariable(String key) {
-      try {
-         return getVariable(key);
-      } catch (Exception e) {
-//         System.err.println(e.getMessage());
-      }
-      return null;
+   Variable getVariable(String key) throws Exception {
+      return fPeripheral.getVariable(fPeripheral.makeKey(key));
    }
 
    /**
@@ -350,10 +380,14 @@ public class Validator {
     * @param key  Key to lookup variable
     * 
     * @return
-    * @throws Exception 
     */
-   Variable getVariable(String key) throws Exception {
-      return fPeripheral.getVariable(fPeripheral.makeKey(key));
+   Variable safeGetVariable(String key) {
+      try {
+         return getVariable(key);
+      } catch (Exception e) {
+//         System.err.println(e.getMessage());
+      }
+      return null;
    }
 
    /**
