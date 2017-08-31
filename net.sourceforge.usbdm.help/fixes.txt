@@ -1,0 +1,11 @@
+Convert >> to &lt;&lt;
+Convert << to &gt;&gt;
+  in 
+class_u_s_b_d_m_1_1_formatted_i_o.html
+class_u_s_b_d_m_1_1_uart___t.html
+class_u_s_b_d_m_1_1_uart_buffered___t.html
+
+Convert href="  to href="html/
+Convert topic=" to topic="html/
+  in 
+toc.xml
