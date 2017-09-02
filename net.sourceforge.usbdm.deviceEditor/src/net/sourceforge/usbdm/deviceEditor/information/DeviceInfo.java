@@ -1551,7 +1551,7 @@ public class DeviceInfo extends ObservableModel {
       // Save variables
       for (String key:fVariables.keySet()) {
          Variable var = fVariables.get(key);
-         if (!var.isDerived()) {
+         if (!var.isDerived() && !var.isDefault()) {
             settings.put(key, var.getPersistentValue());
          }
       }

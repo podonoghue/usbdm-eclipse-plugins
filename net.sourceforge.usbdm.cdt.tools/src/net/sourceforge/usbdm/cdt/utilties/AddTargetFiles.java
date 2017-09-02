@@ -5,7 +5,6 @@ package net.sourceforge.usbdm.cdt.utilties;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;

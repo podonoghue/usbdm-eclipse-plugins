@@ -168,4 +168,9 @@ public class BooleanVariable extends Variable {
    public void getChoices() {
    }
 
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefault;
+   }
+
 }

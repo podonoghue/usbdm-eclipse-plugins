@@ -82,4 +82,9 @@ public class StringVariable extends Variable {
    public void setPersistentValue(String value) {
       fValue = value.toString();
    }
+
+   @Override
+   public boolean isDefault() {
+      return fValue.equals(fDefault);
+   }
 }

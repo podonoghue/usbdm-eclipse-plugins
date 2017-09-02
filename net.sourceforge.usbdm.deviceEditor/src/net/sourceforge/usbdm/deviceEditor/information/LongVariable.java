@@ -358,4 +358,9 @@ public class LongVariable extends Variable {
    public void setPersistentValue(String value) {
       fValue = translate(value);
    }
+
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefault;
+   }
 }

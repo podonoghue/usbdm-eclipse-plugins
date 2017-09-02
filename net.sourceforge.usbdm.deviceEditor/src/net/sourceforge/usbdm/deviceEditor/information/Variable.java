@@ -505,4 +505,11 @@ public abstract class Variable extends ObservableModel {
       return fDerived;
    }
 
+   /**
+    * Indicates that the variable value corresponds to the default.
+    * 
+    * @return
+    */
+   public abstract boolean isDefault();
+
 }

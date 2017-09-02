@@ -309,7 +309,12 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
       variable.setStep(getLongAttribute(varElement, "step"));
       variable.setOffset(getLongAttribute(varElement, "offset"));
-      variable.setValue(varElement.getAttribute("value"));
+      if (varElement.hasAttribute("value")) {
+         // Value is used as default and initial value
+         String value = varElement.getAttribute("value");
+         variable.setValue(value);
+         variable.setDefault(value);
+      }
    }
 
    /**
@@ -332,7 +337,12 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new RuntimeException("Illegal min/max value in " + variable.getName(), e);
       }
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
-      variable.setValue(varElement.getAttribute("value"));
+      if (varElement.hasAttribute("value")) {
+         // Value is used as default and initial value
+         String value = varElement.getAttribute("value");
+         variable.setValue(value);
+         variable.setDefault(value);
+      }
    }
 
    /**

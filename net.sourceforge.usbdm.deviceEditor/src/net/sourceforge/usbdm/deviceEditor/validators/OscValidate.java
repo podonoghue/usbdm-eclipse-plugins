@@ -106,25 +106,14 @@ public class OscValidate extends Validator {
          system_oscerclk_clockVar                  =  getVariable("system_oscerclk_clock");
       }
       Variable     osc_div_erpsVar                 =  safeGetVariable("osc_div_erps");
-      Variable     osc32kclk_clockVar              =  getVariable("osc32kclk_clock");
+      LongVariable osc32kclk_clockVar              =  getLongVariable("osc32kclk_clock");
       Variable     oscclk_clockVar                 =  getVariable("oscclk_clock");
       Variable     osc_input_freqVar               =  getVariable("osc_input_freq");
       
       Variable     rtcSharesPinsVar                =  safeGetVariable("/SIM/rtcSharesPins");
       Variable     rtc_cr_osceVar                  =  safeGetVariable("/RTC/rtc_cr_osce");
 
-      Status oscclk_clockStatus    = null;
-      String  oscclk_clockOrg       = null;
-
       long    oscclk_clock_freq    = osc_input_freqVar.getValueAsLong();
-      
-      //==========================================
-      
-      Status osc32kclk_clockStatus = null;
-      String  osc32kclk_clockOrg    = "OSC32KCLK";
-      
-      int     range        = UNCONSTRAINED_RANGE;
-      String  rangeOrigin  = "Unused";
       
       //=========================================
       // Check input clock/oscillator ranges
@@ -137,11 +126,12 @@ public class OscValidate extends Validator {
       // OSC mode if selected by erefs or RTC
       boolean erefs0 = erefs0Var.getValueAsBoolean() || rtcForcing;
 
-      // Check suitability of OSC for OSC32KCLK
-      if ((oscclk_clock_freq < EXTERNAL_EXTAL_RANGE1_MIN) || (oscclk_clock_freq > EXTERNAL_EXTAL_RANGE1_MAX)) {
-         osc32kclk_clockStatus = new Status(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
-         osc32kclk_clockOrg = "OSC32KCLK (invalid range)";
-      }
+      String  oscclk_clockOrg       = null;
+      Status  oscclk_clockStatus    = null;
+
+      String  rangeOrigin  = "Unused";
+      int     range        = UNCONSTRAINED_RANGE;
+
       if (erefs0) {
          // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
          if ((oscclk_clock_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (oscclk_clock_freq <= EXTERNAL_EXTAL_RANGE1_MAX)) {
@@ -185,6 +175,14 @@ public class OscValidate extends Validator {
             oscclk_clockStatus = CLOCK_RANGE_ERROR_MSG;
          }
       }
+      // Check suitability of OSC for OSC32KCLK
+      Status  osc32kclk_clockStatus = null;
+      String  osc32kclk_clockOrg    = oscclk_clockOrg;
+      
+      if ((oscclk_clock_freq < EXTERNAL_EXTAL_RANGE1_MIN) || (oscclk_clock_freq > EXTERNAL_EXTAL_RANGE1_MAX)) {
+         osc32kclk_clockStatus = new Status(OSCCLK32K_CLOCK_MSG, Severity.WARNING);
+         osc32kclk_clockOrg    = osc32kclk_clockOrg+"(invalid range)";
+      }
       if (rtcForcing) {
          Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.INFO);
          erefs0Var.enable(false);
@@ -224,7 +222,7 @@ public class OscValidate extends Validator {
       osc32kclk_clockVar.setValue((osc32kclk_clockStatus != null)?0:oscclk_clock_freq);
       osc32kclk_clockVar.setStatus(osc32kclk_clockStatus);
       osc32kclk_clockVar.setOrigin(osc32kclk_clockOrg);
-      osc32kclk_clockVar.enable(osc32kclk_clockStatus==null);
+//      osc32kclk_clockVar.enable(osc32kclk_clockStatus==null);
 
       // Determine OSCERCLK, OSCERCLK_UNDIV 
       //==================================

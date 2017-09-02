@@ -253,4 +253,9 @@ public class ChoiceVariable extends Variable {
       fValue = fDefault;
       return;
    }
+
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefault;
+   }
 }

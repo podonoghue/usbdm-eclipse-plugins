@@ -306,4 +306,9 @@ public class DoubleVariable extends Variable {
       fValue = translate(value);
    }
 
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefault;
+   }
+
 }

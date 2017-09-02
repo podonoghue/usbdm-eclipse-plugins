@@ -214,5 +214,10 @@ public class IrqVariable extends Variable {
       return fClassHandler;
    }
 
+   @Override
+   public boolean isDefault() {
+      return getPersistentValue().equals("$"+Mode.NotInstalled.name());
+   }
+
    
 }
