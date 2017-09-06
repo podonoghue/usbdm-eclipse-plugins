@@ -54,6 +54,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
@@ -958,6 +959,11 @@ public class DeviceInfo extends ObservableModel {
                getDeviceFamily(),
                WriterForAdc.class);
          createPeripheralTemplateInformation(
+               "CAN", "$2", "$3",
+               "(CAN)([0-5])_(RX|TX)",
+               getDeviceFamily(),
+               WriterForFlexCan.class);
+         createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(CMP)([0-3])?_(.*)",
                getDeviceFamily(),
@@ -997,11 +1003,6 @@ public class DeviceInfo extends ObservableModel {
                "(FB|FLEXBUS)_(.*)",
                getDeviceFamily(),
                WriterForFlexBus.class);
-         createPeripheralTemplateInformation(
-               "CAN", "$2", "$3",
-               "(CAN)([0-5])_(RX|TX)",
-               getDeviceFamily(),
-               WriterForFlexCan.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(FTM)([0-3])_(CH\\d+|QD_PH[A|B]|FLT\\d|CLKIN\\d)",
@@ -1052,6 +1053,11 @@ public class DeviceInfo extends ObservableModel {
                "(PDB)(0?)_(EXTRG)",
                getDeviceFamily(),
                WriterForPdb.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(PMC)(0?)",
+               getDeviceFamily(),
+               WriterForPmc.class);
          createPeripheralTemplateInformation(
                "RTC", "", "$2",
                "(RTC)_?(CLKOUT|CLKIN|WAKEUP_b)",
