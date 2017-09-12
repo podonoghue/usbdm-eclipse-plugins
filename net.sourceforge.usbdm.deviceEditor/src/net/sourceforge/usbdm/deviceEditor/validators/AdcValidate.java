@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     adc0_diff
  */
-public class AdcValidate extends Validator {
+public class AdcValidate extends PeripheralValidator {
 
    // Input clock ranges < 13-bit resolution
    private static final long FADC_LOW_RES_MIN  =  1000000;

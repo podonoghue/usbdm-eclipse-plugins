@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -21,15 +22,12 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * <li>Clock register mask e.g. ADC0_CLOCK_REG
  * <li>Clock register e.g. SIM->SCGC6
  */
-public abstract class Peripheral {
+public abstract class Peripheral extends VariableProvider {
    /** Name for default PCR value uses in Info classes */
    public static final String DEFAULT_PCR_VALUE_NAME = "defaultPcrValue";
 
    /** Device information */
    protected final DeviceInfo fDeviceInfo;
-
-   /** Name of peripheral e.g. FTM2 */
-   protected final String fName;
 
    /** Base name of C peripheral class e.g. Ftm */
    private final String fClassBaseName;
@@ -74,11 +72,12 @@ public abstract class Peripheral {
     * @param deviceInfo 
     */
    protected Peripheral(String baseName, String instance, DeviceInfo deviceInfo) {
+      super(baseName+instance, deviceInfo);
+      
       fBaseName      = baseName;
       fInstance      = instance;
       fDeviceInfo    = deviceInfo;
       
-      fName          = baseName+instance;
       fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
    }
    
@@ -86,18 +85,9 @@ public abstract class Peripheral {
    public String toString() {
       StringBuffer sb = new StringBuffer();
       sb.append("Peripheral(");
-      sb.append("N="+fName+", ");
+      sb.append("N="+getName()+", ");
       sb.append(")");
       return sb.toString();
-   }
-
-   /**
-    * Get name of peripheral e.g. FTM2 
-    * 
-    * @return
-    */
-   public String getName() {
-      return fName;
    }
 
    /**
@@ -271,7 +261,7 @@ public abstract class Peripheral {
       documentUtilities.writeAttribute("baseName", fBaseName);
       documentUtilities.writeAttribute("instance", fInstance);
 
-      String versionName = WriteFamilyXML.getPeripheralMap().get(fName);
+      String versionName = WriteFamilyXML.getPeripheralMap().get(getName());
       if (versionName != null) {
          documentUtilities.writeAttribute("version", versionName);
       }

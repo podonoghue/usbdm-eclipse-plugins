@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
+import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +39,11 @@ import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.TabModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+import net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator;
+import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.packageParser.PackageParser;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
@@ -50,18 +55,18 @@ public class ParseMenuXML extends XML_BaseParser {
 
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
 
-   public static class Data {
+   public static class MenuData {
       private final BaseModel                    fRootModel;
       private final Map<String, CodeTemplate>    fTemplates;
-      private final ArrayList<Validator>         fValidators;
+      private final ArrayList<ValidatorInformation>         fValidators;
       private final ProjectActionList            fProjectActionList;
       
-      public Data(BaseModel model, HashMap<String, CodeTemplate> templates, ArrayList<Validator> validators, ProjectActionList projectActionList) {
+      public MenuData(BaseModel model, HashMap<String, CodeTemplate> templates, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
          fTemplates  = templates;
          if (validators == null) {
             // Empty list rather than null
-            fValidators = new ArrayList<Validator>();
+            fValidators = new ArrayList<ValidatorInformation>();
          }
          else {
             fValidators = validators;
@@ -88,7 +93,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @return
        */
-      public ArrayList<Validator> getValidators() {
+      public ArrayList<ValidatorInformation> getValidators() {
          return fValidators;
       }
       
@@ -141,7 +146,10 @@ public class ParseMenuXML extends XML_BaseParser {
    private static String fName;
 
    /** Provider providing the variables used by the menu */
-   private final PeripheralWithState  fProvider;
+   private final VariableProvider  fProvider;
+
+   /** Peripheral to add vectors etc to */
+   private PeripheralWithState fPeripheral;
 
    /** Used to build the template */
    private final Map<String,StringBuilder>  fTemplates   = new HashMap<String,StringBuilder>();
@@ -150,7 +158,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private final Map<String,Variable> fTemplateDimensions   = new HashMap<String,Variable>();
 
    /** Holds the validators found */
-   private final ArrayList<Validator> fValidators = new ArrayList<Validator>();
+   private final ArrayList<ValidatorInformation> fValidators = new ArrayList<ValidatorInformation>();
 
    /** Actions associated with this Menu */
    private final ProjectActionList fProjectActionList;
@@ -164,12 +172,37 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * 
     * @param provider
+    * @param peripheral 
     */
-   private ParseMenuXML(PeripheralWithState provider) {
+   private ParseMenuXML(VariableProvider provider, PeripheralWithState peripheral) {
       fProvider = provider;
+      fPeripheral = peripheral;
       fProjectActionList = new ProjectActionList(provider.getName()+" Action list");
    }
 
+   /**
+    * Get variable with given key
+    * 
+    * @param key     Key to lookup variable
+    * 
+    * @return variable
+    * @throws Exception
+    */
+   Variable getVariable(String key) throws Exception {
+      return fProvider.getVariable(key);
+   }
+
+   /**
+    * Get variable with given key
+    * 
+    * @param key     Key to lookup variable
+    * 
+    * @return variable or null if not found
+    */
+   Variable safeGetVariable(String key) {
+      return fProvider.safeGetVariable(key);
+   }
+   
    /**
     * Gets the toolTip attribute from the element and applies some simple transformations
     *  
@@ -187,31 +220,34 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param clazz         Class of variable to create
     * 
     * @return Variable created (or existing one)
+    * @throws Exception 
     */
-   private Variable createVariable(Element varElement, Class<?> clazz) {
+   private Variable createVariable(Element varElement, Class<?> clazz) throws Exception {
 
-      String  name        = varElement.getAttribute("name");
-      String  key         = varElement.getAttribute("key");
+      String  name = varElement.getAttribute("name");
+      String  key  = varElement.getAttribute("key");
       if (key.isEmpty()) {
          key = fProvider.makeKey(name);
       }
       key  = substituteKey(key);
       name = substituteKey(name);
 
+      key = fProvider.makeKey(name);
+      
       Variable newVariable = null;
-      Variable existingVariable = fProvider.safeGetVariable(key);
+      Variable existingVariable = safeGetVariable(key);
       if (existingVariable == null) {
          // New variable
          try {
             newVariable = (Variable) clazz.getConstructor(String.class, String.class).newInstance(name, key);
             fProvider.addVariable(newVariable);
          } catch (Exception e) {
-            throw new RuntimeException("Unable to create variable!");
+            throw new Exception("Unable to create variable!");
          }
       }
       else {
          if (!existingVariable.getClass().equals(clazz)) {
-            throw new RuntimeException("Overridden variable has wrong type");
+            throw new Exception("Overridden variable has wrong type");
          }
          newVariable = existingVariable;
       }
@@ -225,15 +261,16 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param   varElement  Element to parse
     * 
     * @return  Derived from variable if it exists
+    * @throws Exception 
     */
-   Variable getDerived(Element varElement) {      
+   Variable getDerived(Element varElement) throws Exception {      
       Variable otherVariable = null;
       String derivedFromName = varElement.getAttribute("derivedFrom");
       if (!derivedFromName.isEmpty()) {
          derivedFromName = fProvider.makeKey(derivedFromName);
-         otherVariable = fProvider.safeGetVariable(derivedFromName);
+         otherVariable = safeGetVariable(derivedFromName);
          if (otherVariable == null) {
-            throw new RuntimeException("derivedFromName variable not found for " + derivedFromName);
+            throw new Exception("derivedFromName variable not found for " + derivedFromName);
          }
       }
       return otherVariable;
@@ -256,8 +293,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param clazz         Class of variable to create
     * 
     * @return Variable created (or existing one)
+    * @throws Exception 
     */
-   private Variable parseCommonAttributes(BaseModel parent, Element varElement, Class<?> clazz) {
+   private Variable parseCommonAttributes(BaseModel parent, Element varElement, Class<?> clazz) throws Exception {
       
       Variable variable      = createVariable(varElement, clazz);
       Variable otherVariable = getDerived(varElement);
@@ -291,8 +329,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * Parse &lt;longOption&gt; element<br>
     * 
     * @param varElement
+    * @throws Exception 
     */
-   private void parseLongOption(BaseModel parent, Element varElement) {
+   private void parseLongOption(BaseModel parent, Element varElement) throws Exception {
 
       LongVariable variable = (LongVariable) parseCommonAttributes(parent, varElement, LongVariable.class);
 
@@ -304,7 +343,7 @@ public class ParseMenuXML extends XML_BaseParser {
             variable.setMax(getLongAttribute(varElement, "max"));
          }
       } catch( NumberFormatException e) {
-         throw new RuntimeException("Illegal min/max value in " + variable.getName(), e);
+         throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
       variable.setStep(getLongAttribute(varElement, "step"));
@@ -321,8 +360,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * Parse &lt;doubleOption&gt; element<br>
     * 
     * @param varElement
+    * @throws Exception 
     */
-   private void parseDoubleOption(BaseModel parent, Element varElement) {
+   private void parseDoubleOption(BaseModel parent, Element varElement) throws Exception {
 
       DoubleVariable variable = (DoubleVariable) parseCommonAttributes(parent, varElement, DoubleVariable.class);
 
@@ -334,7 +374,7 @@ public class ParseMenuXML extends XML_BaseParser {
             variable.setMax(getLongAttribute(varElement, "max"));
          }
       } catch( NumberFormatException e) {
-         throw new RuntimeException("Illegal min/max value in " + variable.getName(), e);
+         throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
       if (varElement.hasAttribute("value")) {
@@ -349,8 +389,9 @@ public class ParseMenuXML extends XML_BaseParser {
     * Parse &lt;bitmaskOption&gt; element<br>
     * 
     * @param varElement
+    * @throws Exception 
     */
-   private void parseBitmaskOption(BaseModel parent, Element varElement) {
+   private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
 
       BitmaskVariable variable = (BitmaskVariable) parseCommonAttributes(parent, varElement, BitmaskVariable.class);
 
@@ -358,7 +399,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
          variable.setBitList(varElement.getAttribute("bitList"));
       } catch( NumberFormatException e) {
-         throw new RuntimeException("Illegal permittedBits value in " + variable.getName(), e);
+         throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
       String  value       = varElement.getAttribute("value");
       variable.setValue(value);
@@ -377,7 +418,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;StringOption&gt; element<br>
     * 
     * @param varElement
     * @throws Exception 
@@ -390,7 +431,7 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;NumericListOption&gt; element<br>
     * 
     * @param varElement
     * @throws Exception 
@@ -410,7 +451,7 @@ public class ParseMenuXML extends XML_BaseParser {
             variable.setMaxListLength(getLongAttribute(varElement, "size"));
          }
       } catch( NumberFormatException e) {
-         throw new RuntimeException("Illegal min/max/size value in " + variable.getName(), e);
+         throw new Exception("Illegal min/max/size value in " + variable.getName(), e);
       }
       String  value       = varElement.getAttribute("value");
       variable.setValue(value);
@@ -440,11 +481,11 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setPattern(varElement.getAttribute("pattern"));
       variable.setClassHandler(varElement.getAttribute("classHandler"));
       
-      fProvider.addIrqVariable(variable);
+      fPeripheral.addIrqVariable(variable);
    }
 
    /**
-    * Parse &lt;choiceOption&gt; element<br>
+    * Parse &lt;PinListOption&gt; element<br>
     * 
     * @param varElement
     * @throws Exception 
@@ -452,29 +493,33 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
       PinListVariable variable = (PinListVariable) parseCommonAttributes(parent, varElement, PinListVariable.class);
-      variable.setPeripheral(fProvider);
+      variable.setPeripheral(fPeripheral);
       try {
          if (varElement.hasAttribute("size")) {
             variable.setMaxListLength(getLongAttribute(varElement, "size"));
          }
       } catch( NumberFormatException e) {
-         throw new RuntimeException("Illegal size value in " + variable.getName(), e);
+         throw new Exception("Illegal size value in " + variable.getName(), e);
       }
-      String  value       = varElement.getAttribute("value");
+      String  value = varElement.getAttribute("value");
       variable.setValue(value);
    }
 
    /**
     * Does some simple substitutions on the key
-    *  "$(_instance)" => fProvider.getInstance()
     *  "$(_name)"     => fProvider.getName()
+    *  "$(_instance)" => fPeripheral.getInstance()
     * 
     * @param key
     * 
-    * @return
+    * @return modified key
     */
    private String substituteKey(String key) {
-      return key.replaceAll("\\$\\(_instance\\)", fProvider.getInstance()).replaceAll("\\$\\(_name\\)", fProvider.getName());
+      String newKey = key.replaceAll("\\$\\(_name\\)", fProvider.getName());
+      if (fPeripheral != null) {
+         newKey = key.replaceAll("\\$\\(_instance\\)", fPeripheral.getInstance());
+      }
+      return newKey;
    }
 
    /**
@@ -495,35 +540,35 @@ public class ParseMenuXML extends XML_BaseParser {
       String  toolTip      = getToolTip(stringElement);
 
       if (!key.isEmpty() && !name.isEmpty()) {
-         throw new RuntimeException("Both name and key provided for <alias>, key='" + key +"', name='" + name + "'");
+         throw new Exception("Both name and key provided for <alias>, key='" + key +"', name='" + name + "'");
       }
       if (key.isEmpty()) {
          key = name;
       }
       if (key.isEmpty()) {
-         throw new RuntimeException("Alias requires either name or key "+displayName);
+         throw new Exception("Alias requires either name or key "+displayName);
       }
-      key  = substituteKey(key);
+      key = substituteKey(key);
       key = fProvider.makeKey(key);
 
       boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
       boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
-      Variable variable = fProvider.safeGetVariable(key);
+      Variable variable = safeGetVariable(key);
       if (variable == null) {
          if (!isOptional) {
-            throw new RuntimeException("Alias not found for " + key);
+            throw new Exception("Alias not found for " + key);
          }
          return;
       }
       if (!description.isEmpty()) {
          if ((variable.getDescription() != null) && !variable.getDescription().isEmpty()) {
-            throw new RuntimeException("Alias tries to change description for " + key);
+            throw new Exception("Alias tries to change description for " + key);
          }
          variable.setDescription(description);
       }
       if (!toolTip.isEmpty()) {
          if ((variable.getDisplayToolTip() != null) && !variable.getDisplayToolTip().isEmpty()) {
-            throw new RuntimeException("Alias tries to change toolTip for " + key);
+            throw new Exception("Alias tries to change toolTip for " + key);
          }
          variable.setToolTip(toolTip);
       }
@@ -537,8 +582,9 @@ public class ParseMenuXML extends XML_BaseParser {
    /**
     * @param parentModel
     * @param element
+    * @throws Exception 
     */
-   private void parseConstant(BaseModel parentModel, Element element) {
+   private void parseConstant(BaseModel parentModel, Element element) throws Exception {
       // Key and name are interchangeable
       // Name is an ID and can be used for validation checks within the file.
       // Key is used to refer to an external variable without validation error
@@ -558,7 +604,7 @@ public class ParseMenuXML extends XML_BaseParser {
       key  = fProvider.makeKey(key);
       key  = substituteKey(key);
       name = substituteKey(name);
-      Variable var = fProvider.safeGetVariable(key);
+      Variable var = safeGetVariable(key);
       if (var != null) {
          if (isWeak) {
             // Ignore constant
@@ -569,7 +615,7 @@ public class ParseMenuXML extends XML_BaseParser {
             return;
          }
          else {
-            throw new RuntimeException("Constant multiply defined, name="+name+", key=" + key);
+            throw new Exception("Constant multiply defined, name="+name+", key=" + key);
          }
       }
       else {
@@ -579,9 +625,24 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   /**
+    * Parse element: <ul>
+    *   <li> &lt;fragment&gt; referencing only elements below
+    *   <li> &lt;validate&gt;
+    *   <li> &lt;template&gt;
+    *   <li> &lt;projectActionList&gt; 
+    *</ul>
+    *   
+    * Items found are recorded
+    *
+    * @param  menuElement  Menu element to parse
+    * 
+    * @throws Exception
+    */
    private void parseControlItem(Element element) throws Exception {
 
-      if (element.getTagName() == "fragment") {
+      String tagName = element.getTagName();
+      if (tagName == "fragment") {
          for (Node node = element.getFirstChild();
                node != null;
                node = node.getNextSibling()) {
@@ -591,26 +652,26 @@ public class ParseMenuXML extends XML_BaseParser {
             parseControlItem((Element) node);
          }
       }
-      else if (element.getTagName() == "validate") {
+      else if (tagName == "validate") {
          fValidators.add(parseValidate(element));
       }
-      else if (element.getTagName() == "template") {
+      else if (tagName == "template") {
          String name = element.getAttribute("name");
          String namespace = element.getAttribute("namespace");
          
          if (namespace.isEmpty()) {
-            throw new RuntimeException("Template is missing namespace, name='" + name + "'");
+            throw new Exception("Template is missing namespace, name='" + name + "'");
          }
          if (!name.isEmpty() && !namespace.equals("all")) {
-            throw new RuntimeException("Named templates must have 'all' namespace, name='" + name + "'");
+            throw new Exception("Named templates must have 'all' namespace, name='" + name + "'");
          }
          Variable dimension = null;
          if (element.hasAttribute("dim")) {
             String dimName = element.getAttribute("dim");
             String key = fProvider.makeKey(dimName);
-            dimension = fProvider.safeGetVariable(key);
+            dimension = safeGetVariable(key);
             if (dimension == null) {
-               throw new RuntimeException("Alias not found for " + key);
+               throw new Exception("Alias not found for " + key);
             }
          }
          addTemplate(name, namespace, dimension,
@@ -620,7 +681,7 @@ public class ParseMenuXML extends XML_BaseParser {
                replaceAll("\\\\t","   "));
          //         System.err.println(fTemplate.toString().substring(0, 40)+"\n");
       }
-      else if (element.getTagName() == "projectActionList") {
+      else if (tagName == "projectActionList") {
          ProjectActionList pal = PackageParser.parseRestrictedProjectActionList(element, RESOURCE_PATH);
          pal.visit(new Visitor() {
             @Override
@@ -637,12 +698,31 @@ public class ParseMenuXML extends XML_BaseParser {
          fProjectActionList.addProjectAction(pal);
       }
       else {
-         throw new RuntimeException("Unexpected field in parseChildModels(), value = \'"+element.getTagName()+"\'");
+         throw new Exception("Unexpected field in parseControlItem(), value = \'"+tagName+"\'");
       }
-
    }
+   
    /**
-    * Parses the children of this element
+    * Parse child elements containing: <ul>
+    *   <li> &lt;fragment&gt; referencing only elements below
+    *   <li> &lt;intOption&gt;
+    *   <li> &lt;bitmaskOption&gt;
+    *   <li> &lt;floatOption&gt; 
+    *   <li> &lt;binaryOption&gt; 
+    *   <li> &lt;irqOption&gt; 
+    *   <li> &lt;choiceOption&gt; 
+    *   <li> &lt;stringOption&gt; 
+    *   <li> &lt;numericListOption&gt; 
+    *   <li> &lt;pinListOption&gt; 
+    *   <li> &lt;aliasOption&gt; 
+    *   <li> &lt;constant&gt; 
+    *   <li> &lt;section&gt; 
+    *   <li> &lt;tab&gt; 
+    *   <li> &lt;signals&gt; 
+    *   <li> Control items...
+    *</ul>
+    *   
+    * Elements found are added as children of the parentModel
     * 
     * @param  parentModel  Model to attach children to
     * @param  menuElement  Menu element to parse
@@ -650,89 +730,124 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception
     */
    void parseChildModels(BaseModel parentModel, Element menuElement) throws Exception {
-
       for (Node node = menuElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
          if (node.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
-         Element element = (Element) node;
+         Element element    = (Element) node;
+         parseChildModel(parentModel, element);
+      }
+   }
 
-         //         System.err.println("parseChildModels(): " + element.getTagName() + ", " + element.getAttribute("name"));
-         if (element.getTagName() == "fragment") {
-            parseChildModels(parentModel, element);
-         }
-         else if (element.getTagName() == "category") {
-            String name        = element.getAttribute("name");
-            String description = element.getAttribute("description");
-            String toolTip     = element.getAttribute("toolTip");
+      /**
+       * Parse element containing: <ul>
+       *   <li> &lt;fragment&gt; referencing only elements below
+       *   <li> &lt;intOption&gt;
+       *   <li> &lt;bitmaskOption&gt;
+       *   <li> &lt;floatOption&gt; 
+       *   <li> &lt;binaryOption&gt; 
+       *   <li> &lt;irqOption&gt; 
+       *   <li> &lt;choiceOption&gt; 
+       *   <li> &lt;stringOption&gt; 
+       *   <li> &lt;numericListOption&gt; 
+       *   <li> &lt;pinListOption&gt; 
+       *   <li> &lt;aliasOption&gt; 
+       *   <li> &lt;constant&gt; 
+       *   <li> &lt;section&gt; 
+       *   <li> &lt;tab&gt; 
+       *   <li> &lt;signals&gt; 
+       *   <li> Control items...
+       *</ul>
+       *   
+       * Elements found are added as children of the parentModel
+       * 
+       * @param  parentModel  Model to attach children to
+       * @param  menuElement  Menu element to parse
+       * 
+       * @throws Exception
+       */
+   void parseChildModel(BaseModel parentModel, Element element) throws Exception {
+
+      String tagName     = element.getTagName();
+      String name        = element.getAttribute("name");
+      String description = element.getAttribute("description");
+      String toolTip     = getToolTip(element);
+
+      //         System.err.println("parseChildModel(): " + tagName + ", " + element.getAttribute("name"));
+      if (tagName == "fragment") {
+         parseChildModels(parentModel, element);
+      }
+      else if (tagName == "category") {
+         int dimension = getIntAttribute(element, "dim");
+         String[] descriptions = description.split(";");
+
+         if (dimension == 0) {
             BaseModel model = new CategoryModel(parentModel, name, description);
             model.setToolTip(toolTip);
             parseChildModels(model, element);
          }
-         //         else if (element.getTagName() == "section") {
-         //            String name        = element.getAttribute("name");
-         //            String toolTip     = element.getAttribute("toolTip");
-         //            BaseModel model = new SectionModel(parentModel, name, toolTip);
-         //            parseChildModels(model, element);
-         //         }
-         //         else if (element.getTagName() == "tab") {
-         //            String name        = element.getAttribute("name");
-         //            String toolTip     = element.getAttribute("toolTip");
-         //            BaseModel model = new TabModel(parentModel, name, toolTip);
-         //            parseChildModels(model, element);
-         //         }
-         else if (element.getTagName() == "intOption") {
-            parseLongOption(parentModel, element);
-         }
-         else if (element.getTagName() == "bitmaskOption") {
-            parseBitmaskOption(parentModel, element);
-         }
-         else if (element.getTagName() == "floatOption") {
-            parseDoubleOption(parentModel, element);
-         }
-         else if (element.getTagName() == "binaryOption") {
-            parseBinaryOption(parentModel, element);
-         }
-         else if (element.getTagName() == "irqOption") {
-            parseIrqOption(parentModel, element);
-         }
-         else if (element.getTagName() == "choiceOption") {
-            parseChoiceOption(parentModel, element);
-         }
-         else if (element.getTagName() == "stringOption") {
-            parseStringOption(parentModel, element);
-         }
-         else if (element.getTagName() == "numericListOption") {
-            parseNumericListOption(parentModel, element);
-         }
-         else if (element.getTagName() == "pinListOption") {
-            parsePinListOption(parentModel, element);
-         }
-         else if (element.getTagName() == "aliasOption") {
-            parseAliasOption(parentModel, element);
-         }
-         else if (element.getTagName() == "constant") {
-            parseConstant(parentModel, element);
-         }
-         else if (element.getTagName() == "section") {
-            BaseModel model = new ParametersModel(parentModel, "Title", "Section");
-            parseChildModels(model, element);
-         }
-         else if (element.getTagName() == "tab") {
-            BaseModel model = new ParametersModel(parentModel, "Title", "Section");
-            parseChildModels(model, element);
-         }
-         else if (element.getTagName() == "signals") {
-            parseSignalsOption(parentModel, element);
-         }
-         else if (element.getTagName() == "fragment") {
-            parseChildModels(parentModel, element);
-         }
          else {
-            parseControlItem( element);
+            for (int index=0; index<2; index++) {
+               CategoryModel model = new CategoryModel(parentModel, name+"#"+index, descriptions[index]);
+               fProvider.setIndex(index);
+               model.setToolTip(toolTip);
+               parseChildModels(model, element);
+            }
+            fProvider.setIndex(0);
          }
+      }
+      else if (tagName == "intOption") {
+         parseLongOption(parentModel, element);
+      }
+      else if (tagName == "bitmaskOption") {
+         parseBitmaskOption(parentModel, element);
+      }
+      else if (tagName == "floatOption") {
+         parseDoubleOption(parentModel, element);
+      }
+      else if (tagName == "binaryOption") {
+         parseBinaryOption(parentModel, element);
+      }
+      else if (tagName == "irqOption") {
+         parseIrqOption(parentModel, element);
+      }
+      else if (tagName == "choiceOption") {
+         parseChoiceOption(parentModel, element);
+      }
+      else if (tagName == "stringOption") {
+         parseStringOption(parentModel, element);
+      }
+      else if (tagName == "numericListOption") {
+         parseNumericListOption(parentModel, element);
+      }
+      else if (tagName == "pinListOption") {
+         parsePinListOption(parentModel, element);
+      }
+      else if (tagName == "aliasOption") {
+         parseAliasOption(parentModel, element);
+      }
+      else if (tagName == "constant") {
+         parseConstant(parentModel, element);
+      }
+      else if (tagName == "section") {
+         BaseModel model = new ParametersModel(parentModel, name, toolTip);
+         parseChildModels(model, element);
+      }
+      else if (tagName == "tab") {
+         BaseModel model = new ParametersModel(parentModel, name, toolTip);
+         parseChildModels(model, element);
+      }
+      else if (tagName == "list") {
+         BaseModel model = new ListModel(parentModel, name);
+         parseSectionsOrOther(model, element);
+      }
+      else if (tagName == "signals") {
+         parseSignalsOption(parentModel, element);
+      }
+      else {
+         parseControlItem( element);
       }
    }
 
@@ -748,7 +863,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @throws Exception 
     */
    private void addTemplate(String key, String namespace, Variable dimension, String contents) throws Exception {
-      key = Data.makeKey(key, namespace);
+      key = MenuData.makeKey(key, namespace);
 
       // Check for existing template
       StringBuilder sb = fTemplates.get(key);
@@ -772,10 +887,10 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element
     */
    private void parseSignalsOption(BaseModel parentModel, Element element) {
-      Peripheral peripheral = fProvider;
+      Peripheral peripheral = fPeripheral;
       String peripheralName = element.getAttribute("name");
       if (!peripheralName.isEmpty()) {
-         peripheral = fProvider.getDeviceInfo().getPeripherals().get(peripheralName);
+         peripheral = fPeripheral.getDeviceInfo().getPeripherals().get(peripheralName);
       }
       if (peripheral != null) {
          if (fPinModel == null) {
@@ -825,10 +940,10 @@ public class ParseMenuXML extends XML_BaseParser {
           */
          Variable otherVariable = getDerived(menuElement);
          if (otherVariable == null) {
-            throw new RuntimeException("No choices found in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
+            throw new Exception("No choices found in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
          }
          if (otherVariable.getClass() != variable.getClass()) {
-            throw new RuntimeException("Referenced variable of wrong type <"+menuElement.getTagName() + " derivedFrom=\"" + variable.getName()+ "\">");
+            throw new Exception("Referenced variable of wrong type <"+menuElement.getTagName() + " derivedFrom=\"" + variable.getName()+ "\">");
          }
          if (variable instanceof BooleanVariable) {
             BooleanVariable otherVar = (BooleanVariable) otherVariable;
@@ -849,7 +964,7 @@ public class ParseMenuXML extends XML_BaseParser {
       else {
          if (variable instanceof BooleanVariable) {
             if (entries.size()>2) {
-               throw new RuntimeException("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
+               throw new Exception("Wrong number of choices in <"+menuElement.getTagName() + " name=\"" + variable.getName()+ "\">");
             }
             BooleanVariable var = (BooleanVariable) variable;
             var.setFalseValue(entries.get(0));
@@ -865,7 +980,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
-   public static class Validator {
+   public static class ValidatorInformation {
       private String            fClassName;
       private ArrayList<Object> fParams = new ArrayList<Object>();
 
@@ -874,7 +989,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @param className Name of class
        */
-      Validator(String className) {
+      ValidatorInformation(String className) {
          fClassName = className;
       }
       /**
@@ -909,15 +1024,19 @@ public class ParseMenuXML extends XML_BaseParser {
     * Parse &lt;validate&gt; element<br>
     * 
     * @param validateElement
+    * @throws Exception 
     */
-   private Validator parseValidate(Element validateElement) {
+   private ValidatorInformation parseValidate(Element validateElement) throws Exception {
       //      System.err.println("================================");
-      Map<String, String> paramMap = fProvider.getParamMap();
+      Map<String, String> paramMap = null;
+      if (fPeripheral != null) {
+         paramMap = fPeripheral.getParamMap();
+      }
       //      for (String k:paramMap.keySet()) {
       //         System.err.println(k + " => " + paramMap.get(k));
       //      }
       //      System.err.println("================================");
-      Validator validator = new Validator(validateElement.getAttribute("class"));
+      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"));
       for (Node node = validateElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -926,8 +1045,12 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == "param") {
-            String  type = element.getAttribute("type");
-            String value = fProvider.substitute(element.getAttribute("value"), paramMap);
+            String type  = element.getAttribute("type");
+            String value = element.getAttribute("value");
+            if (paramMap != null) {
+               // Do substitutions on parameter if a map available
+               value = fProvider.substitute(value, paramMap);
+            }
             if (type.equalsIgnoreCase("long")) {
                validator.addParam(EngineeringNotation.parseAsLong(value));
             }
@@ -935,63 +1058,104 @@ public class ParseMenuXML extends XML_BaseParser {
                validator.addParam(value);
             }
             else {
-               throw new RuntimeException("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
+               throw new Exception("Unexpected type in <validate>, value = \'"+element.getTagName()+"\'");
             }
          }
          else {
-            throw new RuntimeException("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
+            throw new Exception("Unexpected field in <validate>, value = \'"+element.getTagName()+"\'");
          }
       }
       return validator;
    }
 
-   //   /**
-   //    * Parse: <br>
-   //    *    &lt;fragment&gt;<br>
-   //    *    &lt;devicePage&gt;<br>
-   //    *    &lt;menu&gt;<br>
-   //    * 
-   //    * @param menuElement
-   //    * 
-   //    * @throws Exception 
-   //    */
-   //   private void parseSections(BaseModel parent, Element sectionsElement) throws Exception {
-   //      for (Node node = sectionsElement.getFirstChild();
-   //            node != null;
-   //            node = node.getNextSibling()) {
-   //         if (node.getNodeType() != Node.ELEMENT_NODE) {
-   //            continue;
-   //         }
-   //         Element element = (Element) node;
-   //         if (element.getTagName() == "section") {
-   //            BaseModel model = new ParametersModel(parent, "Title", "Section");
-   //            parseChildModels(model, element);
-   //         }
-   //         else if (element.getTagName() == "tab") {
-   //            BaseModel model = new TabModel(parent, "Title", "Tab");
-   //            parseChildModels(model, element);
-   //         }
-   //         else {
-   //            throw new RuntimeException("Unexpected field in <sections>, value = \'"+element.getTagName()+"\'");
-   //         }
-   //      }
-   //   }
-
    /**
     * Parse: <br>
-    *    &lt;devicePage&gt;<br>
+    *    &lt;peripheralPage&gt;<br>
+    *    &lt;list&gt;<br>
+    *    &lt;section&gt;<br>
+    *    &lt;tab&gt;<br>
+    *    &lt;fragment&gt;<br>
     * 
     * @param menuElement
     * 
     * @throws Exception 
     */
-   private BaseModel parseSectionsOrOther(BaseModel parent, Element topElement) throws Exception {
+   private BaseModel parseSectionsOrOther(BaseModel parent, Element element) throws Exception {
 
+      String name = element.getAttribute("name");
+      if (name.equalsIgnoreCase("_instance")) {
+         name = fProvider.getName();
+      }
+//      String description = element.getAttribute("description");
+      String toolTip     = getToolTip(element);
+
+      BaseModel model = null;
+      
+      if (element.getTagName() == "fragment") {
+         /*
+          * Parse fragment as if it was a continuation of the parent elements
+          * This handles fragments that just include a href= include a <peripheralPage>
+          */
+         for (Node subNode = element.getFirstChild();
+               subNode != null;
+               subNode = subNode.getNextSibling()) {
+            if (subNode.getNodeType() != Node.ELEMENT_NODE) {
+               continue;
+            }
+            model = parseSectionsOrOther(parent, (Element) subNode);
+         }
+      }
+      else if (element.getTagName() == "section") {
+         model = new SectionModel(parent, name, toolTip);
+         parseSectionsOrOtherContents(model, element);
+      }
+      else if (element.getTagName() == "tab") {
+         model = new TabModel(parent, name, toolTip);
+         parseSectionsOrOtherContents(model, element);
+      }
+      else if (element.getTagName() == "list") {
+         BaseModel tModel = new ListModel(parent, name);
+         parseSectionsOrOtherContents(tModel, element);
+         parent.addChild(tModel);
+      }
+      else {
+         throw new Exception("Expected <section>, <tab> or <list>, found = \'"+element.getTagName()+"\'");
+      }
+      //      else {
+      //         if (model == null) {
+      //            model = new ParametersModel(parent, name, description);
+      //            parseChildModels(model, topElement);
+      //            break;
+      //         }
+      //         else {
+      //            parseControlItem(element);
+      //         }
+      //      }
+      
+      return model;
+   }
+   
+   /**
+    * Parse: <br>
+    *    &lt;peripheralPage&gt;<br>
+    *    &lt;list&gt;<br>
+    *    &lt;section&gt;<br>
+    *    &lt;tab&gt;<br>
+    *    &lt;fragment&gt;<br>
+    * 
+    * @param menuElement
+    * 
+    * @throws Exception 
+    */
+   private BaseModel parseSectionsOrOtherContents(BaseModel parent, Element topElement) throws Exception {
+      
       String name = topElement.getAttribute("name");
       if (name.equalsIgnoreCase("_instance")) {
          name = fProvider.getName();
       }
-      String description = topElement.getAttribute("description");
+//      String tagName = topElement.getTagName();
+//      System.err.println("parseSectionsOrOther(<" + tagName + " name="+ name + ">)");
+//      String description = topElement.getAttribute("description");
       String toolTip     = getToolTip(topElement);
 
       BaseModel model = null;
@@ -1003,27 +1167,35 @@ public class ParseMenuXML extends XML_BaseParser {
             continue;
          }
          Element element = (Element) node;
-         if (element.getTagName() == "section") {
-            if (model == null) {
-               model = new SectionModel(parent, name, toolTip);
+         String tagName = element.getTagName();
+//         System.err.println("AT " + element.getTagName());
+         if (tagName == "fragment") {
+            /*
+             * Parse fragment as if it was a continuation of the parent elements
+             */
+            parseSectionsOrOtherContents(parent, element);
+         }
+         else if (tagName == "section") {
+            if (model != null) {
+               throw new Exception("Multiple top-level elements found "+ tagName);
             }
+            model = new SectionModel(parent, name, toolTip);
             parseSectionsOrOther(model, element);
          }
-         else if (element.getTagName() == "tab") {
-            if (model == null) {
-               model = new TabModel(parent, name, toolTip);
+         else if (tagName == "tab") {
+            if (model != null) {
+               throw new Exception("Multiple top-level elements found "+ tagName);
             }
+            model = new TabModel(parent, name, toolTip);
             parseSectionsOrOther(model, element);
+         }
+         else if (tagName == "list") {
+            BaseModel tModel = new ListModel(parent, name);
+            parseSectionsOrOther(tModel, element);
+            parent.addChild(tModel);
          }
          else {
-            if (model == null) {
-               model = new ParametersModel(parent, name, description);
-               parseChildModels(model, topElement);
-               break;
-            }
-            else {
-               parseControlItem(element);
-            }
+            parseChildModel(parent, element);
          }
       }
       return model;
@@ -1031,30 +1203,50 @@ public class ParseMenuXML extends XML_BaseParser {
 
    /**
     * Parse: <br>
-    *    &lt;fragment&gt;<br>
-    *    &lt;devicePage&gt;<br>
-    * 
-    * @param menuElement
-    * 
-    * @throws Exception 
+    * <ul>
+    *    <li>&lt;fragment&gt; referencing a one of the below elements<br>
+    *    <li>&lt;peripheralPage&gt;<br>
+    *    <li>&lt;list&gt;<br>
+    * </ul>
+    * @param element    Element to parse
+    *     
+    * @throws Exception
     */
-   private void parsePage(BaseModel parent, Element element) throws Exception {
-      //      String name = element.getAttribute("name");
-      //      if (name.equalsIgnoreCase("MCG")) {
-      //         System.err.println("MCG");
-      //      }
-      if (element.getTagName() == "fragment") {
+   private void parsePage(Element element) throws Exception {
+      
+      String name = element.getAttribute("name");
+      if (name.equalsIgnoreCase("_instance")) {
+         name = fProvider.getName();
+      }
+//      System.err.println("parsePage(<" + element.getTagName() + " name="+ name + ">)");
+
+      String tooltip = getToolTip(element);
+      
+      String tagName = element.getTagName();
+      if (tagName == "fragment") {
+         /*
+          * Parse fragment as if it was a continuation of the parent elements
+          * This handles fragments that just include a href include a <peripheralPage>
+          */
          for (Node node = element.getFirstChild();
                node != null;
                node = node.getNextSibling()) {
             if (node.getNodeType() != Node.ELEMENT_NODE) {
                continue;
             }
-            parsePage(parent, (Element) node);
+            parsePage((Element) node);
          }
       }
+      else if (tagName == "peripheralPage") {
+         fRootModel = new ParametersModel(null, name, tooltip);
+         parseSectionsOrOtherContents(fRootModel, element);
+      }
+      else if (tagName == "list") {
+         fRootModel = new ListModel(null, name);
+         parseSectionsOrOtherContents(fRootModel, element);
+      }
       else {
-         fRootModel = parseSectionsOrOther(null, element);
+         throw new Exception("Expected <peripheralPage> or <list>");
       }
    }
 
@@ -1089,85 +1281,145 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
    /**
+    * Parse configuration from document
     * 
-    * @param document
-    * @param parent
-    * @param provider
-    * @return
+    * @param document   Document to parse
+    * @param provider   Provides the variables. New variables will be added to this provider
+    * @param peripheral Peripheral associated with this document (if any)
+    * 
+    * @return MenuData containing parsed data
+    * 
     * @throws Exception
     */
-   private static Data parse(Document document, BaseModel parent, PeripheralWithState provider) throws Exception {
+   private static MenuData parse(Document document, VariableProvider provider, PeripheralWithState peripheral) throws Exception {
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
       }
-      ParseMenuXML parser = new ParseMenuXML(provider);
+      ParseMenuXML parser = new ParseMenuXML(provider, peripheral);
+//      document.getDocumentElement();
       for (Node child = document.getFirstChild(); child != null; child = child.getNextSibling()) {
          if (child.getNodeType() != Node.ELEMENT_NODE) {
             continue;
          }
          Element element = (Element) child;
 //         System.err.println("parse(): " + element.getTagName() + ", " + element.getAttribute("name"));
-         parser.parsePage(parent, element);
+         parser.parsePage(element);
       }
       if (parser.fRootModel == null) {
-         throw new Exception("No <devicePage> found in XML");
+         throw new Exception("No <peripheralPage> found in XML");
       }
       HashMap<String, CodeTemplate> templates = new HashMap<String, CodeTemplate>();
       for (String key:parser.fTemplates.keySet()) {
          templates.put(key, new CodeTemplate(parser.fTemplates.get(key).toString(), parser.fTemplateDimensions.get(key)));
       }
-      return new Data(parser.fRootModel, templates, parser.fValidators, parser.fProjectActionList);
+      return new MenuData(parser.fRootModel, templates, parser.fValidators, parser.fProjectActionList);
    }
 
    /**
+    * Locate configuration file in USBDM installation
+    * 
+    * @param name Name of file to find
+    * 
+    * @return Path to file
+    * 
+    * @throws Exception if file not found
+    */
+   static Path locateFile(String name) throws Exception {
+      
+      // Add USBDM hardware path
+      Path path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name);
+
+//      System.err.println("Looking in " + path);
+      // For debug try local directory
+      if (Files.isRegularFile(path)) {
+         return path;
+      }
+      // Look in USBDM installation
+      try {
+         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+      } catch (UsbdmException e) {
+         throw new Exception("Failed to find hardware file for '"+ name + "'", e);
+      }
+//      System.err.println("Looking in " + path);
+      if (!Files.isRegularFile(path)) {
+         throw new Exception("Failed to find hardware file for '"+ name + "'");
+      }
+      return path;
+   }
+   
+   /**
     * Parses document from top element
     * 
-    * @param name       Name of model (filename)
-    * @param parent     Parent for model
-    * @param provider   Provider for variables used etc.
+    * @param name         Name of peripheral (used for peripheral file name e.g. adc0_diff_a => adc0_diff_a.xml
+    * @param peripheral   Provides the variables. New variables will be added to this peripheral
     * 
-    * @return Data from model or null if no associated file found
+    * @return Data from model
     * @throws Exception 
     * 
     * Looks for the file in the following locations in order:
-    * <li>Relative path : Hardware/peripherals
     * <li>Relative path : Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
-    * <li>Relative path : "USBDM Resource Path"Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
+    * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
-   public static Data parseFile(String name, BaseModel parent, PeripheralWithState provider) throws Exception {
+   public static MenuData parsePeriperalFile(String name, PeripheralWithState peripheral) throws Exception {
       fName = name;
+      MenuData fData;
       try {
          // For debug try local directory
-         Path path = Paths.get("Hardware/Peripherals").resolve(name+".xml");
-         if (!Files.isRegularFile(path)) {
-            // Try testing debug relative path
-            path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+"/peripherals/"+name+".xml");
-         }
-         if (!Files.isRegularFile(path)) {
-            // Look in USBDM installation
-            path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
-         }
-         if (!Files.isRegularFile(path)) {
-            System.err.println("Warning: failed to find hardware file for "+ name);
-            return null;
-         }
-         return parse(XML_BaseParser.parseXmlFile(path), parent, provider);
+         Path path = locateFile(name+".xml");
+         fData = parse(XML_BaseParser.parseXmlFile(path), peripheral, peripheral);
       } catch (Exception e) {
-         throw new Exception("Failed to parse "+name, e);
+//         e.printStackTrace();
+         throw new Exception("Failed to process peripheral file for "+name, e);
       }
+      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
+         try {
+            // Get validator class
+            Class<?> clazz = Class.forName(v.getClassName());
+            Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass());
+            PeripheralValidator validator = (PeripheralValidator) constructor.newInstance(peripheral, v.getParams());
+            peripheral.addValidator(validator);
+         } catch (Exception e) {
+            throw new Exception("Failed to add validator "+v.getClassName()+" for PeripheralWithState " + peripheral.getName(), e);
+         }
+      }
+      return fData;
    }
 
    /**
     * Parses document from top element
-    * @param models 
-    * @param deviceInfo 
-    * @return 
     * 
-    * @throws Exception
+    * @param name                Name of file
+    * @param variableProvider    Provides the variables. New variables will be added to this provider
+    * @param peripheral          Peripheral associated with this document (if any)
+    * 
+    * @return Data from model
+    * 
+    * Looks for the file in the following locations in order:
+    * <li>Relative path : Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
+    * <li>Relative path : "USBDM Resource Path"/Stationery/Packages/180.ARM_Peripherals/Hardware/peripherals
     */
-   public static Data parseString(String xmlString, BaseModel parent, PeripheralWithState provider) throws Exception {
-      return parse(XML_BaseParser.parseXmlString(xmlString, Paths.get("")), parent, provider);
+   public static MenuData parseMenuFile(String name, VariableProvider variableProvider) throws Exception {
+      fName = name;
+      MenuData fData;
+      try {
+         // For debug try local directory
+         Path path = locateFile(name+".xml");
+         fData = parse(XML_BaseParser.parseXmlFile(path), variableProvider, null);
+      } catch (Exception e) {
+         throw new Exception("Failed to parse "+name+".xml", e);
+      }
+      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
+         try {
+            // Get validator class
+            Class<?> clazz = Class.forName(v.getClassName());
+            Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass());
+            Validator validator = (Validator) constructor.newInstance(variableProvider, v.getParams());
+            variableProvider.addValidator(validator);
+         } catch (Exception e) {
+            throw new Exception("Failed to add validator "+v.getClassName()+" for VariableProvider " + variableProvider.getName(), e);
+         }
+      }
+      return fData;
    }
-
 }

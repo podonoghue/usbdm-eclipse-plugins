@@ -14,7 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     uart_mk
  */
-public class UartValidate extends Validator {
+public class UartValidate extends PeripheralValidator {
 
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {

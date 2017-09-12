@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     lcd_mkl
  */
-public class LcdValidate extends Validator {
+public class LcdValidate extends PeripheralValidator {
    
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
@@ -59,7 +59,7 @@ public class LcdValidate extends Validator {
       PinListVariable  frontplanesVar      =  (PinListVariable) getVariable("frontplanes");
       
       int mappedPinCount = 0;
-      Vector<Signal> table = fPeripheral.getSignalTables().get(0).table;
+      Vector<Signal> table = getPeripheral() .getSignalTables().get(0).table;
       for (int pinIndex=0; pinIndex<table.size(); pinIndex++) {
          Signal entry = table.get(pinIndex);
          if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {

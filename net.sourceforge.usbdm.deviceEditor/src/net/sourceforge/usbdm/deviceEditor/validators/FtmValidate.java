@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class FtmValidate extends Validator {
+public class FtmValidate extends PeripheralValidator {
    
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {

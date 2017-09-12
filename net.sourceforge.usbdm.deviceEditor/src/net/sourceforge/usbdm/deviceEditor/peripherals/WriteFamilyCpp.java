@@ -142,6 +142,8 @@ public class WriteFamilyCpp {
             "};\n\n"
             );
       
+      fDeviceInfo.writeNamespaceInfo(writer);
+
       writer.writeBanner("Peripheral Information Classes");
 
       DocumentationGroups groups = new DocumentationGroups(writer);

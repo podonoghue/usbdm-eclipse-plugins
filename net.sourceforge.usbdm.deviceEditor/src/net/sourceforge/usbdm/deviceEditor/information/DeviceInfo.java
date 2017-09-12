@@ -21,12 +21,17 @@ import org.eclipse.core.runtime.SubMonitor;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
+import net.sourceforge.usbdm.deviceEditor.model.DeviceInformationModel;
 import net.sourceforge.usbdm.deviceEditor.model.DevicePackageModel;
 import net.sourceforge.usbdm.deviceEditor.model.DeviceVariantModel;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyCpp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForAdc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
@@ -72,12 +77,14 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsFactory;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
-public class DeviceInfo extends ObservableModel {
+public class DeviceInfo extends ObservableModel implements IModelEntryProvider, IModelChangeListener {
 
    /** Version number */
    public static final String VERSION           = "1.2.0";
@@ -133,8 +140,13 @@ public class DeviceInfo extends ObservableModel {
    /** Key for hardware source file persistence */
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "$$Hardware_Source_Filename"; 
 
-   /** Map of variables for this peripheral */
+   /** Map of variables for all peripherals */
    private final HashMap<String, Variable> fVariables = new HashMap<String, Variable>();
+
+   /** Data obtained from the Menu description file */
+   private MenuData fMenuData;
+
+   private VariableProvider fVariableProvider = null;
 
    /**
     * Create empty device information
@@ -287,24 +299,35 @@ public class DeviceInfo extends ObservableModel {
          ParseFamilyXML parser = new ParseFamilyXML();
          parser.parseFile(this, fHardwarePath);
 
-         ArrayList<PeripheralWithState> PeripheralWithStateList = new ArrayList<PeripheralWithState>();
+         fVariableProvider = new VariableProvider("Common Settings", this) {
+            // Add change lister to mark editor dirty
+            @Override
+            public void addVariable(Variable variable) {
+               super.addVariable(variable);
+               variable.addListener(DeviceInfo.this);
+            }
+         };
+         
+         fMenuData = ParseMenuXML.parseMenuFile("_common_settings", fVariableProvider);
+         
+         ArrayList<PeripheralWithState> peripheralWithStateList = new ArrayList<PeripheralWithState>();
          
          // Construct list of all PeripheralWithState
          for (String name:fPeripheralsMap.keySet()) {
             Peripheral p = fPeripheralsMap.get(name);
             if (p instanceof PeripheralWithState) {
-               PeripheralWithStateList.add((PeripheralWithState) fPeripheralsMap.get(name));
+               peripheralWithStateList.add((PeripheralWithState) fPeripheralsMap.get(name));
             }
          }
          // Sort in priority order
-         Collections.sort(PeripheralWithStateList, new Comparator<PeripheralWithState>() {
+         Collections.sort(peripheralWithStateList, new Comparator<PeripheralWithState>() {
             @Override
             public int compare(PeripheralWithState o1, PeripheralWithState o2) {
                return o2.getPriority()-o1.getPriority();
             }
          });
          // Construct
-         for (PeripheralWithState p:PeripheralWithStateList) {
+         for (PeripheralWithState p:peripheralWithStateList) {
             if (p instanceof PeripheralWithState) {
 //               System.err.println("Constructing " + p);
                ((PeripheralWithState) p).loadModels();
@@ -1438,6 +1461,23 @@ public class DeviceInfo extends ObservableModel {
       return null;
    }
 
+   Path locateFile(String name) {
+      // Try local (debug) directory first
+      Path path = Paths.get(DeviceInfo.USBDM_HARDWARE_LOCATION+name);
+      if (!Files.isRegularFile(path)) {
+         // Look in USBDM installation
+         try {
+            path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+         } catch (UsbdmException e) {
+            e.printStackTrace();
+         }
+      }
+      if (!Files.isRegularFile(path)) {
+         System.err.println("Warning: failed to find file "+ name);
+         return null;
+      }
+      return path;
+   }
    /**
     * Load persistent settings
     */
@@ -1449,19 +1489,14 @@ public class DeviceInfo extends ObservableModel {
          }
          String deviceName = settings.get(DEVICE_NAME_SETTINGS_KEY);
          if (deviceName != null) {
+            /*
+             * Load device settings:
+             *   - template values for examples
+             */
             setDeviceName(deviceName);
-            try {
-               ParseMenuXML.parseFile("symbols/"+deviceName, null, new PeripheralWithState("Symbols", "", this) {
-                  @Override
-                  public String getTitle() {
-                     return null;
-                  }
-
-                  @Override
-                  public void elementStatusChanged(ObservableModel observableModel) {
-                  }
-               });
-            } catch (Exception e) {
+            Path path = locateFile("/peripherals/symbols/"+deviceName+".xml");
+            if (path != null) {
+               settings.load(path);
             }
          }
          for (String pinName:fPins.keySet()) {
@@ -1472,16 +1507,24 @@ public class DeviceInfo extends ObservableModel {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
          }
-         // Quietly set values of persistent variables
-         for (String key:fVariables.keySet()) {
-            String value = settings.get(key);
-            if (value != null) {
-               Variable var = fVariables.get(key);
+         for (String key:settings.getKeys()) {
+            Variable var = fVariables.get(key);
+            String   value = settings.get(key);
+            if (var != null) {
                if (!var.isDerived()) {
                   var.setPersistentValue(value);
+//                  System.err.println("Setting Variable "+key+" to "+value);
                }
             }
+            else if (!key.startsWith("$")) {
+//               System.err.println("Creating Variable "+key+" to "+value);
+               var = new StringVariable(key, key);
+               var.setPersistentValue(value);
+               var.setDerived(true);
+               addVariable(key, var);
+            }
          }
+         
 //         System.err.println("Notify changes of persistent variables");
          /*
           * Notify changes of persistent variables, 
@@ -1514,8 +1557,8 @@ public class DeviceInfo extends ObservableModel {
                if (!var.isDerived()) {
                   if (!var.getPersistentValue().equals(value)) {
                      System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getName());
-                     System.err.println("Set value     = " + value);
-                     System.err.println("Current value = " + var.getPersistentValue());
+                     System.err.println("Current value    = " + value);
+                     System.err.println("Persistent value = " + var.getPersistentValue());
                   }
                }
             }
@@ -1671,6 +1714,7 @@ public class DeviceInfo extends ObservableModel {
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
+      regenerateProjectFiles(processProjectActions, null, new NullProgressMonitor());
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
@@ -1700,6 +1744,7 @@ public class DeviceInfo extends ObservableModel {
       FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, monitor);
       
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
+      regenerateProjectFiles(processProjectActions, project, monitor);
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
@@ -1829,6 +1874,11 @@ public class DeviceInfo extends ObservableModel {
       return variable;
    }
 
+   @Override
+   public Variable safeGetVariable(String key) {
+      return fVariables.get(key);
+   }
+
    /**
     * Set value of variable
     * 
@@ -1857,4 +1907,70 @@ public class DeviceInfo extends ObservableModel {
       }
       return map;
    }
+
+   /**
+    * Get Menu data for Device page
+    * @return
+    */
+   public MenuData getData() {
+      return fMenuData;
+   }
+
+   @Override
+   public BaseModel getModels(BaseModel parent) {
+      return new DeviceInformationModel(parent, this);
+   }
+
+   /**
+    * Does variable substitution in a string using the device variable map
+    * 
+    * @param input  String to process
+    * 
+    * @return Modified string or original if no changes
+    */
+   private String substitute(String input) {
+      Map<String, String> map = getSimpleSymbolMap();
+      return fVariableProvider.substitute(input, map);
+   }
+   
+   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+      if (fMenuData == null) {
+         return;
+      }
+      String template = fMenuData.getTemplate("usbdm", "");
+      if ((template != null) && (!template.isEmpty())) {
+         documentUtilities.write(substitute(template));
+      }
+   }
+
+   /**
+    * @param processProjectActions 
+    * @param project
+    * @param monitor
+    * 
+    * @throws Exception
+    */
+   public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
+      if (fMenuData == null) {
+         return;
+      }
+      Map<String, String> symbolMap = getSimpleSymbolMap();
+      processProjectActions.process(project, fMenuData.getProjectActionList(), symbolMap, monitor);
+   }
+
+   @Override
+   public void modelElementChanged(ObservableModel observableModel) {
+      setDirty(true);
+   }
+
+   @Override
+   public void modelStructureChanged(ObservableModel observableModel) {
+      setDirty(true);
+   }
+
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+      setDirty(true);
+   }
+
 }

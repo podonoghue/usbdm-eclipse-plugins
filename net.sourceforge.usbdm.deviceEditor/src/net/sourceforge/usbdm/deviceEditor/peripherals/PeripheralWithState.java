@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
@@ -21,10 +20,9 @@ import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
-import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.CodeTemplate;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.Data;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -33,8 +31,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    public static final String IRQ_HANDLER_INSTALLED_SYMBOL = "irqHandlingMethod";
 
-   /** Data about model loaded from file */
-   protected Data fData = null;
+   /** Data obtained from the Menu description file */
+   protected MenuData fMenuData = null;
    
    /** Map of parameters for peripheral */
    protected HashMap<String, String> fParamMap = new HashMap<String,String>();
@@ -47,46 +45,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 //      System.err.println("Creating "+basename+instance+" "+this.getClass());
    }
 
-   private final class KeyMaker implements IKeyMaker {
-      @Override
-      public String makeKey(String name) {
-         if (name.charAt(0) == '/') {
-            return name;
-         }
-         return "/"+getName()+"/"+name;
-      }
-   }
-   
-   private final class IndexKeyMaker implements IKeyMaker {
-//      private final String fIndex;
-      
-      public IndexKeyMaker(int index) {
-//         fIndex = "[" + index + "]";
-      }
-      @Override
-      public String makeKey(String name) {
-         if (name.charAt(0) == '/') {
-            return name;
-         }
-         return "/"+getName()+"/"+name;
-      }
-   }
-   
-   private final KeyMaker keyMaker = new KeyMaker();
-
-   /**
-    * Get key for variable owned by this peripheral
-    * 
-    * @param name
-    * 
-    * @return key for the name<br>
-    * If the name is relative then the key will be prefixed with the peripheral path (e.g. ClockFreq => /PDB/ClockFreq)<br>
-    * Otherwise the original name is returned as the key unchanged (e.g. /SIM/system_bus_clock would be unchanged)
-    */
-   public String makeKey(String name) {
-      return keyMaker.makeKey(name);
-   }
-
    /**
     * Load the models and validators for this class of peripheral
     * 
@@ -95,32 +53,32 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public void loadModels() throws Exception {
       try {
-         fData = ParseMenuXML.parseFile(getPeripheralModelName(), null, this);
+         fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralModelName(), this);
       } catch (Exception e) {
-         throw new Exception("Failed to load model "+getPeripheralModelName()+" for Peripheral " + getName(), e);
+         System.err.println("Warning: Failed to load model "+getPeripheralModelName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }
-      if (fData == null) {
+      if (fMenuData == null) {
          return;
       }
-      for (ParseMenuXML.Validator v:fData.getValidators()) {
-         try {
-            String className = v.getClassName();
-            // Get validator class
-            Class<?> clazz = Class.forName(className);
-            Validator validatorClass = (Validator) clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass()).newInstance(this, v.getParams());
-            addValidator(validatorClass);
-         } catch (Exception e) {
-            throw new Exception("Failed to add validator "+v.getClassName()+" for Peripheral " + getName(), e);
-         }
-      }
+//      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
+//         try {
+//            String className = v.getClassName();
+//            // Get validator class
+//            Class<?> clazz = Class.forName(className);
+//            PeripheralValidator validatorClass = (PeripheralValidator) clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass()).newInstance(this, v.getParams());
+//            addValidator(validatorClass);
+//         } catch (Exception e) {
+//            throw new Exception("Failed to add validator "+v.getClassName()+" for Peripheral " + getName(), e);
+//         }
+//      }
    }
 
    @Override
    public BaseModel getModels(BaseModel parent) {
-      if (fData == null) {
+      if (fMenuData == null) {
          return null;
       }
-      BaseModel model = fData.getRootModel();
+      BaseModel model = fMenuData.getRootModel();
       if (model != null) {
          model.setParent(parent);
       }
@@ -135,31 +93,25 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
       pinMappingHeaderFile.write("   // Template:" + getPeripheralModelName()+"\n\n");
-      if (fData == null) {
+      if (fMenuData == null) {
 //         System.err.println("No fData for " + getName());
          return;
       }
 //      System.err.println("fData for " + getName());
       // Get default template for info class
-      String template = fData.getTemplate("info", "");
+      String template = fMenuData.getTemplate("info", "");
       if (template != null) {
          pinMappingHeaderFile.write(substitute(template));
       }
    }
    
    @Override
-   public String getTitle() {
-      // TODO Auto-generated method stub
-      return null;
-   }
-
-   @Override
    public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
       super.writeNamespaceInfo(documentUtilities);
-      if (fData == null) {
+      if (fMenuData == null) {
          return;
       }
-      String template = fData.getTemplate("usbdm", "");
+      String template = fMenuData.getTemplate("usbdm", "");
       if ((template != null) && (!template.isEmpty())) {
          documentUtilities.write(substitute(template));
       }
@@ -173,11 +125,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception
     */
    public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
-      if (fData == null) {
+      if (fMenuData == null) {
          return;
       }
       Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
-      processProjectActions.process(project, fData.getProjectActionList(), symbolMap, monitor);
+      processProjectActions.process(project, fMenuData.getProjectActionList(), symbolMap, monitor);
    }
 
    /**
@@ -191,16 +143,16 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       map.put("_instance", getInstance());
       map.put("_name",     getName());
 
-      if (fData == null) {
+      if (fMenuData == null) {
          return map;
       }
       // Load any named templates
-      for (String key:fData.getTemplates().keySet()) {
+      for (String key:fMenuData.getTemplates().keySet()) {
          if (key.isEmpty() || key.endsWith(".")) {
             // Discard unnamed templates
             continue;
          }
-         CodeTemplate fileTemplate = fData.getTemplates().get(key);
+         CodeTemplate fileTemplate = fMenuData.getTemplates().get(key);
 
          // Final template after substitutions
          String substitutedTemplate = null;
@@ -232,53 +184,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @throws Exception if variable already exists
     */
    public void addVariable(Variable variable) {
-      fDeviceInfo.addVariable(variable.getKey(), variable);
+      super.addVariable(variable);
       variable.addListener(this);
-   }
-
-   @Override
-   public void setVariableValue(String key, String value) {
-      fDeviceInfo.setVariableValue(key, value);
-   }
-
-   @Override
-   public String getVariableValue(String key) throws Exception {
-      try {
-         return fDeviceInfo.getVariableValue(key);
-      } catch (Exception e) {
-         throw new Exception("Variable error in peripheral "+getName(), e);
-      }
-   }
-
-   @Override
-   public Variable getVariable(String key) throws Exception {
-      try {
-         return fDeviceInfo.getVariable(key);
-      } catch (Exception e) {
-         throw new Exception("Variable error in peripheral "+getName()+", var="+key, e);
-      }
-   }
-
-   @Override
-   public Variable safeGetVariable(String key) {
-      try {
-         return fDeviceInfo.getVariable(key);
-      } catch (Exception e) {
-         return null;
-      }
-   }
-
-   /**
-    * Does variable substitution in a string
-    * 
-    * @param input   String to process
-    * @param map     Map of key->replacement values
-    * 
-    * @return Modified string or original if no changes
-    * @throws Exception 
-    */
-   public String substitute(String input, Map<String, String> map) {
-      return FileUtility.substitute(input, map, keyMaker);
    }
 
    /**
@@ -347,20 +254,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             // Add include file
             vectorTable.addIncludeFile(headerFileName);
          }
-      }
-   }
-   
-   ArrayList<Validator> validators = new ArrayList<Validator>();
-   
-   public void addValidator(Validator validator) {
-      validators.add(validator);
-   }
-   
-   public void variableChanged(Variable variable) {
-//      System.err.println("variableChanged()" + variable.toString());
-      fDeviceInfo.setDirty(true);
-      for (Validator v:validators) {
-         v.variableChanged(variable);
       }
    }
    

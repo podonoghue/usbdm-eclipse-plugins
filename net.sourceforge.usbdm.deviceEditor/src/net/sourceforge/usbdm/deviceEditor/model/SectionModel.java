@@ -12,11 +12,6 @@ public class SectionModel extends BaseModel implements IPage {
    }
 
    @Override
-   public void addChild(BaseModel model) {
-      super.addChild(model);
-   }
-
-   @Override
    protected void removeMyListeners() {
    }
 

@@ -12,7 +12,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     lpuart
  */
-public class LpuartValidate extends Validator {
+public class LpuartValidate extends PeripheralValidator {
    
    public LpuartValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);

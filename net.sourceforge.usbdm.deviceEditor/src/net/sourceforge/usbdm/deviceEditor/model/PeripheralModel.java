@@ -17,7 +17,7 @@ public final class PeripheralModel extends CategoryModel {
     * @param parent        Parent
     * @param peripheral    Peripheral associated with this model
     */
-   PeripheralModel(BaseModel parent, Peripheral peripheral) {
+   public PeripheralModel(BaseModel parent, Peripheral peripheral) {
       super(parent, peripheral.getName(), peripheral.getDescription());
       
       TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
@@ -27,10 +27,6 @@ public final class PeripheralModel extends CategoryModel {
             new SignalModel(this, signal);
          }
       }
-   }
-
-   @Override
-   protected void removeMyListeners() {
    }
 
 }

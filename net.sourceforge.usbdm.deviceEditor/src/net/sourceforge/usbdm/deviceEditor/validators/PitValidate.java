@@ -13,7 +13,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     pit0
  */
-public class PitValidate extends Validator {
+public class PitValidate extends PeripheralValidator {
 
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {

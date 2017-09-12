@@ -15,7 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class LptmrValidate extends Validator {
+public class LptmrValidate extends PeripheralValidator {
 
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {

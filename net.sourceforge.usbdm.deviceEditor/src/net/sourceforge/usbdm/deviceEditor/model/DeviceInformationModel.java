@@ -11,6 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 
 /**
  * Model describing the Device
@@ -31,6 +32,12 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
       new ConstantModel(this, "Hardware File", "", deviceInfo.getSourceFilename());
       new DeviceVariantModel(this, deviceInfo);
       new DevicePackageModel(this, deviceInfo);
+      MenuData menuData = deviceInfo.getData();
+
+      BaseModel model = menuData.getRootModel();
+      if (model != null) {
+         model.setParent(this);
+      }
    }
 
    @Override

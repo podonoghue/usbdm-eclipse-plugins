@@ -7,6 +7,7 @@ import java.util.Map;
 import org.eclipse.jface.viewers.StructuredViewer;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ListModel;
 
 /**
  * Base Model for tree item
@@ -142,10 +143,16 @@ public abstract class BaseModel {
     * @param model
     */
    public void addChild(BaseModel model) {
-      if (fChildren == null) {
-         fChildren = new ArrayList<Object>();
+      if (model instanceof ListModel) {
+         ListModel listModel = (ListModel) model;
+         listModel.addChildrenToParent(this);
       }
-      fChildren.add(model);
+      else {
+         if (fChildren == null) {
+            fChildren = new ArrayList<Object>();
+         }
+         fChildren.add(model);
+      }
    }
 
    /**
@@ -200,7 +207,7 @@ public abstract class BaseModel {
     * @return string
     */
    public String toString() {
-      return getClass()+"("+fName+", "+fDescription+")";
+      return getClass().getSimpleName()+"("+fName+", "+fDescription+")";
    }
 
    /**

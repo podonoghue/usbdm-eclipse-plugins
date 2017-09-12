@@ -87,35 +87,35 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable system_mcgoutclk_clockVar;
       Variable system_mcgpclk_clockVar;
 
-      mcg_c1_clksVar = getVariable("mcg_c1_clks");
-      mcg_c1_irclkenVar = getVariable("mcg_c1_irclken");
-      mcg_c1_irefstenVar = getVariable("mcg_c1_irefsten");
-
-      mcg_c2_range0Var = getVariable("/OSC0/range");
-      mcg_c2_ircsVar = getVariable("mcg_c2_ircs");
-
-      mcg_sc_fcrdivVar = safeGetVariable("mcg_sc_fcrdiv");
-
-      mcg_mc_hircenVar = safeGetVariable("mcg_mc_hircen");
-      mcg_mc_lirc_div2Var = safeGetVariable("mcg_mc_lirc_div2");
-
-      system_slow_irc_clockVar = getVariable("system_slow_irc_clock");
-      system_fast_irc_clockVar = getVariable("system_fast_irc_clock");
-      system_lirc_clockVar = getVariable("system_lirc_clock");
-      system_lirc_div1_clockVar = getVariable("system_lirc_div1_clock");
-      system_mcgirclk_clockVar = getVariable("system_mcgirclk_clock");
-
-      system_irc48m_clockVar = safeGetVariable("system_irc48m_clock");
-
-      oscclk_clockVar = getVariable("/OSC0/oscclk_clock");
-      oscRangeInVar = getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
-
-      clock_modeVar = getVariable("clock_mode");
+      mcg_c1_clksVar                   = getVariable("mcg_c1_clks");
+      mcg_c1_irclkenVar                = getVariable("mcg_c1_irclken");
+      mcg_c1_irefstenVar               = getVariable("mcg_c1_irefsten");
+                                       
+      mcg_c2_range0Var                 = getVariable("/OSC0/range");
+      mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
+                                       
+      mcg_sc_fcrdivVar                 = safeGetVariable("mcg_sc_fcrdiv");
+                                       
+      mcg_mc_hircenVar                 = safeGetVariable("mcg_mc_hircen");
+      mcg_mc_lirc_div2Var              = safeGetVariable("mcg_mc_lirc_div2");
+                                       
+      system_slow_irc_clockVar         = getVariable("system_slow_irc_clock");
+      system_fast_irc_clockVar         = getVariable("system_fast_irc_clock");
+      system_lirc_clockVar             = getVariable("system_lirc_clock");
+      system_lirc_div1_clockVar        = getVariable("system_lirc_div1_clock");
+      system_mcgirclk_clockVar         = getVariable("system_mcgirclk_clock");
+                                       
+      system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
+                                       
+      oscclk_clockVar                  = getVariable("/OSC0/oscclk_clock");
+      oscRangeInVar                    = getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
+                                       
+      clock_modeVar                    = getVariable("clock_mode");
 
       system_mcgoutclk_clock_sourceVar = getVariable("system_mcgoutclk_clock_source");
-      system_mcgoutclk_clockVar = getVariable("system_mcgoutclk_clock");
-
-      system_mcgpclk_clockVar = getVariable("system_mcgpclk_clock");
+      system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
+                                       
+      system_mcgpclk_clockVar          = getVariable("system_mcgpclk_clock");
       
       long rangeIn = oscRangeInVar.getValueAsLong();
       if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {

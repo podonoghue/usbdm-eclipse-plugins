@@ -16,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class OscValidate extends Validator {
+public class OscValidate extends PeripheralValidator {
    
    public static final String OSC_RANGE_KEY       = "range_out";
    
@@ -70,7 +70,7 @@ public class OscValidate extends Validator {
    public OscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
       if (safeGetVariable(OSC_RANGE_KEY) == null) {
-         fPeripheral.addVariable(new LongVariable(OSC_RANGE_KEY, fPeripheral.makeKey(OSC_RANGE_KEY)));
+         getPeripheral() .addVariable(new LongVariable(OSC_RANGE_KEY, getPeripheral() .makeKey(OSC_RANGE_KEY)));
       }
    }
 

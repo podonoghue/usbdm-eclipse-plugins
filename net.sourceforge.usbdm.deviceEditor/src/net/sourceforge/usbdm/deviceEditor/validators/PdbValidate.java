@@ -14,7 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  *     pdb0
  */
-public class PdbValidate extends Validator {
+public class PdbValidate extends PeripheralValidator {
 
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {

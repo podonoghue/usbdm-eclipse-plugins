@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.w3c.dom.Document;
@@ -21,9 +21,9 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  */
 public class Settings {
    
-   private final String fDefaultSection;
-   private Map<String, String> map = new TreeMap<String, String>();
-   XmlDocumentUtilities fDocumentUtilities = null;
+   private final String        fDefaultSection;
+   private Map<String, String> fMap = new TreeMap<String, String>();
+   XmlDocumentUtilities        fDocumentUtilities = null;
    
    /**
     * Constructor
@@ -75,7 +75,7 @@ public class Settings {
     * @param value
     */
    public void put(String key, String value) {
-      map.put(key, value);
+      fMap.put(key, value);
    }
 
    /**
@@ -85,16 +85,16 @@ public class Settings {
     * @return
     */
    public String get(String key) {
-      String value = map.get(key);
+      String value = fMap.get(key);
       if (value != null) {
          return value;
       }
       // Compatibility
       if (key.startsWith("$signal$")) {
-         return map.get(key.substring(8));
+         return fMap.get(key.substring(8));
       }
       if (key.startsWith("$$")) {
-         return map.get(key.substring(2));
+         return fMap.get(key.substring(2));
       }
       return null;
    }
@@ -106,7 +106,6 @@ public class Settings {
     * @throws Exception
     */
    private void loadSection(Element sectionElement) throws Exception {
-      map = new HashMap<String, String>();
       for (Node node = sectionElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -120,7 +119,7 @@ public class Settings {
          else if (!element.getTagName().equals("item")) {
             throw new Exception("Unexpected element " + element.getTagName());
          }
-         map.put(element.getAttribute("key"), element.getAttribute("value"));
+         fMap.put(element.getAttribute("key"), element.getAttribute("value"));
       }      
    }
 
@@ -131,7 +130,6 @@ public class Settings {
     * @throws Exception
     */
    private void load(Document document) throws Exception {
-      map = new HashMap<String, String>();
       Element documentElement = document.getDocumentElement();
       if (documentElement == null) {
          throw new Exception("Failed to get documentElement");
@@ -173,10 +171,14 @@ public class Settings {
       fDocumentUtilities.setAttrWidth(50);
       fDocumentUtilities.openTag("section");
       fDocumentUtilities.writeAttribute("name", fDefaultSection);
-      for (String key:map.keySet()) {
-         saveValue(key, map.get(key));
+      for (String key:fMap.keySet()) {
+         saveValue(key, fMap.get(key));
       }
       fDocumentUtilities.closeTag();
+   }
+
+   public Set<String> getKeys() {
+      return fMap.keySet();
    }
 
 }

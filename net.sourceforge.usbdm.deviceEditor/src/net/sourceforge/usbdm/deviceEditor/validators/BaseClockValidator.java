@@ -2,7 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
-public abstract class BaseClockValidator extends Validator {
+public abstract class BaseClockValidator extends PeripheralValidator {
 
    public enum ClockMode {
       ClockMode_None, 

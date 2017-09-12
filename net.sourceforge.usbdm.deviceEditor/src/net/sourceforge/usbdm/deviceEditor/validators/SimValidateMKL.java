@@ -18,7 +18,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  * Used for:
  * Sim_xxx
  */
-public class SimValidateMKL extends Validator {
+public class SimValidateMKL extends PeripheralValidator {
 
    private final long MAX_CORE_CLOCK_FREQ;
    private final long MAX_BUS_CLOCK_FREQ;

@@ -167,13 +167,13 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       try {
          // Clock monitors
          //=================================
-         Variable     mcg_c6_cme0Var                 =  getVariable("mcg_c6_cme0");
-         Variable     mcg_c2_locre0Var               =  getVariable("mcg_c2_locre0");
+         Variable     mcg_c6_cme0Var      =  getVariable("mcg_c6_cme0");
+         Variable     mcg_c2_locre0Var    =  getVariable("mcg_c2_locre0");
 
-         Variable     mcg_c8_cme1Var                 =  safeGetVariable("mcg_c8_cme1");
-         Variable     mcg_c8_locre1Var               =  safeGetVariable("mcg_c8_locre1");
+         Variable     mcg_c8_cme1Var      =  safeGetVariable("mcg_c8_cme1");
+         Variable     mcg_c8_locre1Var    =  safeGetVariable("mcg_c8_locre1");
 
-         Variable     mcg_c9_pll_cmeVar              =  safeGetVariable("mcg_c9_pll_cme");
+         Variable     mcg_c9_pll_cmeVar   =  safeGetVariable("mcg_c9_pll_cme");
          if (mcg_c9_pll_cmeVar != null) {
             getVariable("mcg_c9_pll_locre").enable(mcg_c9_pll_cmeVar.getValueAsBoolean());
          }
@@ -186,52 +186,52 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
             mcg_c8_locre1Var.enable(mcg_c8_cme1Var.getValueAsBoolean());
             mcg_c8_cme1Var.enable(rtcclk_clockVar != null);
          }
-         slow_irc_clockVar = getVariable("system_slow_irc_clock");
-         fast_irc_clockVar = getVariable("system_fast_irc_clock");
-         mcg_sc_fcrdivVar = safeGetVariable("mcg_sc_fcrdiv");
-         mcg_c2_ircsVar = getVariable("mcg_c2_ircs");
-         mcg_c1_irclkenVar = getVariable("mcg_c1_irclken");
-         mcg_c1_irefstenVar = getVariable("mcg_c1_irefsten");
-         system_mcgirclk_clockVar = getVariable("system_mcgirclk_clock");
-
-         system_irc48m_clockVar = safeGetVariable("system_irc48m_clock");
-         usb1pfdclk_ClockVar = safeGetVariable("/MCG/usb1pfdclk_Clock");
-
-         oscclk_clockVar = getVariable("/OSC0/oscclk_clock");
-         osc_cr_erclkenVar = getVariable("/OSC0/osc_cr_erclken");
-         oscRangeInVar = getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
-
-         mcg_c2_range0Var = getVariable("/OSC0/range");
-
-         clock_modeVar = getVariable("clock_mode");
-         mcg_c7_oscselVar = safeGetVariable("mcg_c7_oscsel");
-         mcg_erc_clockVar = getVariable("mcg_erc_clock");
-
-         fll_enabledVar = getVariable("fll_enabled");
-         fllInputFrequencyVar = getVariable("fllInputFrequency");
-         system_mcgfllclk_clockVar = getVariable("system_mcgfllclk_clock");
-         mcg_c4_dmx32Var = getVariable("mcg_c4_dmx32");
-         mcg_c1_frdivVar = getVariable("mcg_c1_frdiv");
-         mcg_c4_drst_drsVar = getVariable("mcg_c4_drst_drs");
-         system_mcgffclk_clockVar = getVariable("system_mcgffclk_clock");
-
-         pll0EnabledVar = getVariable("pll0Enabled");
-         pll0InputFrequencyVar = getVariable("pll0InputFrequency");
-         pll0OutputFrequency = getVariable("pll0OutputFrequency");
-         mcg_c5_pllclkenVar = getVariable("mcg_c5_pllclken");
-         mcg_c5_pllstenVar = getVariable("mcg_c5_pllsten");
-         mcg_c5_prdiv0Var = getVariable("mcg_c5_prdiv0");
-         mcg_c6_vdiv0Var = getVariable("mcg_c6_vdiv0");
-
-         system_mcgpllclk_clockVar = getVariable("system_mcgpllclk_clock");
+         slow_irc_clockVar                = getVariable("system_slow_irc_clock");
+         fast_irc_clockVar                = getVariable("system_fast_irc_clock");
+         mcg_sc_fcrdivVar                 = safeGetVariable("mcg_sc_fcrdiv");
+         mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
+         mcg_c1_irclkenVar                = getVariable("mcg_c1_irclken");
+         mcg_c1_irefstenVar               = getVariable("mcg_c1_irefsten");
+         system_mcgirclk_clockVar         = getVariable("system_mcgirclk_clock");
+                                          
+         system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
+         usb1pfdclk_ClockVar              = safeGetVariable("/MCG/usb1pfdclk_Clock");
+                                          
+         oscclk_clockVar                  = getVariable("/OSC0/oscclk_clock");
+         osc_cr_erclkenVar                = getVariable("/OSC0/osc_cr_erclken");
+         oscRangeInVar                    = getVariable("/OSC0/"+OscValidate.OSC_RANGE_KEY);
+                                          
+         mcg_c2_range0Var                 = getVariable("/OSC0/range");
+                                          
+         clock_modeVar                    = getVariable("clock_mode");
+         mcg_c7_oscselVar                 = safeGetVariable("mcg_c7_oscsel");
+         mcg_erc_clockVar                 = getVariable("mcg_erc_clock");
+                                          
+         fll_enabledVar                   = getVariable("fll_enabled");
+         fllInputFrequencyVar             = getVariable("fllInputFrequency");
+         system_mcgfllclk_clockVar        = getVariable("system_mcgfllclk_clock");
+         mcg_c4_dmx32Var                  = getVariable("mcg_c4_dmx32");
+         mcg_c1_frdivVar                  = getVariable("mcg_c1_frdiv");
+         mcg_c4_drst_drsVar               = getVariable("mcg_c4_drst_drs");
+         system_mcgffclk_clockVar         = getVariable("system_mcgffclk_clock");
+                                          
+         pll0EnabledVar                   = getVariable("pll0Enabled");
+         pll0InputFrequencyVar            = getVariable("pll0InputFrequency");
+         pll0OutputFrequency              = getVariable("pll0OutputFrequency");
+         mcg_c5_pllclkenVar               = getVariable("mcg_c5_pllclken");
+         mcg_c5_pllstenVar                = getVariable("mcg_c5_pllsten");
+         mcg_c5_prdiv0Var                 = getVariable("mcg_c5_prdiv0");
+         mcg_c6_vdiv0Var                  = getVariable("mcg_c6_vdiv0");
+                                          
+         system_mcgpllclk_clockVar        = getVariable("system_mcgpllclk_clock");
 
          system_mcgoutclk_clock_sourceVar = getVariable("system_mcgoutclk_clock_source");
-         system_mcgoutclk_clockVar = getVariable("system_mcgoutclk_clock");
-
-         mcg_c1_irefsVar = getVariable("mcg_c1_irefs");
-         mcg_c1_clksVar = getVariable("mcg_c1_clks");
-         mcg_c2_lpVar = getVariable("mcg_c2_lp");
-         mcg_c6_pllsVar = getVariable("mcg_c6_plls");
+         system_mcgoutclk_clockVar        = getVariable("system_mcgoutclk_clock");
+                                          
+         mcg_c1_irefsVar                  = getVariable("mcg_c1_irefs");
+         mcg_c1_clksVar                   = getVariable("mcg_c1_clks");
+         mcg_c2_lpVar                     = getVariable("mcg_c2_lp");
+         mcg_c6_pllsVar                   = getVariable("mcg_c6_plls");
       } catch (Exception e) {
          e.printStackTrace();
          return;

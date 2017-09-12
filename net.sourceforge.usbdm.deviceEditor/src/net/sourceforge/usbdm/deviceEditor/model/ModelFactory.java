@@ -91,15 +91,6 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    ArrayList<IPage> fModels = new ArrayList<IPage>();
 
    /**
-    * Create model for device selection and package information
-    * 
-    * @return Model
-    */
-   private DeviceInformationModel createPackageModel() {
-      return new DeviceInformationModel(null, fDeviceInfo);
-   }
-
-   /**
     * Create model organised by pin<br>
     * Also updates fMappingInfos
     * 
@@ -341,7 +332,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fDeviceInfo.addListener(this);
 
-      fPackageModel      = createPackageModel();
+      fPackageModel      = (DeviceInformationModel)fDeviceInfo.getModels(null);
+      
       fPackageImageModel = new PackageImageModel(this);
 
       createModels();

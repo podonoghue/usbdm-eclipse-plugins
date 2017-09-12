@@ -14,7 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  *     osc0
  *     osc0_div
  */
-public class RtcSharedOscValidate extends Validator {
+public class RtcSharedOscValidate extends PeripheralValidator {
    
    private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
