@@ -67,6 +67,12 @@ public class IrqVariable extends Variable {
       return Integer.valueOf(fMode.ordinal()).toString();
    }
 
+   /**
+    * Extract mode from encoded string
+    * 
+    * @param value String encoding mode e.g. $ClassMethod or MyHandler
+    * @return
+    */
    public static Mode getMode(String value) {
       if (value.startsWith("$")) {
          try {
@@ -81,6 +87,12 @@ public class IrqVariable extends Variable {
       }
    }
    
+   /**
+    * Get handler name from encoded string
+    * 
+    * @param value
+    * @return
+    */
    public static String getHandlerName(String value) {
       if (value.startsWith("$")) {
          return "";
@@ -90,10 +102,20 @@ public class IrqVariable extends Variable {
       }
    }
    
+   /**
+    * Get handler name as specified by user
+    * 
+    * @return
+    */
    public String getHandlerName() {
       return fHandlerName;
    }
    
+   /**
+    * Get mode indicating how the vector is handled
+    * 
+    * @return
+    */
    public Mode getMode() {
       return fMode;
    }
@@ -208,7 +230,7 @@ public class IrqVariable extends Variable {
    /**
     * Get name of class method that handles this interrupt
     * 
-    * return Name of handler
+    * @return Name of handler
     */
    public String getClassHandler() {
       return fClassHandler;

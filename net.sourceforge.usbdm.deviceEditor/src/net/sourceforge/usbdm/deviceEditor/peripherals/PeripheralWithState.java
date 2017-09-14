@@ -205,7 +205,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       for (IrqVariable var : irqVariables) {
-         modifyVectorTable(vectorTable, var, getClassName());
+         modifyVectorTable(vectorTable, var, getClassBaseName());
       }
    }
 
@@ -213,10 +213,25 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Search vector table for handler and replace with class static method name
     * 
     * @param vectorTable  Vector table to search
-    * 
-    * @param pattern      Pattern to look for e.g. "^FTM((\\d+)?).*". 
-    *                     Must contain 1 group which is preserved
-    * @param className    Base name of handler, usually class name e.g. Ftm2 
+    * @param irqVariable  Describes interrupt including: <br>
+    * <ul>
+    * <li> pattern      Pattern to match against vector table entry e.g. "^%b%i$" <br>
+    * This is a regex.  In addition the following substitutions are done before matching:
+    *    <ul>
+    *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
+    *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
+    *    <li> _IRQHandler is appended
+    *    </ul>
+    * <li> classHandler Name of C++ class method to handle the interrupt e.g. irqHandler.<br>
+    * The following substitutions are done:
+    *    <ul>
+    *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
+    *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
+    *    </ul>
+    * <li> classHandler Name of class method to handle interrupt
+    * @param className  Base name of C peripheral class e.g. Ftm 
     */
    public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) {
 
@@ -226,7 +241,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean handlerSet = false;
-      String pattern = irqVariable.getPattern().replaceAll("%i", getInstance()).replaceAll("%b", getBaseName());
+      String pattern = irqVariable.getPattern();
+      pattern = pattern.replaceAll("%b", getBaseName());
+      pattern = pattern.replaceAll("%i", getInstance());
+      pattern = pattern.replaceAll("%c", className);
+
       Pattern p = Pattern.compile(pattern);
       for (InterruptEntry entry:vectorTable.getEntries()) {
          if (entry != null) {
@@ -236,14 +255,25 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                if (m.groupCount() > 0) {
                   modifier = m.group(1);
                }
-               String handlerName  = "Default_Handler";
-               if (irqVariable.getValueAsLong() == 1) {
+               String handlerName;
+               switch (irqVariable.getMode()) {
+               case ClassMethod:
                   // Replace with name of class static method
-                  String classHandler = irqVariable.getClassHandler().replaceAll("%i", getInstance()).replaceAll("%b", getBaseName());
-                  handlerName = DeviceInfo.NAME_SPACE+"::"+className+"::"+classHandler;
-               }
-               if (irqVariable.getValueAsLong() == 2) {
+                  String classHandler = irqVariable.getClassHandler();
+                  classHandler = classHandler.replaceAll("%b", getBaseName());
+                  classHandler = classHandler.replaceAll("%i", getInstance());
+                  classHandler = classHandler.replaceAll("%c", className);
+                  handlerName = DeviceInfo.NAME_SPACE+"::"+classHandler;
+                  break;
+               case UserMethod:
+                  // Replace with user specified name
+                  // % represents group from substitution
                   handlerName = irqVariable.getHandlerName().replaceAll("%", modifier);
+                  break;
+               case NotInstalled:
+               default:
+                  handlerName  = "Default_Handler";
+                  break;
                }
                entry.setHandlerName(handlerName);
                entry.setClassMemberUsedAsHandler(true);

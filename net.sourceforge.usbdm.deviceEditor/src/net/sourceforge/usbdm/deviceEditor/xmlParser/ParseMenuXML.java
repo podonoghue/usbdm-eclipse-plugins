@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +44,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.jni.Usbdm;
-import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.packageParser.PackageParser;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
@@ -470,16 +470,38 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Parse &lt;binaryOption&gt; element<br>
+    * Parse &lt;irqOption&gt; element<br>
+    * Expects:
+    * <ul>
+    * <li> name         Name of option
+    * <li> description  Description of option
+    * <li> tooltip      Tooltip to display
+    * <li> pattern      Pattern to match against vector table entry. <br>
+    * This is a regex.  In addition the following substitutions are done before matching:
+    *    <ul>
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
+    *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
+    *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
+    *    <li> _IRQHandler is appended
+    *    </ul>
+    * <li> classHandler Name of class method to handle interrupt <br>
+    * This is a regex.  In addition the following substitutions are done before matching:
+    *    <ul>
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
+    *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
+    *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
+    *    </ul>
+    * </ul>
     * 
-    * @param varElement
+    * @param  irqElement
+    * 
     * @throws Exception 
     */
-   private void parseIrqOption(BaseModel parent, Element varElement) throws Exception {
+   private void parseIrqOption(BaseModel parent, Element irqElement) throws Exception {
       
-      IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, varElement, IrqVariable.class);
-      variable.setPattern(varElement.getAttribute("pattern"));
-      variable.setClassHandler(varElement.getAttribute("classHandler"));
+      IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, irqElement, IrqVariable.class);
+      variable.setPattern(irqElement.getAttribute("pattern"));
+      variable.setClassHandler(irqElement.getAttribute("classHandler"));
       
       fPeripheral.addIrqVariable(variable);
    }
@@ -1336,14 +1358,10 @@ public class ParseMenuXML extends XML_BaseParser {
          return path;
       }
       // Look in USBDM installation
-      try {
-         path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
-      } catch (UsbdmException e) {
-         throw new Exception("Failed to find hardware file for '"+ name + "'", e);
-      }
+      path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
 //      System.err.println("Looking in " + path);
       if (!Files.isRegularFile(path)) {
-         throw new Exception("Failed to find hardware file for '"+ name + "'");
+         throw new FileNotFoundException("Failed to find hardware file for '"+ name + "'");
       }
       return path;
    }
@@ -1368,8 +1386,11 @@ public class ParseMenuXML extends XML_BaseParser {
          // For debug try local directory
          Path path = locateFile(name+".xml");
          fData = parse(XML_BaseParser.parseXmlFile(path), peripheral, peripheral);
+      } catch (FileNotFoundException e) {
+         // Some peripherals don't have templates yet - just warn
+         throw new Exception("Failed to find peripheral file for "+name, e);
       } catch (Exception e) {
-//         e.printStackTrace();
+         e.printStackTrace();
          throw new Exception("Failed to process peripheral file for "+name, e);
       }
       for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
