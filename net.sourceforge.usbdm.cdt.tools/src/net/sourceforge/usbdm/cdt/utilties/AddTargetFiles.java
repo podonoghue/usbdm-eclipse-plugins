@@ -13,6 +13,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -39,9 +40,7 @@ import net.sourceforge.usbdm.packageParser.FileAction.PathType;
 public class AddTargetFiles {
 
    static byte[] readFile(java.nio.file.Path path) throws IOException {
-      return Files.readAllBytes((java.nio.file.Path) path);
-//      byte[] encoded = Files.readAllBytes((java.nio.file.Path) path);
-//      return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
+      return Files.readAllBytes(path);
    }
 
    /**
@@ -73,26 +72,34 @@ public class AddTargetFiles {
       }
       try {
          monitor.beginTask("Copy File", 100);
-         IFile iFile = projectHandle.getFile(targetPath.toString());
-         int remainder = 100;
-         if (!iFile.getParent().exists()) {
-            ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor.newChild(50));
-            remainder -= 50;
+         if (projectHandle == null) {
+            // Debug mode
+            targetPath = Paths.get("Testing", targetPath.toString());
+            System.err.println("targetpath = '"+targetPath.toAbsolutePath()+"'");
+            Files.write(targetPath, fileContents, StandardOpenOption.TRUNCATE_EXISTING);
          }
-         // Replace existing, more specific, file
-         if (iFile.exists()) {
-            if (fileAction.doFileOverwrite()) {
-//             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
-               iFile.delete(true, monitor.newChild(remainder));               
+         else {
+            IFile iFile = projectHandle.getFile(targetPath.toString());
+            int remainder = 100;
+            if (!iFile.getParent().exists()) {
+               ProjectUtilities.createFolder(projectHandle, iFile.getParent().getProjectRelativePath().toString(), monitor.newChild(50));
+               remainder -= 50;
             }
-            else {
-               throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
+            // Replace existing, more specific, file
+            if (iFile.exists()) {
+               if (fileAction.doFileOverwrite()) {
+                  //             System.err.println("AddTargetFiles.processFile() - replacing " + iFile.toString());
+                  iFile.delete(true, monitor.newChild(remainder));               
+               }
+               else {
+                  throw new Exception("\"" + iFile.toString() + "\" already exists"); //$NON-NLS-1$ //$NON-NLS-2$
+               }
             }
+            iFile.create(new ByteArrayInputStream(fileContents), true, null);
+            iFile.setDerived(fileAction.isDerived(), monitor);
+            iFile.refreshLocal(IResource.DEPTH_ONE, null);
+            //         projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
          }
-         iFile.create(new ByteArrayInputStream(fileContents), true, null);
-         iFile.setDerived(fileAction.isDerived(), monitor);
-         iFile.refreshLocal(IResource.DEPTH_ONE, null);
-         projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
       } catch (CoreException e) {
          throw new Exception("Failed" + e.getMessage(), e); //$NON-NLS-1$
       } finally {
@@ -110,21 +117,24 @@ public class AddTargetFiles {
     * @throws URISyntaxException
     */
    Path resolvePath(Path sourcePath) throws URISyntaxException {
-      
-      IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      IPathVariableManager pathMan = workspace.getPathVariableManager();
-      URI sourceURI = URIUtil.fromString("file:"+sourcePath.toString());
-//      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.a = \'%s\'",   sourceURI.toASCIIString()));
-//      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.p = \'%s\'",   sourceURI.getPath()));
-//      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?   = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
+      IPathVariableManager pathMan;
+      try {
+         IWorkspace workspace = ResourcesPlugin.getWorkspace();
+         pathMan = workspace.getPathVariableManager();
+      } catch (Exception e) {
+         return sourcePath;
+      }
+      URI sourceURI = URIUtil.fromString("file:" + sourcePath.toString());
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.a = \'%s\'",   sourceURI.toASCIIString()));
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() sourceURI.p = \'%s\'",   sourceURI.getPath()));
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?   = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
       sourceURI = pathMan.resolveURI(sourceURI);
-//      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.a = \'%s\'", sourceURI.toASCIIString()));
-//      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.p = \'%s\'", sourceURI.getPath()));
-//      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?      = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.a = \'%s\'", sourceURI.toASCIIString()));
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() resolved URI.p = \'%s\'", sourceURI.getPath()));
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() Absolute?      = \'%s\'\n", sourceURI.isAbsolute()?"True":"False"));
       String source = sourceURI.getPath().replaceFirst("/([a-zA-Z]:.*)", "$1");
       sourcePath = Paths.get(source);
-//      System.err.println(String.format("AddTargetFiles.resolvePath() sourcePath     = \'%s\'", sourcePath));
-      
+      //      System.err.println(String.format("AddTargetFiles.resolvePath() sourcePath     = \'%s\'", sourcePath));
       return sourcePath;
    }
    /**
@@ -149,8 +159,8 @@ public class AddTargetFiles {
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
       monitor.beginTask("Copying Files", 100);
 
+      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
       sourcePath = resolvePath(sourcePath);
-      //      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
 
       // Check if directory
       if (Files.isDirectory(sourcePath)) {
@@ -229,11 +239,11 @@ public class AddTargetFiles {
       /*
        * Do macro substitution on path using project wizard variables
        */
-      if (projectHandle == null) {
-         // For debug
-         System.err.println("Debug: "+fileInfo);
-         return;
-      }
+//      if ((projectHandle == null)) {
+//         // For debug
+//         System.err.println("Debug: "+fileInfo);
+//         return;
+//      }
       String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
       String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
       String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
