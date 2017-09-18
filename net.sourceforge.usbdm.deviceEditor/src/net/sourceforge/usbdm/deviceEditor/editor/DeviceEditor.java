@@ -5,6 +5,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import org.eclipse.cdt.core.CCorePlugin;
+import org.eclipse.cdt.core.index.IIndexManager;
+import org.eclipse.cdt.core.model.CoreModel;
+import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -196,7 +200,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    public void generateCode() {
       Job job = new Job("Regenerate code files") {
          protected IStatus run(IProgressMonitor monitor) {
-            System.err.println("GenerateCodeAction.run()");
+//            System.err.println("GenerateCodeAction.run()");
             monitor.beginTask("Started...", 10);
             if (fFactory == null) {
                monitor.done();
@@ -206,6 +210,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                if (fProject != null) {
                   // Opened as part of a Eclipse project
                   fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
+                  final ICProject cproject = CoreModel.getDefault().create(fProject);
+                  CCorePlugin.getIndexManager().reindex(cproject); 
+                  CCorePlugin.getIndexManager().joinIndexer(IIndexManager.FOREVER, monitor); 
                }
                else {
                   // Used for testing
