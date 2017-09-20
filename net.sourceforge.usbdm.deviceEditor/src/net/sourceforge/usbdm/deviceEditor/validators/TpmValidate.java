@@ -15,7 +15,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class TpmValidate extends PeripheralValidator {
    
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/SIM/system_tpm_clock"
    };
@@ -33,10 +32,8 @@ public class TpmValidate extends PeripheralValidator {
       
       super.validate(variable);
       
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+      
       // OSC
       //=================================
       

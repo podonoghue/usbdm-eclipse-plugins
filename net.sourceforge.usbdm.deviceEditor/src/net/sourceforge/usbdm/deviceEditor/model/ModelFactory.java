@@ -123,7 +123,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 ////         }
 //         return fParameterModels;
 //      }
-      fParameterModels = new TabModel(null, "Peripheral Parameters", "These are usually the default values for parameters");
+      fParameterModels = new TabModel(null, "Peripheral Parameters", "These are usually the default values\n for defaultconfigure()");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
@@ -332,7 +332,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fDeviceInfo.addListener(this);
 
-      fPackageModel      = (DeviceInformationModel)fDeviceInfo.getModels(null);
+      fPackageModel      = (DeviceInformationModel)fDeviceInfo.getModel(null);
       
       fPackageImageModel = new PackageImageModel(this);
 

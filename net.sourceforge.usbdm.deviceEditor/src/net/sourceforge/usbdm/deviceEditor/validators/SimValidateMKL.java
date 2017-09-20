@@ -23,7 +23,6 @@ public class SimValidateMKL extends PeripheralValidator {
    private final long MAX_CORE_CLOCK_FREQ;
    private final long MAX_BUS_CLOCK_FREQ;
 
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/OSC0/system_oscerclk_clock",
          "/OSC0/osc32kclk_clock",
@@ -71,10 +70,8 @@ public class SimValidateMKL extends PeripheralValidator {
       
       super.validate(variable);
 
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+         
       //OSC
       //=================
       final Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");

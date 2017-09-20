@@ -18,8 +18,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class OscValidate extends PeripheralValidator {
    
-   public static final String OSC_RANGE_KEY       = "range_out";
-   
    /** Used to indicate range is unconstrained by oscillator */
    public static final int    UNCONSTRAINED_RANGE = 3; 
    
@@ -55,7 +53,6 @@ public class OscValidate extends PeripheralValidator {
       EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE3_MAX, 3)),
       Severity.WARNING);
 
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/RTC/rtc_cr_osce",
    };
@@ -69,9 +66,6 @@ public class OscValidate extends PeripheralValidator {
    
    public OscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
-      if (safeGetVariable(OSC_RANGE_KEY) == null) {
-         getPeripheral() .addVariable(new LongVariable(OSC_RANGE_KEY, getPeripheral() .makeKey(OSC_RANGE_KEY)));
-      }
    }
 
    /**
@@ -83,10 +77,7 @@ public class OscValidate extends PeripheralValidator {
       
       super.validate(variable);
 
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
       
       // OSC
       //=================================
@@ -95,8 +86,7 @@ public class OscValidate extends PeripheralValidator {
       Variable     hgo0Var                         =  getVariable("hgo0");
       Variable     osc_cr_scpVar                   =  getVariable("osc_cr_scp");
       Variable     osc_cr_erefstenVar              =  getVariable("osc_cr_erefsten");
-      Variable     rangeOutVar                     =  getVariable(OSC_RANGE_KEY);
-//      Variable     rangeVar                        =  getVariable("range");
+      Variable     oscillatorRangeVar              =  getVariable("oscillatorRange");
       Variable     system_oscerclk_undiv_clockVar  =  safeGetVariable("system_oscerclk_undiv_clock");
       Variable     system_oscerclk_clockVar        =  null;
       if (system_oscerclk_undiv_clockVar == null) {
@@ -216,8 +206,8 @@ public class OscValidate extends PeripheralValidator {
       oscclk_clockVar.setValue(oscclkOK?oscclk_clock_freq:0);
       oscclk_clockVar.enable(oscclkOK);
       
-      rangeOutVar.setValue(range);
-      rangeOutVar.setOrigin(rangeOrigin);
+      oscillatorRangeVar.setValue(range);
+      oscillatorRangeVar.setOrigin(rangeOrigin);
       
       osc32kclk_clockVar.setValue((osc32kclk_clockStatus != null)?0:oscclk_clock_freq);
       osc32kclk_clockVar.setStatus(osc32kclk_clockStatus);

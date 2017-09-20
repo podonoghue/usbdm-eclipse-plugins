@@ -3,6 +3,8 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreeViewer;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+
 /**
  *  Represents the top of a Tree view
  */
@@ -39,4 +41,11 @@ public class TreeViewModel extends BaseModel {
    @Override
    protected void removeMyListeners() {
    }
+
+   @Override
+   public TreeViewModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (TreeViewModel) super.clone(parentModel, provider, index);
+   }
+   
+   
 }

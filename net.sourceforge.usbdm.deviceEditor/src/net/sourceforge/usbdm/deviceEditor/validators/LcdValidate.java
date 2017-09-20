@@ -17,7 +17,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class LcdValidate extends PeripheralValidator {
    
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/SIM/system_erclk32k_clock",
          "/MCG/system_mcgirclk_clock",
@@ -37,10 +36,7 @@ public class LcdValidate extends PeripheralValidator {
       
       super.validate(variable);
       
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
       
       Variable       system_erclk32k_clockVar        =  getVariable("/SIM/system_erclk32k_clock");
       Variable       system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");

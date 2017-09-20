@@ -152,6 +152,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * Create empty device information
     */
    private DeviceInfo() {
+      Variable.setDeviceInfo(this);
    }
 
    /**
@@ -326,11 +327,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                return o2.getPriority()-o1.getPriority();
             }
          });
-         // Construct
+         // Construct peripehrals
          for (PeripheralWithState p:peripheralWithStateList) {
             if (p instanceof PeripheralWithState) {
 //               System.err.println("Constructing " + p);
                ((PeripheralWithState) p).loadModels();
+            }
+         }
+         for (PeripheralWithState p:peripheralWithStateList) {
+            if (p instanceof PeripheralWithState) {
+               p.instantiateAliases();
             }
          }
       }
@@ -1859,24 +1865,22 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return getVariable(key).getValueAsString();
    }
 
-   /**
-    * Get variable
-    * 
-    * @param key  Key used to identify variable
-    * 
-    * @throws Exception if variable doesn't exist
-    */
+   @Override
+   public Variable safeGetVariable(String key) {
+      Variable var = fVariables.get(key);
+      if (var == null) {
+         var = fVariables.get(key+"[0]");
+      }
+      return var;
+   }
+
+   @Override
    public Variable getVariable(String key) throws Exception {
-      Variable variable = fVariables.get(key);
+      Variable variable = safeGetVariable(key);
       if (variable == null) {
          throw new Exception("Variable does not exist for key \'"+key+"\'");
       }
       return variable;
-   }
-
-   @Override
-   public Variable safeGetVariable(String key) {
-      return fVariables.get(key);
    }
 
    /**
@@ -1917,8 +1921,13 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
 
    @Override
-   public BaseModel getModels(BaseModel parent) {
+   public BaseModel getModel(BaseModel parent) {
       return new DeviceInformationModel(parent, this);
+   }
+
+   @Override
+   public void getModels(BaseModel parent) {
+      new DeviceInformationModel(parent, this);
    }
 
    /**

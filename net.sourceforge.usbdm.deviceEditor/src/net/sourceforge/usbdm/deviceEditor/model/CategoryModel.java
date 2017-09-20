@@ -1,10 +1,11 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+
 /**
  * Simple model that only provides a passive holder in the tree
  */
 public class CategoryModel extends BaseModel {
-   private final  int fDimension;
    
    /**
     * Create model
@@ -15,21 +16,17 @@ public class CategoryModel extends BaseModel {
     * 
     * @note Added as child of parent if not null
     */
-   public CategoryModel(BaseModel parent, String name, String description, int dimension) {
-      super(parent, name, description);
-      fDimension = dimension;
-   }
-
    public CategoryModel(BaseModel parent, String name, String description) {
       super(parent, name, description);
-      fDimension = 1;
    }
 
    @Override
    protected void removeMyListeners() {
    }
 
-   public int getDimension() {
-      return fDimension;
+   @Override
+   public CategoryModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (CategoryModel)super.clone(parentModel, provider, index);
    }
+
 }

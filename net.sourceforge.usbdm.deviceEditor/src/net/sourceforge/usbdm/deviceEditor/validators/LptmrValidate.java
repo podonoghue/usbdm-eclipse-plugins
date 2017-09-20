@@ -17,7 +17,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class LptmrValidate extends PeripheralValidator {
 
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/MCG/system_mcgirclk_clock",
          "/MCG/system_low_power_clock",
@@ -39,10 +38,8 @@ public class LptmrValidate extends PeripheralValidator {
       super.validate(variable);
 
 //      System.err.println("LptmrValidate.validate("+variable+")");
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+      
       // Variables
       //=================================
       DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");
@@ -73,7 +70,7 @@ public class LptmrValidate extends PeripheralValidator {
       default:
          lptmr_psr_pcsVar.setValue(0);
       case 0: 
-         clockSourceVar = getVariable("/MCG/system_mcgirclk_clock");
+         clockSourceVar = getVariable("/MCG/system_mcgirclk_clock[0]");
          break;
       case 1:
          clockSourceVar = getVariable("/MCG/system_low_power_clock");

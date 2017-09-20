@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+
 /**
  * Model that can be edited
  * 
@@ -44,4 +46,14 @@ public abstract class EditableModel extends BaseModel {
     * @param value Value used by GUI/Model. Will be converted for data.
     */
    public abstract void setValueAsString(String value);
+
+   @Override
+   protected void removeMyListeners() {
+   }
+
+   @Override
+   public EditableModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (EditableModel)super.clone(parentModel, provider, index);
+   }
+
 }

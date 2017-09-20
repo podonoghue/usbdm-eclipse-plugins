@@ -111,12 +111,12 @@ class FllConfigure {
    /**
     * Determines the FLL divider values
     * 
-    * @param osc_cr_erclkenVar          [in]     Indicates if Oscillator is in use
-    * @param rangeVarIn                 [in]     Range in from oscillator
-    * @param rangeVarOut                [out]    Range out after modification by FLL
+    * @param osc_osc_cr_erclken         [in]     Indicates if Oscillator is in use
+    * @param osc_oscillatorRangeVar     [in]     Range in from oscillator
+    * @param mcg_c2_rangeVar            [out]    Range out after modification by FLL
     * @param mcg_c1_irefs               [in]     irefs value (affects clock source)
     * @param mcg_erc_clockVar           [in]     mcg_erc_clock source
-    * @param slow_irc_clock             [in]     Frequency of slow IRC
+    * @param system_slow_irc_clock      [in]     Frequency of slow IRC
     * @param mcg_c7_oscsel              [in]     OSCSEL value used to constrain dividers
     * @param mcg_c4_dmx32Var            [in]     Affects input range accepted 
     * @param fllInputFrequencyVar       [in/out] Input to FLL
@@ -124,12 +124,12 @@ class FllConfigure {
     * @param system_mcgffclk_clockVar   [out]    MCGFFCLK 
     */
    public FllConfigure(
-         final Variable osc_cr_erclkenNode, 
-         final Variable rangeVarIn, 
-         final Variable rangeVarOut, 
+         final boolean  osc_osc_cr_erclken, 
+         final Variable osc_oscillatorRangeVar, 
+         final Variable mcg_c2_rangeVar, 
          boolean        mcg_c1_irefs, 
          final Variable mcg_erc_clockVar, 
-         long           slow_irc_clock, 
+         long           system_slow_irc_clock, 
          long           mcg_c7_oscsel, 
          boolean        mcg_c4_dmx32, 
          final Variable fllInputFrequencyVar, 
@@ -137,9 +137,8 @@ class FllConfigure {
          final Variable system_mcgffclk_clockVar) {
 
       // Tentative range - may be overridden by FLL constraints
-      int     osc0_range       = (int)rangeVarIn.getValueAsLong();
-      String  osc0_rangeOrigin = rangeVarIn.getOrigin();
-      boolean osc_cr_erclken   = osc_cr_erclkenNode.getValueAsBoolean();
+      int     osc0_range       = (int)osc_oscillatorRangeVar.getValueAsLong();
+      String  osc0_rangeOrigin = osc_oscillatorRangeVar.getOrigin();
       String  fllOrigin;
       String  fllInputOrigin;
 
@@ -149,7 +148,7 @@ class FllConfigure {
          fllOrigin      = "Slow internal reference clock";
          fllInputOrigin = fllOrigin;
          fllStatus      = null;
-         availableClock = slow_irc_clock;
+         availableClock = system_slow_irc_clock;
       }
       else {
          // ERCLK selected [OSCCLK, RTCCLK, IRC48MCLK]
@@ -172,8 +171,8 @@ class FllConfigure {
          // Use mcg_c2_rangeIn unless invalid
          mcg_c4_drst_drs = 0;
          mcg_c1_frdiv    = 0;
-         rangeVarOut.setValue(osc0_range);
-         rangeVarOut.setOrigin(osc0_rangeOrigin);
+         mcg_c2_rangeVar.setValue(osc0_range);
+         mcg_c2_rangeVar.setOrigin(osc0_rangeOrigin);
          return;
       }
 
@@ -191,7 +190,7 @@ class FllConfigure {
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          fllOrigin += " after scaling by (Low range FRDIV)";
       }
-      else if ((mcg_c7_oscsel != 0) && !osc_cr_erclken) {
+      else if ((mcg_c7_oscsel != 0) && !osc_osc_cr_erclken) {
          // ![OSCCLK] and not enabled for peripherals 
          // Unconstrained - try both sets of dividers
          // Use whichever mcg_c2_rangeIn works
@@ -231,8 +230,8 @@ class FllConfigure {
          }
       }
       // Record range in use
-      rangeVarOut.setValue(osc0_range);
-      rangeVarOut.setOrigin(osc0_rangeOrigin);
+      mcg_c2_rangeVar.setValue(osc0_range);
+      mcg_c2_rangeVar.setOrigin(osc0_rangeOrigin);
       
       if (!found) {
          // No suitable divisor - Set invalid and use defaults

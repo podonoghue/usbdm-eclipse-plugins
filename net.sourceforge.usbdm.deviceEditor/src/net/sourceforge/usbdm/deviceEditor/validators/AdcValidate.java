@@ -33,7 +33,6 @@ public class AdcValidate extends PeripheralValidator {
 
    private static long ADC_CLOCK_VALUES[] = {FADC_LP0_HS0_MAX, FADC_LP0_HS1_MAX, FADC_LP1_HS0_MAX, FADC_LP1_HS1_MAX};
 
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/MCG/system_irc48m_clock",
          "/SIM/system_bus_clock",
@@ -54,10 +53,8 @@ public class AdcValidate extends PeripheralValidator {
       
       super.validate(variable);
 
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+      
       // Variables
       //=================================
       DoubleVariable clockFrequencyVar    = (DoubleVariable) getVariable("clockFrequency");

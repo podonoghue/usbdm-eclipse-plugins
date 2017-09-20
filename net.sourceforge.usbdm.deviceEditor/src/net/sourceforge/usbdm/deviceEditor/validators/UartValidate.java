@@ -16,7 +16,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class UartValidate extends PeripheralValidator {
 
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
    };
 
@@ -34,10 +33,8 @@ public class UartValidate extends PeripheralValidator {
       super.validate(variable);
 
 //      System.err.println("Uart.validate("+variable+")");
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+      
       // Variables
       //=================================
       BooleanVariable   uartClassVar           =  getBooleanVariable("uartClass");

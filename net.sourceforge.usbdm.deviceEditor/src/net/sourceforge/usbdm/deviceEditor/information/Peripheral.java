@@ -916,4 +916,5 @@ public abstract class Peripheral extends VariableProvider {
    public String getPcrValue(Signal y) {
       return "USBDM::DEFAULT_PCR";
    }
+
 }

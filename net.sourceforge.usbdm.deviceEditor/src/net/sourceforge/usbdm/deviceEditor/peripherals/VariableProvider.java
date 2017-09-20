@@ -20,9 +20,6 @@ public class VariableProvider {
    /** Validators for variable changes */
    private final ArrayList<Validator>  validators = new ArrayList<Validator>();
 
-   /** Index to append to variables */
-   private int fIndex = 0;
-
    protected final class KeyMaker implements IKeyMaker {
       int Index;
       
@@ -36,9 +33,6 @@ public class VariableProvider {
 
       @Override
       public String makeKey(String name) {
-         if (name.indexOf("#") >= 0) {
-            name = name+fIndex;
-         }
          if (name.charAt(0) == '/') {
             // Don't modify explicit variables
             return name;
@@ -48,13 +42,14 @@ public class VariableProvider {
    }
    
    protected final class IndexKeyMaker implements IKeyMaker {
-//      private final String fIndex;
+      private final String fIndex;
       
       public IndexKeyMaker(int index) {
-//         fIndex = "[" + index + "]";
+         fIndex = "[" + index + "]";
       }
       @Override
       public String makeKey(String name) {
+         name = name.replaceAll("\\.$", fIndex);
          if (name.charAt(0) == '/') {
             return name;
          }
@@ -120,7 +115,7 @@ public class VariableProvider {
       try {
          return fDeviceInfo.getVariable(key);
       } catch (Exception e) {
-         throw new Exception("Variable error in provider "+getName()+", var="+key, e);
+         throw new Exception("Variable error in VariableProvider.getVariable() for '"+getName()+"', var='"+key+"' not found", e);
       }
    }
 
@@ -198,14 +193,4 @@ public class VariableProvider {
          v.variableChanged(variable);
       }
    }
-
-   /**
-    * Set index for dimensioned variables
-    * 
-    * @param index 0 => not dimensioned
-    */
-   public void setIndex(int index) {
-      fIndex = index;
-   }
-
 }

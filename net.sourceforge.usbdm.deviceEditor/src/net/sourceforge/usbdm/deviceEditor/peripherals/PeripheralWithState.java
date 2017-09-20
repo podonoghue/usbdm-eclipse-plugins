@@ -21,8 +21,8 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.CodeTemplate;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -47,19 +47,18 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /**
     * Load the models and validators for this class of peripheral
+    * @return 
     * 
     * @return
     * @throws Exception 
     */
-   public void loadModels() throws Exception {
+   public MenuData loadModels() throws Exception {
       try {
          fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralModelName(), this);
       } catch (Exception e) {
          System.err.println("Warning: Failed to load model "+getPeripheralModelName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }
-      if (fMenuData == null) {
-         return;
-      }
+      return fMenuData;
 //      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
 //         try {
 //            String className = v.getClassName();
@@ -74,15 +73,19 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    @Override
-   public BaseModel getModels(BaseModel parent) {
+   public BaseModel getModel(BaseModel parent) {
+      return null;
+   }
+
+   @Override
+   public void getModels(BaseModel parent) {
       if (fMenuData == null) {
-         return null;
+         return;
       }
       BaseModel model = fMenuData.getRootModel();
       if (model != null) {
          model.setParent(parent);
       }
-      return model;
    }
 
    @Override
@@ -152,23 +155,22 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             // Discard unnamed templates
             continue;
          }
-         CodeTemplate fileTemplate = fMenuData.getTemplates().get(key);
+         TemplateInformation fileTemplate = fMenuData.getTemplates().get(key);
 
          // Final template after substitutions
          String substitutedTemplate = null;
          
          // Check for dimension
-         Variable dimension = fileTemplate.getDimension();
-         if (dimension != null) {
+         int dimension = fileTemplate.getDimension();
+         if (dimension >0) {
             StringBuffer sb = new StringBuffer();
-            int dim = (int)dimension.getValueAsLong();
-            for (int index=0; index<dim; index++) {
-               sb.append(FileUtility.substitute(fileTemplate.getTemplate(), map, new IndexKeyMaker(index)));
+            for (int index=0; index<dimension; index++) {
+               sb.append(FileUtility.substitute(fileTemplate.getContents(), map, new IndexKeyMaker(index)));
             }
             substitutedTemplate = sb.toString();
          }
          else {
-            substitutedTemplate = FileUtility.substitute(fileTemplate.getTemplate(), map, keyMaker);
+            substitutedTemplate = FileUtility.substitute(fileTemplate.getContents(), map, keyMaker);
          }
          map.put(keyMaker.makeKey(key), substitutedTemplate);
       }
@@ -413,6 +415,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public List<IrqVariable> getIrqVariables(IrqVariable variable) {
       return irqVariables;
+   }
+
+   public void instantiateAliases() throws Exception {
+      if (fMenuData != null) {
+         fMenuData.instantiateAliases(this);
+      }
    }
 
 }

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class ListModel extends BaseModel {
 
@@ -19,6 +20,11 @@ public class ListModel extends BaseModel {
       for (Object child : fChildren) {
          parent.addChild((BaseModel) child);
       }
+   }
+
+   @Override
+   public ListModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (ListModel) super.clone(parentModel, provider, index);
    }
 
 }

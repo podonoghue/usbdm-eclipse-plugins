@@ -19,7 +19,6 @@ public final class PeripheralModel extends CategoryModel {
     */
    public PeripheralModel(BaseModel parent, Peripheral peripheral) {
       super(parent, peripheral.getName(), peripheral.getDescription());
-      
       TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
       for (String signalName:peripheralSignals.keySet()) {
          Signal signal = peripheralSignals.get(signalName);
@@ -28,5 +27,5 @@ public final class PeripheralModel extends CategoryModel {
          }
       }
    }
-
+   
 }

@@ -8,13 +8,25 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class PeripheralValidator extends Validator {
 
+   private boolean fAddedExternalVariables = false;
+
    /**
-    * Peripheral dialogue validator
+    * Peripheral dialogue validator <br>
+    * Constructor used by derived classes
     * 
     * @param peripheral
-    * @param values
     */
-   public PeripheralValidator(PeripheralWithState peripheral, ArrayList<Object> values) {
+   public PeripheralValidator(PeripheralWithState peripheral, int index) {
+      super((VariableProvider)peripheral, index);
+   }
+
+   /**
+    * Peripheral dialogue validator <br>
+    * Constructor used by derived classes
+    * 
+    * @param peripheral
+    */
+   public PeripheralValidator(PeripheralWithState peripheral, ArrayList<Object> list) {
       super((VariableProvider)peripheral);
    }
 
@@ -96,14 +108,20 @@ public class PeripheralValidator extends Validator {
     * @param externalVariables Variables to add
     */
    protected void addToWatchedVariables(String[] externalVariables) {
-      for (String name:externalVariables) {
-         Variable var = fProvider.safeGetVariable(name);
-         if (var == null) {
-            System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
-         }
-         else {
-            var.addListener(getPeripheral());
+      if (fAddedExternalVariables) {
+         return;
+      }
+      for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
+         for (String name:externalVariables) {
+            Variable var = safeGetVariable(name);
+            if (var == null) {
+               System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+            }
+            else {
+               var.addListener(getPeripheral());
+            }
          }
       }
+      fAddedExternalVariables = true;
    }
 }

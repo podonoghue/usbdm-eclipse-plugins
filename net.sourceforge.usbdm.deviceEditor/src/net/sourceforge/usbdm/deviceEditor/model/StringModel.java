@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
+
 public abstract class StringModel extends BaseModel {
 
    protected String fValue;
@@ -17,6 +19,11 @@ public abstract class StringModel extends BaseModel {
    public void setValue(String value) {
       fValue = value;
       update(); 
+   }
+
+   @Override
+   public StringModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (StringModel) super.clone(parentModel, provider, index);
    }
 
 }

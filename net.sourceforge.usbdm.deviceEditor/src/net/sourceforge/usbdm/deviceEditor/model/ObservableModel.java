@@ -28,7 +28,8 @@ public class ObservableModel {
     * @param listener to remove
     */
    public void removeAllListeners() {
-      fListeners.clear();
+      // Done this way so clearing cloned variables doesn't affect original
+      fListeners = new ArrayList<IModelChangeListener>();
    }
 
    /**

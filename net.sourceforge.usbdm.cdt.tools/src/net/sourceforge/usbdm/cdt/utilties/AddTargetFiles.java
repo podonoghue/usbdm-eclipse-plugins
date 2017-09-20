@@ -76,7 +76,7 @@ public class AddTargetFiles {
             // Debug mode
             targetPath = Paths.get("Testing", targetPath.toString());
             System.err.println("targetpath = '"+targetPath.toAbsolutePath()+"'");
-            Files.write(targetPath, fileContents, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.write(targetPath, fileContents, StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);
          }
          else {
             IFile iFile = projectHandle.getFile(targetPath.toString());

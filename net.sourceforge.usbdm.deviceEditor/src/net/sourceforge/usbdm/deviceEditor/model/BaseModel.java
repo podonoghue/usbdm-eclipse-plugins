@@ -7,12 +7,13 @@ import java.util.Map;
 import org.eclipse.jface.viewers.StructuredViewer;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ListModel;
 
 /**
  * Base Model for tree item
  */
-public abstract class BaseModel {
+public abstract class BaseModel implements Cloneable {
    
    /** Factory owning these models */
    static private ModelFactory fFactory = null;
@@ -66,7 +67,7 @@ public abstract class BaseModel {
 //      updateAncestors();
       final StructuredViewer viewer = getViewer();
       if (viewer != null) {
-            viewer.update(this, null);
+         viewer.update(this, null);
       }
    }
    
@@ -104,6 +105,9 @@ public abstract class BaseModel {
 
    /** Controls logging */
    protected boolean fLogging = false;
+
+   /** Index for indexed models */
+   private int  fIndex;
 
    /**
     * Constructor
@@ -224,7 +228,7 @@ public abstract class BaseModel {
     * 
     * @param description
     */
-   void setDescription(String description) {
+   public void setDescription(String description) {
       fDescription = description;
    }
    
@@ -314,17 +318,15 @@ public abstract class BaseModel {
    Status getStatus() {
       // Search children for error
       Status rv = fMessage;
-      if ((rv != null) && rv.greaterThan(Status.Severity.WARNING)) {
-         return rv;
-      }
-      if (fChildren == null) {
-         return rv;
-      }
-      for (Object node:fChildren) {
-         BaseModel child = (BaseModel) node;
-         Status m = child.getStatus();
-         if ((m != null) && m.greaterThan(Status.Severity.WARNING)) {
-            return m;
+      if (((rv == null) || rv.lessThan(Status.Severity.ERROR)) &&
+          (fChildren != null)) {
+         for (Object node:fChildren) {
+            BaseModel child = (BaseModel) node;
+            Status m = child.getStatus();
+            if ((m != null) && m.greaterThan(Status.Severity.WARNING)) {
+               rv = m;
+               break;
+            }
          }
       }
       return rv;
@@ -456,10 +458,71 @@ public abstract class BaseModel {
       removeMyListeners();
    }
 
+   /**
+    * Set parent model<br>
+    * Also adds the model to the parent
+    * 
+    * @param parent
+    */
    public void setParent(BaseModel parent) {
       fParent = parent;
       if (parent != null) {
          parent.addChild(this);
       }
    }
+
+   /**
+    * Set parent model<br>
+    * Does not add the model to the parent
+    * 
+    * @param parent
+    */
+   public void setParentOnly(BaseModel parent) {
+      fParent = parent;
+   }
+
+   /**
+    * 
+    * @param parentModel   Parent for cloned node
+    * @param provider      Variable provider to register variables with
+    * @param index         Index for the clone
+    * 
+    * @return Clone of the object
+    * 
+    * @throws CloneNotSupportedException if cannot be cloned
+    */
+   public BaseModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      
+      // Clone simple members
+      BaseModel model = (BaseModel) super.clone();
+      
+      // Change to correct parent
+      model.setParent(parentModel);
+      
+      // Set unique index
+      model.fIndex = index;
+      model.fName  = fName.replaceAll("\\[\\d+\\]$", "["+index+"]");
+
+      // Remove cross-linked children
+      model.fChildren = null;
+      
+      // Add cloned children
+      if (fChildren != null) {
+         for (Object obj : fChildren) {
+            BaseModel child = (BaseModel) obj;
+            child.clone(model, provider, index);
+         }
+      }
+      return model;
+   }
+         
+   /**
+    * Get index for indexed models
+    * 
+    * @return
+    */
+   public int getIndex() {
+      return fIndex;
+   }
+
 }

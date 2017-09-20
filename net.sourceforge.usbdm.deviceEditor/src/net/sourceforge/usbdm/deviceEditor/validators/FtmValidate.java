@@ -17,7 +17,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class FtmValidate extends PeripheralValidator {
    
-   private boolean addedExternalVariables = false;
    private final static String[] externalVariables = {
          "/MCG/system_mcgffclk_clock",
          "/SIM/system_bus_clock",
@@ -36,10 +35,8 @@ public class FtmValidate extends PeripheralValidator {
       
       super.validate(variable);
       
-      if (!addedExternalVariables) {
-         addToWatchedVariables(externalVariables);
-         addedExternalVariables = true;
-      }
+      addToWatchedVariables(externalVariables);
+         
       // OSC
       //=================================
       DoubleVariable    clockFrequencyVar          =  getDoubleVariable("clockFrequency");

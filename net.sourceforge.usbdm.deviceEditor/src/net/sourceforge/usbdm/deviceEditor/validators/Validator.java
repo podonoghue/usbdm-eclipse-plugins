@@ -1,10 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
-import java.lang.ClassCastException;
-import java.lang.Exception;
-import java.lang.String;
-import java.lang.System;
-
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
@@ -17,9 +12,29 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public abstract class Validator {
 
    protected final VariableProvider fProvider;
+   protected final int              fDimension;
+   protected int                    fIndex=0;
    
+   /**
+    * Create validator
+    * 
+    * @param provider  Associated variable provider
+    * @param dimension Dimension of index variables
+    */
+   public Validator(VariableProvider provider, int dimension) {
+      fProvider  = provider;
+      fDimension = dimension;
+   }
+
+   /**
+    * Create validator
+    * 
+    * @param provider  Associated variable provider
+    * @param dimension Dimension of index variables
+    */
    public Validator(VariableProvider provider) {
-      fProvider = provider;
+      fProvider  = provider;
+      fDimension = 0;
    }
 
    /**
@@ -39,14 +54,9 @@ public abstract class Validator {
     * @return Valid => null<br>
     *         Invalid => Error string
     */
-   String isValidCIdentifier(String id) {
-      if (id != null) {
-         id = id.replaceAll("%", "");
-         if (id.matches("[_a-zA-Z][_a-zA-z0-9]*")) {
-            return null;
-         }
-      }
-      return "Illegal name for C identifier";
+   protected boolean isValidCIdentifier(String id) {
+      
+      return ((id != null) && id.matches("[_a-zA-Z][_a-zA-z0-9]*"));
    }
    
    /**
@@ -106,6 +116,39 @@ public abstract class Validator {
    }
    
    /**
+    * Get Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    * @throws Exception 
+    */
+   protected Variable getVariable(String key) throws Exception {
+      Variable variable = null;
+      try {
+         variable = fProvider.getVariable(fProvider.makeKey(key)+"["+fIndex+"]");
+      } catch (Exception e) {
+         variable = fProvider.getVariable(fProvider.makeKey(key));
+      }
+      return variable;
+   }
+
+   /**
+    * Get Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    */
+   protected Variable safeGetVariable(String key) {
+      Variable variable = fProvider.safeGetVariable(fProvider.makeKey(key)+"["+fIndex+"]");
+      if (variable == null) {
+         variable = fProvider.safeGetVariable(fProvider.makeKey(key));
+      }
+      return variable;
+   }
+   
+   /**
     * Get Boolean Variable from associated peripheral 
     * 
     * @param key  Key to lookup variable
@@ -114,9 +157,9 @@ public abstract class Validator {
     * @throws Exception 
     */
    protected IrqVariable getIrqVariable(String key) throws Exception {
-      Variable variable = fProvider.getVariable(fProvider.makeKey(key));
+      Variable variable = getVariable(key);
       if (!(variable instanceof IrqVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to IrqVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to IrqVariable");
       }
       return (IrqVariable) variable;
    }
@@ -134,7 +177,7 @@ public abstract class Validator {
          return null;
       }
       if (!(variable instanceof IrqVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to IrqVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to IrqVariable");
       }
       return (IrqVariable) variable;
    }
@@ -148,9 +191,9 @@ public abstract class Validator {
     * @throws Exception 
     */
    protected BooleanVariable getBooleanVariable(String key) throws Exception {
-      Variable variable = fProvider.getVariable(fProvider.makeKey(key));
+      Variable variable = getVariable(key);
       if (!(variable instanceof BooleanVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to BooleanVariable");
       }
       return (BooleanVariable) variable;
    }
@@ -168,7 +211,7 @@ public abstract class Validator {
          return null;
       }
       if (!(variable instanceof BooleanVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to BooleanVariable");
       }
       return (BooleanVariable) variable;
    }
@@ -180,33 +223,15 @@ public abstract class Validator {
     * 
     * @return Variable found or null
     */
-   StringVariable safeGetStringVariable(String key) {
+   protected StringVariable safeGetStringVariable(String key) {
       Variable variable = safeGetVariable(key);
       if (variable == null) {
          return null;
       }
       if (!(variable instanceof StringVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to StringVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to StringVariable");
       }
       return (StringVariable) variable;
-   }
-
-   /**
-    * Get Choice Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return Variable found or null
-    */
-   ChoiceVariable safeGetChoiceVariable(String key) {
-      Variable variable = safeGetVariable(key);
-      if (variable == null) {
-         return null;
-      }
-      if (!(variable instanceof ChoiceVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to ChoiceVariable");
-      }
-      return (ChoiceVariable) variable;
    }
 
    /**
@@ -218,27 +243,27 @@ public abstract class Validator {
     * @throws Exception 
     */
    protected ChoiceVariable getChoiceVariable(String key) throws Exception {
-      Variable variable = fProvider.getVariable(fProvider.makeKey(key));
+      Variable variable = getVariable(key);
       if (!(variable instanceof ChoiceVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to ChoiceVariable");
       }
       return (ChoiceVariable) variable;
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Choice Variable from associated peripheral 
     * 
     * @param key  Key to lookup variable
     * 
     * @return Variable found or null
     */
-   ChoiceVariable safeGetChoiceVariableVariable(String key) {
+   protected ChoiceVariable safeGetChoiceVariable(String key) {
       Variable variable = safeGetVariable(key);
       if (variable == null) {
          return null;
       }
       if (!(variable instanceof ChoiceVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to BooleanVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to ChoiceVariable");
       }
       return (ChoiceVariable) variable;
    }
@@ -252,9 +277,9 @@ public abstract class Validator {
     * @throws Exception 
     */
    protected LongVariable getLongVariable(String key) throws Exception {
-      Variable variable = fProvider.getVariable(fProvider.makeKey(key));
+      Variable variable = getVariable(key);
       if (!(variable instanceof LongVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to LongVariable");
       }
       return (LongVariable) variable;
    }
@@ -272,7 +297,7 @@ public abstract class Validator {
          return null;
       }
       if (!(variable instanceof LongVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to LongVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to LongVariable");
       }
       return (LongVariable) variable;
    }
@@ -286,9 +311,9 @@ public abstract class Validator {
     * @throws Exception 
     */
    protected DoubleVariable getDoubleVariable(String key) throws Exception {
-      Variable variable = fProvider.getVariable(fProvider.makeKey(key));
+      Variable variable = getVariable(key);
       if (!(variable instanceof DoubleVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to DoubleVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to DoubleVariable");
       }
       return (DoubleVariable) variable;
    }
@@ -300,38 +325,15 @@ public abstract class Validator {
     * 
     * @return
     */
-   DoubleVariable safeGetDoubleVariable(String key) {
+   protected DoubleVariable safeGetDoubleVariable(String key) {
       Variable variable = safeGetVariable(key);
       if (variable == null) {
          return null;
       }
       if (!(variable instanceof DoubleVariable)) {
-         throw new ClassCastException("Variable " + variable + "cannot be cast to DoubleVariable");
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to DoubleVariable");
       }
       return (DoubleVariable) variable;
-   }
-
-   /**
-    * Get Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
-    * @throws Exception 
-    */
-   protected Variable getVariable(String key) throws Exception {
-      return fProvider.getVariable(fProvider.makeKey(key));
-   }
-
-   /**
-    * Get Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return
-    */
-   protected Variable safeGetVariable(String key) {
-      return fProvider.safeGetVariable(fProvider.makeKey(key));
    }
 
 }

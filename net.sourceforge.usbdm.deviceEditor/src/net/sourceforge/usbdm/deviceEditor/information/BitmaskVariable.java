@@ -44,6 +44,11 @@ public class BitmaskVariable extends LongVariable {
       return "0x"+Long.toHexString(value);
    }
 
+   @Override
+   public String getSubstitutionValue() {
+      return getValueAsString();
+   }
+
    /**
     * Set list of bit names (lsb-msb)
     * 

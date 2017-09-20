@@ -4,6 +4,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import net.sourceforge.usbdm.deviceEditor.editor.SectionEditor;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class SectionModel extends BaseModel implements IPage {
 
@@ -49,4 +50,11 @@ public class SectionModel extends BaseModel implements IPage {
    public BaseModel getModel() {
       return this;
    }
+
+   @Override
+   public SectionModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (SectionModel) super.clone(parentModel, provider, index);
+   }
+   
+   
 }

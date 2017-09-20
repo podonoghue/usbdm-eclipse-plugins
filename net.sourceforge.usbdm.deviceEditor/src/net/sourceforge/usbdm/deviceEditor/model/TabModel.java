@@ -4,6 +4,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import net.sourceforge.usbdm.deviceEditor.editor.TabbedEditor;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class TabModel extends BaseModel implements IPage {
 
@@ -54,4 +55,11 @@ public class TabModel extends BaseModel implements IPage {
    public BaseModel getModel() {
       return this;
    }
+
+   @Override
+   public TabModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
+      return (TabModel) super.clone(parentModel, provider, index);
+   }
+   
+   
 }

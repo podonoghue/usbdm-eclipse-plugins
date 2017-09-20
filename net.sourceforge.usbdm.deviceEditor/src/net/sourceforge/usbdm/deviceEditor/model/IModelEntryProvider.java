@@ -7,10 +7,18 @@ public interface IModelEntryProvider {
    /**
     * Get models contributed by this object
     * 
-    * @param parent
+    * @param parent  Parent to add models to
+    */
+   public void getModels(BaseModel parent);
+   
+   /**
+    * Get top-level model contributed by this object
+    * 
+    * @param parent  Parent to add models to
+    * 
     * @return model or null if none
     */
-   public BaseModel getModels(BaseModel parent);
+   public BaseModel getModel(BaseModel parent);
    
    /**
     * Set value of variable

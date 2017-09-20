@@ -21,6 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
+import net.sourceforge.usbdm.deviceEditor.information.IndexedCategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
@@ -31,9 +32,11 @@ import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
+import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
+import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -56,14 +59,14 @@ public class ParseMenuXML extends XML_BaseParser {
    public final static String RESOURCE_PATH = "Stationery/Packages/180.ARM_Peripherals";
 
    public static class MenuData {
-      private final BaseModel                    fRootModel;
-      private final Map<String, CodeTemplate>    fTemplates;
-      private final ArrayList<ValidatorInformation>         fValidators;
-      private final ProjectActionList            fProjectActionList;
+      private final BaseModel                         fRootModel;
+      private final Map<String, TemplateInformation>  fTemplates;
+      private final ArrayList<ValidatorInformation>   fValidators;
+      private final ProjectActionList                 fProjectActionList;
       
-      public MenuData(BaseModel model, HashMap<String, CodeTemplate> templates, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
+      public MenuData(BaseModel model, Map<String, TemplateInformation> fTemplateInfos, ArrayList<ValidatorInformation> validators, ProjectActionList projectActionList) {
          fRootModel  = model;
-         fTemplates  = templates;
+         fTemplates  = fTemplateInfos;
          if (validators == null) {
             // Empty list rather than null
             fValidators = new ArrayList<ValidatorInformation>();
@@ -120,7 +123,7 @@ public class ParseMenuXML extends XML_BaseParser {
        * 
        * @return
        */
-      public Map<String, CodeTemplate> getTemplates() {
+      public Map<String, TemplateInformation> getTemplates() {
          return fTemplates;
       }
       /**
@@ -132,11 +135,22 @@ public class ParseMenuXML extends XML_BaseParser {
        */
       public String getTemplate(String namespace, String key) {
          key = makeKey(key, namespace);
-         CodeTemplate template = fTemplates.get(key);
+         TemplateInformation template = fTemplates.get(key);
          if (template == null) {
             return "";
          }
-         return template.getTemplate();
+         return template.getContents();
+      }
+
+      /**
+       * Instantiates any aliases in the model
+       * 
+       * @param provider   Provider for variables (usually peripheral)
+       * 
+       * @throws Exception 
+       */
+      public void instantiateAliases(VariableProvider provider) throws Exception {
+         ParseMenuXML.instantiateAliases(provider, fRootModel);
       }
       
    }
@@ -152,10 +166,10 @@ public class ParseMenuXML extends XML_BaseParser {
    private PeripheralWithState fPeripheral;
 
    /** Used to build the template */
-   private final Map<String,StringBuilder>  fTemplates   = new HashMap<String,StringBuilder>();
+   private final Map<String, TemplateInformation>  fTemplateInfos   = new HashMap<String,TemplateInformation>();
 
-   /** Used to record template dimensions */
-   private final Map<String,Variable> fTemplateDimensions   = new HashMap<String,Variable>();
+//   /** Used to record template dimensions */
+//   private final Map<String,Variable> fTemplateDimensions   = new HashMap<String,Variable>();
 
    /** Holds the validators found */
    private final ArrayList<ValidatorInformation> fValidators = new ArrayList<ValidatorInformation>();
@@ -168,6 +182,9 @@ public class ParseMenuXML extends XML_BaseParser {
 
    /** Used to record the Pins model */
    private CategoryModel fPinModel;
+
+   /** Indicates the index for variables */
+   private int fIndex = 0;
 
    /**
     * 
@@ -216,7 +233,7 @@ public class ParseMenuXML extends XML_BaseParser {
 
    /**
     * 
-    * @param varElement    Element obtain attributes from
+    * @param varElement    Element to obtain attributes from
     * @param clazz         Class of variable to create
     * 
     * @return Variable created (or existing one)
@@ -226,13 +243,19 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String  name = varElement.getAttribute("name");
       String  key  = varElement.getAttribute("key");
+
+      String indexSuffix = "";
+      indexSuffix = "["+Integer.toString(fIndex)+"]";
       if (key.isEmpty()) {
-         key = fProvider.makeKey(name);
+         key = name;
       }
       key  = substituteKey(key);
       name = substituteKey(name);
 
-      key = fProvider.makeKey(name);
+      key = key.replaceAll("\\.$", indexSuffix);
+      name = name.replaceAll("\\.$", indexSuffix);
+
+      key = fProvider.makeKey(key);
       
       Variable newVariable = null;
       Variable existingVariable = safeGetVariable(key);
@@ -295,7 +318,7 @@ public class ParseMenuXML extends XML_BaseParser {
     * @return Variable created (or existing one)
     * @throws Exception 
     */
-   private Variable parseCommonAttributes(BaseModel parent, Element varElement, Class<?> clazz) throws Exception {
+   private VariableModel parseCommonAttributes(BaseModel parent, Element varElement, Class<?> clazz) throws Exception {
       
       Variable variable      = createVariable(varElement, clazz);
       Variable otherVariable = getDerived(varElement);
@@ -322,7 +345,7 @@ public class ParseMenuXML extends XML_BaseParser {
       VariableModel model = variable.createModel(parent);
       model.setConstant(Boolean.valueOf(varElement.getAttribute("constant")));
       
-      return variable;
+      return model;
    }
 
    /**
@@ -333,7 +356,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseLongOption(BaseModel parent, Element varElement) throws Exception {
 
-      LongVariable variable = (LongVariable) parseCommonAttributes(parent, varElement, LongVariable.class);
+      LongVariable variable = (LongVariable) parseCommonAttributes(parent, varElement, LongVariable.class).getVariable();
 
       try {
          if (varElement.hasAttribute("min")) {
@@ -364,7 +387,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseDoubleOption(BaseModel parent, Element varElement) throws Exception {
 
-      DoubleVariable variable = (DoubleVariable) parseCommonAttributes(parent, varElement, DoubleVariable.class);
+      DoubleVariable variable = (DoubleVariable) parseCommonAttributes(parent, varElement, DoubleVariable.class).getVariable();
 
       try {
          if (varElement.hasAttribute("min")) {
@@ -393,7 +416,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
 
-      BitmaskVariable variable = (BitmaskVariable) parseCommonAttributes(parent, varElement, BitmaskVariable.class);
+      BitmaskVariable variable = (BitmaskVariable) parseCommonAttributes(parent, varElement, BitmaskVariable.class).getVariable();
 
       try {
          variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
@@ -413,7 +436,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
-      ChoiceVariable variable = (ChoiceVariable) parseCommonAttributes(parent, varElement, ChoiceVariable.class);
+      ChoiceVariable variable = (ChoiceVariable) parseCommonAttributes(parent, varElement, ChoiceVariable.class).getVariable();
       parseChoices(variable, varElement);
    }
 
@@ -425,9 +448,30 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseStringOption(BaseModel parent, Element varElement) throws Exception {
       
-      StringVariable variable = (StringVariable) parseCommonAttributes(parent, varElement, StringVariable.class);
+      StringVariable variable = (StringVariable) parseCommonAttributes(parent, varElement, StringVariable.class).getVariable();
 
       variable.setValue(varElement.getAttribute("value"));
+   }
+
+   private void parseIndexedCategoryOption(BaseModel parent, Element element) throws Exception {
+
+      IndexedCategoryModel model = (IndexedCategoryModel) parseCommonAttributes(parent, element, IndexedCategoryVariable.class);
+
+      IndexedCategoryVariable variable = model.getVariable();
+      
+      variable.setValue(element.getAttribute("value"));
+
+      int dimension = getIntAttribute(element, "dim");
+      model.setDimension(dimension);
+      
+      parseChildModels(model, element);
+
+      for (int index=1; index<dimension; index++) {
+         IndexedCategoryModel newModel = model.clone(parent, fProvider, index);
+         if (newModel.getName() == model.getName()) {
+            newModel.setName(model.getName()+"["+index+"]");
+         }
+      }
    }
 
    /**
@@ -438,7 +482,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseNumericListOption(BaseModel parent, Element varElement) throws Exception {
       
-      NumericListVariable variable = (NumericListVariable) parseCommonAttributes(parent, varElement, NumericListVariable.class);
+      NumericListVariable variable = (NumericListVariable) parseCommonAttributes(parent, varElement, NumericListVariable.class).getVariable();
 
       try {
          if (varElement.hasAttribute("min")) {
@@ -465,7 +509,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
 
-      BooleanVariable variable = (BooleanVariable) parseCommonAttributes(parent, varElement, BooleanVariable.class);
+      BooleanVariable variable = (BooleanVariable) parseCommonAttributes(parent, varElement, BooleanVariable.class).getVariable();
       parseChoices(variable, varElement);
    }
 
@@ -499,7 +543,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseIrqOption(BaseModel parent, Element irqElement) throws Exception {
       
-      IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, irqElement, IrqVariable.class);
+      IrqVariable variable = (IrqVariable) parseCommonAttributes(parent, irqElement, IrqVariable.class).getVariable();
       variable.setPattern(irqElement.getAttribute("pattern"));
       variable.setClassHandler(irqElement.getAttribute("classHandler"));
       
@@ -514,7 +558,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
-      PinListVariable variable = (PinListVariable) parseCommonAttributes(parent, varElement, PinListVariable.class);
+      PinListVariable variable = (PinListVariable) parseCommonAttributes(parent, varElement, PinListVariable.class).getVariable();
       variable.setPeripheral(fPeripheral);
       try {
          if (varElement.hasAttribute("size")) {
@@ -541,6 +585,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (fPeripheral != null) {
          newKey = key.replaceAll("\\$\\(_instance\\)", fPeripheral.getInstance());
       }
+      newKey.replaceAll("\\.$", "");
       return newKey;
    }
 
@@ -561,6 +606,9 @@ public class ParseMenuXML extends XML_BaseParser {
       String  description  = stringElement.getAttribute("description");
       String  toolTip      = getToolTip(stringElement);
 
+      String indexSuffix = "";
+      indexSuffix = "["+Integer.toString(fIndex)+"]";
+      
       if (!key.isEmpty() && !name.isEmpty()) {
          throw new Exception("Both name and key provided for <alias>, key='" + key +"', name='" + name + "'");
       }
@@ -571,34 +619,17 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Alias requires either name or key "+displayName);
       }
       key = substituteKey(key);
+      key = key.replaceAll("\\.$", indexSuffix);
       key = fProvider.makeKey(key);
 
       boolean isConstant  = Boolean.valueOf(stringElement.getAttribute("constant"));
       boolean isOptional  = Boolean.valueOf(stringElement.getAttribute("optional"));
-      Variable variable = safeGetVariable(key);
-      if (variable == null) {
-         if (!isOptional) {
-            throw new Exception("Alias not found for " + key);
-         }
-         return;
-      }
-      if (!description.isEmpty()) {
-         if ((variable.getDescription() != null) && !variable.getDescription().isEmpty()) {
-            throw new Exception("Alias tries to change description for " + key);
-         }
-         variable.setDescription(description);
-      }
-      if (!toolTip.isEmpty()) {
-         if ((variable.getDisplayToolTip() != null) && !variable.getDisplayToolTip().isEmpty()) {
-            throw new Exception("Alias tries to change toolTip for " + key);
-         }
-         variable.setToolTip(toolTip);
-      }
-      VariableModel model = variable.createModel(parent);
-      model.setConstant(isConstant);
-      if (!displayName.isEmpty()) {
-         model.setName(displayName);
-      }
+      
+      AliasPlaceholderModel placeholderModel = new AliasPlaceholderModel(parent, displayName, description);
+      placeholderModel.setkey(key);
+      placeholderModel.setConstant(isConstant);
+      placeholderModel.setOptional(isOptional);
+      placeholderModel.setToolTip(toolTip);
    }
 
    /**
@@ -687,15 +718,7 @@ public class ParseMenuXML extends XML_BaseParser {
          if (!name.isEmpty() && !namespace.equals("all")) {
             throw new Exception("Named templates must have 'all' namespace, name='" + name + "'");
          }
-         Variable dimension = null;
-         if (element.hasAttribute("dim")) {
-            String dimName = element.getAttribute("dim");
-            String key = fProvider.makeKey(dimName);
-            dimension = safeGetVariable(key);
-            if (dimension == null) {
-               throw new Exception("Alias not found for " + key);
-            }
-         }
+         int dimension = getIntAttribute(element, "dim");
          addTemplate(name, namespace, dimension,
                element.getTextContent().
                replaceAll("^\n\\s*","").
@@ -794,7 +817,6 @@ public class ParseMenuXML extends XML_BaseParser {
 
       String tagName     = element.getTagName();
       String name        = element.getAttribute("name");
-      String description = element.getAttribute("description");
       String toolTip     = getToolTip(element);
 
       //         System.err.println("parseChildModel(): " + tagName + ", " + element.getAttribute("name"));
@@ -802,23 +824,11 @@ public class ParseMenuXML extends XML_BaseParser {
          parseChildModels(parentModel, element);
       }
       else if (tagName == "category") {
-         int dimension = getIntAttribute(element, "dim");
-         String[] descriptions = description.split(";");
-
-         if (dimension == 0) {
-            BaseModel model = new CategoryModel(parentModel, name, description);
-            model.setToolTip(toolTip);
-            parseChildModels(model, element);
-         }
-         else {
-            for (int index=0; index<2; index++) {
-               CategoryModel model = new CategoryModel(parentModel, name+"#"+index, descriptions[index]);
-               fProvider.setIndex(index);
-               model.setToolTip(toolTip);
-               parseChildModels(model, element);
-            }
-            fProvider.setIndex(0);
-         }
+         BaseModel model = new CategoryModel(parentModel, name, toolTip);
+         parseChildModels(model, element);
+      }
+      else if (tagName == "indexedCategory") {
+         parseIndexedCategoryOption(parentModel, element);
       }
       else if (tagName == "intOption") {
          parseLongOption(parentModel, element);
@@ -880,26 +890,31 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param key        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
     * @param dimension  Dimension for array template
-    * @param contents   Text for template
+    * @param contents   Text contents for template
     * 
     * @throws Exception 
     */
-   private void addTemplate(String key, String namespace, Variable dimension, String contents) throws Exception {
+   private void addTemplate(String key, String namespace, int dimension, String contents) throws Exception {
       key = MenuData.makeKey(key, namespace);
 
       // Check for existing template
-      StringBuilder sb = fTemplates.get(key);
-      if (sb == null) {
+      TemplateInformation templateInfo = fTemplateInfos.get(key);
+      if (templateInfo == null) {
          // Create new template
-         sb = new StringBuilder();
-         fTemplates.put(key, sb);
+         templateInfo = new TemplateInformation(key, namespace, contents, dimension);
+         fTemplateInfos.put(key, templateInfo);
       }
-      if (dimension != null) {
-         if (fTemplateDimensions.put(key, dimension) != null) {
-            throw new Exception("Template has multiple dimensions key='" + key + "'");
+      else {
+         String previousNamespace = templateInfo.getNamespace();
+         if (!previousNamespace.equals(namespace)) {
+            throw new Exception("Partial template has inconsistent namespace, expected='"+previousNamespace+"', found='"+namespace+"'");
          }
+         int previousDimension = templateInfo.getDimension();
+         if ((dimension != 0) && (previousDimension != dimension)) {
+            throw new Exception("Partial template has inconsistent dimension, expected='"+previousDimension+"', found='"+dimension+"'");
+         }
+         templateInfo.addToContents(contents);
       }
-      sb.append(contents);
    }
 
    /**
@@ -1002,17 +1017,58 @@ public class ParseMenuXML extends XML_BaseParser {
       }
    }
 
+   public static class TemplateInformation {
+      private final String            fKey;
+      private final String            fNameSpace;
+      private final StringBuilder     fBuilder;
+      private final int               fDimension;
+      private String            fText = null;
+      
+      public TemplateInformation(String key, String nameSpace, String contents, int dimension) {
+         fKey        = key;
+         fNameSpace  = nameSpace;
+         fBuilder    = new StringBuilder(contents); 
+         fDimension  = dimension;
+      }
+      
+      public String getKey() {
+         return fKey;
+      }
+
+      public String getContents() {
+         if (fText == null) {
+            fText = fBuilder.toString();
+         }
+         return fText;
+      }
+
+      public void addToContents(String contents) {
+         fBuilder.append(contents);
+         fText = null;
+      }
+
+      public int getDimension() {
+         return fDimension;
+      }
+
+      public String getNamespace() {
+         return fNameSpace;
+      }
+   }
+   
    public static class ValidatorInformation {
       private String            fClassName;
       private ArrayList<Object> fParams = new ArrayList<Object>();
+      private int               fDimension;
 
       /**
        * Construct validator
        * 
        * @param className Name of class
        */
-      ValidatorInformation(String className) {
+      ValidatorInformation(String className, int dimension) {
          fClassName = className;
+         fDimension = dimension;
       }
       /**
        * Add parameter to validator
@@ -1040,6 +1096,9 @@ public class ParseMenuXML extends XML_BaseParser {
       public String getClassName() {
          return fClassName;
       }
+      public int getDimension() {
+         return fDimension;
+      }
    }
 
    /**
@@ -1058,7 +1117,9 @@ public class ParseMenuXML extends XML_BaseParser {
       //         System.err.println(k + " => " + paramMap.get(k));
       //      }
       //      System.err.println("================================");
-      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"));
+      int dimension = getIntAttribute(validateElement, "dim");
+      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"), dimension);
+      
       for (Node node = validateElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -1109,7 +1170,7 @@ public class ParseMenuXML extends XML_BaseParser {
          name = fProvider.getName();
       }
 //      String description = element.getAttribute("description");
-      String toolTip     = getToolTip(element);
+      String toolTip  = getToolTip(element);
 
       BaseModel model = null;
       
@@ -1273,35 +1334,88 @@ public class ParseMenuXML extends XML_BaseParser {
    }
 
    /**
-    * Represents the template information from the device files.
+    * @param  provider     Provider to look up variables
+    * @param  parent       Parent model needed to replace child in
+    * @param  aliasModel   Information for model to instantiate
+    * 
+    * @return New model created
+    * 
+    * @throws Exception
     */
-   public static class CodeTemplate {
-      private final String   fTemplate;
-      private final Variable fDimension;
-
-      public CodeTemplate(String template, Variable dimension) {
-         fTemplate  = template;
-         fDimension = dimension;
+   static BaseModel createModelFromAlias(VariableProvider provider, BaseModel parent, AliasPlaceholderModel aliasModel) throws Exception {
+      
+      String  key        = aliasModel.getKey();
+      boolean isOptional = aliasModel.isOptional();
+      
+      Variable variable = provider.safeGetVariable(key);
+      if (variable == null) {
+         if (!isOptional) {
+            throw new Exception("Alias not found for " + key + " within "+parent.getName());
+         }
+         return null;
       }
-
-      /**
-       * Get template string
-       * 
-       * @return String
-       */
-      public String getTemplate() {
-         return fTemplate;
+      String description = aliasModel.getDescription();
+      if (!description.isEmpty()) {
+         if ((variable.getDescription() != null) && !variable.getDescription().isEmpty()) {
+            throw new Exception("Alias tries to change description for " + key);
+         }
+         variable.setDescription(description);
       }
-
-      /**
-       * Get template dimension variable
-       * 
-       * @return Variable or null if not array
-       */
-      public Variable getDimension() {
-         return fDimension;
+      String toolTip = aliasModel.getToolTip();
+      if ((toolTip != null) && !toolTip.isEmpty()) {
+         if ((variable.getDisplayToolTip() != null) && !variable.getDisplayToolTip().isEmpty()) {
+            throw new Exception("Alias tries to change toolTip for " + key);
+         }
+         variable.setToolTip(toolTip);
       }
+      VariableModel model = variable.createModel(null);
+      boolean isConstant = aliasModel.isConstant();
+      model.setConstant(isConstant);
+      String displayName = aliasModel.getName();
+      if (!displayName.isEmpty()) {
+         model.setName(displayName);
+      }
+      return model;
    }
+   
+   /**
+    * Visits all nodes of the model and instantiates any aliases
+    * 
+    * @param  provider  Provider to look up variables
+    * @param  parent    Root of the model tree to visit
+    * 
+    * @throws Exception
+    */
+   static void instantiateAliases(VariableProvider provider, BaseModel parent) throws Exception {
+      if ((parent == null) || (parent.getChildren()==null)) {
+         return;
+      }
+      ArrayList<Object> children = parent.getChildren();
+      
+      ArrayList<Object> deletedChildren = new ArrayList<Object>();
+      
+      for (int index=0; index<children.size(); index++) {
+         Object model = children.get(index);
+         if (model instanceof AliasPlaceholderModel) {
+            BaseModel newModel = createModelFromAlias(provider, parent, (AliasPlaceholderModel) model);
+            if (newModel == null) {
+               // Variable not found and model is optional - delete placeholder
+               deletedChildren.add(model);
+            }
+            else {
+               // Replace placeholder with new model
+               children.set(index, newModel);
+               newModel.setParentOnly(parent);
+            }
+         }
+         else {
+            instantiateAliases(provider, (BaseModel) model);
+         }
+      }
+      // Remove deleted children
+      children.removeAll(deletedChildren);
+   }
+   
    /**
     * Parse configuration from document
     * 
@@ -1331,11 +1445,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (parser.fRootModel == null) {
          throw new Exception("No <peripheralPage> found in XML");
       }
-      HashMap<String, CodeTemplate> templates = new HashMap<String, CodeTemplate>();
-      for (String key:parser.fTemplates.keySet()) {
-         templates.put(key, new CodeTemplate(parser.fTemplates.get(key).toString(), parser.fTemplateDimensions.get(key)));
-      }
-      return new MenuData(parser.fRootModel, templates, parser.fValidators, parser.fProjectActionList);
+      return new MenuData(parser.fRootModel, parser.fTemplateInfos, parser.fValidators, parser.fProjectActionList);
    }
 
    /**
@@ -1393,15 +1503,24 @@ public class ParseMenuXML extends XML_BaseParser {
          e.printStackTrace();
          throw new Exception("Failed to process peripheral file for "+name, e);
       }
-      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
+      for (ValidatorInformation v:fData.getValidators()) {
          try {
             // Get validator class
             Class<?> clazz = Class.forName(v.getClassName());
-            Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass());
-            PeripheralValidator validator = (PeripheralValidator) constructor.newInstance(peripheral, v.getParams());
+            int dimension = v.getDimension();
+            PeripheralValidator validator;
+            if (dimension>0) {
+                  Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, Integer.class, v.getParams().getClass());
+                  validator = (PeripheralValidator) constructor.newInstance(peripheral, dimension, v.getParams());
+            }
+            else {
+                  Constructor<?> constructor = clazz.getConstructor(PeripheralWithState.class, v.getParams().getClass());
+                  validator = (PeripheralValidator) constructor.newInstance(peripheral, v.getParams());
+            }
             peripheral.addValidator(validator);
          } catch (Exception e) {
-            throw new Exception("Failed to add validator "+v.getClassName()+" for PeripheralWithState " + peripheral.getName(), e);
+            e.printStackTrace();
+            throw new Exception("Failed to add validator '"+v.getClassName()+"' for PeripheralWithState '"+peripheral.getName()+"'", e);
          }
       }
       return fData;

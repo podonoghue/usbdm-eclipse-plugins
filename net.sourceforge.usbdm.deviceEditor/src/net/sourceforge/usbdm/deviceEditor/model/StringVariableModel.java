@@ -25,22 +25,21 @@ public class StringVariableModel extends VariableModel {
          super.keyReleaseOccured(keyEvent);
       }
 
-//      class Validator implements ICellEditorValidator {
-//         @Override
-//         public String isValid(Object value) {
-//            return fModel.isValid(value.toString());
-//         }
-//      }
-      
       public StringCellEditor(Tree parent, StringVariableModel model) {
          super(parent, SWT.SINGLE);
          fModel = model;
          setValueValid(true);
-//         Validator validator =  new Validator();
-//         setValidator(validator);
       }
    }
 
+   /**
+    * Constructor - Create model from variable
+    * 
+    * @param parent     Parent model
+    * @param variable   Variable being modelled
+    * 
+    * @note Added as child of parent if not null
+    */
    public StringVariableModel(BaseModel parent, Variable variable) {
       super(parent, variable);
    }

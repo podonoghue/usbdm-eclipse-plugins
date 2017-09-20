@@ -6,19 +6,22 @@ import org.eclipse.swt.widgets.Tree;
 import net.sourceforge.usbdm.deviceEditor.editor.CellEditorProvider;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
+import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 /**
  * Model for a variable maintained by a provider
  */
 public abstract class VariableModel extends EditableModel implements IModelChangeListener, CellEditorProvider {
 
-   protected final Variable fVariable;
+   protected Variable fVariable;
    
    /**
     * Constructor - Create model from variable
     * 
     * @param parent     Parent model
     * @param variable   Variable being modelled
+    * 
+    * @note Added as child of parent if not null
     */
    public VariableModel(BaseModel parent, Variable variable) {
       super(parent, variable.getName(), variable.getDescription());
@@ -74,7 +77,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-      update();
+      updateAncestors(); //XXX
    }
 
    @Override
@@ -117,4 +120,13 @@ public abstract class VariableModel extends EditableModel implements IModelChang
       updateAncestors();
    }
    
+   @Override
+   public VariableModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException  {
+      VariableModel model = (VariableModel) super.clone(parentModel, provider, index);
+      // Clone the referenced variable
+      model.fVariable = (Variable) fVariable.clone(provider, index);
+      model.fVariable.addListener(model);
+      return model;
+   }
+
 }
