@@ -328,16 +328,19 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setToolTip(otherVariable.getToolTip());
          variable.setOrigin(otherVariable.getOrigin());
       }
-      String description = varElement.getAttribute("description");
-      if (!description.isEmpty()) {
-         variable.setDescription(description);
+      if (varElement.hasAttribute("description")) {
+         variable.setDescription(varElement.getAttribute("description"));
       }
-      String  toolTip     = getToolTip(varElement);
-      if (!toolTip.isEmpty()) {
-         variable.setToolTip(toolTip);
+      if (varElement.hasAttribute("toolTip")) {
+         variable.setToolTip(getToolTip(varElement));
       }
-      String origin = varElement.getAttribute("origin");
-      if (!origin.isEmpty()) {
+      if (varElement.hasAttribute("value")) {
+         // Value is used as default and initial value
+         String value = varElement.getAttribute("value");
+         variable.setValue(value);
+         variable.setDefault(value);
+      }
+      if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
       }
       variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
@@ -371,12 +374,6 @@ public class ParseMenuXML extends XML_BaseParser {
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
       variable.setStep(getLongAttribute(varElement, "step"));
       variable.setOffset(getLongAttribute(varElement, "offset"));
-      if (varElement.hasAttribute("value")) {
-         // Value is used as default and initial value
-         String value = varElement.getAttribute("value");
-         variable.setValue(value);
-         variable.setDefault(value);
-      }
    }
 
    /**
@@ -400,12 +397,6 @@ public class ParseMenuXML extends XML_BaseParser {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
       variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
-      if (varElement.hasAttribute("value")) {
-         // Value is used as default and initial value
-         String value = varElement.getAttribute("value");
-         variable.setValue(value);
-         variable.setDefault(value);
-      }
    }
 
    /**
@@ -424,8 +415,6 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
-      String  value       = varElement.getAttribute("value");
-      variable.setValue(value);
    }
 
    /**
@@ -448,9 +437,7 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseStringOption(BaseModel parent, Element varElement) throws Exception {
       
-      StringVariable variable = (StringVariable) parseCommonAttributes(parent, varElement, StringVariable.class).getVariable();
-
-      variable.setValue(varElement.getAttribute("value"));
+      parseCommonAttributes(parent, varElement, StringVariable.class).getVariable();
    }
 
    private void parseIndexedCategoryOption(BaseModel parent, Element element) throws Exception {
@@ -471,7 +458,10 @@ public class ParseMenuXML extends XML_BaseParser {
          if (newModel.getName() == model.getName()) {
             newModel.setName(model.getName()+"["+index+"]");
          }
+         IndexedCategoryVariable newVariable = newModel.getVariable();
+         newVariable.setValue(newVariable.getValueAsString().replaceAll("\\.$", Integer.toString(index)));
       }
+      variable.setValue(variable.getValueAsString().replaceAll("\\.$", Integer.toString(0)));
    }
 
    /**
@@ -497,8 +487,6 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max/size value in " + variable.getName(), e);
       }
-      String  value       = varElement.getAttribute("value");
-      variable.setValue(value);
    }
 
    /**
@@ -567,8 +555,6 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal size value in " + variable.getName(), e);
       }
-      String  value = varElement.getAttribute("value");
-      variable.setValue(value);
    }
 
    /**
@@ -709,6 +695,10 @@ public class ParseMenuXML extends XML_BaseParser {
          fValidators.add(parseValidate(element));
       }
       else if (tagName == "template") {
+         /**
+          * namespace:
+          *    class - Template is available in 
+          */
          String name = element.getAttribute("name");
          String namespace = element.getAttribute("namespace");
          
