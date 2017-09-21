@@ -5,7 +5,7 @@ import java.util.ListIterator;
 
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
-import net.sourceforge.usbdm.deviceEditor.information.Variable    ;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -109,8 +109,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
       
       // MCGIR
       //=================================
-      Variable slow_irc_clockVar;
-      Variable fast_irc_clockVar;
+      Variable system_slow_irc_clockVar;
+      Variable system_fast_irc_clockVar;
       Variable mcg_sc_fcrdivVar;
       Variable mcg_c2_ircsVar;
       Variable mcg_c1_irclkenVar;
@@ -172,8 +172,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
 
       mcg_c2_locre0Var.enable(mcg_c6_cme0Var.getValueAsBoolean());
 
-      slow_irc_clockVar = getVariable("system_slow_irc_clock");
-      fast_irc_clockVar = getVariable("system_fast_irc_clock");
+      system_slow_irc_clockVar = getVariable("system_slow_irc_clock");
+      system_fast_irc_clockVar = getVariable("system_fast_irc_clock");
       mcg_sc_fcrdivVar = safeGetVariable("mcg_sc_fcrdiv");
       mcg_c2_ircsVar = getVariable("mcg_c2_ircs");
       mcg_c1_irclkenVar = getVariable("mcg_c1_irclken");
@@ -236,18 +236,18 @@ public class ClockValidator_MKL extends BaseClockValidator {
             // Variable divisor
             long mcg_sc_fcrdiv = mcg_sc_fcrdivVar.getValueAsLong();
             system_mcgir_ungated_clock.setOrigin("(Fast IRC)/FCRDIV");
-            system_mcgir_ungated_clock.setValue(fast_irc_clockVar.getValueAsLong() / (1<<mcg_sc_fcrdiv));
+            system_mcgir_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / (1<<mcg_sc_fcrdiv));
          }
          else {
             // Fixed divisor of 2
             system_mcgir_ungated_clock.setOrigin("(Fast IRC)/2");
-            system_mcgir_ungated_clock.setValue(fast_irc_clockVar.getValueAsLong() / 2);
+            system_mcgir_ungated_clock.setValue(system_fast_irc_clockVar.getValueAsLong() / 2);
          }
       }
       else {
          // Slow IRC selected
          system_mcgir_ungated_clock.setOrigin("Slow IRC");
-         system_mcgir_ungated_clock.setValue(slow_irc_clockVar.getValueAsLong());
+         system_mcgir_ungated_clock.setValue(system_slow_irc_clockVar.getValueAsLong());
       }
       system_mcgirclk_clockVar.setOrigin(system_mcgir_ungated_clock.getOrigin());
       if (mcg_c1_irclkenVar.getValueAsBoolean()) {
@@ -402,7 +402,7 @@ public class ClockValidator_MKL extends BaseClockValidator {
             mcg_c2_rangeVar,
             mcg_c1_irefs,
             mcg_erc_clockVar,
-            slow_irc_clockVar.getValueAsLong(),
+            system_slow_irc_clockVar.getValueAsLong(),
             mcg_c7_oscsel, 
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fllInputFrequencyVar,
