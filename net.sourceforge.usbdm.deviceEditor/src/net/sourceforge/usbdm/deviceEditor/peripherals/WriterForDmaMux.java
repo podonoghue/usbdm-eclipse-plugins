@@ -66,40 +66,4 @@ public class WriterForDmaMux extends PeripheralWithState {
    public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
    }
 
-   @Override
-   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
-      super.writeNamespaceInfo(documentUtilities);
-      writeDmaInfo(documentUtilities);
-   }
-
-   /**
-    * Writes enumeration describing DMA slot use
-    * 
-    * e.g.<pre>
-    * enum DmaSlot {
-    *    DmaSlot_Disabled       = 0,
-    *    DmaSlot_UART0_Receive  = 2,
-    *    DmaSlot_UART0_Transmit = 3,
-    *    ...
-    * };
-    * </pre>
-    * @param writer
-    * @throws IOException
-    */
-   private void writeDmaInfo(DocumentUtilities documentUtilities) throws IOException {
-      if (getDmaInfoList().size() == 0) {
-         return;
-      }
-      StringBuffer sb = new StringBuffer();
-      sb.append(
-            "/** \n" +
-            " * DMA channel numbers \n" +
-            " */\n"+
-            "enum DmaSlot {\n");
-      for (DmaInfo item:getDmaInfoList()) {
-         sb.append(String.format("   %-35s = %s,\n", "DmaSlot_"+item.dmaSource, item.dmaChannelNumber));
-      }
-      sb.append("};\n\n");
-      documentUtilities.write(sb.toString());
-   }
 }
