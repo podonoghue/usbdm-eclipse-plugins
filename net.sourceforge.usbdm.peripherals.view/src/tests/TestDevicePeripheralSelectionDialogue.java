@@ -27,7 +27,6 @@ public class TestDevicePeripheralSelectionDialogue {
          svdIdentifier = new SVDIdentifier(svdIdentifier.toString());
          dialogue = new DevicePeripheralSelectionDialogue(shell, svdIdentifier);
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
          return;
       }
