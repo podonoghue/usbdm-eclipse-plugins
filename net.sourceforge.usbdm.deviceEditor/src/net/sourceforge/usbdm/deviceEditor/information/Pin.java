@@ -121,16 +121,28 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
    
    /**
-    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
+    * Get Port e.g. PORTC
     * 
-    * @return
+    * @return String or null if no associated PORT
     */
-   public String getPCRasInt() {
+   public String getPORT() {
       if (fPortInstance == null) {
          return null;
       }
-      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
+      return String.format("PORT%s", fPortInstance);
    }
+   
+//   /**
+//    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
+//    * 
+//    * @return
+//    */
+//   public String getPCRasInt() {
+//      if (fPortInstance == null) {
+//         return null;
+//      }
+//      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
+//   }
    
    /**
     * Get clock mask e.g. PORTA_CLOCK_MASK
@@ -312,11 +324,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          // No PCR - probably an analogue pin
          return "0, 0, 0, 0, ";
       }
-      String pcrRegister      = getPORTBasePtr();
+      String portAddress      = getPORTBasePtr();
       String gpioRegister     = getGpioBasePtr();
       String gpioBitNum       = getGpioBitNum();
 
-      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", pcrRegister+",", gpioRegister+",", gpioBitNum+",");
+      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
    }
 
    @Override

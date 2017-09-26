@@ -45,10 +45,10 @@ public class PcrInitialiser {
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
             long bitNum = Long.parseLong(bitNums);
-            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORT());
             if (pcrValueToBitsMap == null) {
                pcrValueToBitsMap = new TreeMap<String, Long>();
-               portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
+               portToPcrValuesMap.put(pin.getPORT(), pcrValueToBitsMap);
             }
             Long bitMask = pcrValueToBitsMap.get(pcrValue);
             if (bitMask == null) {
@@ -87,10 +87,10 @@ public class PcrInitialiser {
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
          long bitNum = Long.parseLong(bitNums);
-         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORTBasePtr());
+         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORT());
          if (pcrValueToBitsMap == null) {
             pcrValueToBitsMap = new TreeMap<String, Long>();
-            portToPcrValuesMap.put(pin.getPORTBasePtr(), pcrValueToBitsMap);
+            portToPcrValuesMap.put(pin.getPORT(), pcrValueToBitsMap);
          }
          Long bitMask = pcrValueToBitsMap.get(pcrValue);
          if (bitMask == null) {
@@ -121,11 +121,11 @@ public class PcrInitialiser {
             bits |= pcrToBitsMap.get(pcrValue);
          }
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCLR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
+            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCLR_GPWE(0x%sU);\n", port+"->GPCLR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
          }
          bits >>= 16;
          if ((bits&0xFFFF) != 0) {
-            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", "((PORT_Type *)"+port+")->GPCHR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
+            sb.append(String.format(indent+"      %s = PORT_PCR_MUX(%d)|PORT_GPCHR_GPWE(0x%sU);\n", port+"->GPCHR", 0, Long.toHexString(bits&0xFFFF).toUpperCase()));
          }
       }
       return sb.toString();
@@ -151,11 +151,11 @@ public class PcrInitialiser {
             Long bits = pcrToBitsMap.get(pcrValue);
             
             if ((bits&0xFFFF) != 0) {
-               sb.append(String.format(indent+"      %s = %s|PORT_GPCLR_GPWE(%s);\n", "((PORT_Type *)"+port+")->GPCLR", pcrValue, longTo4Hex(bits&0xFFFF)));
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCLR_GPWE(%s);\n", port+"->GPCLR", pcrValue, longTo4Hex(bits&0xFFFF)));
             }
             bits >>= 16;
             if ((bits&0xFFFF) != 0) {
-               sb.append(String.format(indent+"      %s = %s|PORT_GPCHR_GPWE(%s);\n", "((PORT_Type *)"+port+")->GPCHR", pcrValue, longTo4Hex(bits&0xFFFF)));
+               sb.append(String.format(indent+"      %s = %s|PORT_GPCHR_GPWE(%s);\n", port+"->GPCHR", pcrValue, longTo4Hex(bits&0xFFFF)));
             }
          }
       }
