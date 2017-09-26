@@ -61,6 +61,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
@@ -1087,6 +1088,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "(PMC)(0?)",
                getDeviceFamily(),
                WriterForPmc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "",
+               "(RCM)(0?)",
+               getDeviceFamily(),
+               WriterForRcm.class);
          createPeripheralTemplateInformation(
                "RTC", "", "$2",
                "(RTC)_?(CLKOUT|CLKIN|WAKEUP_b)",
