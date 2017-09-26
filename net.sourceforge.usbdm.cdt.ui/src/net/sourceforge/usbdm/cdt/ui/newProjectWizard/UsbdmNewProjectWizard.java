@@ -14,6 +14,7 @@ import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -442,11 +443,13 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
             // Create project
             IProject  project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
 
-            // Apply device project options
+            // Apply device project options etc
             ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
             
             // Generate CPP code as needed
             DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
+            
+            project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
             
             reindexProject(project, monitor.newChild(WORK_SCALE * 20));
 

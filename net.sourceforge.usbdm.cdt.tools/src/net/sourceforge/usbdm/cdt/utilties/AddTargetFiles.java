@@ -97,8 +97,6 @@ public class AddTargetFiles {
             }
             iFile.create(new ByteArrayInputStream(fileContents), true, null);
             iFile.setDerived(fileAction.isDerived(), monitor);
-            iFile.refreshLocal(IResource.DEPTH_ONE, null);
-            //         projectHandle.refreshLocal(IResource.DEPTH_INFINITE, null);
          }
       } catch (CoreException e) {
          throw new Exception("Failed" + e.getMessage(), e); //$NON-NLS-1$

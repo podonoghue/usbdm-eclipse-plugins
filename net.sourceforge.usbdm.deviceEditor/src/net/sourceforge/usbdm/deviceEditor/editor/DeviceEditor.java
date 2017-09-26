@@ -210,6 +210,10 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                if (fProject != null) {
                   // Opened as part of a Eclipse project
                   fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
+                  
+                  // Refresh project
+                  fProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+                  
                   final ICProject cproject = CoreModel.getDefault().create(fProject);
                   CCorePlugin.getIndexManager().reindex(cproject); 
                   CCorePlugin.getIndexManager().joinIndexer(IIndexManager.FOREVER, monitor); 

@@ -79,14 +79,12 @@ public class CreateLaunchConfigurationHandler implements IHandler {
 //      try {
 //         IBuildConfiguration x = project.getActiveBuildConfig();
 //      } catch (CoreException e1) {
-//         // TODO Auto-generated catch block
 //         e1.printStackTrace();
 //      }
 //      ILaunchConfiguration launchConfiguration = (ILaunchConfiguration)bin.getAdapter(ILaunchConfiguration.class);
 //      try {
 //         ILaunchConfigurationType x = launchConfiguration.getType();
 //      } catch (CoreException e) {
-//         // TODO Auto-generated catch block
 //         e.printStackTrace();
 //      }
 //      try {
