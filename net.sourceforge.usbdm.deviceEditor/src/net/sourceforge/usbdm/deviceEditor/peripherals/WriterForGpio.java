@@ -68,7 +68,7 @@ public class WriterForGpio extends PeripheralWithState {
       // Base address
       sb.append(String.format(
             "   //! PORT Hardware base pointer\n"+
-            "   static constexpr uint32_t pcrAddress   = %s\n\n",
+            "   static constexpr uint32_t portAddress   = %s\n\n",
             getName().replaceAll("GPIO", "PORT")+"_BasePtr;"
             ));
 

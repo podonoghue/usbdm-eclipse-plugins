@@ -676,7 +676,7 @@ public abstract class Peripheral extends VariableProvider {
                   INFO_TABLE_NAME
             ));
       pinMappingHeaderFile.write(String.format(
-            indent+HEADING_TEMPLATE, "Signal", "Pin","   clockMask          pcrAddress      gpioAddress     bit  PCR value"));
+            indent+HEADING_TEMPLATE, "Signal", "Pin","   clockMask          portAddress     gpioAddress     bit  PCR value"));
       // Signal information table
       int index = -1;
       for (Signal signal:signalTable.table) {
@@ -754,7 +754,7 @@ public abstract class Peripheral extends VariableProvider {
     *        //! Information for each pin of peripheral
     *        static constexpr PcrInfo  info[] = {
     * 
-    *   //         clockMask         pcrAddress      gpioAddress gpioBit muxValue
+    *   //         clockMask      portAddress     gpioAddress gpioBit muxValue
     *   /*  0 * /  { 0 },
     *   ...
     *   /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
