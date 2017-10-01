@@ -16,7 +16,7 @@ public class WriterForTsi extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Low-leakage Wake-up Unit";
+      return "Touch Sense Interface";
    }
    
    @Override

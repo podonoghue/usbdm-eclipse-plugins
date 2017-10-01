@@ -14,7 +14,7 @@ public class WriterForI2s extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Inter-Integrated-Circuit Interface";
+      return "Synchronous Audio Interface";
    }
 
    @Override

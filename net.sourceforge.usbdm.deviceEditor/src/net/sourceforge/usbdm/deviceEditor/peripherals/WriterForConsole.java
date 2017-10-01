@@ -15,7 +15,7 @@ public class WriterForConsole extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Console";
+      return "Console Interface";
    }
    
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {

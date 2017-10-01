@@ -17,7 +17,7 @@ public class WriterForMii extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Controller Area Network";
+      return "Media Independent Interface";
    }
 
    @Override

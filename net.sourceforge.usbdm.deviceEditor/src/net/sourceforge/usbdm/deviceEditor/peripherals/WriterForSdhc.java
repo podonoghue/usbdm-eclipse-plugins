@@ -17,7 +17,7 @@ public class WriterForSdhc extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Real Time Clock";
+      return "Secure Digital High Capacity Interface";
    }
 
    @Override
