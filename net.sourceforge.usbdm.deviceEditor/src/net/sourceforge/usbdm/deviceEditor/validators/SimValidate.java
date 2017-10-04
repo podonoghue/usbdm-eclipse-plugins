@@ -132,28 +132,27 @@ public class SimValidate extends PeripheralValidator {
 
       //
       //=====================
-      final Variable system_peripheral_clockVar = getVariable("system_peripheral_clock");
-
-      final Long   pllPostDiv3Value;
-      final String pllPostDiv3Origin;
+      final Variable system_peripheral_clockVar             = getVariable("system_peripheral_clock");
 
       // Check if CLKDIV3 Present
       //=====================================
-      Variable sim_clkdiv3_pllfllVar = safeGetVariable("sim_clkdiv3_pllfll");
-      if (sim_clkdiv3_pllfllVar != null) {
-         int  pllValue     = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
-         int  pllfllfrac   = pllValue&0x1;
-         int  pllflldiv    = (pllValue>>1)&0x7;
-         pllPostDiv3Value  = (system_peripheral_clockVar.getValueAsLong()*(pllfllfrac+1))/(pllflldiv+1);
-         pllPostDiv3Origin = system_peripheral_clockVar.getOrigin() + " after /CLKDIV3";
+      final Long   pllPostDiv3Value;
+      final String pllPostDiv3Origin;
+
+      final Variable system_peripheral_postdivider_clockVar = safeGetVariable("system_peripheral_postdivider_clock");
+      if (system_peripheral_postdivider_clockVar != null) {
+         // After divider
+         pllPostDiv3Value  = system_peripheral_postdivider_clockVar.getValueAsLong();
+         pllPostDiv3Origin = system_peripheral_postdivider_clockVar.getOrigin();
       }
       else {
+         // Direct (no divider)
          pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
          pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
       }
 
       /**
-       * Clock selector used for LPUARTs and TPMs
+       * Clock selector used for LPUARTs, TPMs and FlexIO
        */
       LpClockSelector clockSelector = new LpClockSelector() {
          @Override
@@ -402,6 +401,28 @@ public class SimValidate extends PeripheralValidator {
             sim_sopt2_pllfllselVar.setValue(0);
          }
          break;
+      }
+
+      // Check if CLKDIV3 Present
+      //=====================================
+      final Long   pllPostDiv3Value;
+      final String pllPostDiv3Origin;
+
+      final Variable sim_clkdiv3_pllfllVar                  = safeGetVariable("sim_clkdiv3_pllfll");
+      final Variable system_peripheral_postdivider_clockVar = safeGetVariable("system_peripheral_postdivider_clock");
+      if (sim_clkdiv3_pllfllVar != null) {
+         int  pllValue     = Long.decode(sim_clkdiv3_pllfllVar.getSubstitutionValue()).intValue();
+         int  pllfllfrac   = pllValue&0x1;
+         int  pllflldiv    = (pllValue>>1)&0x7;
+         pllPostDiv3Value  = (system_peripheral_clockVar.getValueAsLong()*(pllfllfrac+1))/(pllflldiv+1);
+         pllPostDiv3Origin = system_peripheral_clockVar.getOrigin() + " after /CLKDIV3";
+
+         system_peripheral_postdivider_clockVar.setValue(pllPostDiv3Value);
+         system_peripheral_postdivider_clockVar.setOrigin(pllPostDiv3Origin);
+      }
+      else {
+         pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
+         pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
       }
 
       // Core Clock
