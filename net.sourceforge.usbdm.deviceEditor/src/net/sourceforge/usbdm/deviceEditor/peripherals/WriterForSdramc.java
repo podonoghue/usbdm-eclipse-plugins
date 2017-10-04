@@ -47,7 +47,7 @@ public class WriterForSdramc extends PeripheralWithState {
       }
       offset += 4;
 
-      final String signalNames[] = {"RAS(_b)?", "CAS(_b)?", "WE", "CKE", "CS0(_b)?", "CS1(_b)?"};
+      final String signalNames[] = {"RAS(_b)?", "CAS(_b)?", "WE(_b)?", "CKE", "CS0(_b)?", "CS1(_b)?"};
       return offset+getSignalIndex(function, signalNames);
    }
 }
