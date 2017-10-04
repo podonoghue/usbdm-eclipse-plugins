@@ -129,6 +129,7 @@ public class LongVariable extends Variable {
    public Object getDefault() {
       return fValue;
    }
+   
    /**
     * Set value as long
     * 

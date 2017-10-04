@@ -359,7 +359,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    void createModels() {
       for (IPage model:fModels) {
-         if (model != fPackageModel) {
+         if ((model != null)&&(model != fPackageModel)) {
             model.removeListeners();
          }
       }
