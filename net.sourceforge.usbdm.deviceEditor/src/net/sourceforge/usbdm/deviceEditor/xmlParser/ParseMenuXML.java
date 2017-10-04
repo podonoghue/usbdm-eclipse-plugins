@@ -632,7 +632,11 @@ public class ParseMenuXML extends XML_BaseParser {
       String value      = element.getAttribute("value");
       boolean isWeak    = Boolean.valueOf(element.getAttribute("weak"));
       boolean isReplace = Boolean.valueOf(element.getAttribute("replace"));
+      boolean isDerived = Boolean.valueOf(element.getAttribute("derived"));
       
+      if (isDerived) {
+         System.err.println("Derived");
+      }
       // Accept either key or name (prefer key)
       if (key.isEmpty()) {
          key = name;
@@ -661,6 +665,7 @@ public class ParseMenuXML extends XML_BaseParser {
          var = new StringVariable(name, key);
          fProvider.addVariable(var);
          var.setValue(value);
+         var.setDerived(isDerived);
       }
    }
 
