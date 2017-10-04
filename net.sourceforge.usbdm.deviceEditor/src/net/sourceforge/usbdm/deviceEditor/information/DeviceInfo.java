@@ -528,24 +528,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
    }
 
-
-   //   /**
-   //    * Find or create a peripheral
-   //    * 
-   //    * @param baseName   Base name e.g. FTM3 => FTM
-   //    * @param instance   Instance of peripheral e.g. FTM2 => 2 
-   //    * @param mode       Mode.anyInstance to allow null instances  
-   //    * 
-   //    * @return
-   //    */
-   //   public Peripheral findOrCreatePeripheral(String baseName, String instance, PeripheralTemplateInformation template) {  
-   //      Peripheral p = fPeripheralsMap.get(baseName+instance);
-   //      if (p == null) {
-   //         p = createPeripheral(baseName, instance, template);
-   //      }
-   //      return p;
-   //   }
-
    /**
     * Find an existing peripheral
     * 
@@ -859,6 +841,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return fPins;
    }
 
+   HashMap<String, Integer> sharedPinMap = new HashMap<String, Integer>();
+
    /**
     * Create pin from name<br>
     * 
@@ -868,14 +852,29 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception if the pin already exists
     */
-   public Pin createPin(String name) {
+   public Pin createPin(String name) throws Exception {
+
+      // Vdd and Vss have suffix added as may be multiple
+      if (name.toUpperCase().startsWith("VDD") ||
+          name.toUpperCase().startsWith("VSS")) {
+         Integer item = sharedPinMap.get(name);
+         if (item == null) {
+            item = new Integer(0);
+            sharedPinMap.put(name, item);
+         }
+//         System.err.print("Mapping '" + name);
+         sharedPinMap.put(name, item+1);
+         name = name+((item==0)?"":""+item);
+//         System.err.println("' => '" + name + "'");
+      }
       // Check for repeated pin
       Pin pinInformation = fPins.get(name);
       if (pinInformation != null) {
-         throw new RuntimeException("Pin already exists: " + name);
+         throw new Exception("Pin already exists: " + name);
       }
       // Created pin
       pinInformation = new Pin(this, name);
+      
       // Add to map
       fPins.put(name, pinInformation);
 
@@ -972,7 +971,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       createPeripheralTemplateInformation(
             "POWER", "", "$0",
-            "(VOUT33|VBAT|VREFL|VREFH|VSS(A|B)?|VDD(A|B)?|VREG(IN|_IN0|_IN1|_OUT))(\\d*(a|b|c)?)",
+            "(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
             getDeviceFamily(),
             WriterForPower.class);
       
@@ -1055,7 +1054,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForLlwu.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(LPTMR)(0)_(ALT\\d+)",
+               "(LPTMR)([0-3])_(ALT\\d+)",
                getDeviceFamily(),
                WriterForLptmr.class);
          createPeripheralTemplateInformation(
@@ -1246,6 +1245,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(USBHS)",
+               getDeviceFamily(),
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "",
+               "(QSPI)(0|1).*",
                getDeviceFamily(),
                WriterForToDo.class);
       }

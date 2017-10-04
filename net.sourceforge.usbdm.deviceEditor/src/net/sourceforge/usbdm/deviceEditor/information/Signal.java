@@ -122,6 +122,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       return fPeripheral;
    }
 
+   public boolean isPowerSignal() {
+      return (fName.startsWith("VDD")) || (fName.startsWith("VSS")) ;
+   }
    /**
     * Add a pin that this signal may be mapped to
     * 
@@ -129,12 +132,17 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     */
    public void addMappedPin(MappingInfo mapInfo) {
       if (this == DISABLED_SIGNAL) {
-//       throw new RuntimeException("Adding mapping to disabled pin");
+         //       throw new RuntimeException("Adding mapping to disabled pin");
          return;
       }
       if (mapInfo.getMux() == MuxSelection.fixed) {
          if (!fPinMappings.isEmpty()) {
-            throw new RuntimeException("Can't add more pins to a fixed signal " + fName + ", " + mapInfo);
+            if (isPowerSignal()) {
+//               System.err.println("Multiple mappings for : "+fName);
+            }
+            else {
+               throw new RuntimeException("Can't add more pins to a fixed signal " + fName + ", " + mapInfo);
+            }
          }
          fPinMappings.add(mapInfo);
          return;
@@ -164,6 +172,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public void setResetPin(MappingInfo mapping) {
       if (this == DISABLED_SIGNAL) {
          // Ignore resets to Disabled
+         return;
+      }
+      if (isPowerSignal()) {
          return;
       }
       if ((fResetMapping.getMux() != MuxSelection.unassigned) && (fResetMapping != mapping)) {
