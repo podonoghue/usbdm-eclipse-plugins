@@ -97,7 +97,8 @@ public class ChoiceVariable extends Variable {
    }
 
    /**
-    * Set value based on Raw value i.e. Substitution value rather than user value
+    * Set value based on Raw value i.e. Substitution value rather than user value.
+    * Does not trigger listeners.
     */
    public void setRawValue(int intValue) {
       String value = Integer.toString(intValue);

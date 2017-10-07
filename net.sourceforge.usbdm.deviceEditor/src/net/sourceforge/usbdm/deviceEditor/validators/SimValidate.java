@@ -27,7 +27,6 @@ public class SimValidate extends PeripheralValidator {
    private final long MAX_FLEXBUS_CLOCK_FREQ;
 
    private final static String[] externalVariables = {
-         "/SIM/sim_sopt2_pllfllsel",
          "/OSC0/system_oscerclk_clock",
          "/OSC0/osc32kclk_clock",
          "/MCG/system_low_power_clock",
@@ -256,7 +255,7 @@ public class SimValidate extends PeripheralValidator {
       //============================
       ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc");
       if (sim_sopt2_usbsrcVar != null) {
-         Variable sim_clkdiv2_usbVar    = safeGetVariable("sim_clkdiv2_usb");
+         ChoiceVariable sim_clkdiv2_usbVar = safeGetChoiceVariable("sim_clkdiv2_usb");
 
          if (sim_clkdiv2_usbVar != null) {
             // USB divider CLKDIV2 exists
@@ -287,7 +286,12 @@ public class SimValidate extends PeripheralValidator {
                }
                sim_clkdiv2_usbVar.enable(true);
                if (pllCalcValue>=0) {
-                  ((ChoiceVariable)sim_clkdiv2_usbVar).setRawValue(pllCalcValue);
+                  long temp = sim_clkdiv2_usbVar.getValueAsLong();
+                  sim_clkdiv2_usbVar.setRawValue(pllCalcValue);
+                  if (sim_clkdiv2_usbVar.getValueAsLong() != temp) {
+                     // Trigger update on change
+                     sim_clkdiv2_usbVar.notifyListeners();
+                  }
                   sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
                   sim_clkdiv2_usbVar.setLocked(true);
                }
