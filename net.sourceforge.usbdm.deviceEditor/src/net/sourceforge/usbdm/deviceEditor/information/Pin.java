@@ -401,7 +401,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (newMuxValue == fMuxValue) {
          return;
       }
-      fMuxValue = newMuxValue;
+      if ((fMuxValue == MuxSelection.fixed) && (newMuxValue != MuxSelection.fixed)) {
+         System.err.println("Attempting to map fixed signal - ignored");
+         return;
+      }
       MappingInfo newMappingInfo = null;
       for (MuxSelection muxValue:fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxValue);
@@ -409,8 +412,14 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             newMappingInfo = mappingInfo;
             continue;
          }
+         if (muxValue == MuxSelection.fixed) {
+            System.err.println("Attempting to unmap fixed signal");
+            continue;
+         }
+         // Unmap existing mapping from this pin
          mappingInfo.select(null, false);
       }
+      fMuxValue = newMuxValue;
       if (newMappingInfo != null) {
          newMappingInfo.select(null, true);
       }

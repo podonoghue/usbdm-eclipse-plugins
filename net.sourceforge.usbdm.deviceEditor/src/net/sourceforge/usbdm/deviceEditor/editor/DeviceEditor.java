@@ -150,14 +150,18 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             new int[]{100}, true);
 
       ArrayList<IEditorPage> editors = new ArrayList<IEditorPage>();
-      for (IPage model:fFactory.getModels()) {
+      for (IPage page:fFactory.getModels()) {
          // Pin view
          CTabItem tabItem;
          tabItem = new CTabItem(fTabFolder, SWT.NONE);
-         tabItem.setText(model.getPageName());
-         IEditorPage editorPage = model.createEditorPage();
+         tabItem.setText(page.getName());
+         IEditorPage editorPage = page.createEditorPage();
          editors.add(editorPage);
          tabItem.setControl(editorPage.createComposite(fTabFolder));
+         if ((page.getToolTip() == null) || page.getToolTip().isEmpty()) {
+            System.err.println("No tooltip");
+         }
+         tabItem.setToolTipText(page.getToolTip());
       }
       fEditors = editors.toArray(new IEditorPage[editors.size()]);
 

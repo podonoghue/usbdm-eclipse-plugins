@@ -51,6 +51,7 @@ public class TabbedEditor implements IEditor {
          return;
       }
       fPeripheralPageModel = (TabModel) model;
+      fTabFolder.setToolTipText(fPeripheralPageModel.getToolTip());
       for (CTabItem c:fTabFolder.getItems()) {
          c.dispose();
       }

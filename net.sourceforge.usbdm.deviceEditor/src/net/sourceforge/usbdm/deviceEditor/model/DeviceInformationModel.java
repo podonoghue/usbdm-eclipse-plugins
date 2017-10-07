@@ -64,18 +64,12 @@ public final class DeviceInformationModel extends TreeViewModel implements IPage
    }
 
    @Override
-   public String getPageName() {
-      return getName();
-   }
-
-   @Override
    public void updatePage() {
       update();
    }
 
    @Override
-   public TreeViewModel getModel() {
+   public BaseModel getModel() {
       return this;
    }
-
 }

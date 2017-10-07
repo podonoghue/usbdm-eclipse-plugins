@@ -123,7 +123,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 ////         }
 //         return fParameterModels;
 //      }
-      fParameterModels = new TabModel(null, "Peripheral Parameters", "These are usually the default values\n for defaultconfigure()");
+      fParameterModels = new TabModel(null, "Peripheral Parameters", "Interrupt handling and\ndefault settings used by defaultConfigure()");
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
          if (device instanceof IModelEntryProvider) {
@@ -334,7 +334,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fPackageModel      = (DeviceInformationModel)fDeviceInfo.getModel(null);
       
-      fPackageImageModel = new PackageImageModel(this);
+      fPackageImageModel = new PackageImageModel(this, null);
 
       createModels();
       
@@ -358,9 +358,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * Creates models for the variant pages and updates the model list
     */
    void createModels() {
-      for (IPage model:fModels) {
-         if ((model != null)&&(model != fPackageModel)) {
-            model.removeListeners();
+      for (IPage page:fModels) {
+         if ((page != null)&&(page != fPackageModel)) {
+            page.getModel().removeListeners();
          }
       }
       fModels = new ArrayList<IPage>();

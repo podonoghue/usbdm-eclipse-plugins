@@ -40,7 +40,6 @@ import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
-import net.sourceforge.usbdm.deviceEditor.model.TabModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -634,9 +633,6 @@ public class ParseMenuXML extends XML_BaseParser {
       boolean isReplace = Boolean.valueOf(element.getAttribute("replace"));
       boolean isDerived = Boolean.valueOf(element.getAttribute("derived"));
       
-      if (isDerived) {
-         System.err.println("Derived");
-      }
       // Accept either key or name (prefer key)
       if (key.isEmpty()) {
          key = name;
@@ -757,7 +753,6 @@ public class ParseMenuXML extends XML_BaseParser {
     *   <li> &lt;aliasOption&gt; 
     *   <li> &lt;constant&gt; 
     *   <li> &lt;section&gt; 
-    *   <li> &lt;tab&gt; 
     *   <li> &lt;signals&gt; 
     *   <li> Control items...
     *</ul>
@@ -796,7 +791,6 @@ public class ParseMenuXML extends XML_BaseParser {
        *   <li> &lt;aliasOption&gt; 
        *   <li> &lt;constant&gt; 
        *   <li> &lt;section&gt; 
-       *   <li> &lt;tab&gt; 
        *   <li> &lt;signals&gt; 
        *   <li> Control items...
        *</ul>
@@ -859,10 +853,6 @@ public class ParseMenuXML extends XML_BaseParser {
          parseConstant(parentModel, element);
       }
       else if (tagName == "section") {
-         BaseModel model = new ParametersModel(parentModel, name, toolTip);
-         parseChildModels(model, element);
-      }
-      else if (tagName == "tab") {
          BaseModel model = new ParametersModel(parentModel, name, toolTip);
          parseChildModels(model, element);
       }
@@ -1151,7 +1141,6 @@ public class ParseMenuXML extends XML_BaseParser {
     *    &lt;peripheralPage&gt;<br>
     *    &lt;list&gt;<br>
     *    &lt;section&gt;<br>
-    *    &lt;tab&gt;<br>
     *    &lt;fragment&gt;<br>
     * 
     * @param menuElement
@@ -1187,17 +1176,13 @@ public class ParseMenuXML extends XML_BaseParser {
          model = new SectionModel(parent, name, toolTip);
          parseSectionsOrOtherContents(model, element);
       }
-      else if (element.getTagName() == "tab") {
-         model = new TabModel(parent, name, toolTip);
-         parseSectionsOrOtherContents(model, element);
-      }
       else if (element.getTagName() == "list") {
          BaseModel tModel = new ListModel(parent, name);
          parseSectionsOrOtherContents(tModel, element);
          parent.addChild(tModel);
       }
       else {
-         throw new Exception("Expected <section>, <tab> or <list>, found = \'"+element.getTagName()+"\'");
+         throw new Exception("Expected <section> or <list>, found = \'"+element.getTagName()+"\'");
       }
       //      else {
       //         if (model == null) {
@@ -1218,7 +1203,6 @@ public class ParseMenuXML extends XML_BaseParser {
     *    &lt;peripheralPage&gt;<br>
     *    &lt;list&gt;<br>
     *    &lt;section&gt;<br>
-    *    &lt;tab&gt;<br>
     *    &lt;fragment&gt;<br>
     * 
     * @param menuElement
@@ -1258,13 +1242,6 @@ public class ParseMenuXML extends XML_BaseParser {
                throw new Exception("Multiple top-level elements found "+ tagName);
             }
             model = new SectionModel(parent, name, toolTip);
-            parseSectionsOrOther(model, element);
-         }
-         else if (tagName == "tab") {
-            if (model != null) {
-               throw new Exception("Multiple top-level elements found "+ tagName);
-            }
-            model = new TabModel(parent, name, toolTip);
             parseSectionsOrOther(model, element);
          }
          else if (tagName == "list") {
@@ -1491,6 +1468,7 @@ public class ParseMenuXML extends XML_BaseParser {
          // For debug try local directory
          Path path = locateFile(name+".xml");
          fData = parse(XML_BaseParser.parseXmlFile(path), peripheral, peripheral);
+         fData.fRootModel.setToolTip(name);
       } catch (FileNotFoundException e) {
          // Some peripherals don't have templates yet - just warn
          throw new Exception("Failed to find peripheral file for "+name, e);

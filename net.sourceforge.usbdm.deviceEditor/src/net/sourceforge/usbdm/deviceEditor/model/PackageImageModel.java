@@ -10,13 +10,15 @@ import net.sourceforge.usbdm.deviceEditor.editor.ImageCanvas;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.jni.Usbdm;
 
-public class PackageImageModel implements IPage, IEditorPage {
+public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
 
    private ImageCanvas        fImageCanvas = null;
    private PackageImageModel  fPackageImageModel;
    private final ModelFactory fModelFactory;
 
-   public PackageImageModel(ModelFactory modelFactory) {
+   public PackageImageModel(ModelFactory modelFactory, BaseModel parent) {
+      super(parent, "Package", "Package Image");
+      setToolTip("Image of chip or evaluation board");
       fModelFactory = modelFactory;
    }
 
@@ -56,7 +58,6 @@ public class PackageImageModel implements IPage, IEditorPage {
       return this;
    }
 
-   @Override
    public String getPageName() {
       return "Package Image";
    }
@@ -66,11 +67,11 @@ public class PackageImageModel implements IPage, IEditorPage {
    }
 
    @Override
-   public void removeListeners() {
+   protected void removeMyListeners() {
    }
 
    @Override
-   public TreeViewModel getModel() {
-      return null;
+   public BaseModel getModel() {
+      return this;
    }
 }

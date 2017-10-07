@@ -9,12 +9,11 @@ public interface IPage {
     */
    public abstract IEditorPage createEditorPage();
 
-   public abstract String getPageName();
+   public abstract String getName();
+
+   public abstract String getToolTip();
 
    public abstract void updatePage();
 
-   public abstract void removeListeners();
-
    public abstract BaseModel getModel();
-   
 }

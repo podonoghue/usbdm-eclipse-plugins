@@ -18,7 +18,6 @@ import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
  */
 public final class DevicePinsModel extends TreeViewModel implements IPage {
 
-
    /**
     * Constructor
     * @param parent 
@@ -70,15 +69,12 @@ public final class DevicePinsModel extends TreeViewModel implements IPage {
    }
 
    @Override
-   public String getPageName() {
-      return "Peripheral View";
-   }
-   @Override
    public void updatePage() {
       update();
    }
+   
    @Override
-   public TreeViewModel getModel() {
+   public BaseModel getModel() {
       return this;
    }
 }

@@ -9,12 +9,8 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class TabModel extends BaseModel implements IPage {
 
    public TabModel(BaseModel parent, String title, String toolTip) {
-      super(parent, title, toolTip);
-   }
-
-   @Override
-   public void addChild(BaseModel model) {
-      super.addChild(model);
+      super(parent, title, "");
+      setToolTip(toolTip);
    }
 
    @Override
@@ -43,23 +39,17 @@ public class TabModel extends BaseModel implements IPage {
    }
 
    @Override
-   public String getPageName() {
-      return getName();
-   }
-
-   @Override
    public void updatePage() {
-   }
-
-   @Override
-   public BaseModel getModel() {
-      return this;
    }
 
    @Override
    public TabModel clone(BaseModel parentModel, VariableProvider provider, int index) throws CloneNotSupportedException {
       return (TabModel) super.clone(parentModel, provider, index);
    }
-   
+
+   @Override
+   public BaseModel getModel() {
+      return this;
+   }
    
 }
