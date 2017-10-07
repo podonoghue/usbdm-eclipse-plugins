@@ -21,6 +21,7 @@
    <item key="$signal$PTA19_muxSetting"                    value="mux0" />
    <item key="$signal$PTA1_muxSetting"                     value="mux3" />
    <item key="$signal$PTA2_descriptionSetting"             value="Blue LED, LCD_cs*" />
+   <item key="$signal$PTA2_muxSetting"                     value="mux3" />
    <item key="$signal$PTA3_descriptionSetting"             value="Reserved (SWD)" />
    <item key="$signal$PTA3_muxSetting"                     value="mux7" />
    <item key="$signal$PTA4_muxSetting"                     value="mux3" />
@@ -64,7 +65,6 @@
    <item key="/FTFL/peripheral_file"                       value="ftfl_32k_flexrom" />
    <item key="/FTFL/pflash_phrase_size"                    value="4" />
    <item key="/FTFL/pflash_sector_size"                    value="1024" />
-   <item key="/Flash/FlashType"                            value="ftfl" />
    <item key="/MCG/ClockConfig[0]"                         value="ClockConfig_PEE_48MHz" />
    <item key="/MCG/ClockConfig[1]"                         value="ClockConfig_BLPE_4MHz" />
    <item key="/MCG/ClockConfig[2]"                         value="ClockConfig_FEE_40MHz" />
