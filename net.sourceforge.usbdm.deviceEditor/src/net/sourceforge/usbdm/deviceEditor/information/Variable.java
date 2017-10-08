@@ -222,6 +222,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     */
    public Status getStatus() {
       if (!isEnabled()) {
+         if (fStatus != null) {
+            return new Status(fStatus.getText(), Severity.INFO);
+         }
          return null;
       }
       String status = isValid();
