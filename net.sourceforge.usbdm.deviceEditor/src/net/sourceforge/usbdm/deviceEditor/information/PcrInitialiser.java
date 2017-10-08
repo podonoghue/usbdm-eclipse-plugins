@@ -41,10 +41,6 @@ public class PcrInitialiser {
       }
       pcrValue = pcrValue+"|PORT_PCR_MUX("+mux.value+")";
       if (mappingInfo.isSelected()) {
-         if (pin.getClockMask() == null) {
-            // TODO delete me
-            System.err.println("Opps");
-         }
          portClockMasks.add(pin.getClockMask());
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {

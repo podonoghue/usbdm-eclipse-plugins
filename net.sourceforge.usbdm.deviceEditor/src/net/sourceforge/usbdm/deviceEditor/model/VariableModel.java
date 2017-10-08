@@ -77,7 +77,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-      updateAncestors(); //XXX
+      updateAncestors();
    }
 
    @Override
