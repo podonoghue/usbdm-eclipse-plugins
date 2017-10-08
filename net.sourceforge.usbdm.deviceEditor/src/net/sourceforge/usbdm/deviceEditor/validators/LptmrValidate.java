@@ -82,22 +82,11 @@ public class LptmrValidate extends PeripheralValidator {
          clockSourceVar = getVariable("/OSC0/system_oscerclk_clock");
          break;
       }
-      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
-//      System.err.println("clockSourceVar = "+clockSourceVar);
-
       boolean clockChanged = (variable == null) || // Initial setup
-            (variable == lptmr_psr_pcsVar) ||      // Clock source change
-            (variable == clockSourceVar) ||        // Change in the clock source
-            (variable == lptmr_psr_pbypVar) ||
-            (variable == lptmr_psr_prescalerVar);
-
-      // Current values
-      double clockFrequency = clockSourceVar.getValueAsLong();
-      if (!lptmr_psr_pbypVar.getValueAsBoolean()) {
-         // Clock divider used
-         clockFrequency = clockFrequency/(1L<<(lptmr_psr_prescalerVar.getValueAsLong()+1));
-      }
-      double clockPeriod    = (clockFrequency==0)?0:(1/clockFrequency);
+            (variable == lptmr_psr_pcsVar) ||      // Clock source selection change
+            (variable == clockSourceVar) ||        // Change in the currently selected clock source
+            (variable == lptmr_psr_pbypVar) ||     // Prescaler bypass
+            (variable == lptmr_psr_prescalerVar);  // Prescaler changed
 
       if (variable == lptmr_psr_pbypVar) {
          // Update bypass affected things
@@ -116,10 +105,18 @@ public class LptmrValidate extends PeripheralValidator {
             clockPeriodVar.setOrigin(clockSourceVar.getOrigin() + " period multiplied by lptmr_psr_prescaler");
          }
       }
+      // Current values
+      double clockFrequency = clockSourceVar.getValueAsLong();
+      if (!lptmr_psr_pbypVar.getValueAsBoolean()) {
+         // Clock divider used
+         clockFrequency = clockFrequency/(1L<<(lptmr_psr_prescalerVar.getValueAsLong()+1));
+      }
+      double clockPeriod    = (clockFrequency==0)?0:(1/clockFrequency);
+
+      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
       if (clockChanged) {
          // Update clockFrequency, clockPeriod
          clockFrequencyVar.setValue(clockFrequency);
-         clockFrequencyVar.setStatus(clockSourceVar.getStatus());
          clockPeriodVar.setStatus(clockSourceVar.getStatus());
          if (clockFrequency == 0) {
             clockFrequencyVar.enable(false);
