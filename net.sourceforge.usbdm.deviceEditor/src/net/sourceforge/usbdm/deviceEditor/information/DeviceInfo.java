@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.eclipse.core.resources.IFile;
@@ -142,7 +143,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public static final String HARDWARE_SOURCE_FILENAME_SETTINGS_KEY = "$$Hardware_Source_Filename"; 
 
    /** Map of variables for all peripherals */
-   private final HashMap<String, Variable> fVariables = new HashMap<String, Variable>();
+   private final TreeMap<String, Variable> fVariables = new TreeMap<String, Variable>();
 
    /** Data obtained from the Menu description file */
    private MenuData fMenuData;
@@ -1528,12 +1529,22 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             String   value = settings.get(key);
             if (var != null) {
                if (!var.isDerived()) {
+                   // Load persistent value associated with variable
                   var.setPersistentValue(value);
 //                  System.err.println("Setting Variable "+key+" to "+value);
                }
             }
-            else if (!key.startsWith("$")) {
-//               System.err.println("Creating Variable "+key+" to "+value);
+            else if (key.startsWith("$")) {
+               // Ignore thse as loaded earlier
+//               System.err.println("WARNING: Discarding system setting "+key+" to "+value);
+            }
+            else if (key.startsWith("/")) {
+               // Shouldn't be any unmatched peripheral settings
+               System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
+            }
+            else {
+               // Load persistent value (parameter)
+//               System.err.println("Creating Variable "+key+"("+value+")");
                var = new StringVariable(key, key);
                var.setPersistentValue(value);
                var.setDerived(true);
@@ -1541,35 +1552,48 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
          
-//         System.err.println("Notify changes of persistent variables");
-         /*
-          * Notify changes of persistent variables, 
-          * even on variables that were not loaded
-          * Shouldn't be necessary
-          */
-         for (String key:fVariables.keySet()) {
-            Variable var = fVariables.get(key);
-            if (!var.isDerived()) {
-               var.notifyListeners();
-            }
-         }
 //         System.err.println("Make sure peripherals have been updated");
          /*
-          * Make sure peripherals have been updated 
+          * Make sure critical peripherals have been updated in order first
           */
-         for (String peripheralName:fPeripheralsMap.keySet()) {
-            Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
+         String criticalPeripherals[] = {
+               "OSC",
+               "OSC0",
+               "RTC",
+               "MCG",
+               "SIM",
+         };
+         for (String name:criticalPeripherals) {
+            Peripheral peripheral =  fPeripheralsMap.get(name);
             if (peripheral instanceof PeripheralWithState) {
                ((PeripheralWithState)peripheral).variableChanged(null);
             }
          }
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+            if (peripheral instanceof PeripheralWithState) {
+               ((PeripheralWithState)peripheral).variableChanged(null);
+            }
+         }
+//       System.err.println("Notify changes of persistent variables");
+       /*
+        * Notify changes of persistent variables, 
+        * even on variables that were not loaded
+        * Shouldn't be necessary
+        */
+       for (Entry<String, Variable> entry:fVariables.entrySet()) {
+          Variable var = entry.getValue();
+          if (!var.isDerived()) {
+             var.notifyListeners();
+          }
+       }
          /**
           * Sanity check - (usually) no persistent variables should change value initially
           */
-         for (String key:fVariables.keySet()) {
-            String value = settings.get(key);
+         for (Entry<String, Variable> entry:fVariables.entrySet()) {
+            String value = settings.get(entry.getKey());
             if (value != null) {
-               Variable var = fVariables.get(key);
+               Variable var = fVariables.get(entry.getKey());
                if (!var.isDerived()) {
                   if (!var.getPersistentValue().equals(value)) {
                      System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getName());
