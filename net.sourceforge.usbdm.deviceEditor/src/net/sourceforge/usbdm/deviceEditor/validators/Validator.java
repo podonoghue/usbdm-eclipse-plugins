@@ -72,10 +72,10 @@ public abstract class Validator {
    /**
     * =============================================================
     */
-   private        boolean  busy           = false;
-   private        boolean  recursed       = false;
-   private  final int      MAX_ITERATION  = 100;
-
+   private        boolean  busy              = false;
+   private  final int      MAX_ITERATION     = 100;
+   private        Variable recursedVariable  = null;
+   
    /**
     * Default handler for variable changed events
     * 
@@ -92,13 +92,13 @@ public abstract class Validator {
 //      System.err.println(getSimpleClassName()+".variableChanged("+variable+")");
       if (busy) {
 //         System.err.println(getSimpleClassName()+".variableChanged("+variable+"):Recursed");
-         recursed = true;
+         recursedVariable = variable;
 //         new Throwable().printStackTrace(System.err);
          return true;
       }
       busy = true;
       do {
-         recursed = false;
+         recursedVariable = null;
          try {
             validate(variable);
          } catch (Exception e) {
@@ -106,11 +106,14 @@ public abstract class Validator {
             return false;
          }
 //         System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iterating " + iterationCount);
+         if (iterationCount++>(MAX_ITERATION-10)) {
+            System.err.println(getSimpleClassName()+".variableChanged("+recursedVariable+") Near iteration limit");
+         }
          if (iterationCount++>MAX_ITERATION) {
             System.err.println(getSimpleClassName()+".variableChanged("+variable+") Iteration limit reached");
             break;
          }
-      } while (recursed);
+      } while (recursedVariable != null);
       busy = false;
       return false;
    }

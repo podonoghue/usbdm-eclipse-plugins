@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.ArrayList;
+
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
@@ -19,15 +21,14 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          "/OSC0/oscillatorRange",
    };
 
-   public ClockValidator_MCG_Lite(PeripheralWithState peripheral, Integer dimension) {
+   public ClockValidator_MCG_Lite(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
    }
 
    /**
     * Inputs
-    *    /OSC0/oscillatorRange
     *    /OSC0/oscclk_clock
-    *    /OSC0/range
+    *    /OSC0/oscillatorRange
     * 
     * Outputs 
     *    system_slow_irc_clock
@@ -40,17 +41,17 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
    @Override
    protected void validate(Variable variable) throws Exception {
       addToWatchedVariables(externalVariables);
-      
+
       for (int index=0; index<fDimension; index++) {
          fIndex = index;
          validateClocks(variable);
       }
       fIndex = 0;
    }
-   
+
    protected void validateClocks(Variable variable) throws Exception {
       //      System.err.println(getSimpleClassName()+" Var = "+variable);
-      
+
       super.validate(variable);
 
      
@@ -61,7 +62,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable mcg_c1_irefstenVar;
       // C2
       //=================================
-      Variable mcg_c2_range0Var;
+      Variable mcg_c2_rangeVar;
       Variable mcg_c2_ircsVar;
       // SC
       //=================================
@@ -95,7 +96,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       mcg_c1_irclkenVar                = getVariable("mcg_c1_irclken");
       mcg_c1_irefstenVar               = getVariable("mcg_c1_irefsten");
                                        
-      mcg_c2_range0Var                 = getVariable("/OSC0/range");
+      mcg_c2_rangeVar                  = getVariable("mcg_c2_range");
       mcg_c2_ircsVar                   = getVariable("mcg_c2_ircs");
                                        
       mcg_sc_fcrdivVar                 = safeGetVariable("mcg_sc_fcrdiv");
@@ -123,11 +124,11 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       
       long rangeIn = osc_oscillatorRangeVar.getValueAsLong();
       if (rangeIn != OscValidate.UNCONSTRAINED_RANGE) {
-         mcg_c2_range0Var.enable(true);
-         mcg_c2_range0Var.setValue(osc_oscillatorRangeVar.getValueAsLong());
+         mcg_c2_rangeVar.enable(true);
+         mcg_c2_rangeVar.setValue(osc_oscillatorRangeVar.getValueAsLong());
       }
       else {
-         mcg_c2_range0Var.enable(false);
+         mcg_c2_rangeVar.enable(false);
       }
 
       // Main clock mode (MCGOUTCLK)
@@ -232,12 +233,12 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          // LIRC Disabled
          mcg_c1_irefstenVar.enable(false);
          system_lirc_clockVar.enable(false);
-         system_lirc_clockVar.setStatus(new Status("Disabled by mcg_c1_irclken", Severity.INFO));
+         system_lirc_clockVar.setStatus(new Status("Disabled by mcg_c1_irclken", Severity.WARNING));
          mcg_sc_fcrdivVar.enable(false);
          system_lirc_div1_clockVar.enable(false);
          mcg_mc_lirc_div2Var.enable(false);
          system_mcgirclk_clockVar.enable(false);
-         system_mcgirclk_clockVar.setStatus(new Status("Disabled by mcg_c1_irclken", Severity.INFO));
+         system_mcgirclk_clockVar.setStatus(new Status("Disabled by mcg_c1_irclken", Severity.WARNING));
       }
 
       long mcg_sc_fcrdiv = mcg_sc_fcrdivVar.getValueAsLong();

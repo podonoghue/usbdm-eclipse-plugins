@@ -138,7 +138,7 @@ public class EngineeringNotation {
       if ((value<Long.MIN_VALUE) || (value>Long.MAX_VALUE)) {
          throw new NumberFormatException("Illegal number as Long: " + num);
       }
-      if ((value - Math.round(value))> .001) {
+      if ((value - Math.round(value)) > .001) {
          throw new NumberFormatException("Illegal number as Long: " + num);
       }
       return Math.round(value);

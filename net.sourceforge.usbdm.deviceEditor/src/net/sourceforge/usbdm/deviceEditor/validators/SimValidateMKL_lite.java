@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.ListIterator;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
@@ -21,6 +23,8 @@ public class SimValidateMKL_lite extends PeripheralValidator {
 
    private final long MAX_CORE_CLOCK_FREQ;
    private final long MAX_BUS_CLOCK_FREQ;
+//   private final long MAX_FLASH_CLOCK_FREQ;
+//   private final long MAX_FLEXBUS_CLOCK_FREQ;
 
    private final static String[] externalVariables = {
          "/OSC0/system_oscerclk_clock",
@@ -35,72 +39,124 @@ public class SimValidateMKL_lite extends PeripheralValidator {
          "/RTC/rtc_1hz_clock",
    };
 
-   public SimValidateMKL_lite(PeripheralWithState peripheral, ArrayList<Object> values) {
-      super(peripheral);
+   public SimValidateMKL_lite(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
+      super(peripheral, dimension);
 
       ListIterator<Object> it = values.listIterator();
       MAX_CORE_CLOCK_FREQ     = (Long)it.next();
       MAX_BUS_CLOCK_FREQ      = (Long)it.next();
+//      MAX_FLASH_CLOCK_FREQ    = (Long)it.next();
+//      MAX_FLEXBUS_CLOCK_FREQ  = (Long)it.next();
 
-      try {
-         LongVariable system_core_clockVar = getLongVariable("system_core_clock");
-         system_core_clockVar.setMin(0);
-         system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
+      for(int index=0; index<dimension; index++) {
+         fIndex = index;
+         try {
+            LongVariable system_core_clockVar = getLongVariable("system_core_clock");
+            system_core_clockVar.setMin(0);
+            system_core_clockVar.setMax(MAX_CORE_CLOCK_FREQ);
 
-         LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
-         system_bus_clockVar.setMin(0);
-         system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
-      } catch (Exception e) {
-         e.printStackTrace();
+            LongVariable system_bus_clockVar = getLongVariable("system_bus_clock");
+            system_bus_clockVar.setMin(0);
+            system_bus_clockVar.setMax(MAX_BUS_CLOCK_FREQ);
+
+//            LongVariable system_flash_clockVar = getLongVariable("system_flash_clock");
+//            system_flash_clockVar.setMin(0);
+//            system_flash_clockVar.setMax(MAX_FLASH_CLOCK_FREQ);
+//			
+//            LongVariable system_flexbus_clockVar = safeGetLongVariable("system_flexbus_clock");
+//            if (system_flexbus_clockVar != null) {
+//               system_flexbus_clockVar.setMin(0);
+//               system_flexbus_clockVar.setMax(MAX_FLEXBUS_CLOCK_FREQ);
+//            }
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
       }
+      fIndex = 0;
+
    }
 
    private static interface LpClockSelector {
       public void lpClockSelect(String sourceVar, String clockVar) throws Exception;
    }
-   
+
    /**
     * Class to determine oscillator settings
     * @throws Exception 
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      
+      addToWatchedVariables(externalVariables);
+      for(fIndex=0; fIndex<fDimension; fIndex++) {
+         validateIndexVariables(variable);
+      }
+      fIndex = 0;
+      validateNonindexedVariables(variable);
+   }      
+   
+   /**
+    * Updates
+    *  - srcVar
+    *  - clockVar
+    *  - system_erclk32k_clockVar
+    *  - sim_sopt1_osc32kselVar
+    *  - sim_sopt2_rtcclkoutselVar
+    *  - rtc_clkoutVar
+    *  - system_usbfs_clockVar
+    *  
+    * @param variable
+    * @throws Exception
+    */
+   public void validateNonindexedVariables(Variable variable) throws Exception {
       super.validate(variable);
 
-      addToWatchedVariables(externalVariables);
-         
       //OSC
       //=================
-      final Variable     system_oscerclk_clockVar        =  getVariable("/OSC0/system_oscerclk_clock");
-      final Variable     osc32kclk_clockVar              =  getVariable("/OSC0/osc32kclk_clock");
+      final LongVariable     system_oscerclk_clockVar        =  getLongVariable("/OSC0/system_oscerclk_clock");
+      final LongVariable     osc32kclk_clockVar              =  getLongVariable("/OSC0/osc32kclk_clock");
 
       // MCG
       //=================
-      final Variable     system_low_power_clockVar       =  getVariable("/MCG/system_low_power_clock");
-      final Variable     system_mcgpclk_clockVar         =  getVariable("/MCG/system_mcgpclk_clock");
-      final Variable     system_mcgoutclk_clockVar       =  getVariable("/MCG/system_mcgoutclk_clock");
-      final Variable     system_mcgirclk_clockVar        =  getVariable("/MCG/system_mcgirclk_clock");
-      final Variable     system_usb_clkin_clockVar       =  safeGetVariable("/MCG/system_usb_clkin_clock");
+      final LongVariable     system_low_power_clockVar       =  getLongVariable("/MCG/system_low_power_clock");
+      final LongVariable     system_mcgpclk_clockVar         =  getLongVariable("/MCG/system_mcgpclk_clock");
+      final LongVariable     system_mcgirclk_clockVar        =  getLongVariable("/MCG/system_mcgirclk_clock");
+      final LongVariable     system_usb_clkin_clockVar       =  safeGetLongVariable("/MCG/system_usb_clkin_clock");
 
       // RTC
       //=================
-      final Variable     rtcclkin_clockVar               =  getVariable("/RTC/rtcclkin_clock");
-      final Variable     rtc_1hz_clockVar                =  getVariable("/RTC/rtc_1hz_clock");
-      final Variable     rtc_clkoutVar                   =  getVariable("rtc_clkout");
-      
+      final LongVariable     rtcclkin_clockVar               =  safeGetLongVariable("/RTC/rtcclkin_clock");
+      final LongVariable     rtc_1hz_clockVar                =  safeGetLongVariable("/RTC/rtc_1hz_clock");
+      final LongVariable     rtc_clkoutVar                   =  safeGetLongVariable("rtc_clkout");
+
+      // Check if CLKDIV3 Present
+      //=====================================
+      final Long   pllPostDiv3Value;
+      final String pllPostDiv3Origin;
+
+      final Variable system_peripheral_postdivider_clockVar = safeGetVariable("system_peripheral_postdivider_clock");
+      if (system_peripheral_postdivider_clockVar != null) {
+         // After divider
+         pllPostDiv3Value  = system_peripheral_postdivider_clockVar.getValueAsLong();
+         pllPostDiv3Origin = system_peripheral_postdivider_clockVar.getOrigin();
+      }
+      else {
+         // Direct (no divider)
+         pllPostDiv3Value  = system_mcgpclk_clockVar.getValueAsLong();
+         pllPostDiv3Origin = system_mcgpclk_clockVar.getOrigin();
+      }
+
       /**
-       * Clock selector used for LPUARTs and TPMs
+       * Clock selector used for LPUARTs, TPMs and FlexIO
        */
       LpClockSelector clockSelector = new LpClockSelector() {
          @Override
          public void lpClockSelect(String sourceVar, String clockVarId) throws Exception {
-            
+
             // Clock source select (if present)
             //===================================
             Variable srcVar = safeGetVariable(sourceVar);
             if (srcVar != null) {
-               Variable clockVar   = getVariable(clockVarId);
+               Variable clockVar = getVariable(clockVarId);
                switch ((int)srcVar.getValueAsLong()) {
                default:
                   srcVar.setValue(0);
@@ -110,9 +166,9 @@ public class SimValidateMKL_lite extends PeripheralValidator {
                   clockVar.setOrigin("Disabled");
                   break;
                case 1: // Peripheral Clock / CLKDIV3
-                  clockVar.setValue(system_mcgpclk_clockVar.getValueAsLong());
+                  clockVar.setValue(pllPostDiv3Value);
                   clockVar.setStatus(system_mcgpclk_clockVar.getStatus());
-                  clockVar.setOrigin(system_mcgpclk_clockVar.getOrigin());
+                  clockVar.setOrigin(pllPostDiv3Origin);
                   break;
                case 2: // OSCERCLK
                   clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
@@ -128,11 +184,12 @@ public class SimValidateMKL_lite extends PeripheralValidator {
             }
          }
       };
-      
+
       // Determine ERCLK32K
       //==================================
-      Variable system_erclk32k_clockVar = getVariable("system_erclk32k_clock");
-      Variable sim_sopt1_osc32kselVar   = getVariable("sim_sopt1_osc32ksel");
+      LongVariable system_erclk32k_clockVar = getLongVariable("system_erclk32k_clock");
+      ChoiceVariable sim_sopt1_osc32kselVar = getChoiceVariable("sim_sopt1_osc32ksel");
+      
       switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
       case 0: // System oscillator (OSC32KCLK)
          system_erclk32k_clockVar.setValue(osc32kclk_clockVar.getValueAsLong());
@@ -155,7 +212,8 @@ public class SimValidateMKL_lite extends PeripheralValidator {
 
       // RTC Clock out pin select 
       //============================
-      Variable sim_sopt2_rtcclkoutselVar = getVariable("sim_sopt2_rtcclkoutsel");
+      BooleanVariable sim_sopt2_rtcclkoutselVar = getBooleanVariable("sim_sopt2_rtcclkoutsel");
+         
       switch ((int)sim_sopt2_rtcclkoutselVar.getValueAsLong()) {
       default:
          sim_sopt2_rtcclkoutselVar.setValue(0);
@@ -181,7 +239,7 @@ public class SimValidateMKL_lite extends PeripheralValidator {
       for (String lpUartInstance:lpUartInstances) {
          clockSelector.lpClockSelect("sim_sopt2_lpuart"+lpUartInstance+"src", "system_lpuart"+lpUartInstance+"_clock");
       }
-      
+	  
       // TPMx Clock source select (if present)
       //==========================================
       final String[] tpmInstances = {"", "0", "1", "2"};
@@ -192,37 +250,57 @@ public class SimValidateMKL_lite extends PeripheralValidator {
       // FLEXIO Clock source select (if present)
       //==========================================
       clockSelector.lpClockSelect("sim_sopt2_flexiosrc", "system_flexio_clock");
-
+	  
       // USB FS Clock source select 
       //============================
-      Variable sim_sopt2_usbsrcVar = safeGetVariable("sim_sopt2_usbsrc");
+      ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc");
       if (sim_sopt2_usbsrcVar != null) {
-         Variable system_usbfs_clockVar = safeGetVariable("system_usbfs_clock");
-
+         LongVariable system_usbfs_clockVar = getLongVariable("system_usbfs_clock");
          if (sim_sopt2_usbsrcVar.getValueAsLong() == 0) {
-            // External
+            // Using USB_CLKIN
             system_usbfs_clockVar.setValue(system_usb_clkin_clockVar.getValueAsLong());
             system_usbfs_clockVar.setStatus(system_usb_clkin_clockVar.getStatus());
             system_usbfs_clockVar.setOrigin(system_usb_clkin_clockVar.getOrigin());
          }
          else {
-            // IRC48
+            // MCGPCLK
             system_usbfs_clockVar.setValue(system_mcgpclk_clockVar.getValueAsLong());
             system_usbfs_clockVar.setStatus(system_mcgpclk_clockVar.getStatus());
             system_usbfs_clockVar.setOrigin(system_mcgpclk_clockVar.getOrigin());
          }
       }
+   }
+   
+   /**
+    * Updates
+    * - sim_sopt2_pllfllsel[x]
+    * - system_peripheral_clock[x]
+    * - system_core_clock[x]
+    * - system_bus_clock[x]
+    * - system_flexbus_clock[x]
+    * - system_flash_clock[x]
+    * - sim_clkdiv1_outdiv1[x]
+    * - sim_clkdiv1_outdiv2[x]
+    * - sim_clkdiv1_outdiv3[x]
+    * - sim_clkdiv1_outdiv4[x]
+    * 
+    * @param variable
+    * @throws Exception
+    */
+   void validateIndexVariables(Variable variable) throws Exception {
+      
+      //======================================
+      final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");
+      final LongVariable   system_bus_clockVar          = getLongVariable("system_bus_clock");
 
-      Variable     system_core_clockVar           =  getVariable("system_core_clock");
-      Variable     system_bus_clockVar            =  getVariable("system_bus_clock");
-
-      Variable     sim_clkdiv1_outdiv1Var         =  getVariable("sim_clkdiv1_outdiv1");
-      Variable     sim_clkdiv1_outdiv4Var         =  getVariable("sim_clkdiv1_outdiv4");
-
+      final LongVariable   sim_clkdiv1_outdiv1Var       = getLongVariable("sim_clkdiv1_outdiv1");
+      final LongVariable   sim_clkdiv1_outdiv4Var       = getLongVariable("sim_clkdiv1_outdiv4");
 
       // Core & System Clock
       //===========================================
       // Attempt to find acceptable divisor
+      final LongVariable     system_mcgoutclk_clockVar       =  getLongVariable("/MCG/system_mcgoutclk_clock");
+
       long inputFrequency = system_mcgoutclk_clockVar.getValueAsLong();
       final FindDivisor coreDivisor = new FindDivisor(inputFrequency, system_core_clockVar.getValueAsLong()) {
          @Override

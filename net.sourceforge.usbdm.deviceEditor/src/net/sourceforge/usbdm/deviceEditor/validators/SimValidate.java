@@ -37,9 +37,8 @@ public class SimValidate extends PeripheralValidator {
          "/MCG/usb1pfdclk_Clock",
          "/MCG/system_irc48m_clock",
          "/MCG/system_usb_clkin_clock",
-         "/RTC/rtc_clkout",
-         "/RTC/rtcclk_clock",
          "/RTC/rtcclk_gated_clock",
+         "/RTC/rtc_1hz_clock",
    };
 
    public SimValidate(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
@@ -127,9 +126,9 @@ public class SimValidate extends PeripheralValidator {
 
       // RTC
       //=================
-      final LongVariable     rtcclk_clockVar                 =  safeGetLongVariable("/RTC/rtcclk_clock");
       final LongVariable     rtcclk_gated_clockVar           =  safeGetLongVariable("/RTC/rtcclk_gated_clock");
-      final LongVariable     rtc_clkoutVar                   =  safeGetLongVariable("/RTC/rtc_clkout");
+      final LongVariable     rtc_1hz_clockVar                =  safeGetLongVariable("/RTC/rtc_1hz_clock");
+      final LongVariable     rtc_clkoutVar                   =  safeGetLongVariable("rtc_clkout");
 
       // Check if CLKDIV3 Present
       //=====================================
@@ -147,7 +146,6 @@ public class SimValidate extends PeripheralValidator {
          pllPostDiv3Value  = system_peripheral_clockVar.getValueAsLong();
          pllPostDiv3Origin = system_peripheral_clockVar.getOrigin();
       }
-
       /**
        * Clock selector used for LPUARTs, TPMs and FlexIO
        */
@@ -213,18 +211,18 @@ public class SimValidate extends PeripheralValidator {
          break;
       }
 
-      if (rtcclk_clockVar != null) {
-         // RTC Clock out pin select 
-         //============================
-         BooleanVariable sim_sopt2_rtcclkoutselVar = getBooleanVariable("sim_sopt2_rtcclkoutsel");
+      // RTC Clock out pin select 
+      //============================
+      BooleanVariable sim_sopt2_rtcclkoutselVar = safeGetBooleanVariable("sim_sopt2_rtcclkoutsel");
          
+      if (sim_sopt2_rtcclkoutselVar != null) {
          switch ((int)sim_sopt2_rtcclkoutselVar.getValueAsLong()) {
          default:
             sim_sopt2_rtcclkoutselVar.setValue(0);
          case 0: // RTC seconds clock = 1Hz
-            rtc_clkoutVar.setValue((rtcclk_clockVar.getValueAsLong()!=0)?1:0);
-            rtc_clkoutVar.setStatus(rtcclk_clockVar.getStatus());
-            rtc_clkoutVar.setOrigin(rtcclk_clockVar+" (1Hz output)");
+            rtc_clkoutVar.setValue(rtc_1hz_clockVar.getValueAsLong());
+            rtc_clkoutVar.setStatus(rtc_1hz_clockVar.getStatus());
+            rtc_clkoutVar.setOrigin(rtc_1hz_clockVar.getOrigin());
             break;
          case 1: // RTC 32.768kHz oscillator
             rtc_clkoutVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
@@ -233,7 +231,6 @@ public class SimValidate extends PeripheralValidator {
             break;
          }
       }
-
       // UART0 Clock source select (if present)
       //==========================================
       clockSelector.lpClockSelect("sim_sopt2_uart0src", "system_uart0_clock");

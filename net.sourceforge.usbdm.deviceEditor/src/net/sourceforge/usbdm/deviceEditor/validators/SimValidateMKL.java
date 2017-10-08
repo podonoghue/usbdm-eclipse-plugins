@@ -257,7 +257,7 @@ public class SimValidateMKL extends PeripheralValidator {
       //============================
       ChoiceVariable sim_sopt2_usbsrcVar = safeGetChoiceVariable("sim_sopt2_usbsrc");
       if (sim_sopt2_usbsrcVar != null) {
-         Variable sim_clkdiv2_usbVar    = safeGetVariable("sim_clkdiv2_usb");
+         ChoiceVariable sim_clkdiv2_usbVar    = safeGetChoiceVariable("sim_clkdiv2_usb");
 
          if (sim_clkdiv2_usbVar != null) {
             // USB divider CLKDIV2 exists
@@ -288,7 +288,7 @@ public class SimValidateMKL extends PeripheralValidator {
                }
                sim_clkdiv2_usbVar.enable(true);
                if (pllCalcValue>=0) {
-                  ((ChoiceVariable)sim_clkdiv2_usbVar).setRawValue(pllCalcValue);
+                  sim_clkdiv2_usbVar.setRawValue(pllCalcValue);
                   sim_clkdiv2_usbVar.setOrigin("Automatically calculated from input clock");
                   sim_clkdiv2_usbVar.setLocked(true);
                }
@@ -396,8 +396,6 @@ public class SimValidateMKL extends PeripheralValidator {
          }
          break;
       }
-
-
 
       //======================================
       final LongVariable   system_core_clockVar         = getLongVariable("system_core_clock");

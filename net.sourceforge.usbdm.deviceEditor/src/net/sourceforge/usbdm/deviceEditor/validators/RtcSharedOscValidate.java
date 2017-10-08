@@ -2,7 +2,11 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
+import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -18,8 +22,22 @@ public class RtcSharedOscValidate extends PeripheralValidator {
    
    private final static String[] externalVariables = {
          "/SIM/system_erclk32k_clock",
+         "/OSC0/osc_input_freq",
    };
-   
+
+   // Ranges for External Crystal
+   static final long EXTERNAL_EXTAL_RANGE_MIN = 32000L;
+   static final long EXTERNAL_EXTAL_RANGE_MAX = 40000L;
+
+   /** External Crystal frequency error message */
+   private   static final Status OSCCLK32K_CLOCK_WARNING_MSG = new Status(String.format(
+      "External crystal frequency not suitable for RTCCLK32\n"+
+      "Range [%sHz,%sHz]",           
+      EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE_MIN, 3),
+      EngineeringNotation.convert(EXTERNAL_EXTAL_RANGE_MAX, 3)),
+      Severity.WARNING);
+
+
    public RtcSharedOscValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -39,43 +57,63 @@ public class RtcSharedOscValidate extends PeripheralValidator {
       
       // RTC input clock
       //=====================
-      Variable system_erclk32k_clockVar = getVariable("/SIM/system_erclk32k_clock");
+      LongVariable system_erclk32k_clockVar = getLongVariable("/SIM/system_erclk32k_clock");
       
       // RTC
       //=================================
-      Variable     rtc_cr_osceVar                  =  getVariable("rtc_cr_osce");
-      Variable     rtc_cr_clkoVar                  =  getVariable("rtc_cr_clko");
-      Variable     rtc_cr_scpVar                   =  getVariable("rtc_cr_scp");
-      Variable     rtc_cr_umVar                    =  getVariable("rtc_cr_um");
-      Variable     rtc_cr_supVar                   =  getVariable("rtc_cr_sup");
-      Variable     rtc_cr_wpeVar                   =  getVariable("rtc_cr_wpe");
+      LongVariable     osc_input_freqVar     =  getLongVariable("/OSC0/osc_input_freq");
+      LongVariable     rtcclk_clockVar       =  getLongVariable("rtcclk_clock");
+      BooleanVariable  rtc_cr_osceVar        =  getBooleanVariable("rtc_cr_osce");
+      BooleanVariable  rtc_cr_clkoVar        =  getBooleanVariable("rtc_cr_clko");
+      ChoiceVariable   rtc_cr_scpVar         =  getChoiceVariable("rtc_cr_scp");
+      Variable         rtc_cr_umVar          =  getVariable("rtc_cr_um");
+      Variable         rtc_cr_supVar         =  getVariable("rtc_cr_sup");
+      Variable         rtc_cr_wpeVar         =  getVariable("rtc_cr_wpe");
+      LongVariable     rtc_1hz_clockVar      =  getLongVariable("rtc_1hz_clock");
 
-      Variable     rtc_1hz_clockVar                =  getVariable("rtc_1hz_clock");
+      
+      //=========================================
+      // Check suitability of OSC for OSC32KCLK
+      //
+      long   oscclk_clock_freq = osc_input_freqVar.getValueAsLong();
+      Status status            = system_erclk32k_clockVar.getFilteredStatus();
+      String origin            = system_erclk32k_clockVar.getOrigin();
+      long   rtcClockFrequency = oscclk_clock_freq;
+      
+      if ((oscclk_clock_freq < RtcValidate.EXTERNAL_EXTAL_RANGE_MIN) || (oscclk_clock_freq > RtcValidate.EXTERNAL_EXTAL_RANGE_MAX)) {
+         status = OSCCLK32K_CLOCK_WARNING_MSG;
+         origin = "RTCCLK (invalid range)";
+         rtcClockFrequency = 0L;
+
+         rtc_cr_osceVar.enable(false);
+         rtc_cr_osceVar.setStatus(status);
+      }
+      else {
+         rtc_cr_osceVar.enable(true);
+         rtc_cr_osceVar.setStatus((Status)null);
+         if (!rtc_cr_osceVar.getValueAsBoolean()) {
+            status = new Status("Disabled by rtc_cr_osce", Severity.WARNING);
+            origin = ("RTCCLK (disabled)");
+            rtcClockFrequency = 0L;
+         }
+      }
+      rtcclk_clockVar.setValue(rtcClockFrequency);
+      rtcclk_clockVar.setStatus(status);
+      rtcclk_clockVar.setOrigin(origin);
+      rtc_1hz_clockVar.setValue((rtcClockFrequency>0)?1:0);
+      rtc_1hz_clockVar.setStatus(status);
+      rtc_1hz_clockVar.setOrigin(origin);
 
       //=========================================
-      // Check input clock/oscillator ranges
-      //   - Determine mcg_c2_range
+      // Check if enabled
       //
-      // Check suitability of OSC for OSC32KCLK
-      
-      boolean rtc_cr_osce = rtc_cr_osceVar.getValueAsBoolean();
+      boolean rtc_cr_osce = rtc_cr_osceVar.isEnabled() && rtc_cr_osceVar.getValueAsBoolean();
       rtc_cr_scpVar.enable(rtc_cr_osce);
       rtc_cr_umVar.enable(rtc_cr_osce);
       rtc_cr_supVar.enable(rtc_cr_osce);
       rtc_cr_wpeVar.enable(rtc_cr_osce);
-      
-      // RTC Clocks
-      //==============================
-      
-      if (rtc_cr_clkoVar.getValueAsBoolean()) {
-         rtc_1hz_clockVar.enable(true);
-         rtc_1hz_clockVar.setValue((system_erclk32k_clockVar.getValueAsLong()>0)?1:0);
-         rtc_1hz_clockVar.setStatus(system_erclk32k_clockVar.getFilteredStatus());
-      }
-      else {
-         rtc_1hz_clockVar.enable(false);
-         rtc_1hz_clockVar.setValue(0);
-         rtc_1hz_clockVar.setStatus(new Status("Disabled by rtc_cr_clko", Severity.WARNING));
-      }
+      rtc_cr_clkoVar.enable(rtc_cr_osce);
+      rtcclk_clockVar.enable(rtc_cr_osce);
+      rtc_1hz_clockVar.enable(rtc_cr_osce);
    }
 }

@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
 
+import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
@@ -81,40 +83,35 @@ public class OscValidate extends PeripheralValidator {
       
       // OSC
       //=================================
-      Variable     osc_cr_erclkenVar               =  getVariable("osc_cr_erclken");
-      Variable     erefs0Var                       =  getVariable("erefs0");
-      Variable     hgo0Var                         =  getVariable("hgo0");
-      Variable     osc_cr_scpVar                   =  getVariable("osc_cr_scp");
-      Variable     osc_cr_erefstenVar              =  getVariable("osc_cr_erefsten");
-      Variable     oscillatorRangeVar              =  getVariable("oscillatorRange");
-      Variable     system_oscerclk_undiv_clockVar  =  safeGetVariable("system_oscerclk_undiv_clock");
-      Variable     system_oscerclk_clockVar        =  null;
+      BooleanVariable  osc_cr_erclkenVar              =  getBooleanVariable("osc_cr_erclken");
+      BooleanVariable  erefs0Var                      =  getBooleanVariable("erefs0");
+      BooleanVariable  hgo0Var                        =  getBooleanVariable("hgo0");
+      ChoiceVariable   osc_cr_scpVar                  =  getChoiceVariable("osc_cr_scp");
+      Variable         osc_cr_erefstenVar             =  getVariable("osc_cr_erefsten");
+      Variable         oscillatorRangeVar             =  getVariable("oscillatorRange");
+      LongVariable     system_oscerclk_undiv_clockVar =  safeGetLongVariable("system_oscerclk_undiv_clock");
+      LongVariable     system_oscerclk_clockVar       =  null;
       if (system_oscerclk_undiv_clockVar == null) {
-         system_oscerclk_undiv_clockVar            =  getVariable("system_oscerclk_clock");
+         system_oscerclk_undiv_clockVar               =  getLongVariable("system_oscerclk_clock");
       }
       else {
-         system_oscerclk_clockVar                  =  getVariable("system_oscerclk_clock");
+         system_oscerclk_clockVar                     =  getLongVariable("system_oscerclk_clock");
       }
-      Variable     osc_div_erpsVar                 =  safeGetVariable("osc_div_erps");
-      LongVariable osc32kclk_clockVar              =  getLongVariable("osc32kclk_clock");
-      Variable     oscclk_clockVar                 =  getVariable("oscclk_clock");
-      Variable     osc_input_freqVar               =  getVariable("osc_input_freq");
+      ChoiceVariable     osc_div_erpsVar              =  safeGetChoiceVariable("osc_div_erps");
+      LongVariable     osc32kclk_clockVar             =  getLongVariable("osc32kclk_clock");
+      LongVariable     oscclk_clockVar                =  getLongVariable("oscclk_clock");
+      LongVariable     osc_input_freqVar              =  getLongVariable("osc_input_freq");
       
-      Variable     rtcSharesPinsVar                =  safeGetVariable("/SIM/rtcSharesPins");
-      Variable     rtc_cr_osceVar                  =  safeGetVariable("/RTC/rtc_cr_osce");
+      Variable         rtcSharesPinsVar               =  safeGetVariable("/SIM/rtcSharesPins");
+      BooleanVariable  rtc_cr_osceVar                 =  safeGetBooleanVariable("/RTC/rtc_cr_osce");
 
       long    oscclk_clock_freq    = osc_input_freqVar.getValueAsLong();
-      
-      //=========================================
-      // Check input clock/oscillator ranges
-      //   - Determine mcg_c2_range
-      //
       
       // Check if RTC has control of OSC
       boolean rtcForcing = ((rtcSharesPinsVar != null) && rtc_cr_osceVar.getValueAsBoolean());
       
       // OSC mode if selected by erefs or RTC
-      boolean erefs0 = erefs0Var.getValueAsBoolean() || rtcForcing;
+      boolean oscillatorInUse = erefs0Var.getValueAsBoolean() || rtcForcing;
 
       String  oscclk_clockOrg       = null;
       Status  oscclk_clockStatus    = null;
@@ -122,7 +119,7 @@ public class OscValidate extends PeripheralValidator {
       String  rangeOrigin  = "Unused";
       int     range        = UNCONSTRAINED_RANGE;
 
-      if (erefs0) {
+      if (oscillatorInUse) {
          // Using oscillator - range is chosen to suit crystal frequency (or forced by RTC)
          if ((oscclk_clock_freq >= EXTERNAL_EXTAL_RANGE1_MIN) && (oscclk_clock_freq <= EXTERNAL_EXTAL_RANGE1_MAX)) {
             oscclk_clockOrg = "OSCCLK (low range oscillator)";
@@ -174,7 +171,7 @@ public class OscValidate extends PeripheralValidator {
          osc32kclk_clockOrg    = osc32kclk_clockOrg+"(invalid range)";
       }
       if (rtcForcing) {
-         Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.INFO);
+         Status rtcInUseMessage = new Status("Feature is controlled by RTC which shares XTAL/EXTAL pins", Severity.WARNING);
          erefs0Var.enable(false);
          erefs0Var.setStatus(rtcInUseMessage);
          
@@ -191,10 +188,10 @@ public class OscValidate extends PeripheralValidator {
          erefs0Var.enable(true);
          erefs0Var.setStatus((Status)null);
          
-         osc_cr_scpVar.enable(erefs0);
+         osc_cr_scpVar.enable(oscillatorInUse);
          osc_cr_scpVar.setStatus((Status)null);
          
-         hgo0Var.enable(erefs0);
+         hgo0Var.enable(oscillatorInUse);
          hgo0Var.setStatus((Status)null);
       }      
       
