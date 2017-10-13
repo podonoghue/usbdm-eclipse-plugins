@@ -157,20 +157,20 @@ public class SignalTemplate {
     * @return
     * @throws Exception 
     */
-   public static String getPCRInitString(Pin pin) {
+   public static String getPinInfoInitString(Pin pin) {
       if (pin == null) {
          throw new RuntimeException("Pin may not be null");
       }
       String portClockMask = pin.getClockMask();
       if (portClockMask == null) {
          // No PCR - probably an analogue pin
-         return "0, 0, 0, 0, ";
+         return "NoPortInfo, 0, 0, ";
       }
-      String portAddress      = pin.getPORTBasePtr();
+      String portInfo         = pin.getPortInfo();
       String gpioRegister     = pin.getGpioBasePtr();
       String gpioBitNum       = pin.getGpioBitNum();
       
-      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
+      return String.format("%-11s %-15s %-4s", portInfo+",", gpioRegister+",", gpioBitNum+",");
    }
 
 //   /**

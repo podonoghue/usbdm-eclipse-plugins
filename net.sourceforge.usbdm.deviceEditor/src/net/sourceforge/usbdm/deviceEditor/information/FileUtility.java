@@ -389,11 +389,22 @@ public class FileUtility {
       }
    }
 
-   public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor progressMonitor) throws Exception {
+   /**
+    * Refresh file by copying with substitutions
+    * 
+    * @param project       Project being modified (if any)
+    * @param path          File path
+    * @param target        Target file path
+    * @param variableMap   Map of substitutions to apply when copying
+    * @param monitor       Progress monitor
+    * 
+    * @throws Exception
+    */
+   public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
       try {
          Path projectDirectory = Paths.get(project.getLocation().toPortableString());
          Path sourcePath = projectDirectory.resolve(path);
-         copyFile(project, sourcePath, sourcePath, variableMap, progressMonitor);
+         copyFile(project, sourcePath, sourcePath, variableMap, monitor);
       } catch (Exception e) {
          throw new Exception("Failed to refresh file "+path+" in project "+project.getName(), e);
       }

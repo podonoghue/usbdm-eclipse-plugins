@@ -188,15 +188,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       }
    }
 
-   //   @Override
-   //   protected void pageChange(int newPageIndex) {
-   //      super.pageChange(newPageIndex);
-   //      IEditorPart editorPart = getEditor(newPageIndex);
-   //      if (editorPart instanceof SignalTreeEditor) {
-   //         ((SignalTreeEditor)editorPart).refresh();
-   //      }
-   //   }
-
    /**
     * Generate C code files
     * @return 

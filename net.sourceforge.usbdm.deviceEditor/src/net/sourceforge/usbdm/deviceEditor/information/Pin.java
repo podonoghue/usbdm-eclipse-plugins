@@ -132,6 +132,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return String.format("PORT%s", fPortInstance);
    }
    
+   /**
+    * Get Port information name e.g. "PortBInfo"
+    * 
+    * @return String or null if no associated PORT
+    */
+   public String getPortInfo() {
+      if (fPortInstance == null) {
+         return null;
+      }
+      return String.format("Port%sInfo", fPortInstance);
+   }
+   
 //   /**
 //    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
 //    * 

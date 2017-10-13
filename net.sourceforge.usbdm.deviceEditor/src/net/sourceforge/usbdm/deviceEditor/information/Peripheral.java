@@ -643,10 +643,10 @@ public abstract class Peripheral extends VariableProvider {
       return rv;
    }
    
-   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, INVALID_PCR,  0 },\n";
-   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, UNMAPPED_PCR, 0 },\n";
-   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { 0, 0, 0, FIXED_NO_PCR, 0 },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s PORT_PCR_MUX(%d)|"+DEFAULT_PCR_VALUE_NAME+"  },\n";
+   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, 0,         INVALID_PCR,  0 },\n";
+   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, 0,         UNMAPPED_PCR, 0 },\n";
+   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, 0,         FIXED_NO_PCR, 0 },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s     PORT_PCR_MUX(%d)|"+DEFAULT_PCR_VALUE_NAME+"  },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
@@ -671,12 +671,12 @@ public abstract class Peripheral extends VariableProvider {
             signalTable.table.size()));
       pinMappingHeaderFile.write(String.format(
             indent+"   //! Information for each signal of peripheral\n"+
-            indent+"   static constexpr PcrInfo  %s[] = {\n"+
+            indent+"   static constexpr PinInfo  %s[] = {\n"+
             indent+"\n",
                   INFO_TABLE_NAME
             ));
       pinMappingHeaderFile.write(String.format(
-            indent+HEADING_TEMPLATE, "Signal", "Pin","   clockMask          portAddress     gpioAddress     bit  PCR value"));
+            indent+HEADING_TEMPLATE, "Signal", "Pin","    portInfo    gpioAddress     gpioBit  PCR value"));
       // Signal information table
       int index = -1;
       for (Signal signal:signalTable.table) {
@@ -704,10 +704,10 @@ public abstract class Peripheral extends VariableProvider {
             }
             if (mappingInfo.isSelected()) {
                mappedPin = mappingInfo;
-               String pcrInitString = SignalTemplate.getPCRInitString(mappingInfo.getPin());
+               String pinInfoInitString = SignalTemplate.getPinInfoInitString(mappingInfo.getPin());
                pinMappingHeaderFile.write(
                      String.format(indent+USED_TEMPLATE, index, 
-                           signal.getName(), mappingInfo.getPin().getNameWithLocation(), pcrInitString, mappingInfo.getMux().value));
+                           signal.getName(), mappingInfo.getPin().getNameWithLocation(), pinInfoInitString, mappingInfo.getMux().value));
 
             }
          } while(false);
@@ -752,7 +752,7 @@ public abstract class Peripheral extends VariableProvider {
     *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
     * 
     *        //! Information for each pin of peripheral
-    *        static constexpr PcrInfo  info[] = {
+    *        static constexpr PinInfo  info[] = {
     * 
     *   //         clockMask      portAddress     gpioAddress gpioBit muxValue
     *   /*  0 * /  { 0 },
