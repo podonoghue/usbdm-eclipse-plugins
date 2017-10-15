@@ -52,59 +52,20 @@ public class WriterForGpio extends PeripheralWithState {
 
    @Override
    public int getSignalIndex(Signal function) {
-      Pattern p = Pattern.compile("(\\d+).*");
-      Matcher m = p.matcher(function.getSignalName());
-      if (!m.matches()) {
-         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
-      }
-      int signalIndex = Integer.parseInt(m.group(1));
-      return signalIndex;
+      // No tables for GPIO
+      return -1;
+//      Pattern p = Pattern.compile("(\\d+).*");
+//      Matcher m = p.matcher(function.getSignalName());
+//      if (!m.matches()) {
+//         throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
+//      }
+//      int signalIndex = Integer.parseInt(m.group(1));
+//      return signalIndex;
    }
 
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      StringBuffer sb = new StringBuffer();
-      
-      // Base address
-      sb.append(String.format(
-            "   //! PORT Hardware base pointer\n"+
-            "   static constexpr uint32_t portAddress   = %s\n\n",
-            getName().replaceAll("GPIO", "PORT")+"_BasePtr;"
-            ));
-
-      // Base address
-      sb.append(String.format(
-            "   //! GPIO Hardware base pointer\n"+
-            "   static constexpr uint32_t gpioAddress   = %s\n\n",
-            getName().replaceAll("PORT", "GPIO")+"_BasePtr;"
-            ));
-
-      sb.append(getPcrDefinition());
-      
-      if (getClockMask() != null) {
-         sb.append(String.format(
-               "   //! Clock mask for peripheral\n"+
-               "   static constexpr uint32_t clockMask = %s;\n\n",
-               getClockMask()));
-      }
-      if (getClockReg() != null) {
-         sb.append(String.format(
-               "   //! Address of clock register for peripheral\n"+
-               "   static constexpr uint32_t clockReg  = %s;\n\n",
-               "SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+")"));
-      }
-      if (getIrqNumsAsInitialiser() != null) {
-         sb.append(String.format(
-               "   //! Number of IRQs for hardware\n"+
-               "   static constexpr uint32_t irqCount  = %s;\n\n",
-               getIrqCount()));
-         sb.append(String.format(
-               "   //! IRQ numbers for hardware\n"+
-               "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-               getIrqNumsAsInitialiser()));
-      }
-      pinMappingHeaderFile.write(sb.toString());
-      
+      // Entirely done by template
       writeInfoTemplate(pinMappingHeaderFile);
    }
 
