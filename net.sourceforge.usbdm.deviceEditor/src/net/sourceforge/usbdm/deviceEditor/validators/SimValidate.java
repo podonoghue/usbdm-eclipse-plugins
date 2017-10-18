@@ -474,8 +474,8 @@ public class SimValidate extends PeripheralValidator {
          @Override
          boolean okValue(int divisor, double frequency) {
             return (frequency<=MAX_BUS_CLOCK_FREQ) &&
-                  ((divisor % coreDivisor.divisor) == 0) &&    // Even multiple
-                  (Math.abs(coreDivisor.divisor-divisor)<8);   //  Differ from core < 8
+                  ((divisor % coreDivisor.divisor) == 0) &&  // Even multiple
+                  ((divisor/coreDivisor.divisor)<=8);        // Differ from core < 8
          }
       };
       severity = Severity.OK;
@@ -512,8 +512,8 @@ public class SimValidate extends PeripheralValidator {
             boolean okValue(int divisor, double frequency) {
                return (frequency<=MAX_FLEXBUS_CLOCK_FREQ) &&
                      (frequency<=busDivisor.nearestTargetFrequency) &&
-                     ((divisor % coreDivisor.divisor) == 0) &&    // Even multiple
-                     (Math.abs(coreDivisor.divisor-divisor)<8);   // Differ from core < 8
+                     ((divisor % coreDivisor.divisor) == 0) && // Even multiple
+                     ((divisor/coreDivisor.divisor)<=8);       // Differ from core < 8
             }
          };
          severity = Severity.OK;
@@ -546,6 +546,9 @@ public class SimValidate extends PeripheralValidator {
          system_flexbus_clockVar.setStatus(new Status("Function not available on this device", Severity.OK));
       }
 
+//      if (system_mcgoutclk_clockVar.getValueAsLong() == 12000000) {
+//         System.err.println("system_mcgoutclk_clockVar[" +fIndex+"] = " + system_mcgoutclk_clockVar);
+//      }
       // Flash Clock
       //===========================================
       final FindDivisor flashDivisor = new FindDivisor(inputFrequency, system_flash_clockVar.getValueAsLong()) {
@@ -554,7 +557,7 @@ public class SimValidate extends PeripheralValidator {
             return (frequency<=MAX_FLASH_CLOCK_FREQ) &&
                   (frequency<=busDivisor.nearestTargetFrequency) &&
                   ((divisor % coreDivisor.divisor) == 0) &&    // Even multiple
-                  (Math.abs(coreDivisor.divisor-divisor)<8);   // Differ from core < 8
+                  ((divisor/coreDivisor.divisor)<=8);   // Differ from core < 8
 
          }
       };
