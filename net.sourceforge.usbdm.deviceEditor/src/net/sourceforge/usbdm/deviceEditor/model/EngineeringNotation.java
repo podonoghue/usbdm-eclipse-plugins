@@ -76,6 +76,7 @@ public class EngineeringNotation {
       BINARY_PATTERN+"|"+
       HEX_PATTERN+"|"+
       DEC_PATTERN+")"+
+      "\\s*"+
       SUFFIX_PATTERN+
       UNIT_PATTERN+"$");
 
