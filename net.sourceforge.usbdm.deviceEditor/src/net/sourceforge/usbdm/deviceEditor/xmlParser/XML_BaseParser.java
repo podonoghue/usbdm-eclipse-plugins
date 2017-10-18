@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
+import java.util.zip.Checksum;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -231,6 +232,35 @@ public class XML_BaseParser {
       return value;
    }
 
+   static final String kiloSuffixes[] = {
+         "kHz",
+   };
+   
+   static final String megaSuffixes[] = {
+         "MHz",
+   };
+
+   static final String kibiSuffixes[] = {
+         "KiB",
+   };
+
+   static final String mibiSuffixes[] = {
+         "MiB",
+   };
+
+   static int checkSuffix(String s, String[] suffixes) {
+      int index = -1;
+      for (String suffix:suffixes) {
+         if (s.endsWith(suffix)) {
+            index = s.lastIndexOf(suffix);
+            if (index>=0) {
+               break;
+            }
+         }
+      }
+      return index;
+   }
+   
    /**
     * @param element
     * @param name
@@ -246,22 +276,37 @@ public class XML_BaseParser {
       }
       long value      = 0;
       long multiplier = 1;
-      int kIndex = s.lastIndexOf('K');
-      int mIndex = s.lastIndexOf('M');
-      if (kIndex>0) {
+      int kiIndex    = checkSuffix(s, kibiSuffixes);
+      int miIndex    = checkSuffix(s, mibiSuffixes);
+      int kiloIndex  = checkSuffix(s, kiloSuffixes);
+      int megaIndex  = checkSuffix(s, megaSuffixes);
+      
+      if (kiIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, kIndex);
+         s = s.substring(0, kiIndex);
          multiplier = 1024;
          //         System.out.println("getIntAttribute("+s+"), K found");
       }
-      if (mIndex>0) {
+      if (miIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), M found");
-         s = s.substring(0, mIndex);
+         s = s.substring(0, miIndex);
          multiplier = 1024*1024;
          //         System.out.println("getIntAttribute("+s+"), M found");
       }
+      if (kiloIndex>0) {
+         //         System.out.println("getIntAttribute("+s+"), K found");
+         s = s.substring(0, kiloIndex);
+         multiplier = 1000;
+         //         System.out.println("getIntAttribute("+s+"), K found");
+      }
+      if (megaIndex>0) {
+         //         System.out.println("getIntAttribute("+s+"), K found");
+         s = s.substring(0, megaIndex);
+         multiplier = 1000*1000;
+         //         System.out.println("getIntAttribute("+s+"), K found");
+      }
       try {
-         value = multiplier*Long.decode(s);
+         value = multiplier*Long.decode(s.trim());
       } catch (NumberFormatException e) {
          //         System.out.println("getIntAttribute("+s+"), failed");
          e.printStackTrace();
