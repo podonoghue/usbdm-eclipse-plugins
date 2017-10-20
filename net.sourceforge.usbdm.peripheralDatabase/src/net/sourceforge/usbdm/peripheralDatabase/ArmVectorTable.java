@@ -13,29 +13,52 @@ public abstract class ArmVectorTable extends VectorTable {
       super(VECTOR_OFFSET, FIRST_IRQ_INDEX);
    }
 
+   static final String resetHandlerPrototype = 
+         "#ifdef __cplusplus\n"+
+               "extern \"C\" {\n"+
+               "#endif\n"+
+               "// Reset handler must have C linkage\n"+
+               "void Reset_Handler(void);\n"+
+               "#ifdef __cplusplus\n"+
+               "}\n"+
+               "#endif\n";
+
    static final String handlerTemplate          = "void %-40s WEAK_DEFAULT_HANDLER;\n";
    static final String vectorTableTypedef       =
          "typedef struct {\n"        +
-         "   uint32_t *initialSP;\n" +
-         "   intfunc  handlers[%d];\n" +
-         "} VectorTable;\n\n";
+               "   uint32_t *initialSP;\n" +
+               "   intfunc  handlers[%d];\n" +
+               "} VectorTable;\n\n";
 
    static final String vectorTableOpen     = 
          "extern VectorTable const __vector_table;\n\n"+
-         "__attribute__ ((section(\".interrupt_vectors\")))\n"+
-         "VectorTable const __vector_table = {\n"+
-         "                                     /*  Exc# Irq# */\n"+
-         "   &__StackTop,                      /*    0   -16  Initial stack pointer                                                            */\n"+
-         "   {\n"+
-         "      __HardReset,                   /*    1   -15  Reset Handler                                                                    */\n";
+               "__attribute__ ((section(\".interrupt_vectors\")))\n"+
+               "VectorTable const __vector_table = {\n"+
+               "                                               /*  Exc# Irq# */\n"+
+               "   &__StackTop,                                /*    0   -16  Initial stack pointer                                                            */\n"+
+               "   {\n";
    static final String vectorTableEntry    = 
-         "      %-30s /* %4d, %4d  %-80s */\n";
+         "      %-40s /* %4d, %4d  %-80s */\n";
    static final String vectorTableDeviceSeparator =
-         "\n                                     /* External Interrupts */\n";
+         "\n                                               /* External Interrupts */\n";
    static final String vectorTableClose    = 
          "   }\n" +
-         "};\n\n";
-   
+               "};\n\n";
+
+   /**
+    * Write Vector table entry
+    * 
+    * @param writer     Write to use
+    * @param handlerName
+    * @param index
+    * @throws IOException
+    */
+   private void writeVectorTableEntry(Writer writer, String handlerName, int index) throws IOException {
+      final String vectorTableEntry    = 
+            "      %-40s /* %4d, %4d  %-80s */\n";
+      writer.write(String.format(vectorTableEntry, handlerName+",", index, index-VECTOR_OFFSET, getHandlerDescription(index)));
+   }
+
    /*
     * (non-Javadoc)
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCVectorTable(java.io.Writer)
@@ -49,12 +72,14 @@ public abstract class ArmVectorTable extends VectorTable {
          addDefaultVectors = false;
       }
 
+      writer.write(resetHandlerPrototype);
+
       // Only list until ...
       int lastEntry = getLastUsedEntry();
       if (lastEntry<(FIRST_IRQ_INDEX+9)) {
          lastEntry = FIRST_IRQ_INDEX+9;
       }
-      
+
       // Write out handler prototypes
       for (int index=2; index<=lastEntry; index++) {
          if ((interrupts[index] == null) || interrupts[index].isClassMemberUsedAsHandler()) {
@@ -67,12 +92,12 @@ public abstract class ArmVectorTable extends VectorTable {
          }
       }
       writer.write('\n');
-      
+
       // Write out vector table
       writer.write(String.format(vectorTableTypedef, lastEntry));
       writer.write(vectorTableOpen);
-      
-      for (int index=2; index<=lastEntry; index++) {
+
+      for (int index=1; index<=lastEntry; index++) {
          if (index==FIRST_IRQ_INDEX) {
             writer.write(vectorTableDeviceSeparator);
          }
@@ -85,11 +110,11 @@ public abstract class ArmVectorTable extends VectorTable {
                handlerName = DEFAULT_HANDLER_NAME;
             }
          }
-         writer.write(String.format(vectorTableEntry, handlerName+",", index, index-VECTOR_OFFSET, getHandlerDescription(index)));
+         writeVectorTableEntry(writer, handlerName, index);
       }
       writer.write(vectorTableClose);
    }
-   
+
    /*
     * (non-Javadoc)
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCInterruptHeader(java.io.Writer)
@@ -101,7 +126,7 @@ public abstract class ArmVectorTable extends VectorTable {
          addDefaultInterruptEntries();
          addDefaultVectors = false;
       }
-      
+
       writeGroupPreamble(writer, "Interrupt_vector_numbers", "Interrupt vector numbers", "Vector numbers required for NVIC functions");
 
       writer.write(INTERRUPT_BANNER);
@@ -125,7 +150,7 @@ public abstract class ArmVectorTable extends VectorTable {
          }
       }
       writer.write(INTERRUPT_POSTAMBLE);
-      
+
       writeGroupPostamble(writer, "Interrupt_vector_numbers");
 
       writeGroupPreamble(writer, "Interrupt_handler_prototypes", "Interrupt handler prototypes", "Prototypes for interrupt handlers");
