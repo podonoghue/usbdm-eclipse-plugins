@@ -129,7 +129,9 @@ public class IrqDialogue extends TitleAreaDialog {
       label.setText("C Function ");
       
       fText = new Text(container, SWT.BORDER);
-      fText.setToolTipText("Name of C function to execute on interrupt");
+      fText.setToolTipText(
+            "Name of C function to execute on interrupt\n"+
+            "May contain % to refer to 1st pattern group");
       gridData = new GridData();
       gridData.horizontalAlignment = GridData.FILL;
       gridData.grabExcessHorizontalSpace = true;

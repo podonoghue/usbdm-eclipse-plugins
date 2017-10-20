@@ -33,7 +33,7 @@ public class IrqVariable extends Variable {
    }
 
    /**
-    * Checks if identifier is a valid C name
+    * Checks if identifier is a valid C name after % substitution
     * 
     * @param id
     * 
@@ -41,6 +41,8 @@ public class IrqVariable extends Variable {
     *         Invalid => Error string
     */
    public static String isValidCIdentifier(String id) {
+      // Allow regex group substitutions 
+
       if (id != null) {
          id = id.replaceAll("%", "");
          if (id.matches("[_a-zA-Z][_a-zA-z0-9]*")) {
