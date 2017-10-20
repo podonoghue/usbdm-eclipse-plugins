@@ -216,23 +216,27 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @param vectorTable  Vector table to search
     * @param irqVariable  Describes interrupt including: <br>
-    * <ul>
-    * <li> pattern      Pattern to match against vector table entry e.g. "^%b%i$" <br>
+    * 
+    * <li> pattern      Pattern to match against vector table entry. <br>
     * This is a regex.  In addition the following substitutions are done before matching:
     *    <ul>
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
     *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
     *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
-    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
     *    <li> _IRQHandler is appended
     *    </ul>
-    * <li> classHandler Name of C++ class method to handle the interrupt e.g. irqHandler.<br>
-    * The following substitutions are done:
+    * <li> classHandler Name of class method to handle interrupt <br>
+    * This is a regex substitution pattern.  In addition the following substitutions are done before matching:
     *    <ul>
+    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
     *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
     *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
-    *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
     *    </ul>
-    * <li> classHandler Name of class method to handle interrupt
+    * Regex substitution patterns may also be used.
+    *    <ul>
+    *    <li> $n reference to regex group in pattern
+    *    </ul>
+    * </ul>
     * @param className  Base name of C peripheral class e.g. Ftm 
     */
    public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) {
@@ -265,11 +269,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                   classHandler = classHandler.replaceAll("%b", getBaseName());
                   classHandler = classHandler.replaceAll("%i", getInstance());
                   classHandler = classHandler.replaceAll("%c", className);
-                  handlerName = DeviceInfo.NAME_SPACE+"::"+classHandler;
+                  handlerName = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
                   break;
                case UserMethod:
                   // Replace with user specified name
-                  // % represents group from substitution
+                  // % represents 1st group from substitution
                   handlerName = irqVariable.getHandlerName().replaceAll("%", modifier);
                   break;
                case NotInstalled:
