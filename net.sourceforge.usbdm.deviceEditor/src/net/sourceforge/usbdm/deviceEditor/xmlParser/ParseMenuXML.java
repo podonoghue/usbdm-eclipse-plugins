@@ -269,7 +269,7 @@ public class ParseMenuXML extends XML_BaseParser {
       }
       else {
          if (!existingVariable.getClass().equals(clazz)) {
-            throw new Exception("Overridden variable has wrong type");
+            throw new Exception("Overridden variable "+key+" has wrong type");
          }
          newVariable = existingVariable;
       }
@@ -516,11 +516,15 @@ public class ParseMenuXML extends XML_BaseParser {
     *    <li> _IRQHandler is appended
     *    </ul>
     * <li> classHandler Name of class method to handle interrupt <br>
-    * This is a regex.  In addition the following substitutions are done before matching:
+    * This is a regex substitution pattern.  In addition the following substitutions are done before matching:
     *    <ul>
     *    <li> %i replaced with peripheral instance e.g. FTM1 => 1, PTA => A
     *    <li> %b replaced with peripheral base name e.g. FTM1 => = FTM
     *    <li> %c replaced with peripheral C++ base class name e.g. FTM1 => = Ftm
+    *    </ul>
+    * Regex substitution patterns may also be used.
+    *    <ul>
+    *    <li> $n reference to regex group in pattern
     *    </ul>
     * </ul>
     * 
