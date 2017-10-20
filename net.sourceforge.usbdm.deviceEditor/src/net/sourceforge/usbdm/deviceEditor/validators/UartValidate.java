@@ -38,12 +38,10 @@ public class UartValidate extends PeripheralValidator {
       // Variables
       //=================================
       BooleanVariable   uartClassVar           =  getBooleanVariable("uartClass");
-      LongVariable      receiveBufferSizeVar     =  getLongVariable("receiveBufferSize");
-      LongVariable      transmitBufferSizeVar    =  getLongVariable("transmitBufferSize");
+      LongVariable      receiveBufferSizeVar   =  getLongVariable("receiveBufferSize");
+      LongVariable      transmitBufferSizeVar  =  getLongVariable("transmitBufferSize");
 
-      IrqVariable       txrxHandlerVar         =  getIrqVariable("txrxHandler");
-      IrqVariable       errorHandler           =  safeGetIrqVariable("errorHandler");
-      IrqVariable       lonHandler             =  safeGetIrqVariable("lonHandler");
+      IrqVariable       txrxHandlerVar         =  getIrqVariable("irqHandlers");
       
       // Enable/disable parameters that depend on mode
       boolean uartClass = uartClassVar.getValueAsBoolean();
@@ -56,18 +54,6 @@ public class UartValidate extends PeripheralValidator {
          txrxHandlerVar.setLocked(uartClass);
          if (uartClass) {
             txrxHandlerVar.setValue(IrqVariable.CLASS_VALUE);
-         }
-         if (errorHandler != null) {
-            errorHandler.setLocked(uartClass);
-            if (uartClass) {
-               errorHandler.setValue(IrqVariable.CLASS_VALUE);
-            }
-         }
-         if (lonHandler != null) {
-            lonHandler.setLocked(uartClass);
-            if (uartClass) {
-               lonHandler.setValue(IrqVariable.CLASS_VALUE);
-            }
          }
       }
    }
