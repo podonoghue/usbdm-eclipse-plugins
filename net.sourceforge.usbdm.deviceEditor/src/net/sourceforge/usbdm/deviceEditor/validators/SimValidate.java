@@ -346,8 +346,8 @@ public class SimValidate extends PeripheralValidator {
     */
    void validateIndexVariables(Variable variable) throws Exception {
       
-      final LongVariable   system_mcgfllclk_clockVar    = getLongVariable("/MCG/system_mcgfllclk_clock");
-      final LongVariable   system_mcgpllclk_clockVar    = getLongVariable("/MCG/system_mcgpllclk_clock");
+      final LongVariable   system_mcgfllclk_clockVar    = safeGetLongVariable("/MCG/system_mcgfllclk_clock");
+      final LongVariable   system_mcgpllclk_clockVar    = safeGetLongVariable("/MCG/system_mcgpllclk_clock");
       final LongVariable   usb1pfdclk_ClockVar          = safeGetLongVariable("/MCG/usb1pfdclk_Clock");
       final LongVariable   system_irc48m_clockVar       = safeGetLongVariable("/MCG/system_irc48m_clock");
       final LongVariable   system_peripheral_clockVar   = getLongVariable("system_peripheral_clock");
@@ -363,6 +363,11 @@ public class SimValidate extends PeripheralValidator {
             system_peripheral_clockVar.setValue(system_mcgfllclk_clockVar.getValueAsLong());
             system_peripheral_clockVar.setStatus(system_mcgfllclk_clockVar.getFilteredStatus());
             system_peripheral_clockVar.setOrigin(system_mcgfllclk_clockVar.getOrigin());
+         }
+         else {
+            system_peripheral_clockVar.setValue(0);
+            system_peripheral_clockVar.setStatus(new Status("FLL not present", Severity.ERROR));
+            system_peripheral_clockVar.setOrigin(null);
          }
          break;
       case 1:
