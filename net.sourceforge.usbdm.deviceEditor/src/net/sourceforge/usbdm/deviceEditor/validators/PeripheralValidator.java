@@ -122,6 +122,7 @@ public class PeripheralValidator extends Validator {
             }
          }
       }
+      fIndex = 0;
       fAddedExternalVariables = true;
    }
 }
