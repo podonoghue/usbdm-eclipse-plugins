@@ -27,20 +27,21 @@ public class Enumeration extends ModeControl {
     * @return true if equivalent
     */
    public boolean equivalent(Enumeration other, String pattern1, String pattern2) {
-      boolean rv = (this.mask == other.mask) &&
+      boolean rv = (this.mask  == other.mask) &&
                    (this.value == other.value);
       if (!rv) {
          return rv;
       }
-      
       if (getDescription().equalsIgnoreCase(other.getDescription())) {
          return true;
       }
-      String n1;
-      String n2;
-      n1 = getDescription().replaceFirst(pattern1, "$1%s$3");
-      n2 = other.getDescription().replaceFirst(pattern2, "$1%s$3");
-      return n1.equalsIgnoreCase(n2);
+      // Use patterns for descriptions if provided
+      if ((pattern1 != null) && (pattern2 != null)) {
+         String n1 = getDescription().replaceFirst(pattern1, "$1%s$3");
+         String n2 = other.getDescription().replaceFirst(pattern2, "$1%s$3");
+         return n1.equalsIgnoreCase(n2);
+      }
+      return false;
    }
    
    /* (non-Javadoc)
@@ -48,7 +49,7 @@ public class Enumeration extends ModeControl {
     */
    @Override
    public String toString() {
-      return String.format("Enumeration[%s]", getName());
+      return String.format("Enumeration[%s,%s]", getName(), getDescription());
    }
 
    /** Determines if two enumerations are equivalent

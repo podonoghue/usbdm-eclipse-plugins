@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,30 +94,32 @@ public class Field extends ModeControl implements Cloneable {
    /*
     * ====================================================================
     */
-   private AccessType             fAccessType;
-   private long                   fBitOffset;
-   private long                   fBitwidth;
-   private Field                  fDerivedFrom;
-   private String                 fDescription;
-   private ArrayList<Enumeration> fEnumerations;
-   private String                 fName;
-   private boolean                fIgnoreOverlap;
-   private boolean                fHidden;
-   private final Register         fOwner;
+   private AccessType                   fAccessType;
+   private long                         fBitOffset;
+   private long                         fBitwidth;
+   private Field                        fDerivedFrom;
+   private String                       fDescription;
+   private ArrayList<Enumeration>       fEnumerations;
+   private TreeMap<String, Enumeration> fSortedEnumerations;
+   private String                       fName;
+   private boolean                      fIgnoreOverlap;
+   private boolean                      fHidden;
+   private final Register               fOwner;
 
    /*
     * Constructor
     */
    public Field(Register owner) {
-      fAccessType    = null;
-      fBitOffset     = 0;
-      fBitwidth      = 0;
-      fDescription   = "";
-      fDerivedFrom   = null;
-      fEnumerations  = new ArrayList<Enumeration>();
-      fName          = "";
-      fIgnoreOverlap = false;
-      fOwner         = owner;
+      fAccessType          = null;
+      fBitOffset           = 0;
+      fBitwidth            = 0;
+      fDescription         = "";
+      fDerivedFrom         = null;
+      fEnumerations        = new ArrayList<Enumeration>();
+      fSortedEnumerations  = new TreeMap<String, Enumeration>();
+      fName                = "";
+      fIgnoreOverlap       = false;
+      fOwner               = owner;
       if (owner != null) {
          fBitwidth       = owner.getWidth();
          fAccessType     = owner.getAccessType();
@@ -129,14 +134,15 @@ public class Field extends ModeControl implements Cloneable {
     * SHALLOW Copy constructor
     */
    public Field(Field other) {
-      fAccessType   = other.fAccessType;    
-      fBitOffset    = other.fBitOffset;     
-      fBitwidth     = other.fBitwidth;      
-      fDescription  = other.fDescription;
-      fDerivedFrom  = other;
-      fEnumerations = other.fEnumerations;  
-      fName         = other.fName;          
-      fOwner        = other.fOwner;
+      fAccessType         = other.fAccessType;    
+      fBitOffset          = other.fBitOffset;     
+      fBitwidth           = other.fBitwidth;      
+      fDescription        = other.fDescription;
+      fDerivedFrom        = other;
+      fSortedEnumerations = other.fSortedEnumerations;
+      fEnumerations       = other.fEnumerations;  
+      fName               = other.fName;          
+      fOwner              = other.fOwner;
    }
 
    public Field getDerivedFrom() {
@@ -234,6 +240,7 @@ public class Field extends ModeControl implements Cloneable {
       if (fDerivedFrom != null) {
          throw new Exception("Cannot change enumerations of a derived Field");
       }
+      fSortedEnumerations.put(enumeration.getName(), enumeration);
       fEnumerations.add(enumeration);
    }
 
@@ -248,7 +255,8 @@ public class Field extends ModeControl implements Cloneable {
     * @return true if equivalent
     */
    public boolean equivalent(Field other, String pattern1, String pattern2) {
-      boolean verbose = false; //name.equalsIgnoreCase("TFWM1") && other.getName().equalsIgnoreCase("TFWM1");
+      boolean verbose = false;
+//      verbose = getName().equalsIgnoreCase("WUPE0") && other.getName().equalsIgnoreCase("WUPE0");
       boolean rv =  
             (fBitOffset == other.fBitOffset) &&
             (fBitwidth == other.fBitwidth);
@@ -263,6 +271,9 @@ public class Field extends ModeControl implements Cloneable {
          return false;
       }
       if (!getName().equalsIgnoreCase(other.getName())) {
+         if ((pattern1 == null) || (pattern2 == null)) {
+            return false;
+         }
          // Try after pattern
          String n1 = getName().replaceFirst(pattern1, "$1%s$3");
          String n2 = other.getName().replaceFirst(pattern2, "$1%s$3");
@@ -270,15 +281,17 @@ public class Field extends ModeControl implements Cloneable {
             return false;
          }
       }
-      for(Enumeration enumeration : fEnumerations) {
-         boolean foundEquivalent = false;
-         for(Enumeration otherEnumeration : other.fEnumerations) {
-            if (enumeration.equivalent(otherEnumeration, pattern1, pattern2)) {
-               foundEquivalent = true;
-               break;
-            }
+      Iterator<Entry<String, Enumeration>> enumerationIt      = fSortedEnumerations.entrySet().iterator();
+      Iterator<Entry<String, Enumeration>> otherEnumerationIt = other.fSortedEnumerations.entrySet().iterator();
+      
+      while (enumerationIt.hasNext() || otherEnumerationIt.hasNext()) {
+         if (!enumerationIt.hasNext() || !otherEnumerationIt.hasNext()) {
+            // Unbalanced
+            return false;
          }
-         if (!foundEquivalent) {
+         Entry<String, Enumeration> enumeration      = enumerationIt.next();
+         Entry<String, Enumeration> otherEnumeration = otherEnumerationIt.next();
+         if (!enumeration.getValue().equivalent(otherEnumeration.getValue(), pattern1, pattern2)) {
             return false;
          }
       }
@@ -292,25 +305,29 @@ public class Field extends ModeControl implements Cloneable {
     * @return
     */
    public boolean equivalent(Field other) {
-      boolean verbose = false; //name.equalsIgnoreCase("TFWM1") && other.getName().equalsIgnoreCase("TFWM1");
-      boolean rv =  fName.equals(other.fName) && equivalent(other, null, null);
+      boolean verbose = false;
+//      verbose = getName().equalsIgnoreCase("DLLSB") && other.getName().equalsIgnoreCase("DLLSB");
+      boolean rv =  
+            fName.equals(other.fName) && 
+            fDescription.equalsIgnoreCase(other.fDescription) &&
+            equivalent(other, null, null);
       if (!rv) {
          if (verbose) {
             System.err.println("Comparing simple field structure \""+getName()+"\", \""+other.getName()+"\"=> false");
          }
          return false;
       }
-      for(Enumeration enumeration : fEnumerations) {
-         boolean foundEquivalent = false;
-         for(Enumeration otherEnumeration : other.fEnumerations) {
-            if (enumeration.getName().equals(otherEnumeration.getName())) {
-               foundEquivalent = enumeration.equivalent(otherEnumeration);
-               if (!foundEquivalent) {
-                  break;
-               }
-            }
+      Iterator<Entry<String, Enumeration>> enumerationIt      = fSortedEnumerations.entrySet().iterator();
+      Iterator<Entry<String, Enumeration>> otherEnumerationIt = other.fSortedEnumerations.entrySet().iterator();
+      
+      while (enumerationIt.hasNext() || otherEnumerationIt.hasNext()) {
+         if (!enumerationIt.hasNext() || !otherEnumerationIt.hasNext()) {
+            // Unbalanced
+            return false;
          }
-         if (!foundEquivalent) {
+         Entry<String, Enumeration> enumeration      = enumerationIt.next();
+         Entry<String, Enumeration> otherEnumeration = otherEnumerationIt.next();
+         if (!enumeration.getValue().equivalent(otherEnumeration.getValue())) {
             return false;
          }
       }
@@ -380,7 +397,7 @@ public class Field extends ModeControl implements Cloneable {
          }
          if ((getEnumerations() != null) && (!getEnumerations().isEmpty())) {
             writer.write(              indenter+"   <enumeratedValues>\n");
-            for (Enumeration enumeration : getEnumerations()) {
+            for(Enumeration enumeration : fEnumerations) {
                enumeration.writeSVD(writer, standardFormat, indent+6);
             }
             writer.write(              indenter+"   </enumeratedValues>\n");
@@ -551,6 +568,10 @@ public class Field extends ModeControl implements Cloneable {
    public void setDerivedFrom(Field oField) {
       fDerivedFrom = oField;
       fEnumerations.clear();
+   }
+
+   public TreeMap<String, Enumeration> getSortedEnumerations() {
+      return fSortedEnumerations;
    }
 
 }

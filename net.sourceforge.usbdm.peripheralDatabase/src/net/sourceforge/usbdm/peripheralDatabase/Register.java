@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,7 +101,11 @@ public class Register extends Cluster implements Cloneable {
     * @return
     */
    public boolean equivalent(Register other) {
-      boolean verbose = false;//name.equalsIgnoreCase("FCSR") && other.getName().equalsIgnoreCase("FCSR");
+      boolean verbose = false;
+//      verbose = getName().equalsIgnoreCase("PE1") && other.getName().equalsIgnoreCase("PE1");
+      if (verbose) {
+         System.err.println("Comparing base \""+getName()+"\", \""+other.getName());
+      }
       if (!equivalent(other, "(.+)()(.*)", "(.+)()(.*)")) {
          if (verbose) {
             System.err.println("Comparing structure \""+getName()+"\", \""+other.getName()+"\"=> false");
@@ -111,10 +116,15 @@ public class Register extends Cluster implements Cloneable {
             (this.getDimension()          != other.getDimension()) ||
             (this.getDimensionIncrement() != other.getDimensionIncrement()) ||
             !this.getName().equals(other.getName())) {
-         if (verbose) {
-            System.err.println("Comparing base \""+getName()+"\", \""+other.getName()+"\"=> false");
-         }
          return false;
+      }
+      // Check if equivalent fields
+      sortFields();
+      other.sortFields();
+      for (int index=0; index<fields.size(); index++) {
+         if (!fields.get(index).equivalent(other.fields.get(index))) {
+            return false;
+         }
       }
       return true;
    }
@@ -130,7 +140,11 @@ public class Register extends Cluster implements Cloneable {
     * @return true if equivalent
     */
    public boolean equivalent(Register other, String pattern1, String pattern2) {
-      boolean verbose = false; //name.equalsIgnoreCase("FCSR") && other.getName().equalsIgnoreCase("FCSR");
+      boolean verbose = false;
+//    verbose = getName().equalsIgnoreCase("PE1") && other.getName().equalsIgnoreCase("PE1");
+      if (verbose) {
+         System.err.println("Comparing base \""+getName()+"\", \""+other.getName());
+      }
       boolean rv = 
             (this.getWidth()       == other.getWidth()) &&
             (this.fields.size()    == other.fields.size()) &&
@@ -144,10 +158,10 @@ public class Register extends Cluster implements Cloneable {
                (this.getResetValue()  == other.getResetValue()) &&
                (this.getResetMask()   == other.getResetMask());
       }
+      if (verbose) {
+         System.err.println("Comparing simple structure \""+getName()+"\", \""+other.getName()+"\"=> false");
+      }
       if (!rv) {
-         if (verbose) {
-            System.err.println("Comparing simple structure \""+getName()+"\", \""+other.getName()+"\"=> false");
-         }
          return false;
       }
       // Assume name matched already
@@ -164,9 +178,9 @@ public class Register extends Cluster implements Cloneable {
       sortFields();
       other.sortFields();
       for (int index=0; index<fields.size(); index++) {
-            if (!fields.get(index).equivalent(other.fields.get(index), pattern1, pattern2)) {
-               return false;
-            }
+         if (!fields.get(index).equivalent(other.fields.get(index), pattern1, pattern2)) {
+            return false;
+         }
       }
       return true;
    }
@@ -944,7 +958,6 @@ public class Register extends Cluster implements Cloneable {
    }
    
    /**
-    * 
     * Checks if two fields are similar
     * 
     * @param p    Pattern used to compare strings
@@ -963,10 +976,17 @@ public class Register extends Cluster implements Cloneable {
       if (f1.getBitwidth() != f2.getBitwidth()) {
          return false;
       }
-      Iterator<Enumeration>e1 = f1.getEnumerations().iterator();
-      Iterator<Enumeration>e2 = f2.getEnumerations().iterator();
-      while (e1.hasNext()) {
-         if (!similarTo(p, e1.next(), e2.next())) {
+      Iterator<Entry<String, Enumeration>> enumerationIt      = f1.getSortedEnumerations().entrySet().iterator();
+      Iterator<Entry<String, Enumeration>> otherEnumerationIt = f2.getSortedEnumerations().entrySet().iterator();
+      
+      while (enumerationIt.hasNext() || otherEnumerationIt.hasNext()) {
+         if (!enumerationIt.hasNext() || !otherEnumerationIt.hasNext()) {
+            // Unbalanced
+            return false;
+         }
+         Entry<String, Enumeration> enumeration      = enumerationIt.next();
+         Entry<String, Enumeration> otherEnumeration = otherEnumerationIt.next();
+         if (!similarTo(p, enumeration.getValue(), otherEnumeration.getValue())) {
             return false;
          }
       }

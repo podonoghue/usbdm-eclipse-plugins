@@ -202,11 +202,18 @@ public class PeripheralDatabaseMerger {
       // Check if equivalent to an exiting peripheral
       for(int index=0; index<peripheralList.size(); index++) {
          Peripheral peripheral = peripheralList.get(index);
+//         if (newPeripheral.getSourceFilename().equals("FGPIOA_MKE") && 
+//               newPeripheral.getSourceFilename().equals(peripheral.getSourceFilename())) {
+//            System.err.println("Checking, "+newPeripheral.getSourceFilename()+" <> "+peripheral.getSourceFilename());
+//         }
          if (newPeripheral.equivalent(peripheral)) {
             // Found equivalent
             peripheral.addUsedBy(device.getName());
             newPeripheral.setFilename(peripheral.getFilename());
             return;
+         }
+         if (newPeripheral.getSourceFilename().equals(peripheral.getSourceFilename())) {
+            throw new Exception("Opps, "+newPeripheral.getSourceFilename()+" <> "+peripheral.getSourceFilename());
          }
       }
       // First time the device is used - clear references etc

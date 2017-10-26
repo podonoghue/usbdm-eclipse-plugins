@@ -648,7 +648,6 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @param usedBy
     */
    public void addUsedBy(String usedBy) {
-      
       this.fUsedBy.add(usedBy);
    }
 

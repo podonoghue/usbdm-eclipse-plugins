@@ -795,11 +795,11 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^LPC.*");
 //    firstFileToReject  = ("^M.*");
 
-//      firstFileToProcess = ("^MK22.*");
-//      firstFileToReject  = ("^MK24.*");
+//      firstFileToProcess = ("^MKE02.*");
+//      firstFileToReject  = ("^MKE06.*");
 
-//    firstFileToProcess = ("^MK28.*");
-//    firstFileToReject  = ("^MK30.*");
+//    firstFileToProcess = ("^MK12D5.*");
+//    firstFileToReject  = ("^MK20D7.*");
 //      doHeaderFiles();
 //      doFactoring();
       doUsualRegeneration();
