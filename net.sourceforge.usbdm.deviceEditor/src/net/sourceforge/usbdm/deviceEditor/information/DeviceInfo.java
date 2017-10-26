@@ -329,7 +329,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                return o2.getPriority()-o1.getPriority();
             }
          });
-         // Construct peripehrals
+         // Construct peripherals
          for (PeripheralWithState p:peripheralWithStateList) {
             if (p instanceof PeripheralWithState) {
 //               System.err.println("Constructing " + p);
@@ -1883,6 +1883,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception if variable already exists
     */
    public void addVariable(String key, Variable variable) {
+      // XX Delete me
+//      System.err.println("Adding variable \'"+key+"\'");
       if (fVariables.put(key, variable) != null) {
          throw new RuntimeException("Variable already exists \'"+key+"\'");
       };
