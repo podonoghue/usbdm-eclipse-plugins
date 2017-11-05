@@ -154,7 +154,7 @@ public class Field extends ModeControl implements Cloneable {
     */
    @Override
    public String toString() {
-      return String.format("Field[%s]", getName());
+      return String.format("Field[%-10s:o=%d:w=%d]", getName(), getBitOffset(), getBitwidth());
    }
 
    public String getName() {
