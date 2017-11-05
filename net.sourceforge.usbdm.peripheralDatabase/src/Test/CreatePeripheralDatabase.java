@@ -675,6 +675,53 @@ public class CreatePeripheralDatabase {
 
    }
 
+   /**
+    * Generates new SVD and header file for the usual minor changes.
+    * This includes merging peripherals 
+    * 
+    * Source "Internal"
+    * Destinations "Internal.Check", "Internal_header.Check"
+    */
+   static void doInitialRegeneration() {
+      final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
+      final  Path usbdmFolder_Check         = MAIN_FOLDER.resolve("Internal.Check");
+      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+
+      try {
+         // Generate merged version of SVD files for testing (should be unchanging)
+//         ModeControl.setRegenerateAddressBlocks(true);
+//         ModeControl.setExtractSimilarFields(true);
+//         ModeControl.setExtractComplexStructures(true);
+//         ModeControl.setExtractDerivedPeripherals(true);
+//         ModeControl.setExtractSimpleRegisterArrays(true);
+//         ModeControl.setMapFreescalePeriperalCommonNames(true);
+//         ModeControl.setFoldRegisters(true);
+         mergeFiles(usbdmFolder,     usbdmFolder_Check, true);
+         
+         // Turn of optimisation when generating header files
+         ModeControl.setRegenerateAddressBlocks(false);
+         ModeControl.setExtractSimilarFields(false);
+         ModeControl.setExtractComplexStructures(false);
+         ModeControl.setExtractDerivedPeripherals(false);
+         ModeControl.setExtractSimpleRegisterArrays(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setFoldRegisters(false);
+
+         // Header file generation options
+         ModeControl.setGenerateFreescaleRegisterMacros(false);
+         ModeControl.setFreescaleFieldNames(true);
+         ModeControl.setUseShiftsInFieldMacros(false);
+         ModeControl.setUseBytePadding(true);
+         createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
+
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+      System.err.flush();
+      System.err.println("Done");
+
+   }
+
    static void doFactoring() {
       //    @SuppressWarnings("unused")
       //    private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
@@ -795,13 +842,16 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^LPC.*");
 //    firstFileToReject  = ("^M.*");
 
-//      firstFileToProcess = ("^MKE02.*");
-//      firstFileToReject  = ("^MKE06.*");
+//    firstFileToProcess = ("^MKE14.*");
+//    firstFileToReject  = ("^MKE16.*");
+
+//      firstFileToProcess = ("^MKW41.*");
+//      firstFileToReject  = ("^SKEA.*");
 
 //    firstFileToProcess = ("^MK12D5.*");
 //    firstFileToReject  = ("^MK20D7.*");
-//      doHeaderFiles();
-//      doFactoring();
+
+//      doInitialRegeneration();
       doUsualRegeneration();
    }
 }
