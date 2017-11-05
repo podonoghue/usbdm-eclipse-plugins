@@ -26,21 +26,6 @@ public class SimValidate extends PeripheralValidator {
    private final long MAX_FLASH_CLOCK_FREQ;
    private final long MAX_FLEXBUS_CLOCK_FREQ;
 
-   private final static String[] externalVariables = {
-         "/OSC0/system_oscerclk_clock",
-         "/OSC0/osc32kclk_clock",
-         "/MCG/system_low_power_clock",
-         "/MCG/system_mcgfllclk_clock",
-         "/MCG/system_mcgpllclk_clock",
-         "/MCG/system_mcgoutclk_clock",
-         "/MCG/system_mcgirclk_clock",
-         "/MCG/usb1pfdclk_Clock",
-         "/MCG/system_irc48m_clock",
-         "/MCG/system_usb_clkin_clock",
-         "/RTC/rtcclk_gated_clock",
-         "/RTC/rtc_1hz_clock",
-   };
-
    public SimValidate(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
 
@@ -88,7 +73,7 @@ public class SimValidate extends PeripheralValidator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      addToWatchedVariables(externalVariables);
+
       for(fIndex=0; fIndex<fDimension; fIndex++) {
          validateIndexVariables(variable);
       }
@@ -112,10 +97,17 @@ public class SimValidate extends PeripheralValidator {
    public void validateNonindexedVariables(Variable variable) throws Exception {
       super.validate(variable);
 
-      //OSC
+      //Clock Mapping
       //=================
-      final LongVariable     system_oscerclk_clockVar        =  getLongVariable("/OSC0/system_oscerclk_clock");
-      final LongVariable     osc32kclk_clockVar              =  getLongVariable("/OSC0/osc32kclk_clock");
+      final String           osc0_peripheral              = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      final LongVariable     osc0_oscer_clockVar          = getLongVariable(osc0_peripheral+"/oscer_clock");
+      final LongVariable     osc0_osc32k_clockVar         = getLongVariable(osc0_peripheral+"/osc32k_clock");
+      
+      final String           osc32k_peripheral            = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
+      final LongVariable     rtcclk_gated_clockVar        = safeGetLongVariable(osc32k_peripheral+"/rtcclk_gated_clock");
+      final LongVariable     rtc_1hz_clockVar             = safeGetLongVariable(osc32k_peripheral+"/rtc_1hz_clock");
+      
+      final LongVariable     rtc_clkoutVar                = safeGetLongVariable("rtc_clkout");
 
       // MCG
       //=================
@@ -123,12 +115,6 @@ public class SimValidate extends PeripheralValidator {
       final LongVariable     system_peripheral_clockVar      =  getLongVariable("system_peripheral_clock");
       final LongVariable     system_mcgirclk_clockVar        =  getLongVariable("/MCG/system_mcgirclk_clock");
       final LongVariable     system_usb_clkin_clockVar       =  safeGetLongVariable("/MCG/system_usb_clkin_clock");
-
-      // RTC
-      //=================
-      final LongVariable     rtcclk_gated_clockVar           =  safeGetLongVariable("/RTC/rtcclk_gated_clock");
-      final LongVariable     rtc_1hz_clockVar                =  safeGetLongVariable("/RTC/rtc_1hz_clock");
-      final LongVariable     rtc_clkoutVar                   =  safeGetLongVariable("rtc_clkout");
 
       // Check if CLKDIV3 Present
       //=====================================
@@ -172,9 +158,9 @@ public class SimValidate extends PeripheralValidator {
                   clockVar.setOrigin(pllPostDiv3Origin);
                   break;
                case 2: // OSCERCLK
-                  clockVar.setValue(system_oscerclk_clockVar.getValueAsLong());
-                  clockVar.setStatus(system_oscerclk_clockVar.getStatus());
-                  clockVar.setOrigin(system_oscerclk_clockVar.getOrigin());
+                  clockVar.setValue(osc0_oscer_clockVar.getValueAsLong());
+                  clockVar.setStatus(osc0_oscer_clockVar.getStatus());
+                  clockVar.setOrigin(osc0_oscer_clockVar.getOrigin());
                   break;
                case 3: // MCGIRCLK
                   clockVar.setValue(system_mcgirclk_clockVar.getValueAsLong());
@@ -193,17 +179,17 @@ public class SimValidate extends PeripheralValidator {
       
       switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
       case 0: // System oscillator (OSC32KCLK)
-         system_erclk32k_clockVar.setValue(osc32kclk_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setOrigin(osc32kclk_clockVar.getOrigin());
-         system_erclk32k_clockVar.setStatus(osc32kclk_clockVar.getStatus());
+         system_erclk32k_clockVar.setValue(osc0_osc32k_clockVar.getValueAsLong());
+         system_erclk32k_clockVar.setOrigin(osc0_osc32k_clockVar.getOrigin());
+         system_erclk32k_clockVar.setStatus(osc0_osc32k_clockVar.getStatus());
          break;
-      default:
-         sim_sopt1_osc32kselVar.setValue(2);
       case 2: // RTC 32.768kHz oscillator
          system_erclk32k_clockVar.setValue(rtcclk_gated_clockVar.getValueAsLong());
          system_erclk32k_clockVar.setOrigin(rtcclk_gated_clockVar.getOrigin());
          system_erclk32k_clockVar.setStatus(rtcclk_gated_clockVar.getStatus());
          break;
+      default:
+         sim_sopt1_osc32kselVar.setValue(3);
       case 3: // LPO 1 kHz
          system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
          system_erclk32k_clockVar.setOrigin(system_low_power_clockVar.getOrigin());
@@ -642,4 +628,27 @@ public class SimValidate extends PeripheralValidator {
       abstract boolean okValue(int divisor, double frequency);
    }
 
+   @Override
+   protected void createDependencies() throws Exception {
+      // Clock Mapping
+      //=================
+      final String   osc0_peripheral    = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      final String   osc32k_peripheral  = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
+
+      final String[] externalVariables = {
+            osc0_peripheral+"/oscer_clock",
+            osc0_peripheral+"/osc32k_clock",
+            osc32k_peripheral+"/rtcclk_gated_clock",
+            osc32k_peripheral+"/rtc_1hz_clock",
+            "/MCG/system_low_power_clock",
+            "/MCG/system_mcgfllclk_clock",
+            "/MCG/system_mcgpllclk_clock",
+            "/MCG/system_mcgoutclk_clock",
+            "/MCG/system_mcgirclk_clock",
+            "/MCG/system_irc48m_clock",
+            "/MCG/system_usb_clkin_clock",
+            "/MCG/usb1pfdclk_Clock",
+      };
+      addToWatchedVariables(externalVariables);
+   }
 }

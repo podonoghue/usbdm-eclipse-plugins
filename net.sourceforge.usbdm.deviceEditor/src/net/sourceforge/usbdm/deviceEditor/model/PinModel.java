@@ -2,6 +2,8 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
@@ -11,6 +13,8 @@ import net.sourceforge.usbdm.deviceEditor.information.Pin.PinPullValue;
 
 public class PinModel extends SelectionModel implements IModelChangeListener {
 
+   static final Pattern pinPattern = Pattern.compile("\\d+: (.*)");
+   
    /** Associated pin */
    private final Pin fPin;
 
@@ -145,6 +149,33 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
          return rv;
       }
       return super.getStatus();
+   }
+
+   @Override
+   public String getToolTip() {
+      String tip = super.getToolTip();
+      if (tip==null) {
+         StringBuilder sb = new StringBuilder();
+         boolean isFirst = true;
+         for (String pin:getChoices()) {
+            if (pin.startsWith("U")) {
+               continue;
+            }
+            Matcher m = pinPattern.matcher(pin);
+            if (!m.matches()) {
+               continue;
+            }
+            if (!isFirst) {
+               sb.append("/");
+            }
+            isFirst = false;
+            sb.append(m.group(1));
+         }
+         if (sb.length()>0) {
+            tip = sb.toString();
+         }
+      }
+      return tip;
    }
 
    @Override

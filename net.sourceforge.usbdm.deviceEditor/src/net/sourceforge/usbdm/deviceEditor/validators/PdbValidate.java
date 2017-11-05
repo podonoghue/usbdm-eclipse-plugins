@@ -16,10 +16,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class PdbValidate extends PeripheralValidator {
 
-   private final static String[] externalVariables = {
-         "/SIM/system_bus_clock",
-   };
-
    public PdbValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -345,8 +341,6 @@ public class PdbValidate extends PeripheralValidator {
       
       super.validate(variable);
       
-      addToWatchedVariables(externalVariables);
-      
       // Validate the clock
       doClockValidate(variable);
       // Validate the shared counter
@@ -366,5 +360,13 @@ public class PdbValidate extends PeripheralValidator {
       doPulseValidate(variable, 1);
       doPulseValidate(variable, 2);
       doPulseValidate(variable, 3);
+   }
+   
+   @Override
+   protected void createDependencies() throws Exception {
+      final String[] externalVariables = {
+            "/SIM/system_bus_clock",
+      };
+      addToWatchedVariables(externalVariables);
    }
 }

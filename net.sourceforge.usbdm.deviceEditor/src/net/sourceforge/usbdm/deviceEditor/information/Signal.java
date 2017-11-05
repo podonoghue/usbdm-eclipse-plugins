@@ -196,10 +196,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public String toString() {
       StringBuffer sb = new StringBuffer();
       sb.append("Signal("+fName+")");
-      sb.append("\n  fP   = "+fPeripheral);
-      sb.append("\n  fRM  = "+fResetMapping);
+      sb.append("\n  fPer   = "+fPeripheral);
+      sb.append("\n  fRes   = "+fResetMapping);
       for(MappingInfo mapping:fPinMappings) {
-         sb.append("\n  fPMi = "+mapping);
+         sb.append("\n  fPM(i) = "+mapping);
       }
       return sb.toString();
    }

@@ -111,7 +111,7 @@ class FllConfigure {
    /**
     * Determines the FLL divider values
     * 
-    * @param osc_osc_cr_erclken         [in]     Indicates if Oscillator is in use
+    * @param osc_osc_cr_erclkenVar      [in]     Indicates if Oscillator is in use
     * @param osc_oscillatorRangeVar     [in]     Range in from oscillator
     * @param mcg_c2_rangeVar            [out]    Range out after modification by FLL
     * @param mcg_c1_irefs               [in]     irefs value (affects clock source)
@@ -122,9 +122,10 @@ class FllConfigure {
     * @param fllInputFrequencyVar       [in/out] Input to FLL
     * @param system_mcgfllclk_clockVar  [out]    Output from FLL
     * @param system_mcgffclk_clockVar   [out]    MCGFFCLK 
+    * @param drst_drs_max               [in]     Maximum value for mcg_c4_drst_drs
     */
    public FllConfigure(
-         final boolean  osc_osc_cr_erclken, 
+         final Variable osc_osc_cr_erclkenVar, 
          final Variable osc_oscillatorRangeVar, 
          final Variable mcg_c2_rangeVar, 
          boolean        mcg_c1_irefs, 
@@ -134,11 +135,13 @@ class FllConfigure {
          boolean        mcg_c4_dmx32, 
          final Variable fllInputFrequencyVar, 
          final Variable system_mcgfllclk_clockVar, 
-         final Variable system_mcgffclk_clockVar) {
+         final Variable system_mcgffclk_clockVar, 
+         long           drst_drs_max) {
 
       // Tentative range - may be overridden by FLL constraints
-      int     osc0_range       = (int)osc_oscillatorRangeVar.getValueAsLong();
-      String  osc0_rangeOrigin = osc_oscillatorRangeVar.getOrigin();
+      int     osc0_range       = (osc_oscillatorRangeVar== null)?0:(int)osc_oscillatorRangeVar.getValueAsLong();
+      String  osc0_rangeOrigin = (osc_oscillatorRangeVar== null)?"":osc_oscillatorRangeVar.getOrigin();
+      
       String  fllOrigin;
       String  fllInputOrigin;
 
@@ -179,9 +182,9 @@ class FllConfigure {
       // Find input range & divisor
       //==============================
       boolean found = false;
+      boolean osc_osc_cr_erclken = (osc_osc_cr_erclkenVar == null) || osc_osc_cr_erclkenVar.getValueAsBoolean();
       if (mcg_c1_irefs) {
          // [Slow IRC] - No dividers, Range value unconstrained by FLL
-         found = true;
          found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
          // Use mcg_c2_rangeIn unless invalid
       }
@@ -205,7 +208,7 @@ class FllConfigure {
       }
       else {
          switch (osc0_range) {
-         // Use mcg_c2_rangeIn unless invalid
+         // Use osc0_range unless invalid
          case 0:
             found = findDivider(availableClock, mcg_c4_dmx32, LOW_RANGE_DIVISORS);
             fllOrigin += " after scaling (Low range FRDIV)";
@@ -266,11 +269,11 @@ class FllConfigure {
       Long fllTargetFrequency = system_mcgfllclk_clockVar.getRawValueAsLong();
 
       ArrayList<Long> fllFrequencies = new ArrayList<Long>(); 
-      for (int probe=1; probe<=4; probe++) {
-         fllFrequencies.add(fllOutFrequency*probe);
+      for (int probe=0; probe<=drst_drs_max; probe++) {
+         fllFrequencies.add(fllOutFrequency*(probe+1));
          // Accept value within ~10% of desired
-         if (Math.abs((fllOutFrequency*probe) - fllTargetFrequency) < (fllTargetFrequency/50)) {
-            mcg_c4_drst_drs_calc = probe-1;
+         if (Math.abs((fllOutFrequency*(probe+1)) - fllTargetFrequency) < (fllTargetFrequency/50)) {
+            mcg_c4_drst_drs_calc = probe;
          }         
       }
       StringBuilder sb       = new StringBuilder();

@@ -45,10 +45,10 @@ public class PcrInitialiser {
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
             long bitNum = Long.parseLong(bitNums);
-            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORT());
+            TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPort());
             if (pcrValueToBitsMap == null) {
                pcrValueToBitsMap = new TreeMap<String, Long>();
-               portToPcrValuesMap.put(pin.getPORT(), pcrValueToBitsMap);
+               portToPcrValuesMap.put(pin.getPort(), pcrValueToBitsMap);
             }
             Long bitMask = pcrValueToBitsMap.get(pcrValue);
             if (bitMask == null) {
@@ -87,10 +87,10 @@ public class PcrInitialiser {
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
          long bitNum = Long.parseLong(bitNums);
-         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPORT());
+         TreeMap<String, Long> pcrValueToBitsMap = portToPcrValuesMap.get(pin.getPort());
          if (pcrValueToBitsMap == null) {
             pcrValueToBitsMap = new TreeMap<String, Long>();
-            portToPcrValuesMap.put(pin.getPORT(), pcrValueToBitsMap);
+            portToPcrValuesMap.put(pin.getPort(), pcrValueToBitsMap);
          }
          Long bitMask = pcrValueToBitsMap.get(pcrValue);
          if (bitMask == null) {

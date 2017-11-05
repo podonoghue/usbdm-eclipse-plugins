@@ -34,7 +34,7 @@ public class WriterForFtm extends PeripheralWithState {
    @Override
    public String getAliasName(String signalName, String alias) {
       if (signalName.matches(".*CH\\d+")) {
-         return getBaseName().toLowerCase()+"_"+alias;
+         return super.getAliasName(signalName, alias); 
       }
       return null;
    }

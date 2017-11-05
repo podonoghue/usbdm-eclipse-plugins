@@ -170,9 +170,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             substitutedTemplate = sb.toString();
          }
          else {
-            substitutedTemplate = FileUtility.substitute(fileTemplate.getContents(), map, keyMaker);
+            substitutedTemplate = FileUtility.substitute(fileTemplate.getContents(), map, fKeyMaker);
          }
-         map.put(keyMaker.makeKey(key), substitutedTemplate);
+         map.put(fKeyMaker.makeKey(key), substitutedTemplate);
       }
       return map;
    }

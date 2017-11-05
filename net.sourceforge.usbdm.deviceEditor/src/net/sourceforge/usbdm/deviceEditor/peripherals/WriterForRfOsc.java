@@ -4,31 +4,28 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 /**
- * Class encapsulating the code for writing an instance of OSC
+ * Class encapsulating the code for writing an instance of RF OSC
  */
-public class WriterForOsc extends PeripheralWithState {
+public class WriterForRfOsc extends PeripheralWithState {
 
-   public WriterForOsc(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForRfOsc(String basename, String instance, DeviceInfo deviceInfo) {
       super(basename, instance, deviceInfo);
    }
 
    @Override
    public String getTitle() {
-      return "Crystal Oscillator";
+      return "RF Crystal Oscillator";
    }
 
    @Override
    public int getSignalIndex(Signal function) {
-      final String signalNames[] = {"^XTAL(32K?)?$", "^EXTAL(32K?)?$", };
+      final String signalNames[] = {"^XTAL$", "^EXTAL$", "^XTAL_OUT$", "^XTAL_OUT_EN$", };
       return getSignalIndex(function, signalNames);
    }
-   
+
    @Override
    public String getPcrDefinition() {
-      return String.format(
-            "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t %s  = 0;\n\n", DEFAULT_PCR_VALUE_NAME
-            );
+      return null;
    }
 
    @Override
@@ -38,8 +35,8 @@ public class WriterForOsc extends PeripheralWithState {
 
    @Override
    public String getPcrValue(Signal y) {
-      return "USBDM::XTAL_DEFAULT_PCR";
+      return null;
    }
 
-   
+
 }

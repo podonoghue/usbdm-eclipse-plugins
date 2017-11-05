@@ -19,7 +19,7 @@ public class WriterForRtc extends PeripheralWithState {
 
    @Override
    public int getSignalIndex(Signal function) {
-      final String signalNames[] = {"XTAL32", "EXTAL32", "CLKOUT", "CLKIN", "WAKEUP_b"};
+      final String signalNames[] = {"XTAL32K?", "EXTAL32K?", "CLKOUT", "CLKIN", "WAKEUP_b"};
       return getSignalIndex(function, signalNames);
    }
 

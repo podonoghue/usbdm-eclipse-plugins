@@ -31,7 +31,13 @@ public class WriterForNull extends Peripheral {
 
    @Override
    public int getSignalIndex(Signal function) {
+      System.err.println("WriterForNull: Illegal signal index "+function.getName());
       return -1;
+   }
+
+   @Override
+   public void addSignal(Signal signal) {
+      System.err.println("WriterForNull: Adding signal "+signal.getName());
    }
 
 }

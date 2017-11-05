@@ -113,7 +113,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @return String or null if no associated PORT
     */
-   public String getPORTBasePtr() {
+   public String getPortBasePtr() {
       if (fPortInstance == null) {
          return null;
       }
@@ -125,7 +125,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @return String or null if no associated PORT
     */
-   public String getPORT() {
+   public String getPort() {
       if (fPortInstance == null) {
          return null;
       }
@@ -336,7 +336,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          // No PCR - probably an analogue pin
          return "0, 0, 0, 0, ";
       }
-      String portAddress      = getPORTBasePtr();
+      String portAddress      = getPortBasePtr();
       String gpioRegister     = getGpioBasePtr();
       String gpioBitNum       = getGpioBitNum();
 

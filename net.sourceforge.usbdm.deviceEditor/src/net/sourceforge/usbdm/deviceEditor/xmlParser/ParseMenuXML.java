@@ -167,9 +167,6 @@ public class ParseMenuXML extends XML_BaseParser {
    /** Used to build the template */
    private final Map<String, TemplateInformation>  fTemplateInfos   = new HashMap<String,TemplateInformation>();
 
-//   /** Used to record template dimensions */
-//   private final Map<String,Variable> fTemplateDimensions   = new HashMap<String,Variable>();
-
    /** Holds the validators found */
    private final ArrayList<ValidatorInformation> fValidators = new ArrayList<ValidatorInformation>();
 
@@ -178,9 +175,6 @@ public class ParseMenuXML extends XML_BaseParser {
 
    /** Used to record the first model encountered */
    BaseModel fRootModel = null;
-
-   /** Used to record the Pins model */
-   private CategoryModel fPinModel;
 
    /** Indicates the index for variables */
    private int fIndex = 0;
@@ -338,9 +332,21 @@ public class ParseMenuXML extends XML_BaseParser {
          String value = varElement.getAttribute("value");
          variable.setValue(value);
          variable.setDefault(value);
+         variable.setDisabledValue(value);
+      }
+      if (varElement.hasAttribute("disabledValue")) {
+         // Value is used as default and initial value
+         String value = varElement.getAttribute("disabledValue");
+         variable.setDisabledValue(value);
       }
       if (varElement.hasAttribute("origin")) {
          variable.setOrigin(varElement.getAttribute("origin"));
+      }
+      if (varElement.hasAttribute("hidden")) {
+         // Value is used as default and initial value
+         if (Boolean.valueOf(varElement.getAttribute("hidden"))) {
+            parent = null;
+         }
       }
       variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
 
@@ -913,20 +919,24 @@ public class ParseMenuXML extends XML_BaseParser {
     * @param element
     */
    private void parseSignalsOption(BaseModel parentModel, Element element) {
+      // Assume pins refer to current peripheral
       Peripheral peripheral = fPeripheral;
       String peripheralName = element.getAttribute("name");
       if (!peripheralName.isEmpty()) {
+         // Change to referenced peripheral
          peripheral = fPeripheral.getDeviceInfo().getPeripherals().get(peripheralName);
       }
       if (peripheral != null) {
-         if (fPinModel == null) {
-            fPinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
+         CategoryModel pinModel = fPeripheral.getPinModel();
+         if (pinModel == null) {
+            pinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
+            fPeripheral.setPinModel(pinModel);
          }
          TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
          for (String signalName:peripheralSignals.keySet()) {
             Signal signal = peripheralSignals.get(signalName);
             if (signal.isAvailableInPackage()) {
-               new SignalModel(fPinModel, signal);
+               new SignalModel(fPeripheral.getPinModel(), signal);
             }
          }
       }
@@ -1326,7 +1336,7 @@ public class ParseMenuXML extends XML_BaseParser {
       Variable variable = provider.safeGetVariable(key);
       if (variable == null) {
          if (!isOptional) {
-            throw new Exception("Alias not found for " + key + " within "+parent.getName());
+            throw new Exception("Alias not found for " + key + " within "+parent.getName() + ", provider = "+provider);
          }
          return null;
       }

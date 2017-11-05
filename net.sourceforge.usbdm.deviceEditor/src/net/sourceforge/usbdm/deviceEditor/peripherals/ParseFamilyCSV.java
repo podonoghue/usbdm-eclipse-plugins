@@ -103,7 +103,18 @@ public class ParseFamilyCSV {
          }
          Signal signal = fDeviceInfo.findOrCreateSignal(signalName);
          if (signal != null) {
+            // XXX Log creating signals
+//            System.err.println("Added "+signalName+" to "+signal.getPeripheral());
             signalList.add(signal);
+            if (signal != Signal.DISABLED_SIGNAL) {
+               Peripheral x = signal.getPeripheral();
+               if ((x==null) || x.getClass().equals(WriterForNull.class)) {
+                  System.err.println("Signal \'" + signalName + "\' added to WriterForNull");
+               }
+            }
+         }
+         else {
+            System.err.println("Signal not found for " + signalName);
          }
       }
       return signalList;

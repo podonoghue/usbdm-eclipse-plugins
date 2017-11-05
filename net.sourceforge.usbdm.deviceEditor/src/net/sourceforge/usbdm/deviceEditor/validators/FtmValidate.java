@@ -18,11 +18,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class FtmValidate extends PeripheralValidator {
    
-   private final static String[] externalVariables = {
-         "/MCG/system_mcgffclk_clock",
-         "/SIM/system_bus_clock",
-   };
-
    public FtmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -35,8 +30,6 @@ public class FtmValidate extends PeripheralValidator {
    public void validate(Variable variable) throws Exception {
       
       super.validate(variable);
-      
-      addToWatchedVariables(externalVariables);
       
       //=================================
       
@@ -113,8 +106,16 @@ public class FtmValidate extends PeripheralValidator {
          double ftm_mod_periodMax = clockPeriod * (ftm_sc_cpwms?(2*(65535.5)):((65536.5)));
          ftm_mod_periodVar.setValue(ftm_mod_period);
          ftm_mod_periodVar.setMax(ftm_mod_periodMax);
-         
       }
+   }
+
+   @Override
+   protected void createDependencies() throws Exception {
+      final String[] externalVariables = {
+            "/MCG/system_mcgffclk_clock",
+            "/SIM/system_bus_clock",
+      };
+      addToWatchedVariables(externalVariables);
    }
 
 }

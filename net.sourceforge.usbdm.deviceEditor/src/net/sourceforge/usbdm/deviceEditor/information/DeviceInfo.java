@@ -62,7 +62,9 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRfOsc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
@@ -77,6 +79,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
+import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
@@ -523,8 +526,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for(SignalTemplate template:getSignalTemplateList()) {
          peripheral = template.createPeripheral(name, Mode.ignore);
          if (peripheral != null) {
-            return peripheral;
+            break;
          }         
+      }
+//      if (peripheral instanceof WriterForNull) {
+//         System.err.println("Warning: Failed to match peripheral: \'" + name + "\'");
+//         return peripheral;
+//      }         
+      if (peripheral != null) {
+         return peripheral;
       }
       throw new RuntimeException("Failed to find pattern that matched peripheral: \'" + name + "\'");
    }
@@ -972,9 +982,21 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       createPeripheralTemplateInformation(
             "POWER", "", "$0",
-            "(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
+            "(DCDC.*|PSWITCH|VDCDC_IN)|(VOUT33|VBAT|VREFL|VREFH|VSS(A|B|_.*)?|VDD(IO_E|A|B|_.*)?|VREG(IN|_IN|_IN0|_IN1|_OUT|_OUT0))(\\d*(a|b|c)?)",
             getDeviceFamily(),
             WriterForPower.class);
+      
+      createPeripheralTemplateInformation(
+            "OSC_RF", "0", "$2",
+            "^(RF_?(XTAL|EXTAL|XTAL_OUT|XTAL_OUT_EN))$",
+            getDeviceFamily(),
+            WriterForRfOsc.class);
+      
+      createPeripheralTemplateInformation(
+            "RADIO", "", "$0",
+            "^(RF_NOT_ALLOWED|RF_RESET|ANT|BLE_RF_ACTIVE|BTLL|GANT|DTM_.*|ANT_(a|b)|DIAG(\\d+)|TX_SWITCH|RX_SWITCH|BSM_.*|GEN_FSK|LTC|PHYDIG|RSIM|ZIGBEE)$",
+            getDeviceFamily(),
+            WriterForRadio.class);
       
       createPeripheralTemplateInformation(
             "CONTROL", "", "$0",
@@ -1100,7 +1122,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForRtc.class);
          createPeripheralTemplateInformation(
                "RTC", "", "$1",
-               "(E?XTAL32)",
+               "(E?XTAL32K?)",
                getDeviceFamily(),
                WriterForRtc.class);
          createPeripheralTemplateInformation(
@@ -1551,15 +1573,25 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                addVariable(key, var);
             }
          }
+         // Create dependencies between peripherals
+         for (Entry<String, Peripheral> entry:fPeripheralsMap.entrySet()) {
+            Peripheral peripheral =  entry.getValue();
+               ArrayList<Validator> validators = peripheral.getValidators();
+               for (Validator validator:validators) {
+//                  validator.createDependencies();
+                  validator.addDependencies();
+               }
+         }
          
 //         System.err.println("Make sure peripherals have been updated");
          /*
           * Make sure critical peripherals have been updated in order first
           */
          String criticalPeripherals[] = {
+               "RTC",
                "OSC",
                "OSC0",
-               "RTC",
+               "OSC_RF0",
                "MCG",
                "SIM",
          };

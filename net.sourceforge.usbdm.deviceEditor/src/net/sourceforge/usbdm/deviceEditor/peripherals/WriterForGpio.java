@@ -23,16 +23,9 @@ public class WriterForGpio extends PeripheralWithState {
    }
 
    @Override
-   public String getAliasName(String signalName, String alias) {
-      return getBaseName().toLowerCase()+"_"+alias;
-   }
-
-   @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int          signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      StringBuffer sb     = new StringBuffer();
-      sb.append(String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal));
-      return sb.toString();
+      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
    }
 
    @Override
@@ -51,7 +44,7 @@ public class WriterForGpio extends PeripheralWithState {
    @Override
    public int getSignalIndex(Signal function) {
       // No tables for GPIO
-      return -1;
+      return Integer.parseInt(function.getSignalName());
 //      Pattern p = Pattern.compile("(\\d+).*");
 //      Matcher m = p.matcher(function.getSignalName());
 //      if (!m.matches()) {

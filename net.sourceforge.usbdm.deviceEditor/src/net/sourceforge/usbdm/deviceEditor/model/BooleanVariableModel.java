@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 
 public class BooleanVariableModel extends VariableModel {
-
+   
    static class BooleanCellEditor extends CheckboxCellEditor {
       public BooleanCellEditor(Tree tree) {
          super(tree);
@@ -32,11 +32,13 @@ public class BooleanVariableModel extends VariableModel {
     * 
     * @param parent     Parent model
     * @param variable   Variable being modelled
+    * 
+    * @note Added as child of parent if not null
     */
    public BooleanVariableModel(BaseModel parent, Variable variable) {
       super(parent, variable);
    }
-
+   
    @Override
    public BooleanVariable getVariable() {
       return (BooleanVariable) super.getVariable();

@@ -16,18 +16,13 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class ClockValidator_MCG_Lite extends BaseClockValidator {
 
-   private final static String[] externalVariables = {
-         "/OSC0/oscclk_clock",
-         "/OSC0/oscillatorRange",
-   };
-
    public ClockValidator_MCG_Lite(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
    }
 
    /**
     * Inputs
-    *    /OSC0/oscclk_clock
+    *    /OSC0/osc_clock
     *    /OSC0/oscillatorRange
     * 
     * Outputs 
@@ -40,8 +35,6 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
     */
    @Override
    protected void validate(Variable variable) throws Exception {
-      addToWatchedVariables(externalVariables);
-
       for (int index=0; index<fDimension; index++) {
          fIndex = index;
          validateClocks(variable);
@@ -83,7 +76,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       Variable system_irc48m_clockVar;
       // Clocks and information from main oscillator
       //=================================
-      Variable oscclk_clockVar;
+      Variable osc_clockVar;
       Variable osc_oscillatorRangeVar;
       //=================================
       Variable clock_modeVar;
@@ -112,7 +105,7 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
                                        
       system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
                                        
-      oscclk_clockVar                  = getVariable("/OSC0/oscclk_clock");
+      osc_clockVar                  = getVariable("/OSC0/osc_clock");
       osc_oscillatorRangeVar           = getVariable("/OSC0/oscillatorRange");
                                        
       clock_modeVar                    = getVariable("clock_mode");
@@ -183,8 +176,8 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
          mcg_c1_clksVar.setValue(2);
          mcg_c2_ircsVar.setLocked(false);
 
-         system_mcgoutclk_clockVar.setValue(oscclk_clockVar.getValueAsLong());
-         system_mcgoutclk_clockVar.setOrigin(oscclk_clockVar.getOrigin());
+         system_mcgoutclk_clockVar.setValue(osc_clockVar.getValueAsLong());
+         system_mcgoutclk_clockVar.setOrigin(osc_clockVar.getOrigin());
          system_mcgoutclk_clockVar.setStatus((Status)null);
          system_mcgoutclk_clock_sourceVar.setValue("External Clock (OSCCLK)");
          break;
@@ -248,5 +241,18 @@ public class ClockValidator_MCG_Lite extends BaseClockValidator {
       long mcg_mc_lirc_div2 = mcg_mc_lirc_div2Var.getValueAsLong();
       system_mcgirclk_clockVar.setValue(system_lirc_div1_clockVar.getValueAsLong()/(1<<mcg_mc_lirc_div2));
       system_mcgirclk_clockVar.setOrigin(system_lirc_div1_clockVar.getOrigin()+"/LIRC_DIV2");
+   }
+   
+   @Override
+   public void createDependencies() throws Exception {
+      // Clock Mapping
+      //=================
+      final String   osc0_peripheral    = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+
+      final String externalVariables[] = {
+            osc0_peripheral+"/osc_clock",
+            osc0_peripheral+"/oscillatorRange",
+      };
+      addToWatchedVariables(externalVariables);
    }
 }

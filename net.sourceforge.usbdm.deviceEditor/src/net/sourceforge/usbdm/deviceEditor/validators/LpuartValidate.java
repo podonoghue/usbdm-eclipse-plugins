@@ -9,15 +9,9 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
- * Class to determine oscillator settings
- 
- * Used for:
- *     lpuart
+ * Class to validate LPUART settings
  */
 public class LpuartValidate extends PeripheralValidator {
-
-   private final static String[] externalVariables = {
-   };
 
    public LpuartValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
@@ -32,9 +26,6 @@ public class LpuartValidate extends PeripheralValidator {
       
       super.validate(variable);
 
-//      System.err.println("Uart.validate("+variable+")");
-      addToWatchedVariables(externalVariables);
-      
       // Variables
       //=================================
       BooleanVariable   uartClassVar           =  getBooleanVariable("lpuartClass");
@@ -56,5 +47,11 @@ public class LpuartValidate extends PeripheralValidator {
             txrxHandlerVar.setValue(IrqVariable.CLASS_VALUE);
          }
       }
+      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
+   }
+   
+   @Override
+   protected void createDependencies() throws Exception {
+      // No external dependencies
    }
 }

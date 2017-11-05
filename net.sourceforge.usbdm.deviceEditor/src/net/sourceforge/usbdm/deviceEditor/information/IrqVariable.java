@@ -189,7 +189,6 @@ public class IrqVariable extends Variable {
 
    @Override
    public void setDefault(Object value) {
-      // Ignored
    }
 
    @Override
@@ -243,5 +242,8 @@ public class IrqVariable extends Variable {
       return getPersistentValue().equals("$"+Mode.NotInstalled.name());
    }
 
+   @Override
+   public void setDisabledValue(Object value) {
+   }
    
 }

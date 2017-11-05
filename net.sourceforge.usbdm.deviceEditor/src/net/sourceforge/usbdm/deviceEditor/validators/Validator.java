@@ -1,12 +1,18 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
+import java.util.Vector;
+
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public abstract class Validator {
@@ -220,24 +226,6 @@ public abstract class Validator {
    }
 
    /**
-    * Get String Variable from associated peripheral 
-    * 
-    * @param key  Key to lookup variable
-    * 
-    * @return Variable found or null
-    */
-   protected StringVariable safeGetStringVariable(String key) {
-      Variable variable = safeGetVariable(key);
-      if (variable == null) {
-         return null;
-      }
-      if (!(variable instanceof StringVariable)) {
-         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to StringVariable");
-      }
-      return (StringVariable) variable;
-   }
-
-   /**
     * Get Boolean Variable from associated peripheral 
     * 
     * @param key  Key to lookup variable
@@ -272,7 +260,7 @@ public abstract class Validator {
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Long Variable from associated peripheral 
     * 
     * @param key  Key to lookup variable
     * 
@@ -288,7 +276,7 @@ public abstract class Validator {
    }
 
    /**
-    * Get Boolean Variable from associated peripheral 
+    * Get Long Variable from associated peripheral 
     * 
     * @param key  Key to lookup variable
     * 
@@ -303,6 +291,40 @@ public abstract class Validator {
          throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to LongVariable");
       }
       return (LongVariable) variable;
+   }
+
+   /**
+    * Get String Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    * @throws Exception 
+    */
+   protected StringVariable getStringVariable(String key) throws Exception {
+      Variable variable = getVariable(key);
+      if (!(variable instanceof StringVariable)) {
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to StringVariable");
+      }
+      return (StringVariable) variable;
+   }
+
+   /**
+    * Get String Variable from associated peripheral 
+    * 
+    * @param key  Key to lookup variable
+    * 
+    * @return
+    */
+   protected StringVariable safeGetStringVariable(String key) {
+      Variable variable = safeGetVariable(key);
+      if (variable == null) {
+         return null;
+      }
+      if (!(variable instanceof StringVariable)) {
+         throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to StringVariable");
+      }
+      return (StringVariable) variable;
    }
 
    /**
@@ -337,6 +359,52 @@ public abstract class Validator {
          throw new ClassCastException("Variable " + variable + "(" + variable.getClass().getSimpleName()+") cannot be cast to DoubleVariable");
       }
       return (DoubleVariable) variable;
+   }
+
+   /**
+    * Create dependencies between variable providers i.e. connect validators to external variables
+    * @throws Exception 
+    */
+   protected abstract void createDependencies() throws Exception;
+   
+   class adapter implements IModelChangeListener {
+
+      @Override
+      public void modelElementChanged(ObservableModel observableModel) {
+         try {
+            validate(null);
+         } catch (Exception e) {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void modelStructureChanged(ObservableModel observableModel) {
+      }
+
+      @Override
+      public void elementStatusChanged(ObservableModel observableModel) {
+      }
+      
+   }
+   
+   /**
+    * Adds dependencies for validators:<br>
+    * <li> Connect validators to external variable changes
+    * <li> Connect validators to signal changes
+    * 
+    * @throws Exception 
+    */
+   public void addDependencies() throws Exception {
+      createDependencies();
+      if (fProvider instanceof Peripheral) {
+       Vector<Signal> table = ((Peripheral)fProvider).getSignalTables().get(0).table;
+       for(Signal signal:table) {
+          if (signal != null) {
+             signal.addListener(new adapter());
+          }
+       }
+      }
    }
 
 }

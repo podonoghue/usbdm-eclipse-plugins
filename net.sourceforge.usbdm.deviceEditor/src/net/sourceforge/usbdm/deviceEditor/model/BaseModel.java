@@ -62,7 +62,7 @@ public abstract class BaseModel implements Cloneable {
    /**
     * Updates the model's presentation when one or more of its properties change
     */
-   protected void update() {
+   public void update() {
       // Necessary to propagate error messages up the tree
 //      updateAncestors();
       final StructuredViewer viewer = getViewer();
@@ -305,7 +305,7 @@ public abstract class BaseModel implements Cloneable {
     * 
     * @param message Message to set (may be null)
     */
-   void setStatus(Status message) {
+   public void setStatus(Status message) {
       fMessage = message;
    }
    

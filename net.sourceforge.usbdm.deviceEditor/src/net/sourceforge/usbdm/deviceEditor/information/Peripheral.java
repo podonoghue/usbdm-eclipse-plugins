@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
@@ -415,10 +416,11 @@ public abstract class Peripheral extends VariableProvider {
     * @param signalName   Signal being mapped to alias
     * @param alias        Base for alias name e.g. <b><i>p36</b></i>
     * 
-    * @return Alias name e.g. gpio_<b><i>p36</b></i> or <b><i>null</b></i> to suppress alias
+    * @return Alias name e.g. Gpio_<b><i>p36</b></i> or <b><i>null</b></i> to suppress alias
     */
    public String getAliasName(String signalName, String alias) {
-      return null;
+      String temp = getBaseName().toLowerCase();
+      return Character.toUpperCase(temp.charAt(0))+ temp.substring(1)+"_"+alias;
    }
    
    /** 
@@ -444,8 +446,7 @@ public abstract class Peripheral extends VariableProvider {
     * Get declaration as string e.g. 
     * <pre>
     * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> 
-    * const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>
-    * const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>>
+    * const USBDM::Adc<b><i>0</i></b>Channel&lt;<b><i>19</i></b>>
     * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
     * </pre>
     * @param mappingInfo    Mapping information (pin and signal)
@@ -466,7 +467,8 @@ public abstract class Peripheral extends VariableProvider {
     * </pre>
     * @param mappingInfo    Mapping information (pin and signal)
     * @param fnIndex        Index into list of signals mapped to pin
-    * @param cppFile        Where to write
+    * 
+    * @return Definition as string
     * 
     * @throws IOException 
     */
@@ -915,6 +917,31 @@ public abstract class Peripheral extends VariableProvider {
 
    public String getPcrValue(Signal y) {
       return "USBDM::DEFAULT_PCR";
+   }
+
+   /**
+    * Model representing the pins for this peripheral<br>
+    * @note may contain related pins e.g. RTC may contains OSC pins 
+    */
+   CategoryModel fPinModel = null;
+   
+   /**
+    * Get model representing the pins for this peripheral<br>
+    * @note may contain related pins e.g. RTC may contains OSC pins 
+    * 
+    * @return Category model
+    */
+   public CategoryModel getPinModel() {
+      return fPinModel;
+   }
+
+   /**
+    * Set model representing the pins for this peripheral<br>
+    * 
+    * @param pinModel Category model
+    */
+   public void setPinModel(CategoryModel pinModel) {
+      fPinModel = pinModel;
    }
 
 }

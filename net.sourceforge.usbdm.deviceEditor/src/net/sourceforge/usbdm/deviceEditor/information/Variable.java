@@ -162,6 +162,13 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public abstract void setDefault(Object value);
 
    /**
+    * Sets variable disabled value
+    * 
+    * @param value The value to set
+    */
+   public abstract void setDisabledValue(Object value);
+
+   /**
     * Gets variable default value
     * 
     * @return The default value
@@ -216,6 +223,13 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
    
    /**
+    * Clear status of variable
+    */
+   public void clearStatus() {
+      setStatus((Status) null);
+   }
+   
+   /**
     * Get status of variable
     * 
     * @return
@@ -235,7 +249,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
-    * Get status of variable
+    * Get status of variable<br>
     * Filters out status messages with less than INFO severity
     * 
     * @return
@@ -314,13 +328,13 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @return value as boolean
     */
    public boolean getRawValueAsBoolean() {
-      throw new RuntimeException("Variable " + getName() + " doesn't have a boolean representation");
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with boolean" );
    }
 
    /**
     * Get the value as a long
     * 
-    * @return Value in user format as long
+    * @return Value as long (if supported)
     */
    public long getValueAsLong() {
       throw new RuntimeException(this+"("+getClass()+") is not compatible with long" );
@@ -329,16 +343,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Get variable value as long without reference to whether it is enabled
     * 
-    * @return
+    * @return Raw value as long (if supported)
     */
    public long getRawValueAsLong() {
-      throw new RuntimeException("Variable " + getName() + " doesn't have a RawLong representation");
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with long" );
    }
 
    /**
     * Get value as a double if representable
     * 
-    * @return value as double
+    * @return Value as double (if supported)
     */
    public double getValueAsDouble() {
       throw new RuntimeException(this+"("+getClass()+") is not compatible with double" );
@@ -347,10 +361,10 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /**
     * Get value as a double without reference to whether it is enabled
     * 
-    * @return value as double
+    * @return Raw value as double (if supported)
     */
    public double getRawValueAsDouble() {
-      throw new RuntimeException("Variable " + getName() + " doesn't have a double representation");
+      throw new RuntimeException(this+"("+getClass()+") is not compatible with double" );
    }
 
    /**

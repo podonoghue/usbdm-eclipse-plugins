@@ -1,14 +1,22 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
 public class PeripheralValidator extends Validator {
 
-   private boolean fAddedExternalVariables = false;
+   protected static final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
+
+   protected boolean fAddedExternalVariables = false;
 
    /**
     * Peripheral dialogue validator <br>
@@ -115,7 +123,9 @@ public class PeripheralValidator extends Validator {
          for (String name:externalVariables) {
             Variable var = safeGetVariable(name);
             if (var == null) {
-               System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+               if (fIndex==0) {
+                  System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+               }
             }
             else {
                var.addListener(getPeripheral());
@@ -125,4 +135,34 @@ public class PeripheralValidator extends Validator {
       fIndex = 0;
       fAddedExternalVariables = true;
    }
+
+   @Override
+   protected void createDependencies() throws Exception {
+      // Assume no external dependencies
+   }
+
+   /**
+    * Checks if signals are mapped to pins<br>
+    * If not then a warning is attached to pins category
+    * 
+    * @param  requiredSignals Array of required signals as index into the signal table
+    * @param  table           Peripheral signal table to use
+    * 
+    * @throws Exception
+    */
+   protected void validateMappedPins(int requiredSignals[], Vector<Signal> table) throws Exception {
+
+      CategoryModel pinModel = getPeripheral().getPinModel();
+      Status unmappedSignals = null;
+      for (int pinNum:requiredSignals) {
+         Signal entry = table.get(pinNum);
+         if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+            unmappedSignals = UNMAPPED_PIN_STATUS;
+            break;
+         }
+      }
+      pinModel.setStatus(unmappedSignals);
+      pinModel.update();
+   }
+   
 }

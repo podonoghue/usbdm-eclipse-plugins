@@ -3,44 +3,39 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
-
+ 
 public class BooleanVariable extends Variable {
    
    private Pair fTrue  = new Pair("true",  "true");
    private Pair fFalse = new Pair("false", "false");
    
-   /** Value of variable */
+   /** Current value (user format i.e name) */
    private boolean fValue = false;
    
    /** Default value of variable */
-   private boolean fDefault = false;
+   private boolean fDefaultValue = false;
+   
+   /** Disabled value of variable */
+   private boolean fDisabledValue = false;
    
    /**
     * Construct a variable representing a boolean value
     * 
-    * @param name
-    * @param value
+    * @param name Name to display to user.
+    * @param key  Key for variable
     */
    public BooleanVariable(String name, String key) {
       super(name, key);
    }
+   
+   @Override
+   public String toString() {
+      return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
+   }
 
-   /**
-    * Sets variable value<br>
-    * Listeners are informed if the variable changes
-    * 
-    * @param value The value to set
-    * 
-    * @return True if variable actually changed value
-    */
-   public boolean setValue(Boolean value) {
-      if (fValue == (boolean)value) {
-         return false;
-      }
-      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
-      fValue = value;
-      notifyListeners();
-      return true;
+   @Override
+   public VariableModel createModel(BaseModel parent) {
+      return new BooleanVariableModel(parent, this);
    }
    
    /**
@@ -73,35 +68,110 @@ public class BooleanVariable extends Variable {
    public boolean setValue(Object value) {
       return setValue(translate(value));
    }
+   
+   @Override
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
+   }
 
    @Override
-   public void setDefault(Object value) {
-      fDefault = translate(value);
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
+   }
+   
+   /**
+    * Set variable value as Boolean<br>
+    * Listeners are informed if the variable changes
+    * 
+    * @param value Value to set
+    * 
+    * @return True if variable actually changed value and listeners notified
+    */
+   public boolean setValue(Boolean value) {
+      if (fValue == (boolean)value) {
+         return false;
+      }
+      super.debugPrint("BooleanVariable["+this+"].setValue("+value+"), old "+value);
+      fValue = value;
+      notifyListeners();
+      return true;
    }
    
    @Override
-   public Object getDefault() {
-      return fDefault;
+   public String getValueAsString() {
+      return getValueAsBoolean()?fTrue.name:fFalse.name;
+   }
+   
+   @Override
+   public boolean getValueAsBoolean() {
+      return isEnabled()?fValue:fDefaultValue;
    }
 
    @Override
-   public boolean getValueAsBoolean() {
-      return isEnabled()?fValue:fDefault;
+   public long getValueAsLong() {
+      return getValueAsBoolean()?1:0;
    }
-
+   
    @Override
    public String getSubstitutionValue() {
       return getValueAsBoolean()?fTrue.value:fFalse.value;
    }
 
    @Override
-   public String getValueAsString() {
-      return getValueAsBoolean()?fTrue.name:fFalse.name;
+   public String getPersistentValue() {
+      return Boolean.toString(fValue);
    }
 
    @Override
-   public long getValueAsLong() {
-      return getValueAsBoolean()?1:0;
+   public boolean getRawValueAsBoolean() {
+      return  fValue;
+   }
+
+   @Override
+   public void setDisabledValue(Object value) {
+      setDisabledValue(translate(value));
+   }
+
+   /**
+    * Set value used when disabled
+    * 
+    * @param fDisabledValue
+    */
+   public void setDisabledValue(boolean disabledValue) {
+      this.fDisabledValue = disabledValue;
+   }
+
+   /**
+    * Get value used when disabled
+    * 
+    * @return
+    */
+   public boolean getDisabledValue() {
+      return fDisabledValue;
+   }
+   
+   @Override
+   public void setDefault(Object value) {
+      fDefaultValue = translate(value);
+   }
+   
+   @Override
+   public Object getDefault() {
+      return fDefaultValue;
+   }
+   
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefaultValue;
+   }
+   
+   /*
+    * Special operations
+    */
+   /**
+    * @return the choices
+    */
+   public void getChoices() {
    }
 
    /**
@@ -138,39 +208,6 @@ public class BooleanVariable extends Variable {
     */
    public void setFalseValue(Pair falseValue) {
       this.fFalse = falseValue;
-   }
-
-   @Override
-   public VariableModel createModel(BaseModel parent) {
-      return new BooleanVariableModel(parent, this);
-   }
-
-   @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
-   }
-
-   @Override
-   public String getPersistentValue() {
-      return Boolean.toString(fValue);
-   }
-
-   @Override
-   public void setPersistentValue(String value) {
-      fValue = translate(value);
-   }
-
-   @Override
-   public boolean getRawValueAsBoolean() {
-      return fValue;
-   }
-
-   public void getChoices() {
-   }
-
-   @Override
-   public boolean isDefault() {
-      return fValue == fDefault;
    }
 
 }

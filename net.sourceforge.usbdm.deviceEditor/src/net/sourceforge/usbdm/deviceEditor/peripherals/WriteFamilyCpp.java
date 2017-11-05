@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.eclipse.core.resources.IFile;
@@ -341,17 +342,17 @@ public class WriteFamilyCpp {
       DocumentationGroups startGroup = new DocumentationGroups(writer);
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         for (String pinName:fDeviceInfo.getPins().keySet()) {
-            Pin pin = fDeviceInfo.getPins().get(pinName);
+         for (Entry<String, Pin> pinEntry:fDeviceInfo.getPins().entrySet()) {
+            Pin pin = pinEntry.getValue();
             Map<MuxSelection, MappingInfo> mappedSignals = pin.getMappableSignals();
             if (mappedSignals == null) {
                continue;
             }
-            for (MuxSelection index:mappedSignals.keySet()) {
-               if (index == MuxSelection.unassigned) {
+            for (Entry<MuxSelection, MappingInfo> muxEntry:mappedSignals.entrySet()) {
+               if (muxEntry.getKey() == MuxSelection.unassigned) {
                   continue;
                }
-               MappingInfo mappedSignal = mappedSignals.get(index);
+               MappingInfo mappedSignal = muxEntry.getValue();
                for (int fnIndex=0; fnIndex<mappedSignal.getSignals().size(); fnIndex++) {
                   Signal function = mappedSignal.getSignals().get(fnIndex);
                   if (function.getPeripheral() == peripheral) {
@@ -359,6 +360,7 @@ public class WriteFamilyCpp {
                      if (template != null) {
                         startGroup.openGroup(peripheral);
                         writer.write(template);
+                        writer.flush();
                      }
                   }
                }

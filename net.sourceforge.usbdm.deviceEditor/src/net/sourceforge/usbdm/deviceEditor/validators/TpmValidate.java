@@ -18,10 +18,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class TpmValidate extends PeripheralValidator {
    
-   private final static String[] externalVariables = {
-         "/SIM/system_tpm_clock"
-   };
-
    public TpmValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -34,8 +30,6 @@ public class TpmValidate extends PeripheralValidator {
    public void validate(Variable variable) throws Exception {
       
       super.validate(variable);
-      
-      addToWatchedVariables(externalVariables);
       
       //=================================
       
@@ -114,5 +108,12 @@ public class TpmValidate extends PeripheralValidator {
          
       }
    }
-
+   
+   @Override
+   protected void createDependencies() throws Exception {
+      final String[] externalVariables = {
+            "/SIM/system_tpm_clock"
+      };
+      addToWatchedVariables(externalVariables);
+   }
 }

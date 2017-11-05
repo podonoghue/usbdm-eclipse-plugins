@@ -33,6 +33,11 @@ public class StringVariable extends Variable {
    }
 
    @Override
+   public boolean getValueAsBoolean() {
+      return Boolean.valueOf(fValue);
+   }
+
+   @Override
    public Object getDefault() {
       return fValue;
    }
@@ -86,5 +91,9 @@ public class StringVariable extends Variable {
    @Override
    public boolean isDefault() {
       return fValue.equals(fDefault);
+   }
+
+   @Override
+   public void setDisabledValue(Object value) {
    }
 }

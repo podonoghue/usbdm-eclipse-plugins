@@ -18,7 +18,7 @@ public class VariableProvider {
    private final DeviceInfo            fDeviceInfo;
    
    /** Validators for variable changes */
-   private final ArrayList<Validator>  validators = new ArrayList<Validator>();
+   private final ArrayList<Validator>  fValidators = new ArrayList<Validator>();
 
    protected final class KeyMaker implements IKeyMaker {
       int Index;
@@ -57,7 +57,7 @@ public class VariableProvider {
       }
    }
    
-   protected final KeyMaker keyMaker = new KeyMaker();
+   protected final KeyMaker fKeyMaker = new KeyMaker();
 
    /**
     * Constructor
@@ -89,7 +89,7 @@ public class VariableProvider {
     * Otherwise the original name is returned as the key unchanged (e.g. /SIM/system_bus_clock would be unchanged)
     */
    public String makeKey(String name) {
-      return keyMaker.makeKey(name);
+      return fKeyMaker.makeKey(name);
    }
 
    /**
@@ -166,7 +166,7 @@ public class VariableProvider {
     * @throws Exception 
     */
    public String substitute(String input, Map<String, String> map) {
-      return FileUtility.substitute(input, map, keyMaker);
+      return FileUtility.substitute(input, map, fKeyMaker);
    }
    
    /**
@@ -182,14 +182,28 @@ public class VariableProvider {
       return substitute(input, map);
    }
 
+   /**
+    * Adds validator for VariableProvider (Peripheral)
+    * 
+    * @param validator
+    */
    public void addValidator(Validator validator) {
-      validators.add(validator);
+      fValidators.add(validator);
+   }
+   
+   /**
+    * Gets validators for VariableProvider (Peripheral)
+    *
+    * @return List of validators
+    */
+   public ArrayList<Validator> getValidators() {
+      return fValidators;
    }
    
    public void variableChanged(Variable variable) {
 //      System.err.println("variableChanged()" + variable.toString());
       fDeviceInfo.setDirty(true);
-      for (Validator v:validators) {
+      for (Validator v:fValidators) {
          v.variableChanged(variable);
       }
    }

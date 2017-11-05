@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
@@ -33,13 +34,6 @@ public class AdcValidate extends PeripheralValidator {
 
    private static long ADC_CLOCK_VALUES[] = {FADC_LP0_HS0_MAX, FADC_LP0_HS1_MAX, FADC_LP1_HS0_MAX, FADC_LP1_HS1_MAX};
 
-   private final static String[] externalVariables = {
-         "/MCG/system_irc48m_clock",
-         "/SIM/system_bus_clock",
-         "/OSC0/system_oscerclk_clock",
-         "/SIM/system_bus_clock",
-   };
-
    public AdcValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -50,11 +44,14 @@ public class AdcValidate extends PeripheralValidator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      
+
       super.validate(variable);
 
-      addToWatchedVariables(externalVariables);
-      
+      // Clock Mapping
+      //=================
+      final StringVariable   osc0_peripheralVar   = getStringVariable("/SIM/osc0_peripheral");
+      final LongVariable     osc0_oscer_clockVar  = getLongVariable(osc0_peripheralVar.getValueAsString()+"/oscer_clock");
+
       // Variables
       //=================================
       DoubleVariable clockFrequencyVar    = (DoubleVariable) getVariable("clockFrequency");
@@ -63,38 +60,37 @@ public class AdcValidate extends PeripheralValidator {
       Variable adcInternalClockVar        = getVariable("adcInternalClock");
 
       Variable system_bus_clockVar        = getVariable("/SIM/system_bus_clock");
-      Variable system_oscerclk_clockVar   = getVariable("/OSC0/system_oscerclk_clock");
 
       Variable adc_cfg1_adlpcVar          = getVariable("adc_cfg1_adlpc");
       Variable adc_cfg2_adhscVar          = getVariable("adc_cfg2_adhsc");
       Variable adc_cfg1_modeVar           = getVariable("adc_cfg1_mode");
 
-      BooleanVariable adc_cfg1_adlsmpVar = getBooleanVariable("adc_cfg1_adlsmp");
-      ChoiceVariable  adc_cfg2_adlstsVar = getChoiceVariable("adc_cfg2_adlsts");
-      
+      BooleanVariable adc_cfg1_adlsmpVar  = getBooleanVariable("adc_cfg1_adlsmp");
+      ChoiceVariable  adc_cfg2_adlstsVar  = getChoiceVariable("adc_cfg2_adlsts");
+
       LongVariable    low_comparison_valueVar  = getLongVariable("low_comparison_value");
       LongVariable    high_comparison_valueVar = getLongVariable("high_comparison_value");
       LongVariable    adc_cv1Var = getLongVariable("adc_cv1");
       LongVariable    adc_cv2Var = getLongVariable("adc_cv2");
-            
+
       ChoiceVariable  adc_sc2_compareVar = getChoiceVariable("adc_sc2_compare");
 
       LongVariable adc_sc2_acfeVar  = getLongVariable("adc_sc2_acfe");
       LongVariable adc_sc2_acfgtVar = getLongVariable("adc_sc2_acfgt");
       LongVariable adc_sc2_acrenVar = getLongVariable("adc_sc2_acren");
 
-      int cv1=0;
-      int cv2=0;
+      int cv1 = 0;
+      int cv2 = 0;
 
       int low  = (int)low_comparison_valueVar.getValueAsLong();
       int high = (int)high_comparison_valueVar.getValueAsLong();
-            
+
       int compareChoice = (int)adc_sc2_compareVar.getValueAsLong();
-      
+
       boolean adc_sc2_acfe  = true;
       boolean adc_sc2_acfgt = false;
       boolean adc_sc2_acren = false;
-      
+
       switch (compareChoice) {
       case 0: // Disabled
          adc_sc2_acfe = false;
@@ -130,20 +126,20 @@ public class AdcValidate extends PeripheralValidator {
       high_comparison_valueVar.enable(compareChoice>=3);
       adc_cv1Var.setValue(cv1);
       adc_cv2Var.setValue(cv2);
-      
+
       adc_sc2_acfeVar.setValue(adc_sc2_acfe);
-      
+
       adc_cfg2_adlstsVar.enable(adc_cfg1_adlsmpVar.getValueAsBoolean());
-      
+
       adc_sc2_acfeVar.setValue(adc_sc2_acfe);
       adc_sc2_acfgtVar.setValue(adc_sc2_acfgt);
       adc_sc2_acrenVar.setValue(adc_sc2_acren);
-      
+
       // Varies with power settings etc
       adcInternalClockVar.setValue(ADC_CLOCK_VALUES[(int)(2*adc_cfg1_adlpcVar.getValueAsLong()+adc_cfg2_adhscVar.getValueAsLong())]);
 
       LongVariable system_irc48m_clockVar = safeGetLongVariable("/MCG/system_irc48m_clock");
-      
+
       Variable clockSourceVar = null;
       double clockFrequency;
 
@@ -167,8 +163,8 @@ public class AdcValidate extends PeripheralValidator {
          }
          break;
       case 2:
-         clockSourceVar = system_oscerclk_clockVar;
-         clockFrequency = system_oscerclk_clockVar.getValueAsLong();
+         clockSourceVar = osc0_oscer_clockVar;
+         clockFrequency = osc0_oscer_clockVar.getValueAsLong();
          break;
       default:
          adc_cfg1_adiclkVar.setValue(1);
@@ -177,11 +173,7 @@ public class AdcValidate extends PeripheralValidator {
          clockFrequency = adcInternalClockVar.getValueAsLong();
          break;
       }
-      clockFrequency = clockFrequency/(1L<<adc_cfg1_adivVar.getValueAsLong());
-      clockFrequencyVar.setValue(clockFrequency);
-      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
-      clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " divided by adc_cfg1_adiv");
-
+      // Set MIN and MAX before updating value
       if (adc_cfg1_modeVar.getValueAsLong()>=2) {
          clockFrequencyVar.setMin(FADC_HIGH_RES_MIN);
          clockFrequencyVar.setMax(FADC_HIGH_RES_MAX);
@@ -190,6 +182,24 @@ public class AdcValidate extends PeripheralValidator {
          clockFrequencyVar.setMin(FADC_LOW_RES_MIN);
          clockFrequencyVar.setMax(FADC_LOW_RES_MAX);
       }
+      clockFrequency = clockFrequency/(1L<<adc_cfg1_adivVar.getValueAsLong());
+      clockFrequencyVar.setValue(clockFrequency);
+      clockFrequencyVar.setStatus(clockSourceVar.getFilteredStatus());
+      clockFrequencyVar.setOrigin(clockSourceVar.getOrigin() + " divided by adc_cfg1_adiv");
+   }
+
+   @Override
+   protected void createDependencies() throws Exception {
+      // Clock Mapping
+      //=================
+      final String   osc0_peripheral = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+
+      final String externalVariables[] = {
+            "/MCG/system_irc48m_clock",
+            "/SIM/system_bus_clock",
+            osc0_peripheral+"/oscer_clock",
+      };
+      addToWatchedVariables(externalVariables);
    }
 
 }

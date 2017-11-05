@@ -16,14 +16,17 @@ public class DoubleVariable extends Variable {
    /** Units of the quantity the variable represents e.g. Frequency => Hz */
    private Units fUnits = Units.None;
 
-   /** Value in user format */
+   /** Value of variable */
    private double fValue = 0;
-
+   
    /** Default value of variable */
-   private double fDefault = 0;
+   private double fDefaultValue = 0;
+   
+   /** Disabled value of variable */
+   private double fDisabledValue = 0;
    
    /**
-    * Constructor
+    * Construct a variable representing a double value
     * 
     * @param name Name to display to user.
     * @param key  Key for variable
@@ -44,95 +47,17 @@ public class DoubleVariable extends Variable {
       setValue(value);
       setDefault(value);
    }
-
-   @Override
-   public String getDisplayToolTip() {
-
-      StringBuffer sb = new StringBuffer();
-      sb.append(super.getDisplayToolTip());
-      boolean newLineNeeded = sb.length()>0;
-      
-      if (getMin() != Double.NEGATIVE_INFINITY) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
-         }
-         sb.append("min="+getValueAsString(getMin())+" ");
-      }
-      if (getMax() != Double.POSITIVE_INFINITY) {
-         if (newLineNeeded) {
-            sb.append("\n");
-            newLineNeeded = false;
-         }
-         sb.append("max="+getValueAsString(getMax())+" ");
-      }
-      return (sb.length() == 0)?null:sb.toString();
-   }
-
-   @Override
-   public double getValueAsDouble() {
-      return isEnabled()?fValue:fDefault;
-   }
-
-   @Override
-   public long getValueAsLong() {
-      return Math.round(getValueAsDouble());
-   }
-
-   @Override
-   public String getSubstitutionValue() {
-      return Long.toString(getValueAsLong())+'D';
-   }
-
-   /**
-    * Converts the given string into a form appropriate for model
-    * 
-    * @param value Value to format
-    * 
-    * @return String in appropriate form e.g. 24.56MHz
-    */
-   public String getValueAsString(double value) {
-      switch(getUnits()) {
-      default:
-      case None:
-         return Double.toString(value);
-      case s:
-      case Hz:
-         return EngineeringNotation.convert(value, 5).toString()+getUnits().toString();
-      }
-   }
-
-   @Override
-   public String getValueAsString() {
-      return getValueAsString(getValueAsDouble());
-   }
    
    @Override
-   public Object getDefault() {
-      return fValue;
-   }
-   /**
-    * Set value as double
-    * 
-    * @param value Value to set
-    * 
-    * @return True if variable actually changed value and listeners notified
-    */
-   public boolean setValue(double value) {
-      if (fValue == value) {
-         return false;
-      }
-      super.debugPrint("DoubleVariable["+this+"].setValue("+value+"), old "+value);
-      fValue = value;
-      notifyListeners();
-      return true;
+   public String toString() {
+      return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
    }
 
    @Override
-   public void setDefault(Object value) {
-      fDefault = translate(value);
+   public VariableModel createModel(BaseModel parent) {
+      return new DoubleVariableModel(parent, this);
    }
-
+   
    /**
     * Convert object to suitable type for this variable
     * 
@@ -158,9 +83,9 @@ public class DoubleVariable extends Variable {
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return fDefault;
+      return fDefaultValue;
    }
-
+   
    @Override
    public boolean setValue(Object value) {
       try {
@@ -172,81 +97,130 @@ public class DoubleVariable extends Variable {
    }
    
    @Override
-   public String toString() {
-      return String.format("Variable(Name=%s, value=%s (%s)", getName(), getSubstitutionValue(), getValueAsString());
-   }
-
-   /**
-    * Set minimum value.<br>
-    * Status listeners are informed of any change.
-    * 
-    * @param min Minimum value
-    */
-   public void setMin(double min) {
-      boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
-      fMin = min;
-      if (fDefault<fMin) {
-         fDefault = fMin;
-      }
-      if (statusChanged) {
-         notifyStatusListeners();
-      }
-   }
-
-   /**
-    * Set maximum value.<br>
-    * Status listeners are informed of any change.
-    * 
-    * @param max Maximum value
-    */
-   public void setMax(double max) {
-      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
-      fMax = max;
-      if (fDefault>fMax) {
-         fDefault = fMax;
-      }
-      if (statusChanged) {
-         notifyStatusListeners();
-      }
-   }
-
-   /**
-    * Get minimum value
-    * 
-    * @return Minimum value
-    */
-   public double getMin() {
-      return fMin;
-   }
-
-   /**
-    * Get maximum value
-    * 
-    * @return Maximum value in user format
-    */
-   public double getMax() {
-      return fMax;
-   }
-
-   /**
-    * @return the units
-    */
-   public Units getUnits() {
-      return fUnits;
-   }
-
-   /**
-    * @param units The units to set
-    */
-   public void setUnits(Units units) {
-      fUnits = units;
+   public void setValueQuietly(Object value) {
+      fValue = translate(value);
    }
 
    @Override
-   public String isValid() {
-      return isValid(fValue);
+   public void setPersistentValue(String value) {
+      fValue = translate(value);
    }
    
+   /**
+    * Set variable value as double<br>
+    * Listeners are informed if the variable changes
+    * 
+    * @param value Value to set
+    * 
+    * @return True if variable actually changed value and listeners notified
+    */
+   public boolean setValue(double value) {
+      if (value>fMax) {
+         value = fMax;
+      }
+      if (value<fMin) {
+         value = fMin;
+      }
+      if (fValue == value) {
+         return false;
+      }
+      super.debugPrint("DoubleVariable["+this+"].setValue("+value+"), old "+value);
+      fValue = value;
+      notifyListeners();
+      return true;
+   }
+   
+   /**
+    * Converts the given string into a form appropriate for model
+    * 
+    * @param value Value to format
+    * 
+    * @return String in appropriate form e.g. 24.56MHz
+    */
+   public String getValueAsString(double value) {
+      switch(getUnits()) {
+      default:
+      case None:
+         return Double.toString(value);
+      case s:
+      case Hz:
+         return EngineeringNotation.convert(value, 5).toString()+getUnits().toString();
+      }
+   }
+
+   @Override
+   public String getValueAsString() {
+      return getValueAsString(getValueAsDouble());
+   }
+   
+   @Override
+   public double getValueAsDouble() {
+      return isEnabled()?fValue:fValue;
+   }
+
+   @Override
+   public long getValueAsLong() {
+      return Math.round(getValueAsDouble());
+   }
+
+   @Override
+   public String getSubstitutionValue() {
+      return Long.toString(getValueAsLong())+'D';
+   }
+
+   @Override
+   public String getPersistentValue() {
+      return Double.toString(fValue);
+   }
+
+   @Override
+   public long getRawValueAsLong() {
+      return  Math.round(fValue);
+   }
+
+   @Override
+   public double getRawValueAsDouble() {
+      return  fValue;
+   }
+
+   @Override
+   public void setDisabledValue(Object value) {
+      setDisabledValue(translate(value));
+   }
+
+   /**
+    * Set value used when disabled
+    * 
+    * @param fDisabledValue
+    */
+   public void setDisabledValue(double disabledValue) {
+      this.fDisabledValue = disabledValue;
+   }
+
+   /**
+    * Get value used when disabled
+    * 
+    * @return
+    */
+   public double getDisabledValue() {
+      return fDisabledValue;
+   }
+   
+   @Override
+   public void setDefault(Object value) {
+      fDefaultValue = translate(value);
+   }
+   
+   @Override
+   public Object getDefault() {
+      return fDefaultValue;
+   }
+   
+   @Override
+   public boolean isDefault() {
+      return fValue == fDefaultValue;
+   }
+
    /**
     * Checks if the value is valid for assignment to this variable
     * 
@@ -266,49 +240,112 @@ public class DoubleVariable extends Variable {
 
    @Override
    public String isValid(String value) {
-    double lValue = 0;
-    try {
-       lValue = EngineeringNotation.parse(value);
-    }
-    catch (NumberFormatException e) {
-       return "Illegal number";
-    }
-    return isValid(lValue);
- }
+      double lValue = 0;
+      try {
+         lValue = EngineeringNotation.parse(value);
+      }
+      catch (NumberFormatException e) {
+         return "Illegal number";
+      }
+      return isValid(lValue);
+   }
    
    @Override
-   public VariableModel createModel(BaseModel parent) {
-      return new DoubleVariableModel(parent, this);
+   public String isValid() {
+      return isValid(fValue);
    }
 
+   /*
+    * Special operations
+    */
    @Override
-   public void setValueQuietly(Object value) {
-      fValue = translate(value);
+   public String getDisplayToolTip() {
+
+      StringBuffer sb = new StringBuffer();
+      sb.append(super.getDisplayToolTip());
+      boolean newLineNeeded = sb.length()>0;
+      
+      if (getMin() != Double.NEGATIVE_INFINITY) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("min="+getValueAsString(getMin())+" ");
+      }
+      if (getMax() != Double.POSITIVE_INFINITY) {
+         if (newLineNeeded) {
+            sb.append("\n");
+            newLineNeeded = false;
+         }
+         sb.append("max="+getValueAsString(getMax())+" ");
+      }
+      return (sb.length() == 0)?null:sb.toString();
    }
 
-   @Override
-   public double getRawValueAsDouble() {
-      return  fValue;
+   /**
+    * Set minimum value.<br>
+    * Status listeners are informed of any change.
+    * 
+    * @param min Minimum value
+    */
+   public void setMin(double min) {
+      boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
+      fMin = min;
+      if (fValue<fMin) {
+         fValue = fMin;
+      }
+      if (statusChanged) {
+         notifyStatusListeners();
+      }
    }
 
-   @Override
-   public long getRawValueAsLong() {
-      return  Math.round(fValue);
+   /**
+    * Get minimum value
+    * 
+    * @return Minimum value
+    */
+   public double getMin() {
+      return fMin;
    }
 
-   @Override
-   public String getPersistentValue() {
-      return Double.toString(fValue);
+   /**
+    * Set maximum value.<br>
+    * Status listeners are informed of any change.
+    * 
+    * @param max Maximum value
+    */
+   public void setMax(double max) {
+      boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
+      fMax = max;
+      if (fValue>fMax) {
+         fValue = fMax;
+      }
+      if (statusChanged) {
+         notifyStatusListeners();
+      }
    }
 
-   @Override
-   public void setPersistentValue(String value) {
-      fValue = translate(value);
+   /**
+    * Get maximum value
+    * 
+    * @return Maximum value in user format
+    */
+   public double getMax() {
+      return fMax;
    }
 
-   @Override
-   public boolean isDefault() {
-      return fValue == fDefault;
+   /**
+    * @param units The units to set
+    */
+   public void setUnits(Units units) {
+      fUnits = units;
+   }
+
+   /**
+    * @return the units
+    */
+   public Units getUnits() {
+      return fUnits;
    }
 
 }

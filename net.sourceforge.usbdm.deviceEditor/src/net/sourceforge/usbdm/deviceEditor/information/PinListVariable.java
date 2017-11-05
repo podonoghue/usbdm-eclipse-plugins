@@ -43,6 +43,25 @@ public class PinListVariable extends StringVariable {
       return new PinListVariableModel(parent, this);
    }
 
+   public int[] getValues(String value) {
+      String values[];
+      if (value.isEmpty()) {
+         values = new String[0];
+      }
+      else {
+         values = value.split(fDelimeter);
+      }
+      int returnValues[] = new int[values.length];
+      for (int index=0; index<values.length; index++) {
+         returnValues[index] = Integer.parseInt(values[index]);
+      }
+      return returnValues;
+   }
+   
+   public int[] getValues() {
+      return getValues(getValueAsString());
+   }
+   
    @Override
    public String isValid(String value) {
 //      Matcher m = fValuePattern.matcher(value);

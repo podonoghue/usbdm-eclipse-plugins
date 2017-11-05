@@ -9,20 +9,9 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 
 /**
- * Class to determine oscillator settings
-
- * Used for:
- *     osc0
- *     osc0_div
+ * Class to validate LPTMR settings
  */
 public class LptmrValidate extends PeripheralValidator {
-
-   private final static String[] externalVariables = {
-         "/MCG/system_mcgirclk_clock",
-         "/MCG/system_low_power_clock",
-         "/SIM/system_erclk32k_clock",
-         "/OSC0/system_oscerclk_clock",
-   };
 
    public LptmrValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
@@ -38,7 +27,8 @@ public class LptmrValidate extends PeripheralValidator {
       super.validate(variable);
 
 //      System.err.println("LptmrValidate.validate("+variable+")");
-      addToWatchedVariables(externalVariables);
+      
+      final String   osc0_peripheral  = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
       
       // Variables
       //=================================
@@ -79,7 +69,7 @@ public class LptmrValidate extends PeripheralValidator {
          clockSourceVar = getVariable("/SIM/system_erclk32k_clock");
          break;
       case 3:
-         clockSourceVar = getVariable("/OSC0/system_oscerclk_clock");
+         clockSourceVar = getVariable(osc0_peripheral+"/oscer_clock");
          break;
       }
       boolean clockChanged = (variable == null) || // Initial setup
@@ -179,6 +169,20 @@ public class LptmrValidate extends PeripheralValidator {
             lptmr_cmrFrequencyVar.setValue(cmrFrequency);
          }
       }
+   }
+   
+   @Override
+   protected void createDependencies() throws Exception {
+      final String osc0_peripheral = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      
+      final String externalVariables[] = {
+            "/MCG/system_mcgirclk_clock",
+            "/MCG/system_low_power_clock",
+            "/SIM/system_erclk32k_clock",
+            osc0_peripheral+"/oscer_clock",
+      };
+
+      addToWatchedVariables(externalVariables);
    }
 
 }

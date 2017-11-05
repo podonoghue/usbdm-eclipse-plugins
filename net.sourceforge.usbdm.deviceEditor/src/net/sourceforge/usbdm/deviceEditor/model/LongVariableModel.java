@@ -35,11 +35,10 @@ public class LongVariableModel extends VariableModel {
    }
    
    /**
+    * Constructor - Create model from variable
     * 
-    * @param parent        Parent model
-    * @param provider      Associated variable provider
-    * @param key           Variable key
-    * @param description   Description for model
+    * @param parent     Parent model
+    * @param variable   Variable being modelled
     * 
     * @note Added as child of parent if not null
     */

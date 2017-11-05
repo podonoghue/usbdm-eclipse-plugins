@@ -15,10 +15,6 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
  */
 public class PitValidate extends PeripheralValidator {
 
-   private final static String[] externalVariables = {
-         "/SIM/system_bus_clock",
-   };
-
    public PitValidate(PeripheralWithState peripheral, ArrayList<Object> values) {
       super(peripheral);
    }
@@ -35,8 +31,6 @@ public class PitValidate extends PeripheralValidator {
       
       super.validate(variable);
       
-      addToWatchedVariables(externalVariables);
-
       // Clocks
       //=================================
       LongVariable     clockVar                   = getLongVariable("/SIM/system_bus_clock");
@@ -81,5 +75,13 @@ public class PitValidate extends PeripheralValidator {
          pit_periodVar.setValue((pit_ldval+1)/busFrequency);
          pit_frequencyVar.setValue(busFrequency/(pit_ldval+1));
       }
+   }
+   
+   @Override
+   protected void createDependencies() throws Exception {
+      final String[] externalVariables = {
+            "/SIM/system_bus_clock",
+      };
+      addToWatchedVariables(externalVariables);
    }
 }

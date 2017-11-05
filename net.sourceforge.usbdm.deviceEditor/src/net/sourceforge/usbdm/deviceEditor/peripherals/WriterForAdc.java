@@ -35,30 +35,23 @@ public class WriterForAdc extends PeripheralWithState {
       if (!m.matches()) {
          throw new RuntimeException("Function " + signalName +" does not match expected pattern");
       }
-      String signalType = m.group(1);
-      if (signalType.equalsIgnoreCase("SE")) {
-         return getBaseName().toLowerCase()+"_"+alias;
-      }
-      else if (signalType.equalsIgnoreCase("DM")) {
-         return getBaseName().toLowerCase()+"_"+alias;
-//         return null;
-      }
-      else if (signalType.equalsIgnoreCase("DP")) {
-         return getBaseName().toLowerCase()+"_"+alias;
-//         return null;
-      }
-      return null;
+      return super.getAliasName(signalName, alias);
    }
 
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signal);
+      Signal signal = mappingInfo.getSignals().get(fnIndex);
+      if (!signal.getSignalName().matches("^(SE)(\\d+)(a|b)?$")) {
+         // Only single-ended channels can be declared
+         return null;
+      }
+      int signalIndex = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signalIndex);
    }
 
    @Override
    public int getSignalIndex(Signal function) {
-      Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
+      Pattern p = Pattern.compile("^(SE|DM|DP)(\\d+)(a|b)?$");
       Matcher m = p.matcher(function.getSignalName());
       if (!m.matches()) {
          throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
