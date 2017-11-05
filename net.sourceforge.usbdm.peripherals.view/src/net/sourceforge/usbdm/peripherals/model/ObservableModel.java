@@ -10,7 +10,7 @@ public class ObservableModel {
 
    private boolean refreshPending = false;
 
-   private ArrayList<IModelChangeListener> fListener = new ArrayList<IModelChangeListener>();
+   private ArrayList<IModelChangeListener> fListeners = new ArrayList<IModelChangeListener>();
 
    /**
     * Add the model change listener
@@ -18,8 +18,8 @@ public class ObservableModel {
     * @param listener
     */
    public void addListener(IModelChangeListener listener) {
-      if (!fListener.contains(listener)) {
-         fListener.add(listener);
+      if (!fListeners.contains(listener)) {
+         fListeners.add(listener);
       }
    }
 
@@ -29,25 +29,23 @@ public class ObservableModel {
     * @param listener to remove
     */
    public void removeListener(IModelChangeListener listener) {
-      fListener.remove(listener);
+      fListeners.remove(listener);
    }
 
    /**
     * Notify all listeners
-    * 
     */
    protected void notifyListeners() {
-      for (IModelChangeListener listener:fListener) {
+      for (IModelChangeListener listener:fListeners) {
          listener.modelElementChanged(this);
       }
    }
 
    /**
     * Notify structure change listeners
-    * 
     */
    protected void notifyStructureChangeListeners() {
-      for (IModelChangeListener listener:fListener) {
+      for (IModelChangeListener listener:fListeners) {
          listener.modelStructureChanged(this);
       }
    }
