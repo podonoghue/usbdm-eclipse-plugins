@@ -217,6 +217,11 @@ public class Register extends Cluster implements Cloneable {
       }
    }
    
+   void reportFields() {
+      for (Field field:fields) {
+         System.err.println(field);
+      }
+   }
    /**
     *  Checks the fields don't overlap or exceed register dimensions
     *  
@@ -230,6 +235,7 @@ public class Register extends Cluster implements Cloneable {
          }
          // Check for field exceeds register
          if ((field.getBitOffset()+field.getBitwidth()) > getWidth()) {
+            reportFields();
             throw new Exception(String.format("Bit field \'%s\' outside register in \'%s\'", field.getName(), getName()));
          }
          if (!field.isIgnoreOverlap()) {
@@ -239,6 +245,7 @@ public class Register extends Cluster implements Cloneable {
                bitsUsedThisField |= 1L<<i;
             }
             if ((bitsUsed&bitsUsedThisField) != 0) {
+               reportFields();
                throw new Exception(String.format("Bit field \'%s\' overlaps in register \'%s\'", field.getName(), getName()));
             }
             bitsUsed |= bitsUsedThisField;
