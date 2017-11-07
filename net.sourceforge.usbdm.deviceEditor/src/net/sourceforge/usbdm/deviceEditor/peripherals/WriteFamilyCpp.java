@@ -197,6 +197,7 @@ public class WriteFamilyCpp {
       ArrayList<String> priorityClasses = new ArrayList<String>();
       priorityClasses.add("OSC");
       priorityClasses.add("OSC0");
+      priorityClasses.add("OSC_RF0");
       priorityClasses.add("RTC");
       priorityClasses.add("MCG");
       priorityClasses.add("SIM");

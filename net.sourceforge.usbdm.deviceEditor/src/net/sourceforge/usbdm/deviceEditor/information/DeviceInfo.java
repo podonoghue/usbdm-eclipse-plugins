@@ -64,7 +64,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRfOsc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOscRf;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
@@ -987,10 +987,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             WriterForPower.class);
       
       createPeripheralTemplateInformation(
-            "OSC_RF", "0", "$2",
+            "OSC", "0", "$2",
             "^(RF_?(XTAL|EXTAL|XTAL_OUT|XTAL_OUT_EN))$",
             getDeviceFamily(),
-            WriterForRfOsc.class);
+            WriterForOscRf.class);
       
       createPeripheralTemplateInformation(
             "RADIO", "", "$0",

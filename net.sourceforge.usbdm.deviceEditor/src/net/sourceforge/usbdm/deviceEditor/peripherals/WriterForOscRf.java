@@ -9,9 +9,9 @@ import net.sourceforge.usbdm.jni.UsbdmException;
 /**
  * Class encapsulating the code for writing an instance of RF OSC
  */
-public class WriterForRfOsc extends PeripheralWithState {
+public class WriterForOscRf extends PeripheralWithState {
 
-   public WriterForRfOsc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
+   public WriterForOscRf(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 
@@ -27,11 +27,6 @@ public class WriterForRfOsc extends PeripheralWithState {
    }
 
    @Override
-   public String getPcrDefinition() {
-      return null;
-   }
-
-   @Override
    public int getPriority() {
       return 1000;
    }
@@ -40,6 +35,5 @@ public class WriterForRfOsc extends PeripheralWithState {
    public String getPcrValue(Signal y) {
       return null;
    }
-
 
 }
