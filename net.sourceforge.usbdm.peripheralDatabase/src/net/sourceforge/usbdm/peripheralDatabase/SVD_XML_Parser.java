@@ -104,7 +104,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String WRITECONSTRAINT_TAG              = "writeConstraint";
    
 
-   DevicePeripherals devicePeripherals = null;          
+   static DevicePeripherals devicePeripherals = null;          
    
    /**
     * Parse a <enumeratedValue> element
@@ -676,8 +676,55 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    }
 
    /**
+    * Attempts to find the name of the peripheral associated with the vector name<br>
+    * Applies some fixes for approximate names
+    * 
+    * @param name  Name of vector peripheral
+    * 
+    * @return  Corrected name
+    */
+   private static String getFixedVectorPeripheralName(String name) {
+
+      Peripheral peripheral = devicePeripherals.findPeripheral(name);
+      if (peripheral == null) {
+         final String ftfNames[] = {
+               "FTFA",
+               "FTFL",
+               "FTFE",
+         };
+         if (name.startsWith("FTF")) {
+            for (String ftfName:ftfNames) {
+               peripheral = devicePeripherals.findPeripheral(ftfName);
+               if (peripheral != null) {
+                  break;
+               }
+            }
+         }
+      }
+      if (peripheral == null) {
+         peripheral = devicePeripherals.findPeripheral(name+"0");
+      }
+      if (peripheral == null) {
+         if (name.startsWith("Tamper")) {
+            name = "RCM";
+         }
+         peripheral = devicePeripherals.findPeripheral(name);
+      }
+      if (peripheral == null) {
+         if (name.startsWith("TRNG")) {
+            name = "RNG";
+         }
+         peripheral = devicePeripherals.findPeripheral(name);
+      }
+      if (peripheral != null) {
+         name = peripheral.getName();
+      }
+      return name;
+   }
+   /**
     * Parse a <interrupt> element
     * 
+    * @param  peripheral       Peripheral owning interrupt
     * @param  interruptElement <interrupt> element
     * 
     * @return InterruptEntry described
@@ -687,7 +734,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    private static InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
 
       InterruptEntry interruptEntry = new InterruptEntry();
-
+      Peripheral     peripheral     = null;
+      
       for (Node node = interruptElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -706,10 +754,21 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             interruptEntry.setIndexNumber((int)getIntElement(element));
          }
          else if (element.getTagName() == PERIPHERAL_TAG) {
-            interruptEntry.setPeripheral(element.getTextContent().trim());
+            String name = getFixedVectorPeripheralName(element.getTextContent().trim());
+            peripheral = devicePeripherals.findPeripheral(name);
+            if (peripheral == null) {
+               throw new Exception("Failed to find peripheral "+name+" for vector");
+            }
+            interruptEntry.addPeripheral(peripheral);
+            peripheral.addInterruptEntry(interruptEntry);
          }
          else {
             throw new Exception("Unexpected field in INTERRUPT', value = \'"+element.getTagName()+"\'");
+         }
+      }
+      if (peripheral != null) {
+         if (interruptEntry.getDescription().isEmpty()) {
+            interruptEntry.setDescription(peripheral.getDescription());
          }
       }
       return interruptEntry;
@@ -727,7 +786,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    private static Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
 
       boolean derived       = false;
-      boolean interruptsSet = false;
       Peripheral peripheral = null;
       
       if (peripheralElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
@@ -811,17 +869,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             peripheral.setBaseAddress(getIntElement(element));
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
-            if (derived && !interruptsSet) {
-               // First interrupt - remove existing derived ones
-               peripheral.clearInterruptEntries();
-               interruptsSet = true;
-            }
             InterruptEntry interruptEntry = parseInterrupt(element);
-            if ((interruptEntry.getDescription() == null) || (interruptEntry.getDescription().length() == 0)) {
-               interruptEntry.setDescription(peripheral.getDescription());
-            }
-            interruptEntry.setPeripheral(peripheral.getName());
-            peripheral.addInterruptEntry(interruptEntry);
             device.addInterruptEntry(interruptEntry);
          }
          else if (element.getTagName() == ADDRESSBLOCK_TAG ){
@@ -988,10 +1036,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
             InterruptEntry entry = parseInterrupt(element);
-            if (entry.getIndexNumber() <= -100) {
-               entry.setIndexNumber(++lastEntryNumber);
-            }
-            else if (entry.getIndexNumber() <= lastEntryNumber) {
+            if (entry.getIndexNumber() <= lastEntryNumber) {
                throw new Exception("Interrupt vectors must be monotonic, # + " + entry.getIndexNumber());
             }
             lastEntryNumber = entry.getIndexNumber();
@@ -1046,6 +1091,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @throws Exception
     */
    public static void parseDocument(Path path, DevicePeripherals devicePeripherals) throws Exception {
+      
+      SVD_XML_Parser.devicePeripherals = devicePeripherals;
       
       Document document = parseXmlFile(path);
       

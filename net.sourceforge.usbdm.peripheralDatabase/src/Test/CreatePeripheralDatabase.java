@@ -649,8 +649,10 @@ public class CreatePeripheralDatabase {
          ModeControl.setExtractSimpleRegisterArrays(true);
          ModeControl.setMapFreescalePeriperalCommonNames(true);
          ModeControl.setFoldRegisters(true);
-         mergeFiles(usbdmFolder,     usbdmFolder_Check, true);
+         ModeControl.setCollectVectors(true);
          
+         mergeFiles(usbdmFolder,     usbdmFolder_Check, true);
+
          // Turn of optimisation when generating header files
          ModeControl.setRegenerateAddressBlocks(false);
          ModeControl.setExtractSimilarFields(false);
@@ -850,6 +852,13 @@ public class CreatePeripheralDatabase {
 
 //    firstFileToProcess = ("^MK12D5.*");
 //    firstFileToReject  = ("^MK20D7.*");
+
+//      firstFileToProcess = ("^MK28F15.*");
+//      firstFileToReject  = ("^MK30D10.*");
+
+//    firstFileToProcess = ("^MK22FA12.*");
+
+//      firstFileToProcess  = ("^MKL82Z7.*");
 
 //      doInitialRegeneration();
       doUsualRegeneration();

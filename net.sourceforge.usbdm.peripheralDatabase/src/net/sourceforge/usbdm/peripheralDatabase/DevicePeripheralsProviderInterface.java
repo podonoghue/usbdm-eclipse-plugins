@@ -9,6 +9,8 @@ import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SafeRunner;
 
+import net.sourceforge.usbdm.jni.UsbdmException;
+
 public class DevicePeripheralsProviderInterface {
    
    private static final String PeripheralDescriptionProvider_ID = 
@@ -125,9 +127,9 @@ public class DevicePeripheralsProviderInterface {
     * @return
     * @throws Exception 
     */
-   public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) throws Exception {
+   public DevicePeripherals getDevice(SVDIdentifier svdIdentifier) throws UsbdmException {
       if (svdIdentifier == null) {
-         throw new Exception("DevicePeripheralsProviderInterface.getDevice() null svdIdentifier");
+         throw new UsbdmException("DevicePeripheralsProviderInterface.getDevice() null svdIdentifier");
       }
       DevicePeripherals devicePeripherals = null;
       if (svdIdentifier.getPath() != null) {
@@ -140,7 +142,7 @@ public class DevicePeripheralsProviderInterface {
          devicePeripherals = provider.getDevicePeripherals(svdIdentifier.getDeviceName());
       }
       if (devicePeripherals == null) {
-         throw new Exception("DevicePeripheralsProviderInterface.getDevice() failed for device = " + svdIdentifier);
+         throw new UsbdmException("DevicePeripheralsProviderInterface.getDevice() failed for device = " + svdIdentifier);
       }
       return devicePeripherals;
    }
@@ -152,12 +154,12 @@ public class DevicePeripheralsProviderInterface {
     * @return
     * @throws Exception 
     */
-   public IPeripheralDescriptionProvider getProvider(final String providerId) throws Exception {
+   public IPeripheralDescriptionProvider getProvider(final String providerId) throws UsbdmException {
 //      System.err.println("IPeripheralDescriptionProvider.getProvider() looking for providerId = " + providerId);
 
       IExtensionRegistry registry = Platform.getExtensionRegistry();
       if (registry == null) {
-         throw new Exception("DevicePeripheralsProviderInterface.getProvider() failed to get registry ");
+         throw new UsbdmException("DevicePeripheralsProviderInterface.getProvider() failed to get registry ");
       }
       IConfigurationElement[] config = registry.getConfigurationElementsFor(PeripheralDescriptionProvider_ID);
 
@@ -177,7 +179,7 @@ public class DevicePeripheralsProviderInterface {
       if (peripheralDescriptionProvider.size() > 0) {
          return peripheralDescriptionProvider.get(0);
       }
-      throw new Exception("DevicePeripheralsProviderInterface.getProvider() failed to get provider for " + providerId);
+      throw new UsbdmException("DevicePeripheralsProviderInterface.getProvider() failed to get provider for " + providerId);
    }
    /**
     * Get provider namer from ID

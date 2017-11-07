@@ -22,7 +22,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    private String                    fPrependToName     = "";
    private String                    fAppendToName      = "";
    private String                    fHeaderStructName  = "";
-   private ArrayList<InterruptEntry> fInterrupts        = new ArrayList<InterruptEntry>();
+   private ArrayList<InterruptEntry> fInterrupts        = null;
    private ArrayList<String>         fUsedBy            = new ArrayList<String>();
    private boolean                   fSorted            = false;
    private Peripheral                fDerivedFrom       = null;
@@ -570,8 +570,26 @@ public class Peripheral extends ModeControl implements Cloneable {
       this.fForcedBlockMutiple = forcedBlockMutiple;
    }
 
+   /**
+    * Gets peripheral this peripheral is derived from
+    * 
+    * @return Derived from peripheral or null if none 
+    */
    public Peripheral getDerivedFrom() {
       return fDerivedFrom;
+   }
+
+   /**
+    * Follows chain of derived from peripherals to base peripheral
+    * 
+    * @return Base peripheral
+    */
+   public Peripheral getBasePeripheral() {
+      Peripheral peripheral = this;
+      while (peripheral.getDerivedFrom() != null) {
+         peripheral = peripheral.getDerivedFrom();
+      }
+      return peripheral;
    }
 
    /**
@@ -667,6 +685,9 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @param entry
     */
    void addInterruptEntry(InterruptEntry entry) {
+      if (fInterrupts  == null) {
+         fInterrupts = new ArrayList<InterruptEntry>();
+      }
       fInterrupts.add(entry);
    }
 
@@ -674,20 +695,15 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Clear interrupt entries for this peripheral 
     */
    void clearInterruptEntries() {
-      fInterrupts = new ArrayList<InterruptEntry>();
+      fInterrupts = null;
    }
 
    /** 
-    * Get list of interrupt entries for this peripheral<br>
-    * If derived may return the entries from the derived from peripheral
+    * Get list of interrupt entries for this peripheral.
     * 
     * @return
     */
-   ArrayList<InterruptEntry> getInterruptEntries() {
-      ArrayList<InterruptEntry> interrupts = fInterrupts;
-      if (interrupts.isEmpty() && (getDerivedFrom() != null)) {
-         interrupts = getDerivedFrom().getInterruptEntries();
-      }
+   public ArrayList<InterruptEntry> getInterruptEntries() {
       return fInterrupts;
    }
    
@@ -725,20 +741,21 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (getInterruptEntries() == other.getInterruptEntries()) {
          return true;
       }
-      if ((getInterruptEntries() == null) || (other.getInterruptEntries() == null)) {
-         return false;
-      }
-      if (getInterruptEntries().size() != other.getInterruptEntries().size()) {
-         return false;
-      }
-      sortInterrupts();
-      for (int index=0; index<fInterrupts.size(); index++) {
-         InterruptEntry int1 = fInterrupts.get(index);
-         InterruptEntry int2 = other.fInterrupts.get(index);
-            if (!int1.equals(int2)) {
-               return false;
-            }
-      }
+      // These are a problem since the interrupt entries may change while being constructed
+//      if ((getInterruptEntries() == null) || (other.getInterruptEntries() == null)) {
+//         return false;
+//      }
+//      if (getInterruptEntries().size() != other.getInterruptEntries().size()) {
+//         return false;
+//      }
+//      sortInterrupts();
+//      for (int index=0; index<fInterrupts.size(); index++) {
+//         InterruptEntry int1 = fInterrupts.get(index);
+//         InterruptEntry int2 = other.fInterrupts.get(index);
+//            if (!int1.equals(int2)) {
+//               return false;
+//            }
+//      }
       return rv;
    }
    
@@ -787,6 +804,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * Sort peripheral registers by address offset
     * 
     */
+   @SuppressWarnings("unused")
    private void sortInterrupts() {
       Collections.sort(fInterrupts, new Comparator<InterruptEntry>() {
          @Override
@@ -1586,9 +1604,9 @@ public class Peripheral extends ModeControl implements Cloneable {
       if ((owner == null) || (owner.getResetMask() != getResetMask())) {
          writer.println(String.format(    indenter+"   <resetMask>0x%X</resetMask>",       getResetMask()));
       }
-      if (isCollectVectors() && (getInterruptEntries() != null)) {
+      if (!isCollectVectors() && (getInterruptEntries() != null)) {
          for (InterruptEntry interrupt : getInterruptEntries()) {
-            interrupt.writeSVD(writer, indent+3, false);
+            interrupt.writeSVD(writer, indent+3);
          }
       }
       if (getAddressBlocks() != null) {
@@ -1646,9 +1664,12 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (!isCollectVectors() && (getInterruptEntries() != derived.getInterruptEntries())) {
          writer.print('\n');
          doneNewline = true;
+         if (getInterruptEntries() == null) {
+            System.err.println("Opps - expected vectors in derived peripheral");
+         }
          for (InterruptEntry interrupt : getInterruptEntries()) {
             writer.write(RegisterUnion.getIndent(indent+3));
-            interrupt.writeSVD(writer, -1, false);
+            interrupt.writeSVD(writer, -1);
          }
       }
       if (getAddressBlocks() != derived.getAddressBlocks()) {

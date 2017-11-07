@@ -144,7 +144,7 @@ public abstract class ArmVectorTable extends VectorTable {
             writer.write(String.format(INTERRUPT_SPU_SEPARATOR, getCDescription()));
             separatorWritten = true;
          }
-         String handlerName = getHandlerIrqNumber(index);
+         String handlerName = getHandlerIrqEnum(index);
          if (handlerName != null) {
             writer.write(String.format(INTERRUPT_ENTRY_FORMAT, handlerName, index-VECTOR_OFFSET, index, getHandlerDescription(index)));
          }

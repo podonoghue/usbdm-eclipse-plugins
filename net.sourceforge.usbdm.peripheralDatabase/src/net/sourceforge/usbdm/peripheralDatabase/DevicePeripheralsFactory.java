@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 public class DevicePeripheralsFactory {
    private Path                fFolderPath      = null;
@@ -83,10 +84,10 @@ public class DevicePeripheralsFactory {
     *  
     *  @throws Exception 
     */
-   public DevicePeripherals getDevicePeripherals(Path path) throws Exception {
+   public DevicePeripherals getDevicePeripherals(Path path) throws UsbdmException {
       
       if (!path.toFile().isFile()) {
-         throw new Exception("Path to SVD file is not valid \'" + path + "\'");
+         throw new UsbdmException("Path to SVD file is not valid \'" + path + "\'");
       }
       return new DevicePeripherals(path);
    }

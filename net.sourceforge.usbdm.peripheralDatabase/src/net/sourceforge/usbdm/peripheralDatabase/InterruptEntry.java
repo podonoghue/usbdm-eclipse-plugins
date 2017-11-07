@@ -1,14 +1,16 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
    public class InterruptEntry {
 
-      private int       fIndex;
-      private String    fName;
-      private String    fHandlerName; // This is a transient property and not written to SVD
-      private String    fDescription;
-      private boolean   fClassMemberUsedAsHandler = false;
+      private int                    fIndex;
+      private String                 fName;
+      private String                 fHandlerName; // This is a transient property and not written to SVD
+      private String                 fDescription;
+      private boolean                fClassMemberUsedAsHandler = false;
+      private ArrayList<Peripheral>  fAssociatedPeripheral = new ArrayList<Peripheral>();
       
       public InterruptEntry() {
          this("", 100, null, "");
@@ -123,30 +125,59 @@ import java.io.PrintWriter;
        * @param writer Where to write
        * @param indent Indent to use.  If negative then entry will be written as a single line.
        */
-      public void writeSVD(PrintWriter writer, int indent, boolean writeOwner) {
+      private void writeSVD(PrintWriter writer, int indent, boolean writeOwner) {
          if (indent<0) {
+            // Write on single line 
             writer.print(              "<interrupt>");
             writer.print(String.format("<name>%s</name>", fName));
             writer.print(String.format("<description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.print(String.format("<value>%d</value>", fIndex));
-            if (writeOwner && (fAssociatedPeripheral != null)) {
-               writer.print(String.format("<peripheral>%s</peripheral>", fAssociatedPeripheral));
+            if (writeOwner) {
+               for (Peripheral peripheral:fAssociatedPeripheral) {
+                  writer.print(String.format("<peripheral>%s</peripheral>", peripheral.getName()));
+               }
             }
             writer.println(            "</interrupt>");
          }
          else {
+            // Write on multiple lines 
             final String indenter = RegisterUnion.getIndent(indent);
             writer.println(              indenter+"<interrupt>");
             writer.println(String.format(indenter+"   <name>%s</name>", fName));
             writer.println(String.format(indenter+"   <description>%s</description>", SVD_XML_BaseParser.escapeString(fDescription)));
             writer.println(String.format(indenter+"   <value>%d</value>", fIndex));
-            if (writeOwner && (fAssociatedPeripheral != null)) {
-               writer.println(String.format(indenter+"   <peripheral>%s</peripheral>", fAssociatedPeripheral));
+            if (writeOwner) {
+               for (Peripheral peripheral:fAssociatedPeripheral) {
+                  writer.println(String.format(indenter+"   <peripheral>%s</peripheral>", peripheral.getName()));
+               }
             }
             writer.println(              indenter+"</interrupt>");
          }
       }
 
+      /**
+       * Write SVD for interrupt entry
+       * 
+       * @param writer Where to write
+       * @param indent Indent to use.  If negative then entry will be written as a single line.
+       */
+      public void writeSVD(PrintWriter writer, int indent) {
+         writeSVD(writer, indent, false);
+      }
+      
+      /**
+       * Write SVD entry for consolidated SVD vector table
+       * 
+       * @param writer Where to write
+       * @param indent Indent to use.  If negative then entry will be written as a single line.
+       */
+      public void writeSVDTableEntry(PrintWriter writer, int indent) {
+         writeSVD(writer, indent, true);
+      }
+
+      /**
+       * Get description in format suitable for C source file
+       */
       public String getCDescription() {
          return SVD_XML_BaseParser.unEscapeString(fDescription);
       }
@@ -166,10 +197,12 @@ import java.io.PrintWriter;
          return sb.toString();
       }
       
-      String fAssociatedPeripheral;
+      public void addPeripheral(Peripheral peripheral) {
+         fAssociatedPeripheral.add(peripheral);
+      }
       
-      public void setPeripheral(String peripheralName) {
-         fAssociatedPeripheral = peripheralName;
+      public ArrayList<Peripheral> getPeripheral() {
+         return fAssociatedPeripheral;
       }
       
    };

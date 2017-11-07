@@ -207,14 +207,14 @@ public abstract class VectorTable extends ModeControl {
    
 
    /**
-    * Get name of the handler number<br>
+    * Get handler enum name<br>
     * e.g. AccessError_IRQn
     * 
     * @param index
     * 
     * @return
     */
-   public String getHandlerIrqNumber(int index) {
+   public String getHandlerIrqEnum(int index) {
       if (interrupts[index] != null) {
          return interrupts[index].getName()+EXCEPTION_NUMBER_SUFFIX;
       }
@@ -291,7 +291,7 @@ public abstract class VectorTable extends ModeControl {
             if (vectorNumber<0) {
                continue;
             }
-            entry.writeSVD(writer, indent+3, true);
+            entry.writeSVDTableEntry(writer, indent+3);
 //            String name        = String.format(entry.getName(), vectorNumber);
 //            String description = String.format(entry.getDescription(), vectorNumber);
 //            writer.print(                 indenter+"   <"+SVD_XML_Parser.INTERRUPT_TAG+">\n");
@@ -316,7 +316,7 @@ public abstract class VectorTable extends ModeControl {
    static final String INTERRUPT_POSTAMBLE         = "} IRQn_Type;\n\n";
 
    static final String EXTERNAL_HANDLER_BANNER     = "/* -------------------------  Exception Handlers  ------------------------ */\n";
-   static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %-32s   /**< %-80s */\n";
+   static final String EXTERNAL_HANDLER_TEMPLATE   = "extern void %-38s   /**< %-80s */\n";
 
    /** 
     * Writes a C-code fragment that is suitable for inclusion in a C header file<br>

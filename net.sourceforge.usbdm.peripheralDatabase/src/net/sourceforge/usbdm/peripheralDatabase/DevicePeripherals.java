@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
 public class DevicePeripherals extends ModeControl {
@@ -57,7 +58,7 @@ public class DevicePeripherals extends ModeControl {
     * 
     * @throws Exception 
     */
-   public DevicePeripherals(Path path) throws Exception {
+   public DevicePeripherals(Path path) throws UsbdmException {
       name              = "";
       version           = "0.0";
       description       = "";
@@ -72,7 +73,11 @@ public class DevicePeripherals extends ModeControl {
       equivalentDevices = new ArrayList<String>();
       vectorTable       = null;
 
-      SVD_XML_Parser.parseDocument(path, this);
+      try {
+         SVD_XML_Parser.parseDocument(path, this);
+      } catch (Exception e) {
+         throw new UsbdmException("Failed to parse SVD file "+path, e);
+      }
    }
 
    public void addPeripheral(Peripheral peripheral) {
@@ -447,21 +452,24 @@ public class DevicePeripherals extends ModeControl {
 
    void collectVectors() throws Exception {
       for (Peripheral peripheral : peripherals) {
-         ArrayList<InterruptEntry> interruptEntry = peripheral.getInterruptEntries();
+         ArrayList<InterruptEntry> interruptEntries = peripheral.getInterruptEntries();
+         if (interruptEntries == null) {
+            return;
+         }
          peripheral.clearInterruptEntries();
-         for (InterruptEntry i : interruptEntry) {
-            if (getVectorTable().getEntry(i.getIndexNumber()) != null) {
-               InterruptEntry j = getVectorTable().getEntry(i.getIndexNumber());
-               if (i.getName().equals(j.getName())) {
+         for (InterruptEntry interruptEntry : interruptEntries) {
+            if (getVectorTable().getEntry(interruptEntry.getIndexNumber()) != null) {
+               InterruptEntry j = getVectorTable().getEntry(interruptEntry.getIndexNumber());
+               if (interruptEntry.getName().equals(j.getName())) {
                   continue;
                }
                System.err.println("Interrupt vector already allocated");
-               System.err.println(String.format("name=%s, no=%d d=%s", i.getName(), i.getIndexNumber(), i.getDescription()));
+               System.err.println(String.format("name=%s, no=%d d=%s", interruptEntry.getName(), interruptEntry.getIndexNumber(), interruptEntry.getDescription()));
                System.err.println(String.format("name=%s, no=%d d=%s", j.getName(), j.getIndexNumber(), j.getDescription()));
                //               throw new Exception("Interrupt vector already allocated");
             }
             else {
-               getVectorTable().addEntry(i);
+               getVectorTable().addEntry(interruptEntry);
             }
          }
       }

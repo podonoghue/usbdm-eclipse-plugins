@@ -5,6 +5,8 @@ import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.jni.UsbdmException;
+
 /**
  * Class to identify a SVD file 
  */
@@ -94,9 +96,10 @@ public class SVDIdentifier {
     * Get device name
     * 
     * @return
-    * @throws Exception 
+    * 
+    * @throws UsbdmException 
     */
-   public String getDeviceName() throws Exception {
+   public String getDeviceName() throws UsbdmException {
       if (fDeviceName == null) {
          fDeviceName = getDevicePeripherals().getName();
       }
@@ -123,9 +126,10 @@ public class SVDIdentifier {
     * Get Device Peripherals for this SVD
     * 
     * @return Device Peripherals
-    * @throws Exception if can't locate device peripherals
+    * 
+    * @throws UsbdmException If can't locate device peripherals etc
     */
-   public DevicePeripherals getDevicePeripherals() throws Exception {
+   public DevicePeripherals getDevicePeripherals() throws UsbdmException {
       if (fDevicePeripherals == null) {
          DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
          fDevicePeripherals = devicePeripheralsProviderInterface.getDevice(this);
