@@ -8,14 +8,23 @@ public class UsbdmException extends Exception {
    private static final long serialVersionUID = -3089219531225345831L;
    private int errorNo;
    
-
    /** 
     * Constructor
     * 
     * @param reason_ String describing reason, errorNo is set to -1
     */
-   public UsbdmException(String reason_) {
-      super(reason_);
+   public UsbdmException(String message, Throwable cause) {
+      super(message, cause);
+      errorNo = -1;
+   }
+   
+   /** 
+    * Constructor
+    * 
+    * @param reason_ String describing reason, errorNo is set to -1
+    */
+   public UsbdmException(String message) {
+      super(message);
       errorNo = -1;
    }
    /**

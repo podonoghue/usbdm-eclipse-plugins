@@ -2097,7 +2097,6 @@ public class Usbdm {
     *  Obtain USBDM Data path
     * 
     *  @return Path to USBDM Data directory (user data etc)
-    * 
     */
    public static IPath getDataPath() {
       Path path = null;
