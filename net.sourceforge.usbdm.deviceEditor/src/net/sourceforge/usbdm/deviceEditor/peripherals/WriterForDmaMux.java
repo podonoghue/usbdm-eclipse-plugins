@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
  */
 public class WriterForDmaMux extends PeripheralWithState {
 
-   public WriterForDmaMux(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForDmaMux(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 

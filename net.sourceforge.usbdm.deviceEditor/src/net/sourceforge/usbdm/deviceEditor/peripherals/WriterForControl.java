@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of Control
@@ -15,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
  */
 public class WriterForControl extends PeripheralWithState {
 
-   public WriterForControl(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForControl(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 

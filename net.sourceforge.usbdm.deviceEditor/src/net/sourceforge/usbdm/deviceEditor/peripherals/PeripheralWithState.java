@@ -24,6 +24,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
@@ -40,7 +41,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /** Map of parameters for peripheral */
    protected HashMap<String, String> fConstantMap = new HashMap<String,String>();
 
-   protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) {
+   protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
 //      System.err.println("Creating "+basename+instance+" "+this.getClass());
    }
@@ -54,9 +55,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    public MenuData loadModels() throws Exception {
       try {
-         fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralModelName(), this);
+         fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralVersionName(), this);
       } catch (Exception e) {
-         System.err.println("Warning: Failed to load model "+getPeripheralModelName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
+         System.err.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }
       return fMenuData;
 //      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
@@ -95,7 +96,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      pinMappingHeaderFile.write("   // Template:" + getPeripheralModelName()+"\n\n");
+      pinMappingHeaderFile.write("   // Template:" + getPeripheralVersionName()+"\n\n");
       if (fMenuData == null) {
 //         System.err.println("No fData for " + getName());
          return;
@@ -319,7 +320,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    @Override
    public String toString() {
-      return this.getClassName()+"("+getName()+", "+getPeripheralModelName()+")";
+      return this.getClassName()+"("+getName()+", "+getPeripheralVersionName()+")";
    }
 
    /**
@@ -393,12 +394,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * Defaults to name based on peripheral e.g. ftm<br>
     * May be overridden by <b><i>peripheral_file</i></b> parameter from device file
     */
-   public String getPeripheralModelName() {
+   public String getPeripheralVersionName() {
       String peripheralFile = getParam("peripheral_file");
       if (peripheralFile != null) {
          return peripheralFile;
       }
-      return super.getPeripheralModelName();
+      return super.getPeripheralVersionName();
    }
 
    ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();

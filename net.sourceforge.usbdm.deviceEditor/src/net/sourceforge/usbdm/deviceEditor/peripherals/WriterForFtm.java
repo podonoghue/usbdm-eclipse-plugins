@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -7,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of FTM
@@ -22,7 +24,7 @@ public class WriterForFtm extends PeripheralWithState {
    /** Signals that use this writer */
    protected InfoTable fClkinSignals = new InfoTable("InfoCLKIN");
 
-   public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForFtm(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 

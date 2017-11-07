@@ -294,7 +294,7 @@ public class ParseFamilyCSV {
          return;
       }
       if (line.length < 2) {
-         throw new RuntimeException("Illegal Peripehral Mapping line");
+         throw new RuntimeException("Illegal Peripheral Mapping line");
       }
       String peripheralName = line[PERIPHERAL_NAME_COL];
       Peripheral peripheral = fDeviceInfo.findOrCreatePeripheral(peripheralName);
@@ -314,12 +314,6 @@ public class ParseFamilyCSV {
       if ((peripheralClockMask==null) || (peripheralClockMask.isEmpty())) {
          peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
       }
-      String[] irqNums = new String[10]; 
-      for (int index=0; index<irqNums.length; index++) {
-         if (line.length > index+IRQ_NUM_COL) {
-            irqNums[index] = line[index+IRQ_NUM_COL];
-         }
-      }
 
       if ((peripheralClockReg != null) && !peripheralClockReg.isEmpty()) {
          Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
@@ -332,44 +326,6 @@ public class ParseFamilyCSV {
             throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
          }
          peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
-      }
-      
-      for (int index=0; index<irqNums.length;) {
-         if (irqNums[index] != null) {
-            if (irqNums[index].contains("%")) {
-               String basename = irqNums[index++];
-               String[] expand1 = null;
-               String[] expand2 = null;
-               expand1 = irqNums[index++].split(";");
-               if (basename.contains("%2")) {
-                  expand2 = irqNums[index++].split(";");
-                  if (expand1.length != expand2.length) {
-                     throw new RuntimeException("Array lengths don't match in Irq expansion");
-                  }
-               }
-               for (int expandIndex=0; expandIndex<expand1.length; expandIndex++) {
-                  String irqName = basename.replaceAll(Matcher.quoteReplacement("%1"), expand1[expandIndex]);
-                  if (expand2 != null) {
-                     irqName = irqName.replaceAll(Matcher.quoteReplacement("%2"), expand2[expandIndex]);
-                  }
-                  if (!irqName.endsWith("IRQn")) {
-                     throw new RuntimeException("Unexpected Irq " + basename + " for " + peripheralName);
-                  }
-                  peripheral.addIrqNum(irqName);
-               }
-            }
-            else {
-               // Simple name
-               peripheral.addIrqNum(irqNums[index]);
-               if (!irqNums[index].endsWith("IRQn")) {
-                  throw new RuntimeException("Unexpected Irq " + irqNums[index] + " for " + peripheralName);
-               }
-               index++;
-            }
-         }
-         else {
-            index++;
-         }
       }
    }
 

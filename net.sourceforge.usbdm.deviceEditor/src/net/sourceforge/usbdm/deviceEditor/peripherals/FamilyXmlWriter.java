@@ -22,31 +22,48 @@ import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
 import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 
-public class WriteFamilyXML {
+public class FamilyXmlWriter {
 
-   private DeviceInfo fDeviceInfo;
-
-   public static Map<String, String> getPeripherals(String name) throws Exception {
-      final Path path = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles/Stationery/Device.SVD/Internal/");
+   private final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> fPeripheralMap;
+   private final DeviceInfo           fDeviceInfo;
+   private final DevicePeripherals    fDevicePeripherals;
+   
+   /**
+    * 
+    * @param deviceInfomation
+    * 
+    * @param deviceInfomation Device information
+    * 
+    * @throws IOException
+    * @throws UsbdmException
+    */
+   public FamilyXmlWriter(DeviceInfo deviceInfomation) throws IOException, UsbdmException {
+      fDeviceInfo        = deviceInfomation;
+      fDevicePeripherals = getDevicePeripherals(fDeviceInfo.getFamilyName());
+      fPeripheralMap     = createPeripheralsMap(fDevicePeripherals);
+   }
+   
+   private DevicePeripherals getDevicePeripherals(String deviceName) throws IOException, UsbdmException {
+      final Path path = Paths.get(Usbdm.getUsbdmResourcePath()+"/Stationery/Device.SVD/Internal");
       
-      SVDIdentifier svdId = new SVDIdentifier(path.resolve(name+".svd.xml"));
+      SVDIdentifier svdId = new SVDIdentifier(path.resolve(deviceName+".svd.xml"));
       DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
       DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
+      return devicePeripherals;
+   }
+   
+   private HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> createPeripheralsMap(DevicePeripherals devicePeripherals) {
 
-      HashMap<String, String> map = new HashMap<String, String>();
+      HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> map = 
+            new HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>();
       for (net.sourceforge.usbdm.peripheralDatabase.Peripheral peripheral:devicePeripherals.getPeripherals()) {
-         String filename;
-         String pName = peripheral.getName();
-         while (peripheral.getDerivedFrom() != null) {
-            peripheral = peripheral.getDerivedFrom();
-         }
-         filename = peripheral.getSourceFilename();
-//         System.err.println(String.format("Peripheral %-20s %-20s", pName, filename));
-         map.put(pName, filename.toLowerCase());
+         map.put(peripheral.getName(), peripheral);
       }
       return map;
    }
@@ -198,12 +215,13 @@ public class WriteFamilyXML {
     * 
     * @param documentUtilities
     * @throws IOException
+    * @throws UsbdmException 
     */
-   void writePeripherals(XmlDocumentUtilities documentUtilities) throws IOException {
+   void writePeripherals(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripherals");
       for (String key:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         peripheral.writeXmlInformation(documentUtilities);
+         peripheral.writeXmlInformation(this, documentUtilities);
       }
       documentUtilities.closeTag();
    }
@@ -245,8 +263,6 @@ public class WriteFamilyXML {
       documentUtilities.closeTag();
    }
 
-   private static Map<String, String> fPeripheralMap;
-   
    /**
     * Writes XML file
     * 
@@ -254,24 +270,20 @@ public class WriteFamilyXML {
     * @param deviceInfomation Data to write
     * @throws Exception 
     */
-   public void writeXmlFile(Path xmlFilePath, DeviceInfo deviceInfomation) throws Exception {
-      fDeviceInfo = deviceInfomation;
-
-      fPeripheralMap = getPeripherals(fDeviceInfo.getFamilyName());
-      
+   public void writeXmlFile(Path xmlFilePath) throws Exception {
       String xmlFilename = xmlFilePath.getFileName().toString();
       BufferedWriter writer = Files.newBufferedWriter(xmlFilePath, StandardCharsets.UTF_8);
       XmlDocumentUtilities documentUtilities = new XmlDocumentUtilities(writer);
       documentUtilities.writeXmlFilePreamble(
             xmlFilename, 
             DeviceInfo.DTD_FILE, 
-            "Generated from "+ deviceInfomation.getSourceFilename());
+            "Generated from "+ fDeviceInfo.getSourceFilename());
 
       documentUtilities.openTag("root");
       documentUtilities.writeAttribute("version", DeviceInfo.VERSION);
 
       documentUtilities.openTag("family");
-      documentUtilities.writeAttribute("name", deviceInfomation.getFamilyName());
+      documentUtilities.writeAttribute("name", fDeviceInfo.getFamilyName());
       
       for (String key:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.findVariant(key);
@@ -295,8 +307,17 @@ public class WriteFamilyXML {
    /**
     * @return the PeripheralMap
     */
-   public static Map<String, String> getPeripheralMap() {
+   public Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> getPeripheralMap() {
       return fPeripheralMap;
+   }
+   
+   /**
+    * Get DevicePeripherals from device database
+    * 
+    * @return
+    */
+   public DevicePeripherals getDevicePeripherals() {
+      return fDevicePeripherals;
    }
 
 }

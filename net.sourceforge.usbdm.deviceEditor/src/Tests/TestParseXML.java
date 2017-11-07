@@ -10,7 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.peripherals.FamilyXmlWriter;
 
 public class TestParseXML {
    
@@ -46,9 +46,9 @@ public class TestParseXML {
 
 //         report(deviceInfo);
          
-         WriteFamilyXML writer = new WriteFamilyXML();
          Path xmlFilePath = outputDirectory.resolve(filePath.getFileName());
-         writer.writeXmlFile(xmlFilePath, deviceInfo);
+         FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);
+         writer.writeXmlFile(xmlFilePath);
       }
    }
 

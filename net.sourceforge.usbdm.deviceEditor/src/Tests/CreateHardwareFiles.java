@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriteFamilyXML;
+import net.sourceforge.usbdm.deviceEditor.peripherals.FamilyXmlWriter;
 
 public class CreateHardwareFiles {
    
@@ -44,9 +44,9 @@ public class CreateHardwareFiles {
          
          DeviceInfo deviceInfo = DeviceInfo.create(filePath);
          
-         WriteFamilyXML writer = new WriteFamilyXML();
          Path xmlFilePath = xmlDirectory.resolve(destinationName);
-         writer.writeXmlFile(xmlFilePath, deviceInfo);
+         FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);
+         writer.writeXmlFile(xmlFilePath);
       }
    }
 }

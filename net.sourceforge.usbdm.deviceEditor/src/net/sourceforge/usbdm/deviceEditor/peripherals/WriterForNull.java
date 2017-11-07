@@ -5,6 +5,7 @@ import java.io.IOException;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
  * Class encapsulating the code for writing an instance of DigitalIO
@@ -15,7 +16,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
  */
 public class WriterForNull extends Peripheral {
 
-   public WriterForNull(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForNull(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
       System.err.println("NULL peripheral - " + getName());
    }

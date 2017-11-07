@@ -1724,16 +1724,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return null;
    }
 
-   void doVectors(String deviceName) throws Exception {
-      // Get description of all peripherals for device
-      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
-      // Get description of all peripherals for this device
-      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);
-      if (devicePeripherals == null) {
-         throw new Exception ("Failed to create DevicePeripherals for "+ deviceName);
-      }
-   }
-
    /**
     * Creates vector table information and add to variable map
     * 
@@ -1770,8 +1760,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception 
     */
    public void generateCppFiles() throws Exception {
-      
-      doVectors("FRDM_K22F");
       
       // Output directory for test files
       Path folder = Paths.get("Testing");

@@ -6,6 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
@@ -13,7 +14,7 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  */
 public class WriterForGpio extends PeripheralWithState {
 
-   public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) {
+   public WriterForGpio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
 
