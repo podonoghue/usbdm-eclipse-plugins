@@ -839,24 +839,24 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) {
 //      filesToReject = ("^LPC.*");
-//    firstFileToProcess = ("^MKE16F.*");
-//    firstFileToReject  = ("^MKL.*");
-//    firstFileToProcess = ("^LPC.*");
-//    firstFileToReject  = ("^M.*");
+//      firstFileToProcess = ("^MKE16F.*");
+//      firstFileToReject  = ("^MKL.*");
+//      firstFileToProcess = ("^LPC.*");
+//      firstFileToReject  = ("^M.*");
 
-//    firstFileToProcess = ("^MKE14.*");
-//    firstFileToReject  = ("^MKE16.*");
+//      firstFileToProcess = ("^MKE14.*");
+//      firstFileToReject  = ("^MKE16.*");
 
 //      firstFileToProcess = ("^MKW41.*");
 //      firstFileToReject  = ("^SKEA.*");
 
-//    firstFileToProcess = ("^MK12D5.*");
-//    firstFileToReject  = ("^MK20D7.*");
+//      firstFileToProcess = ("^MK12D5.*");
+//      firstFileToReject  = ("^MK20D7.*");
 
 //      firstFileToProcess = ("^MK28F15.*");
 //      firstFileToReject  = ("^MK30D10.*");
 
-//    firstFileToProcess = ("^MK22FA12.*");
+//      firstFileToProcess = ("^MK22FA12.*");
 
 //      firstFileToProcess  = ("^MKL82Z7.*");
 

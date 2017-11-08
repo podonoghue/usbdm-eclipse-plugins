@@ -819,6 +819,9 @@ public class DevicePeripherals extends ModeControl {
             writer.print(String.format(BASE_ADDRESS_FORMAT, peripheral.getName()+PTR_BASE, peripheral.getBaseAddress()));
             writer.print(String.format(FREESCALE_PERIPHERAL_DECLARATION_FORMAT, peripheral.getName(), peripheral.getSafeHeaderStructName(), peripheral.getName()+PTR_BASE));
             writer.print(String.format(FREESCALE_BASE_ADDRESS_FORMAT, peripheral.getName()+FREESCALE_PTR_BASE, "("+peripheral.getName()+")"));
+            
+            // #define list of Interrupt numbers
+            peripheral.writeCInterruptList(writer);
 
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 
@@ -842,7 +845,10 @@ public class DevicePeripherals extends ModeControl {
 
             // #define macros for each peripheral register field
             peripheral.writeHeaderFileFieldMacros(writer, this);
-
+            
+            // #define list of Interrupt numbers
+            peripheral.writeCInterruptList(writer);
+            
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 
                peripheral.writeHeaderFileRegisterMacro(writer);

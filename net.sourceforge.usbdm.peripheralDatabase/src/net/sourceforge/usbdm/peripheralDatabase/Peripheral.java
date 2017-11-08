@@ -1834,6 +1834,21 @@ public class Peripheral extends ModeControl implements Cloneable {
    }
 
    /**
+    * Write interrupt #define
+    * 
+    * @param writer
+    */
+   void writeCInterruptList(PrintWriter writer)  {
+      if ((getInterruptEntries() != null) && (getInterruptEntries().size()>0)) {
+         writer.print("#define "+getName()+"_IRQS { ");
+         for (InterruptEntry entry:getInterruptEntries()) {
+            writer.print(entry.getName()+"_IRQn, ");
+         }
+         writer.println(" }");
+      }
+   }
+   
+   /**
     *    Find register within this peripheral
     * 
     *    @param name
