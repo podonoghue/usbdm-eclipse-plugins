@@ -402,7 +402,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       return super.getPeripheralVersionName();
    }
 
-   ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();
+   protected ArrayList<IrqVariable> irqVariables = new ArrayList<IrqVariable>();
    
    /**
     * Add a Variable describing a IRQ handler setting

@@ -54,4 +54,10 @@ public class WriterForControl extends PeripheralWithState {
       }
       return index;
    }
+
+   @Override
+   public boolean isSynthetic() {
+      return true;
+   }
+   
 }

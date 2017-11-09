@@ -35,11 +35,9 @@ public class WriterForDmaMux extends PeripheralWithState {
     * Writes enumeration describing DMA slot use
     * 
     * e.g. <pre>
-    *  &lt;dma&gt;
-    *     &lt;slot source="Disabled"       num="0" /&gt;
-    *     &lt;slot source="UART0_Receive"  num="2" /&gt;
-    *     &lt;slot source="UART0_Transmit" num="3" /&gt;
-    *  &lt;dma&gt;
+    *     &lt;dma source="Disabled"       num="0" /&gt;
+    *     &lt;dma source="UART0_Receive"  num="2" /&gt;
+    *     &lt;dma source="UART0_Transmit" num="3" /&gt;
     * </pre>
     * 
     * @param writer
@@ -50,17 +48,15 @@ public class WriterForDmaMux extends PeripheralWithState {
       if (getDmaInfoList().size() == 0) {
          return;
       }
-      documentUtilities.openTag("dma");
       documentUtilities.setAttrWidth(30);
 
       for (DmaInfo item:getDmaInfoList()) {
-         documentUtilities.openTag("slot");
+         documentUtilities.openTag("dma");
          documentUtilities.writeAttribute("source", item.dmaSource);
          documentUtilities.writeAttribute("num",    item.dmaChannelNumber);
          documentUtilities.closeTag();;
       }
       documentUtilities.popAttrWidth();
-      documentUtilities.closeTag();;
    }
 
    @Override

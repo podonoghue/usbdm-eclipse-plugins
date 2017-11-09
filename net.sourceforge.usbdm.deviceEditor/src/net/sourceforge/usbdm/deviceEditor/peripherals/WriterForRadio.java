@@ -54,4 +54,10 @@ public class WriterForRadio extends PeripheralWithState {
       }
       return index;
    }
+
+   @Override
+   public boolean isSynthetic() {
+      return true;
+   }
+   
 }

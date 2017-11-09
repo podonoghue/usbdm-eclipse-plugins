@@ -58,13 +58,13 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOscRf;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
-import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOscRf;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
@@ -298,8 +298,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       fHardwarePath = hardwarePath;
       String filename = fHardwarePath.getFileName().toString();
       if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
-         ParseFamilyCSV parser = new ParseFamilyCSV();
-         parser.parseFile(this, fHardwarePath);
+         ParseFamilyCSV parser = new ParseFamilyCSV(this);
+         parser.parseFile(fHardwarePath);
       }
       else if ((filename.endsWith("xml"))||(filename.endsWith(HARDWARE_FILE_EXTENSION))) {
          ParseFamilyXML parser = new ParseFamilyXML();
@@ -1736,7 +1736,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       String deviceName = fDeviceName;
       if (deviceName.equalsIgnoreCase("$(targetDevice)")) {
          // For testing
-         deviceName = "FRDM_K22F";
+//         deviceName = "FRDM_K22F";
+         deviceName = fVariantName;
       }
       // Get description of all peripherals for this device
       DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);

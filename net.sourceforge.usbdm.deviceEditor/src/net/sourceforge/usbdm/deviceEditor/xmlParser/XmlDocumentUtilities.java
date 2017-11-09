@@ -153,6 +153,9 @@ public class XmlDocumentUtilities {
     * @throws  IOException
     */
    public void writeAttribute(String attribute, String value) throws IOException {
+      if (value == null) {
+         return;
+      }
       XmlEntry current = fXmlStack.peek();
       if (!current.isOpen()) {
          throw new RuntimeException("Attempt to add attribute to closed tag");

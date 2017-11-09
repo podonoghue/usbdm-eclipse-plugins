@@ -1,8 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -212,14 +210,7 @@ public class ParseFamilyXML extends XML_BaseParser {
    }
 
 
-   // Peripherals not implied by the pins
-   ArrayList<Pattern> predefinedPeripherals = new ArrayList<Pattern>();
-   
    private void parsePeripheral(Element peripheralElement) throws Exception {
-      if (predefinedPeripherals.size()==0) {
-         predefinedPeripherals.add(Pattern.compile("(DMAMUX)(\\d*)"));
-         predefinedPeripherals.add(Pattern.compile("(PIT)(\\d*)"));
-      }
       String baseName = peripheralElement.getAttribute("baseName");
       String instance = peripheralElement.getAttribute("instance");
       String version  = peripheralElement.getAttribute("version");
@@ -249,7 +240,7 @@ public class ParseFamilyXML extends XML_BaseParser {
             peripheral.addIrqNum(element.getAttribute("num"));
          }
          else if (element.getTagName() == "dma") {
-            parseDma(element, peripheral);
+            peripheral.addDmaChannel(getIntAttribute(element,"num"), element.getAttribute("source"));
          }
          else if (element.getTagName() == "param") {
             String key   = element.getAttribute("key");
@@ -265,28 +256,6 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
       }
       peripheral.setVersion(version);
-   }
-
-   private void parseDma(Element dmaElement, Peripheral peripheral) throws Exception {
-      if (predefinedPeripherals.size()==0) {
-         predefinedPeripherals.add(Pattern.compile("(DMAMUX)(\\d*)"));
-         predefinedPeripherals.add(Pattern.compile("(PIT)(\\d*)"));
-      }
-      for (Node node = dmaElement.getFirstChild();
-            node != null;
-            node = node.getNextSibling()) {
-         if (node.getNodeType() != Node.ELEMENT_NODE) {
-            continue;
-         }
-         Element element = (Element) node;
-         if (element.getTagName() == "slot") {
-            peripheral.addDmaChannel(getIntAttribute(element,"num"), element.getAttribute("source"));
-         }
-         else {
-            throw new Exception("Unexpected field in DMA, value = \'"+element.getTagName()+"\'");
-         }
-      }
-   
    }
 
    /**

@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,12 +24,59 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
+import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 
 public class ParseFamilyCSV {
-   
+
    /** The parsed information */
-   private DeviceInfo fDeviceInfo;
+   private final DeviceInfo           fDeviceInfo;
    
+   /**
+    * Parser for CSV file
+    * 
+    * @param deviceInfomation  Where to place information
+    * 
+    * @throws IOException     
+    * @throws UsbdmException
+    */
+   public ParseFamilyCSV(DeviceInfo deviceInfomation) throws IOException, UsbdmException {
+      fDeviceInfo        = deviceInfomation;
+   }
+   
+   /**
+    * Get information from SVD file
+    * 
+    * @param deviceName  Device name to look up 
+    * 
+    * @return Peripheral information
+    * 
+    * @throws IOException
+    * @throws UsbdmException
+    */
+   private DevicePeripherals getDevicePeripherals(String deviceName) throws IOException, UsbdmException {
+      final Path path = Paths.get(Usbdm.getUsbdmResourcePath()+"/Stationery/Device.SVD/Internal");
+      
+      SVDIdentifier svdId = new SVDIdentifier(path.resolve(deviceName+".svd.xml"));
+      DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
+      DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
+      return devicePeripherals;
+   }
+   
+   private HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> createPeripheralsMap(DevicePeripherals devicePeripherals) {
+
+      HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> map = 
+            new HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral>();
+      for (net.sourceforge.usbdm.peripheralDatabase.Peripheral peripheral:devicePeripherals.getPeripherals()) {
+         map.put(peripheral.getName(), peripheral);
+      }
+      return map;
+   }
+
    /** Index of Pin name column in CSV file */
    private int fPinIndex       = 1;
    
@@ -494,10 +545,7 @@ public class ParseFamilyCSV {
     * 
     * @throws IOException 
     */
-   public void parseFile(DeviceInfo deviceInfo, Path filePath) throws Exception {
-
-      fDeviceInfo = deviceInfo;
-      
+   public void parseFile(Path filePath) throws Exception {
       // Open source file
       BufferedReader sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
       parsePreliminaryInformation(sourceFile);
@@ -509,7 +557,56 @@ public class ParseFamilyCSV {
       sourceFile = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
       parseFile(sourceFile);
       sourceFile.close();
-      
+
+      // Information from device database
+      final DevicePeripherals fDevicePeripherals = getDevicePeripherals(fDeviceInfo.getFamilyName());
+
+      // Create map to allow peripheral lookup
+      final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> 
+         fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);
+
+      // Attach information from device database
+      for (Entry<String, Peripheral> entry:fDeviceInfo.getPeripherals().entrySet()) {
+         Peripheral peripheral = entry.getValue();
+         
+         // Get database peripheral entry
+         net.sourceforge.usbdm.peripheralDatabase.Peripheral dbPeripheral = fPeripheralMap.get(entry.getKey());
+         if ((dbPeripheral == null)) {
+            if (!peripheral.isSynthetic()) {
+               throw new UsbdmException("Peripheral "+entry.getKey()+" not found");
+            }
+            continue;
+         }
+         // Get peripheral version
+         peripheral.setVersion(dbPeripheral.getBasePeripheral().getSourceFilename().toLowerCase());
+
+         // Attach DMAMUX information from database
+         String[] dmaMuxInputs = dbPeripheral.getDmaMuxInputs();
+         if (dmaMuxInputs != null) {
+            int slotNum = 0;
+            for (String dmaMuxInput:dmaMuxInputs) {
+               if (!dmaMuxInput.startsWith("Reserved")) {
+                  fDeviceInfo.createDmaInfo("0", slotNum, dmaMuxInput);
+               }
+               slotNum++;
+            }
+         }
+         // Attach interrupt information
+         final Pattern p = Pattern.compile("^GPIO([A-Z]).*$");
+         Matcher m = p.matcher(entry.getKey());
+         if (m.matches()) {
+            dbPeripheral = fPeripheralMap.get(m.replaceAll("PORT$1"));
+         }
+         if (dbPeripheral == null) {
+            throw new UsbdmException("Peripheral "+m.replaceAll("PORT$1")+" not found");
+         }
+         ArrayList<InterruptEntry> interruptEntries = dbPeripheral.getInterruptEntries();
+         if (interruptEntries != null) {
+            for (InterruptEntry interruptEntry:interruptEntries) {
+               peripheral.addIrqNum(interruptEntry.getName()+"_IRQn");
+            }
+         }
+      }
       fDeviceInfo.consistencyCheck();
    }
 

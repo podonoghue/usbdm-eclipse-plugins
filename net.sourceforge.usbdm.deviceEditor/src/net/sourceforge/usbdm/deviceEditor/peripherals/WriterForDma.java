@@ -25,11 +25,6 @@ public class WriterForDma extends PeripheralWithState {
    }
 
    @Override
-   public void writeExtraXMLDefinitions(XmlDocumentUtilities documentUtilities) throws IOException {
-      super.writeExtraXMLDefinitions(documentUtilities);
-   }
-   
-   @Override
    public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
    }
 

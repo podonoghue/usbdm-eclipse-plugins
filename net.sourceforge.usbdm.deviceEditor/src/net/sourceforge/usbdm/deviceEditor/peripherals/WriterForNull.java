@@ -41,4 +41,8 @@ public class WriterForNull extends Peripheral {
       System.err.println("WriterForNull: Adding signal "+signal.getName());
    }
 
+   @Override
+   public boolean isSynthetic() {
+      return true;
+   }
 }

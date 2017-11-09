@@ -5,16 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
-import net.sourceforge.usbdm.deviceEditor.peripherals.FamilyXmlWriter;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
-import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 /**
@@ -265,19 +261,16 @@ public abstract class Peripheral extends VariableProvider {
     * @throws IOException 
     * @throws UsbdmException 
     */
-   public void writeXmlInformation(FamilyXmlWriter writeFamilyXML, XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
+   public void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripheral");
       documentUtilities.writeAttribute("baseName", fBaseName);
       documentUtilities.writeAttribute("instance", fInstance);
+      documentUtilities.writeAttribute("version",  fVersion);
 
-      net.sourceforge.usbdm.peripheralDatabase.Peripheral peripheral = writeFamilyXML.getPeripheralMap().get(getName());
-      if (peripheral != null) {
-         documentUtilities.writeAttribute("version", peripheral.getBasePeripheral().getSourceFilename().toLowerCase());
-      }
       documentUtilities.openTag("handler");
       documentUtilities.writeAttribute("class", this.getClass().getName());
       documentUtilities.closeTag();
-
+      
       // Additional, peripheral specific, information
       if ((fClockReg != null) || (fClockMask != null)) {
          documentUtilities.openTag("clock");
@@ -292,22 +285,10 @@ public abstract class Peripheral extends VariableProvider {
       if (fIrqHandler != null) {
          documentUtilities.writeAttribute("irqHandler",  fIrqHandler);
       }
-      // Attach PORT interrupts to GPIO
-      final Pattern p = Pattern.compile("^GPIO([A-Z]).*$");
-      Matcher m = p.matcher(getName());
-      if (m.matches()) {
-         peripheral = writeFamilyXML.getPeripheralMap().get(m.replaceAll("PORT$1"));
-      }
-      if (peripheral != null) {
-         ArrayList<InterruptEntry> interruptEntries = peripheral.getInterruptEntries();
-         if (interruptEntries != null) {
-            for (InterruptEntry interruptEntry:interruptEntries) {
-               documentUtilities.openTag("irq");
-               String irqName = interruptEntry.getName();
-               documentUtilities.writeAttribute("num", irqName+"_IRQn");
-               documentUtilities.closeTag();
-            }
-         }
+      for (String irqNum:getIrqNums()) {
+         documentUtilities.openTag("irq");
+         documentUtilities.writeAttribute("num", irqNum);
+         documentUtilities.closeTag();
       }
       writeExtraXMLDefinitions(documentUtilities);
       documentUtilities.closeTag();
@@ -962,6 +943,15 @@ public abstract class Peripheral extends VariableProvider {
     */
    public void setPinModel(CategoryModel pinModel) {
       fPinModel = pinModel;
+   }
+
+   /**
+    * Indicates if the peripheral represents real hardware
+    * 
+    * @return true if not real hardware
+    */
+   public boolean isSynthetic() {
+      return false;
    }
 
 }

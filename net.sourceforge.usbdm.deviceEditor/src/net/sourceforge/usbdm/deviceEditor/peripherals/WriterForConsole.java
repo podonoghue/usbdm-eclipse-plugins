@@ -20,15 +20,11 @@ public class WriterForConsole extends PeripheralWithState {
    }
    
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      
-   };
+   }
 
-//   @Override
-//   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-//      pinMappingHeaderFile.write("   // Template:" + getVersion()+"\n\n");
-//      String template = fData.fTemplate.get("");
-//      if (template != null) {
-//         pinMappingHeaderFile.write(substitute(template));
-//      }
-//   }
+   @Override
+   public boolean isSynthetic() {
+      return true;
+   };
+   
 }
