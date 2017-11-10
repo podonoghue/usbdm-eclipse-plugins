@@ -840,7 +840,8 @@ public class CreatePeripheralDatabase {
    public static void main(String[] args) {
 //      filesToReject = ("^LPC.*");
 //      firstFileToProcess = ("^MKE16F.*");
-//      firstFileToReject  = ("^MKL.*");
+//      firstFileToProcess  = ("^MKL46Z4.*");
+//      firstFileToProcess  = ("^MKV.*");
 //      firstFileToProcess = ("^LPC.*");
 //      firstFileToReject  = ("^M.*");
 
@@ -859,6 +860,15 @@ public class CreatePeripheralDatabase {
 //      firstFileToProcess = ("^MK22FA12.*");
 
 //      firstFileToProcess  = ("^MKL82Z7.*");
+
+//      firstFileToProcess = ("^MK20D5.*");
+//      firstFileToReject  = ("^MK20D7.*");
+
+//    firstFileToProcess = ("^MK66F18.*");
+//    firstFileToReject  = ("^MK70F15.*");
+
+//      firstFileToProcess = ("^MKL43.*");
+//      firstFileToReject  = ("^MKL46Z4.*");
 
 //      doInitialRegeneration();
       doUsualRegeneration();

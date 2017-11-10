@@ -129,7 +129,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             Element element = (Element) node;
             try {
                if (element.getTagName() == NAME_TAG) {
-                  enumeration.setName(element.getTextContent());
+                  enumeration.setName(getMappedEnumeratedName(element.getTextContent()));
                }
                else if (element.getTagName() == DESCRIPTION_TAG) {
                   enumeration.setDescription(element.getTextContent().trim());
@@ -153,7 +153,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    }
    
    /**
-    * Convert enumerated values to standard form
+    * Convert enumerated values to standard form<br>
     * e.g. #BBBB => 0bBBBB
     * 
     * @param value
@@ -161,11 +161,11 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     * @return
     */
    private static String getMappedEnumeratedValue(String value) {
+      // Mapping to apply to names
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {
-         // Manually eliminate redundant definitions for peripherals which are a subset of earlier peripherals but not derived
-         mappedMacros.add(new Pair(Pattern.compile("^\\#(.*)$"),                "0b$1"));
+         mappedMacros.add(new Pair(Pattern.compile("^\\#(.*)$"), "0b$1"));
       }
       for (Pair p : mappedMacros) {
          Matcher matcher = p.regex.matcher(value);
@@ -177,7 +177,37 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
       }
       return value;
-}
+   }
+   
+   /**
+    * Does some conversions on enumerated names<br>
+    * e.g. #FTM0_Channel0 => FTM0_Ch0
+    * 
+    * @param value
+    * 
+    * @return
+    */
+   private static String getMappedEnumeratedName(String value) {
+      // Mapping to apply to names
+      final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
+
+      if (mappedMacros.size() == 0) {
+         mappedMacros.add(new Pair(Pattern.compile("^\\#(.*)$"),                 "0b$1"));
+         mappedMacros.add(new Pair(Pattern.compile("^(.*)_Channel(\\d+)$"),      "$1_Ch$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(.*)_Transmit(.*)$"),       "$1_Tx$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(.*)_Receive(.*)$"),        "$1_Rx$2"));
+      }
+      for (Pair p : mappedMacros) {
+         Matcher matcher = p.regex.matcher(value);
+         if (matcher.matches()) {
+            if (p.replacement == null) {
+               return null;
+            }
+            return matcher.replaceAll(p.replacement);
+         }
+      }
+      return value;
+   }
    
    /**
     * Parse a <enumeratedValues> element

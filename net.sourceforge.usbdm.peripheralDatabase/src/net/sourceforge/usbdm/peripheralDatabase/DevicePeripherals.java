@@ -26,6 +26,9 @@ import java.util.List;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
+/**
+ * Class holding information about device peripherals created from SVD file
+ */
 public class DevicePeripherals extends ModeControl {
 
    private String                       name;
@@ -821,7 +824,8 @@ public class DevicePeripherals extends ModeControl {
             writer.print(String.format(FREESCALE_BASE_ADDRESS_FORMAT, peripheral.getName()+FREESCALE_PTR_BASE, "("+peripheral.getName()+")"));
             
             // #define list of Interrupt numbers
-            peripheral.writeCInterruptList(writer);
+            peripheral.writeHeaderFileInterruptList(writer);
+            peripheral.writeHeaderFileMiscellaneous(writer);
 
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 
@@ -847,7 +851,8 @@ public class DevicePeripherals extends ModeControl {
             peripheral.writeHeaderFileFieldMacros(writer, this);
             
             // #define list of Interrupt numbers
-            peripheral.writeCInterruptList(writer);
+            peripheral.writeHeaderFileInterruptList(writer);
+            peripheral.writeHeaderFileMiscellaneous(writer);
             
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 

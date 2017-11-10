@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
 public class Peripheral extends ModeControl implements Cloneable {
@@ -1685,6 +1686,141 @@ public class Peripheral extends ModeControl implements Cloneable {
       writer.println(String.format(indenter+"</%s>", SVD_XML_Parser.PERIPHERAL_TAG));
    }
 
+   /**
+    * Write interrupt #define
+    * 
+    * @param writer
+    */
+   void writeHeaderFileInterruptList(PrintWriter writer)  {
+      if ((getInterruptEntries() != null) && (getInterruptEntries().size()>0)) {
+         writer.print("#define "+getName()+"_IRQS { ");
+         for (InterruptEntry entry:getInterruptEntries()) {
+            writer.print(entry.getName()+"_IRQn, ");
+         }
+         writer.println(" }\n");
+      }
+   }
+
+   private static final String DMA_ENUM_OPENING =
+         "\n"+
+         "/**\n"+ 
+         " * DMA multiplexor slot (source) numbers\n"+
+         " */\n"+
+         "typedef enum DmaSlot {\n";
+
+   private static final String DMA_FORMAT = "   %-35s = %8s, //!<  %s\n";
+
+   private static final String DMA_ENUM_CLOSING = "} DmaSlot;\n\n";
+
+   /**
+    * Create array of DMAMUX slot descrptions
+    * 
+    * @return array of names or null if not a DMAMUX
+    * 
+    * @throws UsbdmException if illegal name found
+    */
+   public String[] getDmaMuxInputs() throws UsbdmException {
+      final Pattern peripheralPattern = Pattern.compile("DMAMUX(\\d+)");
+      final Matcher peripheralMatcher = peripheralPattern.matcher(getName());
+      if (!peripheralMatcher.matches()) {
+         return null;
+      }
+      ArrayList<String> entries = null;
+      for (Cluster cluster:getRegisters()) {
+         if (cluster instanceof Register) {
+            Register register = (Register)cluster;
+            final Pattern registerPattern = Pattern.compile("CHCFG_?(LOW|HIGH)?.*");
+            final Matcher registerMatcher = registerPattern.matcher(register.getName());
+            for (Field field:register.getFields()) {
+               if (registerMatcher.matches()) {
+                  String modifier    = ""; 
+                  if (registerMatcher.group(1) != null) {
+                     if (registerMatcher.group(1).equals("LOW")) {
+                        modifier    = " (Low channels 0-15)";
+                     }
+                     else if (registerMatcher.group(1).equals("HIGH")) {
+                        modifier    = " (High channels 16-31)";
+                     }
+                  }
+                  if (field.getName().equals("SOURCE")) {
+                     for (Enumeration e:field.getEnumerations()) {
+                        String identifier = e.getCDescription()+modifier;
+                        if (entries == null) {
+                           entries = new ArrayList<String>();
+                        }
+                        entries.add(identifier);
+                     }
+                  }
+               }
+            }
+         }
+      }
+      if (entries == null) {
+         return null;
+      }
+      return entries.toArray(new String[entries.size()]);
+   }
+   /**
+    * Write interrupt #define
+    * 
+    * @param writer
+    * @throws UsbdmException 
+    */
+   void writeHeaderFileMiscellaneous(PrintWriter writer) throws UsbdmException  {
+      final Pattern peripheralPattern = Pattern.compile("DMAMUX(\\d+)");
+      final Matcher peripheralMatcher = peripheralPattern.matcher(getName());
+      if (!peripheralMatcher.matches()) {
+         return;
+      }
+      boolean doneBraces = false;
+      String instance = peripheralMatcher.group(1);
+      for (Cluster cluster:getRegisters()) {
+         if (cluster instanceof Register) {
+            Register register = (Register)cluster;
+            final Pattern registerPattern = Pattern.compile("CHCFG_?(LOW|HIGH)?.*");
+            final Matcher registerMatcher = registerPattern.matcher(register.getName());
+            for (Field field:register.getFields()) {
+               if (registerMatcher.matches()) {
+                  String description = ""; 
+                  String modifier    = ""; 
+                  String offset      = "";
+                  if (registerMatcher.group(1) != null) {
+                     if (registerMatcher.group(1).equals("LOW")) {
+                        description = " - low channels 0-15";
+                        modifier    = "Low";
+                     }
+                     else if (registerMatcher.group(1).equals("HIGH")) {
+                        description = " - high channels 16-31";
+                        modifier    = "High";
+                        offset      = "0x800|";
+                     }
+                  }
+                  if (field.getName().equals("SOURCE")) {
+                     for (Enumeration e:field.getEnumerations()) {
+                        if (e.getName().startsWith("Reserved")) {
+                           continue;
+                        }
+                        String identifier = "Dma"+instance+"Slot"+modifier+"_"+e.getName();
+                        if (!Utiltity.isCIdentifier(identifier)) {
+                           throw new UsbdmException("Invalid name for C identifier in DMAMUX names \'"+identifier+"\'");
+                        }
+                        if (!doneBraces) {
+                           writer.print(String.format(DMA_ENUM_OPENING, description));
+                           doneBraces = true;
+                        }
+                        writer.print(String.format(DMA_FORMAT, identifier, offset+e.getValue(), e.getDescription()+description));
+                     }
+                  }
+               }
+            }
+         }
+      }
+      if (doneBraces) {
+         writer.print(String.format(DMA_ENUM_CLOSING));
+         doneBraces = false;
+      }
+   }
+   
    static final String DEVICE_HEADER_FILE_STRUCT_PREAMBLE =   
        "\n"
       +"/* ================================================================================ */\n"
@@ -1833,21 +1969,6 @@ public class Peripheral extends ModeControl implements Cloneable {
       writeGroupPostamble(writer, getGroupName()+"_"+macroGroupSuffix);
    }
 
-   /**
-    * Write interrupt #define
-    * 
-    * @param writer
-    */
-   void writeCInterruptList(PrintWriter writer)  {
-      if ((getInterruptEntries() != null) && (getInterruptEntries().size()>0)) {
-         writer.print("#define "+getName()+"_IRQS { ");
-         for (InterruptEntry entry:getInterruptEntries()) {
-            writer.print(entry.getName()+"_IRQn, ");
-         }
-         writer.println(" }");
-      }
-   }
-   
    /**
     *    Find register within this peripheral
     * 

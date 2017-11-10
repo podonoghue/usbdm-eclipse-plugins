@@ -331,7 +331,7 @@ public abstract class VectorTable extends ModeControl {
    public abstract void writeCInterruptHeader(Writer writer) throws Exception;
    
    /**
-    * Writes a C-code fragment the is suitable for creating a vector table for the device.
+    * Writes a C-code fragment that is suitable for creating a vector table for the device.
     * 
     * @param writer  Where to write the fragment
     * 
