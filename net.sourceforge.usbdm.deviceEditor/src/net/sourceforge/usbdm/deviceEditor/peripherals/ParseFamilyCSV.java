@@ -583,6 +583,9 @@ public class ParseFamilyCSV {
          // Attach DMAMUX information from database
          String[] dmaMuxInputs = dbPeripheral.getDmaMuxInputs();
          if (dmaMuxInputs != null) {
+            if ((dmaMuxInputs.length != 64) && (dmaMuxInputs.length != 128)) {
+               throw new UsbdmException("Illegal dma table size");
+            }
             int slotNum = 0;
             for (String dmaMuxInput:dmaMuxInputs) {
                if (!dmaMuxInput.startsWith("Reserved")) {

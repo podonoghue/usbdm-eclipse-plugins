@@ -4,6 +4,7 @@ public class DmaInfo {
    public final Peripheral dmaPeripheral;
    public final int        dmaChannelNumber;
    public final String     dmaSource;
+   
    public DmaInfo(Peripheral dmaPeripheral, int dmaChannelNumber, String dmaSource) {
       this.dmaPeripheral    = dmaPeripheral;
       this.dmaChannelNumber = dmaChannelNumber;
