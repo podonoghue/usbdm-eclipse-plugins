@@ -23,7 +23,7 @@ public class ModeControl {
     * * Field bit offsets use      _SHIFT           _Pos
     * 
     */
-   private static boolean freescaleModeFieldNames = false;
+   private static boolean freescaleModeFieldNames = true;
 
    /**
     * Whether to generate Freescale style MACROs to access fields in registers
@@ -77,9 +77,9 @@ public class ModeControl {
    private static boolean foldRegisters = false;
 
    /**
-    * Whether to generate bit fields a simple numbers or used (1<<N) shifts
+    * Whether to generate bit fields a simple numbers or used (1&lt;&lt;N) shifts
     */
-   private static boolean useShiftsInFieldMacros = true;
+   private static boolean useShiftsInFieldMacros = false;
 
    /**
     * Whether to do some intelligent hacks on the files produced.  This
@@ -115,7 +115,7 @@ public class ModeControl {
    /**
     * Whether to always pad structures with bytes rather than larger elements.
     */
-   private static boolean useBytePadding = false;
+   private static boolean useBytePadding = true;
 
    /**
     * Whether to map register names when loading XML e.g.
@@ -710,8 +710,13 @@ public class ModeControl {
 
    /**
     * Sets whether to use shifts in field macros
+    * <pre>
+    * #define DEV_REG_MSK    (0x01UL &lt;&lt; DEV_REG_POS)
+    *   // versus
+    * #define DEV_REG_MASK   (0x80U)
+    * </pre>
     *  
-    * @param useShiftsInFieldMacros the useShiftsInFiledMacros to set
+    * @param useShiftsInFieldMacros True to use shifts in field macros
     */
    public static void setUseShiftsInFieldMacros(boolean useShiftsInFieldMacros) {
       ModeControl.useShiftsInFieldMacros = useShiftsInFieldMacros;

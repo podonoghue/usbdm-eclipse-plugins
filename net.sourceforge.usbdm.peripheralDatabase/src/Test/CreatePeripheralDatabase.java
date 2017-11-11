@@ -662,11 +662,11 @@ public class CreatePeripheralDatabase {
          ModeControl.setMapFreescalePeriperalCommonNames(false);
          ModeControl.setFoldRegisters(false);
 
-         // Header file generation options
-         ModeControl.setGenerateFreescaleRegisterMacros(false);
-         ModeControl.setFreescaleFieldNames(true);
-         ModeControl.setUseShiftsInFieldMacros(false);
-         ModeControl.setUseBytePadding(true);
+         // Header file generation options (use defaults)
+//         ModeControl.setGenerateFreescaleRegisterMacros(false);
+//         ModeControl.setFreescaleFieldNames(true);
+//         ModeControl.setUseShiftsInFieldMacros(false);
+//         ModeControl.setUseBytePadding(true);
          createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
 
       } catch (Exception e) {
