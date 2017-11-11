@@ -140,6 +140,9 @@ public class DeviceFileList extends SVD_XML_BaseParser {
          if (!entry.deviceNamePattern.isEmpty() && deviceName.matches(entry.deviceNamePattern)) {
             return entry.svdName;
          }
+         if (deviceName.equalsIgnoreCase(entry.svdName)) {
+            return entry.svdName;
+         }
          // Try name directly
          if (deviceName.equalsIgnoreCase(entry.deviceName)) {
             return entry.svdName;
