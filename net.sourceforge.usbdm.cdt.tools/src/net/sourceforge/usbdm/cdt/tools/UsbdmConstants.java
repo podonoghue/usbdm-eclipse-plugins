@@ -125,4 +125,7 @@ public class UsbdmConstants {
    public static final String PROJECT_START_UP_CODE_PATH    = "Startup_Code";
    public static final String PROJECT_VECTOR_C_PATH         = PROJECT_START_UP_CODE_PATH+"/vectors.c";
    public static final String PROJECT_VECTOR_CPP_PATH       = PROJECT_START_UP_CODE_PATH+"/vectors.cpp";
+   public static final String PROJECT_INCLUDE_FOLDER        = "Project_Headers";
+   public static final String PROJECT_SOURCES_FOLDER        = "Sources";
+   
 }
