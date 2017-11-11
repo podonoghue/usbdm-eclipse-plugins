@@ -1832,7 +1832,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       +" */\n"
       ;
 
-   static final String DEVICE_OPEN_STRUCT  = "typedef struct {                                /*       %-60s */\n";
+   static final String DEVICE_OPEN_STRUCT  = "typedef struct %s {\n";
    static final String DEVICE_CLOSE_STRUCT = "} %s;\n\n";
 
    public String getSafeHeaderStructName() {
@@ -1852,7 +1852,11 @@ public class Peripheral extends ModeControl implements Cloneable {
 
    /**
     *    Writes C code for Peripheral declaration e.g. a typedef for a STRUCT representing all the peripheral registers<br>
-    *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
+    *    e.g. <pre>
+    *    <b>typedef struct peripheralName_Type {
+    *    ...
+    *    } peripheralName_Type;</b>
+    *    </pre>
     * 
     *    @param writer
     *    @param devicePeripherals
@@ -1867,7 +1871,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       
       RegisterUnion unionRegisters = new RegisterUnion(writer, indent+3, this, 0L);
       
-      writer.print(indenter+String.format(DEVICE_OPEN_STRUCT, getName()+" Structure"));
+      writer.print(indenter+String.format(DEVICE_OPEN_STRUCT, getSafeHeaderStructName() ));
 
       for(Cluster cluster : fRegisters) {
          unionRegisters.add(cluster);
