@@ -1773,6 +1773,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          return;
       }
       boolean doneBraces = false;
+      HashSet<String> usedEnums = null;
       String instance = peripheralMatcher.group(1);
       for (Cluster cluster:getRegisters()) {
          if (cluster instanceof Register) {
@@ -1805,9 +1806,14 @@ public class Peripheral extends ModeControl implements Cloneable {
                            throw new UsbdmException("Invalid name for C identifier in DMAMUX names \'"+identifier+"\'");
                         }
                         if (!doneBraces) {
+                           usedEnums = new HashSet<>();
                            writer.print(String.format(DMA_ENUM_OPENING, description));
                            doneBraces = true;
                         }
+                        if (usedEnums.contains(identifier)) {
+                           throw new UsbdmException("Repeated enum value for DMA slot");
+                        }
+                        usedEnums.add(identifier);
                         writer.print(String.format(DMA_FORMAT, identifier, offset+e.getValue(), e.getDescription()+description));
                      }
                   }
