@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,20 +15,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
 import net.sourceforge.usbdm.deviceEditor.information.DevicePackage;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
-import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.DevicePeripherals;
-import net.sourceforge.usbdm.peripheralDatabase.DevicePeripheralsProviderInterface;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
-import net.sourceforge.usbdm.peripheralDatabase.SVDIdentifier;
 
 public class ParseFamilyCSV {
 
@@ -46,25 +42,6 @@ public class ParseFamilyCSV {
     */
    public ParseFamilyCSV(DeviceInfo deviceInfomation) throws IOException, UsbdmException {
       fDeviceInfo        = deviceInfomation;
-   }
-   
-   /**
-    * Get information from SVD file
-    * 
-    * @param deviceName  Device name to look up 
-    * 
-    * @return Peripheral information
-    * 
-    * @throws IOException
-    * @throws UsbdmException
-    */
-   private DevicePeripherals getDevicePeripherals(String deviceName) throws IOException, UsbdmException {
-      final Path path = Paths.get(Usbdm.getUsbdmResourcePath()+"/Stationery/Device.SVD/Internal");
-      
-      SVDIdentifier svdId = new SVDIdentifier(path.resolve(deviceName+".svd.xml"));
-      DevicePeripheralsProviderInterface devicePeripheralsProviderInterface = new DevicePeripheralsProviderInterface();
-      DevicePeripherals devicePeripherals = devicePeripheralsProviderInterface.getDevice(svdId);
-      return devicePeripherals;
    }
    
    private HashMap<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> createPeripheralsMap(DevicePeripherals devicePeripherals) {
@@ -559,8 +536,8 @@ public class ParseFamilyCSV {
       sourceFile.close();
 
       // Information from device database
-      final DevicePeripherals fDevicePeripherals = getDevicePeripherals(fDeviceInfo.getFamilyName());
-
+      final DevicePeripherals fDevicePeripherals = fDeviceInfo.getDevicePeripherals();
+      
       // Create map to allow peripheral lookup
       final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> 
          fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);

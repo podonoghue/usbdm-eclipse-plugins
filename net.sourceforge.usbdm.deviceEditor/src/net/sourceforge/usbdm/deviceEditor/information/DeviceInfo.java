@@ -1731,19 +1731,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception
     */
    private void generateVectorTable(Map<String, String> variableMap) throws Exception {
+      
       // Get description of all peripherals for device
-      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
-      String deviceName = fDeviceName;
-      if (deviceName.equalsIgnoreCase("$(targetDevice)")) {
-         // For testing
-//         deviceName = "FRDM_K22F";
-         deviceName = fVariantName;
-      }
       // Get description of all peripherals for this device
-      DevicePeripherals devicePeripherals = factory.getDevicePeripherals(deviceName);
-      if (devicePeripherals == null) {
-         throw new Exception ("Failed to create devicePeripherals when writing Vector Table for "+ deviceName);
-      }
+      DevicePeripherals devicePeripherals = getDevicePeripherals();
+      
       // Update vector table
       VectorTable vectorTable = devicePeripherals.getVectorTable();
       for (String peripheralName:getPeripherals().keySet()) {
@@ -1764,6 +1756,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       
       // Output directory for test files
       Path folder = Paths.get("Testing");
+
+      // Generate device header file
+      Path headerfilePath   = folder.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(getFamilyName()+".h");
+      getDevicePeripherals().writeHeaderFile(headerfilePath);
 
       // Generate pinmapping.h etc
       WriteFamilyCpp writer = new WriteFamilyCpp();
@@ -1794,6 +1790,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void generateCppFiles(IProject project, IProgressMonitor monitor) throws Exception {
       monitor.subTask("Generating CPP files");
+
+      // Generate device header file
+      Path projectDirectory = Paths.get(project.getLocation().toPortableString());
+      Path headerfilePath   = projectDirectory.resolve(UsbdmConstants.PROJECT_INCLUDE_FOLDER).resolve(getFamilyName()+".h");
+      getDevicePeripherals().writeHeaderFile(headerfilePath);
 
       // Generate pinmapping.h etc
       WriteFamilyCpp writer = new WriteFamilyCpp();
@@ -2037,6 +2038,36 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
       setDirty(true);
+   }
+
+   // Cached information from SVD file
+   DevicePeripherals fDevicePeripherals = null;
+   
+   /**
+    * Get peripheral information from SVD file<br>
+    * This is an time consuming operation.
+    * 
+    * @return Peripheral information
+    * 
+    * @throws UsbdmException
+    */
+   public DevicePeripherals getDevicePeripherals() throws UsbdmException {
+
+      if (fDevicePeripherals != null) {
+         // Return cached copy
+         return fDevicePeripherals;
+      }
+
+      DevicePeripheralsFactory factory = new DevicePeripheralsFactory();
+      if ((fDeviceName == null) || fDeviceName.equalsIgnoreCase("$(targetDevice)")) {
+         fDeviceName = fFamilyName;
+      }
+      String deviceName = fDeviceName;
+      fDevicePeripherals = factory.getDevicePeripherals(deviceName);
+      if (fDevicePeripherals == null) {
+         throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ deviceName + "\'");
+      }
+      return fDevicePeripherals;
    }
 
 }
