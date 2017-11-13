@@ -218,39 +218,35 @@ public class ProjectActionList extends ProjectAction {
    public Result visit(Visitor visitor, Value value, IProgressMonitor progressMonitor) {
       SubMonitor monitor = SubMonitor.convert(progressMonitor);
       monitor.beginTask("Visiting", (1+fProjectActionList.size()));
-      
-      try {
-         Result control = visitor.applyTo(this, value, monitor.newChild(1));
+
+      Result control = visitor.applyTo(this, value, monitor.newChild(1));
+      switch (control.getStatus()) {
+      case EXCEPTION     : 
+         // No more actions applied
+         return control;
+      case PRUNE     : 
+         // No children visited
+         return new Result(Status.CONTINUE);
+      case CONTINUE  : 
+         // Keep going
+         break;
+      }
+      for (ProjectAction action:fProjectActionList) {
+         if (action instanceof ProjectActionList) {
+            control = ((ProjectActionList)action).visit(visitor, value, monitor.newChild(1));
+         }
+         else {
+            control = visitor.applyTo(action, value, monitor.newChild(1));
+         }
          switch (control.getStatus()) {
-            case EXCEPTION     : 
-               // No more actions applied
-               return control;
-            case PRUNE     : 
-               // No children visited
-               return new Result(Status.CONTINUE);
-            case CONTINUE  : 
-               // Keep going
-               break;
+         case EXCEPTION     : 
+            // No more actions applied
+            return control;
+         case PRUNE     : 
+         case CONTINUE  : 
+            // Keep going
+            break;
          }
-         for (ProjectAction action:fProjectActionList) {
-            if (action instanceof ProjectActionList) {
-               control = ((ProjectActionList)action).visit(visitor, value, monitor.newChild(1));
-            }
-            else {
-               control = visitor.applyTo(action, value, monitor.newChild(1));
-            }
-            switch (control.getStatus()) {
-               case EXCEPTION     : 
-                  // No more actions applied
-                  return control;
-               case PRUNE     : 
-               case CONTINUE  : 
-                  // Keep going
-                  break;
-            }
-         }
-      } finally {
-         monitor.done();
       }
       return new Result(Status.CONTINUE);
    }

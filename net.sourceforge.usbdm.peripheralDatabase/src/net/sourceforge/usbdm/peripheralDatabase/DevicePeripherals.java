@@ -23,6 +23,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
+
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
@@ -666,7 +669,7 @@ public class DevicePeripherals extends ModeControl {
     *   
     *  @param  headerFilePath  The destination for the data
     *  
-    *  @throws Exception 
+    *  @throws Exception
     */
    public void writeHeaderFile(Path headerFilePath) throws Exception {
       File headerFile = headerFilePath.toFile();
@@ -680,6 +683,20 @@ public class DevicePeripherals extends ModeControl {
             writer.close();
          }
       }
+   }
+
+   /**
+    *  Creates a header file from the device description
+    *   
+    *  @param headerFilePath  The destination for the data
+    *  @param monitor         Progress monitor
+    *  
+    *  @throws Exception
+    */
+   public void writeHeaderFile(Path headerFilePath, IProgressMonitor monitor) throws Exception {
+      SubMonitor subMonitor = SubMonitor.convert(monitor);
+      subMonitor.subTask("Generating device header file");
+      writeHeaderFile(headerFilePath);
    }
 
    static final String NVIC_PRIO_FORMAT = 
@@ -908,11 +925,11 @@ public class DevicePeripherals extends ModeControl {
     * @param deviceName
     * @param headerFilePath
     */
-   public void createHeaderFile(String deviceName, Path headerFilePath) {
+   public void createHeaderFile(String deviceName, Path headerFilePath, IProgressMonitor monitor) {
       // Read device description
       System.out.println("Creating : \""+headerFilePath+"\"");
       try {
-         writeHeaderFile(headerFilePath);
+         writeHeaderFile(headerFilePath, monitor);
       } catch (Exception e) {
          e.printStackTrace();
       }

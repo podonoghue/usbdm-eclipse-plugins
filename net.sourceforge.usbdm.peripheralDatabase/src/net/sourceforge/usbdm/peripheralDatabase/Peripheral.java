@@ -1806,7 +1806,7 @@ public class Peripheral extends ModeControl implements Cloneable {
                            throw new UsbdmException("Invalid name for C identifier in DMAMUX names \'"+identifier+"\'");
                         }
                         if (!doneBraces) {
-                           usedEnums = new HashSet<>();
+                           usedEnums = new HashSet<String>();
                            writer.print(String.format(DMA_ENUM_OPENING, description));
                            doneBraces = true;
                         }

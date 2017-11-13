@@ -13,8 +13,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -193,25 +193,31 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
     * @return 
     */
    public void generateCode() {
+      
       Job job = new Job("Regenerate code files") {
+         
          protected IStatus run(IProgressMonitor monitor) {
-//            System.err.println("GenerateCodeAction.run()");
-            monitor.beginTask("Started...", 10);
+            SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+
             if (fFactory == null) {
-               monitor.done();
                return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
             }
             try {
+               subMonitor.setTaskName("Regenerate project files");
+               subMonitor.subTask("Starting...");
                if (fProject != null) {
                   // Opened as part of a Eclipse project
-                  fFactory.getDeviceInfo().generateCppFiles(fProject, new NullProgressMonitor());
+                  fFactory.getDeviceInfo().generateCppFiles(fProject, subMonitor.newChild(50));
                   
                   // Refresh project
-                  fProject.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+                  subMonitor.subTask("Refreshing files...");
+                  fProject.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(10));
                   
+                  subMonitor.subTask("Indexing files...");
                   final ICProject cproject = CoreModel.getDefault().create(fProject);
-                  CCorePlugin.getIndexManager().reindex(cproject); 
-                  CCorePlugin.getIndexManager().joinIndexer(IIndexManager.FOREVER, monitor); 
+                  final IIndexManager indexManager = CCorePlugin.getIndexManager();
+                  indexManager.reindex(cproject); 
+                  indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(40)); 
                }
                else {
                   // Used for testing
@@ -219,7 +225,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                }
             } catch (Exception e) {
                e.printStackTrace();
-               monitor.done();
                return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
             }
             return Status.OK_STATUS;
@@ -339,7 +344,9 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }   
 
    @Override
-   public void doSave(IProgressMonitor paramIProgressMonitor) {
+   public void doSave(IProgressMonitor monitor) {
+      SubMonitor.convert(monitor, 100);
+
       if (fFactory == null) {
          return;
       }
