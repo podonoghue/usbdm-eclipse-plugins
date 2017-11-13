@@ -1,4 +1,5 @@
-Family,MKL43Z4,mkl,,,,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MKL43Z4,mk,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 Device,MKL43Z128VLH4,KL43P64M48SF6RM,LQFP_64,,,,,,,,,,,,,,,
 Device,MKL43Z256VLH4,KL43P64M48SF6RM,LQFP_64,,,,,,,,,,,,,,,

@@ -8,39 +8,39 @@ package net.sourceforge.usbdm.deviceEditor.information;
  * <li> Manual name
  */
 public class DeviceVariantInformation {
-   /** Variant name */
-   String            fName;
+   /** Variant name e.g. MK20DN32VLH5, FRDM_K20D50M */
+   String            fVariantName;
    
-   /** Package for variant */
+   /** Package for variant e.g. LQFP_64, QFN_32 */
    DevicePackage     fPackage;
    
-   /** Manual for variant */
+   /** Manual for variant e.g. K20P64M50SF0RM */
    String            fManual;
    
    /**
     * Constructor
     * 
-    * @param variantName             Device name
-    * @param devicePackage    Package
-    * @param manual           Manual reference
+    * @param variantName      Device variant name e.g. MK20DN32VLH5, FRDM_K20D50M
+    * @param devicePackage    Package e.g. LQFP_64, QFN_32
+    * @param manual           Manual reference e.g. K20P64M50SF0RM
     */
    public DeviceVariantInformation(String variantName, DevicePackage devicePackage, String manual) {
-      fName    = variantName;
+      fVariantName    = variantName;
       fPackage = devicePackage;
       fManual  = manual;
    }
    
    /**
-    * Get Variant name
+    * Get Variant name e.g. MK20DN32VLH5, FRDM_K20D50M
     * 
     * @return
     */
    public String getName() {
-      return fName;
+      return fVariantName;
    }
    
    /**
-    * Get manual name
+    * Get manual name e.g. K20P64M50SF0RM
     * 
     * @return
     */
@@ -49,7 +49,7 @@ public class DeviceVariantInformation {
    }
    
    /**
-    * Get package
+    * Get package e.g. LQFP_64, QFN_32
     * 
     * @return
     */
@@ -59,6 +59,6 @@ public class DeviceVariantInformation {
    
    @Override
    public String toString() {
-      return "Device("+fName+", "+fPackage+", "+fManual+")";
+      return "DeviceVariantInformation["+fVariantName+", "+fPackage+", "+fManual+"]";
    }
 }

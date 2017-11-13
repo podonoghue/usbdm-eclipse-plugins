@@ -1,15 +1,9 @@
-Family,MK28F15,mk,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,
+TargetDeviceSubFamily,MK28F15,mk,,,,,,,,,,,,
 ,,,,,,,,,,,,,,
 Device,MK28FN2M0VMI15,K28P210M150SF5RM,BGA_169,,,,,,,,,,,
 Device,FRDM_K28F,K28P210M150SF5RM,FRDM_K28F,,,,,,,,,,,
 Device,MK28FN2M0CAU15R,K28P210M150SF5RM,WLCSP_210,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,
 Key,Pin,Pkg FRDM_K28F,Pkg BGA_169,Pkg WLCSP_210,Reset,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Order
 Pin,ADC0_DM0,,L2,N13,ADC0_DM0,,,,,,,,,39

@@ -1,4 +1,5 @@
-Family,MK22D5,mk,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,
+TargetDeviceSubFamily,MK22D5,mk,,,,,,,,,,,
 ,,,,,,,,,,,,,
 Device,MK22DX128VLF5,K22P48M50SF4RM,LQFP_48,,,,,,,,,,
 Device,MK22DX256VLF5,K22P48M50SF4RM,LQFP_48,,,,,,,,,,

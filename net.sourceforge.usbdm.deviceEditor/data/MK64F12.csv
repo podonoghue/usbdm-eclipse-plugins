@@ -1,4 +1,5 @@
-Family,MK64F12,mk,,,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MK64F12,mk,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,
 Device,MK64FX512VLL12,K64P144M120SF5RM,LQFP_100,,,,,,,,,,,,,,
 Device,MK64FN1M0VLL12,K64P144M120SF5RM,LQFP_100,,,,,,,,,,,,,,

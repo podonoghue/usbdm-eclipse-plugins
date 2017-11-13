@@ -44,7 +44,7 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
     */
    private Image createImage() {
       try {
-         DeviceVariantInformation deviceVariant = fModelFactory.getDeviceInfo().getDeviceVariant();
+         DeviceVariantInformation deviceVariant = fModelFactory.getDeviceInfo().getVariant();
          IPath path = Usbdm.getResourcePath().append("Stationery/Packages/Images/"+deviceVariant.getPackage().getName()+".png");
          return new Image(Display.getCurrent(), path.toString());
       } catch (Exception e) {

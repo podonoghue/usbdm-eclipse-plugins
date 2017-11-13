@@ -320,7 +320,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       underConstruction     = false;
       
       fDeviceInfo           = deviceInfo;
-      fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
+      fCurrentDeviceVariant = fDeviceInfo.getVariant();
 
       fDeviceInfo.addListener(this);
 
@@ -397,9 +397,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
          return;
       }
       if (model instanceof DeviceInfo) {
-         if (fCurrentDeviceVariant != fDeviceInfo.getDeviceVariant()) {
+         if (fCurrentDeviceVariant != fDeviceInfo.getVariant()) {
             // Major change
-            fCurrentDeviceVariant = fDeviceInfo.getDeviceVariant();
+            fCurrentDeviceVariant = fDeviceInfo.getVariant();
             createModels();
             notifyStructureChangeListeners();
          }

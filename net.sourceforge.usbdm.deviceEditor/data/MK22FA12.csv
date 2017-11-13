@@ -1,4 +1,6 @@
-Family,MK22FA12,mk,,,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MK22FA12,mk,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,
 Device,FRDM_K22F1M0,K22P64M120SF5V2RM,FRDM_K20D50M,,,,,,,,,,,,,,
 Device,FRDM_K22FA1M0,K22P64M120SF5RM,FRDM_K20D50M,,,,,,,,,,,,,,

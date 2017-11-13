@@ -1,4 +1,5 @@
-Family,MK20D7,mk,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,
+TargetDeviceSubFamily,MK20D7,mk,,,,,,,,,,,
 ,,,,,,,,,,,,,
 Device,MK20DX64VLH7,K20P64M72SF1RM,LQFP_64,,,,,,,,,,
 Device,MK20DX128VLH7,K20P64M72SF1RM,LQFP_64,,,,,,,,,,

@@ -1,4 +1,5 @@
-Family,MKL27Z4,mkl,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MKL27Z4,mkl,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 Device,MKL27Z128VFM4,KL27P64M48SF6RM,QFN_32,,,,,,,,,,,,
 Device,MKL27Z256VFM4,KL27P64M48SF6RM,QFN_32,,,,,,,,,,,,

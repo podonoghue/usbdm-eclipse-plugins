@@ -254,7 +254,7 @@ public class FamilyXmlWriter {
       documentUtilities.writeAttribute("version", DeviceInfo.VERSION);
 
       documentUtilities.openTag("family");
-      documentUtilities.writeAttribute("name", fDeviceInfo.getFamilyName());
+      documentUtilities.writeAttribute("name", fDeviceInfo.getDeviceSubFamily());
       
       for (String key:fDeviceInfo.getDeviceVariants().keySet()) {
          DeviceVariantInformation deviceInformation = fDeviceInfo.findVariant(key);

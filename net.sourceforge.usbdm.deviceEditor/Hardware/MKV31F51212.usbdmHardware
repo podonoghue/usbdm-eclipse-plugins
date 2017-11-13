@@ -49,7 +49,7 @@
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma" />
          <clock reg="SCGC7"         mask="SIM_SCGC7_DMA_MASK" />
       </peripheral>
-      <peripheral baseName="DMAMUX"   instance="0"        version="dmamux0_16chtrig_mkv31f51212">
+      <peripheral baseName="DMAMUX"   instance="0"        version="dmamux0_16ch_trig_mkv31f51212">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux" />
          <clock reg="SCGC6"         mask="SIM_SCGC6_DMAMUX0_MASK" />
          <dma source="Disabled"             num="0" />

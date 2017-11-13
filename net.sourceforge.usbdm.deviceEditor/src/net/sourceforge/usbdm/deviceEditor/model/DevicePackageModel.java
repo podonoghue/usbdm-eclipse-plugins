@@ -13,7 +13,7 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
     * @param deviceInfo Device info used to construct the node
     */
    public DevicePackageModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Package", "Device package", deviceInfo.getDeviceVariant().getPackage().getName());
+      super(parent, "Package", "Device package", deviceInfo.getVariant().getPackage().getName());
 //      fDeviceInfo = deviceInfo;
       deviceInfo.addListener(this);
    }
@@ -22,9 +22,9 @@ public class DevicePackageModel extends StringModel implements IModelChangeListe
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof DeviceInfo) {
          DeviceInfo deviceInfo = (DeviceInfo) model;
-         String packageName = deviceInfo.getDeviceVariant().getPackage().getName();
+         String packageName = deviceInfo.getVariant().getPackage().getName();
          if (getValueAsString() != packageName) {
-            setValue(deviceInfo.getDeviceVariant().getPackage().getName());
+            setValue(deviceInfo.getVariant().getPackage().getName());
          }
       }
    }

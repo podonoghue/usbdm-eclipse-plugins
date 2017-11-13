@@ -54,7 +54,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Create empty pin function for given pin
     * @param deviceInfo 
     * 
-    * @param fName Name of the pin, usually the port name e.g. PTA1
+    * @param fVariantName Name of the pin, usually the port name e.g. PTA1
     */
    Pin(DeviceInfo deviceInfo, String name) {
       fDeviceInfo = deviceInfo;
@@ -209,7 +209,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public String getLocation() {
       String location = null;
       if (fDeviceInfo != null) {
-         location = fDeviceInfo.getDeviceVariant().getPackage().getLocation(this);
+         location = fDeviceInfo.getVariant().getPackage().getLocation(this);
       }
       return location;
    }

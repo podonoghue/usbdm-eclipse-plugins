@@ -93,7 +93,7 @@ public class ParseFamilyXML extends XML_BaseParser {
       fDeviceInfo.initialiseTemplates();
 
       String familyName = familyElement.getAttribute("name");
-      fDeviceInfo.setFamilyName(familyName);
+      fDeviceInfo.setDeviceSubFamily(familyName);
       
       for (Node node = familyElement.getFirstChild();
             node != null;

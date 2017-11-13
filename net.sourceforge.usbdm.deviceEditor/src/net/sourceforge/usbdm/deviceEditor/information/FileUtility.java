@@ -261,7 +261,9 @@ public class FileUtility {
     * @throws Exception
     */
    private static void copyFile(IProject project, Path sourcePath, Path targetPath, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+      
       try {
+         SubMonitor progress = SubMonitor.convert(monitor, 100); 
          //      System.err.println(String.format("FileUtility.copyFile() \'%s\' \n\t=> \'%s\'", sourcePath, targetPath));
          if (!targetPath.getParent().toFile().exists()) {
             //         System.err.println(String.format("FileUtility.copyFile() Creating folder \'%s\'", targetPath.getParent().toString()));
@@ -272,8 +274,8 @@ public class FileUtility {
             Path projectPath = Paths.get(project.getLocation().toPortableString()).toAbsolutePath();
             if (targetPath.startsWith(projectPath)) {
                IFile iFile = project.getFile(projectPath.relativize(targetPath).toString());
-               iFile.refreshLocal(IResource.DEPTH_ONE, monitor);
-               iFile.setDerived(true, monitor);
+               iFile.refreshLocal(IResource.DEPTH_ONE, progress.newChild(50));
+               iFile.setDerived(true, progress.newChild(50));
             }
          }
       } catch (Exception e) {
@@ -341,13 +343,14 @@ public class FileUtility {
     * @throws Exception
     */
    public static void copyDirectory(IProject project, String source, String target, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+      SubMonitor subMonitor = SubMonitor.convert(monitor,100);
       Path projectDirectory = Paths.get(project.getLocation().toPortableString());
       Path sourcePath = projectDirectory.resolve(source).toAbsolutePath();
       Path targetPath = projectDirectory.resolve(target).toAbsolutePath();
       //      System.err.println(String.format("FileUtility.copyDirectory()\n\'%s\' \n\t=> \'%s\'", sourcePath.toAbsolutePath().toString(), targetPath.toAbsolutePath().toString()));
       try {
          monitor.beginTask("Copy Files", 100);
-         copyDirectory(project, sourcePath, targetPath, variableMap, monitor);
+         copyDirectory(project, sourcePath, targetPath, variableMap, subMonitor.newChild(100));
       } finally {
          monitor.done();
       }
@@ -356,12 +359,13 @@ public class FileUtility {
    /**
     * Creates specified folder in the project recursively.
     *
-    * @param project            - project.
-    * @param targetPath         - project relative path to the new folder.
-    * @param progressMonitor    - progress monitor.
+    * @param project      - project.
+    * @param targetPath   - project relative path to the new folder.
+    * @param monitor      - progress monitor.
     * @throws Exception 
     */
-   public static void createFolder(IProject project, String targetPath, IProgressMonitor progressMonitor) throws Exception {
+   public static void createFolder(IProject project, String targetPath, IProgressMonitor monitor) throws Exception {
+      SubMonitor subMonitor = SubMonitor.convert(monitor,100);
       //If the targetPath is an empty string, there will be no folder to create.
       // Also this is not an error. So just return gracefully.
       if (targetPath == null || targetPath.length()==0) {
@@ -372,7 +376,7 @@ public class FileUtility {
          for (int i=1; i<=path.segmentCount(); i++) {
             IFolder subfolder = project.getFolder(path.uptoSegment(i));
             if (!subfolder.exists()) {
-               subfolder.create(true, true, progressMonitor);
+               subfolder.create(true, true, subMonitor.newChild(10));
                subfolder.refreshLocal(IResource.DEPTH_ONE, null);
             }
          }
@@ -401,6 +405,8 @@ public class FileUtility {
     * @throws Exception
     */
    public static void refreshFile(IProject project, String path, Map<String, String> variableMap, IProgressMonitor monitor) throws Exception {
+      SubMonitor subMonitor = SubMonitor.convert(monitor);
+      subMonitor.subTask("Refreshing");
       try {
          Path projectDirectory = Paths.get(project.getLocation().toPortableString());
          Path sourcePath = projectDirectory.resolve(path);

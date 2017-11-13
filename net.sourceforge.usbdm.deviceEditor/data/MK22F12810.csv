@@ -1,4 +1,5 @@
-Family,MK22F12810,mk,,,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MK22F12810,mk,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,
 Device,MK22FN128VDC10,K22P121M100SF9RM,BGA_121,,,,,,,,,,,,,,
 Device,MK22FN128VLL10,K22P121M100SF9RM,LQFP_100,,,,,,,,,,,,,,

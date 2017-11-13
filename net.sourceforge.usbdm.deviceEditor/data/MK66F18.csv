@@ -1,4 +1,5 @@
-Family,MK66F18,mk,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MK66F18,mk,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 Device,MK66FN2M0VMD18,K66P144M180SF5RMV2,BGA_144,,,,,,,,,,,,
 Device,MK66FX1M0VMD18,K66P144M180SF5RMV2,BGA_144,,,,,,,,,,,,

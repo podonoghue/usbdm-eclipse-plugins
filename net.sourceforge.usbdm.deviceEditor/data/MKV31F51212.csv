@@ -1,4 +1,5 @@
-Family,MKV31F51212,mkv,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MKV31F51212,mkv,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 Device,MKV31F512VLL12,KV31P100M120SF7RM,LQFP_100,,,,,,,,,,,,
 Device,MKV31F512VLH12,KV31P100M120SF7RM,LQFP_64,,,,,,,,,,,,

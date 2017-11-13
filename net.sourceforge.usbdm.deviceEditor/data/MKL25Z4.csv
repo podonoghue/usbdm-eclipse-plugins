@@ -1,4 +1,5 @@
-Family,MKL25Z4,mkl,,,,,,,,,,,,,,
+TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,
+TargetDeviceSubFamily,MKL25Z4,mkl,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,
 Device,MKL25Z32VFM4,KL25P80M48SF0RM,QFN_32,,,,,,,,,,,,,
 Device,MKL25Z64VFM4,KL25P80M48SF0RM,QFN_32,,,,,,,,,,,,,

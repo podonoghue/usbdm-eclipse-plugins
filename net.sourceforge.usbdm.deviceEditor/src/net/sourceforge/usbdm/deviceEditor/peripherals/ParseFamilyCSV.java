@@ -464,10 +464,11 @@ public class ParseFamilyCSV {
     * 
     * @param reader
     * @throws IOException 
+    * @throws UsbdmException 
     * 
     * @throws Exception
     */
-   private void parsePreliminaryInformation(BufferedReader reader) throws IOException {
+   private void parsePreliminaryInformation(BufferedReader reader) throws IOException, UsbdmException {
       
       // Set default values for column indices
       fPinIndex          = 1;
@@ -500,9 +501,9 @@ public class ParseFamilyCSV {
          else if (line[0].equalsIgnoreCase("Device")) {
             fDeviceInfo.createDeviceInformation(line[1], line[2], line[3]);
          }
-         else if (line[0].equalsIgnoreCase("Family")) {
-            fDeviceInfo.setFamilyName(line[1]);
-            fDeviceInfo.setFamily(DeviceFamily.valueOf(line[2]));
+         else if (line[0].equalsIgnoreCase("TargetDeviceSubFamily")) {
+            fDeviceInfo.setDeviceSubFamily(line[1]);
+            fDeviceInfo.setDeviceFamily(DeviceFamily.valueOf(line[2]));
          }
       }
       if (fPackageIndexes.size() == 0) {

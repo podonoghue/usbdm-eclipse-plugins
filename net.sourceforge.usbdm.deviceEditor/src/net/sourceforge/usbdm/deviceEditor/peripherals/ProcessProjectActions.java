@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 
 import net.sourceforge.usbdm.cdt.utilties.AddTargetFiles;
 import net.sourceforge.usbdm.cdt.utilties.ApplyOptions;
@@ -34,6 +35,16 @@ public class ProcessProjectActions {
    public ProcessProjectActions() {
    }
    
+   /**
+    * Process a project action list
+    * 
+    * @param projectHandle Project being manipulated
+    * @param actionList    Actions to do
+    * @param variableMap   Variables that may be needed
+    * @param monitor       Progress monitor
+    * 
+    * @throws Exception
+    */
    public void process(
          final IProject              projectHandle, 
          final ProjectActionList     actionList,
@@ -50,22 +61,24 @@ public class ProcessProjectActions {
          
          @Override
          public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
+            SubMonitor subMonitor = SubMonitor.convert(monitor);
+            subMonitor.subTask(action.toString());
 //            System.err.println("ProjectCustomAction: "+action.toString());
             try {
                if (action instanceof FileAction) {
-                  new AddTargetFiles().process(projectHandle, variableMap, (FileAction)action, monitor);
+                  new AddTargetFiles().process(projectHandle, variableMap, (FileAction)action, subMonitor);
                }
                else if (action instanceof DeleteResourceAction) {
-                  new DeleteResource().process(projectHandle, variableMap, (DeleteResourceAction)action, monitor);
+                  new DeleteResource().process(projectHandle, variableMap, (DeleteResourceAction)action, subMonitor);
                }
                else if (action instanceof CreateFolderAction) {
-//                  ProjectUtilities.createFolder(projectHandle, variableMap, (CreateFolderAction)action, monitor);
+//                  ProjectUtilities.createFolder(projectHandle, variableMap, (CreateFolderAction)action, subMonitor);
                }
                else if (action instanceof ProjectOption) {
-                  applyOptions.process(variableMap, (ProjectOption)action, monitor);
+                  applyOptions.process(variableMap, (ProjectOption)action, subMonitor);
                }
                else if (action instanceof ExcludeAction) {
-                  ProjectUtilities.excludeItem(projectHandle, (ExcludeAction)action, monitor);
+                  ProjectUtilities.excludeItem(projectHandle, (ExcludeAction)action, subMonitor);
                }
                else if (action instanceof ProjectActionList) {
                   ProjectActionList projectActionList = (ProjectActionList) action;
@@ -86,7 +99,7 @@ public class ProcessProjectActions {
                   if (!(clsInstance instanceof CustomAction)) {
                      throw new Exception("Custom action does not implement required interface");
                   }
-                  ((CustomAction)clsInstance).action(projectHandle, variableMap, monitor, customAction.getValue());
+                  ((CustomAction)clsInstance).action(projectHandle, variableMap, subMonitor, customAction.getValue());
                }
                else if (action instanceof ProjectConstant) {
                   // Ignore as already added to paramMap
