@@ -64,6 +64,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPdb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPit;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPmc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForQspi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
@@ -1289,10 +1290,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForToDo.class);
          createPeripheralTemplateInformation(
-               "$1", "$2", "",
-               "(QSPI)(0|1).*",
+               "$1", "$2", "$3",
+               "(QSPI)(0|1)((A|B).*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForQspi.class);
       }
       createPeripheralTemplateInformation(
             "$1", "$2", "$3",
