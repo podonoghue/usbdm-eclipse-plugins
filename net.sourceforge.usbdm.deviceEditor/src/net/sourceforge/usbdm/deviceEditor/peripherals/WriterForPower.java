@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of Power
  */
 /**
  * @author podonoghue
@@ -27,9 +27,9 @@ public class WriterForPower extends PeripheralWithState {
 
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      if (needPCRTable()) {
-         pinMappingHeaderFile.write(getPcrDefinition());
-      }
+//      if (needPCRTable()) {
+//         pinMappingHeaderFile.write(getPcrDefinition());
+//      }
    }
 
    @Override
@@ -59,4 +59,10 @@ public class WriterForPower extends PeripheralWithState {
    public boolean isSynthetic() {
       return true;
    }
+
+   @Override
+   public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
+      // No PCR functions
+   }
+   
 }

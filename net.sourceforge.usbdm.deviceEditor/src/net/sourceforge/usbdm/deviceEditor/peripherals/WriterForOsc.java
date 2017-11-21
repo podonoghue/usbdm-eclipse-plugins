@@ -26,13 +26,13 @@ public class WriterForOsc extends PeripheralWithState {
       return getSignalIndex(function, signalNames);
    }
    
-   @Override
-   public String getPcrDefinition() {
-      return String.format(
-            "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t %s  = 0;\n\n", DEFAULT_PCR_VALUE_NAME
-            );
-   }
+//   @Override
+//   public String getPcrDefinition() {
+//      return String.format(
+//            "   //! Base value for PCR (excluding MUX value)\n"+
+//            "   static constexpr uint32_t %s  = 0;\n\n", DEFAULT_PCR_VALUE_NAME
+//            );
+//   }
 
    @Override
    public int getPriority() {

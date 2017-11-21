@@ -34,13 +34,13 @@ public class WriterForGpio extends PeripheralWithState {
       return false;
    }
 
-   @Override
-   public String getPcrDefinition() {
-      return String.format(
-            "   //! Value for PCR (including MUX value)\n"+
-            "   static constexpr uint32_t %s  = GPIO_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
-            );
-   }
+//   @Override
+//   public String getPcrDefinition() {
+//      return String.format(
+//            "   //! Value for PCR (including MUX value)\n"+
+//            "   static constexpr uint32_t %s  = GPIO_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
+//            );
+//   }
 
    @Override
    public int getSignalIndex(Signal function) {

@@ -31,13 +31,13 @@ public class WriterForI2c extends PeripheralWithState {
       throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
    }
 
-   @Override
-   public String getPcrDefinition() {
-      return String.format(
-            "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t %s  = I2C_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
-            );
-   }
+//   @Override
+//   public String getPcrDefinition() {
+//      return String.format(
+//            "   //! Base value for PCR (excluding MUX value)\n"+
+//            "   static constexpr uint32_t %s  = I2C_DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME
+//            );
+//   }
 
    @Override
    public String getPcrValue(Signal y) {

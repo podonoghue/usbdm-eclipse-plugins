@@ -9,7 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of VREF
+ * Class encapsulating the code for writing an instance of FlexBUS
  */
 public class WriterForFlexBus extends PeripheralWithState {
 
@@ -19,7 +19,7 @@ public class WriterForFlexBus extends PeripheralWithState {
 
    @Override
    public String getTitle() {
-      return "Flexbus";
+      return "Flexbus - External Bus Interface";
    }
 
    @Override

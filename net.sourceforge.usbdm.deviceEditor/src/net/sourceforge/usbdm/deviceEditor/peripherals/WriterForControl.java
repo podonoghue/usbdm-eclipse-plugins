@@ -27,9 +27,7 @@ public class WriterForControl extends PeripheralWithState {
 
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      if (needPCRTable()) {
-         pinMappingHeaderFile.write(getPcrDefinition());
-      }
+      writeInfoTemplate(pinMappingHeaderFile);
    }
 
    @Override

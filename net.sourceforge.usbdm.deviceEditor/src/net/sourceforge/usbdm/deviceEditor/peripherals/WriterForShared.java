@@ -25,11 +25,8 @@ public class WriterForShared extends PeripheralWithState {
       return "Shared Resources";
    }
 
-   @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      if (needPCRTable()) {
-         pinMappingHeaderFile.write(getPcrDefinition());
-      }
+      writeInfoTemplate(pinMappingHeaderFile);
    }
 
    @Override

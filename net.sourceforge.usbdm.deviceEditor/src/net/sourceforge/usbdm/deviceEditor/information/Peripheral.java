@@ -516,25 +516,35 @@ public abstract class Peripheral extends VariableProvider {
     * 
     * @return String
     */
-   public String getPcrDefinition() {
-      return String.format(
-            "   //! Base value for PCR (excluding MUX value)\n"+
-            "   static constexpr uint32_t %s  = DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME);
-   }
+//   public String getPcrDefinition() {
+//      return String.format(
+//            "   //! Base value for PCR (excluding MUX value)\n"+
+//            "   static constexpr uint32_t %s  = DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME);
+//   }
 
    /**
-    * Returns a string containing definitions to be included in the information class describing the peripheral
+    * Writes definitions to be included in the information class describing the peripheral
     * 
     * <pre>
-    * //! Clock mask for peripheral
-    * static constexpr uint32_t clockMask = ADC1_CLOCK_MASK;
+    *    //! Hardware base pointer
+    *    static constexpr volatile ADC_Type *adc   = (volatile ADC_Type *)ADC0_BasePtr;
     * 
-    * //! Address of clock register for peripheral
-    * static constexpr uint32_t clockReg  = SIM_BasePtr+offsetof(SIM_Type,ADC1_CLOCK_REG);
+    *    //! Clock mask for peripheral
+    *    static constexpr uint32_t clockMask = SIM_SCGC6_ADC0_MASK;
+    * 
+    *    //! Address of clock register for peripheral
+    *    static constexpr volatile uint32_t *clockReg  = (volatile uint32_t *)(SIM_BasePtr+offsetof(SIM_Type,SCGC6));
+    * 
+    *    //! Number of IRQs for hardware
+    *    static constexpr uint32_t irqCount  = 1;
+    * 
+    *    //! IRQ numbers for hardware
+    *    static constexpr IRQn_Type irqNums[]  = {
+    *       ADC0_IRQn, };
     * </pre>
-    * @param pinMappingHeaderFile 
     * 
-    * @return Definitions string
+    * @param pinMappingHeaderFile   Where to write definitions
+    * 
     * @throws IOException 
     * @throws Exception 
     */
@@ -548,9 +558,6 @@ public abstract class Peripheral extends VariableProvider {
             getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr;"
             ));
 
-      if (needPCRTable()) {
-         sb.append(getPcrDefinition());
-      }
       if (getClockMask() != null) {
          sb.append(String.format(
                "   //! Clock mask for peripheral\n"+
@@ -731,6 +738,23 @@ public abstract class Peripheral extends VariableProvider {
       
    }
 
+   /**
+    *  Writes pin information tables
+    *  
+    * <pre>
+    *      //! Information for each signal of peripheral
+    *      static constexpr PinInfo  info[] = {
+    *            //      Signal         Pin                 portInfo    gpioAddress     gpioBit       PCR value
+    *            /*   0: UART0_TX     = PTB17 (ConTx) &#42;/  { PortBInfo,  GPIOB_BasePtr,  17,           PORT_PCR_MUX(3)|defaultPcrValue  },
+    *            /*   1: UART0_RX     = PTB16 (ConRx) &#42;/  { PortBInfo,  GPIOB_BasePtr,  16,           PORT_PCR_MUX(3)|defaultPcrValue  },
+    *            /*   2: UART0_RTS_b  = --            &#42;/  { NoPortInfo, 0,              UNMAPPED_PCR, 0 },
+    *      ...
+    *      };
+    * </pre>
+
+    * @param pinMappingHeaderFile
+    * @throws IOException
+    */
    protected void writeInfoTables(DocumentUtilities pinMappingHeaderFile) throws IOException {      
 
       if (!needPCRTable()) {
@@ -750,20 +774,7 @@ public abstract class Peripheral extends VariableProvider {
     *     public:
     *        //! Hardware base pointer
     *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
-    * 
-    *        //! Base value for PCR (excluding MUX value)
-    *        static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-    * 
-    *        //! Information for each pin of peripheral
-    *        static constexpr PinInfo  info[] = {
-    * 
-    *   //         clockMask      portAddress     gpioAddress gpioBit muxValue
-    *   /*  0 * /  { 0 },
     *   ...
-    *   /*  4 * /  { PORTC_CLOCK_MASK, PORTC_BasePtr,  GPIOC_BasePtr,  2,  0 },
-    *   #endif
-    *   ...
-    *   };
     *   };
     * </pre>
     * @param  deviceInformation 
@@ -800,7 +811,6 @@ public abstract class Peripheral extends VariableProvider {
       
       // Close class
       pinMappingHeaderFile.write(String.format("};\n\n"));
-      
    }
 
    public void writeCSettings(DocumentUtilities headerFile) throws IOException {
@@ -828,6 +838,7 @@ public abstract class Peripheral extends VariableProvider {
     * @param pinMappingHeaderFile
     * @param indent 
     * @param signalTable
+    * 
     * @throws IOException
     */
    public void writeInitPCR(DocumentUtilities pinMappingHeaderFile, String indent, InfoTable signalTable) throws IOException {
@@ -902,7 +913,7 @@ public abstract class Peripheral extends VariableProvider {
             return signalIndex;
          }
       }
-      throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
+      throw new RuntimeException("Signal does not match expected pattern \'" + signal.getSignalName() + "\'");
    }
 
    public void setVersion(String version) {
