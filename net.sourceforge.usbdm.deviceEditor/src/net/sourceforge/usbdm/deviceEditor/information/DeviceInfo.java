@@ -47,6 +47,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForEwm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
@@ -1233,10 +1234,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForShared.class);
          
          createPeripheralTemplateInformation(
-               "FLEXIO", "", "",
-               "(FXIO|FLEXIO).*",
+               "FLEXIO", "", "$3",
+               "(FXIO|FLEXIO)(\\d)?_(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForFlexio.class);
          createPeripheralTemplateInformation(
                "$1", "", "$3",
                "S?(LCD)(\\d)?_?(.*)",
