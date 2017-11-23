@@ -83,6 +83,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
+      createSignalModel();
       BaseModel model = fMenuData.getRootModel();
       if (model != null) {
          model.setParent(parent);
@@ -181,8 +182,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    /**
     * Create a variable
     * 
-    * @param key     Key identifying variable
-    * @param value   Initial value for variable
+    * @param variable  Variable to add
     * 
     * @throws Exception if variable already exists
     */

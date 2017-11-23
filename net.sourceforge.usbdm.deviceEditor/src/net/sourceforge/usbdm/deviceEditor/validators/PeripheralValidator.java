@@ -155,8 +155,8 @@ public class PeripheralValidator extends Validator {
       CategoryModel pinModel = getPeripheral().getPinModel();
       Status unmappedSignals = null;
       for (int pinNum:requiredSignals) {
-         Signal entry = table.get(pinNum);
-         if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+         Signal signal = table.get(pinNum);
+         if ((signal == null) || (signal.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
             unmappedSignals = UNMAPPED_PIN_STATUS;
             break;
          }

@@ -273,6 +273,16 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    }
 
    /**
+    * Get the origin of variable value<br>
+    * This is intended to indicate how the value originated or is derived (calculated)
+    * 
+    * @return The origin
+    */
+   public String getRawOrigin() {
+      return fOrigin;
+   }
+
+   /**
     * Set the origin of variable value
     * 
     * @param origin The origin to set

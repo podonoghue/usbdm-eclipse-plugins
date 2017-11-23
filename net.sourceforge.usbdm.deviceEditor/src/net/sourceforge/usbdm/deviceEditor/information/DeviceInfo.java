@@ -2065,7 +2065,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       DevicePeripheralsFactory factory           = new DevicePeripheralsFactory();
       DevicePeripherals        devicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
       if (devicePeripherals == null) {
-         throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ fVariantName + "\'");
+         throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ fDeviceSubFamily + "\'");
       }
       return devicePeripherals;
    }

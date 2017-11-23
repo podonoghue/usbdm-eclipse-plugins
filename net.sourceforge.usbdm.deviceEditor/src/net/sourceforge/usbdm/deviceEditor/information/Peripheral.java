@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
@@ -937,6 +939,88 @@ public abstract class Peripheral extends VariableProvider {
     */
    CategoryModel fPinModel = null;
    
+   /**
+    * Array of peripherals to obtain signals from
+    */
+   ArrayList<Peripheral> fSignalPeripherals;
+   
+   /**
+    * Create models representing the signals for this peripheral
+    * 
+    * @param parent     Parent model to contain pins created
+    * @param peripheral Peripheral to obtain signals from
+    */
+   void createSignalModels(BaseModel parent, Peripheral peripheral) {
+      // Add signals from this peripheral
+      TreeMap<String, Signal> signals = peripheral.getSignals();
+      if (signals == null) {
+         return;
+      }
+      for (String signalName:signals.keySet()) {
+         Signal signal = peripheral.fSignals.get(signalName);
+         if (signal.isAvailableInPackage()) {
+            new SignalModel(parent, signal);
+         }
+      }
+   }
+
+   /**
+    * Create models representing the signals for this peripheral
+    * 
+    * @param parent     Parent model to contain pins created
+    * 
+    * @note May add related pins e.g. RTC may contains OSC pins 
+    */
+   public void createSignalModels(BaseModel parent) {
+      // Add signals from this peripheral
+      createSignalModels(parent, this);
+      if (fSignalPeripherals == null) {
+         return;
+      }
+      for (Peripheral peripheral:fSignalPeripherals) {
+         // Add signals from referenced peripherals
+         createSignalModels(parent, peripheral);
+      }
+   }
+
+   /**
+    * Create models representing the signals for this peripheral
+    * 
+    * @param parentModel 
+    * 
+    * @note May add related pins e.g. RTC may contains OSC pins 
+    * 
+    * @return Category model holding signals
+    */
+   public void createSignalModel() {
+      if (fPinModel == null) {
+         return;
+      }
+      fPinModel.removeChildren();
+      createSignalModels(fPinModel);
+   }
+
+   /**
+    * Add peripheral as source for signals for this peripheral
+    * 
+    * @param parentModel   Model to contain signal category
+    * @param peripheral    Peripheral to obtain signals from
+    * 
+    * @return Category model to hold signals when created
+    */
+   public CategoryModel addSignals(BaseModel parentModel, Peripheral peripheral) {
+      if (fPinModel == null) {
+         fPinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
+      }
+      if (peripheral != this) {
+         if (fSignalPeripherals == null) {
+            fSignalPeripherals = new ArrayList<Peripheral>();
+         }
+         fSignalPeripherals.add(peripheral);
+      }
+      return fPinModel; 
+   }
+
    /**
     * Get model representing the pins for this peripheral<br>
     * @note may contain related pins e.g. RTC may contains OSC pins 

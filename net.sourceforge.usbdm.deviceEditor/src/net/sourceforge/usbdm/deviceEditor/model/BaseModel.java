@@ -178,6 +178,20 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
+    * Remove child nodes
+    */
+   public void removeChildren() {
+      if (fChildren == null) {
+         return;
+      }
+      for (Object child:fChildren) {
+         BaseModel childModel = (BaseModel) child;
+         childModel.removeListeners();
+      }
+      fChildren = null;
+   }
+
+   /**
     * Sets the name of the tree item
     * 
     * @param name

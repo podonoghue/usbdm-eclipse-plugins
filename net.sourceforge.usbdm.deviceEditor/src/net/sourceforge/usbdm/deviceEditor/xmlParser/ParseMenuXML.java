@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.w3c.dom.Document;
@@ -27,7 +26,6 @@ import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.NumericListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
@@ -39,13 +37,13 @@ import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
 import net.sourceforge.usbdm.deviceEditor.model.SectionModel;
-import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.validators.PeripheralValidator;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.packageParser.PackageParser;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
@@ -319,7 +317,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (otherVariable != null) {
          variable.setDescription(otherVariable.getDescription());
          variable.setToolTip(otherVariable.getToolTip());
-         variable.setOrigin(otherVariable.getOrigin());
+         variable.setOrigin(otherVariable.getRawOrigin());
       }
       if (varElement.hasAttribute("description")) {
          variable.setDescription(varElement.getAttribute("description"));
@@ -917,29 +915,24 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param parentModel
     * @param element
+    * @throws UsbdmException 
     */
-   private void parseSignalsOption(BaseModel parentModel, Element element) {
-      // Assume pins refer to current peripheral
+   private void parseSignalsOption(BaseModel parentModel, Element element) throws UsbdmException {
+      // Initially assume pins refer to current peripheral
       Peripheral peripheral = fPeripheral;
+      boolean optional = Boolean.valueOf(element.getAttribute("optional"));
       String peripheralName = element.getAttribute("name");
       if (!peripheralName.isEmpty()) {
          // Change to referenced peripheral
          peripheral = fPeripheral.getDeviceInfo().getPeripherals().get(peripheralName);
       }
-      if (peripheral != null) {
-         CategoryModel pinModel = fPeripheral.getPinModel();
-         if (pinModel == null) {
-            pinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
-            fPeripheral.setPinModel(pinModel);
+      if (peripheral == null) {
+         if (!optional) {
+            throw new UsbdmException("Unable to find peripheral '"+peripheralName+"' for pins");
          }
-         TreeMap<String, Signal> peripheralSignals = peripheral.getSignals();
-         for (String signalName:peripheralSignals.keySet()) {
-            Signal signal = peripheralSignals.get(signalName);
-            if (signal.isAvailableInPackage()) {
-               new SignalModel(fPeripheral.getPinModel(), signal);
-            }
-         }
+         return;
       }
+      fPeripheral.addSignals(parentModel, peripheral);
    }
 
    /**

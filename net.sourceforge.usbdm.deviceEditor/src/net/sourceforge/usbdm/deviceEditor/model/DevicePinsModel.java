@@ -57,7 +57,7 @@ public final class DevicePinsModel extends TreeViewModel implements IPage {
                      final TreeColumnInformation[] fColumnInformation = {
                            new TreeColumnInformation("Peripheral.Signal", 300, new NameColumnLabelProvider(),        null),
                            new TreeColumnInformation("Mux:Pin",           350, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Pin Description",   600, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
                      };
                      return fColumnInformation;
                   }

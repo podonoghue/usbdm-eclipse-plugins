@@ -145,10 +145,9 @@ public class VariableProvider {
    }
 
    /**
-    * Add a variable
+    * Create a variable
     * 
-    * @param key     Key identifying variable
-    * @param value   Initial value for variable
+    * @param variable  Variable to add
     * 
     * @throws Exception if variable already exists
     */
