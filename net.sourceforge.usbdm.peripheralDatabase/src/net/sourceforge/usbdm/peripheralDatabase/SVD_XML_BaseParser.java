@@ -197,7 +197,7 @@ public class SVD_XML_BaseParser {
     */
    protected static long getIntElement(Node element) throws Exception {
 
-      String s = stripQuotes(element.getTextContent());
+      String s = stripQuotes(element.getTextContent().trim());
 
       if ((s == null) || (s.length()==0)) {
          throw new Exception("Text not found");
