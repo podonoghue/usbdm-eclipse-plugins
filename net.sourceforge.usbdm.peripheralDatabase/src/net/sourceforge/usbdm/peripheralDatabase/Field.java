@@ -131,14 +131,14 @@ public class Field extends ModeControl implements Cloneable {
    }
 
    /*
-    * SHALLOW Copy constructor
+    * SHALLOW Copy constructor for never 'derivedFrom' elements
     */
    public Field(Field other) {
+      fDerivedFrom        = other;
       fAccessType         = other.fAccessType;    
       fBitOffset          = other.fBitOffset;     
       fBitwidth           = other.fBitwidth;      
       fDescription        = other.fDescription;
-      fDerivedFrom        = other;
       fSortedEnumerations = other.fSortedEnumerations;
       fEnumerations       = other.fEnumerations;  
       fName               = other.fName;          
@@ -368,10 +368,10 @@ public class Field extends ModeControl implements Cloneable {
          if (fDerivedFrom.getAccessType() != getAccessType()) {
             writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
          }
-         if (fDerivedFrom.isIgnoreOverlap() != isIgnoreOverlap()) {
+         if (isIgnoreOverlap()) {
             writer.write(" <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>");
          }
-         if (fDerivedFrom.isHidden() != isHidden()) {
+         if (isHidden()) {
             writer.write(" <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
          }
          writer.write(" </field>\n");

@@ -80,6 +80,10 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    
    @Override
    public String getValueAsString() {
+      int index = fSignal.getMappedPin().getMux().ordinal();
+      if (index<0) {
+         return "Unmapped";
+      }
       return fChoices[findValueIndex(fSignal.getMappedPin())];
    }
 

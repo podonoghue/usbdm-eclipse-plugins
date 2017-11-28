@@ -88,7 +88,7 @@ public class Register extends Cluster implements Cloneable {
             if (field1.getDerivedFrom() == field2) {
                return 1;  
             }
-            return 0;
+            return field1.getName().compareTo(field2.getName());
          }
       });
       sorted = true;
