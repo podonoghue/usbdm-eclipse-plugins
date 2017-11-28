@@ -10,22 +10,24 @@ import net.sourceforge.usbdm.peripheralDatabase.Field;
  *
  */
 public class FieldModel extends BaseModel implements UpdateInterface {
-   protected  int                    size;
-   private    int                    bitOffset;
-   private    ArrayList<Enumeration> enumerations;
-   private    String                 accessMode;
-   private    boolean                readable;
-   private    boolean                writeable;
+   protected  int                    fSize;
+   private    int                    fBitOffset;
+   private    int                    fBitWidth;
+   private    ArrayList<Enumeration> fEnumerations;
+   private    String                 fAccessMode;
+   private    boolean                fReadable;
+   private    boolean                fWriteable;
    
    void init(RegisterModel parent, Field field) {
       assert(parent != null) : "parent can't be null";
       setEnumeratedDescription(field.getEnumerations());
-      enumerations = null;
-      accessMode   = field.getAccessType().getAbbreviatedName();
-      size         = (int)field.getBitwidth();
-      bitOffset    = (int)field.getBitOffset();
-      readable     = field.getAccessType().isReadable();
-      writeable    = field.getAccessType().isWriteable();      
+      fEnumerations = null;
+      fAccessMode   = field.getAccessType().getAbbreviatedName();
+      fSize         = (int)field.getBitwidth();
+      fBitOffset    = (int)field.getBitOffset();
+      fBitWidth     = (int)field.getBitwidth();
+      fReadable     = field.getAccessType().isReadable();
+      fWriteable    = field.getAccessType().isWriteable();      
    }
    
    public FieldModel(RegisterModel parent, Field field, ModelInformation information) {
@@ -34,12 +36,21 @@ public class FieldModel extends BaseModel implements UpdateInterface {
    }
    
    /**
-    * Gets offset of bit field with register
+    * Gets offset of bit field within register
     * 
     * @return offset (from right)
     */
    public int getBitOffset() {
-      return bitOffset;
+      return fBitOffset;
+   }
+
+   /**
+    * Gets width of bit field within register
+    * 
+    * @return width in bits
+    */
+   public int getBitWidth() {
+      return fBitWidth;
    }
 
    /**
@@ -50,7 +61,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    public long getValue() throws MemoryException {
       RegisterModel parent = (RegisterModel) fParent;
-      return ((1l<<size)-1)&(parent.getValue()>>bitOffset);
+      return ((1l<<fSize)-1)&(parent.getValue()>>fBitOffset);
    }
    
    /**
@@ -61,7 +72,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    public long getLastValue() throws MemoryException {
       RegisterModel parent = (RegisterModel) fParent;
-      return ((1l<<size)-1)&(parent.getLastValue()>>bitOffset);
+      return ((1l<<fSize)-1)&(parent.getLastValue()>>fBitOffset);
    }
 
    /**
@@ -78,8 +89,8 @@ public class FieldModel extends BaseModel implements UpdateInterface {
          currentValue = reg.getValue();
       } catch (MemoryException e) {
       }
-      Long mask         = ((1l<<size)-1)<<bitOffset;
-      reg.setValue((currentValue&~mask)|((bitField<<bitOffset)&mask));
+      Long mask         = ((1l<<fSize)-1)<<fBitOffset;
+      reg.setValue((currentValue&~mask)|((bitField<<fBitOffset)&mask));
    }
 
    /* (non-Javadoc)
@@ -106,7 +117,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
          return rv;
       }
       try {
-         return super.getValueAsBinaryString(getValue(), size);
+         return super.getValueAsBinaryString(getValue(), fSize);
       } catch (MemoryException e) {
          return "<invalid>";
       }
@@ -123,7 +134,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
          return rv;
       }
       try {
-         return super.getValueAsHexString(getValue(), size);
+         return super.getValueAsHexString(getValue(), fSize);
       } catch (MemoryException e) {
          return "<invalid>";
       }
@@ -152,7 +163,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getValueAsString() {
-      if ((enumerations != null) || (size<9)) {
+      if ((fEnumerations != null) || (fSize<9)) {
          return getValueAsBinaryString();
       }
       else {
@@ -166,7 +177,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @param enumeratedDescription description to set
     */
    public void setEnumeratedDescription(ArrayList<Enumeration> enumeratedDescription) {
-      this.enumerations = enumeratedDescription;
+      this.fEnumerations = enumeratedDescription;
    }
 
    /**
@@ -175,14 +186,14 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @return description
     */
    public ArrayList<Enumeration> getEnumeratedDescription() {
-      return enumerations;
+      return fEnumerations;
    }
 
    /**
     * @return the readable
     */
    public boolean isReadable() {
-      return readable;
+      return fReadable;
    }
 
    /**
@@ -191,7 +202,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     * @return true is writable
     */
    public boolean isWritable() {
-      return writeable;
+      return fWriteable;
    }
 
    /* (non-Javadoc)
@@ -199,11 +210,11 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getAddressAsString() {
-      if (size == 1) {
-         return String.format("[%d]", bitOffset);
+      if (fSize == 1) {
+         return String.format("[%d]", fBitOffset);
       }
       else {
-         return String.format("[%d:%d]", bitOffset+size-1, bitOffset);
+         return String.format("[%d:%d]", fBitOffset+fSize-1, fBitOffset);
       }
    }
 
@@ -212,7 +223,7 @@ public class FieldModel extends BaseModel implements UpdateInterface {
     */
    @Override
    public String getAccessMode() {
-      return accessMode;
+      return fAccessMode;
    }
 
    /* (non-Javadoc)
