@@ -67,9 +67,14 @@ public class PeripheralsViewSorter extends ViewerComparator {
       // Fields - sort by bitOffset then name
       if (e1 instanceof FieldModel) {
          diff = ((FieldModel)e2).getBitOffset() - ((FieldModel)e1).getBitOffset();
-         if (diff == 0) {
-            diff = element1.getName().compareTo(element2.getName());
+         if (diff != 0) {
+            return diff;
          }
+         diff = ((FieldModel)e2).getBitWidth() - ((FieldModel)e1).getBitWidth();
+         if (diff != 0) {
+            return diff;
+         }
+         diff = element1.getName().compareTo(element2.getName());
          return diff;
       }
       
