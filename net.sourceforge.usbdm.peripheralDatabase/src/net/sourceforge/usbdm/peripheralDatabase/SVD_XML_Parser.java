@@ -91,6 +91,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String REVISION_TAG                     = "revision";
    static final String SERIES_TAG                       = "series";
    static final String SIZE_TAG                         = "size";
+   static final String TEMPLATE_TAG                     = "template";
    static final String TRUE_TAG                         = "true";
    static final String USAGE_TAG                        = "usage";
    static final String VALUE_TAG                        = "value";
@@ -857,7 +858,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                peripheral.setBlockAccessWidth((int)getIntElement(element));
             }            
             if (element.getNodeName() == FORCED_ACCESS_WIDTH) {
-               System.err.println("OPPPS");
+               System.err.println("OPPS");
             }            
             if (element.getNodeName() == FORCED_BLOCK_WIDTH) {
                peripheral.setForcedBlockMultiple((int)getIntElement(element));
@@ -904,6 +905,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == ADDRESSBLOCK_TAG ){
             peripheral.addAddressBlock(parseAddressBlock(element));
+         }
+         else if (element.getTagName() == TEMPLATE_TAG) {
+            peripheral.addTemplate(element.getTextContent());
          }
          else if (derived) {
             throw new Exception("Unexpected field in derived PERIPHERAL', value = \'"+element.getTagName()+"\'");

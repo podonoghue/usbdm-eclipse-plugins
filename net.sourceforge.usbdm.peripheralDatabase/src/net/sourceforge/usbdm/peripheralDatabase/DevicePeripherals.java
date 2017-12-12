@@ -829,10 +829,13 @@ public class DevicePeripherals extends ModeControl {
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
 
             // typedef defining registers for each peripheral
-            peripheral.writeHeaderFileTypedef(writer, this);
+            peripheral.writeHeaderFileTypedef(writer);
 
             // #define macros for each peripheral register field
-            peripheral.writeHeaderFileFieldMacros(writer, this);
+            peripheral.writeHeaderFileFieldMacros(writer);
+
+            // #define macros for each peripheral register field
+            peripheral.writeHeaderFileTemplates(writer);
 
             // #define defining peripheral location
             writer.print(String.format(PERIPHERAL_INSTANCE_INTRO, peripheral.getName()));
@@ -842,7 +845,7 @@ public class DevicePeripherals extends ModeControl {
             
             // #define list of Interrupt numbers
             peripheral.writeHeaderFileInterruptList(writer);
-            peripheral.writeHeaderFileMiscellaneous(writer);
+            peripheral.writeHeaderFileDmaInformation(writer);
 
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 
@@ -862,14 +865,17 @@ public class DevicePeripherals extends ModeControl {
             peripheral.setOwner(this);
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
             // typedef defining registers for each peripheral
-            peripheral.writeHeaderFileTypedef(writer, this);
+            peripheral.writeHeaderFileTypedef(writer);
 
             // #define macros for each peripheral register field
-            peripheral.writeHeaderFileFieldMacros(writer, this);
+            peripheral.writeHeaderFileFieldMacros(writer);
             
             // #define list of Interrupt numbers
             peripheral.writeHeaderFileInterruptList(writer);
-            peripheral.writeHeaderFileMiscellaneous(writer);
+            peripheral.writeHeaderFileDmaInformation(writer);
+
+            // Arbitrary information
+            peripheral.writeHeaderFileTemplates(writer);
             
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 

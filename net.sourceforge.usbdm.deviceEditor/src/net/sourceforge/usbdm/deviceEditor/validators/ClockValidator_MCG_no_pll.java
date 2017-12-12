@@ -83,17 +83,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
 
       mcg_c2_locre0Var.enable(mcg_c6_cme0Var.getValueAsBoolean());
 
-      // OSC1 (RTC) Clock monitor
       //=================================
-      Variable     mcg_c8_cme1Var      =  getVariable("mcg_c8_cme1");
-      Variable     mcg_c8_locre1Var    =  getVariable("mcg_c8_locre1");
-      mcg_c8_locre1Var.enable(mcg_c8_cme1Var.getValueAsBoolean());
-      
-      //=================================
-
-      //=================================
-
-      Variable system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
 
       Variable system_mcgfllclk_clockVar        = getVariable("system_mcgfllclk_clock");
       Variable mcg_c4_dmx32Var                  = getVariable("mcg_c4_dmx32");
@@ -154,38 +144,56 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
          mcg_c1_irefstenVar.enable(false);
       }
 
-      // Clock Mapping
-      //=================
+      // Clock Mapping OSC0 always exists
+      //====================================
       String         osc0_peripheral      = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
       LongVariable   osc0_osc_clockVar    = getLongVariable(osc0_peripheral+"/osc_clock");
-      
-      String         osc32k_peripheral   = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
-      LongVariable   osc32k_osc_clockVar = getLongVariable(osc32k_peripheral+"/osc_clock");
 
       // Determine MCG external reference clock [mcg_erc_clock]
       //========================================================
       ChoiceVariable mcg_c7_oscselVar = safeGetChoiceVariable("mcg_c7_oscsel");
-      Variable mcg_erc_clockVar                 = getVariable("mcg_erc_clock");
-
-      switch ((int)mcg_c7_oscselVar.getValueAsLong()) {
-      default:
-      case 0: // ERC = OSCCLK (OSC0 main oscillator)
+      Variable mcg_erc_clockVar       = getVariable("mcg_erc_clock");
+      
+      if (mcg_c7_oscselVar == null) {
+         // ERC = fixed OSCCLK (OSC0 main oscillator)
          mcg_erc_clockVar.setValue(osc0_osc_clockVar.getValueAsLong());
          mcg_erc_clockVar.setStatus(osc0_osc_clockVar.getFilteredStatus());
          mcg_erc_clockVar.setOrigin(osc0_osc_clockVar.getOrigin());
-         break;
-      case 1: // ERC = RTCCLK (OSC1 oscillator)
-         mcg_erc_clockVar.setValue(osc32k_osc_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus(osc32k_osc_clockVar.getFilteredStatus());
-         mcg_erc_clockVar.setOrigin(osc32k_osc_clockVar.getOrigin()+"[RTCCLK]");
-         break;
-      case 2: // ERC = IRC48MCLK (OSC2)
-         mcg_erc_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
-         mcg_erc_clockVar.setStatus((Status)null);
-         mcg_erc_clockVar.setOrigin("IRC48MCLK");
-         break;
       }
+      else {
+         // Get alternative oscillator Must exist if mcg_c7_oscsel exists
+         String         osc32k_peripheral   = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
+         LongVariable   osc32k_osc_clockVar = getLongVariable(osc32k_peripheral+"/osc_clock");
+         
+         // Get alternative oscillator #2 may not exist
+         Variable system_irc48m_clockVar           = safeGetVariable("system_irc48m_clock");
 
+         // Determine ERC
+         switch ((int)mcg_c7_oscselVar.getValueAsLong()) {
+         case 2: // ERC = IRC48MCLK (OSC2) if it exists 
+            if (system_irc48m_clockVar != null) {
+               mcg_erc_clockVar.setValue(system_irc48m_clockVar.getValueAsLong());
+               mcg_erc_clockVar.setStatus((Status)null);
+               mcg_erc_clockVar.setOrigin("IRC48MCLK");
+            break;
+            }
+            // Force legal selection
+            mcg_c7_oscselVar.setValue(0);
+            // no break
+         default:
+         case 0: // ERC = OSCCLK (OSC0 main oscillator)
+            mcg_erc_clockVar.setValue(osc0_osc_clockVar.getValueAsLong());
+            mcg_erc_clockVar.setStatus(osc0_osc_clockVar.getFilteredStatus());
+            mcg_erc_clockVar.setOrigin(osc0_osc_clockVar.getOrigin());
+            break;
+         case 1: // ERC = RTCCLK (OSC1 oscillator)
+            mcg_erc_clockVar.setValue(osc32k_osc_clockVar.getValueAsLong());
+            mcg_erc_clockVar.setStatus(osc32k_osc_clockVar.getFilteredStatus());
+            mcg_erc_clockVar.setOrigin(osc32k_osc_clockVar.getOrigin()+"[RTCCLK]");
+            break;
+         }
+      }
+      
       // Main clock mode
       //===============================
       int     mcg_c1_clks;
@@ -265,7 +273,7 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
             mcg_c1_irefs,
             mcg_erc_clockVar,
             system_slow_irc_clockVar.getValueAsLong(),
-            mcg_c7_oscselVar.getValueAsLong(), 
+            (mcg_c7_oscselVar == null)?0:mcg_c7_oscselVar.getValueAsLong(), 
             mcg_c4_dmx32Var.getValueAsBoolean(),
             fllInputFrequencyVar,
             system_mcgfllclk_clockVar,
@@ -345,11 +353,13 @@ public class ClockValidator_MCG_no_pll extends BaseClockValidator {
    protected void createDependencies() throws Exception {
       // Clock Mapping
       //=================
-      final String   osc0_peripheral     = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
-      final String   osc32k_peripheral   = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
+      final String         osc0_peripheral       = getStringVariable("/SIM/osc0_peripheral").getValueAsString();
+      final StringVariable osc32k_peripheralVar  = safeGetStringVariable("/SIM/osc32k_peripheral");
 
+      if (osc32k_peripheralVar != null) {
+         addToWatchedVariables(osc32k_peripheralVar.getValueAsString()+"/osc_clock"); // RTC
+      }
       final String externalVariables[] = {
-            osc32k_peripheral+"/osc_clock", // RTC
             osc0_peripheral+"/osc_clock",
             osc0_peripheral+"/osc_cr_erclken",
             osc0_peripheral+"/oscillatorRange",

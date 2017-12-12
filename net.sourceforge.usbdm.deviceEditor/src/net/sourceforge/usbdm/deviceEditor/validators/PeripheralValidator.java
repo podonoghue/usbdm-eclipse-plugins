@@ -115,21 +115,30 @@ public class PeripheralValidator extends Validator {
     * 
     * @param externalVariables Variables to add
     */
+   protected void addToWatchedVariables(String name) {
+      Variable var = safeGetVariable(name);
+      if (var == null) {
+         if (fIndex==0) {
+            System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+         }
+      }
+      else {
+         var.addListener(getPeripheral());
+      }
+   }
+
+   /**
+    * Add to watched variables
+    * 
+    * @param externalVariables Variables to add
+    */
    protected void addToWatchedVariables(String[] externalVariables) {
       if (fAddedExternalVariables) {
          return;
       }
       for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
          for (String name:externalVariables) {
-            Variable var = safeGetVariable(name);
-            if (var == null) {
-               if (fIndex==0) {
-                  System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
-               }
-            }
-            else {
-               var.addListener(getPeripheral());
-            }
+            addToWatchedVariables(name);
          }
       }
       fIndex = 0;

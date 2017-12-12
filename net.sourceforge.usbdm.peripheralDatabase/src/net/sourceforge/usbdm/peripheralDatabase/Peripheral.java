@@ -39,7 +39,11 @@ public class Peripheral extends ModeControl implements Cloneable {
    private ArrayList<Cluster>        fRegisters              = new ArrayList<Cluster>();
    private boolean                   fRefreshAll;
    private String                    fFilename               = null;
-   private DevicePeripherals         fOwner                  = null;  
+   private DevicePeripherals         fOwner                  = null;
+   
+   /** Arbitrary text to add to peripheral C declaration */
+   private String                    fTemplate               = null;  
+   
    private static HashSet<String>    fConflictedNames        = new HashSet<String>();
    private static HashSet<String>    fTypedefsTable          = new HashSet<String>();
    
@@ -114,6 +118,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       // Make shallow copy
       Peripheral clone = (Peripheral) super.clone();
       
+      clone.fTemplate = null;
       clone.setDerivedFrom(this);
       clone.setSourceFilename(null);
       return clone;
@@ -1615,6 +1620,11 @@ public class Peripheral extends ModeControl implements Cloneable {
             addressBlock.writeSVD(writer, standardFormat);
          }
       }
+      if (getTemplate() != null) {
+         writer.print(indenter+"   <template>");
+         writer.print(getTemplate());
+         writer.println("</template>");
+      }
       writer.println(                     indenter+"   <registers>");
       for (Cluster clusterOrRegister : getRegisters()) {
          clusterOrRegister.writeSVD(writer, standardFormat, this, indent+6);
@@ -1662,6 +1672,20 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.print(String.format(indenter+"<%s>%s</%s>", SVD_XML_Parser.ACCESS_TAG,SVD_XML_BaseParser.escapeString(getAccessType().getPrettyName()), SVD_XML_Parser.ACCESS_TAG));
       }
       boolean doneNewline = false;
+      String template = getTemplate(); 
+      if (template != null) {
+         boolean hasNewLine = template.contains("\n");
+         if (hasNewLine) {
+            writer.print("\n"+indenter+"   ");
+            doneNewline = true;
+         }
+         writer.print("<template>");
+         writer.print(template);
+         writer.print("</template>");
+         if (hasNewLine) {
+            writer.println();
+         }
+      }
       if (!isCollectVectors() && (getInterruptEntries() != derived.getInterruptEntries())) {
          writer.print('\n');
          doneNewline = true;
@@ -1761,12 +1785,12 @@ public class Peripheral extends ModeControl implements Cloneable {
       return entries.toArray(new String[entries.size()]);
    }
    /**
-    * Write interrupt #define
+    * Write header file miscellaneous information
     * 
     * @param writer
     * @throws UsbdmException 
     */
-   void writeHeaderFileMiscellaneous(PrintWriter writer) throws UsbdmException  {
+   void writeHeaderFileDmaInformation(PrintWriter writer) throws UsbdmException  {
       final Pattern peripheralPattern = Pattern.compile("DMAMUX(\\d+)");
       final Matcher peripheralMatcher = peripheralPattern.matcher(getName());
       if (!peripheralMatcher.matches()) {
@@ -1827,6 +1851,19 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
    }
    
+   /**
+    * Write header file miscellaneous information
+    * 
+    * @param writer
+    * @throws UsbdmException 
+    */
+   void writeHeaderFileTemplates(PrintWriter writer) throws UsbdmException  {
+      String template = getExtraDeclarations();
+      if (template != null) {
+         writer.print(template);
+      }
+   }
+
    static final String DEVICE_HEADER_FILE_STRUCT_PREAMBLE =   
        "\n"
       +"/* ================================================================================ */\n"
@@ -1897,9 +1934,8 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    e.g. <pre><b>typedef struct {...} peripheralName_Type;</b></pre>
     * 
     *    @param writer
-    *    @param devicePeripherals
     */
-   public void writeHeaderFileTypedef(PrintWriter writer, DevicePeripherals devicePeripherals) throws Exception {
+   public void writeHeaderFileTypedef(PrintWriter writer) throws Exception {
       final String structGroupSuffix  = "structs";
       final int indent = 0;
       String uniqueId;
@@ -1956,10 +1992,9 @@ public class Peripheral extends ModeControl implements Cloneable {
     *    e.g. <pre><b>#define PERIPHERAL_FIELD(x)  (((x)&lt;&lt;FIELD_OFFSET)&FIELD_MASK)</pre></b>
     * 
     *    @param  writer
-    *    @param  devicePeripherals
     *    @throws Exception
     */
-   public void writeHeaderFileFieldMacros(Writer writer, DevicePeripherals devicePeripherals) throws Exception {
+   public void writeHeaderFileFieldMacros(Writer writer) throws Exception {
       final String macroGroupSuffix  = "Register_Masks";
       if (fDerivedFrom != null) {
          // Derived peripherals re-uses existing MACROs
@@ -2084,6 +2119,41 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void setOwner(DevicePeripherals device) {
       fOwner = device;
+   }
+
+   /**
+    * Sets arbitrary text to add to peripheral C declarations
+    *
+    * @param text
+    */
+   public void addTemplate(String text) {
+      fTemplate = text;
+   }
+
+   /**
+    * Gets C template
+    * 
+    * @return Unprocessed template text to add to C header file
+    */
+   public String getTemplate() {
+      return fTemplate;
+   }
+
+   /**
+    * Gets extra text to add to peripheral C declarations<br>
+    * This text is processed.
+    * 
+    * @return Text to add to C header file
+    */
+   public String getExtraDeclarations() {
+      if (fTemplate == null) {
+         return null;
+      }
+      String text = fTemplate.replaceAll("%n", getName());
+      text = text.replaceAll("\n\\s*", "\n");
+      text = text.replaceAll("\\\\t", "   ");
+      
+      return text;
    }
 
 }
