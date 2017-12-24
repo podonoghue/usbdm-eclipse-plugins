@@ -168,28 +168,35 @@ public class SimValidateMKL extends PeripheralValidator {
       // Determine ERCLK32K
       //==================================
       LongVariable system_erclk32k_clockVar = getLongVariable("system_erclk32k_clock");
-      ChoiceVariable sim_sopt1_osc32kselVar = getChoiceVariable("sim_sopt1_osc32ksel");
+      ChoiceVariable sim_sopt1_osc32kselVar = safeGetChoiceVariable("sim_sopt1_osc32ksel");
 
-      switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
-      case 0: // System oscillator (OSC32KCLK)
+      if (sim_sopt1_osc32kselVar== null) {
+         // No RTC etc
          system_erclk32k_clockVar.setValue(osc0_osc32k_clockVar.getValueAsLong());
          system_erclk32k_clockVar.setOrigin(osc0_osc32k_clockVar.getOrigin());
          system_erclk32k_clockVar.setStatus(osc0_osc32k_clockVar.getStatus());
-         break;
-      case 2: // RTC CLK_IN
-         system_erclk32k_clockVar.setValue(rtcclkin_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setOrigin(rtcclkin_clockVar.getOrigin());
-         system_erclk32k_clockVar.setStatus(rtcclkin_clockVar.getStatus());
-         break;
-      default:
-         sim_sopt1_osc32kselVar.setValue(3);
-      case 3: // LPO 1 kHz
-         system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
-         system_erclk32k_clockVar.setOrigin(system_low_power_clockVar.getOrigin());
-         system_erclk32k_clockVar.setStatus(system_low_power_clockVar.getStatus());
-         break;
       }
-
+      else {
+         switch ((int)sim_sopt1_osc32kselVar.getValueAsLong()) {
+         case 0: // System oscillator (OSC32KCLK)
+            system_erclk32k_clockVar.setValue(osc0_osc32k_clockVar.getValueAsLong());
+            system_erclk32k_clockVar.setOrigin(osc0_osc32k_clockVar.getOrigin());
+            system_erclk32k_clockVar.setStatus(osc0_osc32k_clockVar.getStatus());
+            break;
+         case 2: // RTC CLK_IN
+            system_erclk32k_clockVar.setValue(rtcclkin_clockVar.getValueAsLong());
+            system_erclk32k_clockVar.setOrigin(rtcclkin_clockVar.getOrigin());
+            system_erclk32k_clockVar.setStatus(rtcclkin_clockVar.getStatus());
+            break;
+         default:
+            sim_sopt1_osc32kselVar.setValue(3);
+         case 3: // LPO 1 kHz
+            system_erclk32k_clockVar.setValue(system_low_power_clockVar.getValueAsLong());
+            system_erclk32k_clockVar.setOrigin(system_low_power_clockVar.getOrigin());
+            system_erclk32k_clockVar.setStatus(system_low_power_clockVar.getStatus());
+            break;
+         }
+      }
       // RTC Clock out pin select 
       //============================
       BooleanVariable sim_sopt2_rtcclkoutselVar = safeGetBooleanVariable("sim_sopt2_rtcclkoutsel");
