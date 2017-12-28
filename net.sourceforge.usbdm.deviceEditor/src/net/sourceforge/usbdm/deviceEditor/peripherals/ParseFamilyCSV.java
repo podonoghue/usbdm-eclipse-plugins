@@ -90,7 +90,9 @@ public class ParseFamilyCSV {
    };
 
    /**
-    * Convert some common names
+    * Convert some common names<br>
+    * e.g.<br>
+    * PTA => GPIOA_
     * 
     * @param pinText
     * @return
@@ -119,15 +121,15 @@ public class ParseFamilyCSV {
       if (pinText.isEmpty()) {
          return signalList;
       }
-      pinText = fixSignalName(pinText);
-      if (convert) {
-         pinText = convertName(pinText);
-      }
       String[] signalNames = pinText.split("\\s*/\\s*");
       for (String signalName:signalNames) {
          signalName = signalName.trim();
+         signalName = fixSignalName(signalName);
          if (signalName.isEmpty()) {
             continue;
+         }
+         if (convert) {
+            signalName = convertName(signalName);
          }
          Signal signal = fDeviceInfo.findOrCreateSignal(signalName);
          if (signal != null) {
@@ -212,12 +214,21 @@ public class ParseFamilyCSV {
    }
    
    /**
-    * Do some simple conversion on pin names
+    * Do some simple conversion on pin names.<br>
+    * Also discards some names.<br>
+    * 
+    * e.g.<br>
+    *  XXX_B => XXX_b<br>
+    *  IRQ_x => discarded<br>
+    * 
     * 
     * @param pinName
     * @return
     */
    private String fixSignalName(String pinName) {
+      if (pinName.matches("IRQ_\\d+$")) {
+         return "";
+      }
       if (pinName.matches("(.*)(_B)$")) {
          pinName = pinName.replaceAll("(.*)(_B)$", "$1_b");
       }

@@ -22,7 +22,7 @@ public class WriterForSpi extends PeripheralWithState {
 
    @Override
    public int getSignalIndex(Signal function) {
-      final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
+      final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS|SS_b", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
       return getSignalIndex(function, signalNames);
    }
 }

@@ -56,8 +56,8 @@ public class TestDeviceEditor {
 //         testEditor(Paths.get("projectFiles_Tests/MK22D5.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/MK22F12810.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL02Z.usbdmProject"));
-//         testEditor(Paths.get("projectFiles_Tests/FRDM_KL03Z.usbdmProject"));
-         testEditor(Paths.get("projectFiles_Tests/FRDM_KL05Z.usbdmProject"));
+         testEditor(Paths.get("projectFiles_Tests/FRDM_KL03Z.usbdmProject"));
+//         testEditor(Paths.get("projectFiles_Tests/FRDM_KL05Z.usbdmProject"));
 //       testEditor(Paths.get("projectFiles_Tests/FRDM_KL25Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL27Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL43Z.usbdmProject"));

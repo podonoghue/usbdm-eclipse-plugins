@@ -475,6 +475,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       peripheral = template.createPeripheral(baseName, instance);
       fPeripheralsMap.put(name, peripheral);
+//      if (peripheral.getName().equals("SPI_b0_b")) {
+//         System.err.println("Creating peripheral "+ peripheral.getName());
+//      }
       return peripheral;
    }
 
@@ -977,7 +980,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       SignalTemplate template = null; 
 
       try {
-         template = new SignalTemplate(this, deviceFamily, namePattern, signalPattern, instancePattern, matchTemplate, instanceWriterClass);
+         template = new SignalTemplate(this, deviceFamily, namePattern, signalPattern, instancePattern, "^"+matchTemplate+"$", instanceWriterClass);
          fSignalTemplateList.add(template);
       }
       catch (Exception e) {
@@ -1156,7 +1159,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForSdramc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|PCS\\d*)",
+               "(SPI)([0-3])_(SCK|SIN|SOUT|MISO|MOSI|SS|SS_b|PCS\\d*)",
                getDeviceFamily(),
                WriterForSpi.class);
          createPeripheralTemplateInformation(
