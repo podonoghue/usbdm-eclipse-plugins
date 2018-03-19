@@ -212,7 +212,7 @@ public class PeripheralDatabaseMerger {
             newPeripheral.setFilename(peripheral.getFilename());
             return;
          }
-         if (newPeripheral.getSourceFilename().equals(peripheral.getSourceFilename())) {
+         if (peripheral.getSourceFilename().equals(newPeripheral.getSourceFilename())) {
             newPeripheral.equivalent(peripheral);
             throw new Exception("Opps, "+newPeripheral.getSourceFilename()+" <> "+peripheral.getSourceFilename());
          }

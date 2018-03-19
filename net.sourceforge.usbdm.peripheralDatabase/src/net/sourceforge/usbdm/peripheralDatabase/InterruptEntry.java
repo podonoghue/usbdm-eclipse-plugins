@@ -98,6 +98,12 @@ import java.util.ArrayList;
        * @param description the description to set
        */
       public void setDescription(String description) {
+         if ((description == null) || description.isEmpty()) {
+            return;
+         }
+         if ((fDescription != null) && !fDescription.isEmpty()) {
+            System.err.println("Replacing description '" + fDescription + "' with '"+description+"'");
+         }
          this.fDescription = description;
       }
 

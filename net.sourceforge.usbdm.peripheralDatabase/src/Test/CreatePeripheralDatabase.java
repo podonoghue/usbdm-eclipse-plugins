@@ -686,19 +686,30 @@ public class CreatePeripheralDatabase {
     */
    static void doInitialRegeneration() {
       final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
+      final  Path usbdmFolder_Temp          = MAIN_FOLDER.resolve("Internal.Temp");
       final  Path usbdmFolder_Check         = MAIN_FOLDER.resolve("Internal.Check");
       final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
 
       try {
          // Generate merged version of SVD files for testing (should be unchanging)
 //         ModeControl.setRegenerateAddressBlocks(true);
-//         ModeControl.setExtractSimilarFields(true);
-//         ModeControl.setExtractComplexStructures(true);
-//         ModeControl.setExtractDerivedPeripherals(true);
-//         ModeControl.setExtractSimpleRegisterArrays(true);
-//         ModeControl.setMapFreescalePeriperalCommonNames(true);
-//         ModeControl.setFoldRegisters(true);
-         mergeFiles(usbdmFolder,     usbdmFolder_Check, true);
+         ModeControl.setExtractSimilarFields(false);
+         ModeControl.setExtractComplexStructures(false);
+         ModeControl.setExtractDerivedPeripherals(true);
+         ModeControl.setExtractSimpleRegisterArrays(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setFoldRegisters(false);
+         ModeControl.setFlattenArrays(true);
+         mergeFiles(usbdmFolder,     usbdmFolder_Temp, true);
+         
+         ModeControl.setExtractSimilarFields(true);
+         ModeControl.setExtractComplexStructures(true);
+         ModeControl.setExtractDerivedPeripherals(true);
+         ModeControl.setExtractSimpleRegisterArrays(true);
+         ModeControl.setMapFreescalePeriperalCommonNames(true);
+         ModeControl.setFoldRegisters(true);
+         ModeControl.setFlattenArrays(false);
+         mergeFiles(usbdmFolder_Temp,     usbdmFolder_Check, true);
          
          // Turn of optimisation when generating header files
          ModeControl.setRegenerateAddressBlocks(false);
@@ -714,7 +725,7 @@ public class CreatePeripheralDatabase {
          ModeControl.setFreescaleFieldNames(true);
          ModeControl.setUseShiftsInFieldMacros(false);
          ModeControl.setUseBytePadding(true);
-         createHeaderFiles(usbdmFolder, usbdmHeaderFolder_Check, true);
+         createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, true);
 
       } catch (Exception e) {
          e.printStackTrace();
@@ -872,6 +883,12 @@ public class CreatePeripheralDatabase {
 
 //    firstFileToProcess = ("^MKL27.*");
 //    firstFileToReject  = ("^MKL27Z644.*");
+
+//    firstFileToProcess = ("^MKL33Z.*");
+//    firstFileToReject  = ("^MKL34Z.*");
+
+      firstFileToProcess = ("^S32K.*");
+      firstFileToReject  = ("^SKE.*");
 
 //      doInitialRegeneration();
       doUsualRegeneration();

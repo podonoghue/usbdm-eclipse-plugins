@@ -59,7 +59,7 @@ public class ColdfireV1VectorTable extends VectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#addDefaultInterruptEntries()
     */
    @Override
-   protected void addDefaultInterruptEntries() {
+   protected void addDefaultInterruptEntries() throws Exception {
       for (InterruptEntry i : defaultVectorTableEntries) {
          addEntry(i);
       }
@@ -93,7 +93,7 @@ public class ColdfireV1VectorTable extends VectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCVectorTable(java.io.Writer)
     */
    @Override
-   public void writeCVectorTable(Writer writer) throws IOException {
+   public void writeCVectorTable(Writer writer) throws Exception {
 
       // Add default entries
       if (addDefaultVectors) {
@@ -139,7 +139,7 @@ public class ColdfireV1VectorTable extends VectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCInterruptHeader(java.io.Writer)
     */
    @Override
-   public void writeCInterruptHeader(Writer writer) throws IOException {
+   public void writeCInterruptHeader(Writer writer) throws Exception {
 
       if (addDefaultVectors) {
          addDefaultInterruptEntries();

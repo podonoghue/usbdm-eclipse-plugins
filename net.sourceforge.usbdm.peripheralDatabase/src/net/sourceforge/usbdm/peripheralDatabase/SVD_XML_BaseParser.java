@@ -284,10 +284,10 @@ public class SVD_XML_BaseParser {
       else if (accessName.equals("read-write")) {
          return Field.AccessType.ReadWrite;
       }
-      else if (accessName.equals("writeOnce")) {
+      else if (accessName.equals("write-once")) {
          return Field.AccessType.WriteOnce;
       }
-      else if (accessName.equals("read-writeOnce")) {
+      else if (accessName.equals("read-write-once")) {
          return Field.AccessType.ReadWriteOnce;
       }
       else {

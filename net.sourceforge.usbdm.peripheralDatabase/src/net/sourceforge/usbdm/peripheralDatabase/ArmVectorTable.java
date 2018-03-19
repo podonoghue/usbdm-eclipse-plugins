@@ -64,7 +64,7 @@ public abstract class ArmVectorTable extends VectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#writeCVectorTable(java.io.Writer)
     */
    @Override
-   public void writeCVectorTable(Writer writer) throws IOException {
+   public void writeCVectorTable(Writer writer) throws Exception {
 
       // Add default entries
       if (addDefaultVectors) {

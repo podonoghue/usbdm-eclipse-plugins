@@ -135,9 +135,11 @@ public class RegisterUnion {
       if (offset == -1) {
          throw new Exception("RegisterUnion in invalid state");
       }
-//    writer.writeln("Writing union");
       boolean wrapInUnion = union.size()>1;
-      
+//      if (wrapInUnion) {
+//         writer.write("Writing union - " + wrapInUnion + "\n");
+//         writer.write(union.toString()+"\n");
+//      }
       // Write Fill if necessary
       if (offset>lastWrittenOffset) {
          // Fill to current location

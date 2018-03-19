@@ -29,7 +29,7 @@ public class ArmCM3VectorTable extends ArmVectorTable {
     * @see net.sourceforge.usbdm.peripheralDatabase.VectorTable#addDefaultInterruptEntries()
     */
    @Override
-   protected void addDefaultInterruptEntries() {
+   protected void addDefaultInterruptEntries() throws Exception {
       for (InterruptEntry i : defaultVectorTableEntries) {
          addEntry(i);
       }

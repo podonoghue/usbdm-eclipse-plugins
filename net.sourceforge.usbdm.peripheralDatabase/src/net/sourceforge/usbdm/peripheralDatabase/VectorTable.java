@@ -78,8 +78,30 @@ public abstract class VectorTable extends ModeControl {
     * Add interrupt entry
     * 
     * @param entry
+    * @throws Exception 
     */
-   public void addEntry(InterruptEntry entry) {
+   public void addEntry(InterruptEntry entry) throws Exception {
+      InterruptEntry currentEntry = interrupts[entry.getIndexNumber()+vectorOffset];
+      if (currentEntry != null) {
+         if (!currentEntry.getName().equalsIgnoreCase(entry.getName())) {
+            throw new Exception("InterruptEntry changed name");
+         }
+         ArrayList<Peripheral> currentPeripherals = currentEntry.getPeripheral();
+         for( Peripheral peripheral:entry.getPeripheral()) {
+            if (currentPeripherals.contains(peripheral)) {
+               // Refers to same peripheral - ignore
+               continue;
+            }
+            System.err.println("Merging Interrupt " + currentEntry);
+            System.err.println("with              " + entry);
+            System.err.println("Adding peripheral " + peripheral.getName());
+            currentEntry.addPeripheral(peripheral);
+            if ((currentEntry.getDescription() == null) || currentEntry.getDescription().isEmpty()) {
+               currentEntry.setDescription(peripheral.getDescription());
+            }
+         }
+         return;
+      }
       interrupts[entry.getIndexNumber()+vectorOffset] = entry;
       if ((entry.getIndexNumber()+vectorOffset)>lastUsedEntry) {
          lastUsedEntry = entry.getIndexNumber()+vectorOffset;
@@ -235,9 +257,10 @@ public abstract class VectorTable extends ModeControl {
    
    /**
     * Add default vector table entries
+    * @throws Exception 
     * 
     */
-   protected abstract void addDefaultInterruptEntries();
+   protected abstract void addDefaultInterruptEntries() throws Exception;
    
    /*
     * ====================================================================================================
@@ -336,8 +359,9 @@ public abstract class VectorTable extends ModeControl {
     * @param writer  Where to write the fragment
     * 
     * @throws IOException
+    * @throws Exception 
     */
-   public abstract void writeCVectorTable(Writer writer) throws IOException;
+   public abstract void writeCVectorTable(Writer writer) throws IOException, Exception;
 
    /**
     * Create a vector table suitable for use in C code
@@ -348,7 +372,7 @@ public abstract class VectorTable extends ModeControl {
       StringWriter writer = new StringWriter();
       try {
          writeCVectorTable(writer);
-      } catch (IOException e) {
+      } catch (Exception e) {
          writer.write("Error Creating Vector table, reason:"+e.getMessage());
       }
       return writer.toString();

@@ -34,7 +34,7 @@ public class Field extends ModeControl implements Cloneable {
       WriteOnly      ("write-only",       "WO",             WRITE_MASK           ),
       ReadWrite      ("read-write",       "RW",             WRITE_MASK| READ_MASK),
       WriteOnce      ("write-once",       "W1",  ONCE_MASK| WRITE_MASK           ),
-      ReadWriteOnce  ("readWrite-once",   "RW1", ONCE_MASK| WRITE_MASK| READ_MASK),
+      ReadWriteOnce  ("read-write-once",  "RW1", ONCE_MASK| WRITE_MASK| READ_MASK),
       ;
       final String fPrettyName;
       final String fAbbreviatedName;

@@ -765,8 +765,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    private static InterruptEntry parseInterrupt(Element interruptElement) throws Exception {
 
       InterruptEntry interruptEntry = new InterruptEntry();
-      Peripheral     peripheral     = null;
-      
+      Peripheral peripheral = null;
       for (Node node = interruptElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -792,19 +791,35 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             }
             interruptEntry.addPeripheral(peripheral);
             peripheral.addInterruptEntry(interruptEntry);
+            if (interruptEntry.getDescription().isEmpty()) {
+               interruptEntry.setDescription(peripheral.getDescription());
+            }
          }
          else {
             throw new Exception("Unexpected field in INTERRUPT', value = \'"+element.getTagName()+"\'");
          }
       }
-      if (peripheral != null) {
-         if (interruptEntry.getDescription().isEmpty()) {
-            interruptEntry.setDescription(peripheral.getDescription());
-         }
-      }
       return interruptEntry;
    }
 
+   /**
+    * Parse a <interrupt> element
+    * 
+    * @param  peripheral       Peripheral owning interrupt
+    * @param  interruptElement <interrupt> element
+    * 
+    * @return InterruptEntry described
+    *  
+    * @throws Exception 
+    */
+   private static InterruptEntry parseInterrupt(Element interruptElement, Peripheral peripheral) throws Exception {
+      InterruptEntry interruptEntry =  parseInterrupt(interruptElement);
+      interruptEntry.addPeripheral(peripheral);
+      if (interruptEntry.getDescription().isEmpty()) {
+         interruptEntry.setDescription(peripheral.getDescription());
+      }
+      return interruptEntry;
+   }
    /**
     * Parse a <peripheral> element
     * 
@@ -900,7 +915,15 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             peripheral.setBaseAddress(getIntElement(element));
          }
          else if (element.getTagName() == INTERRUPT_TAG) {
-            InterruptEntry interruptEntry = parseInterrupt(element);
+            InterruptEntry interruptEntry;
+            if (peripheral.getName().contains("NVIC")) {
+               interruptEntry = parseInterrupt(element);
+               System.err.println("Not adding vector for " + peripheral.getName());
+            }
+            else {
+               interruptEntry = parseInterrupt(element, peripheral);
+//               System.err.println("Adding vector for " + peripheral.getName());
+            }
             device.addInterruptEntry(interruptEntry);
          }
          else if (element.getTagName() == ADDRESSBLOCK_TAG ){
