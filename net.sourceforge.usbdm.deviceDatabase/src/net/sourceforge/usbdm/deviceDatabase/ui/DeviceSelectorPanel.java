@@ -209,13 +209,14 @@ public class DeviceSelectorPanel extends Composite {
     */
    private String getFamilyName(String name) {
       Pair[] armPatterns = {
+            new Pair("^(S32).*$",         "Automotive (S32K1xx)"),
             new Pair("^(S9KEA).*$",       "Kinetis E (MKE/S9KEA)"),
             new Pair("^(MKE).*$",         "Kinetis E (MKE/S9KEA)"),
             new Pair("^(MKL).*$",         "Kinetis L (MKL)"),
             new Pair("^(MKM).*$",         "Kinetis M (MKM)"),
             new Pair("^(MKV).*$",         "Kinetis V (MKV)"),
             new Pair("^(MK)[0-9].*$",     "Kinetis K (MK)"),
-            new Pair("^(FRDM).*$",        "Freedom boards (FRDM)"),
+            new Pair("^(FRDM|R41).*$",    "Evaluation boards (FRDM)"),
             new Pair("^(TWR).*$",         "Tower boards (TWR)"),
             new Pair("^(STM32).*$",       "ST Micro ($1)"),
             new Pair("^(LPC).*$",         "NXP LPC ($1)"),
@@ -261,6 +262,7 @@ public class DeviceSelectorPanel extends Composite {
     */
    private String getSubFamilyNamePrefix(String name) {
       Pair[] armPatterns = {
+            new Pair("(S32K[0-9][0-9]).*$",                            "$1"),
             new Pair("(FRDM[-_][a-zA-Z]*).*$",                            "$1"),
             new Pair("(TWR[-_].*)$",                                      "$1"),
             new Pair("^(STM32F[0-9]*).*$",                                "$1"),
