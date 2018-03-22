@@ -1008,8 +1008,30 @@ public class Peripheral extends ModeControl implements Cloneable {
          entry.add(new ComplexStructuresInformation("^(TAGVDW)(\\d+)(S.*)$",         "$1","$2","$3", "TAGVDW,@pTAGVDW@i@f"));
          complexStructures.put("FMC",  entry);
          
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(TVAL|CVAL|TCTRL)(\\d+)$", "$1","$2","$1",   "TMR,@p@f@i"));
+         complexStructures.put("LPIT0",  entry);
+         complexStructures.put("LPIT1",  entry);
+         
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(EICHD)(\\d+)_(WORD0|WORD1)$", "$1","$2","$3",   "EICHDn,@p@f@i"));
+         complexStructures.put("EIM",  entry);
+         
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(EAR)(\\d+)$", "$1","$2","$1",   "EARn,@p@f@i"));
+         complexStructures.put("ERM",  entry);
+         
+         //                                         pattern                    arrayName nameIndex fieldName nameFormat
+         entry = new ArrayList<ComplexStructuresInformation>();
+         entry.add(new ComplexStructuresInformation("^(_EmbeddedRAM)(\\d+)(LL|LU|HL|HU)$", "$1","$2","DATA_8$3",   "RAMn,@p@f@i"));
+         complexStructures.put("CSE_PRAM",  entry);
+         
          entry = new ArrayList<ComplexStructuresInformation>();
          entry.add(new ComplexStructuresInformation("^(CS|ID|WORD0|WORD1)(\\d+)$",    "$1","$2","$1", "MB,@p@f@i"));
+         entry.add(new ComplexStructuresInformation("^(WMB)(\\d+)_(CS|ID|D03|D47)$",   "$3","$2","$1n_$3", "WMB,@p@f@i"));
          complexStructures.put("CAN0",  entry);
          complexStructures.put("CAN1",  entry);
          complexStructures.put("CAN2",  entry);
@@ -1281,17 +1303,17 @@ public class Peripheral extends ModeControl implements Cloneable {
          freescaleExcludedCommonRegisterPeripherals.put("ETB",   "PID.*");
          freescaleExcludedCommonRegisterPeripherals.put("ETF",   "PID.*");
          freescaleExcludedCommonRegisterPeripherals.put("FMC",   "PID.*");
-         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX",".*");    // Registers are odd
-         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX0",".*");   // Registers are odd
-         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX1",".*");   // Registers are odd
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX",".*_.*");    // Registers are odd
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX0",".*_.*");   // Registers are odd
+         freescaleExcludedCommonRegisterPeripherals.put("TRGMUX1",".*_.*");   // Registers are odd
          freescaleExcludedCommonRegisterPeripherals.put("MCG",   ".*");    // Some odd reg. pairs are better separate
       }
       return freescaleExcludedCommonRegisterPeripherals.get(name);
    }
    
    static class PatternTuple {
-      final Pattern pattern;              // Pattern to match
-      final String  indexPattern;         // String to produce result
+      final Pattern pattern;      // Pattern to match
+      final String  indexPattern; // String to produce result
       final String  namePattern;  // String to produce result
       
       public PatternTuple(String pattern, String namePattern, String indexPattern) {
@@ -1319,6 +1341,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          freescalePeripheralRegisterArrayPatterns.put("PDB0", new PatternTuple("(.+)([0-9]+)(.*)$", "$1%s$3", "$2")); // Special pattern for PDB
          freescalePeripheralRegisterArrayPatterns.put("LTC",  new PatternTuple("(.+)_([0-9]+)$",    "$1%s",   "$2"));  // Special pattern for LTC
          freescalePeripheralRegisterArrayPatterns.put("LTC0", new PatternTuple("(.+)_([0-9]+)$",    "$1%s",   "$2"));  // Special pattern for LTC
+         //freescalePeripheralRegisterArrayPatterns.put("ADC0", new PatternTuple("(R|SC1)([0-9]+)$",  "$1_%s",  "$2"));  // Special pattern for ADC
       }
       PatternTuple pair = freescalePeripheralRegisterArrayPatterns.get(name);
       if (pair == null) {
@@ -1374,7 +1397,8 @@ public class Peripheral extends ModeControl implements Cloneable {
          String   mergeName = mergeReg.getName();
          
          boolean  debug = false; 
-//         debug = mergeName.matches(".*PIN[0-9].*");
+//         debug = mergeName.matches(".*SC1.*");
+//       debug = mergeName.matches(".*PIN[0-9].*");
          if (debug) {
             System.err.println(String.format("\n    extractSimpleRegisterArrays(), reg=\"%s\"", getName()+":"+mergeName));
          }
@@ -1626,8 +1650,16 @@ public class Peripheral extends ModeControl implements Cloneable {
          writer.println("</template>");
       }
       writer.println(                     indenter+"   <registers>");
+//      for (Cluster clusterOrRegister : getRegisters()) {
+//         if (clusterOrRegister.isHidden()) {
+//            clusterOrRegister.writeSVD(writer, standardFormat, this, indent+6);
+//            writer.flush();
+//         }
+//      }
       for (Cluster clusterOrRegister : getRegisters()) {
-         clusterOrRegister.writeSVD(writer, standardFormat, this, indent+6);
+//         if (!clusterOrRegister.isHidden()) {
+            clusterOrRegister.writeSVD(writer, standardFormat, this, indent+6);
+//         }
       }
       writer.println(                     indenter+"   </registers>");
       writer.println(                     indenter+"</peripheral>");

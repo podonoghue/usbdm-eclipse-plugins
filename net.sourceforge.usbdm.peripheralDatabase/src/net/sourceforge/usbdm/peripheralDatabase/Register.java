@@ -45,6 +45,7 @@ public class Register extends Cluster implements Cloneable {
     *    - addressBlock
     *    - prependToName
     *    - appendToName
+    *    - hidden
     */
    @Override
    protected Object clone() throws CloneNotSupportedException {

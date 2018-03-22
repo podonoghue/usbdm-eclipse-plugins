@@ -157,12 +157,6 @@ public class RegisterUnion {
       
       // Process registers
       for (Cluster register : union) {
-         if ("CNTRx%s".equalsIgnoreCase(register.getName())) {
-            System.err.println(register.getName());
-         }
-         if ("CNTRy%s".equalsIgnoreCase(register.getName())) {
-            System.err.println(register.getName());
-         }
          long regSize = register.getTotalSizeInBytes();
          if (regSize == size) {
             // Initial registers that occupy the entire union are simply written

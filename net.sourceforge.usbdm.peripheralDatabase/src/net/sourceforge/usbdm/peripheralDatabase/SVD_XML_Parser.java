@@ -415,6 +415,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setResetValue(peripheral.getResetValue());
          register.setResetMask(peripheral.getResetMask());
       }
+      int dimension = 0;
       for (Node node = registerElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -459,7 +460,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             register.setResetMask(getIntElement(element));
          }
          else if (element.getTagName() == DIM_TAG) {
-            // Dim tag is ignored (dimension calculated from <dimIndex> count
+            dimension = (int) getIntElement(element);
+            // Save for check or auto generate indices
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             register.setDimensionIncrement((int) getIntElement(element));
@@ -467,15 +469,15 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          else if (element.getTagName() == DIMINDEX_TAG) {
             register.setDimensionIndexes(element.getTextContent());
          }
+         else if (element.getTagName() == ACCESS_TAG) {
+            register.setAccessType(getAccessElement(element));
+         }
          else if (derived)  {
             throw new Exception(String.format("Unexpected field in derived <register>, p=%s, r=%s, v=%s", 
                   peripheral.getName(), register.getName(), element.getTagName()));
          }
          else if (element.getTagName() == SIZE_TAG) {
             register.setWidth(getIntElement(element));
-         }
-         else if (element.getTagName() == ACCESS_TAG) {
-            register.setAccessType(getAccessElement(element));
          }
          else if (element.getTagName() == MODIFIEDWRITEVALUES_TAG) {
             //TODO: Implement modifiedWriteValues
@@ -504,6 +506,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (register.getAccessType() == null) {
          register.setAccessType(peripheral.getAccessType());
       }
+      if ((register.getDimension() == 0) && (dimension > 0)) {
+         System.err.println("Warning setting auto dimension to " + dimension);
+         register.setAutoDimension(dimension);
+      }
+//      if (register.getDimension() != dimension) {
+//         throw new Exception("Dimension indices and value differ in number indices="+register.getDimension()+
+//               ", dimension="+dimension+", p="+peripheral.getName()+", r="+register.getName());
+//      }
       register.checkFieldAccess();
       register.checkFieldDimensions();
       return register;

@@ -229,13 +229,6 @@ public class ModeControl {
    }
 
    /**
-    * @return the foldRegisters
-    */
-   public static boolean isFoldRegisters() {
-      return foldRegisters;
-   }
-
-   /**
     * Cause some register names that appears twice to be folded (i.e. 2nd occurrence deleted)
     * 
     * @param extractSimilarFields True to enable operation
@@ -249,6 +242,13 @@ public class ModeControl {
     */
    public static boolean isExtractSimilarFields() {
       return extractSimilarFields;
+   }
+
+   /**
+    * @return the foldRegisters
+    */
+   public static boolean isFoldRegisters() {
+      return foldRegisters;
    }
 
    /**

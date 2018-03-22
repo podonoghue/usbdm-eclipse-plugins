@@ -887,8 +887,8 @@ public class CreatePeripheralDatabase {
 //    firstFileToProcess = ("^MKL33Z.*");
 //    firstFileToReject  = ("^MKL34Z.*");
 
-      firstFileToProcess = ("^S32K.*");
-      firstFileToReject  = ("^SKE.*");
+//      firstFileToProcess = ("^S32K.*");
+//      firstFileToReject  = ("^SKE.*");
 
 //      doInitialRegeneration();
       doUsualRegeneration();

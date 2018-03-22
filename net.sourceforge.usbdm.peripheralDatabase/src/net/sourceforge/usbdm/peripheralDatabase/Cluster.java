@@ -69,6 +69,8 @@ public class Cluster extends ModeControl implements Cloneable {
       // Make shallow copy
       Cluster clone = (Cluster) super.clone();
 
+      clone.hidden           = false;
+      clone.dimensionIndexes = null;
       clone.setDerivedFrom(this);
       return clone;
    }
@@ -289,6 +291,20 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public int getDimension() {
       return (dimensionIndexes != null)?dimensionIndexes.size():0;
+   }
+
+   /**
+    * Get dimension
+    * 
+    * @param dimension Dimension of array to set.
+    * 
+    * The array will have numeric indices from 0 to dimension-1
+    */
+   public void setAutoDimension(int dimension) {
+      this.dimensionIndexes = new ArrayList<String>();
+      for (int dim=0; dim<dimension; dim++) {
+         this.dimensionIndexes.add(String.valueOf(dim));
+      }
    }
 
    /**
