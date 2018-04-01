@@ -1,6 +1,5 @@
 package net.sourceforge.usbdm.peripheralDatabase;
 
-import java.io.IOException;
 import java.io.Writer;
 
 public class ColdfireV1VectorTable extends VectorTable {

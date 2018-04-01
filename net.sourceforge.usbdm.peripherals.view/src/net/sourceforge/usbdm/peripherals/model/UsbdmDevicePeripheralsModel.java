@@ -103,11 +103,12 @@ public class UsbdmDevicePeripheralsModel {
       }
       ModelInformation clusterInfo = new ModelInformation(pInformation);
       clusterInfo.setCluster(cluster);
+      // XXX Check changes here
       if (cluster.getDimension()>0) {
          // Cluster which is an array
          for (int clusterIndex=0; clusterIndex<cluster.getDimension(); clusterIndex++) {
             clusterInfo.setClusterIndex(clusterIndex);
-            Register singleVisibleRegister = cluster.getSingleVisibleRegister();
+            Register singleVisibleRegister = (Register) cluster.getSingleVisibleRegister();
             if ((singleVisibleRegister != null) && (singleVisibleRegister.getDimension() == 0)) {
                // Omit cluster wrapper for a single, simple register
                clusterInfo.setRegister(singleVisibleRegister);
@@ -117,37 +118,37 @@ public class UsbdmDevicePeripheralsModel {
                continue;
             }
             ClusterModel clusterModel = new ClusterModel(peripheralModel, clusterInfo);
-            for (Register register : cluster.getRegisters()) {
+            for (Cluster register : cluster.getRegisters()) {
                if (register.isHidden()) {
                   continue;
                }
                ModelInformation registerInfo = new ModelInformation(clusterInfo);
-               registerInfo.setRegister(register);
+               registerInfo.setRegister((Register) register);
                if (register.getDimension()>0) {
                   for (int registerIndex=0; registerIndex<register.getDimension(); registerIndex++) {
                      registerInfo.setRegisterIndex(registerIndex);
                      RegisterModel registerModel = new RegisterModel(clusterModel, registerInfo);
-                     createFieldModels(registerModel, register, registerInfo);
+                     createFieldModels(registerModel, (Register) register, registerInfo);
                   }
                }
                else {
                   registerInfo.setRegisterIndex(-1);
                   RegisterModel registerModel = new RegisterModel(clusterModel, registerInfo);
-                  createFieldModels(registerModel, register, registerInfo);
+                  createFieldModels(registerModel, (Register) register, registerInfo);
                }
             }
          }
       }
       else {
          // A simple cluster
-         for (Register register : cluster.getRegisters()) {
+         for (Cluster register : cluster.getRegisters()) {
             if (register.isHidden()) {
                continue;
             }
-            clusterInfo.setRegister(register);
+            clusterInfo.setRegister((Register) register);
             RegisterModel registerModel = new RegisterModel(peripheralModel, clusterInfo);
             registerModel.setName(registerModel.getName());
-            createFieldModels(registerModel, register, clusterInfo);
+            createFieldModels(registerModel, (Register) register, clusterInfo);
          }
       }
    }

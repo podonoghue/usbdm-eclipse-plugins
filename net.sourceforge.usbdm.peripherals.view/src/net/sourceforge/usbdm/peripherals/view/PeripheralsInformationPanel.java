@@ -178,8 +178,6 @@ public class PeripheralsInformationPanel extends StyledText implements ISelectio
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-      // XXX Delete me
-      //System.err.println("PeripheralsInformationPanel.modelElementChanged(" + observableModel.getClass() + ")");
       updateContent();
    }
 

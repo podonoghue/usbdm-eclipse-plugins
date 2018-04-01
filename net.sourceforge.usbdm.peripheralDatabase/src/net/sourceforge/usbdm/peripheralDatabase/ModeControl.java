@@ -378,13 +378,6 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to try to extract peripherals that are derived from other peripherals 
-    */
-   public static boolean isExtractDerivedPeripherals() {
-      return extractDerivedPeripherals;
-   }
-
-   /**
     * Indicates whether to recalculate the peripheral address blocks from registers
     * 
     * @return value
@@ -403,7 +396,7 @@ public class ModeControl {
    }
 
    /**
-    * Indicates whether to whether to flatten arrays to simple registers
+    * Indicates whether to whether to flatten arrays to simple registers in SVD
     * 
     * @return value
     */
@@ -412,7 +405,7 @@ public class ModeControl {
    }
 
    /**
-    * Sets whether to flatten arrays to simple registers
+    * Sets whether to flatten arrays to simple registers in SVD
     * 
     * @param regenerateAddressBlocks
     */
@@ -505,6 +498,13 @@ public class ModeControl {
    }
 
    /**
+    * Indicates whether to try to extract peripherals that are derived from other peripherals 
+    */
+   public static boolean isExtractDerivedPeripherals() {
+      return extractDerivedPeripherals;
+   }
+
+   /**
     * Sets whether to try to extract peripherals that are derived from other peripherals 
     */
    public static void setExtractDerivedPeripherals(boolean extractDerivedPeripherals) {
@@ -552,11 +552,18 @@ public class ModeControl {
       Collections.sort(registers, new Comparator<E>() {
          @Override
          public int compare(E reg1, E reg2) {
+            // Offset 1st
             long num1 = ((Cluster)reg1).getAddressOffset();
             long num2 = ((Cluster)reg2).getAddressOffset();
+            // Size 2nd
             if (num1 == num2) {
                num2 = ((Cluster)reg1).getTotalSizeInBytes();
                num1 = ((Cluster)reg2).getTotalSizeInBytes();
+            }
+            // Sort derived later
+            if (num1 == num2) {
+               num1 = ((Cluster)reg1).isDerived()?1:0;
+               num2 = ((Cluster)reg2).isDerived()?1:0;
             }
             if (num1<num2) {
                return -1;

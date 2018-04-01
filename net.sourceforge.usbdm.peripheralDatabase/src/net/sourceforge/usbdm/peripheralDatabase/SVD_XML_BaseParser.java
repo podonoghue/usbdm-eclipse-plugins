@@ -196,34 +196,43 @@ public class SVD_XML_BaseParser {
     * @throws Exception
     */
    protected static long getIntElement(Node element) throws Exception {
-
-      String s = stripQuotes(element.getTextContent().trim());
-
-      if ((s == null) || (s.length()==0)) {
+      return getIntFromText(element.getTextContent());
+   }
+   
+   /**
+    * @param text - Text to convert to integer
+    * 
+    * @return integer
+    * 
+    * @throws Exception
+    */
+   protected static long getIntFromText(String text) throws Exception {
+      text = stripQuotes(text).trim();
+      if ((text == null) || (text.length()==0)) {
          throw new Exception("Text not found");
       }
       long value      = 0;
       long multiplier = 1;
-      int kIndex = s.lastIndexOf('K');
-      int mIndex = s.lastIndexOf('M');
+      int kIndex = text.lastIndexOf('K');
+      int mIndex = text.lastIndexOf('M');
       if (kIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), K found");
-         s = s.substring(0, kIndex);
+         text = text.substring(0, kIndex);
          multiplier = 1024;
          //         System.out.println("getIntAttribute("+s+"), K found");
       }
       if (mIndex>0) {
          //         System.out.println("getIntAttribute("+s+"), M found");
-         s = s.substring(0, mIndex);
+         text = text.substring(0, mIndex);
          multiplier = 1024*1024;
          //         System.out.println("getIntAttribute("+s+"), M found");
       }
       try {
-         value = multiplier*Long.decode(s);
+         value = multiplier*Long.decode(text);
       } catch (NumberFormatException e) {
          //         System.out.println("getIntAttribute("+s+"), failed");
          e.printStackTrace();
-         throw new Exception("Failed to parse Int text', value = \'"+element.getTextContent()+"\'");
+         throw new Exception("Failed to parse Int text', value = \'"+text+"\'");
          //         throw e;
       }
       return value;

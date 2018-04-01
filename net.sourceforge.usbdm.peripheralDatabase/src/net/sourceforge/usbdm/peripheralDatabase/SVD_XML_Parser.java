@@ -79,6 +79,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String NAME_TAG                         = "name";
    static final String NVICPRIOBITS_TAG                 = "nvicPrioBits";
    static final String OFFSET_TAG                       = "offset";
+   static final String PARAMETER_TAG                    = "parameter";
+   static final String PARAMETERS_TAG                   = "parameters";
    static final String PERIPHERAL_TAG                   = "peripheral";
    static final String PERIPHERALS_TAG                  = "peripherals";
    static final String PREPENDTONAME_TAG                = "prependToName";
@@ -284,6 +286,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
             field.setName(element.getTextContent().trim());
+//            if (element.getTextContent().trim().equals("SCS")) {
+//               System.err.println("SCS");
+//            }
          }
          else if (element.getTagName() == DESCRIPTION_TAG) {
             field.setDescription(element.getTextContent().trim());
@@ -381,30 +386,30 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     */
    private static Register parseRegister(Peripheral peripheral, Cluster cluster, Element registerElement) throws Exception {
 
-      Register register = new Register(peripheral, cluster);
-      boolean derived = false;
-
-      if (registerElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
+      Register register = null;
+      boolean  derived  = registerElement.hasAttribute(DERIVEDFROM_ATTRIB);
+      
+      if (derived) {
+         String referencedRegName = registerElement.getAttribute(DERIVEDFROM_ATTRIB);
          Cluster referencedRegister = null;
          if (cluster != null) {
-            referencedRegister = cluster.findRegister(registerElement.getAttribute(DERIVEDFROM_ATTRIB));
+            referencedRegister = cluster.findRegister(Peripheral.getMappedPeripheralName(referencedRegName));
             if (referencedRegister == null) {
                // Try unmapped name
-               referencedRegister = cluster.findRegister(registerElement.getAttribute(DERIVEDFROM_ATTRIB));
+               referencedRegister = cluster.findRegister(referencedRegName);
             }
          }
          if (referencedRegister == null) {
-            referencedRegister = peripheral.findRegister(Peripheral.getMappedPeripheralName(registerElement.getAttribute(DERIVEDFROM_ATTRIB)));
+            referencedRegister = peripheral.findRegister(Peripheral.getMappedPeripheralName(referencedRegName));
             if (referencedRegister == null) {
                // Try unmapped name
-               referencedRegister = peripheral.findRegister(registerElement.getAttribute(DERIVEDFROM_ATTRIB));
+               referencedRegister = peripheral.findRegister(referencedRegName);
                if (referencedRegister == null) {
-                  throw new Exception("Referenced register cannot be found: \""+registerElement.getAttribute(DERIVEDFROM_ATTRIB)+"\"");
+                  throw new Exception("Referenced register cannot be found: \""+referencedRegName+"\"");
                }
             }
          }
          register = (Register) ((Register) referencedRegister).clone();
-         derived  = true;
       }
       else {
          register = new Register(peripheral, cluster);
@@ -415,7 +420,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setResetValue(peripheral.getResetValue());
          register.setResetMask(peripheral.getResetMask());
       }
-      int dimension = 0;
+      String dimension = null;
       for (Node node = registerElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -437,9 +442,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == NAME_TAG) {
-          register.setName(mapRegisterName(element.getTextContent()));
+            register.setName(mapRegisterName(element.getTextContent()));
          }
-         
          else if (element.getTagName() == ADDRESSOFFSET_TAG) {
             register.setAddressOffset(getIntElement(element));
          }
@@ -460,8 +464,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             register.setResetMask(getIntElement(element));
          }
          else if (element.getTagName() == DIM_TAG) {
-            dimension = (int) getIntElement(element);
             // Save for check or auto generate indices
+            dimension = element.getTextContent().trim();
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             register.setDimensionIncrement((int) getIntElement(element));
@@ -506,14 +510,29 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (register.getAccessType() == null) {
          register.setAccessType(peripheral.getAccessType());
       }
-      if ((register.getDimension() == 0) && (dimension > 0)) {
-         System.err.println("Warning setting auto dimension to " + dimension);
-         register.setAutoDimension(dimension);
+      int dim = -1;
+      if (dimension == null) {
+         // No dimension set (may inherit)
       }
-//      if (register.getDimension() != dimension) {
-//         throw new Exception("Dimension indices and value differ in number indices="+register.getDimension()+
-//               ", dimension="+dimension+", p="+peripheral.getName()+", r="+register.getName());
-//      }
+      else if (dimension.startsWith("%")) {
+         register.setDim(dimension);
+         dim = (int) getIntFromText(peripheral.getParameterValue(dimension.substring(1)));
+      }
+      else {
+         register.setDim(dimension);
+         dim = (int) getIntFromText(dimension);
+      }
+      if (dim==0) {
+         // Dimension explicitly set to zero - delete dimension information
+         register.setDimensionIndexes((String)null);
+         register.setDimensionIncrement(0);
+      }
+      if ((register.getDimension() == 0) && (dim > 0)) {
+         if (!dimension.startsWith("%")) {
+            System.err.println("Warning setting auto dimension to r=" + register.getName() + ", d="+dimension);
+         }
+         register.setAutoDimension(dim);
+      }
       register.checkFieldAccess();
       register.checkFieldDimensions();
       return register;
@@ -568,6 +587,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       cluster.setResetValue(peripheral.getResetValue());
       cluster.setResetMask(peripheral.getResetMask());
 
+      String dimension = null;
       for (Node node = clusterElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -589,6 +609,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName() == DIM_TAG) {
+            // Save for check or auto generate indices
+            dimension = element.getTextContent().trim();
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             cluster.setDimensionIncrement((int) getIntElement(element));
@@ -615,6 +637,29 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          else {
             throw new Exception("Unexpected field in CLUSTER', value = \'"+element.getTagName()+"\'");
          }
+      }
+      int dim = -1;
+      if (dimension == null) {
+         // No dimension set (may inherit)
+      }
+      else if (dimension.startsWith("%")) {
+         cluster.setDim(dimension);
+         dim = (int) getIntFromText(peripheral.getParameterValue(cluster.getDim().substring(1)));
+      }
+      else {
+         cluster.setDim(dimension);
+         dim = (int) getIntFromText(dimension);
+      }
+      if (dim==0) {
+         // Dimension explicitly set to zero - delete dimension information
+         cluster.setDimensionIndexes((String)null);
+         cluster.setDimensionIncrement(0);
+      }
+      if ((cluster.getDimension() == 0) && (dim > 0)) {
+         if (!dimension.startsWith("%")) {
+            System.err.println("Warning setting auto dimension to " + dimension);
+         }
+         cluster.setAutoDimension(dim);
       }
       return cluster;
    }
@@ -841,10 +886,10 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
     */
    private static Peripheral parsePeripheral(DevicePeripherals device, Element peripheralElement) throws Exception {
 
-      boolean derived       = false;
       Peripheral peripheral = null;
+      boolean    derived    = peripheralElement.hasAttribute(DERIVEDFROM_ATTRIB);
       
-      if (peripheralElement.hasAttribute(DERIVEDFROM_ATTRIB)) {
+      if (derived) {
          Peripheral referencedPeripheral = null;
          referencedPeripheral = device.findPeripheral(Peripheral.getMappedPeripheralName(peripheralElement.getAttribute(DERIVEDFROM_ATTRIB)));
          if (referencedPeripheral == null) {
@@ -859,7 +904,6 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             }
          }
          peripheral = (Peripheral) referencedPeripheral.clone();
-         derived    = true;
       }
       else {
          peripheral = new Peripheral(device);
@@ -960,11 +1004,69 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          else if (element.getTagName() == REGISTERS_TAG) {
             parseRegisters(peripheral, element);
          }
+         else if (element.getTagName() == PARAMETERS_TAG) {
+            parseParameters(peripheral, element);
+         }
          else {
             throw new Exception("parsePeripheral() - Unexpected field in PERIPHERAL', value = \'"+element.getTagName()+"\'");
          }
       }
       return peripheral;
+   }
+
+   private static void parseParameters(Peripheral peripheral, Element parametersElement) throws Exception {
+
+      for (Node node = parametersElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         try {
+            if (element.getTagName() == PARAMETER_TAG) {
+               parseParameter(peripheral, element);
+            }
+            else {
+               throw new Exception("Unexpected field in PARAMETERS', value = \'"+element.getTagName()+"\'");
+            }
+         } catch (Exception e) {
+            System.err.println("parseParameters() - peripheral = " + peripheral.getName() + ", element tag =" + element.getTagName());
+            throw e;
+         }
+      }
+   }
+
+   private static void parseParameter(Peripheral peripheral, Element parameterElement) throws Exception {
+
+      Parameter parameter = new Parameter();
+      
+      for (Node node = parameterElement.getFirstChild();
+            node != null;
+            node = node.getNextSibling()) {
+         if (node.getNodeType() != Node.ELEMENT_NODE) {
+            continue;
+         }
+         Element element = (Element) node;
+         try {
+            if (element.getTagName() == NAME_TAG) {
+               parameter.setName(element.getTextContent().trim());
+            }
+            else if (element.getTagName() == VALUE_TAG) {
+               parameter.setValue(element.getTextContent().trim());
+            }
+            else if (element.getTagName() == DESCRIPTION_TAG) {
+               parameter.setDescription(element.getTextContent().trim().replaceAll("\n", " "));
+            }
+            else {
+               throw new Exception("Unexpected field in PARAMETER', value = \'"+element.getTagName()+"\'");
+            }
+         } catch (Exception e) {
+            System.err.println("parseParameter() - peripheral = " + peripheral.getName() + ", element tag =" + element.getTagName());
+            throw e;
+         }
+      }
+      peripheral.addParameter(parameter);
    }
 
    /**

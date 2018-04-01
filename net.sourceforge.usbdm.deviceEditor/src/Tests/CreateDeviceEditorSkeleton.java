@@ -70,13 +70,13 @@ public class CreateDeviceEditorSkeleton {
       if (cluster.getDimension()>0) {
          // Cluster which is an array
          for (int clusterIndex=0; clusterIndex<cluster.getDimension(); clusterIndex++) {
-            Register singleVisibleRegister = cluster.getSingleVisibleRegister();
+            Register singleVisibleRegister = (Register) cluster.getSingleVisibleRegister();
             if ((singleVisibleRegister != null) && (singleVisibleRegister.getDimension() == 0)) {
                // Omit cluster wrapper for a single, simple register
                System.err.println("Cluster = " + cluster.getName() + "[]");
                continue;
             }
-            for (Register register : cluster.getRegisters()) {
+            for (Cluster register : cluster.getRegisters()) {
                if (register.getDimension()>0) {
                   for (int registerIndex=0; registerIndex<register.getDimension(); registerIndex++) {
                      System.err.println("Cluster = " + cluster.getName() + "[]");
@@ -90,7 +90,7 @@ public class CreateDeviceEditorSkeleton {
       }
       else {
          // A simple cluster
-         for (Register register : cluster.getRegisters()) {
+         for (Cluster register : cluster.getRegisters()) {
             System.err.println("RegisterX = " + register.getName());
          }
       }

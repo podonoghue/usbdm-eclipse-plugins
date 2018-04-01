@@ -226,8 +226,6 @@ public class GdbDsfSessionListener implements SessionStartedListener, SessionEnd
    @DsfServiceEventHandler
    public void handleDsfEvent(ISuspendedDMEvent event) {
       String sessionId = event.getDMContext().getSessionId();
-      //XXX - Remove me
-      //System.err.println(String.format("handleDsfEvent(ISuspendedDMEvent, s=%s, r=%s)", sessionId, event.toString()));
             
       UsbdmDevicePeripheralsModel devicePeripheralsModel = dsfSessions.get(sessionId);
       if (devicePeripheralsModel != null) {

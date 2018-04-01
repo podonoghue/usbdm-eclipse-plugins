@@ -214,7 +214,7 @@ public class PeripheralDatabaseMerger {
          }
          if (peripheral.getSourceFilename().equals(newPeripheral.getSourceFilename())) {
             newPeripheral.equivalent(peripheral);
-            throw new Exception("Opps, "+newPeripheral.getSourceFilename()+" <> "+peripheral.getSourceFilename());
+            throw new Exception("Opps, "+newPeripheral.getSourceFilename()+" == "+peripheral.getSourceFilename()+" but not equivalent");
          }
       }
       // First time the device is used - clear references etc

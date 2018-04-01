@@ -45,7 +45,6 @@ public class DevicePeripherals extends ModeControl {
    private AccessType                   accessType;
    private Cpu                          cpu;
 
-   private boolean                      sorted;
    private ArrayList<String>            equivalentDevices;
    private VectorTable                  vectorTable;
    private String                       vendor;
@@ -75,7 +74,6 @@ public class DevicePeripherals extends ModeControl {
       peripherals       = new ArrayList<Peripheral>();
       accessType        = AccessType.ReadWrite;
       cpu               = null;
-      sorted            = false;
       equivalentDevices = new ArrayList<String>();
       vectorTable       = null;
 
@@ -88,7 +86,6 @@ public class DevicePeripherals extends ModeControl {
 
    public void addPeripheral(Peripheral peripheral) {
       peripherals.add(peripheral);
-      sorted = false;
    }
 
 
@@ -280,9 +277,6 @@ public class DevicePeripherals extends ModeControl {
     * Sort the peripherals list by address
     */
    public void sortPeripherals() {
-      if (sorted) {
-         return;
-      }
       Collections.sort(peripherals, new Comparator<Peripheral>() {
          @Override
          public int compare(Peripheral peripheral1, Peripheral peripheral2) {
@@ -295,7 +289,6 @@ public class DevicePeripherals extends ModeControl {
             return (peripheral2.getName().compareTo(peripheral1.getName()));
          }
       });
-      sorted = true;
    }
 
    /**
@@ -308,7 +301,6 @@ public class DevicePeripherals extends ModeControl {
             return (peripheral1.getName().compareTo(peripheral2.getName()));
          }
       });
-      sorted = false;
    }
 
    /**
@@ -333,6 +325,7 @@ public class DevicePeripherals extends ModeControl {
                continue;
             }
             if (checkPeripheral.equivalentStructure(peripheral)) {
+               checkPeripheral.equivalentStructure(peripheral);
                checkPeripheral.setDerivedFrom(peripheral);
                // Similar peripheral already referenced
                //               System.out.println("DevicePeripherals.extractDerivedPeripherals() found \""+checkPeripheral.getName()+"\" == \""+peripheral.getName()+"\"");
@@ -761,15 +754,9 @@ public class DevicePeripherals extends ModeControl {
     */
    boolean isPeripheralExcludedFromHeaderFile(String name) {
       //TODO Where peripherals are excluded when generating header files
-      // Some of these are in the CMSIS headers
+      // Some of these are already in the CMSIS headers
       if (excludedPeripherals == null) {
          excludedPeripherals = new HashSet<String>();
-         excludedPeripherals.add("AIPS");
-         //       excludedPeripherals.add("AXBS");
-         //       excludedPeripherals.add("AXBS0");
-         //       excludedPeripherals.add("AXBS1");
-         excludedPeripherals.add("AIPS0");
-         excludedPeripherals.add("AIPS1");
          excludedPeripherals.add("DWT");
          excludedPeripherals.add("ITM");
          excludedPeripherals.add("NVIC");

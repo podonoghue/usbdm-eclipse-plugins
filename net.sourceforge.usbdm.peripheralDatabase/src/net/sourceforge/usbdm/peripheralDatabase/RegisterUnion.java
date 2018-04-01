@@ -35,18 +35,19 @@ public class RegisterUnion {
     * Creates a structure to hold a collection of registers being written to a header file.<br>
     * It handles assembling them and writing the appropriate STRUCTS using the writer.
     *  
-    * @param writer2     Writer to use when outputting the STRUCTS
+    * @param writer      Writer to use when outputting the STRUCTS
     * @param indent      Indent level to indent the structure by
     * @param peripheral  The peripheral containing the registers
     * @param owner       The Peripheral or Cluster that owns the register
     */
-   public RegisterUnion(Writer writer2, int indent, Peripheral peripheral, long baseAddress) {
+   public RegisterUnion(Writer writer, int indent, Peripheral peripheral, long baseAddress) {
       reset(0);
-      this.writer      = writer2;
+      this.writer      = writer;
       this.peripheral  = peripheral;
       this.indent      = indent;
       this.indenter    = getIndent(indent);
       this.baseAddress = baseAddress;
+      this.size        = 0;
    }
 
    /**
@@ -99,17 +100,19 @@ public class RegisterUnion {
 //      if ("CNTRy%s".equalsIgnoreCase(cluster.getName())) {
 //         System.err.println(cluster.getName());
 //      }
+//      if (cluster.getName().startsWith("FILT")) {
+//         System.err.print("RegisterUnion.add - " + this.toString() + "\n");
+//      }
       if (cluster.getAddressOffset()<lastWrittenOffset) {
          throw new Exception(String.format("Register addresses not monotonic, p=%s, c=%s",
                peripheral.getName(), cluster.getName()));
       }
-      if (union.isEmpty()) {
-         // First register for this union
-         offset = cluster.getAddressOffset();
-      }
-      else if (!overlaps(cluster)) {
+      if (!overlaps(cluster)) {
          // Flush current union as we have moved on (current cluster can't be added to union)
          writeHeaderFileUnion();
+      }
+      if (union.isEmpty()) {
+         // First register for this union
          offset = cluster.getAddressOffset();
       }
       // Add register to union being assembled & update union size
@@ -117,7 +120,6 @@ public class RegisterUnion {
          size = (cluster.getTotalSizeInBytes()+cluster.getAddressOffset()) - offset;
       }
       union.add(cluster);
-//      System.err.println(String.format("RegisterUnion.add(), adding %s @0x%08X", cluster.getName(), cluster.getAddressOffset()));
    }
    
    /**
@@ -136,9 +138,9 @@ public class RegisterUnion {
          throw new Exception("RegisterUnion in invalid state");
       }
       boolean wrapInUnion = union.size()>1;
-//      if (wrapInUnion) {
-//         writer.write("Writing union - " + wrapInUnion + "\n");
-//         writer.write(union.toString()+"\n");
+//      if (union.get(0).getName().startsWith("FILT")) {
+//         System.err.print("Writing union - " + this.toString() + "\n");
+//         System.err.print(union.toString()+"\n");
 //      }
       // Write Fill if necessary
       if (offset>lastWrittenOffset) {
@@ -147,7 +149,7 @@ public class RegisterUnion {
          lastWrittenOffset = offset;
       }
       if (wrapInUnion) {
-         writer.write(String.format(Register.lineFormat, indenter+unionOpening, baseAddress, String.format("(size=%04X)", size)));
+         writer.write(String.format(Register.LINE_FORMAT, indenter+unionOpening, baseAddress, String.format("(size=%04X)", size)));
       }
       sort();
       
@@ -163,7 +165,7 @@ public class RegisterUnion {
             if ((union.size()>1)&&register.isComplexArray()) {
                // If the register is an non-simple array and there is more than one element in the union then
                // it is necessary to wrap in a anonymous STRUCT
-               writer.write(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
+               writer.write(String.format(Register.LINE_FORMAT, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
                register.writeHeaderFileDeclaration(writer, indent+(wrapInUnion?3:0), this, peripheral, baseAddress+offset);
                writer.write(indenter+"   "+unionClosing);         
             }
@@ -177,7 +179,7 @@ public class RegisterUnion {
                // Need to wrap in STRUCT if more than a single element or needs padding before the element
                wrapInStruct = ((union.size()-regsDone)>1)||(register.getAddressOffset() != lastWrittenOffset);
                if (wrapInStruct) {
-                  writer.write(String.format(Register.lineFormat, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
+                  writer.write(String.format(Register.LINE_FORMAT, indenter+"   "+nestedStructOpening, baseAddress, String.format("(size=%04X)", size)));
                }
                subStruct = new RegisterUnion(writer, indent+3+(wrapInStruct?3:0), peripheral, baseAddress);
                subStruct.reset(lastWrittenOffset);
@@ -292,7 +294,7 @@ public class RegisterUnion {
       else {
          line.append(';');
       }
-      writer2.write(String.format(Register.lineFormatNoDocumentation, line.toString()));//, baseAddress+lastWrittenOffset, ""));
+      writer2.write(String.format(Register.LINE_FORMAT_NO_DOCUMENTATION, line.toString()));//, baseAddress+lastWrittenOffset, ""));
    }
 
    /**
@@ -315,5 +317,14 @@ public class RegisterUnion {
       return indentString.substring(0, indent);
    }
 
+   public String toString() {
+      StringBuffer sb = new StringBuffer(); 
+      sb.append(String.format("s=%d\n", size));
+      for (Cluster r:union) {
+         sb.append(r.toString());
+         sb.append("\n");
+      }
+      return sb.toString();
+   }
 }
 
