@@ -486,8 +486,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
       memoryMap.append(MAP_PREFIX);
       long gdbGuardAddress = -1;
-      ArrayList<MemoryRange> ramRegions    = new ArrayList<MemoryRange>();
-      ArrayList<MemoryRange> flashRegions  = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> ramRegions     = new ArrayList<MemoryRange>();
+      ArrayList<MemoryRange> flashRegions   = new ArrayList<MemoryRange>();
       ArrayList<MemoryRange> flexNVMRegions = new ArrayList<MemoryRange>();
       ArrayList<MemoryRange> flexRAMRegions = new ArrayList<MemoryRange>();
       for (Iterator<MemoryRegion> it = device.getMemoryRegionIterator();
@@ -585,33 +585,47 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          name    = "flash" + suffix; 
       }
 
-      ramRegions = coalesce(ramRegions);
-      if (ramRegions.size() == 0) {
+      ramSize        = 0;
+      ramRegions     = coalesce(ramRegions);
+      
+      MemoryRange ramRegion = null;
+      
+      for(MemoryRange region:ramRegions) {
+         long t = (region.end-region.start+1);
+         if (t>ramSize) {
+            ramSize   = t;
+            ramRegion = region;
+         }
+      }
+      if (ramRegion == null) {
          // Should never happen!
-         System.err.println("Error = ramSize == 0!");
-         ramSize = 0;
+         System.err.println("Error no RAM region found");
       }
       else {
-         // 1st RAM region contains stack
-         ramSize = (ramRegions.get(0).end-ramRegions.get(0).start+1);
+         gdbGuardAddress = ramRegion.end+1;
+         suffix  = 0;
+         capName = "RAM"; 
+         name    = "ram"; 
+         for(MemoryRange region:ramRegions) {
+            capName = "RAM"; 
+            name    = "ram"; 
+            if (region != ramRegion) {
+               capName += suffix; 
+               name    += suffix;
+               suffix++;
+            }
+            memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
+            memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", region.start, region.end-region.start+1));
+         }
+         if (gdbGuardAddress > 0) {
+            memoryMap.append("/*\n * Guard region above stack for GDB \n */\n");
+            memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
+         }
+         memoryMap.append(MAP_SUFFIX);
       }
-      gdbGuardAddress = ramRegions.get(0).end+1;
-      suffix  = 0;
-      capName = "RAM"; 
-      name    = "ram"; 
-      for(MemoryRange region:ramRegions) {
-         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", region.start, region.end-region.start+1));
-         capName = "RAM" + suffix; 
-         name    = "ram" + suffix; 
-      }
-      if (gdbGuardAddress > 0) {
-         memoryMap.append("  /* Guard region above stack for GDB */\n");
-         memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
-      }
-      memoryMap.append(MAP_SUFFIX);
 
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
+//      System.err.println(memoryMap.toString());
       paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
