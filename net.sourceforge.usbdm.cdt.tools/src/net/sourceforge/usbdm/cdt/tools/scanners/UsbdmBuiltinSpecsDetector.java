@@ -29,31 +29,7 @@ public class UsbdmBuiltinSpecsDetector extends GCCBuiltinSpecsDetector implement
    @Override
    protected String resolveCommand(String languageId) throws CoreException {
       String commandLine = super.resolveCommand(languageId);
-      System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => (Before)commandLine = \'" + commandLine + "\'");
-      try {
-         // Do variable substitution
-         IStringVariableManager manager = VariablesPlugin.getDefault().getStringVariableManager();
-         
-//         IValueVariable variable;
-//         variable = manager.getValueVariable(UsbdmConstants.CODESOURCERY_ARM_PATH_KEY);
-//         if (variable != null) {
-//            String codesourceryPath = variable.getValue();
-//            codesourceryPath = codesourceryPath.replace('\\', '/');
-//            System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => ${"+UsbdmConstants.CODESOURCERY_ARM_PATH_KEY+"} = \'" + codesourceryPath + "\'");
-//            commandLine = commandLine.replace("${"+UsbdmConstants.CODESOURCERY_ARM_PATH_KEY+"}", codesourceryPath+"/x/");
-//         }
-//         variable = manager.getValueVariable(UsbdmConstants.CODESOURCERY_COLDFIRE_PATH_KEY);
-//         if (variable != null) {
-//            String codesourceryPath = variable.getValue();
-//            codesourceryPath = codesourceryPath.replace('\\', '/');
-//            System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => ${"+UsbdmConstants.CODESOURCERY_COLDFIRE_PATH_KEY+"} = \'" + codesourceryPath + "\'");
-//            commandLine = commandLine.replace("${"+UsbdmConstants.CODESOURCERY_COLDFIRE_PATH_KEY+"}", codesourceryPath+"/x/");
-//         }
-         commandLine = manager.performStringSubstitution(commandLine);
-      } catch (CoreException e1) {
-         e1.printStackTrace();
-      }
-      System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => (After)commandLine = \'" + commandLine + "\'");
+      System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => commandLine = \'" + commandLine + "\'");
       return commandLine;
    }
 

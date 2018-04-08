@@ -995,6 +995,7 @@
                name="Language standard"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language"
                category="net.sourceforge.usbdm.gnu.c.compiler.other"
+               useByScannerDiscovery="true"
                valueType="enumerated">
                <enumeratedOptionValue
                      id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.language.systemDefault"
@@ -1502,6 +1503,7 @@
                name="Language standard:"
                id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language"
                category="net.sourceforge.usbdm.gnu.cpp.compiler.other"
+               useByScannerDiscovery="true"
                valueType="enumerated">
                <enumeratedOptionValue
                      id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.systemDefault"
