@@ -976,6 +976,14 @@
                valueType="boolean">
             </option>
             <option
+                  category="net.sourceforge.usbdm.gnu.c.compiler.other"
+                  command="-ffreestanding"
+                  defaultValue="false"
+                  id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.freestanding"
+                  name="Free Standing (-ffreestanding)"
+                  valueType="boolean">
+            </option>
+            <option
                name="Position Independent Code (-fPIC)"
                id="net.sourceforge.usbdm.gnu.c.compiler.option.misc.pic"
                category="net.sourceforge.usbdm.gnu.c.compiler.other"
@@ -1481,6 +1489,14 @@
                   isAbstract="false"
                   name="No exception (-fno-exceptions)"
                   resourceFilter="all"
+                  valueType="boolean">
+            </option>
+            <option
+                  category="net.sourceforge.usbdm.gnu.cpp.compiler.other"
+                  command="-ffreestanding"
+                  defaultValue="false"
+                  id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.freestanding"
+                  name="Free Standing (-ffreestanding)"
                   valueType="boolean">
             </option>
             <option

@@ -101,7 +101,7 @@ public class ProcessProjectActions {
                sb.append("Action id = " + action.getId() + "\n");
                sb.append("Action owned by = " + action.getOwnerId() + "\n");
                sb.append(e.getMessage());
-               return new Result(new Exception(sb.toString()));
+               return new Result(new Exception(sb.toString(), e));
             }
             return new Result(Status.CONTINUE);
          }

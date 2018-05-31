@@ -53,7 +53,7 @@ public class KSDKImporter {
          IPathVariableManager pathMan = workspace.getPathVariableManager();
          kdsPath                      = pathMan.getURIValue(UsbdmSharedConstants.USBDM_KSDK_PATH);
       } catch (Exception e) {
-         kdsPath  = new URI("file:/C:/Apps/Freescale/KSDK_1.1.0");
+         kdsPath  = new URI("file:/C:/Apps/Freescale/KSDK_1.3.0");
       }
       java.nio.file.Path sourcePath = java.nio.file.Paths.get(kdsPath).resolve("lib/ksdk_platform_lib/kds");
       DirectoryStream<java.nio.file.Path> stream;

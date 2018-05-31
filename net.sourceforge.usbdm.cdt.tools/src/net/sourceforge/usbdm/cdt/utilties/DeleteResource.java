@@ -26,20 +26,20 @@ public class DeleteResource {
     * 
     * @param projectHandle       Handle for access to project
     * @param variableMap         
-    * @param resourceInfo
+    * @param deleteAction
     * @param monitor             Progress monitor
     * 
     * @throws Exception 
     */
-   public void process(IProject projectHandle, Map<String,String> variableMap, DeleteResourceAction resourceInfo, IProgressMonitor monitor) 
+   public void process(IProject projectHandle, Map<String,String> variableMap, DeleteResourceAction deleteAction, IProgressMonitor monitor) 
       throws Exception {
       if (projectHandle == null) {
          // For debug
-         System.err.println("Debug: "+resourceInfo);
+         System.err.println("Debug: "+deleteAction);
          return;
       }
-      String root   = MacroSubstitute.substitute(resourceInfo.getRoot(),   variableMap);
-      String target = MacroSubstitute.substitute(resourceInfo.getTarget(), variableMap);
+      String root   = MacroSubstitute.substitute(deleteAction.getRoot(),   variableMap);
+      String target = MacroSubstitute.substitute(deleteAction.getTarget(), variableMap);
       root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root);
       target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target);
       Path targetPath = Paths.get(target);
@@ -51,8 +51,23 @@ public class DeleteResource {
       }
       else {
          IFolder iFolder = projectHandle.getFolder(targetPath.toString());
-         if (iFolder.exists()) {
-            iFolder.delete(true, monitor);               
+         int retryCounter = 4;
+         while (--retryCounter>=0) {
+            if (!iFolder.exists()) {
+               // Ignore if folder no longer exists
+               break;
+            }
+            try {
+               iFolder.delete(true, monitor);
+               break;
+            } catch (Exception e) {
+               final String errorMsg = "Failed to delete resource "+targetPath.toAbsolutePath();
+               if (retryCounter == 0) {
+                  throw(new Exception(errorMsg,e));
+               }
+               System.err.println(errorMsg+", retrying");
+               Thread.sleep(100 /*ms*/);
+            }               
          }
       }
    }
