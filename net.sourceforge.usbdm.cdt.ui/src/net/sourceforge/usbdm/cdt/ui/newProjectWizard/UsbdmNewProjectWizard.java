@@ -431,44 +431,39 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
       try {
          monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
-         
+
          if (CCorePlugin.getDefault() == null) {
             Activator.log("CCorePlugin not found (for testing)");
             return;
          }
-         try {
-            // Suppress project indexing while project is constructed
-            CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
-            
-            // Create project
-            IProject  project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
+         // Suppress project indexing while project is constructed
+         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
 
-            // Apply device project options etc
-            ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
-            
-            // Generate CPP code as needed
-            DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
-            
-            project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
-            
-            reindexProject(project, monitor.newChild(WORK_SCALE * 20));
+         // Create project
+         IProject  project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
 
-            CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
-            boolean       hasCCNature   = Boolean.valueOf(fParamMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
-            if (hasCCNature) {
-               System.err.println("Last ditch adding CC nature");
-               CCProjectNature.addCCNature(project, monitor.newChild(5));
-            }
+         // Apply device project options etc
+         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
 
-         } finally {
-            // Allow indexing
-            CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
+         // Generate CPP code as needed
+         DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
+
+         project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
+
+         reindexProject(project, monitor.newChild(WORK_SCALE * 20));
+
+         CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor);
+         boolean       hasCCNature   = Boolean.valueOf(fParamMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
+         if (hasCCNature) {
+            System.err.println("Last ditch adding CC nature");
+            CCProjectNature.addCCNature(project, monitor.newChild(5));
          }
-         
       } catch (Exception e) {
          e.printStackTrace();
          throw new InvocationTargetException(e);
       } finally {
+         // Allow indexing
+         CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
          monitor.done();
       }
    }
