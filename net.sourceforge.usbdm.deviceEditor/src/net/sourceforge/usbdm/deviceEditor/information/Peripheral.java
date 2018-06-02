@@ -529,13 +529,13 @@ public abstract class Peripheral extends VariableProvider {
     * 
     * <pre>
     *    //! Hardware base pointer
-    *    static constexpr volatile ADC_Type *adc   = (volatile ADC_Type *)ADC0_BasePtr;
+    *    static __attribute__((always_inline)) static volatile ADC_Type &adc() {...}
     * 
     *    //! Clock mask for peripheral
     *    static constexpr uint32_t clockMask = SIM_SCGC6_ADC0_MASK;
     * 
     *    //! Address of clock register for peripheral
-    *    static constexpr volatile uint32_t *clockReg  = (volatile uint32_t *)(SIM_BasePtr+offsetof(SIM_Type,SCGC6));
+    *    static __attribute__((always_inline)) static volatile uint32_t &clockReg() {...}
     * 
     *    //! Number of IRQs for hardware
     *    static constexpr uint32_t irqCount  = 1;
@@ -553,30 +553,37 @@ public abstract class Peripheral extends VariableProvider {
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       StringBuffer sb = new StringBuffer();
       
-      // Base address
+      // Base addresses
       sb.append(String.format(
             "   //! Hardware base pointer\n"+
-            "   static constexpr volatile %s_Type *%s   = (volatile %s_Type *)%s\n\n",
-            getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr;"
+            "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
+            "      return *(%s_Type *)%s;\n"+
+            "   }\n\n",
+            getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr"
             ));
-
+      // Clock mask
       if (getClockMask() != null) {
          sb.append(String.format(
                "   //! Clock mask for peripheral\n"+
                "   static constexpr uint32_t clockMask = %s;\n\n",
                getClockMask()));
       }
+      // Clock register
       if (getClockReg() != null) {
          sb.append(String.format(
                "   //! Address of clock register for peripheral\n"+
-               "   static constexpr volatile uint32_t *clockReg  = (volatile uint32_t *)%s;\n\n",
-               "(SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+"))"));
+               "   __attribute__((always_inline)) static volatile uint32_t &clockReg() {\n"+
+               "      return *%s;\n"+
+               "   }\n\n",
+               "(uint32_t *)(SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+"))"));
       }
+      // Number of IRQs
       sb.append(String.format(
             "   //! Number of IRQs for hardware\n"+
             "   static constexpr uint32_t irqCount  = %s;\n\n",
             getIrqCount()));
       
+      // Explicit IRQ numbers
       if (getIrqNumsAsInitialiser() != null) {
          sb.append(String.format(
                "   //! IRQ numbers for hardware\n"+
