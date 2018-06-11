@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.viewers.StructuredViewer;
+import org.eclipse.swt.widgets.Display;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
@@ -54,9 +55,13 @@ public abstract class BaseModel implements Cloneable {
     */
    protected void refresh() {
       StructuredViewer viewer = getViewer();
-      if ((viewer != null) && (!viewer.getControl().isDisposed())) {
-         viewer.refresh();
-      }
+      Display.getDefault().asyncExec(new Runnable() {
+         public void run() {
+            if ((viewer != null) && (!viewer.getControl().isDisposed())) {
+               viewer.refresh();
+            }
+         }
+     });
    }
    
    /**
@@ -66,23 +71,33 @@ public abstract class BaseModel implements Cloneable {
       // Necessary to propagate error messages up the tree
 //      updateAncestors();
       final StructuredViewer viewer = getViewer();
-      if (viewer != null) {
-         viewer.update(this, null);
-      }
+      Display.getDefault().asyncExec(new Runnable() {
+         public void run() {
+            if ((viewer != null) && (!viewer.getControl().isDisposed())) {
+               viewer.update(this, null);
+            }
+         }
+     });
    }
    
    /**
     * Updates the given element's and all ancestor's presentation when one or more of its properties change
     */
    protected void updateAncestors() {
-      StructuredViewer viewer = getViewer();
-      if (viewer != null) {
-         BaseModel element = this;
-         while (element != null) {
-            viewer.update(element, null);
-            element = element.getParent();
+      final StructuredViewer viewer         = getViewer();
+      final BaseModel        currentElement = this;
+      
+      Display.getDefault().asyncExec(new Runnable() {
+         public void run() {
+            if ((viewer != null) && (!viewer.getControl().isDisposed())) {
+               BaseModel element = currentElement;
+               while (element != null) {
+                  viewer.update(element, null);
+                  element = element.getParent();
+               }
+            }
          }
-      }
+     });
    }
    
    /** Name of model */
