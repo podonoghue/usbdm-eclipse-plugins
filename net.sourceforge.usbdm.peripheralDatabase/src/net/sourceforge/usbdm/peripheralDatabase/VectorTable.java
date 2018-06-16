@@ -226,7 +226,6 @@ public abstract class VectorTable extends ModeControl {
          return handlerName = handlerName+EXCEPTION_IRQ_SUFFIX;
       }
    }
-   
 
    /**
     * Get handler enum name<br>

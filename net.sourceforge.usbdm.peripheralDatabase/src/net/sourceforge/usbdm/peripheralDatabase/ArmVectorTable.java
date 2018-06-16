@@ -3,6 +3,8 @@ package net.sourceforge.usbdm.peripheralDatabase;
 import java.io.IOException;
 import java.io.Writer;
 
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
+
 public abstract class ArmVectorTable extends VectorTable {
 
    static final int VECTOR_OFFSET      = 16;
@@ -82,7 +84,8 @@ public abstract class ArmVectorTable extends VectorTable {
 
       // Write out handler prototypes
       for (int index=2; index<=lastEntry; index++) {
-         if ((interrupts[index] == null) || interrupts[index].isClassMemberUsedAsHandler()) {
+         if ((interrupts[index] == null) || (interrupts[index].getHandlerMode() == Mode.ClassMethod)) {
+            // No prototype if entry is empty or using a C++ class member handler
             continue;
          }
          String handlerName = getHandlerName(index);

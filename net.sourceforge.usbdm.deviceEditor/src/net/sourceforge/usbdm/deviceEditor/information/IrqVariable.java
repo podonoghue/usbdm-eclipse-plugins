@@ -3,14 +3,9 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IrqVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
 
 public class IrqVariable extends Variable {
-   
-   public static enum Mode {
-      NotInstalled,
-      ClassMethod,
-      UserMethod
-   };
    
    public final static String NOT_INSTALLED_VALUE = "$"+Mode.NotInstalled.name();
    public final static String CLASS_VALUE         = "$"+Mode.ClassMethod.name();

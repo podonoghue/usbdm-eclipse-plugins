@@ -26,6 +26,7 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateInforma
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
+import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {
@@ -247,7 +248,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          return;
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
-      boolean handlerSet = false;
+      boolean classMemberHandlerSet = false;
       String pattern = irqVariable.getPattern();
       pattern = pattern.replaceAll("%b", getBaseName());
       pattern = pattern.replaceAll("%i", getInstance());
@@ -270,7 +271,8 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                   classHandler = classHandler.replaceAll("%b", getBaseName());
                   classHandler = classHandler.replaceAll("%i", getInstance());
                   classHandler = classHandler.replaceAll("%c", className);
-                  handlerName = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
+                  handlerName  = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
+                  classMemberHandlerSet = true;
                   break;
                case UserMethod:
                   // Replace with user specified name
@@ -283,11 +285,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                   break;
                }
                entry.setHandlerName(handlerName);
-               entry.setClassMemberUsedAsHandler(true);
-               handlerSet = true;
+               entry.setHandlerMode(irqVariable.getMode());
             }
          }
-         if (handlerSet) {
+         if (classMemberHandlerSet) {
             // Add include file
             vectorTable.addIncludeFile(headerFileName);
          }

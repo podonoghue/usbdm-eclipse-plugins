@@ -5,12 +5,24 @@ import java.util.ArrayList;
 
    public class InterruptEntry {
 
+      /**
+       * Indicates mode for this vector
+       */
+      public static enum Mode {
+         /** Use system name for handler e.g. PIT0_IRQHandler */
+         NotInstalled,     
+         /** Use class name for handler e.g. USBDM::Rtc::irqAlarmHandler */
+         ClassMethod,      
+         /** Use user supplied name for handler e.g. MyHandler */
+         UserMethod        
+      };
+      
       private int                    fIndex;
       private String                 fName;
       private String                 fHandlerName; // This is a transient property and not written to SVD
       private String                 fDescription;
-      private boolean                fClassMemberUsedAsHandler = false;
       private ArrayList<Peripheral>  fAssociatedPeripheral = new ArrayList<Peripheral>();
+      private Mode                   fMode = Mode.NotInstalled;
       
       public InterruptEntry() {
          this("", 100, null, "");
@@ -108,21 +120,21 @@ import java.util.ArrayList;
       }
 
       /**
-       * Set whether the handler for this interrupt is a static member of a class
+       * Set type of handler for this interrupt
        * 
-       * @param handlerIsClassMember
+       * @param type of handler
        */
-      public void setClassMemberUsedAsHandler(boolean handlerIsClassMember) {
-         fClassMemberUsedAsHandler = handlerIsClassMember;
+      public void setHandlerMode(Mode mode) {
+         fMode = mode;
       }
       
       /**
-       * Set whether the handler for this interrupt is a static member of a class
+       * Check type of handler for this interrupt
        * 
-       * @return true if handler is a member function
+       * @return type of handler
        */
-      public boolean isClassMemberUsedAsHandler() {
-         return fClassMemberUsedAsHandler;
+      public Mode getHandlerMode() {
+         return fMode;
       }
       
       /**
