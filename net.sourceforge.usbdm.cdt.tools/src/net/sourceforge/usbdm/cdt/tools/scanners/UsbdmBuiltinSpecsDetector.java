@@ -3,8 +3,6 @@ package net.sourceforge.usbdm.cdt.tools.scanners;
 import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvider;
 import org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.variables.IStringVariableManager;
-import org.eclipse.core.variables.VariablesPlugin;
 
 public class UsbdmBuiltinSpecsDetector extends GCCBuiltinSpecsDetector implements
       ILanguageSettingsProvider {

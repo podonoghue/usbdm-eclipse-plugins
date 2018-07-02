@@ -26,7 +26,6 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateInforma
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
-import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
 
 public abstract class PeripheralWithState extends Peripheral implements IModelEntryProvider, IModelChangeListener {

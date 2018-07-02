@@ -770,6 +770,22 @@ public class DocumentUtilities {
    /**
     * Write simple macro definition e.g.
     * <pre><code>
+    * #define <i><b>name</i></b>
+    * </code></pre>
+    * 
+    * @param name          Macro name
+    * 
+    * @throws IOException
+    */
+   public void writeMacroDefinition(String name) throws IOException {
+      final String defineTemplate = "#define %-20s\n";
+      fWriter.write(String.format(defineTemplate, name));
+   }
+
+
+   /**
+    * Write simple macro definition e.g.
+    * <pre><code>
     * #define <i><b>name value</i></b>
     * </code></pre>
     * 
@@ -782,7 +798,6 @@ public class DocumentUtilities {
       final String defineTemplate = "#define %-20s %s\n";
       fWriter.write(String.format(defineTemplate, name, value));
    }
-
    /**
     * Write simple macro definition with in-line comment e.g.
     * <pre><code>

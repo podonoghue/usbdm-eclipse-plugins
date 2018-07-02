@@ -675,6 +675,9 @@ public abstract class Peripheral extends VariableProvider {
       
       String indent = "";
       if (signalTable.getName() != INFO_TABLE_NAME) {
+         // Write MACRO indicated extra Pin Table information
+         pinMappingHeaderFile.writeMacroDefinition("USBDM_"+(getClassName()+"_"+signalTable.getName()).toUpperCase()+"_IS_DEFINED");
+
          // Open static class wrapper
          pinMappingHeaderFile.write(String.format(
                "   class %s {\n"+
@@ -794,7 +797,7 @@ public abstract class Peripheral extends VariableProvider {
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
 
       // Macro indicating presence of peripheral
-      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED", "");
+      pinMappingHeaderFile.writeMacroDefinition("USBDM_"+getClassName().toUpperCase()+"_IS_DEFINED");
 
       pinMappingHeaderFile.writeDocBanner(
             "Peripheral information for " + getGroupTitle() + ".\n\n" + 
