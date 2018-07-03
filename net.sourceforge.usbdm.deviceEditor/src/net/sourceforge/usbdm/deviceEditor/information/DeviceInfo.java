@@ -49,6 +49,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFtmShared;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForGpio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2c;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForI2s;
@@ -1084,6 +1085,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForFtm.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
+               "(FTM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForFtmShared.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
                "(I2C)([0-3])_(SCL|SDA|4WSCLOUT|4WSDAOUT)",
                getDeviceFamily(),
                WriterForI2c.class);
@@ -1169,6 +1175,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForFtm.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
+               "(TPM)_()(CLKIN\\d+)",
+               getDeviceFamily(),
+               WriterForFtmShared.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
                "(TSI)([0-3])_(CH\\d+)",
                getDeviceFamily(),
                WriterForTsi.class);
@@ -1203,16 +1214,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForVref.class);
 
-         createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
-               "(FTM)_()(CLKIN\\d+)",
-               getDeviceFamily(),
-               WriterForShared.class);
-         createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
-               "(TPM)_()(CLKIN\\d+)",
-               getDeviceFamily(),
-               WriterForShared.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(SIM)",
