@@ -45,24 +45,6 @@ public class WriteFamilyCpp {
    /** Name of function to do pin mapping */
    private static final String DO_PIN_MAPPING_FUNCTION = "mapAllPins";
 
-   // /** Fixed GPIO multiplexor function */
-   // private int gpioFunctionMuxValue = 1;
-   //
-   // /** GPIO multiplexor function varies with port */
-   // private boolean gpioFunctionMuxValueChanged = false;
-   //
-   // /** Fixed ADC multiplexor function - default to multiplexor setting 0*/
-   // private int adcFunctionMuxValue = 0;
-   //
-   // /** GPIO ADC function varies with port */
-   // private boolean adcFunctionMuxValueChanged = false;
-   //
-   // /** Fixed PORT clock enable register */
-   // private String portClockRegisterValue = "SCGC5";
-   //
-   // /** PORT clock enable register varies with port */
-   // private boolean portClockRegisterChanged = false;
-
    /*
     * Macros
     * ==========================================================================
@@ -173,8 +155,6 @@ public class WriteFamilyCpp {
       writer.openUsbdmDocumentationGroup();
 
       writePortInfo(writer);
-
-      writer.write("/** Class to static check signal mapping is valid */\n" + "template<class Info, int signalNum> class CheckSignal {\n" + "#ifdef DEBUG_BUILD\n" + "   static_assert((signalNum<Info::numSignals), \"Non-existent signal - Modify Configure.usbdm\");\n" + "   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != UNMAPPED_PCR), \"Signal is not mapped to a pin - Modify Configure.usbdm\");\n" + "   static_assert((signalNum>=Info::numSignals)||(Info::info[signalNum].gpioBit != INVALID_PCR),  \"Signal doesn't exist in this device/package\");\n" + "   static_assert((signalNum>=Info::numSignals)||((Info::info[signalNum].gpioBit == UNMAPPED_PCR)||(Info::info[signalNum].gpioBit == INVALID_PCR)||(Info::info[signalNum].gpioBit >= 0)), \"Illegal signal\");\n" + "#endif\n" + "};\n\n");
 
       fDeviceInfo.writeNamespaceInfo(writer);
 
@@ -371,13 +351,28 @@ public class WriteFamilyCpp {
          }
       }
       startGroup.closeGroup();
-      writer.writeDocBanner("Used to configure pin-mapping before 1st use of peripherals");
-      writer.write("extern void " + DO_PIN_MAPPING_FUNCTION + "();\n");
       writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.flush();
    }
 
+   /**
+    * Write Central Pin Mapping function to CPP file
+    * 
+    * <pre>
+    * void mapAllPins() {
+    *    enablePortClocks(PORTA_CLOCK_MASK|...);
+    * 
+    *    PORTA->GPCHR = 0x0000UL|PORT_GPCHR_GPWE(0x000CUL);
+    *    ...
+    *    PORTE->GPCHR = 0x0500UL|PORT_GPCHR_GPWE(0x0300UL);
+    * }
+    * </pre>
+    * 
+    * @param writer     Where to write (CPP file)
+    * 
+    * @throws Exception
+    */
    private void writePinMappingFunction(DocumentUtilities writer) throws Exception {
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
@@ -390,88 +385,6 @@ public class WriteFamilyCpp {
       writer.write(pcrInitialiser.getPcrInitStatements(""));
       writer.write("}\n");
    }
-
-   // /**
-   // * Write Pin Mapping function to CPP file
-   // *
-   // * @param writer Where to write
-   // * @throws Exception
-   // */
-   // @SuppressWarnings("unused")
-   // private void oldWritePinMappingFunction(DocumentUtilities writer) throws
-   // Exception {
-   //
-   // writer.write(
-   // "struct PinInit {\n"+
-   // " uint32_t pcrValue;\n"+
-   // " uint32_t volatile *pcr;\n"+
-   // "};\n\n"+
-   // "static constexpr PinInit pinInit[] = {\n"
-   // );
-   //
-   // TreeSet<String> portClockMasks = new TreeSet<String>();
-   // for (String pinName:fDeviceInfo.getPins().keySet()) {
-   //
-   // Pin pin = fDeviceInfo.getPins().get(pinName);
-   // if (!pin.isAvailableInPackage()) {
-   // // Discard pin that is not available on this package
-   // continue;
-   // }
-   // MuxSelection mux = pin.getMuxValue();
-   // if (!mux.isMappedValue()) {
-   // // Skip unmapped pin
-   // continue;
-   // }
-   // MappingInfo mapping = pin.getMappedSignal();
-   // String pcrValue = "USBDM::DEFAULT_PCR";
-   // for (Signal sig:mapping.getSignals()) {
-   // String pinPcrValue = sig.getPeripheral().getPcrValue(sig);
-   // if (!pinPcrValue.equals(pcrValue)) {
-   // pcrValue = pinPcrValue;
-   // }
-   // }
-   // writer.write(String.format(
-   // " /* %-10s ==> %-30s */ { PORT_PCR_MUX(%d)|%s, %-16s },\n",
-   // pin.getName(),
-   // pin.getMappedSignal().getSignalList(),
-   // mux.value,
-   // pcrValue,
-   // pin.getPCR()));
-   // portClockMasks.add(pin.getClockMask());
-   // }
-   // writer.write("};\n\n");
-   //
-   // writer.write(
-   // "/**\n" +
-   // " * Used to configure pin-mapping before 1st use of peripherals\n" +
-   // " */\n" +
-   // "void "+DO_PIN_MAPPING_FUNCTION+"() {\n"
-   // );
-   //
-   // boolean maskWritten = false;
-   // for (String portClockMask:portClockMasks) {
-   // if (!maskWritten) {
-   // writer.write(String.format("\n SIM->FIXED_PORT_CLOCK_REG |= %s",
-   // portClockMask));
-   // }
-   // else {
-   // writer.write(String.format("|%s", portClockMask));
-   // }
-   // maskWritten = true;
-   // }
-   // if (maskWritten) {
-   // writer.write(String.format(";\n"));
-   // }
-   //
-   // writer.write(
-   // "\n"+
-   // " for (const PinInit *p=pinInit;
-   // p<(pinInit+(sizeof(pinInit)/sizeof(pinInit[0]))); p++) {\n"+
-   // " *(p->pcr) = p->pcrValue;\n"+
-   // " }\n"
-   // );
-   // writer.write("}\n");
-   // }
 
    private final String DOCUMENTATION_OPEN = "/**\n" + " *\n" + " * @page PinSummary Pin Mapping\n";
 

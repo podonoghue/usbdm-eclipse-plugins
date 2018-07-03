@@ -2014,6 +2014,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       return fVariableProvider.substitute(input, map);
    }
    
+   /**
+    * Write information to documentUtilities for information declared at USBDM namespace
+    * 
+    * @param documentUtilities 
+    * @throws IOException
+    */
    public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
       if (fMenuData == null) {
          return;
