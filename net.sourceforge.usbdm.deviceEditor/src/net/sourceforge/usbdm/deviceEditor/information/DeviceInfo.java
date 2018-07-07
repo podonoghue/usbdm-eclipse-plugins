@@ -39,6 +39,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmp;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCmt;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForConsole;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForControl;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForCrc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDac;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDma;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForDmaMux;
@@ -68,6 +69,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForPower;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForQspi;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRadio;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRnga;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdhc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForSdramc;
@@ -82,6 +84,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForWdog;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseFamilyXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
@@ -1134,10 +1137,15 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForPdb.class);
          createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
+               "$1", "$2", "",
                "(PMC)(0?)",
                getDeviceFamily(),
                WriterForPmc.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "",
+               "(WDOG)(0?)",
+               getDeviceFamily(),
+               WriterForWdog.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "",
                "(RCM)(0?)",
@@ -1257,7 +1265,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "$1", "$2", "$3",
                "(CRC)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForCrc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(DMA)(\\d)?(.*)",
@@ -1284,10 +1292,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForFlash.class);
          createPeripheralTemplateInformation(
-               "$1", "$2", "$3",
+               "$1", "$3", "$4",
                "(RNG(A)?)(\\d)?(.*)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForRnga.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(USBHS)",
