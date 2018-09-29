@@ -561,6 +561,14 @@ public abstract class Peripheral extends VariableProvider {
             "   }\n\n",
             getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr"
             ));
+      // Base addresses
+      sb.append(String.format(
+            "   //! Hardware base address as uint32_t \n"+
+            "   __attribute__((always_inline)) static constexpr uint32_t baseAddress() {\n"+
+            "      return %s;\n"+
+            "   }\n\n",
+            getName()+"_BasePtr"
+            ));
       // Clock mask
       if (getClockMask() != null) {
          sb.append(String.format(
