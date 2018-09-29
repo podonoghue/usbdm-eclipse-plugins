@@ -607,7 +607,7 @@ public class WriteFamilyCpp {
       
       try {
          IFile file = project.getFile(pinMappingFile);
-         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
+//         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
          file.setDerived(true, subMonitor.newChild(10));
       } catch (Exception e) {
          // Ignore
@@ -616,7 +616,7 @@ public class WriteFamilyCpp {
       
       try {
          IFile file = project.getFile(hardwareFile);
-         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
+//         file.refreshLocal(IFile.DEPTH_ZERO, subMonitor.newChild(10));
          file.setDerived(true, subMonitor.newChild(10));
       } catch (Exception e) {
          // Ignore

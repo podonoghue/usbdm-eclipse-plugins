@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.index.IIndexManager;
+import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.core.resources.IProject;
@@ -189,6 +190,22 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
    }
 
    /**
+    * Used to suppress C indexing
+    */
+   static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
+      IProject fProject;
+      
+      MyIndexerSetupParticipant(IProject project) {
+         fProject = project;
+      }
+      @Override
+      public boolean postponeIndexerSetup(ICProject cProject) {
+         IProject project = cProject.getProject() ;
+         return project == fProject;
+      }
+   }
+   
+   /**
     * Generate C code files
     * @return 
     */
@@ -202,21 +219,28 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
             if (fFactory == null) {
                return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
             }
+//            MyIndexerSetupParticipant indexerParticipant= null;
             try {
                subMonitor.setTaskName("Regenerate project files");
                subMonitor.subTask("Starting...");
                if (fProject != null) {
-                  // Opened as part of a Eclipse project
+//                  indexerParticipant = new MyIndexerSetupParticipant(fProject); 
+
+                  // Suppress project indexing while project is constructed
+//                  CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
+
+                  // Regenerate files
                   fFactory.getDeviceInfo().generateCppFiles(fProject, subMonitor.newChild(50));
                   
                   // Refresh project
                   subMonitor.subTask("Refreshing files...");
                   fProject.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(10));
                   
-                  subMonitor.subTask("Indexing files...");
-                  final ICProject cproject = CoreModel.getDefault().create(fProject);
                   final IIndexManager indexManager = CCorePlugin.getIndexManager();
-                  indexManager.reindex(cproject); 
+                  final ICProject cProject = CoreModel.getDefault().create(fProject);
+//                  indexerParticipant.notifyIndexerSetup(cProject);
+                  subMonitor.subTask("Refreshing Index...");
+                  indexManager.reindex(cProject);
                   indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(40)); 
                }
                else {
@@ -225,7 +249,14 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
                }
             } catch (Exception e) {
                e.printStackTrace();
+               
                return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
+            } finally {
+//               // Allow indexing if suspended
+//               if (indexerParticipant != null) {
+//                  CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
+//               }
+               monitor.done();
             }
             return Status.OK_STATUS;
          }

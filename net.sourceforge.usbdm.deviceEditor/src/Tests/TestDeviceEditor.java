@@ -46,8 +46,8 @@ public class TestDeviceEditor {
    public static void main(String[] args) {
       try {
 //         testEditor(Paths.get("projectFiles_Tests/Configure.usbdmProject"));
-//         testEditor(Paths.get("projectFiles_Tests/FRDM_K20D50M.usbdmProject"));
-         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F.usbdmProject"));
+         testEditor(Paths.get("projectFiles_Tests/FRDM_K20D50M.usbdmProject"));
+//         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K28F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F1M0.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K64F.usbdmProject"));
@@ -58,7 +58,7 @@ public class TestDeviceEditor {
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL02Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL03Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL05Z.usbdmProject"));
-//       testEditor(Paths.get("projectFiles_Tests/FRDM_KL25Z.usbdmProject"));
+//         testEditor(Paths.get("projectFiles_Tests/FRDM_KL25Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL27Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL43Z.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_KL46Z.usbdmProject"));

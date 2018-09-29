@@ -274,7 +274,7 @@ public class FileUtility {
             Path projectPath = Paths.get(project.getLocation().toPortableString()).toAbsolutePath();
             if (targetPath.startsWith(projectPath)) {
                IFile iFile = project.getFile(projectPath.relativize(targetPath).toString());
-               iFile.refreshLocal(IResource.DEPTH_ONE, progress.newChild(50));
+               iFile.refreshLocal(IResource.DEPTH_ZERO, progress.newChild(50));
                iFile.setDerived(true, progress.newChild(50));
             }
          }
@@ -394,7 +394,7 @@ public class FileUtility {
    }
 
    /**
-    * Refresh file by copying with substitutions
+    * Refresh the file by copying with substitutions
     * 
     * @param project       Project being modified (if any)
     * @param path          File path
