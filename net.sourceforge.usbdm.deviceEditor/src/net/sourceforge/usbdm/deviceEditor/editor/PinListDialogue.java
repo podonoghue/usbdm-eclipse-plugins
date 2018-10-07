@@ -11,10 +11,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.PinListVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class PinListDialogue extends Dialog {
    /** The actual Spinners */

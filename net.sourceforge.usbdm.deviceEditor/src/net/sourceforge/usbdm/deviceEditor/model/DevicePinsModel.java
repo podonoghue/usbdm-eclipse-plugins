@@ -11,7 +11,7 @@ import net.sourceforge.usbdm.deviceEditor.editor.TreeEditor;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.ValueColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
  * Model describing the device pins organised by pin category

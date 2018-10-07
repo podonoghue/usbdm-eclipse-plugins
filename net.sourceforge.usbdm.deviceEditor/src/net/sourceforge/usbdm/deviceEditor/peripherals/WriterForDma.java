@@ -23,13 +23,4 @@ public class WriterForDma extends PeripheralWithState {
       return "Direct Memory Access (DMA)";
    }
 
-   @Override
-   public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
-   }
-
-   @Override
-   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
-      super.writeNamespaceInfo(documentUtilities);
-   }
-
 }

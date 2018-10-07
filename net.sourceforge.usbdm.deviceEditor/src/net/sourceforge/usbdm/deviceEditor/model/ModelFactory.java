@@ -13,9 +13,9 @@ import org.eclipse.swt.widgets.Display;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceVariantInformation;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class ModelFactory extends ObservableModel implements IModelChangeListener {
 

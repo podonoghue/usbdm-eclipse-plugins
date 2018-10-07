@@ -1,6 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
  * Model representing a peripheral in the Pin Mapping by Peripheral tree view

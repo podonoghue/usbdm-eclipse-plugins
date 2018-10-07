@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
+
 public class DmaInfo {
    public final Peripheral dmaPeripheral;
    public final int        dmaChannelNumber;

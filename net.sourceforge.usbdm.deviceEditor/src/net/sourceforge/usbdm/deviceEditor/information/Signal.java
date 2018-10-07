@@ -5,6 +5,7 @@ import java.util.TreeSet;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
  * Describes a peripheral signal that may be mapped to a pin<br>

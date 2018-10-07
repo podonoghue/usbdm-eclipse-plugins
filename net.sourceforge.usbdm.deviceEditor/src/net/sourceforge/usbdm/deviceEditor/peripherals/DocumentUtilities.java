@@ -5,8 +5,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Stack;
 
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
-
 public class DocumentUtilities {
 
    /** This is written at the top of each generated file */

@@ -8,12 +8,12 @@ import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral.InfoTable;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral.InfoTable;
 
 /**
  * Class to validate LLWU settings

@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 

@@ -14,7 +14,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
-import net.sourceforge.usbdm.deviceEditor.information.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;

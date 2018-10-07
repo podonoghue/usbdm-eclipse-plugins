@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.Mode;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
  * Represents a peripheral.<br>

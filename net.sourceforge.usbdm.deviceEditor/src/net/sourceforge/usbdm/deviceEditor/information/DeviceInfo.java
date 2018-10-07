@@ -30,6 +30,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ParseFamilyCSV;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
 import net.sourceforge.usbdm.deviceEditor.peripherals.ProcessProjectActions;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;

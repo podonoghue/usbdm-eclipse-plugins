@@ -1,4 +1,4 @@
-package net.sourceforge.usbdm.deviceEditor.information;
+package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,11 +6,17 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
+import net.sourceforge.usbdm.deviceEditor.information.DmaInfo;
+import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
+import net.sourceforge.usbdm.deviceEditor.information.Settings;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.SignalTemplate;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
-import net.sourceforge.usbdm.deviceEditor.peripherals.DocumentUtilities;
-import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -553,21 +559,19 @@ public abstract class Peripheral extends VariableProvider {
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       StringBuffer sb = new StringBuffer();
       
-      // Base addresses
+      // Base address as uint32_t
+      sb.append(String.format(
+            "   //! Hardware base address as uint32_t \n"+
+            "   static constexpr uint32_t baseAddress = %s;\n\n",
+            getName()+"_BasePtr"
+            ));
+      // Base address as pointer to struct
       sb.append(String.format(
             "   //! Hardware base pointer\n"+
             "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
-            "      return *(%s_Type *)%s;\n"+
+            "      return *(%s_Type *)baseAddress;\n"+
             "   }\n\n",
-            getBaseName(), getBaseName().toLowerCase(), getBaseName(), getName()+"_BasePtr"
-            ));
-      // Base addresses
-      sb.append(String.format(
-            "   //! Hardware base address as uint32_t \n"+
-            "   __attribute__((always_inline)) static constexpr uint32_t baseAddress() {\n"+
-            "      return %s;\n"+
-            "   }\n\n",
-            getName()+"_BasePtr"
+            getBaseName(), getBaseName().toLowerCase(), getBaseName()
             ));
       // Clock mask
       if (getClockMask() != null) {
