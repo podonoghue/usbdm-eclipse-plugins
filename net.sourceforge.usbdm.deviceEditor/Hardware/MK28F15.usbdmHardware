@@ -392,9 +392,10 @@
          <clock reg="SCGC2"         mask="SIM_SCGC2_TPM2_MASK" />
          <irq num="TPM2_IRQn" />
       </peripheral>
-      <peripheral baseName="TRNG"     instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-         <clock reg="SCGC3"         mask="SIM_SCGC3_TRNG_MASK" />
+      <peripheral baseName="TRNG"     instance="0"        version="trng0_0x400a0000_mk28f15">
+         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRnga" />
+         <clock reg="SCGC3"         mask="SIM_SCGC3_TRNG0_MASK" />
+         <irq num="RNGA_IRQn" />
       </peripheral>
       <peripheral baseName="USB"      instance="0"        version="usb0_mk28f15">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb" />

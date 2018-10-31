@@ -24,6 +24,7 @@
       </peripheral>
       <peripheral baseName="CAN"      instance="0"        version="can0_2mask">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexCan" />
+         <clock reg="SCGC6"         mask="SIM_SCGC6_CAN0_MASK" />
          <irq num="CAN0_Message_IRQn" />
          <irq num="CAN0_BusOff_IRQn" />
          <irq num="CAN0_Error_IRQn" />
@@ -150,10 +151,6 @@
       </peripheral>
       <peripheral baseName="FB"       instance=""         version="fb">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlexBus" />
-      </peripheral>
-      <peripheral baseName="FLEXCAN0" instance="">
-         <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull" />
-         <clock reg="SCGC6"         mask="SIM_SCGC6_FLEXCAN0_MASK" />
       </peripheral>
       <peripheral baseName="FTFL"     instance=""         version="ftfl">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForFlash" />
