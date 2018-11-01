@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -351,11 +352,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     */
    private String getExternalProjectHeaderFile(Device device) {
 
-      // Try using subFamily header file
-      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
+      // Try under device name
+      String externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
       if (externalHeaderFile == null) { 
-         // Try under device name
-         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getName(), "h");
+         // Try using subFamily header file
+         externalHeaderFile = findExternalFile(UsbdmConstants.PROJECT_HEADER_PATH, device.getSubFamily(), "h");
       }
       if (externalHeaderFile == null) {
          // Try under alias name
@@ -731,8 +732,11 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       } catch (Exception e) {
          e.printStackTrace();
       }
-      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,    externalHeaderFile);
-      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,   externalVectorTableFile);
+      String headerFilename = new Path(externalHeaderFile).lastSegment();
+      
+      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,     externalHeaderFile);
+      paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILENAME_KEY, headerFilename);
+      paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,    externalVectorTableFile);
    }
 
    /**

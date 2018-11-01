@@ -39,6 +39,7 @@ public class UsbdmConstants {
    public final static String LINKER_HEAP_SIZE_KEY                  = "linkerHeapSize";            //$NON-NLS-1$
    public final static String LINKER_EXTRA_REGION_KEY               = "linkerExtraRegions";        //$NON-NLS-1$
    public final static String EXTERNAL_HEADER_FILE_KEY              = "externalHeaderFile";        //$NON-NLS-1$
+   public final static String EXTERNAL_HEADER_FILENAME_KEY          = "externalHeaderFilename";    //$NON-NLS-1$
    public final static String ERASE_METHOD_KEY                      = "eraseMethod";               //$NON-NLS-1$
    public final static String RESET_METHOD_KEY                      = "resetMethod";               //$NON-NLS-1$
    public final static String EXTERNAL_VECTOR_TABLE_KEY             = "externalVectorTable";       //$NON-NLS-1$
