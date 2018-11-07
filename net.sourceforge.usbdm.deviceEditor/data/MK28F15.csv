@@ -221,7 +221,7 @@ Pin,XTAL32,XTAL_32kHz,N5,P11,XTAL32,,,,,,,,,55
 ,,,,,,,,,,,,,,
 ,Peripheral,Clock register,Clock mask (defaults to name),Clock source,,,,,,,,,,
 ,,,,,,,,,,,,,,
-Peripheral,I2C3,SIM->SCGC1,,,,,,,,,,,,
+Peripheral,I2C3,SIM->SCGC1,,,SIM->SCGC1 |= SIM_SCGC1_I2C3_MASK,,,,,,,,,
 ,,,,,,,,,,,,,,
 Peripheral,FLEXIO,SIM->SCGC2,,,,,,,,,,,,
 Peripheral,QSPI0,SIM->SCGC2,SIM_SCGC2_QSPI_MASK,,,,,,,,,,,
