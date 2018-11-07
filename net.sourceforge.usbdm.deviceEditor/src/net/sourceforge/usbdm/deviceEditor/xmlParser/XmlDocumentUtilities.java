@@ -270,6 +270,17 @@ public class XmlDocumentUtilities {
    }
 
    /**
+    * Escape string for use in XML file e.g. & => &ampamp;
+    * 
+    * @param s String
+    * 
+    * @return Sanitised string
+    */
+   public static String escapeXml(String s) {
+      return s.replaceAll("&", "&amp;");
+   }
+
+   /**
     * Sanitise string for use as C identifier
     * 
     * @param s String

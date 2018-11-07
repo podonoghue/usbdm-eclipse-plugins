@@ -14,6 +14,7 @@ import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.SignalTemplate;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -47,12 +48,6 @@ public abstract class Peripheral extends VariableProvider {
    /** Instance name/number of the peripheral instance e.g. FTM0 = 0, PTA = A */
    private final String fInstance;
    
-   /** Clock register e.g. SIM->SCGC6 */
-   private String fClockReg = null;
-
-   /** Clock register mask e.g. ADC0_CLOCK_REG */
-   private String fClockMask = null;
-   
    /** Hardware interrupt numbers */
    private final ArrayList<String> fIrqNums = new ArrayList<String>();
    
@@ -70,6 +65,12 @@ public abstract class Peripheral extends VariableProvider {
 
    /** Version of the peripheral e.g. adc0_diff_a */
    private String fVersion;
+
+   /** Command to enable peripheral clock */
+   private String fClockEnable;
+
+   /** Command to disable peripheral clock */
+   private String fClockDisable;
 
    /**
     * Create peripheral
@@ -151,30 +152,33 @@ public abstract class Peripheral extends VariableProvider {
     * @param clockReg   Clock register name e.g. SCGC5
     * @param clockMask  Clock register mask e.g. SIM_SCGC5_PORTB_MASK
     */
-   public void setClockInfo(String clockReg, String clockMask) {
-      if ((clockReg.length()==0) || (clockMask.length()==0)) {
-         throw new RuntimeException("Illegale clock info = " + clockReg + ", " + clockMask);
+   public void setClockControlInfo(String clockEnable, String clockDisable) {
+      if ((clockEnable.length()==0) || (clockDisable.length()==0)) {
+         throw new RuntimeException("Illegal clock control info = " + clockEnable + ", " + clockDisable);
       }
-      this.fClockReg  = clockReg;
-      this.fClockMask = clockMask;
+      this.fClockEnable  = clockEnable;
+      this.fClockDisable = clockDisable;
+      
+      addVariable(new StringVariable("clockEnable", makeKey("clockEnable"), getClockEnable()));
+      addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), getClockDisable()));
    }
    
    /**
-    * Get clock register e.g. SIM->SCGC6 
+    * Get clock disable C statement e.g. SIM->SCGC5 |= SIM_SCGC5_UART_MASK
     * 
     * @return
     */
-   public String getClockReg() {
-      return fClockReg;
+   public String getClockEnable() {
+      return fClockEnable;
    }
 
    /**
-    * Get clock register mask e.g. ADC0_CLOCK_REG 
+    * Get clock disable C statement e.g. SIM->SCGC5 &= ~SIM_SCGC5_UART_MASK
     * 
     * @return
     */
-   public String getClockMask() {
-      return fClockMask;
+   public String getClockDisable() {
+      return fClockDisable;
    }
 
    /**
@@ -280,22 +284,22 @@ public abstract class Peripheral extends VariableProvider {
       documentUtilities.closeTag();
       
       // Additional, peripheral specific, information
-      if ((fClockReg != null) || (fClockMask != null)) {
+      if (fClockEnable != null) {
          documentUtilities.openTag("clock");
-         if (fClockReg != null) {
-            documentUtilities.writeAttribute("reg",  fClockReg);
+         if (fClockEnable != null) {
+            documentUtilities.writeAttribute("clockEnable",  XmlDocumentUtilities.escapeXml(fClockEnable));
          }
-         if (fClockMask != null) {
-            documentUtilities.writeAttribute("mask", fClockMask);
+         if (fClockDisable != null) {
+            documentUtilities.writeAttribute("clockDisable", XmlDocumentUtilities.escapeXml(fClockDisable));
          }
          documentUtilities.closeTag();
       }
       if (fIrqHandler != null) {
-         documentUtilities.writeAttribute("irqHandler",  fIrqHandler);
+         documentUtilities.writeAttribute("irqHandler",  XmlDocumentUtilities.escapeXml(fIrqHandler));
       }
       for (String irqNum:getIrqNums()) {
          documentUtilities.openTag("irq");
-         documentUtilities.writeAttribute("num", irqNum);
+         documentUtilities.writeAttribute("num", XmlDocumentUtilities.escapeXml(irqNum));
          documentUtilities.closeTag();
       }
       writeExtraXMLDefinitions(documentUtilities);
@@ -558,49 +562,34 @@ public abstract class Peripheral extends VariableProvider {
     */
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
       StringBuffer sb = new StringBuffer();
-      
+
       // Base address as uint32_t
       sb.append(String.format(
             "   //! Hardware base address as uint32_t \n"+
-            "   static constexpr uint32_t baseAddress = %s;\n\n",
-            getName()+"_BasePtr"
+                  "   static constexpr uint32_t baseAddress = %s;\n\n",
+                  getName()+"_BasePtr"
             ));
       // Base address as pointer to struct
       sb.append(String.format(
             "   //! Hardware base pointer\n"+
-            "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
-            "      return *(%s_Type *)baseAddress;\n"+
-            "   }\n\n",
-            getBaseName(), getBaseName().toLowerCase(), getBaseName()
+                  "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
+                  "      return *(%s_Type *)baseAddress;\n"+
+                  "   }\n\n",
+                  getBaseName(), getBaseName().toLowerCase(), getBaseName()
             ));
-      // Clock mask
-      if (getClockMask() != null) {
-         sb.append(String.format(
-               "   //! Clock mask for peripheral\n"+
-               "   static constexpr uint32_t clockMask = %s;\n\n",
-               getClockMask()));
-      }
-      // Clock register
-      if (getClockReg() != null) {
-         sb.append(String.format(
-               "   //! Address of clock register for peripheral\n"+
-               "   __attribute__((always_inline)) static volatile uint32_t &clockReg() {\n"+
-               "      return *%s;\n"+
-               "   }\n\n",
-               "(uint32_t *)(SIM_BasePtr+offsetof(SIM_Type,"+getClockReg()+"))"));
-      }
+
       // Number of IRQs
       sb.append(String.format(
-            "   //! Number of IRQs for hardware\n"+
-            "   static constexpr uint32_t irqCount  = %s;\n\n",
-            getIrqCount()));
-      
+         "   //! Number of IRQs for hardware\n"+
+         "   static constexpr uint32_t irqCount  = %s;\n\n",
+         getIrqCount()));
+
       // Explicit IRQ numbers
       if (getIrqNumsAsInitialiser() != null) {
          sb.append(String.format(
-               "   //! IRQ numbers for hardware\n"+
-               "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-               getIrqNumsAsInitialiser()));
+            "   //! IRQ numbers for hardware\n"+
+            "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
+            getIrqNumsAsInitialiser()));
       }
       pinMappingHeaderFile.write(sb.toString());
    }

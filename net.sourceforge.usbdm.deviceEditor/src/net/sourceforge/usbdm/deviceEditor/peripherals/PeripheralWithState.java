@@ -21,7 +21,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateInformation;
+import net.sourceforge.usbdm.deviceEditor.xmlParser.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry;
@@ -150,30 +150,31 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return map;
       }
+
       // Load any named templates
       for (String key:fMenuData.getTemplates().keySet()) {
          if (key.isEmpty() || key.endsWith(".")) {
             // Discard unnamed templates
             continue;
          }
-         TemplateInformation fileTemplate = fMenuData.getTemplates().get(key);
+         ArrayList<TemplateInformation> fileTemplateList = fMenuData.getTemplates().get(key);
 
          // Final template after substitutions
-         String substitutedTemplate = null;
-         
-         // Check for dimension
-         int dimension = fileTemplate.getDimension();
-         if (dimension >0) {
-            StringBuffer sb = new StringBuffer();
-            for (int index=0; index<dimension; index++) {
-               sb.append(FileUtility.substitute(fileTemplate.getContents(), map, new IndexKeyMaker(index)));
+         StringBuffer sb = new StringBuffer();
+         for (TemplateInformation fileTemplate:fileTemplateList) {
+            
+            // Check for dimension
+            int dimension = fileTemplate.getDimension();
+            if (dimension > 0) {
+               for (int index=0; index<dimension; index++) {
+                  sb.append(FileUtility.substitute(fileTemplate.getExpandedText(), map, new IndexKeyMaker(index)));
+               }
             }
-            substitutedTemplate = sb.toString();
+            else {
+               sb.append(FileUtility.substitute(fileTemplate.getExpandedText(), map, fKeyMaker));
+            }
+            map.put(fKeyMaker.makeKey(key), sb.toString());
          }
-         else {
-            substitutedTemplate = FileUtility.substitute(fileTemplate.getContents(), map, fKeyMaker);
-         }
-         map.put(fKeyMaker.makeKey(key), substitutedTemplate);
       }
       return map;
    }

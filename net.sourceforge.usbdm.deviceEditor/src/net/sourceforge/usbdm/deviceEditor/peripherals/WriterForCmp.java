@@ -28,7 +28,7 @@ public class WriterForCmp extends PeripheralWithState {
       if (m.matches()) {
          return Integer.parseInt(m.group(1));
       }
-      final String signalNames[] = {"OUT"};
+      final String signalNames[] = {"OUT","RRT"};
       return 8+super.getSignalIndex(function, signalNames);
    }
 }

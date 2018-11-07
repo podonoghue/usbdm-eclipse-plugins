@@ -56,7 +56,8 @@ public class FileUtility {
    /**
     * Finds all $(..) patterns in string
     * 
-    * @param input
+    * @param  input
+    * 
     * @return array of names within the $(...)
     */
    private static ArrayList<String> findAllPatterns(String input) {
@@ -89,27 +90,47 @@ public class FileUtility {
          return input;
       }
       ArrayList<String> patterns = findAllPatterns(input);
-      Pattern variablePattern = Pattern.compile("([^:]+):(.*)");
       for (String pattern : patterns) {
          // pattern is the middle part of the pattern 
          // e.g. $(pattern) => pattern, $(pattern:default) => pattern:default
-         Matcher matcher = variablePattern.matcher(pattern);
-         String key = pattern;
+
+         String key          = null;
          String defaultValue = null;
-         if (matcher.find()) {
-            key          = matcher.group(1);
-            defaultValue = matcher.group(2);
-            //          System.err.println(String.format("p=\%s\, d=\%s\", pattern, defaultValue));
+         String modifier     = null;
+
+         String replaceWith = null;
+         String[] parts = pattern.split("\\s*:\\s*");
+         if (parts.length>0) {
+            key = parts[0];
          }
-         key = keyMaker.makeKey(key);
-         String replaceWith = map.get(key);
+         if (parts.length>1) {
+            defaultValue = parts[1];
+         }
+         if (parts.length>2) {
+            modifier = parts[2];
+         }
+         key         = keyMaker.makeKey(key);
+         replaceWith = map.get(key);
          if (replaceWith == null) {
-            //           System.out.println("Using default '" + defaultValue + "'");
             replaceWith = defaultValue;
          }
+         if (modifier != null) {
+            if (modifier.equalsIgnoreCase("toupper")) {
+               replaceWith = replaceWith.toUpperCase();
+            }
+            else if (modifier.equalsIgnoreCase("tolower")) {
+               replaceWith = replaceWith.toLowerCase();
+            }
+            else {
+               replaceWith = null;
+            }
+         }
          if (replaceWith == null) {
-//            System.err.println("---Symbol not found for substitution '"+pattern+"'");
-            replaceWith = "---Symbol not found for substitution '"+pattern+"'";
+            replaceWith = 
+                  "---Symbol not found or format incorrect for substitution '"+pattern+
+                  "' => key='" + key +
+                  "', def='" + defaultValue + 
+                  "', mod='" + modifier;
          }
          input = input.replaceAll(Pattern.quote("$("+pattern+")"), Matcher.quoteReplacement(replaceWith));
       }

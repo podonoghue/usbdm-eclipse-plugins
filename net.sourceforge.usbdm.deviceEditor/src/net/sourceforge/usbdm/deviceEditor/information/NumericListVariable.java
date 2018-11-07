@@ -10,8 +10,8 @@ public class NumericListVariable extends StringVariable {
 
    protected long fMin         = Long.MIN_VALUE;
    protected long fMax         = Long.MAX_VALUE;
-   protected int  fMinListSize = 0;
-   protected int  fMaxListSize = 0;
+   protected int  fMinListLength = 0;
+   protected int  fMaxListLength = 0;
 
    static final String  fDelimeter    = "[, ]+";
    static final Pattern fValuePattern = Pattern.compile("((\\d+[ ,]+)*\\d+[ ]+),?");
@@ -46,11 +46,11 @@ public class NumericListVariable extends StringVariable {
          else {
             values = value.split(fDelimeter);
          }
-         if ((fMaxListSize>0) && (values.length > fMaxListSize)) {
-            return "Illegal number of elements, Requires <= " + fMaxListSize;
+         if ((fMaxListLength>0) && (values.length > fMaxListLength)) {
+            return "Illegal number of elements, Requires <= " + fMaxListLength;
          }
-         if ((fMinListSize>0) && (values.length < fMinListSize)) {
-            return "Illegal number of elements, Requires >= " + fMinListSize;
+         if ((fMinListLength>0) && (values.length < fMinListLength)) {
+            return "Illegal number of elements, Requires >= " + fMinListLength;
          }
          for (String s:values) {
             int iValue = Integer.parseInt(s);
@@ -126,6 +126,15 @@ public class NumericListVariable extends StringVariable {
    }
 
    /**
+    * Get minimum permitted value
+    * 
+    * @return
+    */
+   public long getMin() {
+      return fMin;
+   }
+
+   /**
     * Get maximum permitted value
     * 
     * @return
@@ -140,7 +149,7 @@ public class NumericListVariable extends StringVariable {
     * @param l
     */
    public void setMinListLength(long l) {
-      fMinListSize = (int) l;
+      fMinListLength = (int) l;
    }
    
    /**
@@ -150,9 +159,9 @@ public class NumericListVariable extends StringVariable {
     * @param l
     */
    public void setMaxListLength(long l) {
-      fMaxListSize = (int) l;
-      if (fMinListSize>l) {
-         fMinListSize = (int)l;
+      fMaxListLength = (int) l;
+      if (fMinListLength>l) {
+         fMinListLength = (int)l;
       }
    }
    
@@ -161,17 +170,17 @@ public class NumericListVariable extends StringVariable {
     * 
     * @return
     */
-   public int getMinListSize() {
-      return fMinListSize;
+   public int getMinListLength() {
+      return fMinListLength;
    }
 
    /**
-    * Get minimum list size
+    * Get maximum list size
     * 
     * @return
     */
-   public int getMaxListSize() {
-      return fMaxListSize;
+   public int getMaxListLength() {
+      return fMaxListLength;
    }
 
    /**
@@ -181,11 +190,11 @@ public class NumericListVariable extends StringVariable {
     * @param l
     */
    public void setListLength(long l) {
-      if (fMaxListSize == l) {
+      if (fMaxListLength == l) {
          return;
       }
-      fMaxListSize = (int) l;
-      fMinListSize = (int) l;
+      fMaxListLength = (int) l;
+      fMinListLength = (int) l;
       notifyListeners();
    }
    

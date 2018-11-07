@@ -22,6 +22,18 @@ public class StringVariable extends Variable {
       super(name, key);
    }
 
+   /**
+    * Constructor
+    * 
+    * @param name Name to display to user.
+    * @param key  Key for variable
+    */
+   public StringVariable(String name, String key, String value) {
+      super(name, key);
+      setValue(value);
+      setDefault(value);
+   }
+
    @Override
    public String getSubstitutionValue() {
       return getValueAsString();

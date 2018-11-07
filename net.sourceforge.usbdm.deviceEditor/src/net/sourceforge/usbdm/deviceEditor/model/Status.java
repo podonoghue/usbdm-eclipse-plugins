@@ -127,5 +127,4 @@ public class Status {
    public String toString() {
       return getText();
    }
-   
 }

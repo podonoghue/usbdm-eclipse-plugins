@@ -162,37 +162,16 @@ public class SignalTemplate {
       if (pin == null) {
          throw new RuntimeException("Pin may not be null");
       }
-      String portClockMask = pin.getClockMask();
-      if (portClockMask == null) {
+      String portInfo         = pin.getPortInfo();
+      if (portInfo == null) {
          // No PCR - probably an analogue pin
          return "NoPortInfo, 0, 0, ";
       }
-      String portInfo         = pin.getPortInfo();
       String gpioRegister     = pin.getGpioBasePtr();
       String gpioBitNum       = pin.getGpioBitNum();
       
       return String.format("%-11s %-15s %-4s", portInfo+",", gpioRegister+",", gpioBitNum+",");
    }
-
-//   /**
-//    * Gets the numeric index of the function\n
-//    * e.g. FTM3_Ch2 => 2 etc.
-//    * 
-//    * @param function   Function to look up
-//    * @return  Index, -1 is returned if template doesn't match
-//    * 
-//    * @throws Exception If template matches peripheral but unexpected function 
-//    */
-//   public int getFunctionIndex(PeripheralFunction function) {
-//      if (!getMatchPattern().matcher(function.getName()).matches()) {
-//         return -1;
-//      }
-//      return getPeripheral(null).getFunctionIndex(function);
-//   }
-
-//   public boolean useAliases(PinInformation pinInfo) {
-//      return getPeripheral(null).useAliases(pinInfo);
-//   }
 
    /**
     * Gets the template match function

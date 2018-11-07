@@ -8,7 +8,8 @@ public abstract class BaseClockValidator extends PeripheralValidator {
       ClockMode_None, 
       ClockMode_FEI, ClockMode_FEE, ClockMode_FBI,
       ClockMode_FBE, ClockMode_PBE,  ClockMode_PEE, ClockMode_BLPI, ClockMode_BLPE, 
-      ClockMode_LIRC_8M, ClockMode_LIRC_2M, ClockMode_HIRC_48M, ClockMode_EXT,}
+      ClockMode_LIRC_8M, ClockMode_LIRC_2M, ClockMode_HIRC_48M, ClockMode_EXT,
+      ClockMode_SOSC, ClockMode_SIRC, ClockMode_FIRC, ClockMode_SPLL }
 
    protected BaseClockValidator(PeripheralWithState peripheral, int dimension) {
       super(peripheral, dimension);

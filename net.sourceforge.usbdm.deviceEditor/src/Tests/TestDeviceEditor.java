@@ -45,8 +45,9 @@ public class TestDeviceEditor {
     */
    public static void main(String[] args) {
       try {
-//         testEditor(Paths.get("projectFiles_Tests/Configure.usbdmProject"));
-         testEditor(Paths.get("projectFiles_Tests/FRDM_K20D50M.usbdmProject"));
+       testEditor(Paths.get("projectFiles_Tests/S32K144_FRDM.usbdmProject"));
+//       testEditor(Paths.get("projectFiles_Tests/Configure.usbdmProject"));
+//         testEditor(Paths.get("projectFiles_Tests/FRDM_K20D50M.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K28F.usbdmProject"));
 //         testEditor(Paths.get("projectFiles_Tests/FRDM_K22F1M0.usbdmProject"));

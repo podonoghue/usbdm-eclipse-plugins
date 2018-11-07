@@ -28,7 +28,7 @@ public class NumericListVariableModel extends StringVariableModel {
       @Override
       protected Object openDialogBox(Control paramControl) {
          NumericListVariable var  = (NumericListVariable) fModel.getVariable();
-         NumericListDialogue dialog = new NumericListDialogue(paramControl.getShell(), var.getMaxListSize(), (int)var.getMax(), fModel.getValueAsString());
+         NumericListDialogue dialog = new NumericListDialogue(paramControl.getShell(), var.getMaxListLength(), (int)var.getMax(), fModel.getValueAsString());
 //         CheckBoxListDialogue dialog = new CheckBoxListDialogue(paramControl.getShell(), 61, fModel.getValueAsString());
          if (dialog.open() == Window.OK) {
             return dialog.getResult();

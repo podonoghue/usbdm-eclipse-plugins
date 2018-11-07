@@ -41,7 +41,7 @@ public class PcrInitialiser {
       }
       pcrValue = pcrValue+"|PORT_PCR_MUX("+mux.value+")";
       if (mappingInfo.isSelected()) {
-         portClockMasks.add(pin.getClockMask());
+         portClockMasks.add(pin.getPort());
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
             long bitNum = Long.parseLong(bitNums);
@@ -83,7 +83,7 @@ public class PcrInitialiser {
       }
 //      String pcrValue = pin.getPcrValueAsString();
       String pcrValue = longTo4Hex(pin.getPcrValue());
-      portClockMasks.add(pin.getClockMask());
+      portClockMasks.add(pin.getPort());
       String bitNums = pin.getGpioBitNum();
       if (bitNums != null) {
          long bitNum = Long.parseLong(bitNums);
@@ -173,7 +173,18 @@ public class PcrInitialiser {
     * @return 
     */
    public String getInitPortClocksStatement(String indent) {
+      if (portClockMasks.isEmpty()) {
+         return "";
+      }
       StringBuffer sb = new StringBuffer();
+      sb.append("#ifdef PCC_PCCn_CGC_MASK\n");
+      for (String p:portClockMasks) {
+         if (p == null) {
+            continue;
+         }
+         sb.append(indent+String.format("      PCC->PCC_%s = PCC_PCCn_CGC_MASK;\n", p));
+      }
+      sb.append("#else\n");
       boolean isFirst = true;
       for (String p:portClockMasks) {
          if (p == null) {
@@ -186,11 +197,13 @@ public class PcrInitialiser {
          else {
             sb.append("|");
          }
-         sb.append(p);
+         sb.append(String.format("%s_CLOCK_MASK", p));
       }
       if (!isFirst) {
-         sb.append(");\n\n");
+         sb.append(");\n");
       }
+      sb.append("#endif\n");
+      
       return sb.toString();
    }
 }

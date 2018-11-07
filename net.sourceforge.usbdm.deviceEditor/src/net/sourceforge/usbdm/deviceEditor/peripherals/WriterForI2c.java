@@ -22,7 +22,7 @@ public class WriterForI2c extends PeripheralWithState {
 
    @Override
    public int getSignalIndex(Signal signal) {
-      String signalNames[] = {"SCL", "SDA", "4WSCLOUT", "4WSDAOUT"};
+      String signalNames[] = {"SCL", "SDA", "4WSCLOUT", "4WSDAOUT", "SCLS", "SDAS", "HREQ"};
       for (int signalName=0; signalName<signalNames.length; signalName++) {
          if (signal.getSignalName().matches(signalNames[signalName])) {
             return signalName;

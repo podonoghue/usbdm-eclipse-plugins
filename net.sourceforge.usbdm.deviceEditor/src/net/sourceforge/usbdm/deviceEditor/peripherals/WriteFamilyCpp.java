@@ -71,7 +71,7 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Write all Peripheral Information Classes<br>
+    * Write Peripheral Information Class<br>
     * 
     * <pre>
     *  class Adc0Info {
@@ -99,39 +99,6 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Write Port information
-    * 
-    * <pre>
-    * constexpr PortInfo  __attribute__((unused)) PortAInfo {PORTA_BasePtr, PORTA_CLOCK_MASK, PORTA_IRQn};
-    * </pre>
-    * 
-    * @param writer
-    * @throws IOException
-    */
-   private void writePortInfo(DocumentUtilities writer) throws IOException {
-      writer.write("");
-
-      writer.write("/** Dummy port information for pins without an associated PCR */\n");
-      writer.write("constexpr PortInfo  __attribute__((unused)) NoPortInfo {0, 0, (IRQn_Type)-1};\n\n");
-
-      String portClasses[] = { "GPIOA", "GPIOB", "GPIOC", "GPIOD", "GPIOE", "GPIOF", "GPIOG",
-      };
-      for (String key : portClasses) {
-         Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         if (peripheral != null) {
-            String irqNum = "(IRQn_Type)-1";
-            if (peripheral.getIrqCount() > 0) {
-               irqNum = peripheral.getIrqNums().get(0);
-            }
-            String instanceName = peripheral.getInstance();
-            writer.write(String.format("/** Port information for PORT%s*/\n", instanceName));
-            writer.write(String.format("constexpr PortInfo  __attribute__((unused)) Port%sInfo {PORT%s_BasePtr, PORT%s_CLOCK_MASK, %s};\n\n", instanceName, instanceName, instanceName, irqNum));
-         }
-      }
-      writer.write("\n");
-   }
-
-   /**
     * Write all Peripheral Information Classes<br>
     * 
     * <pre>
@@ -153,7 +120,7 @@ public class WriteFamilyCpp {
 
       writer.openUsbdmDocumentationGroup();
 
-      writePortInfo(writer);
+//      writePortInfo(writer);
 
       fDeviceInfo.writeNamespaceInfo(writer);
 
@@ -168,7 +135,9 @@ public class WriteFamilyCpp {
       priorityClasses.add("OSC_RF0");
       priorityClasses.add("RTC");
       priorityClasses.add("MCG");
+      priorityClasses.add("SCG");
       priorityClasses.add("SIM");
+      priorityClasses.add("PCC");
       for (String key : priorityClasses) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          if (peripheral != null) {

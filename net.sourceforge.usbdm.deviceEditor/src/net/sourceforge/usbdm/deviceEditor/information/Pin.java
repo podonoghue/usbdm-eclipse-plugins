@@ -156,17 +156,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 //      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
 //   }
    
-   /**
-    * Get clock mask e.g. PORTA_CLOCK_MASK
-    * 
-    * @return
-    */
-   public String getClockMask() {
-      if (fPortInstance == null) {
-         return null;
-      }
-      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
-   }
+//   /**
+//    * Get clock mask e.g. PORTA_CLOCK_MASK
+//    * 
+//    * @return
+//    */
+//   public String getClockMask() {
+//      if (fPortInstance == null) {
+//         return null;
+//      }
+//      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
+//   }
    
    /**
     * Get GPIO base pointer e.g. GPIOA_BasePtr
@@ -317,31 +317,31 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 //      }
    }
 
-   /**
-    * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
-    * <pre>
-    * "PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4, "
-    * OR
-    * "0, 0, 0, 0, "
-    * </pre>
-    * 
-    * @param pin The pin being configured
-    * 
-    * @return
-    * @throws Exception 
-    */
-   String getPCRInitString() throws Exception {
-      String portClockMask = getClockMask();
-      if (portClockMask == null) {
-         // No PCR - probably an analogue pin
-         return "0, 0, 0, 0, ";
-      }
-      String portAddress      = getPortBasePtr();
-      String gpioRegister     = getGpioBasePtr();
-      String gpioBitNum       = getGpioBitNum();
-
-      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
-   }
+//   /**
+//    * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
+//    * <pre>
+//    * "PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4, "
+//    * OR
+//    * "0, 0, 0, 0, "
+//    * </pre>
+//    * 
+//    * @param pin The pin being configured
+//    * 
+//    * @return
+//    * @throws Exception 
+//    */
+//   String getPCRInitString() throws Exception {
+//      String portClockMask = getClockMask();
+//      if (portClockMask == null) {
+//         // No PCR - probably an analogue pin
+//         return "0, 0, 0, 0, ";
+//      }
+//      String portAddress      = getPortBasePtr();
+//      String gpioRegister     = getGpioBasePtr();
+//      String gpioBitNum       = getGpioBitNum();
+//
+//      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
+//   }
 
    @Override
    public int compareTo(Pin o) {

@@ -47,4 +47,9 @@ public class WriterForToDo extends Peripheral {
       }
       return index;
    }
+
+   @Override
+   public boolean isSynthetic() {
+      return true;
+   }
 }

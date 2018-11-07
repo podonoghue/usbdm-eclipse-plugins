@@ -538,6 +538,15 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** 
     * Get if this variable is derived (calculated) from other variables 
     * 
+    * @return true if derived 
+    */
+   public boolean getDerived() {
+      return fDerived;
+   }
+   
+   /** 
+    * Get if this variable is derived (calculated) from other variables 
+    * 
     * @return  
     */
    public boolean isDerived() {
@@ -580,5 +589,12 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       var.removeAllListeners();
       provider.addVariable(var);
       return var;
+   }
+
+   /**
+    * Reset to default value
+    */
+   public void reset() {
+      setValue(getDefault());
    }
 }

@@ -321,6 +321,8 @@ public class ParseFamilyCSV {
    static final int CLOCK_MASK_COL      = 3;
    static final int CLOCK_SOURCE_COL    = 4;
    static final int IRQ_NUM_COL         = 5;
+   static final int CLOCK_ENABLE_COL    = 2;
+   static final int CLOCK_DISABLE_COL   = 3;
    
    /**
     * Parse line containing Peripheral information
@@ -343,27 +345,45 @@ public class ParseFamilyCSV {
          // No parameters
          return;
       }
-      String peripheralClockReg   = line[CLOCK_REG_COL];
-
-      String peripheralClockMask = null;
-      if (line.length > CLOCK_MASK_COL) {
-         peripheralClockMask = line[CLOCK_MASK_COL];
-      }
-      if ((peripheralClockMask==null) || (peripheralClockMask.isEmpty())) {
-         peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
-      }
-
-      if ((peripheralClockReg != null) && !peripheralClockReg.isEmpty()) {
-         Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
-         Matcher matcher = pattern.matcher(peripheralClockReg);
-         if (!matcher.matches()) {
-            throw new RuntimeException("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
+      
+      if ((line[CLOCK_ENABLE_COL] != null) && !line[CLOCK_ENABLE_COL].isEmpty()) {
+         String clockEnable  = line[CLOCK_ENABLE_COL];
+         String clockDisable = null;
+         if (clockEnable.matches("SIM->(SCGC\\d?)")) {
+            // Old format - convert
+            String peripheralClockReg  = line[CLOCK_REG_COL];
+            String peripheralClockMask = null;
+            if (line.length > CLOCK_MASK_COL) {
+               peripheralClockMask = line[CLOCK_MASK_COL];
+            }
+            if ((peripheralClockMask==null) || peripheralClockMask.isEmpty()) {
+               peripheralClockMask = peripheralClockReg.replace("->", "_")+"_"+peripheralName+"_MASK";
+            }
+            if ((peripheralClockReg != null) && !peripheralClockReg.isEmpty()) {
+               Pattern pattern = Pattern.compile("SIM->(SCGC\\d?)");
+               Matcher matcher = pattern.matcher(peripheralClockReg);
+               if (!matcher.matches()) {
+                  throw new RuntimeException("Unexpected Peripheral Clock Register " + peripheralClockReg + " for " + peripheralName);
+               }
+//               peripheralClockReg = matcher.group(1);
+               if (!peripheralClockMask.contains(matcher.group(1))) {
+                  throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
+               }
+               clockEnable  = peripheralClockReg + " |= " + peripheralClockMask;
+               clockDisable = peripheralClockReg + " &= ~" + peripheralClockMask;
+               peripheral.setClockControlInfo(clockEnable, clockDisable);
+            }
          }
-         peripheralClockReg = matcher.group(1);
-         if (!peripheralClockMask.contains(peripheralClockReg)) {
-            throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
+         else {
+            clockEnable = clockEnable.replaceAll("\\%", peripheral.getName());
+            if (line.length > CLOCK_DISABLE_COL) {
+               clockDisable = line[CLOCK_DISABLE_COL];
+            }
+            if ((clockDisable == null) || clockDisable.isEmpty()) {
+               clockDisable = clockEnable.replaceAll("\\|=\\s", "&= ~");
+            }
+            peripheral.setClockControlInfo(clockEnable, clockDisable);
          }
-         peripheral.setClockInfo(peripheralClockReg, peripheralClockMask);
       }
    }
 
@@ -445,6 +465,11 @@ public class ParseFamilyCSV {
       }
    }
 
+   /**
+    * Parse peripheral line 
+    * 
+    * @param line
+    */
    private void parseParamInfoLine(String[] line) {
       if (!line[0].equalsIgnoreCase("Param")) {
          return;
@@ -453,10 +478,20 @@ public class ParseFamilyCSV {
          throw new RuntimeException("Illegal Param line");
       }
       
-      PeripheralWithState peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
+      PeripheralWithState peripheral = null;
+      try {
+         peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
+      } catch (ClassCastException e) {
+         e.printStackTrace();
+      }
       peripheral.addParam(line[2], line[3]);
    }
 
+   /**
+    * Parse constant line
+    * 
+    * @param line
+    */
    private void parseConstantInfoLine(String[] line) {
       if (!line[0].equalsIgnoreCase("Constant")) {
          return;

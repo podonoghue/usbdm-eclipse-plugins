@@ -63,7 +63,7 @@ public class VariableProvider {
     * Constructor
     * 
     * @param name          Name for provider. Used to qualify variables in shared device map
-    * @param deviceInfo    Device information . Used to access device map.
+    * @param deviceInfo    Device information. Used to access device map.
     */
    public VariableProvider(String name, DeviceInfo deviceInfo) {
       fName       = name;
