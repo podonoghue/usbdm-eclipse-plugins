@@ -38,23 +38,23 @@ public class PdbValidate extends PeripheralValidator {
     */
    void doClockValidate(Variable variable) throws Exception {
       // In
-      Variable         clockVar                   = getVariable("/SIM/system_bus_clock");
-      Variable         pdb_sc_prescalerVar        = getVariable("pdb_sc_prescaler");
-      Variable         pdb_sc_multVar             = getVariable("pdb_sc_mult");
+      Variable   pdb_input_clockVar  = getParameterSelectedVariable("/SIM/pdb_input_clock", "/SIM/system_bus_clock");
+      Variable   pdb_sc_prescalerVar = getVariable("pdb_sc_prescaler");
+      Variable   pdb_sc_multVar      = getVariable("pdb_sc_mult");
 
       // Out
-      DoubleVariable   pdb_periodVar              = getDoubleVariable("pdb_period");
-      DoubleVariable   pdb_frequencyVar           = getDoubleVariable("pdb_frequency");
+      DoubleVariable pdb_periodVar       = getDoubleVariable("pdb_period");
+      DoubleVariable pdb_frequencyVar    = getDoubleVariable("pdb_frequency");
 
       pdbClockOrigin = "PDB Clock";
       
       clockChanged = (variable == null) || (
-            (variable.equals(clockVar)) ||
+            (variable.equals(pdb_input_clockVar)) ||
             (variable.equals(pdb_sc_prescalerVar)) ||
             (variable.equals(pdb_sc_multVar))
             );         
       
-      long busFrequency      = clockVar.getValueAsLong();
+      long busFrequency      = pdb_input_clockVar.getValueAsLong();
       long pdb_sc_prescaler  = pdb_sc_prescalerVar.getValueAsLong();
       long pdb_sc_mult       = pdb_sc_multVar.getValueAsLong();
  
