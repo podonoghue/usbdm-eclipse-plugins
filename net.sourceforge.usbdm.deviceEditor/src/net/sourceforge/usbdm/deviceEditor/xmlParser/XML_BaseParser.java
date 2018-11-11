@@ -316,6 +316,53 @@ public class XML_BaseParser {
    }
 
    /**
+    * @param element
+    * @param name
+    * 
+    * @return
+    * 
+    * @throws NumberFormatException
+    */
+   protected static double getDoubleAttribute(Element element, String name) throws NumberFormatException {
+      String s = element.getAttribute(name);
+      if ((s == null) || (s.length()==0)) {
+         throw new NumberFormatException("Attribute \'"+name+"\'not found");
+      }
+      double value       = 0;
+      long   multiplier  = 1;
+      int    kiIndex     = checkSuffix(s, kibiSuffixes);
+      int    miIndex     = checkSuffix(s, mibiSuffixes);
+      int    kiloIndex   = checkSuffix(s, kiloSuffixes);
+      int    megaIndex   = checkSuffix(s, megaSuffixes);
+      
+      if (kiIndex>0) {
+         s = s.substring(0, kiIndex);
+         multiplier = 1024;
+      }
+      if (miIndex>0) {
+         s = s.substring(0, miIndex);
+         multiplier = 1024*1024;
+      }
+      if (kiloIndex>0) {
+         s = s.substring(0, kiloIndex);
+         multiplier = 1000;
+      }
+      if (megaIndex>0) {
+         s = s.substring(0, megaIndex);
+         multiplier = 1000*1000;
+      }
+      try {
+         value = multiplier*Double.parseDouble(s.trim());
+      } catch (NumberFormatException e) {
+         //         System.out.println("getIntAttribute("+s+"), failed");
+         e.printStackTrace();
+         throw new RuntimeException("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
+         //         throw e;
+      }
+      return value;
+   }
+
+   /**
     * Safely cast from long to int
     * 
     * @param value Input value
