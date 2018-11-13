@@ -174,6 +174,13 @@ public abstract class BaseModel implements Cloneable {
       }
    }
 
+   public void removeChild(BaseModel model) throws Exception {
+      if (!fChildren.remove(model)) {
+         throw new Exception("Model not present "+ model.getName());
+      }
+   }
+
+
    /**
     * Indicates if the node has children
     * 

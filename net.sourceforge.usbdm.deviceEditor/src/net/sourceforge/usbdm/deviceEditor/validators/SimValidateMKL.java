@@ -275,7 +275,7 @@ public class SimValidateMKL extends PeripheralValidator {
                sim_clkdiv2_usbVar.enable(true);
                if (usbCalcValue>=0) {
                   long temp = sim_clkdiv2_usbVar.getValueAsLong();
-                  sim_clkdiv2_usbVar.setRawValue(usbCalcValue);
+                  sim_clkdiv2_usbVar.setSubstitutionValue(usbCalcValue);
                   if (sim_clkdiv2_usbVar.getValueAsLong() != temp) {
                      // Trigger update on change
                      sim_clkdiv2_usbVar.notifyListeners();

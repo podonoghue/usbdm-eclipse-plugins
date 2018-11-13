@@ -17,6 +17,7 @@ import org.w3c.dom.NodeList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BitmaskVariable;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
@@ -31,7 +32,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Variable.Pair;
 import net.sourceforge.usbdm.deviceEditor.information.Variable.Units;
 import net.sourceforge.usbdm.deviceEditor.model.AliasPlaceholderModel;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.CategoryVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.IndexedCategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.ParametersModel;
@@ -150,6 +151,7 @@ public class ParseMenuXML extends XML_BaseParser {
       public Map<String, ArrayList<TemplateInformation>> getTemplates() {
          return fTemplatesList;
       }
+      
       /**
        * Get template with given key in the given namespace
        * 
@@ -271,6 +273,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (key.isEmpty()) {
          key = name;
       }
+      if (name.isEmpty()) {
+         name = key;
+      }
       key  = substituteKey(key);
       name = substituteKey(name);
 
@@ -351,6 +356,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setDescription(otherVariable.getDescription());
          variable.setToolTip(otherVariable.getToolTip());
          variable.setOrigin(otherVariable.getRawOrigin());
+         variable.setLocked(otherVariable.isLocked());
          variable.setDerived(otherVariable.getDerived());
       }
       if (varElement.hasAttribute("description")) {
@@ -383,9 +389,15 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("derived")) {
          variable.setDerived(Boolean.valueOf(varElement.getAttribute("derived")));
       }
+      NodeList forNodes = varElement.getElementsByTagName("for");
+      if (forNodes.getLength() > 0) {
+         Element forElement = (Element)forNodes.item(0);
+         String forVariable = forElement.getAttribute("var");
+         String enumeration = forElement.getAttribute("enumeration");
+         variable.addForIteration(forVariable, enumeration);
+      }
       VariableModel model = variable.createModel(parent);
       model.setConstant(Boolean.valueOf(varElement.getAttribute("constant")));
-      
       return model;
    }
 
@@ -408,6 +420,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setValue(otherVariable.getValueAsLong());
          variable.setMin(otherVariable.getMin());
          variable.setMax(otherVariable.getMax());
+         variable.setUnits(((LongVariable)otherVariable).getUnits());
       }
       parseCommonAttributes(parent, varElement, variable).getVariable();
 
@@ -446,20 +459,23 @@ public class ParseMenuXML extends XML_BaseParser {
       if ((otherVariable != null) && (otherVariable instanceof DoubleVariable)) {
          variable.setMin(((DoubleVariable)otherVariable).getMin());
          variable.setMax(((DoubleVariable)otherVariable).getMax());
+         variable.setUnits(((DoubleVariable)otherVariable).getUnits());
       }
       parseCommonAttributes(parent, varElement, variable).getVariable();
 
       try {
          if (varElement.hasAttribute("min")) {
-            variable.setMin(getLongAttribute(varElement, "min"));
+            variable.setMin(getDoubleAttribute(varElement, "min"));
          }
          if (varElement.hasAttribute("max")) {
-            variable.setMax(getLongAttribute(varElement, "max"));
+            variable.setMax(getDoubleAttribute(varElement, "max"));
          }
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max value in " + variable.getName(), e);
       }
-      variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
+      if (varElement.hasAttribute("units")) {
+         variable.setUnits(Units.valueOf(varElement.getAttribute("units")));
+      }
    }
 
    /**
@@ -490,9 +506,25 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseChoiceOption(BaseModel parent, Element varElement) throws Exception {
 
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
-      parseCommonAttributes(parent, varElement, variable).getVariable();
+      VariableModel  model    = parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
+      
+      String forVariable = variable.getForVariable();
+      HashMap<String, String> symbols = new HashMap<String, String>();
+      if (forVariable != null) {
+         String[] names = variable.getForEnumeration().split("\\s*,\\s*");
+         parent.removeChild(model);
+         for(String name:names) {
+            name = name.trim();
+            symbols.put(forVariable, name);
+            ChoiceVariable iteratedVariable = (ChoiceVariable) variable.clone(name, symbols);
+            iteratedVariable.createModel(parent);
+            fProvider.addVariable(iteratedVariable);
+         }
+         fProvider.removeVariable(variable);
+      }
    }
+
 
    /**
     * Parse &lt;StringOption&gt; element<br>
@@ -504,6 +536,14 @@ public class ParseMenuXML extends XML_BaseParser {
       
       StringVariable variable = (StringVariable) createVariable(varElement, StringVariable.class);
       parseCommonAttributes(parent, varElement, variable).getVariable();
+   }
+
+   private void parseCategoryOption(BaseModel parent, Element varElement) throws Exception {
+      CategoryVariable      variable = (CategoryVariable) createVariable(varElement, CategoryVariable.class);
+      CategoryVariableModel model    = (CategoryVariableModel) parseCommonAttributes(parent, varElement, variable);
+
+      variable.setValue(varElement.getAttribute("value"));
+      parseChildModels(model, varElement);
    }
 
    private void parseIndexedCategoryOption(BaseModel parent, Element varElement) throws Exception {
@@ -827,7 +867,7 @@ public class ParseMenuXML extends XML_BaseParser {
                   ProjectConstant constant = (ProjectConstant) action;
                   Variable var = new StringVariable(constant.getId(), constant.getId());
                   var.setValue(constant.getValue());
-                  System.err.println("Adding " + var);
+//                  System.err.println("Adding " + var);
                   fProvider.addVariable(var);
                }
                return Visitor.CONTINUE;
@@ -914,8 +954,7 @@ public class ParseMenuXML extends XML_BaseParser {
          parseChildModels(parentModel, element);
       }
       else if (tagName == "category") {
-         BaseModel model = new CategoryModel(parentModel, name, toolTip);
-         parseChildModels(model, element);
+         parseCategoryOption(parentModel, element);
       }
       else if (tagName == "indexedCategory") {
          parseIndexedCategoryOption(parentModel, element);

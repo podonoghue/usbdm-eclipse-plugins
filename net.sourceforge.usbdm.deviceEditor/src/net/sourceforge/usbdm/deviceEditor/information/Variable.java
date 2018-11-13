@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.Map;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
@@ -74,7 +76,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    /** Indicates this variable is derived (calculated) from other variables */
    private boolean fDerived = false;
 
-   private final boolean debug = false;
+   protected boolean fDebug = false;
+
+   private String fForEnumeration;
+
+   private String fForVariable;
 
    /**
     * Constructor
@@ -521,7 +527,7 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     * @param string
     */
    public void debugPrint(String string) {
-      if (debug) {
+      if (fDebug) {
          System.err.println(string);
       }
    }
@@ -561,18 +567,43 @@ public abstract class Variable extends ObservableModel implements Cloneable {
    public abstract boolean isDefault();
 
    /**
-    * Return indexed clone of object (id necessary)
+    * Return clone of object
+    * @param name 
+    * 
+    * @return Clone
+    * 
+    * @throws CloneNotSupportedException
+    * 
+    * @note All listeners are removed from clone
+    */
+   public Variable clone(String name, Map<String,String> symbols) throws CloneNotSupportedException {
+      Variable var = null;
+      // Create cloned variable
+      var = (Variable) super.clone();
+      var.removeAllListeners();
+      var.fName         = FileUtility.substitute(fName, symbols);
+      var.fKey          = FileUtility.substitute(fKey, symbols);
+      var.fToolTip      = FileUtility.substitute(fToolTip, symbols);
+      var.fDescription  = FileUtility.substitute(fDescription, symbols);
+      var.fOrigin       = FileUtility.substitute(fOrigin, symbols);
+      return var;
+   }
+
+   /**
+    * Return indexed clone of object (if necessary)
     * 
     * @param provider Provider to register cloned variable with
     * @param index    Index used to modify variable name
     * 
-    * @return Clone with modified name or original object if not indexed
+    * @return Clone with modified name or original object if name it is not indexed
     * 
     * @throws CloneNotSupportedException
+    * 
+    * @note All listeners are removed from clone
     */
    public Variable clone(VariableProvider provider, int index) throws CloneNotSupportedException {
       if (!fName.matches("^.*\\[\\d+\\]$")) {
-         // Not indexed - ust return itself
+         // Not indexed - just return itself
          return this;
       }
       Variable var = null;
@@ -596,5 +627,22 @@ public abstract class Variable extends ObservableModel implements Cloneable {
     */
    public void reset() {
       setValue(getDefault());
+   }
+   
+   public void setDebug(boolean value) {
+      fDebug = value;
+   }
+
+   public void addForIteration(String forVariable, String enumeration) {
+      fForVariable = forVariable;
+      fForEnumeration = enumeration;
+   }
+   
+   public String getForEnumeration() {
+      return fForEnumeration;
+   }
+   
+   public String getForVariable() {
+      return fForVariable;
    }
 }

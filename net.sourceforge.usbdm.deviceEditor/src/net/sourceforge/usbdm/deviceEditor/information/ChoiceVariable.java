@@ -99,11 +99,15 @@ public class ChoiceVariable extends Variable {
       notifyListeners();
       return true;
    }
+   
    /**
-    * Set value based on Raw value i.e. Substitution value rather than user value.
-    * Does not trigger listeners.
+    * Set value based on substitution value rather than user value.
+    * 
+    * @param value Substitution value to search for. (Converted to string)
+    * 
+    * @return True if variable actually changed value
     */
-   public void setRawValue(int intValue) {
+   public boolean setSubstitutionValue(int intValue) {
       String value = Integer.toString(intValue);
       int res = -1;
       for (int index=0; index<fData.length; index++) {
@@ -113,9 +117,30 @@ public class ChoiceVariable extends Variable {
          }
       }
       if (res<0) {
-         throw new RuntimeException(intValue + " is not compatible with ChoiceVariable " + getName());
+         throw new RuntimeException("'"+intValue + "' is not compatible with ChoiceVariable " + getName());
       }
-      fValue = fData[res].name;
+      return setValue(fData[res].name);
+   }
+   
+   /**
+    * Set value based on substitution value rather than user value.
+    * 
+    * @param value Substitution value to search for
+    * 
+    * @return True if variable actually changed value
+    */
+   public boolean setSubstitutionValue(String value) {
+      int res = -1;
+      for (int index=0; index<fData.length; index++) {
+         if (fData[index].value.equalsIgnoreCase(value)) {
+            res = index;
+            break;
+         }
+      }
+      if (res<0) {
+         throw new RuntimeException("'"+value + "' is not compatible with ChoiceVariable " + getName());
+      }
+      return setValue(fData[res].name);
    }
    
    @Override

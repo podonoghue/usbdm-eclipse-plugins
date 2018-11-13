@@ -124,6 +124,10 @@ public class LongVariable extends Variable {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValue(Long value) {
+      
+      if (fDebug) {
+         System.err.println("LongVariable["+this+"].setValue("+value+"), old "+value);
+      }
       if (fValue == value) {
          return false;
       }
@@ -400,5 +404,4 @@ public class LongVariable extends Variable {
    public Units getUnits() {
       return fUnits;
    }
-
 }

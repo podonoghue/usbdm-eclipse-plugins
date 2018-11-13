@@ -20,6 +20,7 @@ public class IndexedCategoryModel extends StringVariableModel {
     */
    public IndexedCategoryModel(BaseModel parent, Variable variable) {
       super(parent, variable);
+      fDimension = 0;
    }
 
    /**

@@ -115,16 +115,18 @@ public class DoubleVariable extends Variable {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValue(double value) {
-      if (value>fMax) {
-         value = fMax;
-      }
-      if (value<fMin) {
-         value = fMin;
+      if (!isDerived()) {
+         if (value>fMax) {
+            value = fMax;
+         }
+         if (value<fMin) {
+            value = fMin;
+         }
       }
       if (fValue == value) {
          return false;
       }
-      super.debugPrint("DoubleVariable["+this+"].setValue("+value+"), old "+value);
+      super.debugPrint("DoubleVariable["+this+"].setValue("+String.format("%s", value)+"), old "+ String.format("%s", fValue));
       fValue = value;
       notifyListeners();
       return true;
@@ -228,13 +230,13 @@ public class DoubleVariable extends Variable {
     * 
     * @return Error message or null of valid
     */
-   public String isValid(double value) {   
-      if (value<getMin()) {
-         return "Value too small";
-      }
-      if (value>getMax()) {
-         return "Value too large";
-      }
+   public String isValid(double value) {
+         if (value<getMin()) {
+            return "Value too small";
+         }
+         if (value>getMax()) {
+            return "Value too large";
+         }
       return null;
    }
 
@@ -291,8 +293,8 @@ public class DoubleVariable extends Variable {
    public void setMin(double min) {
       boolean statusChanged = ((fValue>=fMin) && (fValue<min))||((fValue<fMin) && (fValue>=min));
       fMin = min;
-      if (fValue<fMin) {
-         fValue = fMin;
+      if (fDefaultValue<fMin) {
+         fDefaultValue = fMin;
       }
       if (statusChanged) {
          notifyStatusListeners();
@@ -317,8 +319,8 @@ public class DoubleVariable extends Variable {
    public void setMax(double max) {
       boolean statusChanged = ((fValue<=fMax) && (fValue>max))||((fValue>fMax) && (fValue<=max));
       fMax = max;
-      if (fValue>fMax) {
-         fValue = fMax;
+      if (fDefaultValue>fMax) {
+         fDefaultValue = fMax;
       }
       if (statusChanged) {
          notifyStatusListeners();

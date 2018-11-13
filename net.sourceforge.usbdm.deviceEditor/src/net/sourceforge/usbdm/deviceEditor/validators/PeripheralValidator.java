@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -174,4 +175,36 @@ public class PeripheralValidator extends Validator {
       pinModel.update();
    }
    
+   /**
+    * Get parameter from peripheral configuration files
+    * 
+    * @param name          Name of parameter e.g. "/SIM/pdb_input_clock"
+    * @param defaultValue  Value to return if parameter is not found e.g. "/SIM/system_bus_clock"
+    * 
+    * @return Parameter value or default value
+    */
+   protected String getParameter(String parameterName, String defaultValue) {
+      StringVariable   parameterVar = safeGetStringVariable(parameterName);
+      if (parameterVar == null) {
+         System.err.println("Note: Failed to get parameter " + parameterName + ", using default '" + defaultValue + "'");
+         return defaultValue;
+      }
+      return parameterVar.getValueAsString();
+   }
+   
+   /**
+    * Get variable indicated by a parameter from peripheral configuration files
+    * 
+    * @param parameterVariableName  Name of parameter variable e.g. "/SIM/pdb_input_clock".
+    *                               This variable contains the <b>name</b> of another variable to return
+    * @param defaultVariableName    Name of variable to use if parameter variable is not found e.g. "/SIM/system_bus_clock"
+    * 
+    * @return Parameter variable or default variable
+    * @throws Exception 
+    */
+   protected Variable getParameterSelectedVariable(String parameterVariableName, String defaultVariableName) throws Exception {
+      return getVariable(getParameter(parameterVariableName, defaultVariableName));
+   }
+   
+
 }

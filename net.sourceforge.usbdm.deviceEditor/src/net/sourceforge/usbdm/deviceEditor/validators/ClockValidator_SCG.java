@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.validators;
 import java.util.ArrayList;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
+import net.sourceforge.usbdm.deviceEditor.information.CategoryVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.DoubleVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
@@ -33,7 +34,21 @@ public class ClockValidator_SCG extends BaseClockValidator {
    long pll_after_prediv_max;
    long pll_output_min;
    long pll_output_max;
-
+   
+   long osc_Low_min_frequency;    
+   long osc_medium_min_frequency; 
+   long osc_high_min_frequency;   
+   long osc_high_max_frequency;   
+   
+   long vlpr_mode_max_core_frequency;   
+   long vlpr_mode_max_bus_frequency;    
+   long vlpr_mode_max_flash_frequency;   
+   long run_mode_max_core_frequency;    
+   long run_mode_max_bus_frequency;     
+   long run_mode_max_flash_frequency;    
+   long hsrun_mode_max_core_frequency;  
+   long hsrun_mode_max_bus_frequency;   
+   long hsrun_mode_max_flash_frequency; 
 
    public ClockValidator_SCG(PeripheralWithState peripheral, Integer dimension, ArrayList<Object> values) {
       super(peripheral, dimension);
@@ -63,17 +78,31 @@ public class ClockValidator_SCG extends BaseClockValidator {
          fIndex = index;
          if (!initialisationDone) {
             // Add SCG parameters
-            pll_mult_min         = getLongVariable("pll_mult_min").getValueAsLong();
-            pll_mult_max         = getLongVariable("pll_mult_max").getValueAsLong();
-            pll_prediv_min       = getLongVariable("pll_prediv_min").getValueAsLong();
-            pll_prediv_max       = getLongVariable("pll_prediv_max").getValueAsLong();
-            pll_post_divider     = getLongVariable("pll_post_divider").getValueAsLong();
-            pll_in_min           = getLongVariable("pll_in_min").getValueAsLong();
-            pll_in_max           = getLongVariable("pll_in_max").getValueAsLong();
-            pll_after_prediv_min = getLongVariable("pll_after_prediv_min").getValueAsLong();
-            pll_after_prediv_max = getLongVariable("pll_after_prediv_max").getValueAsLong();
-            pll_output_min       = getLongVariable("pll_output_min").getValueAsLong();
-            pll_output_max       = getLongVariable("pll_output_max").getValueAsLong();
+            pll_mult_min                   = getLongVariable("pll_mult_min").getValueAsLong();
+            pll_mult_max                   = getLongVariable("pll_mult_max").getValueAsLong();
+            pll_prediv_min                 = getLongVariable("pll_prediv_min").getValueAsLong();
+            pll_prediv_max                 = getLongVariable("pll_prediv_max").getValueAsLong();
+            pll_post_divider               = getLongVariable("pll_post_divider").getValueAsLong();
+            pll_in_min                     = getLongVariable("pll_in_min").getValueAsLong();
+            pll_in_max                     = getLongVariable("pll_in_max").getValueAsLong();
+            pll_after_prediv_min           = getLongVariable("pll_after_prediv_min").getValueAsLong();
+            pll_after_prediv_max           = getLongVariable("pll_after_prediv_max").getValueAsLong();
+            pll_output_min                 = getLongVariable("pll_output_min").getValueAsLong();
+            pll_output_max                 = getLongVariable("pll_output_max").getValueAsLong();
+            vlpr_mode_max_core_frequency   = getDoubleVariable("/SIM/vlpr_mode_max_core_frequency").getValueAsLong(); 
+            vlpr_mode_max_bus_frequency    = getDoubleVariable("/SIM/vlpr_mode_max_bus_frequency").getValueAsLong();
+            vlpr_mode_max_flash_frequency  = getDoubleVariable("/SIM/vlpr_mode_max_flash_frequency").getValueAsLong();
+            run_mode_max_core_frequency    = getDoubleVariable("/SIM/run_mode_max_core_frequency").getValueAsLong();
+            run_mode_max_bus_frequency     = getDoubleVariable("/SIM/run_mode_max_bus_frequency").getValueAsLong();
+            run_mode_max_flash_frequency   = getDoubleVariable("/SIM/run_mode_max_flash_frequency").getValueAsLong();
+            hsrun_mode_max_core_frequency  = getDoubleVariable("/SIM/hsrun_mode_max_core_frequency").getValueAsLong();
+            hsrun_mode_max_bus_frequency   = getDoubleVariable("/SIM/hsrun_mode_max_bus_frequency").getValueAsLong();
+            hsrun_mode_max_flash_frequency = getDoubleVariable("/SIM/hsrun_mode_max_flash_frequency").getValueAsLong();
+
+            osc_Low_min_frequency          = getLongVariable("osc_Low_min_frequency").getValueAsLong();               
+            osc_medium_min_frequency       = getLongVariable("osc_medium_min_frequency").getValueAsLong();            
+            osc_high_min_frequency         = getLongVariable("osc_high_min_frequency").getValueAsLong();              
+            osc_high_max_frequency         = getLongVariable("osc_high_max_frequency").getValueAsLong();              
             
             LongVariable scg_spllcfg_multVar  = getLongVariable("scg_spllcfg_mult");
             scg_spllcfg_multVar.setOffset(-pll_mult_min);
@@ -115,32 +144,27 @@ public class ClockValidator_SCG extends BaseClockValidator {
 
       super.validate(variable);
 
-      ChoiceVariable    clock_modeVar              = getChoiceVariable("clock_mode");
+      CategoryVariable  runModeSystemClocksVar         = (CategoryVariable) getVariable("runModeSystemClocks");
+      CategoryVariable  alternativeModeSystemClocksVar = (CategoryVariable) getVariable("alternativeModeSystemClocks");
+      
+      ChoiceVariable    clock_transition_modeVar   = getChoiceVariable("clock_transition_mode");
 
-      ChoiceVariable    scg_rccr_scsVar            = getChoiceVariable("scg_rccr_scs");
-      LongVariable      scg_rccr_divcoreVar        = getLongVariable("scg_rccr_divcore");
-      LongVariable      scg_rccr_divbusVar         = getLongVariable("scg_rccr_divbus");
-      LongVariable      scg_rccr_divslowVar        = getLongVariable("scg_rccr_divslow");
+      ChoiceVariable    scg_runccr_scsVar          = getChoiceVariable("scg_runccr_scs");
+      LongVariable      scg_runccr_divcoreVar      = getLongVariable("scg_runccr_divcore");
+      LongVariable      scg_runccr_divbusVar       = getLongVariable("scg_runccr_divbus");
+      LongVariable      scg_runccr_divslowVar      = getLongVariable("scg_runccr_divslow");
       DoubleVariable    run_mode_core_clockVar     = getDoubleVariable("run_mode_core_clock");
       DoubleVariable    run_mode_bus_clockVar      = getDoubleVariable("run_mode_bus_clock");
       DoubleVariable    run_mode_flash_clockVar    = getDoubleVariable("run_mode_flash_clock");
                                                    
-      ChoiceVariable    scg_vccr_scsVar            = getChoiceVariable("scg_vccr_scs");
-      LongVariable      scg_vccr_divcoreVar        = getLongVariable("scg_vccr_divcore");
-      LongVariable      scg_vccr_divbusVar         = getLongVariable("scg_vccr_divbus");
-      LongVariable      scg_vccr_divslowVar        = getLongVariable("scg_vccr_divslow");
-      DoubleVariable    vlpr_mode_core_clockVar    = getDoubleVariable("vlpr_mode_core_clock");
-      DoubleVariable    vlpr_mode_bus_clockVar     = getDoubleVariable("vlpr_mode_bus_clock");
-      DoubleVariable    vlpr_mode_flash_clockVar   = getDoubleVariable("vlpr_mode_flash_clock");
+      ChoiceVariable    scg_altccr_scsVar          = getChoiceVariable("scg_altccr_scs");
+      LongVariable      scg_altccr_divcoreVar      = getLongVariable("scg_altccr_divcore");
+      LongVariable      scg_altccr_divbusVar       = getLongVariable("scg_altccr_divbus");
+      LongVariable      scg_altccr_divslowVar      = getLongVariable("scg_altccr_divslow");
+      DoubleVariable    alt_mode_core_clockVar     = getDoubleVariable("alt_mode_core_clock");
+      DoubleVariable    alt_mode_bus_clockVar      = getDoubleVariable("alt_mode_bus_clock");
+      DoubleVariable    alt_mode_flash_clockVar    = getDoubleVariable("alt_mode_flash_clock");
                                                    
-      ChoiceVariable    scg_hccr_scsVar            = getChoiceVariable("scg_hccr_scs");
-      LongVariable      scg_hccr_divcoreVar        = getLongVariable("scg_hccr_divcore");
-      LongVariable      scg_hccr_divbusVar         = getLongVariable("scg_hccr_divbus");
-      LongVariable      scg_hccr_divslowVar        = getLongVariable("scg_hccr_divslow");
-      DoubleVariable    hsrun_mode_core_clockVar   = getDoubleVariable("hsrun_mode_core_clock");
-      DoubleVariable    hsrun_mode_bus_clockVar    = getDoubleVariable("hsrun_mode_bus_clock");
-      DoubleVariable    hsrun_mode_flash_clockVar  = getDoubleVariable("hsrun_mode_flash_clock");
-
       LongVariable      system_firc_frequencyVar   = getLongVariable("system_firc_frequency");
       BooleanVariable   scg_firccsr_fircenVar      = getBooleanVariable("scg_firccsr_fircen");
 //      ChoiceVariable    scg_firccfg_rangeVar       = getChoiceVariable("scg_firccfg_range");
@@ -179,6 +203,16 @@ public class ClockValidator_SCG extends BaseClockValidator {
       DoubleVariable    spll_div1_frequencyVar     = getDoubleVariable("spll_div1_frequency");
       DoubleVariable    spll_div2_frequencyVar     = getDoubleVariable("spll_div2_frequency");
 
+      if (!initialisationDone) {
+         system_sosc_frequencyVar.setMin(osc_Low_min_frequency);
+         system_sosc_frequencyVar.setMax(osc_high_max_frequency);
+         run_mode_bus_clockVar.setMax(run_mode_max_bus_frequency);
+         run_mode_core_clockVar.setMax(run_mode_max_core_frequency);
+         run_mode_flash_clockVar.setMax(run_mode_max_flash_frequency);
+
+//         scg_altccr_divslowVar.setDebug(true);
+//         alt_mode_flash_clockVar.setDebug(true);
+      }
       /** Do FIRC derived clocks */
       boolean  scg_firccsr_fircen      = scg_firccsr_fircenVar.getValueAsBoolean();
       Status   fircStatus              = null;
@@ -224,11 +258,22 @@ public class ClockValidator_SCG extends BaseClockValidator {
       /** Do SOSC derived clocks */
       Status soscStatus = null;
       long system_sosc_frequency = system_sosc_frequencyVar.getValueAsLong();
-      if ((system_sosc_frequency>=4000000) && (system_sosc_frequency<8000000)) {
+      
+      if (system_sosc_frequency>osc_high_max_frequency) {
          scg_sosccfg_rangeVar.setValue(2);
+         scg_sosccfg_rangeVar.setStatus("Frequency not suitable for oscillator");
       }
-      else if ((system_sosc_frequency>=8000000) && (system_sosc_frequency<=40000000)) {
-         scg_sosccfg_rangeVar.setValue(3);
+      else {
+         scg_sosccfg_rangeVar.clearStatus();
+         if (system_sosc_frequency>=osc_high_min_frequency) {
+            scg_sosccfg_rangeVar.setValue(2);
+         }
+         else if (system_sosc_frequency>=osc_medium_min_frequency) {
+            scg_sosccfg_rangeVar.setValue(1);
+         }
+         else if (system_sosc_frequency>=osc_Low_min_frequency) {
+            scg_sosccfg_rangeVar.setValue(0);
+         }
       }
       boolean scg_sosccsr_soscen = scg_sosccsr_soscenVar.getValueAsBoolean();
       double  sosc_frequency     = 0;
@@ -295,154 +340,113 @@ public class ClockValidator_SCG extends BaseClockValidator {
       
       // Default clock mode 
       //=============================
-      ClockMode clock_mode = ClockMode.valueOf(clock_modeVar.getSubstitutionValue());
+      ClockMode clock_transition_mode = ClockMode.valueOf(clock_transition_modeVar.getSubstitutionValue());
+//      if (index == 0) {
+//         System.err.println("clock_transition_mode = " + clock_transition_mode);
+//      }
 
-//      System.err.println("Mode = " + clock_mode);
+      double systemClockFrequency = 0;
+      Status systemClockStatus    = null;
+      String systemClockOrigin    = "Disabled";
+      String  runModeValue   = "Unavailable";
+      boolean runModeEnable  = true;
+      String  altModeValue   = "Unavailable";
+      boolean altModeEnable  = false;
 
-      Status clockModeStatus = null;
-      switch (clock_mode) {
+      switch (clock_transition_mode) {
       default:
       case ClockMode_None:
+         runModeEnable  = false;
          break;
       case ClockMode_SOSC:
-         clockModeStatus = soscStatus;
-         break;
-      case ClockMode_SIRC:
-         clockModeStatus = sircStatus;
-         break;
-      case ClockMode_FIRC:
-         clockModeStatus = fircStatus;
-         break;
-      case ClockMode_SPLL:
-         clockModeStatus = spllOutputStatus;
-         break;
-      }     
-      if (clockModeStatus != null) {
-         clockModeStatus = new Status("Clock unavailable: "+clockModeStatus.getSimpleText(), Severity.ERROR);
-      }
-      clock_modeVar.setStatus(clockModeStatus);
-
-      /** RCCR derived clocks */
-      int scg_rccr_scs = Integer.parseInt(scg_rccr_scsVar.getSubstitutionValue(), 2);
-
-      double systemClockFrequency;
-      Status systemClockStatus;
-      String systemClockOrigin;
-      
-      switch (scg_rccr_scs) {
-      default:
-      case 1:
          systemClockFrequency = sosc_frequency;
          systemClockStatus    = soscStatus;
          systemClockOrigin    = "SOSC";
+         scg_runccr_scsVar.setSubstitutionValue("0001");
+         scg_altccr_scsVar.setSubstitutionValue("0001");
+         runModeValue  = "RUN mode - SOSC";
          break;
-      case 2:
+      case ClockMode_SIRC:
          systemClockFrequency = sirc_frequency;
          systemClockStatus    = sircStatus;
          systemClockOrigin    = "SIRC";
+         scg_runccr_scsVar.setSubstitutionValue("0010");
+         scg_altccr_scsVar.setSubstitutionValue("0010");
+         runModeValue  = "RUN mode - SIRC";
+         altModeValue  = "VLPR mode - SIRC";
+         altModeEnable = true;
+         alt_mode_bus_clockVar.setMax(vlpr_mode_max_bus_frequency);
+         alt_mode_core_clockVar.setMax(vlpr_mode_max_core_frequency);
+         alt_mode_flash_clockVar.setMax(vlpr_mode_max_flash_frequency);
          break;
-      case 3:
+      case ClockMode_FIRC:
          systemClockFrequency = system_firc_frequency;
          systemClockStatus    = fircStatus;
          systemClockOrigin    = "FIRC";
+//         rccrValue       = 3;
+         scg_runccr_scsVar.setSubstitutionValue("0011");
+         scg_altccr_scsVar.setSubstitutionValue("0011");
+         runModeValue  = "RUN mode - FIRC";
+         altModeValue  = "HSRUN mode - FIRC";
+         altModeEnable = true;
+         alt_mode_bus_clockVar.setMax(hsrun_mode_max_bus_frequency);
+         alt_mode_core_clockVar.setMax(hsrun_mode_max_core_frequency);
+         alt_mode_flash_clockVar.setMax(hsrun_mode_max_flash_frequency);
          break;
-      case 6:
+      case ClockMode_SPLL:
          systemClockFrequency = spll_clock;
          systemClockStatus    = spllOutputStatus;
          systemClockOrigin    = "SPLL";
+         scg_runccr_scsVar.setValue(3);
+         scg_altccr_scsVar.setValue(3);
+         scg_runccr_scsVar.setSubstitutionValue("0110");
+         scg_altccr_scsVar.setSubstitutionValue("0110");
+         runModeValue  = "RUN mode - SPLL";
+         altModeValue  = "HSRUN mode - SPLL";
+         altModeEnable = true;
+         alt_mode_bus_clockVar.setMax(hsrun_mode_max_bus_frequency);
+         alt_mode_core_clockVar.setMax(hsrun_mode_max_core_frequency);
+         alt_mode_flash_clockVar.setMax(hsrun_mode_max_flash_frequency);
          break;
+      }     
+      runModeSystemClocksVar.setValue(runModeValue);
+      runModeSystemClocksVar.enable(runModeEnable);
+      alternativeModeSystemClocksVar.setValue(altModeValue);
+      alternativeModeSystemClocksVar.enable(altModeEnable);
+
+      if (systemClockStatus != null) {
+         systemClockStatus = new Status("Clock unavailable: "+systemClockStatus.getSimpleText(), Severity.ERROR);
       }
-      double systemCoreFrequency = systemClockFrequency/scg_rccr_divcoreVar.getValueAsLong();
+      runModeSystemClocksVar.setStatus(systemClockStatus);
+      alternativeModeSystemClocksVar.setStatus(systemClockStatus);
+      
+      /** RUN mode - RCCR derived clocks */
+      double systemCoreFrequency = systemClockFrequency/scg_runccr_divcoreVar.getValueAsLong();
       run_mode_core_clockVar.setValue(systemCoreFrequency);
       run_mode_core_clockVar.setStatus(systemClockStatus);
       run_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
       
-      run_mode_bus_clockVar.setValue(systemCoreFrequency/scg_rccr_divbusVar.getValueAsLong());     
+      run_mode_bus_clockVar.setValue(systemCoreFrequency/scg_runccr_divbusVar.getValueAsLong());     
       run_mode_bus_clockVar.setStatus(systemClockStatus);
       run_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
       
-      run_mode_flash_clockVar.setValue(systemCoreFrequency/scg_rccr_divslowVar.getValueAsLong());   
+      run_mode_flash_clockVar.setValue(systemCoreFrequency/scg_runccr_divslowVar.getValueAsLong());   
       run_mode_flash_clockVar.setStatus(systemClockStatus);
       run_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
 
-      /** VCCR derived clocks */
-      int scg_vccr_scs = Integer.parseInt(scg_vccr_scsVar.getSubstitutionValue(), 2);
+      /** VLPR/HSRUN CCR derived clocks */
+      systemCoreFrequency = systemClockFrequency/scg_altccr_divcoreVar.getValueAsLong();
+      alt_mode_core_clockVar.setValue(systemCoreFrequency);
+      alt_mode_core_clockVar.setStatus(systemClockStatus);
+      alt_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
 
-      switch (scg_vccr_scs) {
-      default:
-      case 1:
-         systemClockFrequency = sosc_frequency;
-         systemClockStatus    = soscStatus;
-         systemClockOrigin    = "SOSC";
-         break;
-      case 2:
-         systemClockFrequency = sirc_frequency;
-         systemClockStatus    = sircStatus;
-         systemClockOrigin    = "SIRC";
-         break;
-      case 3:
-         systemClockFrequency = system_firc_frequency;
-         systemClockStatus    = fircStatus;
-         systemClockOrigin    = "FIRC";
-         break;
-      case 6:
-         systemClockFrequency = spll_clock;
-         systemClockStatus    = spllOutputStatus;
-         systemClockOrigin    = "SPLL";
-         break;
-      }     
-      systemCoreFrequency = systemClockFrequency/scg_vccr_divcoreVar.getValueAsLong();
-      vlpr_mode_core_clockVar.setValue(systemCoreFrequency);
-      vlpr_mode_core_clockVar.setStatus(systemClockStatus);
-      vlpr_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
-      
-      vlpr_mode_bus_clockVar.setValue(systemCoreFrequency/scg_vccr_divbusVar.getValueAsLong());     
-      vlpr_mode_bus_clockVar.setStatus(systemClockStatus);
-      vlpr_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
-      
-      vlpr_mode_flash_clockVar.setValue(systemCoreFrequency/scg_vccr_divslowVar.getValueAsLong());   
-      vlpr_mode_flash_clockVar.setStatus(systemClockStatus);
-      vlpr_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
+      alt_mode_bus_clockVar.setValue(systemCoreFrequency/scg_altccr_divbusVar.getValueAsLong());     
+      alt_mode_bus_clockVar.setStatus(systemClockStatus);
+      alt_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
 
-      /** HSRUN derived clocks */
-      int scg_hccr_scs = Integer.parseInt(scg_hccr_scsVar.getSubstitutionValue(), 2);
-
-      switch (scg_hccr_scs) {
-      default:
-      case 1:
-         systemClockFrequency = sosc_frequency;
-         systemClockStatus    = soscStatus;
-         systemClockOrigin    = "SOSC";
-         break;
-      case 2:
-         systemClockFrequency = sirc_frequency;
-         systemClockStatus    = sircStatus;
-         systemClockOrigin    = "SIRC";
-         break;
-      case 3:
-         systemClockFrequency = system_firc_frequency;
-         systemClockStatus    = fircStatus;
-         systemClockOrigin    = "FIRC";
-         break;
-      case 6:
-         systemClockFrequency = spll_clock;
-         systemClockStatus    = spllOutputStatus;
-         systemClockOrigin    = "SPLL";
-         break;
-      }     
-      systemCoreFrequency = systemClockFrequency/scg_hccr_divcoreVar.getValueAsLong();
-      hsrun_mode_core_clockVar.setValue(systemCoreFrequency);
-      hsrun_mode_core_clockVar.setStatus(systemClockStatus);
-      hsrun_mode_core_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVCORE");
-      
-      hsrun_mode_bus_clockVar.setValue(systemCoreFrequency/scg_hccr_divbusVar.getValueAsLong());     
-      hsrun_mode_bus_clockVar.setStatus(systemClockStatus);
-      hsrun_mode_bus_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVBUS");
-      
-      hsrun_mode_flash_clockVar.setValue(systemCoreFrequency/scg_hccr_divslowVar.getValueAsLong());   
-      hsrun_mode_flash_clockVar.setStatus(systemClockStatus);
-      hsrun_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
-
+      alt_mode_flash_clockVar.setValue(systemCoreFrequency/scg_altccr_divslowVar.getValueAsLong());   
+      alt_mode_flash_clockVar.setStatus(systemClockStatus);
+      alt_mode_flash_clockVar.setOrigin(systemClockOrigin + " after division by SSCG_xCCR.DIVSLOW");
    }
    
    @Override

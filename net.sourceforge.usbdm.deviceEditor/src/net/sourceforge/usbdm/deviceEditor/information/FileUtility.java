@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +21,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
+
+import net.sourceforge.usbdm.deviceEditor.xmlParser.ReplacementParser;
 
 public class FileUtility {
 
@@ -53,88 +54,27 @@ public class FileUtility {
     */
    public static final PublicKeyMaker publicKeyMaker = new PublicKeyMaker();
    
-   /**
-    * Finds all $(..) patterns in string
-    * 
-    * @param  input
-    * 
-    * @return array of names within the $(...)
-    */
-   private static ArrayList<String> findAllPatterns(String input) {
-      ArrayList<String> patterns = new ArrayList<String>();
-
-      Pattern pattern = Pattern.compile("\\$\\(([^\\)]+)\\)");
-      Matcher matcher = pattern.matcher(input);
-      while (matcher.find()) {
-         patterns.add(matcher.group(1));
-         //         System.err.println("p = \'"+matcher.group(1)+"\'");
-      }
-      return patterns;
-   }
-
-   /**
+  /**
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
-    * @param input        String to replace macros in
+    * @param inputText    String to replace macros in
     * @param map          Map of key->value pairs for substitution
     * @param keyMaker     Interface providing a method to create a key from a variable name
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substitute(String input, Map<String, String> map, IKeyMaker keyMaker) {
+   public static String substitute(String inputText, Map<String, String> map, IKeyMaker keyMaker) {
 
-      if (input == null) {
+      if (inputText == null) {
          return null;
       }
       if (map == null) {
-         return input;
+         return inputText;
       }
-      ArrayList<String> patterns = findAllPatterns(input);
-      for (String pattern : patterns) {
-         // pattern is the middle part of the pattern 
-         // e.g. $(pattern) => pattern, $(pattern:default) => pattern:default
 
-         String key          = null;
-         String defaultValue = null;
-         String modifier     = null;
-
-         String replaceWith = null;
-         String[] parts = pattern.split("\\s*:\\s*");
-         if (parts.length>0) {
-            key = parts[0];
-         }
-         if (parts.length>1) {
-            defaultValue = parts[1];
-         }
-         if (parts.length>2) {
-            modifier = parts[2];
-         }
-         key         = keyMaker.makeKey(key);
-         replaceWith = map.get(key);
-         if (replaceWith == null) {
-            replaceWith = defaultValue;
-         }
-         if (modifier != null) {
-            if (modifier.equalsIgnoreCase("toupper")) {
-               replaceWith = replaceWith.toUpperCase();
-            }
-            else if (modifier.equalsIgnoreCase("tolower")) {
-               replaceWith = replaceWith.toLowerCase();
-            }
-            else {
-               replaceWith = null;
-            }
-         }
-         if (replaceWith == null) {
-            replaceWith = 
-                  "---Symbol not found or format incorrect for substitution '"+pattern+
-                  "' => key='" + key +
-                  "', def='" + defaultValue + 
-                  "', mod='" + modifier;
-         }
-         input = input.replaceAll(Pattern.quote("$("+pattern+")"), Matcher.quoteReplacement(replaceWith));
-      }
-      return input;
+      ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
+      
+      return replacementParser.parse(inputText);
    }
 
    /**

@@ -849,6 +849,8 @@ public class CreatePeripheralDatabase {
     * @param args
     */
    public static void main(String[] args) {
+//    firstFileToProcess = ("^S32K.*");
+      
 //      filesToReject = ("^LPC.*");
 //      firstFileToProcess = ("^MKE16F.*");
 //      firstFileToProcess  = ("^MKL46Z4.*");

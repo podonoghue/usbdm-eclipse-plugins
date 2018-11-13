@@ -145,7 +145,7 @@ public class VariableProvider {
    }
 
    /**
-    * Create a variable
+    * Adds a variable
     * 
     * @param variable  Variable to add
     * 
@@ -153,6 +153,17 @@ public class VariableProvider {
     */
    public void addVariable(Variable variable) {
       fDeviceInfo.addVariable(variable.getKey(), variable);
+   }
+
+   /**
+    * Removes a variable
+    * 
+    * @param variable  Variable to remove
+    * 
+    * @throws Exception if variable does not exist
+    */
+   public void removeVariable(Variable variable) {
+      fDeviceInfo.removeVariable(variable.getKey());
    }
 
    /**
@@ -206,4 +217,5 @@ public class VariableProvider {
          v.variableChanged(variable);
       }
    }
+
 }

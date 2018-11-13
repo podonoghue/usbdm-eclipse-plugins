@@ -1948,21 +1948,32 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
    
    /**
-    * Creates a variable
+    * Adds a variable
     * 
     * @param key       Key used to identify variable
     * @param variable  Variable to add
     * 
-    * @throws Exception if variable already exists
+    * @throws Exception if variable is already present
     */
    public void addVariable(String key, Variable variable) {
-      // XX Delete me
-//      System.err.println("Adding variable \'"+key+"\'");
       if (fVariables.put(key, variable) != null) {
-         throw new RuntimeException("Variable already exists \'"+key+"\'");
-      };
+         throw new RuntimeException("Variable already present \'"+key+"\'");
+      }
    }
    
+   /**
+    * Removes a variable
+    * 
+    * @param key       Key used to identify variable
+    * 
+    * @throws Exception if variable is not present
+    */
+   public void removeVariable(String key) {
+    if (fVariables.remove(key) == null) {
+       throw new RuntimeException("Variable not present \'"+key+"\'");
+    }
+ }
+
    /**
     * Get value of variable
     * 
@@ -2115,5 +2126,4 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       }
       return devicePeripherals;
    }
-
 }
