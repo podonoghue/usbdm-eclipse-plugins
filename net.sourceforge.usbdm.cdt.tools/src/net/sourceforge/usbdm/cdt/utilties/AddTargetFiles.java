@@ -68,7 +68,7 @@ public class AddTargetFiles {
       if (fileAction.doMacroReplace()) {
          // Assume UTF-8
          String chars =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(fileContents)).toString();
-         fileContents = MacroSubstitute.substitute(chars, variableMap).getBytes();
+         fileContents = ReplacementParser.substitute(chars, variableMap).getBytes();
       }
       try {
          if (projectHandle == null) {
@@ -230,9 +230,9 @@ public class AddTargetFiles {
 //         System.err.println("Debug: "+fileInfo);
 //         return;
 //      }
-      String root   = MacroSubstitute.substitute(fileInfo.getRoot(),   variableMap);
-      String source = MacroSubstitute.substitute(fileInfo.getSource(), variableMap);
-      String target = MacroSubstitute.substitute(fileInfo.getTarget(), variableMap);
+      String root   = ReplacementParser.substitute(fileInfo.getRoot(),   variableMap);
+      String source = ReplacementParser.substitute(fileInfo.getSource(), variableMap);
+      String target = ReplacementParser.substitute(fileInfo.getTarget(), variableMap);
       
 //      System.err.println("root   = \'" + root.toString() + "\'");
 //      System.err.println("source = \'" + source.toString() + "\'");

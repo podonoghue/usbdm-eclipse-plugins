@@ -245,7 +245,7 @@ public class ProjectUtilities {
    }
 
    public static void createFolder(IProject projectHandle, Map<String, String> variableMap, CreateFolderAction action, IProgressMonitor monitor) throws Exception {
-      String target = MacroSubstitute.substitute(action.getTarget(), variableMap);
+      String target = ReplacementParser.substitute(action.getTarget(), variableMap);
       
       if (target.isEmpty()) {
          return;

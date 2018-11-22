@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.ui.DeviceSelector;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
@@ -309,7 +309,7 @@ public class LaunchParameterUtilities {
 
       String fileContents;
       fileContents = readFile(launchFilePath);
-      fileContents = MacroSubstitute.substitute(fileContents, variableMap);
+      fileContents = ReplacementParser.substitute(fileContents, variableMap);
       ByteArrayInputStream contents = new ByteArrayInputStream(fileContents.getBytes());
 
       return contents;

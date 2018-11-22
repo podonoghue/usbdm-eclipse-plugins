@@ -15,20 +15,17 @@ import org.eclipse.cdt.managedbuilder.internal.core.ManagedBuildInfo;
 import org.eclipse.cdt.managedbuilder.internal.core.ManagedProject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 
 @SuppressWarnings({ "restriction", "unused" })
@@ -103,12 +100,12 @@ public class CDTProjectManager {
       try {
          monitor.beginTask("Create configuration",100);
 
-         String        projectName   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
-         String        directoryPath = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
-         String        projectType   = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY), paramMap);
+         String        projectName   = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_NAME_KEY), paramMap); 
+         String        directoryPath = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_HOME_PATH_KEY), paramMap); 
+         String        projectType   = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_OUTPUT_TYPE_KEY), paramMap);
          InterfaceType interfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
          boolean       hasCCNature   = Boolean.valueOf(paramMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
-         String        artifactName  = MacroSubstitute.substitute(paramMap.get(UsbdmConstants.PROJECT_ARTIFACT_KEY), paramMap); 
+         String        artifactName  = ReplacementParser.substitute(paramMap.get(UsbdmConstants.PROJECT_ARTIFACT_KEY), paramMap); 
 
          if ((artifactName == null) || (artifactName.length()==0)) {
             artifactName = "${ProjName}";

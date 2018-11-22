@@ -34,13 +34,13 @@ public class ApplyOptions {
    public void process(Map<String, String> variableMap, ProjectOption projectOption, IProgressMonitor monitor) throws Exception {
 
 //      System.err.println("ApplyOptions.process() - "+projectOption.toString());
-      String id       = MacroSubstitute.substitute(projectOption.getId(),     variableMap);
-      String path     = MacroSubstitute.substitute(projectOption.getPath(),   variableMap);
+      String id       = ReplacementParser.substitute(projectOption.getId(),     variableMap);
+      String path     = ReplacementParser.substitute(projectOption.getPath(),   variableMap);
       String value[]  = projectOption.getValue();
       boolean replace = projectOption.doOverwrite();
       String config   = projectOption.getConfig();
       for (int index=0; index<value.length; index++) {
-         value[index] = MacroSubstitute.substitute(value[index], variableMap);
+         value[index] = ReplacementParser.substitute(value[index], variableMap);
 //         System.err.println("ApplyOptions.process() value[n] = "+value[index]);
       }
       try {

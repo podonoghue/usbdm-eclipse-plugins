@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.sourceforge.usbdm.cdt.utilties.MacroSubstitute;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.packageParser.ApplyWhenCondition;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
@@ -306,7 +306,7 @@ public class UsbdmOptionsPanel  extends Composite {
                }
                group = new Group(comp, SWT.NONE);
                fGroupList.add(group);
-               String groupName = MacroSubstitute.substitute(wizardGroup.getName(), fOptionMap);
+               String groupName = ReplacementParser.substitute(wizardGroup.getName(), fOptionMap);
                group.setText(groupName);
                GridData gd = new GridData(SWT.FILL, SWT.FILL, false, false);
                gd.horizontalSpan = wizardGroup.getSpan();

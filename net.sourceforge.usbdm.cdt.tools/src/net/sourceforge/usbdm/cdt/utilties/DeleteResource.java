@@ -38,8 +38,8 @@ public class DeleteResource {
          System.err.println("Debug: "+deleteAction);
          return;
       }
-      String root   = MacroSubstitute.substitute(deleteAction.getRoot(),   variableMap);
-      String target = MacroSubstitute.substitute(deleteAction.getTarget(), variableMap);
+      String root   = ReplacementParser.substitute(deleteAction.getRoot(),   variableMap);
+      String target = ReplacementParser.substitute(deleteAction.getTarget(), variableMap);
       root   = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(root);
       target = VariablesPlugin.getDefault().getStringVariableManager().performStringSubstitution(target);
       Path targetPath = Paths.get(target);
