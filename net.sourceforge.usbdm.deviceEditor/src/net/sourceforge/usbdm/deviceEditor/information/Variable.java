@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.information;
 
 import java.util.Map;
 
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
@@ -568,7 +569,9 @@ public abstract class Variable extends ObservableModel implements Cloneable {
 
    /**
     * Return clone of object
+    * 
     * @param name 
+    * @param symbols
     * 
     * @return Clone
     * 
@@ -581,11 +584,11 @@ public abstract class Variable extends ObservableModel implements Cloneable {
       // Create cloned variable
       var = (Variable) super.clone();
       var.removeAllListeners();
-      var.fName         = FileUtility.substitute(fName, symbols);
-      var.fKey          = FileUtility.substitute(fKey, symbols);
-      var.fToolTip      = FileUtility.substitute(fToolTip, symbols);
-      var.fDescription  = FileUtility.substitute(fDescription, symbols);
-      var.fOrigin       = FileUtility.substitute(fOrigin, symbols);
+      var.fName         = ReplacementParser.substitute(fName, symbols);
+      var.fKey          = ReplacementParser.substitute(fKey, symbols);
+      var.fToolTip      = ReplacementParser.substitute(fToolTip, symbols);
+      var.fDescription  = ReplacementParser.substitute(fDescription, symbols);
+      var.fOrigin       = ReplacementParser.substitute(fOrigin, symbols);
       return var;
    }
 

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateIteration;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
 
 /**
  * Used to represent a template for code in a project
@@ -102,7 +102,7 @@ public class TemplateInformation {
                         return name;
                      }
                   };
-                  sb.append(FileUtility.substitute(getRawText(), map, fKeyMaker));
+                  sb.append(ReplacementParser.substitute(getRawText(), map, fKeyMaker));
                }
             }
             fExpandedText = sb.toString();

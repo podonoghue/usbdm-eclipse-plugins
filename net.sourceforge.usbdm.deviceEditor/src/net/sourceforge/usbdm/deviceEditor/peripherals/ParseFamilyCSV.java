@@ -328,8 +328,9 @@ public class ParseFamilyCSV {
     * Parse line containing Peripheral information
     * 
     * @param line
+    * @throws Exception 
     */
-   private void parsePeripheralInfoLine(String[] line) {
+   private void parsePeripheralInfoLine(String[] line) throws Exception {
       if (!line[0].equals("Peripheral")) {
          return;
       }
@@ -369,8 +370,8 @@ public class ParseFamilyCSV {
                if (!peripheralClockMask.contains(matcher.group(1))) {
                   throw new RuntimeException("Clock Mask "+peripheralClockMask+" doesn't match Clock Register " + peripheralClockReg);
                }
-               clockEnable  = peripheralClockReg + " |= " + peripheralClockMask;
-               clockDisable = peripheralClockReg + " &= ~" + peripheralClockMask;
+               clockEnable  = peripheralClockReg + " |= " + peripheralClockMask + ";";
+               clockDisable = peripheralClockReg + " &= ~" + peripheralClockMask + ";";
                peripheral.setClockControlInfo(clockEnable, clockDisable);
             }
          }
@@ -406,11 +407,9 @@ public class ParseFamilyCSV {
     * Parse file
     * 
     * @param reader
-    * @throws IOException 
-    * 
     * @throws Exception
     */
-   private void parseFile(BufferedReader reader) throws IOException {
+   private void parseFile(BufferedReader reader) throws Exception {
       
       ArrayList<String[]> grid = new ArrayList<String[]>();
       do {

@@ -422,8 +422,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMax(otherVariable.getMax());
          variable.setUnits(((LongVariable)otherVariable).getUnits());
       }
-      parseCommonAttributes(parent, varElement, variable).getVariable();
-
+      VariableModel model = parseCommonAttributes(parent, varElement, variable);
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getLongAttribute(varElement, "min"));
@@ -443,6 +442,7 @@ public class ParseMenuXML extends XML_BaseParser {
       if (varElement.hasAttribute("offset")) {
          variable.setOffset(getLongAttribute(varElement, "offset"));
       }
+      parseForElement(parent, model);
    }
 
    /**
@@ -487,14 +487,14 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parseBitmaskOption(BaseModel parent, Element varElement) throws Exception {
 
       BitmaskVariable variable = (BitmaskVariable) createVariable(varElement, BitmaskVariable.class);
-      parseCommonAttributes(parent, varElement, variable).getVariable();
-
+      VariableModel   model    = parseCommonAttributes(parent, varElement, variable);
       try {
          variable.setPermittedBits(getLongAttribute(varElement, "bitmask"));
          variable.setBitList(varElement.getAttribute("bitList"));
       } catch( NumberFormatException e) {
          throw new Exception("Illegal permittedBits value in " + variable.getName(), e);
       }
+      parseForElement(parent, model);
    }
 
    /**
@@ -508,21 +508,7 @@ public class ParseMenuXML extends XML_BaseParser {
       ChoiceVariable variable = (ChoiceVariable) createVariable(varElement, ChoiceVariable.class);
       VariableModel  model    = parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
-      
-      String forVariable = variable.getForVariable();
-      HashMap<String, String> symbols = new HashMap<String, String>();
-      if (forVariable != null) {
-         String[] names = variable.getForEnumeration().split("\\s*,\\s*");
-         parent.removeChild(model);
-         for(String name:names) {
-            name = name.trim();
-            symbols.put(forVariable, name);
-            ChoiceVariable iteratedVariable = (ChoiceVariable) variable.clone(name, symbols);
-            iteratedVariable.createModel(parent);
-            fProvider.addVariable(iteratedVariable);
-         }
-         fProvider.removeVariable(variable);
-      }
+      parseForElement(parent, model);
    }
 
 
@@ -586,8 +572,7 @@ public class ParseMenuXML extends XML_BaseParser {
          variable.setMaxListLength(otherVariable.getMaxListLength());
          variable.setMinListLength(otherVariable.getMinListLength());
       }
-      parseCommonAttributes(parent, varElement, variable).getVariable();
-
+      VariableModel model = parseCommonAttributes(parent, varElement, variable);
       try {
          if (varElement.hasAttribute("min")) {
             variable.setMin(getLongAttribute(varElement, "min"));
@@ -601,6 +586,7 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal min/max/size value in " + variable.getName(), e);
       }
+      parseForElement(parent, model);
    }
 
    /**
@@ -611,10 +597,37 @@ public class ParseMenuXML extends XML_BaseParser {
     */
    private void parseBinaryOption(BaseModel parent, Element varElement) throws Exception {
 
-      BooleanVariable variable = (BooleanVariable) createVariable(varElement, BooleanVariable.class);
-      parseCommonAttributes(parent, varElement, variable).getVariable();
+      Variable      variable = createVariable(varElement, BooleanVariable.class);
+      VariableModel model    = parseCommonAttributes(parent, varElement, variable);
       parseChoices(variable, varElement);
+      parseForElement(parent, model);
    }
+
+   /**
+    * Check for for element
+    * 
+    * @param parent
+    * @param variable
+    * @param model
+    * @throws Exception
+    */
+   private void parseForElement(BaseModel parent, VariableModel  model) throws Exception {
+      Variable variable    = model.getVariable();
+      String   forVariable = variable.getForVariable();
+      HashMap<String, String> symbols = new HashMap<String, String>();
+      if (forVariable != null) {
+         String[] names = variable.getForEnumeration().split("\\s*,\\s*");
+         parent.removeChild(model);
+         for(String name:names) {
+            name = name.trim();
+            symbols.put(forVariable, name);
+            Variable iteratedVariable = variable.clone(name, symbols);
+            iteratedVariable.createModel(parent);
+            fProvider.addVariable(iteratedVariable);
+         }
+         fProvider.removeVariable(variable);
+      }
+}
 
    /**
     * Parse &lt;irqOption&gt; element<br>
@@ -668,7 +681,7 @@ public class ParseMenuXML extends XML_BaseParser {
    private void parsePinListOption(BaseModel parent, Element varElement) throws Exception {
 
       PinListVariable variable = (PinListVariable) createVariable(varElement, PinListVariable.class);
-      parseCommonAttributes(parent, varElement, variable).getVariable();
+      VariableModel model = parseCommonAttributes(parent, varElement, variable);
       variable.setPeripheral(fPeripheral);
       try {
          if (varElement.hasAttribute("size")) {
@@ -677,6 +690,7 @@ public class ParseMenuXML extends XML_BaseParser {
       } catch( NumberFormatException e) {
          throw new Exception("Illegal size value in " + variable.getName(), e);
       }
+      parseForElement(parent, model);
    }
 
    /**

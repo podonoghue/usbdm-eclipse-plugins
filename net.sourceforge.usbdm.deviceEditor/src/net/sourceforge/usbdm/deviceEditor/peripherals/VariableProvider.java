@@ -2,10 +2,9 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.util.ArrayList;
 import java.util.Map;
-
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility.IKeyMaker;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
 
@@ -57,7 +56,7 @@ public class VariableProvider {
       }
    }
    
-   protected final KeyMaker fKeyMaker = new KeyMaker();
+   protected final IKeyMaker fKeyMaker = new KeyMaker();
 
    /**
     * Constructor
@@ -176,7 +175,7 @@ public class VariableProvider {
     * @throws Exception 
     */
    public String substitute(String input, Map<String, String> map) {
-      return FileUtility.substitute(input, map, fKeyMaker);
+      return ReplacementParser.substitute(input, map, fKeyMaker);
    }
    
    /**

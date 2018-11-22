@@ -15,6 +15,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Settings;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.SignalTemplate;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -121,7 +122,7 @@ public abstract class Peripheral extends VariableProvider {
    }
 
    /**
-    * Get name of C peripheral class e.g. Ftm
+    * Get base name of C peripheral class e.g. Ftm
     * 
     * @return
     */
@@ -151,20 +152,30 @@ public abstract class Peripheral extends VariableProvider {
     * 
     * @param clockReg   Clock register name e.g. SCGC5
     * @param clockMask  Clock register mask e.g. SIM_SCGC5_PORTB_MASK
+    * @throws Exception 
     */
-   public void setClockControlInfo(String clockEnable, String clockDisable) {
+   public void setClockControlInfo(String clockEnable, String clockDisable) throws Exception {
       if ((clockEnable.length()==0) || (clockDisable.length()==0)) {
          throw new RuntimeException("Illegal clock control info = " + clockEnable + ", " + clockDisable);
       }
-      this.fClockEnable  = clockEnable;
-      this.fClockDisable = clockDisable;
-      
-      addVariable(new StringVariable("clockEnable", makeKey("clockEnable"), getClockEnable()));
-      addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), getClockDisable()));
+      if (fClockEnable != null) {
+         fClockEnable  += "\\n" + clockEnable;
+         Variable var = getVariable(makeKey("clockEnable"));
+         var.setValue(fClockEnable);
+         fClockDisable  += "\\n" + fClockDisable;
+         var = getVariable(makeKey("clockDisable"));
+         var.setValue(fClockDisable);
+      }
+      else {
+         fClockEnable  = clockEnable;
+         addVariable(new StringVariable("clockEnable", makeKey("clockEnable"), fClockEnable));
+         fClockDisable = clockDisable;
+         addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), fClockDisable));
+      }
    }
    
    /**
-    * Get clock disable C statement e.g. SIM->SCGC5 |= SIM_SCGC5_UART_MASK
+    * Get clock enable C statement e.g. SIM->SCGC5 |= SIM_SCGC5_UART_MASK
     * 
     * @return
     */
@@ -286,12 +297,8 @@ public abstract class Peripheral extends VariableProvider {
       // Additional, peripheral specific, information
       if (fClockEnable != null) {
          documentUtilities.openTag("clock");
-         if (fClockEnable != null) {
-            documentUtilities.writeAttribute("clockEnable",  XmlDocumentUtilities.escapeXml(fClockEnable));
-         }
-         if (fClockDisable != null) {
-            documentUtilities.writeAttribute("clockDisable", XmlDocumentUtilities.escapeXml(fClockDisable));
-         }
+         documentUtilities.writeAttribute("clockEnable",  XmlDocumentUtilities.escapeXml(fClockEnable));
+         documentUtilities.writeAttribute("clockDisable", XmlDocumentUtilities.escapeXml(fClockDisable));
          documentUtilities.closeTag();
       }
       if (fIrqHandler != null) {
@@ -783,13 +790,19 @@ public abstract class Peripheral extends VariableProvider {
     * Write Peripheral Information Class<br>
     * 
     * <pre>
-    *  class Adc0Info {
-    *     public:
-    *        //! Hardware base pointer
-    *        static constexpr uint32_t basePtr   = ADC0_BasePtr;
+    *  class Lpuart0Info {
+    *  public:
+    *     //! Hardware base address as uint32_t 
+    *     static constexpr uint32_t baseAddress = LPUART0_BasePtr;
+    *
+    *     //! Hardware base pointer
+    *     static volatile LPUART_Type &lpuart() {
+    *        return *(LPUART_Type *)baseAddress;
+    *     }
     *   ...
     *   };
     * </pre>
+    * 
     * @param  deviceInformation 
     * @param  pinMappingHeaderFile Where to write
     * 
@@ -813,6 +826,7 @@ public abstract class Peripheral extends VariableProvider {
                   "public:\n",
                   getClassName()+"Info"
             ));
+      
       // Additional, peripheral specific, information
       writeInfoConstants(pinMappingHeaderFile);
 
@@ -824,9 +838,6 @@ public abstract class Peripheral extends VariableProvider {
       
       // Close class
       pinMappingHeaderFile.write(String.format("};\n\n"));
-   }
-
-   public void writeCSettings(DocumentUtilities headerFile) throws IOException {
    }
 
    /**

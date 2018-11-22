@@ -1,5 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
+import java.util.Map;
+
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ChoiceVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
@@ -321,5 +323,11 @@ public class ChoiceVariable extends Variable {
       this.fData = entries;
    }
 
+   @Override
+   public Variable clone(String name, Map<String,String> symbols) throws CloneNotSupportedException {
+      ChoiceVariable var = (ChoiceVariable) super.clone(name, symbols);
+      this.fDefaultValue = var.fDefaultValue;
+      return var;
+   }
 
 }

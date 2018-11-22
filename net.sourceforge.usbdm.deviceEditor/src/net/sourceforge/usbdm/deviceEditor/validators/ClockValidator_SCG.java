@@ -266,13 +266,13 @@ public class ClockValidator_SCG extends BaseClockValidator {
       else {
          scg_sosccfg_rangeVar.clearStatus();
          if (system_sosc_frequency>=osc_high_min_frequency) {
-            scg_sosccfg_rangeVar.setValue(2);
+            scg_sosccfg_rangeVar.setValue(3);
          }
          else if (system_sosc_frequency>=osc_medium_min_frequency) {
-            scg_sosccfg_rangeVar.setValue(1);
+            scg_sosccfg_rangeVar.setValue(2);
          }
          else if (system_sosc_frequency>=osc_Low_min_frequency) {
-            scg_sosccfg_rangeVar.setValue(0);
+            scg_sosccfg_rangeVar.setValue(1);
          }
       }
       boolean scg_sosccsr_soscen = scg_sosccsr_soscenVar.getValueAsBoolean();

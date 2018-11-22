@@ -59,8 +59,4 @@ public class WriterForDmaMux extends PeripheralWithState {
       documentUtilities.popAttrWidth();
    }
 
-   @Override
-   public void writeExtraInfo(DocumentUtilities documentUtilities) throws IOException {
-   }
-
 }

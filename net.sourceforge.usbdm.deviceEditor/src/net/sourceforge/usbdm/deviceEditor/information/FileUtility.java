@@ -22,72 +22,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ReplacementParser;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 
 public class FileUtility {
-
-   public interface IKeyMaker {
-      /**
-       * Generate variable key from name
-       * 
-       * @param  name Name used to create key
-       * @return Key generated from name
-       */
-      public String makeKey(String name);
-   }
-
-   public static final class PublicKeyMaker implements IKeyMaker {
-      /**
-       * Generate variable key from name
-       * 
-       * @param  name Name used to create key
-       * @return Key generated from name
-       */
-      @Override
-      public String makeKey(String name) {
-         return name;
-      }
-   }
-
-   /**
-    * Key mapper for public symbols
-    */
-   public static final PublicKeyMaker publicKeyMaker = new PublicKeyMaker();
-   
-  /**
-    * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
-    * 
-    * @param inputText    String to replace macros in
-    * @param map          Map of key->value pairs for substitution
-    * @param keyMaker     Interface providing a method to create a key from a variable name
-    * 
-    * @return      String with substitutions (or original if none)
-    */
-   public static String substitute(String inputText, Map<String, String> map, IKeyMaker keyMaker) {
-
-      if (inputText == null) {
-         return null;
-      }
-      if (map == null) {
-         return inputText;
-      }
-
-      ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
-      
-      return replacementParser.parse(inputText);
-   }
-
-   /**
-    * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
-    * 
-    * @param input        String to replace macros in
-    * @param variableMap  Map of key->value pairs for substitution
-    * 
-    * @return      String with substitutions (or original if none)
-    */
-   public static String substitute(String input, Map<String,String> variableMap) {
-      return substitute(input, variableMap, publicKeyMaker);
-   }
 
    /**
     * Copy a file with substitutions
@@ -132,7 +69,7 @@ public class FileUtility {
                }
             }
             if (includeLine) {
-               line = substitute(line, variableMap);
+               line = ReplacementParser.substitute(line, variableMap);
                writer.write(line);
                writer.newLine();
             }

@@ -12,7 +12,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.FileUtility;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
@@ -21,6 +20,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -144,8 +144,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @return Modified map
     */
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
-      map.put("_instance", getInstance());
-      map.put("_name",     getName());
+      map.put("_instance",   getInstance());       // FTM0 => 0
+      map.put("_name",       getName());           // FTM0 => FTM
+      map.put("_class",      getClassName());      // FTM0 => Ftm0
+      map.put("_base_class", getClassBaseName());  // FTM0 => Ftm
 
       if (fMenuData == null) {
          return map;
@@ -167,11 +169,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
             int dimension = fileTemplate.getDimension();
             if (dimension > 0) {
                for (int index=0; index<dimension; index++) {
-                  sb.append(FileUtility.substitute(fileTemplate.getExpandedText(), map, new IndexKeyMaker(index)));
+                  sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), map, new IndexKeyMaker(index)));
                }
             }
             else {
-               sb.append(FileUtility.substitute(fileTemplate.getExpandedText(), map, fKeyMaker));
+               sb.append(ReplacementParser.substitute(fileTemplate.getExpandedText(), map, fKeyMaker));
             }
             map.put(fKeyMaker.makeKey(key), sb.toString());
          }
@@ -200,8 +202,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    String substitute(String input) {
       Map<String, String> map = fDeviceInfo.getSimpleSymbolMap();
-      map.put(makeKey("_instance"), getInstance());
-      map.put(makeKey("_name"),     getName());
+      map.put(makeKey("_instance"),   getInstance());
+      map.put(makeKey("_name"),       getName());
+      map.put(makeKey("_class"),      getClassName());
+      map.put(makeKey("_base_class"), getClassBaseName());
       return substitute(input, map);
    }
    
