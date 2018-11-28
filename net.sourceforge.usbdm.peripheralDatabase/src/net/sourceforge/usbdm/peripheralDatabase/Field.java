@@ -445,8 +445,8 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(FTM)[0-9](_.*)$"),                      "$1$2"));
 //         mappedMacros.add(new Pair(Pattern.compile("^(FMC)[0-9]?_S_(.*)$"),                   "$1_TAGVD_$2"));  // FMC_S_valid_SHIFT -> FMC_TAGVD_valid_SHIFT
 //         mappedMacros.add(new Pair(Pattern.compile("^(FMC_S)[0-9]*(.*)$"),                    "$1$2"));  // Fold cache ways
-         mappedMacros.add(new Pair(Pattern.compile("^(I2C)[0-9](_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(I2S)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?I2C)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?I2S)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(OSC)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(LPTMR)[0-9](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(PDB)[A-Z](_.*)$"),                      "$1$2"));
@@ -456,15 +456,14 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^(PCTL)[A-Z](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_CTAR)[0-9](.*)$"),           "$1$2$3")); // e.g SPI0_CTAR0_SLAVE_FMSZ_MASK => SPI_CTAR_SLAVE_FMSZ_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(SDHC)[0-9](_.*)$"),                     "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(PIT)[0-9](_.*)$"),                      "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(SPI)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(L?PIT)[0-9](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?SPI)[0-9](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(QSPI)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TRNG)[0-9](_.*)$"),                     "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(UART)[0-9](_.*)$"),                     "$1$2"));
-         mappedMacros.add(new Pair(Pattern.compile("^(LPUART)[0-9](_.*)$"),                   "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?UART)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(INTC)[0-9](_.*)$"),                     "$1$2")); // INTC0_INTFRCH_FRCH51_MASK => INTC_INTFRCH_FRCH51_MASK
          mappedMacros.add(new Pair(Pattern.compile("^(SIM_OSC1)_CNTRL(.*)$"),                 "$1$2")); 
          mappedMacros.add(new Pair(Pattern.compile("^(EMVSIM)\\d(.*)$"),                      "$1$2")); // EMVSIM0_VER_ID_VER_MASK => EMVSIM_VER_ID_VER_MASK
