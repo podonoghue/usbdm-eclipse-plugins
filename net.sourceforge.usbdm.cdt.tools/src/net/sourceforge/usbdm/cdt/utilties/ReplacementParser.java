@@ -3,8 +3,6 @@ package net.sourceforge.usbdm.cdt.utilties;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
-
 /**
  * Simple replacement parser to do substitutions in strings
  * 
@@ -13,8 +11,6 @@ import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
  * Modifiers:
  *   toupper   Convert replacementText to upper-case
  *   tolower   Convert replacementText to lower-case
- *   defer     Defer replacement once i.e. replace whole pattern with "$(key:defaultValue)" 
- *             to allow later attempt at substitution
  */
 public class ReplacementParser {
 
@@ -27,13 +23,16 @@ public class ReplacementParser {
        */
       public String makeKey(String name);
    }
-   
+
    /** Map of symbols for substitution */
-   final Map<String, String> fSymbols;
+   private final Map<String, String> fSymbols;
    
    /** Key-maker to translate a symbol before lookup */
-   final IKeyMaker           fKeyMaker;
+   private final IKeyMaker           fKeyMaker;
    
+   /** True to ignore (preserve) unknown symbols */
+   private boolean fIgnoreUnknowns = false;
+
    /**
     * Key maker for unadorned symbols
     */
@@ -303,7 +302,7 @@ public class ReplacementParser {
       key = keyBuffer.toString();
       }
       
-      String defaultValue = "Symbol '" + key + "' not found";
+      String defaultValue = null;
       char c = inputText.charAt(index);
       if (c == ':') {
          index++;
@@ -330,31 +329,40 @@ public class ReplacementParser {
       }
       index++;
       
-      String replaceWith = null;
-      key = fKeyMaker.makeKey(key);
-      replaceWith = fSymbols.get(key);
-      if (replaceWith == null) {
-         replaceWith = defaultValue;
+      String  replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+      
+      if ((replaceWith == null) && fIgnoreUnknowns) {
+         // Don't expand unknown symbol (yet)
+         replaceWith = "$(" + key;
+         if (defaultValue != null) {
+            replaceWith += ":" + defaultValue;
+         }
+         if (modifier != null) {
+            if (defaultValue == null) {
+               replaceWith += ":";
+            }
+            replaceWith += ":" + modifier;
+         }
+         replaceWith += ")";
       }
-      if (modifier != null) {
-         if (modifier.equalsIgnoreCase("toupper")) {
-            replaceWith = replaceWith.toUpperCase();
+      else {
+         if (defaultValue == null) {
+            defaultValue = "Symbol '" + key + "' not found";
          }
-         else if (modifier.equalsIgnoreCase("tolower")) {
-            replaceWith = replaceWith.toLowerCase();
+         if (replaceWith == null) {
+            replaceWith = defaultValue;
          }
-         else if (modifier.equalsIgnoreCase("defer")) {
-            // Don't expand unknown symbol (yet)
-            if (defaultValue != null) {
-               replaceWith = "$(" + key + ":" + defaultValue + ")";
+         if (modifier != null) {
+            if (modifier.equalsIgnoreCase("toupper")) {
+               replaceWith = replaceWith.toUpperCase();
+            }
+            else if (modifier.equalsIgnoreCase("tolower")) {
+               replaceWith = replaceWith.toLowerCase();
             }
             else {
-               replaceWith = "$(" + key + ")";
+               // force error expansion for unknown modifier
+               replaceWith = null; 
             }
-         }
-         else {
-            // force error expansion for unknown modifier
-            replaceWith = null; 
          }
       }
       if (replaceWith == null) {
@@ -414,17 +422,32 @@ public class ReplacementParser {
       }
       return sb.toString();
    }
+
+   /** 
+    * Controls whether unknown symbols are treated as an error or preserved.
+    * This also means default values will not be used.
+    *  
+    * @param ignoreUnknowns True to ignore (preserved) unknown symbols.
+    */
+   private void setIgnoreUnknowns(boolean ignoreUnknowns) {
+      fIgnoreUnknowns = ignoreUnknowns;
+   }
    
   /**
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
-    * @param inputText    String to replace macros in
-    * @param map          Map of key->value pairs for substitution
-    * @param keyMaker     Interface providing a method to create a key from a variable name
+    * @param inputText     String to replace macros in
+    * @param map           Map of key->value pairs for substitution
+    * @param keyMaker      Interface providing a method to create a key from a variable name
+    * @param ignorUnknowns True to ignore (preserved) unknown symbols.
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substitute(String inputText, Map<String, String> map, IKeyMaker keyMaker) {
+   private static String substitute(
+         String               inputText, 
+         Map<String, String>  map, 
+         IKeyMaker            keyMaker,
+         boolean              ignorUnknowns) {
       if (inputText == null) {
          return null;
       }
@@ -432,6 +455,7 @@ public class ReplacementParser {
          return inputText;
       }
       ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
+      replacementParser.setIgnoreUnknowns(ignorUnknowns);
       try {
          return replacementParser.replaceAll(inputText);
       } catch (Exception e) {
@@ -441,6 +465,23 @@ public class ReplacementParser {
    }
 
    /**
+    * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
+    * 
+    * @param inputText     String to replace macros in
+    * @param map           Map of key->value pairs for substitution
+    * @param keyMaker      Interface providing a method to create a key from a variable name
+    * 
+    * @return      String with substitutions (or original if none)
+    */
+   public static String substitute(
+         String               inputText, 
+         Map<String, String>  map, 
+         IKeyMaker            keyMaker) {
+      
+      return substitute(inputText, map, keyMaker, false);
+   }
+   
+   /**
     * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
     * 
     * @param input        String to replace macros in
@@ -449,8 +490,21 @@ public class ReplacementParser {
     * @return      String with substitutions (or original if none)
     */
    public static String substitute(String input, Map<String,String> variableMap) {
-      return substitute(input, variableMap, publicKeyMaker);
+      return substitute(input, variableMap, publicKeyMaker, false);
    }
+   
+   /**
+    * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
+    * 
+    * @param input        String to replace macros in
+    * @param variableMap  Map of key->value pairs for substitution
+    * 
+    * @return      String with substitutions (or original if none)
+    */
+   public static String substituteIgnoreUnknowns(String input, Map<String,String> variableMap) {
+      return substitute(input, variableMap, publicKeyMaker, true);
+   }
+
    final static HashMap<String, String> exampleSymbols = new HashMap<String, String>();
 // final static String                  TestPattern    = "hello th$ere $(aaa::toupper) $(b$(ccc)bb) $(dd:234)";
 // final static String                  TestPattern    = "hello th$ere $(aaa::toupper)";
@@ -476,6 +530,5 @@ public class ReplacementParser {
     
     System.err.println("'" + TestPattern + "' => '" + parser.replaceAll(TestPattern) + "'");
  }
-
 
 }
