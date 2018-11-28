@@ -1,31 +1,30 @@
 package net.sourceforge.usbdm.deviceEditor.xmlParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.TemplateIteration;
 import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser.IKeyMaker;
 
 /**
  * Used to represent a template for code in a project
  */
 public class TemplateInformation {
    /** Key used to index template */
-   private final String            fKey;
+   private final String fKey;
    /** Namespace for template (info, usbdm, class) */
-   private final String            fNameSpace;
-   /** Text contents for template */
-   private final StringBuilder     fBuilder;
+   private final String fNameSpace;
+   /** Buffer to accumulate text contents for template */
+   private StringBuilder fBuilder;
    /** Dimension for array template */
-   private final int               fDimension;
-   /** Raw text contents for template - cached */
-   private String            fText = null;
-   /** Expanded text contents for template - cached */
-   private String fExpandedText = null;
-   /** Iterations applied to template */
-   private ArrayList<TemplateIteration> fIterations = null;
+   private final int fDimension;
+   /** Processed text contents for template - cached */
+   private String fText = null;
+   /** Iteration has been applied to this template */
+   private boolean fIterationDone = false;
+   /** Variable for iteration */
+   private String fVariable = null;
+   /** Enumeration for iteration */
+   private String fEnumeration;
 
    /**
     * Construct template
@@ -33,39 +32,55 @@ public class TemplateInformation {
     * @param key        Key used to index template
     * @param namespace  Namespace for template (info, usbdm, class)
     * @param dimension  Dimension for array template
-    * @param contents   Text contents for template
     */
-   public TemplateInformation(String key, String nameSpace, String contents, int dimension) {
+   public TemplateInformation(String key, String nameSpace, int dimension) {
       fKey        = key;
       fNameSpace  = nameSpace;
-      fBuilder    = new StringBuilder(contents); 
+      fBuilder    = new StringBuilder(100); 
       fDimension  = dimension;
    }
    
    /**
-    * Add enumeration to this template
+    * Set enumeration for this template.
+    *  
+    * @param variable      Variable being enumerated
+    * @param enumeration   Enumerate value for variable
     * 
-    * @param variable
-    * @param enumeration
-    * 
-    * @return Iteration added
+    * @throws Exception 
     */
-   public TemplateIteration addIteration(String variable, String enumeration) {
-      if (fIterations == null) {
-         fIterations = new ArrayList<TemplateIteration>();
+   public void setIteration(String variable, String enumeration) throws Exception {
+      if (fIterationDone) {
+         throw new Exception("Template already has iteration");
       }
-      TemplateIteration interation = new TemplateIteration(variable, enumeration.trim());
-      fIterations.add(interation);
-      return interation;
+      fIterationDone = true;
+      fVariable    = variable.trim();
+      fEnumeration = enumeration.trim();
    }
    
    /**
-    * @return Iterations to apply to this template
+    * Append text to template.
+    * The text is processed \n => newline char etc.
+    *  
+    * @param contents Text to append
     */
-   public ArrayList<TemplateIteration> getIterations() {
-      return fIterations;
+   public void addText(String contents) {
+      fBuilder.append(contents.
+            replaceAll("^\n\\s*","").
+            replaceAll("(\\\\n|\\n)\\s*", "\n").
+            replaceAll("\\\\t","   "));
+      fText = null;
    }
 
+   /**
+    * Add child template
+    * 
+    * @param template Template to add
+    * @throws Exception 
+    */
+   public void addChild(TemplateInformation template) throws Exception {
+      fBuilder.append(template.getExpandedText());
+   }
+   
    /**
     * @return Key used to index template
     */
@@ -74,54 +89,39 @@ public class TemplateInformation {
    }
 
    /**
-    * Get text contents of template<br>
+    * Get expanded text contents of template.
+    * Any template iterations will be expanded.
     * 
-    * @return Text contents for template
-    */
-   public String getRawText() {
-      if (fText == null) {
-         fText = fBuilder.toString();
-      }
-      return fText;
-   }
-
-   /**
-    * @return Text contents for template
+    * @return Expanded text contents for template
+    * @throws Exception 
     */
    public String getExpandedText() {
-      if (fExpandedText == null) {
-         StringBuffer sb = new StringBuffer();
-         if (fIterations != null) {
-            for (TemplateIteration i:fIterations) {
-               Map<String, String> map = new HashMap<String, String>();
-               for(String s:i.getEnumeration()) {
-                  map.put(i.getVariable(), s);
-                  IKeyMaker fKeyMaker = new IKeyMaker() {
-                     @Override
-                     public String makeKey(String name) {
-                        return name;
-                     }
-                  };
-                  sb.append(ReplacementParser.substitute(getRawText(), map, fKeyMaker));
-               }
-            }
-            fExpandedText = sb.toString();
-         }
-         else {
-            fExpandedText = getRawText();
-         }
+      if (fText != null) {
+         return fText;
       }
-      return fExpandedText;
-   }
-
-   /**
-    * Append text to template
-    *  
-    * @param contents Text to append
-    */
-   public void addToContents(String contents) {
-      fBuilder.append(contents);
-      fText = null;
+      String text = fBuilder.toString();
+      if (fEnumeration == null) {
+         fText = text;
+         return text;
+      }
+      StringBuilder       sb   = new StringBuilder();
+      Map<String, String> map  = new HashMap<String, String>();
+      fBuilder = null;
+      String[] variables = fVariable.split("\\s*:\\s*");
+      for(String s:fEnumeration.split("\\s*,\\s*")) {
+         String[] enums = s.split("\\s*:\\s*");
+         if (enums.length != variables.length) {
+            sb.append("Variable and enumeration do not match, enum='"+s+"', var='"+fVariable+"'");
+            break;
+         }
+         for (int index=0; index<enums.length; index++) {
+//            System.err.println("Adding '" + variables[index] + "' => '" + enums[index] + "'");
+            map.put(variables[index], enums[index]);
+         }
+         sb.append(ReplacementParser.substituteIgnoreUnknowns(text, map));
+      }
+      fText = sb.toString();
+      return fText;
    }
 
    /**
@@ -136,5 +136,12 @@ public class TemplateInformation {
     */
    public String getNamespace() {
       return fNameSpace;
+   }
+   
+   /**
+    * Return a String representation of the template
+    */
+   public String toString() {
+      return "T["+fBuilder.toString()+"]";
    }
 }

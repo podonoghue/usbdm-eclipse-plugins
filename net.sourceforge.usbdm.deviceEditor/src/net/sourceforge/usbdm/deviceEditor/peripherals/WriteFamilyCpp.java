@@ -128,16 +128,16 @@ public class WriteFamilyCpp {
 
       DocumentationGroups groups = new DocumentationGroups(writer);
 
-      // Write these classes in order as they declare shared information etc.
+      // Write these classes in order as they declare dependent information etc.
       ArrayList<String> priorityClasses = new ArrayList<String>();
       priorityClasses.add("OSC");
       priorityClasses.add("OSC0");
       priorityClasses.add("OSC_RF0");
+      priorityClasses.add("SCG");
+      priorityClasses.add("PCC");
       priorityClasses.add("RTC");
       priorityClasses.add("MCG");
-      priorityClasses.add("SCG");
       priorityClasses.add("SIM");
-      priorityClasses.add("PCC");
       for (String key : priorityClasses) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          if (peripheral != null) {

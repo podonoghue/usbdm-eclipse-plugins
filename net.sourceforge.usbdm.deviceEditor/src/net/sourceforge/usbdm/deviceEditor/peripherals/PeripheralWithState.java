@@ -95,7 +95,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       writeInfoTemplate(pinMappingHeaderFile);
    }
 
-   public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException {
+   public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException  {
       pinMappingHeaderFile.write("   // Template:" + getPeripheralVersionName()+"\n\n");
       if (fMenuData == null) {
 //         System.err.println("No fData for " + getName());
@@ -142,6 +142,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * @param map  Map to symbols add to
     *  
     * @return Modified map
+    * @throws Exception 
     */
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
       map.put("_instance",   getInstance());       // FTM0 => 0

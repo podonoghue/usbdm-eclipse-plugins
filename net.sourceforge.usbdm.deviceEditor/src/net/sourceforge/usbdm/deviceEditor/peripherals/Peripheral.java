@@ -615,6 +615,7 @@ public abstract class Peripheral extends VariableProvider {
     * 
     * @param documentUtilities
     * @throws IOException
+    * @throws Exception 
     */
    public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
    }
