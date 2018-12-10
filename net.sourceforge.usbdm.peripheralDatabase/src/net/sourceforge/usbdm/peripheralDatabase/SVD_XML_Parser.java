@@ -20,6 +20,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
+import net.sourceforge.usbdm.cdt.utilties.Eval;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.Pair;
 
 /**
@@ -514,13 +516,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (dimension == null) {
          // No dimension set (may inherit)
       }
-      else if (dimension.startsWith("%")) {
-         register.setDim(dimension);
-         dim = (int) getIntFromText(peripheral.getParameterValue(dimension.substring(1)));
-      }
       else {
-         register.setDim(dimension);
-         dim = (int) getIntFromText(dimension);
+         register.setDim(ReplacementParser.substituteWithSymbols(dimension, peripheral.getHeaderStructName()));
+         dim = Eval.eval(ReplacementParser.substitute(dimension, peripheral.getSimpleParameterMap()));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information
@@ -528,7 +526,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setDimensionIncrement(0);
       }
       if ((register.getDimension() == 0) && (dim > 0)) {
-         if (!dimension.startsWith("%")) {
+         if (!dimension.contains("$")) {
             System.err.println("Warning setting auto dimension to r=" + register.getName() + ", d="+dimension);
          }
          register.setAutoDimension(dim);
@@ -642,13 +640,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       if (dimension == null) {
          // No dimension set (may inherit)
       }
-      else if (dimension.startsWith("%")) {
-         cluster.setDim(dimension);
-         dim = (int) getIntFromText(peripheral.getParameterValue(cluster.getDim().substring(1)));
-      }
       else {
-         cluster.setDim(dimension);
-         dim = (int) getIntFromText(dimension);
+         cluster.setDim(ReplacementParser.substituteWithSymbols(dimension, peripheral.getHeaderStructName()));
+         dim = Eval.eval(ReplacementParser.substitute(dimension, peripheral.getSimpleParameterMap()));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information
@@ -656,8 +650,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          cluster.setDimensionIncrement(0);
       }
       if ((cluster.getDimension() == 0) && (dim > 0)) {
-         if (!dimension.startsWith("%")) {
-            System.err.println("Warning setting auto dimension to " + dimension);
+         if (!dimension.contains("$")) {
+            System.err.println("Warning setting auto dimension to r=" + cluster.getName() + ", d="+dimension);
          }
          cluster.setAutoDimension(dim);
       }
