@@ -6,7 +6,6 @@ Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.cdt.tools.Activator
 Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  net.sourceforge.usbdm.jni;bundle-version="5.0.0",
- net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -14,8 +13,7 @@ Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  org.eclipse.cdt.managedbuilder.core,
  org.eclipse.core.variables,
  org.eclipse.core.resources,
- org.eclipse.ui.console,
- org.eclipse.cdt.ui
+ org.eclipse.ui.console
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: USBDM
