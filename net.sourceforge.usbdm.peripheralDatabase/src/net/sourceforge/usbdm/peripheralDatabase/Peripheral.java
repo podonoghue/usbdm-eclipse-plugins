@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +43,8 @@ public class Peripheral extends ModeControl implements Cloneable {
    private String                    fFilename               = null;
    private DevicePeripherals         fOwner                  = null;
    
-   private HashMap<String, Parameter> fParameters = new HashMap<String, Parameter>();
+   private HashMap<String, Parameter> fParameters         = new HashMap<String, Parameter>();
+   private Map<String, String>        fSimpleParameterMap = null;
 
    /** Arbitrary text to add to peripheral C declaration */
    private String                    fTemplate               = null;  
@@ -442,7 +444,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 //            System.err.println("Peripheral = " + cluster.getName());
             cluster.addAddressBlocks(addressBlocksMerger);
          }
-         addressBlocksMerger.finalise();
+         addressBlocksMerger.generate();
       } catch (Exception e) {
          System.err.println("Peripheral = " + getName());
          e.printStackTrace();
@@ -2313,6 +2315,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public void addParameter(Parameter parameter) {
       fParameters.put(parameter.getName(), parameter);
+      fSimpleParameterMap = null;
    }
 
    /**
@@ -2335,5 +2338,20 @@ public class Peripheral extends ModeControl implements Cloneable {
     */
    public String getParameterValue(String name) {
       return fParameters.get(name).getValue();
+   }
+   
+   /**
+    * Get peripheral parameters as a simple map
+    * 
+    * @return Map of key => values
+    */
+   Map<String, String> getSimpleParameterMap() {
+      if (fSimpleParameterMap == null) {
+         fSimpleParameterMap = new HashMap<String, String>();
+         for (Entry<String, Parameter> entry:fParameters.entrySet()) {
+            fSimpleParameterMap.put(entry.getKey(), entry.getValue().getValue());
+         }
+      }
+      return fSimpleParameterMap;
    }
 }

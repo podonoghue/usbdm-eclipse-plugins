@@ -15,14 +15,19 @@ public class Register extends Cluster implements Cloneable {
 
    /** Description of this register */
    private String             fDescription;
+   
    /** Supported but not used */
    private String             fAlternateGroup;
+   
    /** Fields for this register */
    private ArrayList<Field>   fFields;
+   
    /** Flag used to indicate register has been deleted during optimisation */
    private boolean            fDeleted;
+   
    /** Width of elements */
    private long               fWidth;
+   
    /** Optional cluster that encloses this register */
    private Cluster            fCluster;
    
@@ -489,14 +494,19 @@ public class Register extends Cluster implements Cloneable {
    public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, long addressOffset) throws Exception {
 //      System.err.println(String.format("Register.addAddressBlocks(%s) addressOffset = 0x%04X, offset = 0x%04X", getName(), addressOffset, addressOffset+getAddressOffset()));
       addressOffset += getAddressOffset();
-      if (getDimension()== 0) {
-         // Simple array
-         addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
-         return;
-      }
-      for (int index=0; index<getDimension(); index++) {
-         addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
-         addressOffset += getDimensionIncrement();
+      try {
+         if (getDimension()== 0) {
+            // Simple array
+            addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
+            return;
+         }
+         for (int index=0; index<getDimension(); index++) {
+            addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
+            addressOffset += getDimensionIncrement();
+         }
+      } catch (Exception e) {
+         System.err.println("Failing Register = " + this.toString());
+         throw e;
       }
    }
 
@@ -837,7 +847,7 @@ public class Register extends Cluster implements Cloneable {
 
    /**
     *    Writes C code for Register as part of a STRUCT element e.g.<br>
-    *    <pre><b>__I  uint8_t  registerName;"</pre></b>
+    *    <pre><b>__I  uint8_t  registerName;</pre></b>
     * 
     *    @param writer
     *    @param devicePeripherals

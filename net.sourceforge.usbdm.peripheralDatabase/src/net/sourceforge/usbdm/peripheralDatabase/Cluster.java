@@ -18,12 +18,16 @@ public class Cluster extends ModeControl implements Cloneable {
    
    /** Name of cluster */
    private  String               fName;
-   /** Offset of cluster from start of peripeheral */
+   
+   /** Offset of cluster from start of peripheral */
    private  long                 fAddressOffset;
+   
    /** Registers in this cluster */
    private  ArrayList<Cluster>   fRegisters;
+   
    /** Address increment of iterated registers */
    private  int                  fDimensionIncrement;
+   
    /** Modifier for iterated register names (%s) */
    private  ArrayList<String>    fDimensionIndexes;
    
@@ -262,7 +266,7 @@ public class Cluster extends ModeControl implements Cloneable {
    /**
     * Get address offset
     * 
-    * @return the addressOffset
+    * @return Offset of cluster from start of peripheral 
     */
    public long getAddressOffset() {
       return fAddressOffset;
@@ -272,7 +276,8 @@ public class Cluster extends ModeControl implements Cloneable {
     * Get address offset for dimensioned cluster
     * 
     * @param index index
-    * @return the addressOffset
+    * 
+    * @return Offset of cluster from start of peripheral 
     */
    public long getAddressOffset(int index) {
       return getAddressOffset()+index*getDimensionIncrement();
@@ -281,7 +286,7 @@ public class Cluster extends ModeControl implements Cloneable {
    /**
     * Sets the offset of the cluster
     * 
-    * @param addressOffset the addressOffset to set
+    * @param addressOffset Offset of cluster from start of peripheral
     */
    public void setAddressOffset(long addressOffset) {
       this.fAddressOffset = addressOffset;
@@ -737,11 +742,19 @@ public class Cluster extends ModeControl implements Cloneable {
    
    /**
     *    Writes C code for Cluster as a STRUCT element e.g.<br>
-    *    <pre><b>__I  uint8_t  registerName;</pre></b>
+    *    <pre><b>
+    *    struct {
+    *      __I  uint8_t  registerName;
+    *                    ...
+    *    };</pre></b>
     * 
-    *    @param writer
-    *    @param registerUnion 
-    *    @param devicePeripherals
+    * @param writer        Writer to use
+    * @param indent        Current indent level
+    * @param registerUnion Not used
+    * @param peripheral    Peripheral owning registers
+    * @param baseAddress   Base address of enclosing <b>struct</b> to write
+    * 
+    * @throws Exception
     */
    public void writeHeaderFileDeclaration(Writer writer, int indent, RegisterUnion registerUnion, Peripheral peripheral, long baseAddress) throws Exception {
 
@@ -759,7 +772,7 @@ public class Cluster extends ModeControl implements Cloneable {
       
       if (getDimension()>0) {
          // Fill to array boundary
-         unionRegisters.fillTo(getDimensionIncrement());
+         unionRegisters.fillTo(baseAddress+getDimensionIncrement());
          // Finish off struct as array
 //         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())));
          

@@ -145,7 +145,7 @@ public class SVDIdentifier {
       try {
          return (getDevicePeripherals() != null);
       } catch (Exception e) {
-//         e.printStackTrace();
+         e.printStackTrace();
          System.err.println(e.getMessage());
       }
       return false;
