@@ -90,12 +90,11 @@ public class UsbdmDevicePeripheralsModel {
    /**
     * Adds a set of entries for a Cluster of registers
     * 
-    * @param peripheral 
-    * @param device      The model that represents the device (entire tree) that owns the peripherals
-    * @param peripheral  The peripheral to obtain register information from
-    * @param pInformation    Format for register to this level
+    * @param peripheralModel  Peripheral model to hold registers
+    * @param cluster          Cluster to represent
+    * @param pInformation     Format for register to this level
     * 
-    * @throws Exception 
+    * @throws RegisterException
     */
    private static void createClusterModels(PeripheralModel peripheralModel, Cluster cluster, ModelInformation pInformation) throws RegisterException {
       if (cluster.isHidden()) {
@@ -140,16 +139,38 @@ public class UsbdmDevicePeripheralsModel {
          }
       }
       else {
-         // A simple cluster
+         ClusterModel clusterModel = new ClusterModel(peripheralModel, clusterInfo);
          for (Cluster register : cluster.getRegisters()) {
             if (register.isHidden()) {
                continue;
             }
-            clusterInfo.setRegister((Register) register);
-            RegisterModel registerModel = new RegisterModel(peripheralModel, clusterInfo);
-            registerModel.setName(registerModel.getName());
-            createFieldModels(registerModel, (Register) register, clusterInfo);
+            ModelInformation registerInfo = new ModelInformation(clusterInfo);
+            registerInfo.setRegister((Register) register);
+            if (register.getDimension()>0) {
+               for (int registerIndex=0; registerIndex<register.getDimension(); registerIndex++) {
+                  registerInfo.setRegisterIndex(registerIndex);
+                  RegisterModel registerModel = new RegisterModel(clusterModel, registerInfo);
+                  createFieldModels(registerModel, (Register) register, registerInfo);
+               }
+            }
+            else {
+               registerInfo.setRegisterIndex(-1);
+               RegisterModel registerModel = new RegisterModel(clusterModel, registerInfo);
+               createFieldModels(registerModel, (Register) register, registerInfo);
+            }
          }
+
+//         // A simple cluster
+//         for (Cluster register : cluster.getRegisters()) {
+//            if (register.isHidden()) {
+//               continue;
+//            }
+//            clusterInfo.setRegister((Register) register);
+//            RegisterModel registerModel = new RegisterModel(peripheralModel, clusterInfo);
+//            registerModel.setName(registerModel.getName());
+////            createFieldModels(registerModel, (Register) register, clusterInfo);
+//            createRegisterModels(peripheralModel, (Register)register, clusterInfo);
+//         }
       }
    }
    
@@ -244,6 +265,10 @@ public class UsbdmDevicePeripheralsModel {
          if (isExcludedPeripheral(peripheral.getName())) {
             continue;
          }
+//         if (peripheral.getName().equalsIgnoreCase("CAN0")) {
+//            // XXX Delete me
+//            System.err.println("Found : " + peripheral.toString());
+//         }
          createPeripheralModel(deviceModel, peripheral, gdbInterface);     
       }
    }
