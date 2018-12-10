@@ -33,6 +33,9 @@ public class ReplacementParser {
    /** True to ignore (preserve) unknown symbols */
    private boolean fIgnoreUnknowns = false;
 
+   /** Prefix to use for symbol mode */
+   private String fPrefix = "";
+
    /**
     * Key maker for unadorned symbols
     */
@@ -329,8 +332,13 @@ public class ReplacementParser {
       }
       index++;
       
-      String  replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
-      
+      String  replaceWith = null;
+      if (fSymbols == null) {
+         replaceWith = fPrefix + "_" + key;
+      }
+      else {
+         replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+      }
       if ((replaceWith == null) && fIgnoreUnknowns) {
          // Don't expand unknown symbol (yet)
          replaceWith = "$(" + key;
@@ -447,15 +455,16 @@ public class ReplacementParser {
          String               inputText, 
          Map<String, String>  map, 
          IKeyMaker            keyMaker,
-         boolean              ignorUnknowns) {
+         boolean              ignorUnknowns,
+         String               prefix) {
+      
       if (inputText == null) {
          return null;
       }
-      if (map == null) {
-         return inputText;
-      }
       ReplacementParser replacementParser = new ReplacementParser(map, keyMaker);
       replacementParser.setIgnoreUnknowns(ignorUnknowns);
+      replacementParser.setSymbolPrefix("");
+      replacementParser.setSymbolPrefix(prefix);
       try {
          return replacementParser.replaceAll(inputText);
       } catch (Exception e) {
@@ -464,45 +473,70 @@ public class ReplacementParser {
       }
    }
 
+   private void setSymbolPrefix(String prefix) {
+      fPrefix = prefix;
+   }
+
    /**
     * Replaces macros e.g. $(name:defaultValue) with values from a map or default if not found
     * 
     * @param inputText     String to replace macros in
-    * @param map           Map of key->value pairs for substitution
+    * @param variableMap   Map of key->value pairs for substitution
     * @param keyMaker      Interface providing a method to create a key from a variable name
     * 
     * @return      String with substitutions (or original if none)
     */
    public static String substitute(
          String               inputText, 
-         Map<String, String>  map, 
+         Map<String, String>  variableMap, 
          IKeyMaker            keyMaker) {
       
-      return substitute(inputText, map, keyMaker, false);
+      if (variableMap == null) {
+         return inputText;
+      }
+      return substitute(inputText, variableMap, keyMaker, false, "");
    }
    
    /**
     * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
     * 
-    * @param input        String to replace macros in
-    * @param variableMap  Map of key->value pairs for substitution
+    * @param input         String to replace macros in
+    * @param variableMap   Map of key->value pairs for substitution
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substitute(String input, Map<String,String> variableMap) {
-      return substitute(input, variableMap, publicKeyMaker, false);
+   public static String substitute(String inputText, Map<String,String> variableMap) {
+      if (variableMap == null) {
+         return inputText;
+      }
+      return substitute(inputText, variableMap, publicKeyMaker, false, "");
    }
    
    /**
     * Replaces macros e.g. $(key:defaultValue) with values from a map or default if not found
     * 
-    * @param input        String to replace macros in
-    * @param variableMap  Map of key->value pairs for substitution
+    * @param input         String to replace macros in
+    * @param variableMap   Map of key->value pairs for substitution
     * 
     * @return      String with substitutions (or original if none)
     */
-   public static String substituteIgnoreUnknowns(String input, Map<String,String> variableMap) {
-      return substitute(input, variableMap, publicKeyMaker, true);
+   public static String substituteIgnoreUnknowns(String inputText, Map<String,String> variableMap) {
+      if (variableMap == null) {
+         return inputText;
+      }
+      return substitute(inputText, variableMap, publicKeyMaker, true, "");
+   }
+
+   /**
+    * Replaces macros e.g. $(key:defaultValue) with values prefixed symbol (for use in C code)
+    * 
+    * @param input        String to replace macros in
+    * @param prefix       Prefix to add to front of symbols
+    * 
+    * @return      String with substitutions
+    */
+   public static String substituteWithSymbols(String input, String prefix) {
+      return substitute(input, null, publicKeyMaker, true, prefix);
    }
 
    final static HashMap<String, String> exampleSymbols = new HashMap<String, String>();
