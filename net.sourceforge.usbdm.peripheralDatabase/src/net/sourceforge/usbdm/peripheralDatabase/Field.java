@@ -369,10 +369,10 @@ public class Field extends ModeControl implements Cloneable {
             writer.write(String.format(" <access>%s</access>",           getAccessType().getPrettyName()));
          }
          if (isIgnoreOverlap()) {
-            writer.write(" <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>");
+            writer.write(" <?"+SVD_XML_Parser.IGNOREOVERLAP_PROCESSING+"?>");
          }
          if (isHidden()) {
-            writer.write(" <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+            writer.write(" <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>");
          }
          writer.write(" </field>\n");
       }
@@ -380,10 +380,10 @@ public class Field extends ModeControl implements Cloneable {
          writer.write(                 indenter+"<field>\n");
          writer.write(String.format(   indenter+"   <name>%s</name>\n",               SVD_XML_BaseParser.escapeString(getName())));
          if (isIgnoreOverlap()) {
-            writer.write(              indenter+"   <?"+SVD_XML_Parser.IGNOREOVERLAP_ATTRIB+"?>\n");
+            writer.write(              indenter+"   <?"+SVD_XML_Parser.IGNOREOVERLAP_PROCESSING+"?>\n");
          }
          if (isHidden()) {
-            writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
+            writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>\n");
          }
          if (getDescription().length() > 0) {
             writer.write(String.format(indenter+"   <description>%s</description>\n", SVD_XML_BaseParser.escapeString(getDescription())));
@@ -488,8 +488,6 @@ public class Field extends ModeControl implements Cloneable {
    static final String BITFIELD_MACRO_POS_FORMAT        = "#define %-40s (%dU)";
    static final String BITFIELD_MACRO_MSK_NUM_FORMAT    = "#define %-40s (0x%XU)";
    static final String BITFIELD_MACRO_MSK_FORMAT        = "#define %-40s (0x%02XUL << %s)";
-//   static final String BITFIELD_MACRO_MSK_FORMAT   = "#define %-40s 0x%Xu";
-//   static final String BITFIELD_MACRO_FIELD_FORMAT   = "#define %-40s (((uint32_t)(((uint32_t)(x))<<%s))&%s)";
    static final String BITFIELD_MACRO_FIELD_FORMAT      = "#define %-40s (((%s)(((%s)(x))<<%s))&%s)";
    static final String BITFIELD_MACRO_FIELD_NUM_FORMAT  = "#define %-40s (((%s)(((%s)(x))<<%dU))&0x%XUL)";
    static final String BITFIELD_FORMAT_COMMENT       = " /*!< %-40s*/\n";

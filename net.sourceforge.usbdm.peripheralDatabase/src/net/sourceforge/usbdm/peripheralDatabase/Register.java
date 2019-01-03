@@ -150,7 +150,7 @@ public class Register extends Cluster implements Cloneable {
       }
       Register other = (Register)_other;
       if ((getName() == null) || (other.getName() == null)) {
-         System.err.println("Opps");
+         System.err.println("Check register without names");
       }
       if (  (this.getAddressOffset() != other.getAddressOffset()) ||
             (!this.getName().equals(other.getName()))) {
@@ -491,17 +491,26 @@ public class Register extends Cluster implements Cloneable {
    /* (non-Javadoc)
     * @see net.sourceforge.usbdm.peripheralDatabase.Cluster#addAddressBlocks(net.sourceforge.usbdm.peripheralDatabase.Peripheral.AddressBlocksMerger)
     */
-   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, long addressOffset) throws Exception {
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex, long addressOffset) throws Exception {
 //      System.err.println(String.format("Register.addAddressBlocks(%s) addressOffset = 0x%04X, offset = 0x%04X", getName(), addressOffset, addressOffset+getAddressOffset()));
+      if (isIsolated()) {
+         // XXX Delete
+         System.err.println("addAddressBlocks(Isolated register " +getName() + ", #" + isolatedIndex + ")");
+      }
       addressOffset += getAddressOffset();
       try {
-         if (getDimension()== 0) {
+         if (getDimension() == 0) {
             // Simple array
-            addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
+            addressBlocksMerger.addBlock(addressOffset, isolatedIndex, this);
             return;
          }
+         // Do each dimension of array
          for (int index=0; index<getDimension(); index++) {
-            addressBlocksMerger.addBlock(addressOffset, getWidth(), getAccessType());
+            if (isIsolated()) {
+               // Isolate each array element
+               isolatedIndex = addressBlocksMerger.createNewIsolation();
+            }
+            addressBlocksMerger.addBlock(addressOffset, isolatedIndex, this);
             addressOffset += getDimensionIncrement();
          }
       } catch (Exception e) {
@@ -514,8 +523,8 @@ public class Register extends Cluster implements Cloneable {
     * @see net.sourceforge.usbdm.peripheralDatabase.Cluster#addAddressBlocks(net.sourceforge.usbdm.peripheralDatabase.Peripheral.AddressBlocksMerger)
     */
    @Override
-   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger) throws Exception {
-      addAddressBlocks(addressBlocksMerger, 0);
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex) throws Exception {
+      addAddressBlocks(addressBlocksMerger, isolatedIndex, 0L);
    }
 
    /**
@@ -599,14 +608,14 @@ public class Register extends Cluster implements Cloneable {
       Register derived = (Register) derivedCluster;
 
       if (getDimensionIndexes() != derived.getDimensionIndexes()) {
-         writeDimensionList(writer, "", derived);
+         writeSvdDimensionList(writer, "", derived);
          writer.flush();
       }
       if (!getName().equals(derived.getName())) {
          writer.write(String.format(" <name>%s</name>",                     SVD_XML_BaseParser.escapeString(getName())));
       }
       if (isHidden() && (isHidden() != derived.isHidden())) {
-         writer.write("<?"+SVD_XML_Parser.HIDE_ATTRIB+"?>");
+         writer.write("<?"+SVD_XML_Parser.HIDE_PROCESSING+"?>");
       }
       if (isDoDerivedMacros() && (isDoDerivedMacros() != derived.isDoDerivedMacros())) {
          writer.write(String.format(" <?doDerivedMacros?>"));
@@ -627,58 +636,6 @@ public class Register extends Cluster implements Cloneable {
       writer.write(" </register>\n");
    }
    
-//   /**
-//    * Write dimension list to SVD file
-//    * 
-//    *  @param writer          The destination for the XML
-//    *  @param level           Level of indenting
-//    *  @param derivedRegister Register derived from (may be null)
-//    *  
-//    *  @throws IOException 
-//    */
-//   void writeDimensionList(Writer writer, String indent, Register derivedRegister) throws IOException {
-//      if (derivedRegister != null) {
-//         if (getDim() != derivedRegister.getDim()) {
-//            writer.write(String.format("<dim>%s</dim>", (getDim()==null)?"":getDim()));
-//         }
-//         if ((getDim() != null) && !getDim().startsWith("$")) {
-//            if (getDimensionIncrement() != derivedRegister.getDimensionIncrement()) {
-//               writer.write(String.format("<dimIncrement>%d</dimIncrement>", getDimensionIncrement()));
-//            }
-//            if (getDimensionIndexes() != derivedRegister.getDimensionIndexes()) {
-//               writer.write(String.format("<dimIndex>"));
-//               if (getDimensionIndexes() != null) {
-//                  boolean doComma = false;
-//                  for (String s : getDimensionIndexes()) {
-//                     if (doComma) {
-//                        writer.write(",");
-//                     }
-//                     doComma = true;
-//                     writer.write(SVD_XML_BaseParser.escapeString(s));
-//                  }
-//               }
-//               writer.write(String.format("</dimIndex>"));
-//            }
-//         }
-//      }
-//      else if ((getDim() != null) && !getDim().isEmpty()) {
-//         writer.write(String.format(indent+"<dim>%s</dim>\n",                       getDim()));
-//         if (!getDim().startsWith("$")) {
-//            writer.write(String.format(indent+"<dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
-//            writer.write(String.format(  indent+"<dimIndex>"));
-//            boolean doComma = false;
-//            for (String s : getDimensionIndexes()) {
-//               if (doComma) {
-//                  writer.write(",");
-//               }
-//               doComma = true;
-//               writer.write(SVD_XML_BaseParser.escapeString(s));
-//            }
-//            writer.write(String.format("</dimIndex>\n"));
-//         }
-//      }
-//   }
-//   
    /**
     *   Writes the Register description to file in a SVF format
     *   
@@ -709,7 +666,7 @@ public class Register extends Cluster implements Cloneable {
     *  @throws Exception 
     */
    @Override
-   public void writeSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
+   public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       
       if (isFlattenArrays() && (getDimension()>0)) {
          writeFlattenedSVD(writer, standardFormat, owner, indent);
@@ -721,7 +678,7 @@ public class Register extends Cluster implements Cloneable {
       }
       final String indenter = RegisterUnion.getIndent(indent);
       writer.write(                 indenter+"<register>\n");
-      writeDimensionList(writer, indenter+"   ", null);
+      writeSvdDimensionList(writer, indenter+"   ", null);
       writeBaseRegisterSVD(writer, standardFormat, owner, -1, indent);
       writer.write(                 indenter+"</register>\n");
    }
@@ -751,10 +708,13 @@ public class Register extends Cluster implements Cloneable {
       final String indenter = RegisterUnion.getIndent(indent);
       writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(name)));
       if (isHidden()) {
-         writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>\n");
       }
       if (isDoDerivedMacros()) {
-         writer.write(              indenter+"   <?"+SVD_XML_Parser.DODERIVEDMACROS_ATTRIB+"?>\n");
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.DODERIVEDMACROS_PROCESSING+"?>\n");
+      }
+      if (isIsolated()) {
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.ISOLATE_PROCESSING+"?>\n");
       }
       if ((getDescription() != null) && (getDescription().length() > 0)) {
          String description;

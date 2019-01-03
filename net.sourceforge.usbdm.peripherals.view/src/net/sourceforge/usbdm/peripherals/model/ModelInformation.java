@@ -93,8 +93,6 @@ public class ModelInformation {
          return register.getName();
       }
       else {
-         // XXX Check this
-//         return cluster.getArraySubscriptedName(register.getBaseName(), clusterIndex);
          return cluster.getArraySubscriptedName(clusterIndex);
       }
    }

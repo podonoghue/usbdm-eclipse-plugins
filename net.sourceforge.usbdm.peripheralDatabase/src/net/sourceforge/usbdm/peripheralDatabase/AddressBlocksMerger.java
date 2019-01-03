@@ -27,17 +27,26 @@ class AddressBlocksMerger {
       public final long        fWidth;
       /** Access type for block */
       public final AccessType  fAccessType;
+      /** Address block is isolated from adjoining blocks */
+      public final int         fIsolatedIndex;
       
       /**
        * 
        * @param startAddress  Start address of block within peripheral
        * @param width         Width of register in bits
        * @param accessType    Access type for block
+       * @param isolatedIndex Isolated block index used to isolated from adjoining blocks 
+       * 
+       * @throws Exception 
        */
-      public BlockInfo(long startAddress, long width, AccessType accessType) {
+      public BlockInfo(long startAddress, long width, AccessType accessType, int isolatedIndex) throws Exception {
+         if (accessType == null) {
+            throw new Exception("accessType == null");
+         }
          fStartAddress  = startAddress;
          fWidth         = width;
          fAccessType    = accessType;
+         fIsolatedIndex = isolatedIndex;
       }
    }
    
@@ -56,9 +65,17 @@ class AddressBlocksMerger {
    /** Accumulates address blocks for merging */
    final ArrayList<BlockInfo> originalBlocks;
    
+   /** Start of current block */
    long bStartAddress             = 0;
+   
+   /** Size of current block in bytes */
    long bSizeInBytes              = 0;
-   long bWidths                   = 0;
+   
+   /** Widths required for current block */
+   long bWidthBitmask             = 0;
+   
+   /** Isolating index for current block */
+   int bIsolatedIndex             = 0;
    
    /**
     * Create address block merger for peripheral
@@ -79,80 +96,220 @@ class AddressBlocksMerger {
       originalBlocks   = new ArrayList<BlockInfo>();
    }
 
-   private void completeBlock() {
-      long width = bWidths;
-      if (preferredAccessWidth != 0) {
-         bWidths = (1<<preferredAccessWidth);
-      }
-//         System.err.println(String.format("addBlock() complete: [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
-      if (((bStartAddress|bSizeInBytes) & 0x03) != 0) {
-         bWidths &= ~(1<<4);
-      }
-      if (((bStartAddress|bSizeInBytes) & 0x01) != 0) {
-         bWidths &= ~(1<<2);
-      }
-      width = 8;
-      if ((bWidths & (1<<2)) != 0) {
-         width = 16;
-      }
-      if ((bWidths & (1<<4)) != 0) {
-         width = 32;
-      }
-      peripheralBlocks.add(new AddressBlock(bStartAddress, bSizeInBytes, width, "registers"));
-   }
-
    /** Access type for current block when merging */
    AccessType bAccessType = null;
 
-   long        pendingStartAddress;
-   long        pendingSizeInBytes;
-   long        pendingWidths;
-   AccessType  pendingAccessType;
-
    /**
-    * Check if access type is compatible with current block being created.
+    * Check if access types are compatible
     * 
-    * @param type  Type to check
+    * @param type1
+    * @param type2
     * 
     * @return  true/false indication
     */
-   private boolean compatibleAccess(AccessType type) {
-      if (type == bAccessType) {
+   private boolean compatibleAccess(AccessType type1, AccessType type2) {
+      if (type1 == type2) {
          return true;
       }
-      if (bAccessType.and(AccessType.ReadOnly) == type.and(AccessType.ReadOnly)) {
+      if (type1.and(AccessType.ReadOnly) == type2.and(AccessType.ReadOnly)) {
          // Both include reading or both exclude
          return true;
       }
       return false;
    }
 
+   private void completeBlock() {
+      if (preferredAccessWidth != 0) {
+         bWidthBitmask = (1<<preferredAccessWidth);
+      }
+      if (((bStartAddress|bSizeInBytes) & 0x03) != 0) {
+         bWidthBitmask &= ~(1<<4);
+      }
+      if (((bStartAddress|bSizeInBytes) & 0x01) != 0) {
+         bWidthBitmask &= ~(1<<2);
+      }
+      long width = 8;
+      if ((bWidthBitmask & (1<<2)) != 0) {
+         width = 16;
+      }
+      if ((bWidthBitmask & (1<<4)) != 0) {
+         width = 32;
+      }
+      System.err.println(String.format("Adding Block     [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
+      peripheralBlocks.add(new AddressBlock(bStartAddress, bSizeInBytes, width, "registers"));
+   }
+
    /**
-    * Add memory range corresponding to a register.<br>
-    * Memory ranges will be merged where possible.
     * 
-    * @param startAddress  Start address of block within peripheral
-    * @param width         Width of register in bits
-    * @param accessType    Access type for block
+    * @param startAddress  Address of range to add
+    * @param sizeInBytes   Size of range to add
+    * @param widths
+    * @param accessType
+    * @param isolatedIndex
+    * 
+    * @throws Exception
+    */
+   private void processBlock(long startAddress, long sizeInBytes, long widths, AccessType accessType, int isolatedIndex) throws Exception {
+      //         System.err.println(String.format("addBlock()        :   [0x%04X..0x%04X]", startAddress, startAddress+sizInBytes-1));
+      if (forcedBlockMultiple != 0) {
+         // Align block boundaries according to forced access width
+         startAddress &= addressMask;
+         sizeInBytes   = (sizeInBytes+forcedBlockMultiple-1) & addressMask;
+         //            System.err.println(String.format("AddressBlocksMerger.addBlock(), forced=%d, mask=0x%X", forcedAccessWidth, addressMask));
+      }
+      if (bSizeInBytes == 0) {
+         // New address range
+         bStartAddress = startAddress;
+         bSizeInBytes  = sizeInBytes;
+         bWidthBitmask = widths;
+         bAccessType   = accessType;
+         return;
+      }
+      if (isolatedIndex != 0) {
+         // XXX Delete
+         System.err.println(String.format(
+               "Isolated Block   (s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
+               startAddress, widths/8, accessType, isolatedIndex));
+      }
+      // Only merge blocks if not isolated and compatible
+      if ((isolatedIndex == bIsolatedIndex) && compatibleAccess(accessType, bAccessType)) {
+//         if (startAddress < bStartAddress) {
+//            throw new Exception(String.format("Address is going backwards 0x%08X<0x%08X", startAddress, bStartAddress));
+//         }
+         // Merge blocks that overlap irrespective of width
+         if ( (startAddress >= bStartAddress) && (startAddress < (bStartAddress+bSizeInBytes)) || 
+             (((startAddress == (bStartAddress+bSizeInBytes)) && ((preferredAccessWidth != 0) || ((widths&bWidthBitmask) != 0))))) {
+            // Can add to current range
+            if ((sizeInBytes+startAddress) > (bSizeInBytes+bStartAddress)) {
+               bSizeInBytes = (sizeInBytes+startAddress)-bStartAddress;
+            }
+//            System.err.println(String.format("addBlock() merged:   [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
+            return;
+         }
+      }
+      // Save current address range
+      completeBlock();
+
+      // Start new address range
+      bStartAddress  = startAddress;
+      bSizeInBytes   = sizeInBytes;
+      bWidthBitmask  = widths;
+      bAccessType    = accessType;
+      bIsolatedIndex = isolatedIndex;
+   }
+
+   long        pendingStartAddress;
+   long        pendingSizeInBytes;
+   long        pendingWidths;
+   AccessType  pendingAccessType;
+   int         pendingIsolatedIndex;
+   
+   /**
+    * Add range of memory to address the set of AddressBlocks<b>
+    * Attempts to merge adjacent registers.
+    * 
+    * @param startAddress  Address of range to add
+    * @param width         Access width (and memory range size)
+    * @param accessType    Access type
     * 
     * @throws Exception 
     */
-   public void addBlock(long startAddress, long width, AccessType accessType) throws Exception {
-      originalBlocks.add(new BlockInfo(startAddress, width, accessType));
+   private void processOriginalBlock(BlockInfo block) throws Exception {
+      /*
+       * This routine stages registers that overlap in a simple way
+       */
+      if (block.fIsolatedIndex != 0) {
+         // XXX Delete
+      System.err.println(String.format(
+            "processOriginalBlock(s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
+            block.fStartAddress, block.fWidth/8, block.fAccessType, block.fIsolatedIndex));
+      }
+      long sizeInBytes = (block.fWidth+7)/8;
+      do {
+         if (pendingSizeInBytes == 0) {
+            // Create new pending block
+            pendingStartAddress  = block.fStartAddress;
+            pendingSizeInBytes   = sizeInBytes;
+            pendingWidths        = (1<<sizeInBytes);
+            pendingAccessType    = block.fAccessType;
+            pendingIsolatedIndex = block.fIsolatedIndex;
+            return;
+         }
+         if ((block.fStartAddress >= pendingStartAddress) && 
+               (block.fStartAddress < (pendingStartAddress+pendingSizeInBytes)) &&
+               (block.fIsolatedIndex == pendingIsolatedIndex)) {
+            // Add to pending block
+            pendingWidths |= (1<<sizeInBytes);
+            if ((block.fStartAddress+sizeInBytes) > (pendingStartAddress+pendingSizeInBytes)) {
+               pendingSizeInBytes = (block.fStartAddress+sizeInBytes) - pendingStartAddress;
+            }
+            return;
+         }
+         processBlock(pendingStartAddress, pendingSizeInBytes, pendingWidths, pendingAccessType, pendingIsolatedIndex);
+         pendingSizeInBytes = 0;
+      } while (true);
    }
-   
+
+   /**
+    * Generate the merged address blocks.<br>
+    * The generated blocks will be added to the register
+    * 
+    * @throws Exception
+    */
+   public void generate() throws Exception {
+      sort();
+      pendingSizeInBytes = 0;
+      for (BlockInfo block : originalBlocks) {
+         processOriginalBlock(block);
+      }
+      if (pendingSizeInBytes != 0) {
+         processBlock(pendingStartAddress, pendingSizeInBytes, pendingWidths, pendingAccessType, pendingIsolatedIndex);
+         pendingSizeInBytes = 0;
+      }
+      if (bSizeInBytes != 0) {
+         // Save current address range
+         completeBlock();
+      }
+      finalSort();
+      removeRepeats();
+   }
+
+   private void removeRepeats() {
+      ArrayList<AddressBlock> duplicates = new ArrayList<AddressBlock>();
+      AddressBlock anchorBlock = null;
+      for (AddressBlock b:peripheralBlocks) {
+         if ((anchorBlock == null) || (anchorBlock.getOffset() != b.getOffset())) {
+            anchorBlock = b;
+            continue;
+         }
+         if (b.equals(anchorBlock)) {
+            duplicates.add(b);
+         }
+      }
+      for (AddressBlock b:duplicates) {
+         peripheralBlocks.remove(b);
+      }
+   }
+
    /**
     * Sort originalBlocks in the order required for merging<br>
-    * <li>Address
-    * <li>Size
+    *   <li>Isolated index
+    *   <li>Address
+    *   <li>Size
     */
    private void sort() {
       Collections.sort(originalBlocks, new Comparator<BlockInfo>() {
 
          @Override
          public int compare(BlockInfo o1, BlockInfo o2) {
-            long num1 = o1.fStartAddress;
-            long num2 = o2.fStartAddress;
+            long num1;
+            long num2;
+            num1 = o1.fIsolatedIndex;
+            num2 = o2.fIsolatedIndex;
+            if (num1 == num2) {
+               num1 = o1.fStartAddress;
+               num2 = o2.fStartAddress;
+            }
             if (num1 == num2) {
                num2 = o1.fWidth;
                num1 = o2.fWidth;
@@ -169,108 +326,60 @@ class AddressBlocksMerger {
    }
    
    /**
-    * Add range of memory to address the set of AddressBlocks<b>
-    * Attempts to merge adjacent registers.
+    * Sort originalBlocks in the order required for merging<br>
+    *   <li>Isolated index
+    *   <li>Address
+    *   <li>Size
+    */
+   private void finalSort() {
+      Collections.sort(peripheralBlocks, new Comparator<AddressBlock>() {
+
+         @Override
+         public int compare(AddressBlock o1, AddressBlock o2) {
+            long num1;
+            long num2;
+            num1 = o1.getOffset();
+            num2 = o2.getOffset();
+            if (num1 == num2) {
+               num1 = o1.getSizeInBytes();
+               num2 = o2.getSizeInBytes();
+            }
+            if (num1<num2) {
+               return -1;
+            }
+            if (num1>num2) {
+               return 1;
+            }
+            return 0;
+         }
+      });
+   }
+   
+   /**
+    * Add memory range corresponding to a register.<br>
+    * These ranges will be merged later on.
     * 
-    * @param startAddress  Address of range to add
-    * @param width         Access width (and memory range size)
-    * @param accessType    Access type
+    * @param startAddress  Start address of block within peripheral
+    * @param isolatedIndex 
+    * @param register      Register to obtain block characteristics from
     * 
     * @throws Exception 
     */
-   private void processBlock(long startAddress, long width, AccessType accessType) throws Exception {
-      /*
-       * This routine stages registers that overlap in a simple way
-       */
-      long sizeInBytes = (width+7)/8;
-      do {
-         if (pendingSizeInBytes == 0) {
-            pendingStartAddress  = startAddress;
-            pendingSizeInBytes   = sizeInBytes;
-            pendingWidths        = (1<<sizeInBytes);
-            pendingAccessType    = accessType;
-            return;
-         }
-         if ((startAddress >= pendingStartAddress) && (startAddress < (pendingStartAddress+pendingSizeInBytes))) {
-            // Add to pending block
-            pendingWidths |= (1<<sizeInBytes);
-            if ((startAddress+sizeInBytes) > (pendingStartAddress+pendingSizeInBytes)) {
-               pendingSizeInBytes = (startAddress+sizeInBytes) - pendingStartAddress;
-            }
-            return;
-         }
-         processBlock(pendingStartAddress, pendingSizeInBytes, pendingWidths, pendingAccessType);
-         pendingSizeInBytes = 0;
-      } while (true);
+   public void addBlock(long startAddress, int isolatedIndex, Register register) throws Exception {
+      if (isolatedIndex != 0) {
+         // XXX Delete
+         System.err.println("addBlock(Isolated block #"+isolatedIndex+")");
+      }
+      originalBlocks.add(
+            new BlockInfo(
+                  startAddress, 
+                  register.getWidth(), 
+                  register.getAccessType(), 
+                  isolatedIndex));
    }
 
-   /**
-    * 
-    * @param startAddress  Address of range to add
-    * @param sizeInBytes   Size of range to add
-    * @param width
-    * @param accessType
-    * @throws Exception 
-    */
-   private void processBlock(long startAddress, long sizeInBytes, long widths, AccessType accessType) throws Exception {
-      //         System.err.println(String.format("addBlock()        :   [0x%04X..0x%04X]", startAddress, startAddress+sizInBytes-1));
-      if (startAddress < bStartAddress) {
-         throw new Exception(String.format("Address is going backwards 0x%08X<0x%08X", startAddress, bStartAddress));
-      }
-      if (forcedBlockMultiple != 0) {
-         // Align block boundaries according to forced access width
-         startAddress &= addressMask;
-         sizeInBytes   = (sizeInBytes+forcedBlockMultiple-1) & addressMask;
-         //            System.err.println(String.format("AddressBlocksMerger.addBlock(), forced=%d, mask=0x%X", forcedAccessWidth, addressMask));
-      }
-      if (bSizeInBytes == 0) {
-         // New address range
-         bStartAddress = startAddress;
-         bSizeInBytes  = sizeInBytes;
-         bWidths       = widths;
-         bAccessType   = accessType;
-         return;
-      }
-      // Only merge blocks if compatible
-      if (compatibleAccess(accessType)) {
-         // Merge blocks that overlap irrespective of width
-         if ((startAddress < (bStartAddress+bSizeInBytes)) || 
-             (((startAddress == (bStartAddress+bSizeInBytes)) && ((preferredAccessWidth != 0) || ((widths&bWidths) != 0))))) {
-            // Can add to current range
-            if ((sizeInBytes+startAddress) > (bSizeInBytes+bStartAddress)) {
-               bSizeInBytes = (sizeInBytes+startAddress)-bStartAddress;
-            }
-//            System.err.println(String.format("addBlock() merged:   [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
-            return;
-         }
-      }
-      // Save current address range
-      completeBlock();
-
-      // Start new address range
-      bStartAddress = startAddress;
-      bSizeInBytes  = sizeInBytes;
-      bWidths       = widths;
-      bAccessType   = accessType;
-   }
-
-   /**
-    * Generate the address blocks
-    * 
-    * @throws Exception
-    */
-   public void generate() throws Exception {
-      sort();
-      for (BlockInfo block : originalBlocks) {
-         processBlock(block.fStartAddress, block.fWidth, block.fAccessType);
-      }
-      if (pendingSizeInBytes != 0) {
-         processBlock(pendingStartAddress, pendingSizeInBytes, pendingWidths, pendingAccessType);
-         pendingSizeInBytes = 0;
-      }
-      if (bSizeInBytes != 0) {
-         // Save current address range
-         completeBlock();
-      }
+   private int isolationIndex = 0;
+   public int createNewIsolation() {
+      return  ++isolationIndex;
    }
 }

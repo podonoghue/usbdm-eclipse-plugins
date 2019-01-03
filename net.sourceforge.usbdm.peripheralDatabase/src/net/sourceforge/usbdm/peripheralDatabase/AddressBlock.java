@@ -9,6 +9,24 @@ public class AddressBlock extends ModeControl implements Cloneable {
    private String usage;         // ??
    private long   widthInBits;   // Width of address block elements in bits (memory access size)
 
+   /* (non-Javadoc)
+    * @see java.lang.Object#equals(java.lang.Object)
+    */
+   @Override
+   public boolean equals(Object other) {
+      if (this == other) {
+         return true;
+      }
+      if (!(other instanceof AddressBlock)) {
+         return false;
+      }
+      AddressBlock Other = (AddressBlock) other;
+      return (offset == Other.offset) &&
+            (sizeInBytes == Other.sizeInBytes) &&
+//            (usage == Other.usage) && // Ignore
+            (widthInBits == Other.widthInBits);
+   }
+
    public AddressBlock() {
       offset = 0L;
       sizeInBytes   = 0L;

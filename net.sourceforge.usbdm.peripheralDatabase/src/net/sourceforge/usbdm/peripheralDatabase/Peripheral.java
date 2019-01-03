@@ -392,7 +392,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @throws Exception 
     */
    public void clearAddressBlocks() {
-      this.fAddressBlocks = new ArrayList<AddressBlock>();
+      fAddressBlocks = new ArrayList<AddressBlock>();
    }
    
    /**
@@ -407,7 +407,7 @@ public class Peripheral extends ModeControl implements Cloneable {
          // Discard address blocks when regenerating them
          return;
       }
-      this.fAddressBlocks.add(addressBlock);
+      fAddressBlocks.add(addressBlock);
    }
 
    /** Add register to peripheral
@@ -435,14 +435,19 @@ public class Peripheral extends ModeControl implements Cloneable {
          // derived from so they should always agree.
          return;
       }
-      //      System.err.println("Creating address blocks for ============= " + getName());
+      // XXX delete me
+      System.err.println("Creating address blocks for ============= " + getName());
       sortRegisters();
       try {
+         int isolatedIndex = 0;
          clearAddressBlocks();
          AddressBlocksMerger addressBlocksMerger = new AddressBlocksMerger(this);
          for (Cluster cluster : fRegisters) {
 //            System.err.println("Peripheral = " + cluster.getName());
-            cluster.addAddressBlocks(addressBlocksMerger);
+            if (cluster.isIsolated()) {
+               isolatedIndex = addressBlocksMerger.createNewIsolation();
+            }
+            cluster.addAddressBlocks(addressBlocksMerger, isolatedIndex);
          }
          addressBlocksMerger.generate();
       } catch (Exception e) {
@@ -512,6 +517,9 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @return the accessType
     */
    public AccessType getAccessType() {
+      if (fDerivedFrom != null) {
+         return fDerivedFrom.getAccessType();
+      }
       return fAccessType;
    }
 
@@ -1656,16 +1664,16 @@ public class Peripheral extends ModeControl implements Cloneable {
       writer.println(">");
 
       if (getSourceFilename() != null) {
-         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.SOURCEFILE_ATTRIB+" \"%s\" ?>", SVD_XML_BaseParser.escapeString(getSourceFilename())));
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.SOURCEFILE_PROCESSING+" \"%s\" ?>", SVD_XML_BaseParser.escapeString(getSourceFilename())));
       }
       if (getPreferredAccessWidth() != 0) {
-         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.PREFERREDACCESSWIDTH_ATTRIB+" \"%d\" ?>", getPreferredAccessWidth()));
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.PREFERREDACCESSWIDTH_PROCESSING+" \"%d\" ?>", getPreferredAccessWidth()));
       }
       if (getForcedBlockMultiple() != 0) {
-         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.FORCED_BLOCK_WIDTH+" \"%d\" ?>", getForcedBlockMultiple()));
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.FORCED_BLOCK_PROCESSING+" \"%d\" ?>", getForcedBlockMultiple()));
       }
       if (isRefreshAll()) {
-         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.REFRESH_WHOLE_PERIPHERAL_ATTRIB+"?>"));
+         writer.println(String.format(       indenter+"   <?"+SVD_XML_Parser.REFRESH_WHOLE_PERIPHERAL_PROCESSING+"?>"));
       }
       String name = getName();
       writer.println(String.format(       indenter+"   <name>%s</name>",                   SVD_XML_BaseParser.escapeString(name)));
@@ -1720,7 +1728,7 @@ public class Peripheral extends ModeControl implements Cloneable {
 //      }
       for (Cluster clusterOrRegister : getRegisters()) {
 //         if (!clusterOrRegister.isHidden()) {
-            clusterOrRegister.writeSVD(writer, standardFormat, this, indent+6);
+            clusterOrRegister.writeSvd(writer, standardFormat, this, indent+6);
 //         }
       }
       writer.println(                     indenter+"   </registers>");

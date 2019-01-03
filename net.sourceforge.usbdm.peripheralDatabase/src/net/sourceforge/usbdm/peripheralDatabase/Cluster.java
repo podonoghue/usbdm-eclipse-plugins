@@ -12,10 +12,11 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.cdt.utilties.Eval;
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
 public class Cluster extends ModeControl implements Cloneable {
-   
    /** Name of cluster */
    private  String               fName;
    
@@ -31,19 +32,22 @@ public class Cluster extends ModeControl implements Cloneable {
    /** Modifier for iterated register names (%s) */
    private  ArrayList<String>    fDimensionIndexes;
    
-   private  AccessType           fAccessType;
-   private  long                 fResetValue;
-   private  long                 fResetMask;
-   private  Cluster              fRerivedFrom       = null;
-   private  String               fBaseName          = "";
-   private  String               fNameMacroformat   = "";
+   private   AccessType          fAccessType;
+   private   long                fResetValue;
+   private   long                fResetMask;
+   private   Cluster             fRerivedFrom       = null;
+   private   String              fBaseName          = "";
+   private   String              fNameMacroformat   = "";
    protected Peripheral          fOwner;
-   private boolean               fHidden;
+   private   boolean             fHidden;
    
    /** Indicates Field Macros should be written even for derived registers */
    private boolean               fDoDerivedMacros = false;
    private String                fDim = null;
 
+   /** Used to isolate the memory block associated with this register */
+   private boolean               fIsolated;
+   
    Cluster(Peripheral owner) {
       this.fOwner            = owner;
       fName                  = "";
@@ -333,26 +337,37 @@ public class Cluster extends ModeControl implements Cloneable {
    /**
     * Get dimension as string
     * 
-    * @return dimension as string e.g. "3" or "%VALUE" or null if not set (not an array)
+    * @return dimension as string e.g. "3" or "$(FILTER_COUNT)*4" or null if not set (not an array)
     */
    public String getDim() {
       return fDim;
    }
 
    /**
-    * Get dimension as string
+    * Get dimension as string suitable for C expression
+    * 
+    * @return dimension as string e.g. "3" or "CAN_FILTER_COUNT*4" or null if not set (not an array)
+    */
+   public String getDimAsExpressionForC() {
+      return ReplacementParser.substituteWithSymbols(fDim, fOwner.getHeaderStructName());
+   }
+
+
+   /**
+    * Get dimension as integer
     * 
     * @return dimension as string e.g. "3" or "%VALUE" or null if not set (not an array)
+    * @throws Exception 
     */
-   public int getDimAsInt() {
-      String t = fDim;
-      if (t == null) {
+   public int getDimAsInt() throws Exception {
+      String dim = fDim;
+      if (dim == null) {
          return 0;
       }
-      if (t.startsWith("%")) {
-         t = fOwner.getParameterValue(t);
+      if (dim.contains("$")) {
+         dim = ReplacementParser.substitute(dim, fOwner.getSimpleParameterMap());
       }
-      return Integer.parseInt(t);
+      return Eval.eval(ReplacementParser.substitute(dim, fOwner.getSimpleParameterMap()));
    }
 
    /**
@@ -630,7 +645,7 @@ public class Cluster extends ModeControl implements Cloneable {
     *  
     *  @throws IOException 
     */
-   void writeDimensionList(Writer writer, String indenter, Cluster derivedCluster) throws IOException {
+   void writeSvdDimensionList(Writer writer, String indenter, Cluster derivedCluster) throws IOException {
       if (derivedCluster != null) {
          if (getDim() != derivedCluster.getDim()) {
             writer.write(String.format("<dim>%s</dim>", (getDim()==null)?"":getDim()));
@@ -638,7 +653,7 @@ public class Cluster extends ModeControl implements Cloneable {
          if (getDimensionIncrement() != derivedCluster.getDimensionIncrement()) {
             writer.write(String.format("<dimIncrement>%d</dimIncrement>", getDimensionIncrement()));
          }
-         if ((getDim() != null) && !getDim().startsWith("%")) {
+         if ((getDim() != null) && !getDim().contains("$")) {
             if (getDimensionIndexes() != derivedCluster.getDimensionIndexes()) {
                writer.write(String.format("<dimIndex>"));
                if (getDimensionIndexes() != null) {
@@ -658,7 +673,7 @@ public class Cluster extends ModeControl implements Cloneable {
       else if ((getDim() != null) && !getDim().isEmpty()) {
          writer.write(String.format(indenter+"<dim>%s</dim>\n",                       getDim()));
          writer.write(String.format(indenter+"<dimIncrement>%d</dimIncrement>\n",     getDimensionIncrement()));
-         if (!getDim().startsWith("%")) {
+         if (!getDim().contains("$")) {
             writer.write(String.format(  indenter+"<dimIndex>"));
             boolean doComma = false;
             for (String s : getDimensionIndexes()) {
@@ -682,22 +697,25 @@ public class Cluster extends ModeControl implements Cloneable {
     *    @param level
     *    @throws Exception 
     */
-   public void writeSVD(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
+   public void writeSvd(Writer writer, boolean standardFormat, Peripheral owner, int indent) throws Exception {
       final String indenter = RegisterUnion.getIndent(indent);
 
       sortRegisters();
 
       writer.write(                 indenter+"<cluster>\n");
       
-      writeDimensionList(writer, indenter+"   ", getDerivedFrom());
+      writeSvdDimensionList(writer, indenter+"   ", getDerivedFrom());
       
       writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
       if (isHidden()) {
-         writer.write(            indenter+"   <?"+SVD_XML_Parser.HIDE_ATTRIB+"?>\n");
+         writer.write(            indenter+"   <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>\n");
       }
       writer.write(String.format(   indenter+"   <addressOffset>0x%X</addressOffset>\n", getAddressOffset()));
+      if (isIsolated()) {
+         writer.write(            indenter+"   <?"+SVD_XML_Parser.ISOLATE_PROCESSING+"?>\n");
+      }
       for (Cluster register : fRegisters) {
-         register.writeSVD(writer, standardFormat, owner, indent+3);
+         register.writeSvd(writer, standardFormat, owner, indent+3);
       }
       writer.write(                 indenter+"</cluster>\n");
    }
@@ -723,23 +741,6 @@ public class Cluster extends ModeControl implements Cloneable {
    private final String CLUSTER_OPEN_STRUCT     = "struct {\n";
    private final String CLUSTER_CLOSE_STRUCT    = "} %s;";
 
-   /**
-    * Get dimension as symbol or numeric value for use in C code
-    * 
-    * @return
-    * @throws Exception 
-    */
-   String getCDim() throws Exception {
-      String name = getDim();
-      if (name == null) {
-         throw new Exception("Request for subscript in non-array");
-      }
-      if (name.charAt(0) == '%') {
-         return fOwner.getHeaderStructName()+"_"+name.substring(1);
-      }
-      return name;
-   }
-   
    /**
     *    Writes C code for Cluster as a STRUCT element e.g.<br>
     *    <pre><b>
@@ -777,7 +778,7 @@ public class Cluster extends ModeControl implements Cloneable {
 //         writer.write(indenter+String.format(clusterCloseStruct, getBaseName()+String.format("[%d]",getDimension())));
          
          writer.write(String.format(Register.LINE_FORMAT, // s # s
-               indenter+String.format(CLUSTER_CLOSE_STRUCT, getBaseName()+String.format("[%s]", getCDim())),
+               indenter+String.format(CLUSTER_CLOSE_STRUCT, getBaseName()+String.format("[%s]", getDimAsExpressionForC())),
                baseAddress,
                String.format("(cluster: size=0x%04X, %d)", getTotalSizeInBytes(), getTotalSizeInBytes())));
          writer.flush();       
@@ -945,26 +946,35 @@ public class Cluster extends ModeControl implements Cloneable {
     *     
     * @param addressBlocksMerger Manager to use
     * @param addressOffset       Offset for base of register (needed for arrays etc)
+    * @param isolatedIndex 
     * 
     * @throws Exception
     */
-   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, long addressOffset) throws Exception {
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex, long addressOffset) throws Exception {
       sortRegisters();
 //      System.err.println(String.format("Cluster.addAddressBlocks(%s) addressOffset = 0x%04X", getName(), addressOffset));
       addressOffset += getAddressOffset();
       
+      if (isIsolated()) {
+         // XXX Delete
+         System.err.println("addAddressBlocks(Isolated cluster " +getName() + ", #" + isolatedIndex + ")");
+      }
       if (getDimension()>0) {
-         // Do each dimension of array
          for (int dimension=0; dimension < getDimension(); dimension++) {
+            // Do each dimension of array
+            if (isIsolated()) {
+               // Isolate each array element
+               isolatedIndex = addressBlocksMerger.createNewIsolation();
+            }
             for (Cluster cluster : fRegisters) {
-               cluster.addAddressBlocks(addressBlocksMerger, addressOffset);
+               cluster.addAddressBlocks(addressBlocksMerger, isolatedIndex, addressOffset);
             }
             addressOffset += getDimensionIncrement();
          }
       }
       else {
          for (Cluster cluster : fRegisters) {
-            cluster.addAddressBlocks(addressBlocksMerger, addressOffset);
+            cluster.addAddressBlocks(addressBlocksMerger, isolatedIndex, addressOffset);
          }
       }
    }
@@ -973,11 +983,12 @@ public class Cluster extends ModeControl implements Cloneable {
     * Adds the register's memory address range to the AddressBlockManager
     *     
     * @param addressBlocksMerger Manager to use
+    * @param isolatedIndex 
     * 
     * @throws Exception
     */
-   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger) throws Exception {
-      addAddressBlocks(addressBlocksMerger, 0);
+   public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex) throws Exception {
+      addAddressBlocks(addressBlocksMerger, isolatedIndex, 0L);
    }
  
    /**
@@ -1006,7 +1017,7 @@ public class Cluster extends ModeControl implements Cloneable {
    
    final Pattern ARRAY_SUBSCIPT_PATTERN  = Pattern.compile("^(.+)\\[%s\\]$");
    final Pattern SUBSTITUTE_PATTERN      = Pattern.compile("^(.+)%s(.*)$");
-   
+
    /**
     * Gets the register at given subscript of a register array as a simple name e.g. ADC_RESULT10
     * 
@@ -1040,7 +1051,7 @@ public class Cluster extends ModeControl implements Cloneable {
       // Remove existing subscript placeholder
       fName = fName.replaceAll("\\[%s\\]", "");
       fName = fName.replaceAll("%s", "");
-      return fName + "[" + getCDim() + "]";
+      return fName + "[" + getDimAsExpressionForC() + "]";
    }
    
    /**
@@ -1151,6 +1162,22 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public boolean isDoDerivedMacros() {
       return fDoDerivedMacros;
+   }
+
+   /**
+    * Used to isolate the memory block associated with this register
+    */
+   public void setIsolated() {
+      fIsolated           = true;
+   }
+
+   /**
+    * Indicates to isolate the memory block associated with this register
+    *  
+    * @param true if isolate
+    */
+   public boolean isIsolated() {
+      return fIsolated;
    }
 
 }
