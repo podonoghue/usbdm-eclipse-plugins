@@ -111,11 +111,25 @@ public class Activator extends AbstractUIPlugin {
     * @since 5.0
     */
    static public void log(String msg, Exception e) {
-      getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
+      Status status = new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e);
+      Activator activator = getDefault();
+      if (activator !=null) {
+         getDefault().getLog().log(status);
+      }
+      else {
+         System.err.println(status);
+      }
    }
 
    static public void error(String msg, Exception e) {
-      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
+      Status status = new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e);
+      Activator activator = getDefault();
+      if (activator !=null) {
+         getDefault().getLog().log(status);
+      }
+      else {
+         System.err.println(status);
+      }
    }
 
 }
