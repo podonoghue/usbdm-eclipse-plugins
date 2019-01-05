@@ -8,15 +8,7 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.cw.debugPlugin;singleton:=true
 Bundle-Version: 5.0.0.qualifier
 Bundle-Localization: plugin
-Require-Bundle: net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
- net.sourceforge.usbdm.jni;bundle-version="5.0.0",
- org.eclipse.ui,
- org.eclipse.core.runtime,
- org.eclipse.debug.core,
- org.eclipse.ui.forms,
- com.freescale.mcu.debugger.cdt,
- com.freescale.mcu.debug.connections,
- com.freescale.core.debugger.ui.cdt
+Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0"
 Bundle-RequiredExecutionEnvironment: 
  JavaSE-1.6
 Export-Package: 

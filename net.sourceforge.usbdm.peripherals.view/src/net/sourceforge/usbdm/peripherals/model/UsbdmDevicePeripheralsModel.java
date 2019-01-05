@@ -102,7 +102,6 @@ public class UsbdmDevicePeripheralsModel {
       }
       ModelInformation clusterInfo = new ModelInformation(pInformation);
       clusterInfo.setCluster(cluster);
-      // XXX Check changes here
       if (cluster.getDimension()>0) {
          // Cluster which is an array
          for (int clusterIndex=0; clusterIndex<cluster.getDimension(); clusterIndex++) {
@@ -265,8 +264,8 @@ public class UsbdmDevicePeripheralsModel {
          if (isExcludedPeripheral(peripheral.getName())) {
             continue;
          }
+//       // XXX Delete OK
 //         if (peripheral.getName().equalsIgnoreCase("CAN0")) {
-//            // XXX Delete me
 //            System.err.println("Found : " + peripheral.toString());
 //         }
          createPeripheralModel(deviceModel, peripheral, gdbInterface);     

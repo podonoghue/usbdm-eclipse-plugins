@@ -492,11 +492,11 @@ public class Register extends Cluster implements Cloneable {
     * @see net.sourceforge.usbdm.peripheralDatabase.Cluster#addAddressBlocks(net.sourceforge.usbdm.peripheralDatabase.Peripheral.AddressBlocksMerger)
     */
    public void addAddressBlocks(AddressBlocksMerger addressBlocksMerger, int isolatedIndex, long addressOffset) throws Exception {
+//    // XXX Delete OK
 //      System.err.println(String.format("Register.addAddressBlocks(%s) addressOffset = 0x%04X, offset = 0x%04X", getName(), addressOffset, addressOffset+getAddressOffset()));
-      if (isIsolated()) {
-         // XXX Delete
-         System.err.println("addAddressBlocks(Isolated register " +getName() + ", #" + isolatedIndex + ")");
-      }
+//      if (isIsolated()) {
+//         System.err.println("addAddressBlocks(Isolated register " +getName() + ", #" + isolatedIndex + ")");
+//      }
       addressOffset += getAddressOffset();
       try {
          if (getDimension() == 0) {

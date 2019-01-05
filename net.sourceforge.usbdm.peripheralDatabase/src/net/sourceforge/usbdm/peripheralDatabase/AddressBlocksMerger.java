@@ -135,7 +135,8 @@ class AddressBlocksMerger {
       if ((bWidthBitmask & (1<<4)) != 0) {
          width = 32;
       }
-      System.err.println(String.format("Adding Block     [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
+      // XXX Delete OK
+//      System.err.println(String.format("Adding Block     [0x%04X..0x%04X]", bStartAddress, bStartAddress+bSizeInBytes-1));
       peripheralBlocks.add(new AddressBlock(bStartAddress, bSizeInBytes, width, "registers"));
    }
 
@@ -165,12 +166,12 @@ class AddressBlocksMerger {
          bAccessType   = accessType;
          return;
       }
-      if (isolatedIndex != 0) {
-         // XXX Delete
-         System.err.println(String.format(
-               "Isolated Block   (s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
-               startAddress, widths/8, accessType, isolatedIndex));
-      }
+//    XXX Delete OK
+//      if (isolatedIndex != 0) {
+//         System.err.println(String.format(
+//               "Isolated Block   (s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
+//               startAddress, widths/8, accessType, isolatedIndex));
+//      }
       // Only merge blocks if not isolated and compatible
       if ((isolatedIndex == bIsolatedIndex) && compatibleAccess(accessType, bAccessType)) {
 //         if (startAddress < bStartAddress) {
@@ -218,12 +219,12 @@ class AddressBlocksMerger {
       /*
        * This routine stages registers that overlap in a simple way
        */
-      if (block.fIsolatedIndex != 0) {
-         // XXX Delete
-      System.err.println(String.format(
-            "processOriginalBlock(s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
-            block.fStartAddress, block.fWidth/8, block.fAccessType, block.fIsolatedIndex));
-      }
+      // XXX Delete OK
+//      if (block.fIsolatedIndex != 0) {
+//         System.err.println(String.format(
+//               "processOriginalBlock(s=0x%04X, w=0x%X bytes, a=%s, i=%d)",
+//               block.fStartAddress, block.fWidth/8, block.fAccessType, block.fIsolatedIndex));
+//      }
       long sizeInBytes = (block.fWidth+7)/8;
       do {
          if (pendingSizeInBytes == 0) {
@@ -366,10 +367,10 @@ class AddressBlocksMerger {
     * @throws Exception 
     */
    public void addBlock(long startAddress, int isolatedIndex, Register register) throws Exception {
-      if (isolatedIndex != 0) {
-         // XXX Delete
-         System.err.println("addBlock(Isolated block #"+isolatedIndex+")");
-      }
+//      // XXX Delete OK
+//      if (isolatedIndex != 0) {
+//         System.err.println("addBlock(Isolated block #"+isolatedIndex+")");
+//      }
       originalBlocks.add(
             new BlockInfo(
                   startAddress, 

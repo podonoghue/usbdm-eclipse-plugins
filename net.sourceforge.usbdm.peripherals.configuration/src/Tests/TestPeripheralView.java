@@ -10,7 +10,6 @@ import net.sourceforge.usbdm.peripherals.configuration.views.PeripheralConfigura
 
 public class TestPeripheralView {
 
-   
    /**
     * Test main
     * 

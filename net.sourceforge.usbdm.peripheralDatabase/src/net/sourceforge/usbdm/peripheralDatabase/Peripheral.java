@@ -435,8 +435,8 @@ public class Peripheral extends ModeControl implements Cloneable {
          // derived from so they should always agree.
          return;
       }
-      // XXX delete me
-      System.err.println("Creating address blocks for ============= " + getName());
+//      // XXX Delete OK
+//      System.err.println("Creating address blocks for ============= " + getName());
       sortRegisters();
       try {
          int isolatedIndex = 0;

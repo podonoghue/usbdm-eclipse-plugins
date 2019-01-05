@@ -695,7 +695,11 @@ public class ModeControl {
       if (hashCode != null) {
          // Check if re-definition is the same
          if (hashCode != newHashcode) {
-            throw new Exception("Redefined MACRO has different hashcode \""+fieldname+"\"");
+            throw new Exception(
+                  "Redefined MACRO has different hashcode '"+fieldname+"', "+
+                        "offset = " + field.getBitOffset() + ", "+
+                        "width  = " + field.getBitwidth() + ", "
+                  );
          }
          // Don't regenerate the MACRO (duplication due to name folding)
          return true;

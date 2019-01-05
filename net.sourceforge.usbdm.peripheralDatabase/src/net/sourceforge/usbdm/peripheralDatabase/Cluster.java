@@ -955,10 +955,10 @@ public class Cluster extends ModeControl implements Cloneable {
 //      System.err.println(String.format("Cluster.addAddressBlocks(%s) addressOffset = 0x%04X", getName(), addressOffset));
       addressOffset += getAddressOffset();
       
-      if (isIsolated()) {
-         // XXX Delete
-         System.err.println("addAddressBlocks(Isolated cluster " +getName() + ", #" + isolatedIndex + ")");
-      }
+//      // XXX Delete OK
+//      if (isIsolated()) {
+//         System.err.println("addAddressBlocks(Isolated cluster " +getName() + ", #" + isolatedIndex + ")");
+//      }
       if (getDimension()>0) {
          for (int dimension=0; dimension < getDimension(); dimension++) {
             // Do each dimension of array

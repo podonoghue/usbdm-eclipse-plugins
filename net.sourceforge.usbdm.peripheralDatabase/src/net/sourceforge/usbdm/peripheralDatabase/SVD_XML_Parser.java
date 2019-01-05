@@ -433,9 +433,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                register.setHidden(true);
             }         
             else if (element.getNodeName() == ISOLATE_PROCESSING) {
-               // XXX delete me
+//               // XXX Delete OK
+//               System.err.println("Setting register '" + register.getName() + "' as isolated " + register.isIsolated());
                register.setIsolated();
-               System.err.println("Setting register '" + register.getName() + "' as isolated " + register.isIsolated());
             }         
             else if (element.getNodeName() == DODERIVEDMACROS_PROCESSING) {
                register.setDoDerivedMacros(true);
@@ -604,7 +604,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
                cluster.setDoDerivedMacros(true);
             }         
             else if (element.getNodeName() == ISOLATE_PROCESSING) {
-               System.err.println("Cluster PROCESSING_INSTRUCTION_NODE '" + element.getData() + "'");
+//               System.err.println("Cluster PROCESSING_INSTRUCTION_NODE '" + element.getData() + "'");
                cluster.setIsolated();
             }         
             else {
