@@ -36,17 +36,18 @@ public class GdbServerInterface {
    }
    
    /**
-    *   Check for server by opening a brief connection on socket
+    *   Check for server responding by opening a brief connection on socket
     *   
     * @param portNum  The port to check on
+    * @param waitTime Time to wait for response
     * 
     * @return         true => Server appears to be running
     */
-   private boolean independentServerRunning(int portNum) {
+   private boolean isServerResponding(int portNum, int waitTime) {
       boolean isRunning = true;
       
       final Socket sock = new Socket();
-      final int timeOut = (int)TimeUnit.SECONDS.toMillis(1); // 1 sec wait period
+      final int timeOut = (int)TimeUnit.SECONDS.toMillis(waitTime); // 1 sec wait period
       try {
          // Open socket - only wait a short while
          sock.connect(new InetSocketAddress("localhost", portNum), timeOut);
@@ -75,21 +76,10 @@ public class GdbServerInterface {
     */
    private boolean isServerRunning() {
       if (proc == null) {
-//         System.out.println("proc == null\n")
          // No server started
          return false;
       }
-      try {
-         proc.exitValue();
-         // Server has completed
-//         System.out.println("proc rc = "+rc+"\n");
-         return false;
-      } catch (Exception e) {
-         System.out.println("process exception \n" + e.toString());
-         // Todo check e is 'expected' exception
-         // No exit value so process is still running
-         return true;
-      }
+      return proc.isAlive();
    }
 
    /**
@@ -116,7 +106,7 @@ public class GdbServerInterface {
             return;
          }
       }
-      else if (independentServerRunning(serverParameters.getGdbServerPortNumber())) {
+      else if (isServerResponding(serverParameters.getGdbServerPortNumber(), 1)) {
          if (shell == null) {
             // Quietly return
             return;
@@ -137,7 +127,6 @@ public class GdbServerInterface {
             System.err.print(s + " ");
          }
          System.err.print("\n");
-
          Runtime rt = Runtime.getRuntime();
          proc = rt.exec(commandArray);
       } catch (Throwable t) {
@@ -155,6 +144,8 @@ public class GdbServerInterface {
     */
    public void startServer() throws UsbdmException {
       startServer(null);
+      // Wait until server starts (allow 10 seconds)
+      isServerResponding(serverParameters.getGdbServerPortNumber(), 10);
    }
    
    /**
@@ -163,7 +154,7 @@ public class GdbServerInterface {
    public void stopServer(Shell shell) {
 
       if (!isServerRunning()) {
-         if (independentServerRunning(serverParameters.getGdbServerPortNumber())) {
+         if (isServerResponding(serverParameters.getGdbServerPortNumber(), 1)) {
             MessageBox mbox = new MessageBox(shell,  SWT.ICON_QUESTION|SWT.OK);
             mbox.setMessage("An independent server is running on the selected socket.\n" +
             		          "This server cannot be stopped from Eclipse.");
@@ -179,6 +170,11 @@ public class GdbServerInterface {
       }
       if (proc != null) {
          proc.destroy();
+         try {
+            proc.waitFor();
+         } catch (InterruptedException e) {
+            // ignore
+         }
          proc = null;
       }
       return;
