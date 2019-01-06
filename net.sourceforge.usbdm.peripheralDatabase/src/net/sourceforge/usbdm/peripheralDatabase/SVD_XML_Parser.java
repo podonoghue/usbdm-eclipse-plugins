@@ -40,6 +40,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
    static final String DODERIVEDMACROS_PROCESSING           = "doDerivedMacros";
    static final String WIDTH_PROCESSING                     = "width";
    static final String ISOLATE_PROCESSING                   = "isolate";
+   static final String KEEPASARRAY_PROCESSING               = "keepAsArray";
    
    static final String DERIVEDFROM_ATTRIB               = "derivedFrom";
    
@@ -436,9 +437,12 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
 //               // XXX Delete OK
 //               System.err.println("Setting register '" + register.getName() + "' as isolated " + register.isIsolated());
                register.setIsolated();
-            }         
+            }
             else if (element.getNodeName() == DODERIVEDMACROS_PROCESSING) {
                register.setDoDerivedMacros(true);
+            }         
+            else if (element.getNodeName() == KEEPASARRAY_PROCESSING) {
+               register.setKeepAsArray(true);
             }         
             else {
                throw new Exception("parseRegister() - unknown attribute " + element.getNodeName());
@@ -606,6 +610,9 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             else if (element.getNodeName() == ISOLATE_PROCESSING) {
 //               System.err.println("Cluster PROCESSING_INSTRUCTION_NODE '" + element.getData() + "'");
                cluster.setIsolated();
+            }         
+            else if (element.getNodeName() == KEEPASARRAY_PROCESSING) {
+               cluster.setKeepAsArray(true);
             }         
             else {
                throw new Exception("parseCluster() - unknown attribute '" + element.getNodeName() + "'");

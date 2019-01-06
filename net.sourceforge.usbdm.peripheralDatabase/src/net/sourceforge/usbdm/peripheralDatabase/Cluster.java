@@ -47,6 +47,9 @@ public class Cluster extends ModeControl implements Cloneable {
 
    /** Used to isolate the memory block associated with this register */
    private boolean               fIsolated;
+
+   /** Keep as array in SVD viewer */
+   private boolean fKeepAsArray;
    
    Cluster(Peripheral owner) {
       this.fOwner            = owner;
@@ -533,6 +536,20 @@ public class Cluster extends ModeControl implements Cloneable {
       return fRerivedFrom != null;
    }
    
+
+   /** 
+    * Sets keep as array in SVD viewer 
+    */
+   public void setKeepAsArray(boolean keepAsArray) {
+      fKeepAsArray = keepAsArray;
+   }
+
+   /** 
+    * Get keep as array in SVD viewer 
+    */
+   public boolean isKeepAsArray() {
+      return fKeepAsArray;
+   }
    /**
     * @return the accessType
     */
@@ -707,6 +724,9 @@ public class Cluster extends ModeControl implements Cloneable {
       writeSvdDimensionList(writer, indenter+"   ", getDerivedFrom());
       
       writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(getName())));
+      if (isKeepAsArray()) {
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.KEEPASARRAY_PROCESSING+"?>\n");
+      }
       if (isHidden()) {
          writer.write(            indenter+"   <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>\n");
       }

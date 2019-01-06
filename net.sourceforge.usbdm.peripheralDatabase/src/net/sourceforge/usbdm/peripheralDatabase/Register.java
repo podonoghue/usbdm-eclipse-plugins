@@ -707,6 +707,9 @@ public class Register extends Cluster implements Cloneable {
       }
       final String indenter = RegisterUnion.getIndent(indent);
       writer.write(String.format(   indenter+"   <name>%s</name>\n",                     SVD_XML_BaseParser.escapeString(name)));
+      if (isKeepAsArray()) {
+         writer.write(              indenter+"   <?"+SVD_XML_Parser.KEEPASARRAY_PROCESSING+"?>\n");
+      }
       if (isHidden()) {
          writer.write(              indenter+"   <?"+SVD_XML_Parser.HIDE_PROCESSING+"?>\n");
       }
