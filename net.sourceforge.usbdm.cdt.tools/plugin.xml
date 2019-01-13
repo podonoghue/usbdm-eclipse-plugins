@@ -1542,9 +1542,29 @@
                </enumeratedOptionValue>
                <enumeratedOptionValue
                      command="-std=gnu++11"
-                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.c89"
-                     isDefault="true"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp11"
                      name="GNU dialect of C++11 (-std=gnu++11)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                     command="-std=c++14"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp14"
+                     name="2014 ISO C++ standard plus amendments (-std=c++14)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                     command="-std=gnu++14"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp14"
+                     name="GNU dialect of C++14 (-std=gnu++14)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                     command="-std=c++17"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.cpp17"
+                     name="2017 ISO C++ standard plus amendments (-std=c++17)">
+               </enumeratedOptionValue>
+               <enumeratedOptionValue
+                     command="-std=gnu++17"
+                     id="net.sourceforge.usbdm.gnu.cpp.compiler.option.misc.language.gnupp17"
+                     isDefault="true"
+                     name="GNU dialect of C++17 (-std=gnu++17)">
                </enumeratedOptionValue>
             </option>
             <option
