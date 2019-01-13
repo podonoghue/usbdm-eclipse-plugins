@@ -13,8 +13,6 @@ import java.util.ArrayList;
          NotInstalled,     
          /** Use class name for handler e.g. USBDM::Rtc::irqAlarmHandler */
          ClassMethod,      
-         /** Use user supplied name for handler e.g. MyHandler */
-         UserMethod        
       };
       
       private int                    fIndex;
