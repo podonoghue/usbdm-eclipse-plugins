@@ -1592,7 +1592,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             String   value = settings.get(key);
             if (var != null) {
                if (!var.isDerived()) {
-                   // Load persistent value associated with variable
+                  // Load persistent value associated with variable
                   var.setPersistentValue(value);
 //                  System.err.println("Setting Variable "+key+" to "+value);
                }
@@ -1670,7 +1670,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                if (!var.isDerived()) {
                   if (!var.getPersistentValue().equals(value)) {
                      System.err.println("WARNING: deviceEditor.information.DeviceInfo.loadSettings - Variable changed " + var.getName());
-                     System.err.println("Current value    = " + value);
+                     System.err.println("Loaded value     = " + value);
                      System.err.println("Persistent value = " + var.getPersistentValue());
                   }
                }

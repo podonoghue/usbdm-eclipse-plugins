@@ -45,7 +45,7 @@ public class BooleanVariable extends Variable {
     * 
     * @return Converted object
     */
-   private boolean translate(Object value) {
+   public boolean translate(Object value) {
       if (value instanceof Boolean) {
          return (Boolean)value;
       }
@@ -58,6 +58,7 @@ public class BooleanVariable extends Variable {
       if (value instanceof String) {
          String sValue = value.toString();
          return (sValue.equalsIgnoreCase(fTrue.name))||
+                (sValue.equalsIgnoreCase(fTrue.value))||
                 (sValue.equalsIgnoreCase("true"))||
                 (sValue.equalsIgnoreCase("1"));
       }

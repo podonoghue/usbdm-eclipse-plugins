@@ -5,7 +5,6 @@ import org.eclipse.swt.graphics.Image;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.BooleanVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.EditableModel;
-import net.sourceforge.usbdm.deviceEditor.model.IrqVariableModel;
 
 public class ValueColumnLabelProvider extends BaseLabelProvider {
    
@@ -28,16 +27,6 @@ public class ValueColumnLabelProvider extends BaseLabelProvider {
       }
       if (baseModel instanceof BooleanVariableModel) {
          return ((Boolean)((BooleanVariableModel)baseModel).getVariable().getValueAsBoolean())?checkedImage:uncheckedImage;
-      }
-      if (baseModel instanceof IrqVariableModel) {
-         switch (((IrqVariableModel)baseModel).getVariable().getMode()) {
-         case NotInstalled:
-            return uncheckedImage;
-         case ClassMethod:
-            return greycheckedImage;
-         case UserMethod:
-            return checkedImage;
-         }
       }
       return emptyImage;
    }

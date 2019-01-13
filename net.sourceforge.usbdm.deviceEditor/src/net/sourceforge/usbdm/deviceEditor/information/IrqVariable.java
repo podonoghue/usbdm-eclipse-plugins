@@ -5,17 +5,7 @@ import net.sourceforge.usbdm.deviceEditor.model.IrqVariableModel;
 import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 import net.sourceforge.usbdm.peripheralDatabase.InterruptEntry.Mode;
 
-public class IrqVariable extends Variable {
-   
-   public final static String NOT_INSTALLED_VALUE = "$"+Mode.NotInstalled.name();
-   public final static String CLASS_VALUE         = "$"+Mode.ClassMethod.name();
-   
-   protected Mode fMode = Mode.NotInstalled;
-   
-   protected String fHandlerName = "";
-   
-   /** Default value of variable */
-   protected String fDefault;
+public class IrqVariable extends BooleanVariable {
    
    /** Set pattern to match IRQ handler name */
    private String fPattern = null;
@@ -25,172 +15,32 @@ public class IrqVariable extends Variable {
 
    public IrqVariable(String name, String key) {
       super(name, key);
+      setTrueValue(new Pair("Installed", "$"+Mode.ClassMethod.name()));
+      setFalseValue(new Pair("Not installed", "$"+Mode.NotInstalled.name()));
    }
 
-   /**
-    * Checks if identifier is a valid C name after % substitution
-    * 
-    * @param id
-    * 
-    * @return Valid => null<br>
-    *         Invalid => Error string
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#getSubstitutionValue()
     */
-   public static String isValidCIdentifier(String id) {
-      // Allow regex group substitutions 
-
-      if (id != null) {
-         id = id.replaceAll("%", "");
-         if (id.matches("[_a-zA-Z][_a-zA-z0-9]*")) {
-            return null;
-         }
-      }
-      return "Illegal name for C identifier";
-   }
-
-   @Override
-   public String isValid() {
-      switch (fMode) {
-      case ClassMethod:
-      case NotInstalled:
-         return null;
-      case UserMethod:
-         return isValidCIdentifier(fHandlerName);
-      }
-      return null;
-   }
-
    @Override
    public String getSubstitutionValue() {
-      return Integer.valueOf(fMode.ordinal()).toString();
+      return super.getValueAsBoolean()?"1":"0";
    }
 
-   /**
-    * Extract mode from encoded string
-    * 
-    * @param value String encoding mode e.g. $ClassMethod or MyHandler
-    * @return
-    */
-   public static Mode getMode(String value) {
-      if (value.startsWith("$")) {
-         try {
-            return Mode.valueOf(value.substring(1));
-         }
-         catch (Exception e) {
-            return Mode.NotInstalled;
-         }
-      }
-      else {
-         return Mode.UserMethod;
-      }
-   }
-   
-   /**
-    * Get handler name from encoded string
-    * 
-    * @param value
-    * @return
-    */
-   public static String getHandlerName(String value) {
-      if (value.startsWith("$")) {
-         return "";
-      }
-      else {
-         return value;
-      }
-   }
-   
-   /**
-    * Get handler name as specified by user
-    * 
-    * @return
-    */
-   public String getHandlerName() {
-      return fHandlerName;
-   }
-   
    /**
     * Get mode indicating how the vector is handled
     * 
     * @return
     */
    public Mode getMode() {
-      return fMode;
+      return getValueAsBoolean()?Mode.ClassMethod:Mode.NotInstalled;
    }
    
    @Override
    public String getValueAsString() {
-      switch (fMode) {
-      case NotInstalled:
-         return "No handler installed";
-      case ClassMethod:
-         return "Software (Use setCallback() or override class method)";
-      case UserMethod:
-         return "User method: "+fHandlerName;
-      }
-      return null;
-   }
-
-   @Override
-   public long getValueAsLong() {
-      return fMode.ordinal();
+      return getValueAsBoolean()?"Software (Use setCallback() or override class method)":"No handler installed";
    }
    
-   @Override
-   public boolean setValue(Object value) {
-      if (getPersistentValue().equals(value.toString())) {
-         return false;
-      }
-      super.debugPrint("IrqVariable["+this+"].setValue("+value+"), old "+value);
-      setPersistentValue(value.toString());
-      notifyListeners();
-      return true;
-   }
-
-   @Override
-   public void setValueQuietly(Object value) {
-      setPersistentValue(value.toString());
-   }
-
-   @Override
-   public String getPersistentValue() {
-      switch (fMode) {
-      case ClassMethod:
-      case NotInstalled:
-         return "$"+fMode.name();
-      case UserMethod:
-         return fHandlerName;
-      }
-      return null;
-   }
-
-   @Override
-   public void setPersistentValue(String value) {
-      if (value.startsWith("$")) {
-         try {
-            fMode = Mode.valueOf(value.substring(1));
-         }
-         catch (Exception e) {
-            fMode = Mode.NotInstalled;
-         }
-      }
-      else if (isValidCIdentifier(value) != null) {
-         fMode = Mode.NotInstalled;
-         }
-      else {
-         fMode = Mode.UserMethod;
-         fHandlerName = value;
-      }
-   }
-
-   @Override
-   public void setDefault(Object value) {
-   }
-
-   @Override
-   public Object getDefault() {
-      return getPersistentValue();
-   }
-
    @Override
    public VariableModel createModel(BaseModel parent) {
       return new IrqVariableModel(parent, this);
@@ -232,9 +82,36 @@ public class IrqVariable extends Variable {
       return fClassHandler;
    }
 
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#setPersistentValue(java.lang.String)
+    */
+   @Override
+   public void setPersistentValue(String value) {
+//    System.err.println("IrqVariable.setPersistentValue(\'"+ value + "')");
+      // TODO Auto-generated method stub
+      super.setPersistentValue(value);
+   }
+
+   /* (non-Javadoc)
+    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#getPersistentValue()
+    */
+   @Override
+   public String getPersistentValue() {
+      return super.getValueAsBoolean()?"$"+Mode.ClassMethod.name():"$"+Mode.NotInstalled.name();
+   }
+
+   /* (non-Javadoc)
+    * @see java.lang.Object#clone()
+    */
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
+   }
+
    @Override
    public boolean isDefault() {
-      return getPersistentValue().equals("$"+Mode.NotInstalled.name());
+      return getValueAsBoolean() == false;
    }
 
    @Override

@@ -44,7 +44,7 @@ public class UartValidate extends PeripheralValidator {
          transmitBufferSizeVar.enable(uartClass);
          txrxHandlerVar.setLocked(uartClass);
          if (uartClass) {
-            txrxHandlerVar.setValue(IrqVariable.CLASS_VALUE);
+            txrxHandlerVar.setValue(true);
          }
       }
       // Warn if Rx and Tx signals not mapped

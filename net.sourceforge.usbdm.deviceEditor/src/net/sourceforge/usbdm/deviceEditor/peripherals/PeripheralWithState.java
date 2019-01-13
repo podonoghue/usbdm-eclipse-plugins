@@ -263,10 +263,10 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          if (entry != null) {
             Matcher m = p.matcher(entry.getName());
             if (m.matches()) {
-               String modifier = "";
-               if (m.groupCount() > 0) {
-                  modifier = m.group(1);
-               }
+//               String modifier = "";
+//               if (m.groupCount() > 0) {
+//                  modifier = m.group(1);
+//               }
                String handlerName;
                switch (irqVariable.getMode()) {
                case ClassMethod:
@@ -277,11 +277,6 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                   classHandler = classHandler.replaceAll("%c", className);
                   handlerName  = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
                   classMemberHandlerSet = true;
-                  break;
-               case UserMethod:
-                  // Replace with user specified name
-                  // % represents 1st group from substitution
-                  handlerName = irqVariable.getHandlerName().replaceAll("%", modifier);
                   break;
                case NotInstalled:
                default:

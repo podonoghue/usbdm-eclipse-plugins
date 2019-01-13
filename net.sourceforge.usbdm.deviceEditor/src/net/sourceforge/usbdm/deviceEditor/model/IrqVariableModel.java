@@ -1,39 +1,35 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.DialogCellEditor;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.jface.viewers.CheckboxCellEditor;
 import org.eclipse.swt.widgets.Tree;
 
-import net.sourceforge.usbdm.deviceEditor.editor.IrqDialogue;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 
-public class IrqVariableModel extends VariableModel {
+public class IrqVariableModel extends BooleanVariableModel {
 
-//   OwnerDrawLabelProvider x;
+    static class IrqEditor extends CheckboxCellEditor {
+       private final IrqVariableModel fModel;
+       
+       public IrqEditor(Tree tree, IrqVariableModel irqVariableModel) {
+          super(tree);
+          fModel = irqVariableModel;
+          setValueValid(true);
+       }
+
+       @Override
+       protected Object doGetValue() {
+          Boolean value = (Boolean) super.doGetValue();
+          return value;
+       }
+
+       @Override
+       protected void doSetValue(Object value) {
+          super.doSetValue(fModel.getVariable().translate(value));
+       }
+    }
    
-   static class IrqEditor extends DialogCellEditor {
-      final IrqVariableModel fModel;
-
-      public IrqEditor(Tree tree, IrqVariableModel model) {
-         super(tree, SWT.NONE);
-         fModel = model;
-      }
-
-      @Override
-      protected Object openDialogBox(Control paramControl) {
-         IrqVariable var = fModel.getVariable();
-         IrqDialogue dialog = new IrqDialogue(paramControl.getShell(), var.getPersistentValue());
-         dialog.setTitle(var.getDescription());
-         if (dialog.open() == Window.OK) {
-            return dialog.getResult();
-         };
-         return null;
-      }
-   }
 
    /**
     * 

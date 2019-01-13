@@ -44,7 +44,7 @@ public class LpuartValidate extends PeripheralValidator {
          transmitBufferSizeVar.enable(uartClass);
          txrxHandlerVar.setLocked(uartClass);
          if (uartClass) {
-            txrxHandlerVar.setValue(IrqVariable.CLASS_VALUE);
+            txrxHandlerVar.setValue(true);
          }
       }
       validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
