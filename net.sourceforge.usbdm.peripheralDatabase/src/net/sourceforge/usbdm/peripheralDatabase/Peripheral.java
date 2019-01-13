@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,8 +44,8 @@ public class Peripheral extends ModeControl implements Cloneable {
    private String                    fFilename               = null;
    private DevicePeripherals         fOwner                  = null;
    
-   private HashMap<String, Parameter> fParameters         = new HashMap<String, Parameter>();
-   private Map<String, String>        fSimpleParameterMap = null;
+   private TreeMap<String, Parameter> fParameters          = new TreeMap<String, Parameter>();
+   private Map<String, String>        fSimpleParameterMap  = null;
 
    /** Arbitrary text to add to peripheral C declaration */
    private String                    fTemplate               = null;  
@@ -1740,8 +1741,10 @@ public class Peripheral extends ModeControl implements Cloneable {
       if ((fParameters == null) || fParameters.isEmpty()) {
          return;
       }
+      
       final String indenter = RegisterUnion.getIndent(indent+3);
       writer.println(indenter+"<parameters>");
+      
       for (Entry<String, Parameter> e:fParameters.entrySet()) {
          Parameter p = e.getValue();
          writer.print(indenter+"   <parameter>");
