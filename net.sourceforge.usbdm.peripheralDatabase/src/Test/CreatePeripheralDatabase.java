@@ -853,8 +853,8 @@ public class CreatePeripheralDatabase {
 //    filesToReject = ("^MK.*");
       
       
-    firstFileToProcess = ("^S32K144.*");
-    firstFileToReject  = ("^S32K146.*");
+//    firstFileToProcess = ("^S32K144.*");
+//    firstFileToReject  = ("^S32K146.*");
 
 //      firstFileToProcess = ("^LPC.*");
 //      filesToReject = ("^MK.*");
