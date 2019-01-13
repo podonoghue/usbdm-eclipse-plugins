@@ -39,7 +39,7 @@ public class GdbServerInterface {
     *   Check for server responding by opening a brief connection on socket
     *   
     * @param portNum  The port to check on
-    * @param waitTime Time to wait for response
+    * @param waitTime Time to wait for response in seconds
     * 
     * @return         true => Server appears to be running
     */
@@ -47,7 +47,7 @@ public class GdbServerInterface {
       boolean isRunning = true;
       
       final Socket sock = new Socket();
-      final int timeOut = (int)TimeUnit.SECONDS.toMillis(waitTime); // 1 sec wait period
+      final int timeOut = (int)TimeUnit.SECONDS.toMillis(waitTime); // Wait period
       try {
          // Open socket - only wait a short while
          sock.connect(new InetSocketAddress("localhost", portNum), timeOut);
@@ -145,7 +145,7 @@ public class GdbServerInterface {
    public void startServer() throws UsbdmException {
       startServer(null);
       // Wait until server starts (allow 10 seconds)
-      isServerResponding(serverParameters.getGdbServerPortNumber(), 10);
+      isServerResponding(serverParameters.getGdbServerPortNumber(), 20);
    }
    
    /**
