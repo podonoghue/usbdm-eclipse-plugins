@@ -50,7 +50,8 @@ public class TestPeripheralView {
 //         System.err.println("Name = " + name);
 
          view.createPartControl(composite);
-           SVDIdentifier               svdId = new SVDIdentifier(path.resolve("S32K144.svd.xml"));
+         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("SKEAZ1284.svd.xml"));
+//         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("S32K144.svd.xml"));
 //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKM33Z5.svd.xml"));
 //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKL25Z4.svd.xml"));
 //         SVDIdentifier               svdId = new SVDIdentifier(path.resolve("MKW41Z4.svd.xml"));
