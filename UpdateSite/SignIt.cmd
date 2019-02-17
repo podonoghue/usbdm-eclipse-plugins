@@ -8,7 +8,7 @@ set /p PASS=Enter Certificate Password:
 cls
 if [%PASS%] == []  goto done
 
-set SIGNTOOL="C:\Program Files\Java\jdk1.8.0_131\bin\jarsigner.exe"
+set SIGNTOOL="C:\Program Files\Java\jdk1.8.0_191\bin\jarsigner.exe"
 set ALIAS=myKey
 
 rem set TIMESTAMP_URL=http://timestamp.globalsign.com/scripts/timestamp.dll 
