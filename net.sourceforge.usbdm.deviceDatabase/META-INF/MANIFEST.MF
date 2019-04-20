@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.deviceDatabase
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Device Database
@@ -9,11 +10,12 @@ Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  org.eclipse.core.runtime,
  org.eclipse.jface,
  org.eclipse.swt
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.deviceDatabase;uses:="org.osgi.framework",
  net.sourceforge.usbdm.deviceDatabase.ui,
- net.sourceforge.usbdm.packageParser
+ net.sourceforge.usbdm.packageParser,
+ tests.internal;x-internal:=true
 Import-Package: org.eclipse.core.resources,
  org.eclipse.swt,
  org.eclipse.swt.events,

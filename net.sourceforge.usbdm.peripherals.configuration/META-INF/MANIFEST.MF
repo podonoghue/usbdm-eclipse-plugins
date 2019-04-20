@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.peripherals.configuration
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Configuration
@@ -11,3 +12,6 @@ Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jface.text,
  org.eclipse.swt.widgets,
  org.eclipse.ui
+Export-Package: net.sourceforge.usbdm.peripherals.configuration,
+ net.sourceforge.usbdm.peripherals.configuration.views,
+ tests.internal;x-internal:=true

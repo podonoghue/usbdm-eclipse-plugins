@@ -18,6 +18,9 @@ import org.eclipse.debug.core.commands.IRestartHandler;
 import net.sourceforge.usbdm.gdb.launch.UsbdmGdbRestartSequence;
 import net.sourceforge.usbdm.gdb.ui.Activator;
 
+/**
+ * @since 5.1
+ */
 @SuppressWarnings("restriction")
 public class UsbdmGdbRestartTargetHandler  implements IRestartHandler {
    

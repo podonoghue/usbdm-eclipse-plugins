@@ -1,7 +1,8 @@
+Automatic-Module-Name: net.sourceforge.usbdm.help
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Help
 Bundle-SymbolicName: net.sourceforge.usbdm.help;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: USBDM

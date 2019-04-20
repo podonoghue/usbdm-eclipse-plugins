@@ -54,7 +54,7 @@ public abstract class BaseModel implements Cloneable {
     * Refresh the viewer for this model
     */
    protected void refresh() {
-      StructuredViewer viewer = getViewer();
+      final StructuredViewer viewer = getViewer();
       Display.getDefault().asyncExec(new Runnable() {
          public void run() {
             if ((viewer != null) && (!viewer.getControl().isDisposed())) {

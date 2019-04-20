@@ -6,6 +6,7 @@ import org.eclipse.debug.core.model.ISourceLocator;
 
 /**
  * Empty wrapper class to allow extension
+ * @since 5.1
  */
 public class UsbdmExtendedLaunch extends GdbLaunch {
 

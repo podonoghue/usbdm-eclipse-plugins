@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.constants
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Eclipse Plugin
@@ -11,7 +12,7 @@ Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  org.eclipse.ui,
  org.eclipse.osgi
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
 Import-Package: org.eclipse.core.resources,

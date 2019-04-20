@@ -23,6 +23,9 @@ import org.eclipse.debug.core.commands.IRestartHandler;
 import net.sourceforge.usbdm.gdb.commands.UsbdmGdbRestartTargetHandler;
 import net.sourceforge.usbdm.gdb.service.UsbdmExtendedFunctions;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmGdbServicesLaunchSequence extends ServicesLaunchSequence {
 
    private final GdbLaunch  fLaunch;

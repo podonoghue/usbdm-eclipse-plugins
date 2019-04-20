@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.cw.debugPlugin
 Manifest-Version: 1.0
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
@@ -12,6 +13,7 @@ Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0"
 Bundle-RequiredExecutionEnvironment: 
  JavaSE-1.6
 Export-Package: 
+ .,
  net.sourceforge.usbdm.connections.usbdm;
   uses:="org.eclipse.debug.core,
    net.sourceforge.usbdm.jni,
@@ -23,3 +25,5 @@ Export-Package:
    com.freescale.cdt.debug.cw.mcu.common.publicintf,
    com.freescale.cdt.debug.cw.core.ui.publicintf,
    org.eclipse.ui.forms.widgets"
+Import-Package: com.freescale.mcu.debug.connections.rse,
+ org.eclipse.debug.core

@@ -6,6 +6,9 @@ import org.osgi.framework.BundleContext;
 
 import net.sourceforge.usbdm.gdb.ui.Activator;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmExtendedFunctions extends AbstractDsfService implements IUsbdmExtendedFunctions {
 
    public UsbdmExtendedFunctions(DsfSession session) {

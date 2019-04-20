@@ -35,6 +35,9 @@ import org.eclipse.core.runtime.Status;
 
 import net.sourceforge.usbdm.gdb.ui.Activator;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
 
    private IGDBControl fGdbControl;

@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.gdb.ui
 Manifest-Version: 1.0
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
@@ -6,7 +7,7 @@ Bundle-Vendor: USBDM
 Bundle-Activator: net.sourceforge.usbdm.gdb.ui.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.gdb.ui;singleton:=true
-Bundle-Version: 5.0.0.qualifier
+Bundle-Version: 5.2.0.qualifier
 Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.jni;bundle-version="5.0.0",
@@ -19,11 +20,19 @@ Require-Bundle: net.sourceforge.usbdm.constants;bundle-version="5.0.0",
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.core,
  org.eclipse.ui.console,
- org.eclipse.cdt.dsf.ui;bundle-version="2.3.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package:  net.sourceforge.usbdm.gdb.server,
+ org.eclipse.cdt.dsf.ui;bundle-version="2.3.0",
+ org.eclipse.swt
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Export-Package: .,
+ net.sourceforge.usbdm.gdb.commands,
+ net.sourceforge.usbdm.gdb.launch,
+ net.sourceforge.usbdm.gdb.server,
+ net.sourceforge.usbdm.gdb.service,
+ net.sourceforge.usbdm.gdb.service.command,
+ net.sourceforge.usbdm.gdb.service.command.commands,
  net.sourceforge.usbdm.gdb.ttyConsole,
- net.sourceforge.usbdm.gdb.ui
+ net.sourceforge.usbdm.gdb.ui,
+ tests.internal;x-internal:=true
 Import-Package: org.eclipse.cdt.core.model,
  org.eclipse.cdt.debug.core,
  org.eclipse.cdt.dsf.concurrent,

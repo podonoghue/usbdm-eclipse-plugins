@@ -9,10 +9,10 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+//import org.eclipse.swt.SWT;
+//import org.eclipse.swt.widgets.Display;
+//import org.eclipse.swt.widgets.MessageBox;
+//import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author podonoghue
@@ -1872,33 +1872,33 @@ public class Usbdm {
 
       } catch (Error e) {
          e.printStackTrace();
-         String reason = e.getMessage();
-         // Report first failure only
-         if (!libraryLoadFailed) {
-            Shell shell;
-            // Find the default display and get the active shell
-            final Display disp = Display.getDefault();
-            if (disp == null) {
-               shell = new Shell(new Display());
-            }
-            else {
-               shell = new Shell(disp);
-            }
-            System.err.println("Libary Path = "+System.getProperty("java.library.path"));
-            libraryLoadFailed = true;
-            MessageBox msgbox = new MessageBox(shell, SWT.OK);
-            msgbox.setText("USBDM Error");
-            msgbox.setMessage("Loading of USBDM native library failed.\n" + reason);
-            msgbox.open();
-            e.printStackTrace();
-            try {
-               throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
-            } catch (UsbdmException e1) {
-               e1.printStackTrace();
-            }
-         }
-         System.err.println("USBDM Libraries failed to load");
-         return;
+//         String reason = e.getMessage();
+//         // Report first failure only
+//         if (!libraryLoadFailed) {
+//            Shell shell;
+//            // Find the default display and get the active shell
+//            final Display disp = Display.getDefault();
+//            if (disp == null) {
+//               shell = new Shell(new Display());
+//            }
+//            else {
+//               shell = new Shell(disp);
+//            }
+//            System.err.println("Libary Path = "+System.getProperty("java.library.path"));
+//            libraryLoadFailed = true;
+//            MessageBox msgbox = new MessageBox(shell, SWT.OK);
+//            msgbox.setText("USBDM Error");
+//            msgbox.setMessage("Loading of USBDM native library failed.\n" + reason);
+//            msgbox.open();
+//            e.printStackTrace();
+//            try {
+//               throw new UsbdmException("USBDM JNI Library failure: "+e.getMessage());
+//            } catch (UsbdmException e1) {
+//               e1.printStackTrace();
+//            }
+//         }
+//         System.err.println("USBDM Libraries failed to load");
+//         return;
       }
    }
    

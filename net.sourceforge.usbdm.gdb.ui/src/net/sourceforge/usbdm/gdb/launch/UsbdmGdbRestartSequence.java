@@ -32,6 +32,7 @@ import net.sourceforge.usbdm.gdb.ui.Activator;
 
 /**
  * Runs sequence to restart target
+ * @since 5.1
  */
 public class UsbdmGdbRestartSequence extends Sequence {
 

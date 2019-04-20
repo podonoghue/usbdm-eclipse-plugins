@@ -18,6 +18,9 @@ import org.eclipse.debug.core.model.ISourceLocator;
 import net.sourceforge.usbdm.gdb.service.UsbdmGdbDebugServicesFactory;
 import net.sourceforge.usbdm.gdb.ui.Activator;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
 
    public static final String GDB_DEBUG_MODEL_ID = "org.eclipse.cdt.dsf.gdb"; //$NON-NLS-1$

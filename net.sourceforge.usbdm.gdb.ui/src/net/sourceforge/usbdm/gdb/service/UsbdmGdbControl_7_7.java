@@ -21,6 +21,9 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence_7_7;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmGdbControl_7_7 extends GDBControl_7_7 {
 
 	public UsbdmGdbControl_7_7(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {

@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * Used for USBDM connection
+ * @since 5.1
  */
 public class UsbdmGdbInterface {
 

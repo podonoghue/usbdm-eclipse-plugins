@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.peripherals.usbdm
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Freescale device peripheral descriptions
@@ -8,6 +9,6 @@ Bundle-Vendor: USBDM
 Require-Bundle: org.eclipse.core.runtime,
  net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.osgi
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.peripherals.usbdm;uses:="org.osgi.framework,net.sourceforge.usbdm.peripheralDatabase"

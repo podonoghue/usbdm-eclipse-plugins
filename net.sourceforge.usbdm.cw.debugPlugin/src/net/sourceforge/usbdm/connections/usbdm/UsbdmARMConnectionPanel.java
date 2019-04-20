@@ -1,17 +1,17 @@
 package net.sourceforge.usbdm.connections.usbdm;
 
-import net.sourceforge.usbdm.jni.JTAGInterfaceData;
-import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
-import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+//import net.sourceforge.usbdm.jni.JTAGInterfaceData;
+//import net.sourceforge.usbdm.jni.JTAGInterfaceData.ClockSpeed;
+//import net.sourceforge.usbdm.jni.Usbdm.EraseMethod;
+//
+//import org.eclipse.debug.core.ILaunchConfiguration;
+//import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+//import org.eclipse.swt.SWT;
+//import org.eclipse.swt.widgets.Composite;
+//import org.eclipse.swt.widgets.Label;
 
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-
-import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
-import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
+//import com.freescale.cdt.debug.cw.core.ui.publicintf.ISettingsListener;
+//import com.freescale.cdt.debug.cw.core.ui.settings.PrefException;
 
 /**
  * @author podonoghue
@@ -29,7 +29,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
       super(parent, style);
       init();
    }
-
+  
    /**
     * Actual constructor used by factory
     * 
@@ -49,7 +49,7 @@ public class UsbdmARMConnectionPanel extends UsbdmConnectionPanel {
 //      System.err.println("UsbdmARMConnectionPanel::UsbdmARMConnectionPanel(protocolPlugin="+protocolPlugin+", connectionTypeId = "+connectionTypeId+")");
       init();
    }
-
+ 
    private void init() {
       deviceNameId            = UsbdmCommon.ARM_DeviceNameAttributeKey;
       gdiDllName              = UsbdmCommon.ARM_GdiWrapperLib;

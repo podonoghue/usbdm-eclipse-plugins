@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.pinEditor
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Dialogues
@@ -9,3 +10,4 @@ Require-Bundle: org.eclipse.ui,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.swt.widgets
+Export-Package: net.sourceforge.usbdm.dialogues

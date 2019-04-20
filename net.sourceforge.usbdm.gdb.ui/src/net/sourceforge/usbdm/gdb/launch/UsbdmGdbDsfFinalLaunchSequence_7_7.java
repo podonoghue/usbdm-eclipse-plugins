@@ -30,6 +30,7 @@ import net.sourceforge.usbdm.gdb.ui.Activator;
 
 /**
  * Subclass for GDB >= 7.7.
+ * @since 5.1
  */
 public class UsbdmGdbDsfFinalLaunchSequence_7_7 extends UsbdmGdbDsfFinalLaunchSequence {
 	

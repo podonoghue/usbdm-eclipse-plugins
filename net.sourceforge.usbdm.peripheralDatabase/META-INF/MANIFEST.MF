@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.peripheralDatabase
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Peripheral Database
@@ -7,7 +8,8 @@ Bundle-Activator: net.sourceforge.usbdm.peripheralDatabase.Activator
 Bundle-Vendor: USBDM
 Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
  org.eclipse.core.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Export-Package: net.sourceforge.usbdm.peripheralDatabase;uses:="org.osgi.framework"
+Export-Package: Test,
+ net.sourceforge.usbdm.peripheralDatabase;uses:="org.osgi.framework"
 Import-Package: net.sourceforge.usbdm.cdt.utilties

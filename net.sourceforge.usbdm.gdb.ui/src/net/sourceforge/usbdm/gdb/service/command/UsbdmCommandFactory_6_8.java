@@ -10,6 +10,9 @@ import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
 import net.sourceforge.usbdm.gdb.service.command.commands.MIExecReset;
 
+/**
+ * @since 5.1
+ */
 public class UsbdmCommandFactory_6_8 extends CommandFactory_6_8 {
    
    public ICommand<MIInfo> createMIExecReset(IExecutionDMContext dmc) {

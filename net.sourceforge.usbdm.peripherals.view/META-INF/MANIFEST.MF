@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.peripherals.view
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM Peripheral View
@@ -26,5 +27,7 @@ Import-Package: org.eclipse.cdt.dsf.concurrent,
  org.eclipse.debug.core.model,
  org.eclipse.debug.ui
 Bundle-Vendor: USBDM
-Export-Package: net.sourceforge.usbdm.peripherals.model
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Export-Package: net.sourceforge.usbdm.peripherals.model,
+ net.sourceforge.usbdm.peripherals.view,
+ tests.internal;x-internal:=true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

@@ -72,7 +72,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  * <code>org.eclipse.cdt.dsf.gdb.launching.FinalLaunchSequence</code>
  * <p>
  * It adds hardware debugging specific steps to initialize a USBDM interface
- * @since 4.12
+ * @since 5.1
  * 
  */
 public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {

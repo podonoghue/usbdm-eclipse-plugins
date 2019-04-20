@@ -12,37 +12,37 @@ import org.eclipse.ui.part.IPageBookViewPage;
  */
 public class UsbdmTtyConsolePageParticipant implements IConsolePageParticipant {
 
-   private CloseConsoleAction closeAction;
-   
-//   @Override
-//   public <T> T getAdapter(Class<T> adapter) {
-//      return adapter.cast(null);
-//   }
-//
-   @Override
-   @SuppressWarnings({ "rawtypes" })
-   public Object getAdapter(Class adapter) {
-      return adapter.cast(null);
-   }
+	private CloseConsoleAction closeAction;
 
-   @Override
-   public void init(IPageBookViewPage page, IConsole console) {
-      closeAction = new CloseConsoleAction(console);
-      IToolBarManager manager = page.getSite().getActionBars().getToolBarManager();
-      manager.appendToGroup(IConsoleConstants.LAUNCH_GROUP, closeAction);  
-   }
+	//   @Override
+	//   public <T> T getAdapter(Class<T> adapter) {
+	//	   return adapter.cast(null);
+	//   }
 
-   @Override
-   public void dispose() {
-      closeAction = null;
-   }
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Object getAdapter(Class adapter) {
+		return adapter.cast(null);
+	}
 
-   @Override
-   public void activated() {
-   }
+	@Override
+	public void init(IPageBookViewPage page, IConsole console) {
+		closeAction = new CloseConsoleAction(console);
+		IToolBarManager manager = page.getSite().getActionBars().getToolBarManager();
+		manager.appendToGroup(IConsoleConstants.LAUNCH_GROUP, closeAction);  
+	}
 
-   @Override
-   public void deactivated() {
-   }
+	@Override
+	public void dispose() {
+		closeAction = null;
+	}
+
+	@Override
+	public void activated() {
+	}
+
+	@Override
+	public void deactivated() {
+	}
 
 }

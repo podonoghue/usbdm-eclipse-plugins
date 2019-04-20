@@ -1,3 +1,4 @@
+Automatic-Module-Name: net.sourceforge.usbdm.deviceEditor
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: USBDM DeviceEditor Editor
@@ -9,7 +10,7 @@ Require-Bundle: net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
  net.sourceforge.usbdm.deviceDatabase;bundle-version="5.0.0",
  org.eclipse.core.runtime,
  org.eclipse.ui
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.utilties,
@@ -24,5 +25,11 @@ Import-Package: net.sourceforge.usbdm.cdt.tools,
  org.eclipse.swt.widgets,
  org.eclipse.ui.views.contentoutline
 Bundle-Vendor: USBDM
-Export-Package: net.sourceforge.usbdm.deviceEditor.editor,
- net.sourceforge.usbdm.deviceEditor.information
+Export-Package: net.sourceforge.usbdm.deviceEditor,
+ net.sourceforge.usbdm.deviceEditor.editor,
+ net.sourceforge.usbdm.deviceEditor.information,
+ net.sourceforge.usbdm.deviceEditor.model,
+ net.sourceforge.usbdm.deviceEditor.peripherals,
+ net.sourceforge.usbdm.deviceEditor.validators,
+ net.sourceforge.usbdm.deviceEditor.xmlParser,
+ tests.internal;x-internal:=true

@@ -4,6 +4,9 @@ import org.eclipse.cdt.dsf.debug.service.IRunControl.IExecutionDMContext;
 import org.eclipse.cdt.dsf.mi.service.command.commands.MICommand;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
+/**
+ * @since 5.1
+ */
 public class MIExecReset extends MICommand<MIInfo> {
 
    public MIExecReset(IExecutionDMContext dmc) {
