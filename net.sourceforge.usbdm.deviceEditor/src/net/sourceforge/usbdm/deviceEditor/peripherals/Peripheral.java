@@ -161,16 +161,17 @@ public abstract class Peripheral extends VariableProvider {
       if (fClockEnable != null) {
          fClockEnable  += "\\n" + clockEnable;
          Variable var = getVariable(makeKey("clockEnable"));
-         var.setValue(fClockEnable);
+         var.setValue(fClockEnable.replaceAll("\\n", "\n"));
          fClockDisable  += "\\n" + fClockDisable;
          var = getVariable(makeKey("clockDisable"));
-         var.setValue(fClockDisable);
+         var.setValue(fClockDisable.replaceAll("\\n", "\n"));
       }
       else {
          fClockEnable  = clockEnable;
-         addVariable(new StringVariable("clockEnable", makeKey("clockEnable"), fClockEnable));
+         Variable var = new StringVariable("clockEnable", makeKey("clockEnable"), fClockEnable.replaceAll("\\\\n", "\n      "));
+         addVariable(var);
          fClockDisable = clockDisable;
-         addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), fClockDisable));
+         addVariable(new StringVariable("clockDisable", makeKey("clockDisable"), fClockDisable.replaceAll("\\\\n", "\n      ")));
       }
    }
    
