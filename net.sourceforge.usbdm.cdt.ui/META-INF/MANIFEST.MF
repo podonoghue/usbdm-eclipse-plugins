@@ -19,7 +19,14 @@ Require-Bundle: net.sourceforge.usbdm.cdt.tools;bundle-version="5.0.0",
  org.eclipse.ui.console,
  org.eclipse.cdt.ui,
  org.eclipse.cdt.core,
- org.eclipse.cdt.core
+ org.eclipse.cdt.core,
+ org.eclipse.cdt.dsf,
+ org.eclipse.cdt.dsf.gdb,
+ org.eclipse.cdt.dsf.ui,
+ org.eclipse.cdt.debug.core,
+ net.sourceforge.usbdm.deviceEditor,
+ org.eclipse.ui.ide,
+ org.eclipse.core.variables
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: net.sourceforge.usbdm.cdt.ui;
@@ -49,14 +56,4 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
  net.sourceforge.usbdm.cdt.ui.ksdk,
  net.sourceforge.usbdm.cdt.ui.newProjectWizard,
  tests.internal;x-internal:=true
-Import-Package: net.sourceforge.usbdm.deviceEditor.information,
- org.eclipse.cdt.build.core.scannerconfig,
- org.eclipse.cdt.core.model,
- org.eclipse.cdt.core.settings.model,
- org.eclipse.cdt.debug.core,
- org.eclipse.cdt.managedbuilder.core,
- org.eclipse.core.runtime;version="3.4.0",
- org.eclipse.core.variables,
- org.eclipse.debug.core,
- org.eclipse.ui.ide
 Bundle-Vendor: USBDM

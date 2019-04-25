@@ -850,7 +850,7 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) {
 
-    firstFileToProcess = ("^SKE.*");
+//    firstFileToProcess = ("^SKE.*");
 //    firstFileToReject  = ("^MKEA.*");
       
 //    firstFileToProcess = ("^MCF.*");
