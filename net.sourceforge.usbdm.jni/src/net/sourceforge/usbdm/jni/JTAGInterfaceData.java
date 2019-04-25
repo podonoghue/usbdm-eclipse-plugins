@@ -17,7 +17,8 @@ public class JTAGInterfaceData {
       ClockSpeed.F_3MHZ.name,
       ClockSpeed.F_4MHZ.name,
       ClockSpeed.F_6MHZ.name,
-      ClockSpeed.F_12MHZ.name 
+      ClockSpeed.F_12MHZ.name, 
+      ClockSpeed.F_24MHZ.name 
       };
 
    static public String[] getConnectionSpeeds() {
@@ -37,6 +38,7 @@ public class JTAGInterfaceData {
       F_4MHZ        ("4MHz",        4000000),
       F_6MHZ        ("6MHz",        6000000),
       F_12MHZ       ("12MHz",      12000000),
+      F_24MHZ       ("24MHz",      24000000),
       ;
       static final ClockSpeed defFrequency = F_1MHZ;
       final String name;
