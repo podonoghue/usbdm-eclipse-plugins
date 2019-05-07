@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo.DeviceFamily;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
@@ -14,13 +15,13 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
  * <li>Peripheral signals mapped to that pin
  */
 public class Pin extends ObservableModel implements Comparable<Pin>, IModelChangeListener {
-   
+
    /** Pin used to denote a disabled mapping */
    public final static Pin UNASSIGNED_PIN = new Pin(null, "Unassigned");
-   
+
    /** Pin comparator */
    public static Comparator<String> comparator = Utils.comparator;
-   
+
    /*
     * ==================================================================================
     */
@@ -29,10 +30,10 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    /** Pin instance e.g. PTA3 => 3 (only if has PCR) */
    private String fPortPin = null;
-   
+
    /** Name of the pin, usually the port name e.g. PTA1 */
    private String fName;
-   
+
    /** Map of signals mapped to this pin ordered by mux value */
    private Map<MuxSelection, MappingInfo> fMappableSignals = new TreeMap<MuxSelection, MappingInfo>();
 
@@ -43,13 +44,13 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    /** Current multiplexor setting */
    private MuxSelection fMuxValue = MuxSelection.unassigned;
-   
+
    /** Device info owning this pin */
    private DeviceInfo fDeviceInfo;
 
    /** PCR value (excluding MUX) */
    private long fProperties = 0;
-   
+
    /**
     * Create empty pin function for given pin
     * @param deviceInfo 
@@ -66,7 +67,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          fPortPin      = m.group(2);
       }
    }
-   
+
    /**
     * Connect Pin as listener for changes on pin multiplexing
     */
@@ -76,7 +77,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          mappingInfo.addListener(this);
       }
    }
-   
+
    /**
     * Disconnect Pin as listener for changes on pin multiplexing
     */
@@ -86,7 +87,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          mappingInfo.removeListener(this);
       }
    }
-   
+
    /**
     * Get PCR register e.g. PORTA->PCR[3]
     * 
@@ -98,7 +99,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("&PORT%s->PCR[%s]", fPortInstance, fPortPin);
    }
-   
+
    /**
     * Get Gpio class declaration e.g. GpioA<3>
     * 
@@ -107,7 +108,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public String getGpioClass() {
       return String.format("Gpio%s<%s>", fPortInstance, fPortPin);
    }
-   
+
    /**
     * Get Port base pointer e.g. PORTC_BasePtr
     * 
@@ -119,7 +120,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("PORT%s_BasePtr", fPortInstance);
    }
-   
+
    /**
     * Get Port e.g. PORTC
     * 
@@ -131,7 +132,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("PORT%s", fPortInstance);
    }
-   
+
    /**
     * Get Port information name e.g. "PortBInfo"
     * 
@@ -143,31 +144,31 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("Port%sInfo", fPortInstance);
    }
-   
-//   /**
-//    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
-//    * 
-//    * @return
-//    */
-//   public String getPCRasInt() {
-//      if (fPortInstance == null) {
-//         return null;
-//      }
-//      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
-//   }
-   
-//   /**
-//    * Get clock mask e.g. PORTA_CLOCK_MASK
-//    * 
-//    * @return
-//    */
-//   public String getClockMask() {
-//      if (fPortInstance == null) {
-//         return null;
-//      }
-//      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
-//   }
-   
+
+   //   /**
+   //    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
+   //    * 
+   //    * @return
+   //    */
+   //   public String getPCRasInt() {
+   //      if (fPortInstance == null) {
+   //         return null;
+   //      }
+   //      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
+   //   }
+
+   //   /**
+   //    * Get clock mask e.g. PORTA_CLOCK_MASK
+   //    * 
+   //    * @return
+   //    */
+   //   public String getClockMask() {
+   //      if (fPortInstance == null) {
+   //         return null;
+   //      }
+   //      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
+   //   }
+
    /**
     * Get GPIO base pointer e.g. GPIOA_BasePtr
     * 
@@ -179,7 +180,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("GPIO%s_BasePtr", fPortInstance);
    }
-   
+
    /**
     * Get bit number of associated PORT/GPIO
     * 
@@ -191,7 +192,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return fPortPin;
    }
-   
+
    /**
     * Get name of the pin, usually the port name e.g. PTA1 
     * 
@@ -200,7 +201,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public String getName() {
       return fName;
    }
-   
+
    /**
     * Get location of the pin e.g. p23 
     * 
@@ -213,7 +214,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return location;
    }
-   
+
    /**
     * Indicates if the pin is available in the package
     * 
@@ -241,7 +242,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          return fName + " ("+location+")";
       }
    }
-   
+
    /**
     * Get description of functions mapped to this pin
     * 
@@ -250,7 +251,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public String getDescription() {
       return "";
    }
-    
+
    @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
@@ -300,48 +301,48 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             break;
          }
       }
-    if ((fResetMuxValue == MuxSelection.unassigned) && !resetSignals.equalsIgnoreCase("Disabled")) {
-       throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
-    }
-      
-//      // Disabled is not necessarily in list of mappings
-//      // If necessary create mux0=disabled if free
-//      if ((fResetMuxValue == MuxSelection.unassigned) && resetSignals.equalsIgnoreCase("Disabled")) {
-//         if (fMappedSignals.get(MuxSelection.mux0) == null) {
-//            factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
-//            setResetValue(MuxSelection.mux0);
-//         }
-//      }
-//      if (fResetMuxValue == MuxSelection.unassigned) {
-//         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
-//      }
+      if ((fResetMuxValue == MuxSelection.unassigned) && !resetSignals.equalsIgnoreCase("Disabled")) {
+         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
+      }
+
+      //      // Disabled is not necessarily in list of mappings
+      //      // If necessary create mux0=disabled if free
+      //      if ((fResetMuxValue == MuxSelection.unassigned) && resetSignals.equalsIgnoreCase("Disabled")) {
+      //         if (fMappedSignals.get(MuxSelection.mux0) == null) {
+      //            factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
+      //            setResetValue(MuxSelection.mux0);
+      //         }
+      //      }
+      //      if (fResetMuxValue == MuxSelection.unassigned) {
+      //         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
+      //      }
    }
 
-//   /**
-//    * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
-//    * <pre>
-//    * "PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4, "
-//    * OR
-//    * "0, 0, 0, 0, "
-//    * </pre>
-//    * 
-//    * @param pin The pin being configured
-//    * 
-//    * @return
-//    * @throws Exception 
-//    */
-//   String getPCRInitString() throws Exception {
-//      String portClockMask = getClockMask();
-//      if (portClockMask == null) {
-//         // No PCR - probably an analogue pin
-//         return "0, 0, 0, 0, ";
-//      }
-//      String portAddress      = getPortBasePtr();
-//      String gpioRegister     = getGpioBasePtr();
-//      String gpioBitNum       = getGpioBitNum();
-//
-//      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
-//   }
+   //   /**
+   //    * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
+   //    * <pre>
+   //    * "PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4, "
+   //    * OR
+   //    * "0, 0, 0, 0, "
+   //    * </pre>
+   //    * 
+   //    * @param pin The pin being configured
+   //    * 
+   //    * @return
+   //    * @throws Exception 
+   //    */
+   //   String getPCRInitString() throws Exception {
+   //      String portClockMask = getClockMask();
+   //      if (portClockMask == null) {
+   //         // No PCR - probably an analogue pin
+   //         return "0, 0, 0, 0, ";
+   //      }
+   //      String portAddress      = getPortBasePtr();
+   //      String gpioRegister     = getGpioBasePtr();
+   //      String gpioBitNum       = getGpioBitNum();
+   //
+   //      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
+   //   }
 
    @Override
    public int compareTo(Pin o) {
@@ -362,7 +363,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     */
    public void setPinUseDescription(String pinUseDescription) {
       fPinUseDescription = pinUseDescription;
-      
+
       // Update watchers of active mapping
       MappingInfo mappingInfo = getMappedSignal();
       mappingInfo.notifyListeners();
@@ -399,14 +400,14 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void setMappedSignal(MappingInfo mappingInfo) {
       setMuxSelection(mappingInfo.getMux());
    }
-   
+
    /** 
     * Set current pin multiplexor setting 
     * 
     * @param newMuxValue Multiplexor value to set
     */
    public void setMuxSelection(MuxSelection newMuxValue) {
-//      System.err.println("Pin("+fName+")::setMuxSelection("+newMuxValue+")");
+      //      System.err.println("Pin("+fName+")::setMuxSelection("+newMuxValue+")");
       if (this == UNASSIGNED_PIN) {
          return;
       }
@@ -467,19 +468,19 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       signal.addMappedPin(mapInfo);
       return mapInfo;
    }
-   
+
    public static final String getMuxKey(String name) {
       return "$signal$"+name+"_muxSetting";
    }
-   
+
    public static final String getDescriptionKey(String name) {
       return "$signal$"+name+"_descriptionSetting";
    }
-   
+
    public static final String getPCRKey(String name) {
       return "$signal$"+name+"_pcrSetting";
    }
-   
+
    /**
     * Load pin settings from settings object
     * 
@@ -521,7 +522,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
 
    @Override
    public void modelElementChanged(ObservableModel model) {
-//      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
+      //      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
       if (model instanceof MappingInfo) {
          MappingInfo mappingInfo = (MappingInfo) model;
          if (mappingInfo.isSelected()) {
@@ -540,7 +541,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             throw new RuntimeException("Impossible mapping");
          }
       }
-//      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
+      //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
       notifyListeners();
    }
 
@@ -548,15 +549,53 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       Pattern p = Pattern.compile("^\\s*GPIO(.)_(\\d*)\\s*$");
       Matcher m = p.matcher(signal.getName());
       if (m.matches()) {
-         String portInstance = m.group(1);
-         String portPin      = m.group(2);
-         if (fPortInstance == null) {
-            fPortInstance = portInstance;
-            fPortPin      = portPin;
+         if (fDeviceInfo.getDeviceFamily() != DeviceFamily.mke) {
+            String portInstance = m.group(1);
+            String portPin      = m.group(2);
+            if (fPortInstance == null) {
+               fPortInstance = portInstance;
+               fPortPin      = portPin;
+            }
+            else {
+               if (!fPortInstance.equals(portInstance) || !fPortPin.equals(portPin)) {
+                  throw new Exception("Pin associated with multiple PORTs, 1st="+fPortInstance+" , 2nd="+portPin);
+               }
+            }
          }
          else {
-            if (!fPortInstance.equals(portInstance) || !fPortPin.equals(portPin)) {
-               throw new Exception("Pin associated with multiple PORTs");
+            /* 
+             * MKE unusual port mapping
+             * GPIOA = [PTD, PTC, PTB, PTA]
+             * GPIOB = [PTH, PTG, PTF, PTE]
+             */
+
+            if (m.matches()) {
+               int portPinNumber = Integer.parseUnsignedInt(m.group(2));
+               String portInstance = m.group(1);
+               String portPin      = Integer.toString(portPinNumber%8);
+               final String[] APorts = {"A", "B", "C", "D"}; 
+               final String[] BPorts = {"E", "F", "G", "H"}; 
+               final String[] CPorts = {"I", "X", "X", "X"}; 
+               switch(m.group(1)) {
+               case "A" : 
+                  portInstance = APorts[portPinNumber/8];
+                  break;
+               case "B" : 
+                  portInstance = BPorts[portPinNumber/8];
+                  break;
+               case "C" : 
+                  portInstance = CPorts[portPinNumber/8];
+                  break;
+               }
+               if (fPortInstance == null) {
+                  fPortInstance = portInstance;
+                  fPortPin      = portPin;
+               }
+               else {
+                  if (!fPortInstance.equals(portInstance) || !fPortPin.equals(portPin)) {
+                     throw new Exception("Pin associated with multiple PORTs, 1st="+fPortInstance+" , 2nd="+portPin);
+                  }
+               }
             }
          }
       }
@@ -587,7 +626,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             intEither.getName(),
             intHigh.getName(),
       };
-      
+
       private final int     value;
       private final String  name;
 
@@ -616,7 +655,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          default : return disabled;
          }
       }
-      
+
       /**
        * Maps an integer into a PinIntDmaValue value
        * 
@@ -635,16 +674,16 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       public String getName() {
          return name;
       }
-      
+
       public static String[] getChoices() {
          return choices;
       }
-      
+
       public int getValue() {
          return value;
       }
    }
-   
+
    /**
     * Get Pin Interrupt/DMA functions
     * 
@@ -662,7 +701,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void setInterruptDmaSetting(PinIntDmaValue value) {
       setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
    }
-   
+
    /**
     * Class representing Pin Interrupt/DMA functions
     */
@@ -676,7 +715,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             down.getName(),
             up.getName(),
       };
-      
+
       private final int     value;
       private final String  name;
 
@@ -699,7 +738,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          default : return none;
          }
       }
-      
+
       /**
        * Maps an integer into a PinIntDmaValue value
        * 
@@ -718,16 +757,16 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       public String getName() {
          return name;
       }
-      
+
       public static String[] getChoices() {
          return choices;
       }
-      
+
       public int getValue() {
          return value;
       }
    }
-   
+
    /**
     * Get Pin Interrupt/DMA functions
     * 
@@ -745,7 +784,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public void setPullSetting(PinPullValue value) {
       setProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT, value.getValue());
    }
-   
+
    public final static long PORT_PCR_PULL_SHIFT  =  0;                             
    public final static long PORT_PCR_PULL_MASK   =  (0x03L << PORT_PCR_PULL_SHIFT);  
    public final static long PORT_PCR_SRE_SHIFT   =  2;                             
@@ -776,7 +815,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public long getProperties() {
       return fProperties & PORT_PCR_MASK;
    }
-   
+
    /**
     * Set PCR value (excluding MUX)
     * 
@@ -794,11 +833,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    public long getProperty(long mask, long offset) {
       return (getProperties()&mask)>>offset;
    }
-   
+
    public boolean setProperty(long mask, long offset, long property) {
       return setProperties((getProperties()&~mask)|((property<<offset)&mask));
    }
-   
+
    @Override
    public void modelStructureChanged(ObservableModel model) {
       notifyStructureChangeListeners();
@@ -817,7 +856,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       long pcrValue = getProperties() | ((getMuxValue().value<<PORT_PCR_MUX_SHIFT)&PORT_PCR_MUX_MASK);
       return getPcrValueAsString(pcrValue);
    }
-   
+
    public static String getPcrValueAsString(long pcrValue) {
       StringBuilder sb = new StringBuilder();
       sb.append("PORT_PCR_MUX(" +((pcrValue & PORT_PCR_MUX_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
@@ -830,7 +869,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       sb.append("PORT_PCR_SRE(" +((pcrValue & PORT_PCR_SRE_MASK) >> PORT_PCR_SRE_SHIFT)+")|");
       sb.append("PORT_PCR_PE("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")|");
       sb.append("PORT_PCR_PS("  +((pcrValue & PORT_PCR_PULL_MASK) >> PORT_PCR_MUX_SHIFT)+")");
-      
+
       return sb.toString();
    }
 }

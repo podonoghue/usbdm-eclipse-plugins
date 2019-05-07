@@ -1055,7 +1055,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForFlexCan.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "(CMP)([0-3])?_(.*)",
+               "(A?CMP)([0-3])?_(.*)",
                getDeviceFamily(),
                WriterForCmp.class);
          createPeripheralTemplateInformation(
