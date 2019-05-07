@@ -6,15 +6,15 @@ import java.util.HashMap;
 import org.eclipse.jface.viewers.TreeViewer;
 
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumeratedOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.HeadingModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.OptionHeadingModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
+import net.sourceforge.usbdm.annotationEditor.AnnotationModelNode;
+import net.sourceforge.usbdm.annotationEditor.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.EnumeratedNumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.HeadingModelNode;
 import net.sourceforge.usbdm.annotationEditor.Message;
 import net.sourceforge.usbdm.annotationEditor.MyValidator;
+import net.sourceforge.usbdm.annotationEditor.NumericOptionModelNode;
 
 public class PinMappingValidator extends MyValidator {
 
@@ -26,7 +26,7 @@ public class PinMappingValidator extends MyValidator {
     */
    static class NodeToUpdate {
       /** Target i.e. node being forced */
-      EnumeratedOptionModelNode target;
+      EnumeratedNumericOptionModelNode target;
 
       /** Nodes that are forcing */
       ArrayList<SelectionTag> forcingNodes;
@@ -40,7 +40,7 @@ public class PinMappingValidator extends MyValidator {
        * @param target        Node being forced i.e. target
        * @param forcingNode   Name of node forcing
        */
-      NodeToUpdate(EnumeratedOptionModelNode target) {
+      NodeToUpdate(EnumeratedNumericOptionModelNode target) {
          this.target       = target;
          this.forcingNodes = new ArrayList<SelectionTag>();
          forcingNodeCount  = 0;
@@ -98,7 +98,7 @@ public class PinMappingValidator extends MyValidator {
       }
 //      System.err.println("PinMappingValidator.validate()");
       super.validate(viewer);
-      HashMap<EnumeratedOptionModelNode, NodeToUpdate> nodesToUpdate = new HashMap<EnumeratedOptionModelNode, NodeToUpdate>();
+      HashMap<EnumeratedNumericOptionModelNode, NodeToUpdate> nodesToUpdate = new HashMap<EnumeratedNumericOptionModelNode, NodeToUpdate>();
 
       ArrayList<SelectionTag> pinSelectionNodes = new ArrayList<SelectionTag>();
       findActiveSelectionNodes(map_by_pinNode,      pinSelectionNodes);
@@ -129,12 +129,12 @@ public class PinMappingValidator extends MyValidator {
             System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
             continue;
          }
-         if (!(targetSignalNode instanceof EnumeratedOptionModelNode)) {
+         if (!(targetSignalNode instanceof EnumeratedNumericOptionModelNode)) {
             setValid(viewer, tag.controllingNode, new Message("Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetSignalNode.getClass()));
             System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
             continue;
          }
-         EnumeratedOptionModelNode target = (EnumeratedOptionModelNode) targetSignalNode;
+         EnumeratedNumericOptionModelNode target = (EnumeratedNumericOptionModelNode) targetSignalNode;
          NodeToUpdate nodeToUpdate = nodesToUpdate.get(target);
          if (nodeToUpdate == null) {
             nodeToUpdate = new NodeToUpdate(target);
@@ -151,7 +151,7 @@ public class PinMappingValidator extends MyValidator {
       // Update target nodes
 //      System.err.println("Updating Target Nodes");
       if (mapByPin) {
-         for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
+         for (EnumeratedNumericOptionModelNode targetNode:nodesToUpdate.keySet()) {
             NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);
 //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
 //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
@@ -185,7 +185,7 @@ public class PinMappingValidator extends MyValidator {
       }
       else {
          // Map by function
-         for (EnumeratedOptionModelNode targetNode:nodesToUpdate.keySet()) {
+         for (EnumeratedNumericOptionModelNode targetNode:nodesToUpdate.keySet()) {
             NodeToUpdate nodeToUpdate = nodesToUpdate.get(targetNode);
 //         System.err.println(String.format("Updating %s", nodeToUpdate.toString()));
 //         System.err.println(String.format("Updating t=%s, v=%s", targetNode.getName(), nodeToUpdate.forcingNodes));
@@ -258,8 +258,8 @@ public class PinMappingValidator extends MyValidator {
          }
          return foundSelectionTags;
       }
-      if (node instanceof EnumeratedOptionModelNode) {
-         EnumeratedOptionModelNode enNode = (EnumeratedOptionModelNode) node;
+      if (node instanceof EnumeratedNumericOptionModelNode) {
+         EnumeratedNumericOptionModelNode enNode = (EnumeratedNumericOptionModelNode) node;
          ArrayList<SelectionTag> selectionTags = enNode.getSelectionTags();
          if (selectionTags != null) {
             for (SelectionTag selectionTag:selectionTags) {

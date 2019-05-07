@@ -104,8 +104,16 @@ public class AnnotationEditingSupport  extends EditingSupport {
       if (element instanceof BinaryOptionModelNode) {
          return new BooleanCellEditor(viewer.getTree());
       }
-      if (element instanceof EnumeratedOptionModelNode) {
-         ArrayList<EnumValue> t = ((EnumeratedOptionModelNode) element).getEnumerationValues();
+      if (element instanceof EnumeratedNumericOptionModelNode) {
+         ArrayList<EnumNumericValue> t = ((EnumeratedNumericOptionModelNode) element).getEnumerationValues();
+         String choices[] = new String[t.size()];
+         for (int index=0; index<t.size(); index++) {
+            choices[index] = t.get(index).getName();
+         }
+         return new ChoiceCellEditor(viewer.getTree(), choices);
+      }
+      if (element instanceof EnumeratedStringOptionModelNode) {
+         ArrayList<EnumTextValue> t = ((EnumeratedStringOptionModelNode) element).getEnumerationValues();
          String choices[] = new String[t.size()];
          for (int index=0; index<t.size(); index++) {
             choices[index] = t.get(index).getName();
@@ -138,7 +146,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
                   return new Boolean(((NumericOptionModelNode)element).getValueAsLong()!=0);
                }
             }
-            return ((AnnotationModelNode) element).getValueAsString();
+            return ((AnnotationModelNode) element).getDialogueValueAsString();
          } catch (Exception e) {
             e.printStackTrace();
             return e.getMessage();
@@ -154,7 +162,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
          if (element instanceof AnnotationModelNode) {
             if (value instanceof String) {
                // If a string get model to convert value
-               ((AnnotationModelNode)element).setValueAsString(value.toString());
+               ((AnnotationModelNode)element).setValueFromDialogueString(value.toString());
             }
             else {
                // Otherwise just pass the value

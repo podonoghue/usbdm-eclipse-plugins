@@ -2,11 +2,11 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.MyValidator;
-
 import org.eclipse.jface.viewers.TreeViewer;
+
+import net.sourceforge.usbdm.annotationEditor.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.MyValidator;
+import net.sourceforge.usbdm.annotationEditor.NumericOptionModelNode;
 
 public class FllClockValidate_MKxxM10Z extends MyValidator {
 

@@ -2,12 +2,12 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_CFV1.ClockModes;
-import net.sourceforge.usbdm.annotationEditor.MyValidator;
-
 import org.eclipse.jface.viewers.TreeViewer;
+
+import net.sourceforge.usbdm.annotationEditor.BinaryOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.MyValidator;
+import net.sourceforge.usbdm.annotationEditor.NumericOptionModelNode;
+import net.sourceforge.usbdm.annotationEditor.validators.ClockValidate_CFV1.ClockModes;
 
 public class FllClockValidate_CFV1 extends MyValidator {
 

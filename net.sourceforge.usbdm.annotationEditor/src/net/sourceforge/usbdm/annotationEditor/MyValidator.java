@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Display;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.EnumeratedOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
 
 public abstract class MyValidator {
@@ -216,7 +212,7 @@ public abstract class MyValidator {
     * @note The node is set valid
     * @note Done delayed on the display thread
     */
-   protected void update(final TreeViewer viewer, final EnumeratedOptionModelNode node, final String value) {
+   protected void update(final TreeViewer viewer, final EnumeratedNumericOptionModelNode node, final String value) {
 //      System.err.println(String.format("update(%s,%s)", node.getName(), value));
       int index = node.getEnumIndex(value);
       if (index>=0) {

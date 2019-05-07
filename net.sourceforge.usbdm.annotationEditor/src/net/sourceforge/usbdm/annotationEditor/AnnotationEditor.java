@@ -34,12 +34,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.AnnotationModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BinaryOptionModelNode;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.BitField;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.ErrorNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.HeadingModelNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
 
 /**
  *  USBDM Annotation Editor
@@ -95,7 +90,7 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public String getText(Object element) {
          try {
-            return ((AnnotationModelNode) element).getValueAsString();
+            return ((AnnotationModelNode) element).getDialogueValueAsString();
          } catch (Exception e) {
 //            e.printStackTrace();
             return e.getMessage();

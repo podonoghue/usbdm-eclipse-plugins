@@ -3,10 +3,10 @@ package net.sourceforge.usbdm.annotationEditor.validators;
 import java.util.Set;
 import java.util.TreeSet;
 
-import net.sourceforge.usbdm.annotationEditor.AnnotationModel.NumericOptionModelNode;
-import net.sourceforge.usbdm.annotationEditor.MyValidator;
-
 import org.eclipse.jface.viewers.TreeViewer;
+
+import net.sourceforge.usbdm.annotationEditor.MyValidator;
+import net.sourceforge.usbdm.annotationEditor.NumericOptionModelNode;
 
 public class PllClockValidate extends MyValidator {
 
