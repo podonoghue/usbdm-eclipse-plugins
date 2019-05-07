@@ -90,12 +90,22 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       setWizard(usbdmNewProjectWizard);
    }
 
+   Device lastDevice = null;
+   
    /**
     * Updates the internal state
     * This is done on a worker thread as it is time consuming
     * After completion it calls page.setPageComplete() to notify wizard of changes
     */
-   void updateState() {
+   synchronized void updateState() {
+      final Device device = getDevice();
+      System.err.println("updateState("+device.getName()+")");
+      if (device == lastDevice) {
+         setPageComplete(true);
+         return;
+      }
+      lastDevice = device;
+
       final UsbdmNewProjectWizard wizard = (UsbdmNewProjectWizard) getWizard();
       final UsbdmDeviceSelectionPage_2 page = this;
 
@@ -103,8 +113,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          Job job = new Job("Updating configuration") {
             protected IStatus run(IProgressMonitor monitor) {
                monitor.beginTask("Updating Pages...", 10);
-               createPageData();
-               Display.getDefault().asyncExec(new Runnable() {
+               createPageData(device);
+               Display.getDefault().syncExec(new Runnable() {
                   @Override
                   public void run() {
                      page.setPageComplete(true);
@@ -123,6 +133,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     *  Validates control & sets error message
     */
    private void validate() {
+      System.err.println("validate()");
       fHasChanged = true;
       setPageComplete(false);
       String message = null;
@@ -137,6 +148,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       if (message == null) {
          updateState();
       }
+      System.err.println("validate() - complete");
    }
 
    private void loadBuildtoolNames() {
@@ -215,13 +227,6 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       fDeviceSelector.setTargetType(fInterfaceType.toTargetType());
       fDeviceSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-      fDeviceSelector.addListener(SWT.CHANGED, new Listener() {
-         @Override
-         public void handleEvent(Event event) {
-            validate();
-         }
-      });
-
       if (dialogSettings != null) {
          String deviceName = dialogSettings.get(fInterfaceType.name()+UsbdmConstants.TARGET_DEVICE_KEY);
          if (deviceName != null) {
@@ -230,8 +235,16 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
       else {
          // TODO - Change default device for testing
-         fDeviceSelector.setDevice("FRDM_K64F");
+         fDeviceSelector.setDevice("FRDM_K20D5");
       }
+
+      fDeviceSelector.addListener(SWT.CHANGED, new Listener() {
+         @Override
+         public void handleEvent(Event event) {
+            validate();
+         }
+      });
+
    }
 
    /* (non-Javadoc)
@@ -440,7 +453,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "{\n";         //$NON-NLS-1$
 
    private final static String MAP_SUFFIX = 
-         "};\n";         //$NON-NLS-1$
+         "};\n\n";         //$NON-NLS-1$
 
    private final static String MEM_FORMAT = "  %-14s %-5s : ORIGIN = 0x%08X, LENGTH = 0x%08X\n";
 
@@ -459,13 +472,52 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "   } > flexNVM\n\n"; //$NON-NLS-1$
 
    private final static String LINKER_FLEXRAM_REGION =
-               "   /* FlexRAM region for non-volatile variables */\n"+
+         "   /* FlexRAM region for non-volatile variables */\n"+
                "   .flexRAM (NOLOAD) :\n" + 
                "   {\n" + 
                "      . = ALIGN(4);\n" + 
                "      KEEP(*(.flexRAM))\n" + 
                "   } > flexRAM\n\n"; //$NON-NLS-1$
 
+   /**
+    * Write a set of memory region descriptions
+    * 
+    * @param memoryRanges	
+    * @param pCapName
+    * @param pName
+    * @param string 
+    * 
+    * @return the description
+    */
+   String writeRegions(final ArrayList<MemoryRange>  memoryRanges, String pCapName, String pName, String attributes) {
+      StringBuilder memoryMap = new StringBuilder();
+      int suffix  = 0;
+      String capName = pCapName;
+      String name    = pName;
+      for(MemoryRange region:memoryRanges) {
+         String currentCapName = region.getName();
+         String currentName    = region.getName();
+         if (currentCapName == null) {
+            currentCapName = capName;
+         }
+         if (currentName == null) {
+            currentName = name;
+         }
+         memoryMap.append(String.format(MEM_DOCUMENTATION, currentCapName, currentCapName));
+         memoryMap.append(String.format(MEM_FORMAT, currentName, "("+attributes+")", region.start, region.end-region.start+1));
+         suffix++;
+         capName = pCapName + suffix; 
+         name    = pName + suffix; 
+      }
+      return memoryMap.toString();
+   }
+
+   String writeRegionAlias(String alias, String target) {
+      return String.format("REGION_ALIAS(%s,%s);\n", alias, target);
+            
+   }
+   
+   
    /**
     * Adds the device memory map information to the paramMap
     * 
@@ -542,30 +594,14 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          }
       }
       flexRAMRegions = coalesce(flexRAMRegions);
-      int    suffix  = 0;
-      String capName = "Flex RAM"; 
-      String name    = "flexRAM"; 
-      for(MemoryRange region:flexRAMRegions) {
-         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rw)", region.start, region.end-region.start+1));
-         suffix++;
-         capName = "Flex NVM" + suffix; 
-         name    = "flexNVM" + suffix; 
-      }
+      memoryMap.append(writeRegions(flexRAMRegions, "Flex RAM", "flexRAM", "rw"));
 
       flexNVMRegions = coalesce(flexNVMRegions);
-      suffix  = 0;
-      capName = "Flex NVM"; 
-      name    = "flexNVM"; 
-      for(MemoryRange region:flexNVMRegions) {
-         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", region.start, region.end-region.start+1));
-         suffix++;
-         capName = "Flex NVM" + suffix; 
-         name    = "flexNVM" + suffix; 
-      }
+      memoryMap.append(writeRegions(flexNVMRegions, "Flex NVM", "flexNVM", "rx"));
 
       flashRegions = coalesce(flashRegions);
+      memoryMap.append(writeRegions(flashRegions, "FLASH", "flash", "rx"));
+
       if (flashRegions.size() == 0) {
          // Should never happen!
          System.err.println("Error = flashSize == 0!");
@@ -575,25 +611,17 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          // 1st FLASH region
          flashSize = (flashRegions.get(0).end-flashRegions.get(0).start+1);
       }
-      suffix  = 0;
-      capName = "FLASH"; 
-      name    = "flash"; 
-      for(MemoryRange region:flashRegions) {
-         memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-         memoryMap.append(String.format(MEM_FORMAT, name, "(rx)", region.start, region.end-region.start+1));
-         suffix++;
-         capName = "FLASH" + suffix; 
-         name    = "flash" + suffix; 
-      }
+
+      // Don't coalesce RAM regions as there are alignment issues at boundaries.
+      // Just choose the largest as the default RAM region
 
       ramSize        = 0;
-      ramRegions     = coalesce(ramRegions);
-      
       MemoryRange ramRegion = null;
-      
+
+      // Use largest RAM region as default RAM
       for(MemoryRange region:ramRegions) {
          long t = (region.end-region.start+1);
-         if (t>ramSize) {
+         if (t>=ramSize) {
             ramSize   = t;
             ramRegion = region;
          }
@@ -603,30 +631,22 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          System.err.println("Error no RAM region found");
       }
       else {
+         // Add GDB guard region at top of RAM
          gdbGuardAddress = ramRegion.end+1;
-         suffix  = 0;
-         capName = "RAM"; 
-         name    = "ram"; 
-         for(MemoryRange region:ramRegions) {
-            capName = "RAM"; 
-            name    = "ram"; 
-            if (region != ramRegion) {
-               capName += suffix; 
-               name    += suffix;
-               suffix++;
-            }
-            memoryMap.append(String.format(MEM_DOCUMENTATION, capName, capName));
-            memoryMap.append(String.format(MEM_FORMAT, name, "(rwx)", region.start, region.end-region.start+1));
-         }
+         memoryMap.append(writeRegions(ramRegions, "RAM", "ram", "rwx"));
          if (gdbGuardAddress > 0) {
             memoryMap.append("/*\n * Guard region above stack for GDB \n */\n");
             memoryMap.append(String.format(MEM_FORMAT, "gdbGuard", "(r)", gdbGuardAddress, 32));
          }
          memoryMap.append(MAP_SUFFIX);
       }
-
+      
+      // Add alias for main RAM region
+      memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", "ram",   ramRegion.getName()));
+      
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
-//      System.err.println(memoryMap.toString());
+      System.err.println(memoryMap.toString());
+      
       paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
       paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
@@ -733,7 +753,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          e.printStackTrace();
       }
       String headerFilename = new Path(externalHeaderFile).lastSegment();
-      
+
       paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILE_KEY,     externalHeaderFile);
       paramMap.put(UsbdmConstants.EXTERNAL_HEADER_FILENAME_KEY, headerFilename);
       paramMap.put(UsbdmConstants.EXTERNAL_VECTOR_TABLE_KEY,    externalVectorTableFile);
@@ -772,10 +792,16 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       }
    }
 
-   private synchronized void createPageData()  {
+   private synchronized void createPageData(Device device)  {
+      
+      System.err.println("createPageData()");
 
       fPageData = new HashMap<String, String>();
-      
+
+      if (device == null) {
+         return;
+      }
+
       fPageData.put(UsbdmConstants.PATH_SEPARATOR_KEY,             String.valueOf(File.separator));
 
       String buildToolsId = getBuildToolsId();
@@ -792,12 +818,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
       fPageData.put(UsbdmConstants.INTERFACE_TYPE_KEY,          fInterfaceType.name());
 
-      Device device = getDevice();
-      if (device == null) {
-         return;
-      }
       addDeviceAttributes(fPageData, device);
-      
+
       // Add launch parameters from device information
       LaunchParameterUtilities.addLaunchParameters(fPageData, device, null);
 

@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -177,11 +178,11 @@ public class DeviceSelectorPanel extends Composite {
    private DeviceDatabase  fDeviceDatabase = null;
    private String          fDeviceName     = null;
 
-   private Filter          filter = new Filter();
+   private Filter          fFilter = new Filter();
    private int             fMatchingNodesCount;
    private DeviceModel     fMatchingNode;
    private String          fMatchErrorMsg = null;
-   private boolean         filterPending  = false;
+   private boolean         fFilterPending  = false;
 
    private static final String NO_DEVICE_STRING = "";
    private static final int    EXPAND_THRESHOLD = 20;
@@ -459,8 +460,10 @@ public class DeviceSelectorPanel extends Composite {
 
       IProgressMonitor dialog = new NullProgressMonitor();
 
+      fViewer.setAutoExpandLevel(1);
       IStatus status = x.run(dialog);
       if (status.isOK()) {
+         fViewer.collapseAll();
          fViewer.setInput(fModel);
       }
       else {
@@ -505,6 +508,7 @@ public class DeviceSelectorPanel extends Composite {
       fDeviceText.setText(targetName);
       fDeviceText.selectAll();
       identifyFilteredDevice();
+      filterNodesJob();
       forceDevice = true;
    }
 
@@ -518,7 +522,7 @@ public class DeviceSelectorPanel extends Composite {
       boolean isAvailable = false;
       if (model instanceof DeviceModel) {
          try {
-            isAvailable = filter.isVisible(model.getName());
+            isAvailable = fFilter.isVisible(model.getName());
          } catch (PatternSyntaxException e) {
             isAvailable = true;
          }
@@ -558,6 +562,9 @@ public class DeviceSelectorPanel extends Composite {
             fDeviceText.setText(fMatchingNode.getName());
          }
          fViewer.expandToLevel(fMatchingNode, AbstractTreeViewer.ALL_LEVELS);
+         if (fViewer.getSelection().isEmpty()) {
+            fViewer.setSelection(new StructuredSelection(fMatchingNode));
+         }
       }
       else if (fMatchingNodesCount < EXPAND_THRESHOLD) {
          fViewer.expandAll();
@@ -576,17 +583,17 @@ public class DeviceSelectorPanel extends Composite {
     * @return Whether a check was already pending.
     */
    synchronized boolean testAndSetFilterPending(boolean state) {
-      boolean rv = filterPending;
-      filterPending = state;
+      boolean rv = fFilterPending;
+      fFilterPending = state;
       return rv;
    }
    
    /**
-    * Check for mapping conflicts<br>
-    * This is done on a delayed thread for efficiency
+    * Filter visible nodes<br>
+    * This is done on a delayed thread so that typing is not delayed
     */
    public synchronized void filterNodes() {
-//      System.err.println("filterNodes()");
+      System.err.println("filterNodes()");
       if (!testAndSetFilterPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
@@ -617,11 +624,34 @@ public class DeviceSelectorPanel extends Composite {
       if (item != null) {
          fDeviceName = item.getName();
          fViewer.reveal(item);
+         fViewer.setSelection(new StructuredSelection(item));
       }
       else {
          fDeviceName = null;
       }
       return item;
+   }
+   
+   String fFilterName = null;
+   
+   /**
+    * Set filter for selection
+    * 
+    * @param name
+    */
+   private void setFilter(String name) {
+      if ((fFilterName != null) && fFilterName.equals(name)) {
+         return;
+      }
+      fFilterName = name;
+      try {
+         fFilter = new NameFilter(name);
+         fMatchErrorMsg = null;
+      } catch (PatternSyntaxException e) {
+         fMatchErrorMsg = "Illegal filter";
+         fFilter = Filter.NullNameFilter;
+      }
+      filterNodes();
    }
    
    /**
@@ -657,14 +687,7 @@ public class DeviceSelectorPanel extends Composite {
       fDeviceText.addModifyListener(new ModifyListener() {
          @Override
          public void modifyText(ModifyEvent arg0) {
-            fMatchErrorMsg = null;
-            try {
-               filter = new NameFilter(fDeviceText.getText());
-            } catch (PatternSyntaxException e) {
-               fMatchErrorMsg = "Illegal filter";
-               filter = Filter.NullNameFilter;
-            }
-            filterNodes();
+            setFilter(fDeviceText.getText());
          }
       });
       fButton  = new Button(this, SWT.NONE);
