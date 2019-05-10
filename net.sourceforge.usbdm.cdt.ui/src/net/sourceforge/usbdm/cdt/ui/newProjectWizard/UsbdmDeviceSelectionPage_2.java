@@ -99,7 +99,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     */
    synchronized void updateState() {
       final Device device = getDevice();
-      System.err.println("updateState("+device.getName()+")");
+//      System.err.println("updateState("+device.getName()+")");
       if (device == lastDevice) {
          setPageComplete(true);
          return;
@@ -133,7 +133,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     *  Validates control & sets error message
     */
    private void validate() {
-      System.err.println("validate()");
+//      System.err.println("validate()");
       fHasChanged = true;
       setPageComplete(false);
       String message = null;
@@ -148,7 +148,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       if (message == null) {
          updateState();
       }
-      System.err.println("validate() - complete");
+//      System.err.println("validate() - complete");
    }
 
    private void loadBuildtoolNames() {
@@ -479,6 +479,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "      KEEP(*(.flexRAM))\n" + 
                "   } > flexRAM\n\n"; //$NON-NLS-1$
 
+   private final static String DEFAULT_RAM_REGION = "ram";
+   
    /**
     * Write a set of memory region descriptions
     * 
@@ -641,16 +643,23 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          memoryMap.append(MAP_SUFFIX);
       }
       
-      // Add alias for main RAM region
-      memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", "ram",   ramRegion.getName()));
+      if (ramRegion.getName().equals(DEFAULT_RAM_REGION)) {
+         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
+         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
+      }
+      else {
+         // Add alias for main RAM region (if needed)
+         memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", DEFAULT_RAM_REGION,   ramRegion.getName()));
+         // Assume separate regions for Stack and Heap.
+         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/2));
+         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/2));
+      }
       
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
-      System.err.println(memoryMap.toString());
-      
+//    System.err.println(memoryMap.toString());
+    
       paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
-      paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
-      paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
       StringBuilder sb = new StringBuilder();
       if (flexRAMRegions.size()>0) {
          sb.append(LINKER_FLEXRAM_REGION);
@@ -794,7 +803,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
    private synchronized void createPageData(Device device)  {
       
-      System.err.println("createPageData()");
+//      System.err.println("createPageData()");
 
       fPageData = new HashMap<String, String>();
 
