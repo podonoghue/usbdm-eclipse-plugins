@@ -1,9 +1,5 @@
 package net.sourceforge.usbdm.constants;
 
-import net.sourceforge.usbdm.jni.Usbdm;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.eclipse.core.resources.IPathVariableManager;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -15,6 +11,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+
+import net.sourceforge.usbdm.jni.Usbdm;
 
 /**
  * The activator class controls the plug-in life cycle

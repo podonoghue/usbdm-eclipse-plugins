@@ -5,9 +5,7 @@
 package net.sourceforge.usbdm.constants;
 
 import java.io.IOException;
-
 import net.sourceforge.usbdm.jni.Usbdm;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.DialogSettings;
 
@@ -182,6 +180,7 @@ public class UsbdmSharedSettings {
     */
    public static UsbdmSharedSettings getSharedSettings() {
       synchronized (USBDM_COMMON_SETTINGS) {
+         UsbdmSharedSettings settings = new UsbdmSharedSettings();
          if (sharedSettings == null) {
             sharedSettings = new DialogSettings(USBDM_COMMON_SETTINGS);
             try {
@@ -191,8 +190,9 @@ public class UsbdmSharedSettings {
                // Ignore as the file may not exist yet
                System.err.println("UsbdmSharedSettings.getSharedSettings() - file doesn't exist");
             }
+            ToolChainPaths.setDefaults(settings);
          }
-         return new UsbdmSharedSettings();
+         return settings;
       }
    }
 }

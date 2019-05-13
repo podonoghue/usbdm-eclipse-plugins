@@ -1,5 +1,6 @@
 package net.sourceforge.usbdm.cdt.tools;
 
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 
 public class UsbdmConstants {
    public final static String EXE_PROJECT_TYPE_ID              = "net.sourceforge.usbdm.cdt.newProjectType.exe";                 //$NON-NLS-1$
@@ -10,8 +11,8 @@ public class UsbdmConstants {
    public final static String CMSIS_OPTIONS_PAGE_ID            = "net.sourceforge.usbdm.cdt.wizardPage.CMSISOptionsPage";        //$NON-NLS-1$
    public final static String CMSIS_OPTIONS_PAGE_NAME          = "CMSISOptionsPage";                                             //$NON-NLS-1$
 
-   public static final String GCC_COMMAND_LINUX                = "gcc";                    //$NON-NLS-1$
-   public static final String GCC_COMMAND_WINDOWS              = "gcc.exe";                //$NON-NLS-1$
+   public final static String GCC_COMMAND_LINUX                = "gcc";                    //$NON-NLS-1$
+   public final static String GCC_COMMAND_WINDOWS              = "gcc.exe";                //$NON-NLS-1$
    
    // These constants are used for project template and paramMap keys
    public final static String PROJECT_ARTIFACT_KEY                  = "projectArtifactName";       //$NON-NLS-1$
@@ -60,8 +61,8 @@ public class UsbdmConstants {
    public final static String ARM_LTD_STARTUP_S_FILE_KEY            = "startup_ARMLtdGCC_S";       //$NON-NLS-1$
    
    // These constants are used both for the dialogue persistent storage AND the page data map keys
-   final static String SHARED_DEFAULTS_PREFIX_KEY              = "prefix";                 //$NON-NLS-1$
-   final static String SHARED_DEFAULTS_PATH_KEY                = "path";                   //$NON-NLS-1$
+   static final String SHARED_DEFAULTS_PREFIX_KEY              = "prefix";                 //$NON-NLS-1$
+   static final String SHARED_DEFAULTS_PATH_KEY                = "path";                   //$NON-NLS-1$
 
    // Locations to look for device stationery
    final static String STATIONERY_PATH                         = "Stationery/";                         //$NON-NLS-1$
@@ -74,59 +75,59 @@ public class UsbdmConstants {
    public final static String SUB_FAMILY_CFV2                  = "CFV2";
    
    // These keys are used in the project options
-   public static final String USBDM_GCC_PATH_OPTION_KEY                        = "net.sourceforge.usbdm.cdt.toolchain.cross.codesourceryPath";
-   public static final String USBDM_GCC_PREFIX_OPTION_KEY                      = "net.sourceforge.usbdm.cdt.toolchain.cross.prefix";
+   public final static String USBDM_GCC_PATH_OPTION_KEY                        = "net.sourceforge.usbdm.cdt.toolchain.cross.codesourceryPath";
+   public final static String USBDM_GCC_PREFIX_OPTION_KEY                      = "net.sourceforge.usbdm.cdt.toolchain.cross.prefix";
 
-   public static final String USBDM_GCC_PROC_ARM_MCPU_OPTION_KEY               = "net.sourceforge.usbdm.cdt.arm.toolchain.mcpu";
-   public static final String USBDM_GCC_PROC_ARM_MTHUMB_OPTION_KEY             = "net.sourceforge.usbdm.cdt.arm.toolchain.mthumb";
-   public static final String USBDM_GCC_PROC_ARM_MFLOAT_ABI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.arm.toolchain.mfloat-abi";
-   public static final String USBDM_GCC_PROC_ARM_MFPU_OPTION_KEY               = "net.sourceforge.usbdm.cdt.arm.toolchain.mfpu";
-   public static final String USBDM_GCC_PROC_ARM_FSHORT_DOUBLE_OPTION_KEY      = "net.sourceforge.usbdm.cdt.arm.toolchain.short-double";
+   public final static String USBDM_GCC_PROC_ARM_MCPU_OPTION_KEY               = "net.sourceforge.usbdm.cdt.arm.toolchain.mcpu";
+   public final static String USBDM_GCC_PROC_ARM_MTHUMB_OPTION_KEY             = "net.sourceforge.usbdm.cdt.arm.toolchain.mthumb";
+   public final static String USBDM_GCC_PROC_ARM_MFLOAT_ABI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.arm.toolchain.mfloat-abi";
+   public final static String USBDM_GCC_PROC_ARM_MFPU_OPTION_KEY               = "net.sourceforge.usbdm.cdt.arm.toolchain.mfpu";
+   public final static String USBDM_GCC_PROC_ARM_FSHORT_DOUBLE_OPTION_KEY      = "net.sourceforge.usbdm.cdt.arm.toolchain.short-double";
 
-   public static final String USBDM_GCC_PROC_COLDFIRE_MCPU_OPTION_KEY          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mcpu";
-   public static final String USBDM_GCC_PROC_COLDFIRE_MFLOAT_ABI_OPTION_KEY    = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mfloat-abi";
-   public static final String USBDM_GCC_PROC_COLDFIRE_MFPU_OPTION_KEY          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mfpu";
-   public static final String USBDM_GCC_PROC_COLDFIRE_FSHORT_DOUBLE_OPTION_KEY = "net.sourceforge.usbdm.cdt.coldfire.toolchain.short-double";
+   public final static String USBDM_GCC_PROC_COLDFIRE_MCPU_OPTION_KEY          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mcpu";
+   public final static String USBDM_GCC_PROC_COLDFIRE_MFLOAT_ABI_OPTION_KEY    = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mfloat-abi";
+   public final static String USBDM_GCC_PROC_COLDFIRE_MFPU_OPTION_KEY          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.mfpu";
+   public final static String USBDM_GCC_PROC_COLDFIRE_FSHORT_DOUBLE_OPTION_KEY = "net.sourceforge.usbdm.cdt.coldfire.toolchain.short-double";
 
-   public static final String USBDM_GCC_DEBUG_LEVEL_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel";
-   public static final String USBDM_GCC_DEBUG_FORMAT_OPTION_KEY                = "net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat";
-   public static final String USBDM_GCC_DEBUG_OTHER_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.other";
-   public static final String USBDM_GCC_DEBUG_PROF_OPTION_KEY                  = "net.sourceforge.usbdm.cdt.toolchain.debug.prof";
-   public static final String USBDM_GCC_DEBUG_GPROF_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.gprof";
-   public static final String USBDM_GCC_DEBUG_SEMIHOSTING_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.debug.rdimon";
+   public final static String USBDM_GCC_DEBUG_LEVEL_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.debugLevel";
+   public final static String USBDM_GCC_DEBUG_FORMAT_OPTION_KEY                = "net.sourceforge.usbdm.cdt.toolchain.debug.mdebugformat";
+   public final static String USBDM_GCC_DEBUG_OTHER_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.other";
+   public final static String USBDM_GCC_DEBUG_PROF_OPTION_KEY                  = "net.sourceforge.usbdm.cdt.toolchain.debug.prof";
+   public final static String USBDM_GCC_DEBUG_GPROF_OPTION_KEY                 = "net.sourceforge.usbdm.cdt.toolchain.debug.gprof";
+   public final static String USBDM_GCC_DEBUG_SEMIHOSTING_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.debug.rdimon";
 
-   public static final String USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY          = "net.sourceforge.usbdm.cdt.toolchain.optimization.level";
-   public static final String USBDM_GCC_OPTIMIZATION_PACKSTRUCTS_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs";
-   public static final String USBDM_GCC_OPTIMIZATION_SHORTENUMS_OPTION_KEY     = "net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations";
-   public static final String USBDM_GCC_OPTIMIZATION_FUNCTION_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections";
-   public static final String USBDM_GCC_OPTIMIZATION_DATA_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections";
-   public static final String USBDM_GCC_OPTIMIZATION_NORTTI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI";
-   public static final String USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.deadCodeElimination";
-   public static final String USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY  = "net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther";
-   public static final String USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther";
+   public final static String USBDM_GCC_OPTIMIZATION_LEVEL_OPTION_KEY          = "net.sourceforge.usbdm.cdt.toolchain.optimization.level";
+   public final static String USBDM_GCC_OPTIMIZATION_PACKSTRUCTS_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.packStructs";
+   public final static String USBDM_GCC_OPTIMIZATION_SHORTENUMS_OPTION_KEY     = "net.sourceforge.usbdm.cdt.toolchain.optimization.shortEnumerations";
+   public final static String USBDM_GCC_OPTIMIZATION_FUNCTION_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.functionSections";
+   public final static String USBDM_GCC_OPTIMIZATION_DATA_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.optimization.dataSections";
+   public final static String USBDM_GCC_OPTIMIZATION_NORTTI_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.optimization.noRTTI";
+   public final static String USBDM_GCC_OPTIMIZATION_DEADCODE_OPTION_KEY       = "net.sourceforge.usbdm.cdt.toolchain.optimization.deadCodeElimination";
+   public final static String USBDM_GCC_OPTIMIZATION_COMPILEROTHER_OPTION_KEY  = "net.sourceforge.usbdm.cdt.toolchain.optimization.compilerOther";
+   public final static String USBDM_GCC_OPTIMIZATION_LINKEROTHER_OPTION_KEY    = "net.sourceforge.usbdm.cdt.toolchain.optimization.linkerOther";
 
-   public static final String USBDM_GCC_WARNING_PEDANTIC_OPTION_KEY            = "net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic";
-   public static final String USBDM_GCC_WARNING_ALLWARN_OPTION_KEY             = "net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"; 
-   public static final String USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"; 
-   public static final String USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"; 
+   public final static String USBDM_GCC_WARNING_PEDANTIC_OPTION_KEY            = "net.sourceforge.usbdm.cdt.toolchain.warnings.pedantic";
+   public final static String USBDM_GCC_WARNING_ALLWARN_OPTION_KEY             = "net.sourceforge.usbdm.cdt.toolchain.warnings.allwarn"; 
+   public final static String USBDM_GCC_WARNING_EXTRAWARN_OPTION_KEY           = "net.sourceforge.usbdm.cdt.toolchain.warnings.extrawarn"; 
+   public final static String USBDM_GCC_WARNING_WCONVERSION_OPTION_KEY         = "net.sourceforge.usbdm.cdt.toolchain.warnings.wconversion"; 
 
    // These keys are used as keys to CDT Variables                 
-   public static final String ARM_BUILDTOOLS_OPTIONS               = "net.sourceforge.usbdm.cdt.arm.toolchain.buildtools";
-   public static final String COLDFIRE_BUILDTOOLS_OPTIONS          = "net.sourceforge.usbdm.cdt.coldfire.toolchain.buildtools";
+   public final static String ARM_BUILDTOOLS_OPTIONS               = UsbdmSharedConstants.USBDM_ARM_BUILD_TOOL_ID;
+   public final static String COLDFIRE_BUILDTOOLS_OPTIONS          = UsbdmSharedConstants.USBDM_COLDFIRE_BUILD_TOOL_ID;
    
-   public static final String PATH_NOT_SET      = "PATH NOT SET";
-   public static final String COMMAND_NOT_SET   = "COMMAND NOT SET";
-   public static final String PREFIX_NOT_SET    = "PREFIX NOT SET";
+   public final static String PATH_NOT_SET      = UsbdmSharedConstants.PATH_NOT_SET;
+   public final static String COMMAND_NOT_SET   = UsbdmSharedConstants.COMMAND_NOT_SET;
+   public final static String PREFIX_NOT_SET    = UsbdmSharedConstants.PREFIX_NOT_SET;
 
    // Fixed paths within created projects
-//   public static final String PROJECT_PROJECT_HEADERS_PATH  = "Project_Headers";
-//   public static final String PROJECT_PROJECT_SETTINGS_PATH = "Project_Settings";
-//   public static final String PROJECT_SOURCES_PATH          = "Sources";
-//   public static final String PROJECT_SNIPPETS_PATH         = "Snippets";
-   public static final String PROJECT_START_UP_CODE_PATH    = "Startup_Code";
-   public static final String PROJECT_VECTOR_C_PATH         = PROJECT_START_UP_CODE_PATH+"/vectors.c";
-   public static final String PROJECT_VECTOR_CPP_PATH       = PROJECT_START_UP_CODE_PATH+"/vectors.cpp";
-   public static final String PROJECT_INCLUDE_FOLDER        = "Project_Headers";
-   public static final String PROJECT_SOURCES_FOLDER        = "Sources";
+//   public final static String PROJECT_PROJECT_HEADERS_PATH  = "Project_Headers";
+//   public final static String PROJECT_PROJECT_SETTINGS_PATH = "Project_Settings";
+//   public final static String PROJECT_SOURCES_PATH          = "Sources";
+//   public final static String PROJECT_SNIPPETS_PATH         = "Snippets";
+   public final static String PROJECT_START_UP_CODE_PATH    = "Startup_Code";
+   public final static String PROJECT_VECTOR_C_PATH         = PROJECT_START_UP_CODE_PATH+"/vectors.c";
+   public final static String PROJECT_VECTOR_CPP_PATH       = PROJECT_START_UP_CODE_PATH+"/vectors.cpp";
+   public final static String PROJECT_INCLUDE_FOLDER        = "Project_Headers";
+   public final static String PROJECT_SOURCES_FOLDER        = "Sources";
    
 }

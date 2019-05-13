@@ -3,13 +3,6 @@ package net.sourceforge.usbdm.cdt.ui;
 import java.io.File;
 import java.util.Hashtable;
 
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.constants.ToolInformationData;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
-import net.sourceforge.usbdm.constants.VariableInformationData;
-import net.sourceforge.usbdm.constants.VariableInformationData.VariableType;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.preference.PreferencePage;
@@ -32,6 +25,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.constants.ToolInformationData;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedSettings;
+import net.sourceforge.usbdm.constants.VariableInformationData;
+import net.sourceforge.usbdm.constants.VariableInformationData.VariableType;
 
 public class WorkbenchMainPreferencePage extends PreferencePage implements
 IWorkbenchPreferencePage {
@@ -352,7 +352,7 @@ IWorkbenchPreferencePage {
 //         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found path variable   = " + toolInformation.getPathVariableName());
 //         System.err.println("WorkbenchMainPreferencePage.loadPaths() Found prefix variable = " + toolInformation.getPrefixVariableName());
          toolInformation.getPathText().setText(toolPath);
-         String toolPrefix = settings.get(toolInformation.getPrefixVariableName(), "");
+         String toolPrefix = settings.get(toolInformation.getPrefixVariableName(), UsbdmConstants.PREFIX_NOT_SET);
          toolInformation.getPrefixText().setText(toolPrefix);
       }
    }
@@ -498,6 +498,11 @@ IWorkbenchPreferencePage {
     * @param args
     */
    public static void main(String[] args) {
+      
+//      UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
+//      System.err.println("Path   = " + settings.get(UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR));
+//      System.err.println("Prefix = " + settings.get(UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR));
+
       Display display = new Display();
       Shell shell = new Shell(display);
       shell.setSize(600,450);

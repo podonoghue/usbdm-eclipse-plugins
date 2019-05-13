@@ -479,7 +479,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "      KEEP(*(.flexRAM))\n" + 
                "   } > flexRAM\n\n"; //$NON-NLS-1$
 
-   private final static String DEFAULT_RAM_REGION = "ram";
+   private final static String DEFAULT_RAM_REGION        = "ram";
+   private final static String DEFAULT_RAM_HIGH_REGION   = "ram_high";
+   private final static String DEFAULT_RAM_LOW_REGION    = "ram_low";
    
    /**
     * Write a set of memory region descriptions
@@ -619,6 +621,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
       ramSize        = 0;
       MemoryRange ramRegion = null;
+      MemoryRange ramHigh   = null;
+      MemoryRange ramLow    = null;
 
       // Use largest RAM region as default RAM
       for(MemoryRange region:ramRegions) {
@@ -626,6 +630,12 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          if (t>=ramSize) {
             ramSize   = t;
             ramRegion = region;
+         }
+         if (region.getName().equalsIgnoreCase(DEFAULT_RAM_HIGH_REGION)) {
+            ramHigh = region;
+         }
+         if (region.getName().equalsIgnoreCase(DEFAULT_RAM_LOW_REGION)) {
+            ramLow = region;
          }
       }
       if (ramRegion == null) {
@@ -643,16 +653,19 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          memoryMap.append(MAP_SUFFIX);
       }
       
-      if (ramRegion.getName().equals(DEFAULT_RAM_REGION)) {
-         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
-         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
-      }
-      else {
+      if (!ramRegion.getName().equals(DEFAULT_RAM_REGION)) {
          // Add alias for main RAM region (if needed)
          memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", DEFAULT_RAM_REGION,   ramRegion.getName()));
+      }
+      if ((ramHigh != null) && (ramLow != null)) {
          // Assume separate regions for Stack and Heap.
-         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/2));
-         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/2));
+         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", (ramHigh.end-ramHigh.start+1)/2));
+         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", (ramLow.end-ramLow.start+1)/2));
+      }
+      else  {
+         // Assume single RAM region
+         paramMap.put(UsbdmConstants.LINKER_STACK_SIZE_KEY,    String.format("0x%X", ramSize/4));
+         paramMap.put(UsbdmConstants.LINKER_HEAP_SIZE_KEY,     String.format("0x%X", ramSize/4));
       }
       
       paramMap.put(UsbdmConstants.LINKER_INFORMATION_KEY,   memoryMap.toString());
@@ -660,6 +673,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     
       paramMap.put(UsbdmConstants.LINKER_FLASH_SIZE_KEY,    String.format("0x%X", flashSize));
       paramMap.put(UsbdmConstants.LINKER_RAM_SIZE_KEY,      String.format("0x%X", ramSize));
+      
       StringBuilder sb = new StringBuilder();
       if (flexRAMRegions.size()>0) {
          sb.append(LINKER_FLEXRAM_REGION);
