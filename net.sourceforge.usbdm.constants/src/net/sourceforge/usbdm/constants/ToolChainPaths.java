@@ -22,6 +22,7 @@ public class ToolChainPaths {
 
    // Where to look for tool-chain
    static final Info infos[] = {
+         new Info("SOFTWARE\\WOW6432Node\\Eclipse Foundation\\Eclipse CDT", "InstallationDirectory", "/GNU Tools ARM Embedded/8 2018-q4-major/bin/arm-none-eabi-gcc.exe"),
          new Info("SOFTWARE\\WOW6432Node\\ARM\\GNU Tools for ARM Embedded Processors", "InstallFolder", "/bin/arm-none-eabi-gcc.exe"),
          new Info("SOFTWARE\\WOW6432Node\\NXP\\S32 Design Studio\\Product Versions\\S32 Design Studio for ARM Version 2018.R1", "Path", "/Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc.exe"),
          new Info("SOFTWARE\\Freescale\\Kinetis Design Studio 3.2.0", "Path", "/Toolchain/bin/arm-none-eabi-gcc.exe"),
@@ -44,7 +45,9 @@ public class ToolChainPaths {
       software.view64BitRegistry(true);
       RegStringValue regValue = (RegStringValue)software.getValue(name);
       if (regValue != null) {
+         System.err.println("regValue = " +regValue);
          rv = regValue.getValue();
+         System.err.println("rv = " +rv);
          if (rv != null) {
             rv = rv.replaceAll("\\\\", "/");
          }
@@ -52,8 +55,9 @@ public class ToolChainPaths {
             rv = rv.substring(0, rv.lastIndexOf('/'));
          }
          Path p = Paths.get(rv, lastPart);
+         rv += lastPart;
          if (p.toFile().exists()) {
-            return rv+lastPart;
+            return rv;
          }
       }
       return null;
@@ -68,6 +72,7 @@ public class ToolChainPaths {
       for (Info info:infos) {
          String rv = getPath(info.key, info.name, info.pathExtra);
          if (rv != null) {
+            System.err.print("Path = " +rv);
             return rv;
          }
       }
@@ -80,11 +85,17 @@ public class ToolChainPaths {
     * @param settings Shared settings object
     */
    public static void setDefaultToolPaths(UsbdmSharedSettings settings) {
-      String toolPath = settings.get(UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR, "");
-      String prefix   = settings.get(UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR, "");
 
-      if (toolPath.isEmpty() || toolPath.equals(UsbdmSharedConstants.PATH_NOT_SET) ||
-          prefix.isEmpty() || prefix.equals(UsbdmSharedConstants.PREFIX_NOT_SET)) {
+      String toolPath = null;
+      String prefix   = null;
+
+      if (settings != null) {
+         toolPath = settings.get(UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR, "");
+         prefix   = settings.get(UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR, "");
+      }
+
+      if ((toolPath==null) || toolPath.isEmpty() || toolPath.equals(UsbdmSharedConstants.PATH_NOT_SET) ||
+            (prefix==null) ||  prefix.isEmpty() || prefix.equals(UsbdmSharedConstants.PREFIX_NOT_SET)) {
 
          String gccCommand    = "gcc.exe";
 
@@ -104,28 +115,32 @@ public class ToolChainPaths {
                prefix = prefix.substring(0,  index);
             }
          }
-         settings.put(UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR, toolPath);
-         settings.put(UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR, prefix);
+         if (settings != null) {
+            settings.put(UsbdmSharedConstants.ARMLTD_ARM_PATH_VAR, toolPath);
+            settings.put(UsbdmSharedConstants.ARMLTD_ARM_PREFIX_VAR, prefix);
+         }
       }
    }
-   
+
    /**
     * Set default make and rm commands
     * 
     * @param settings Shared settings object
     */
    public static void setDefaultCommands(UsbdmSharedSettings settings) {
-      String makeCommand    = settings.get(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "");
-      String removeCommand  = settings.get(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR,   "");
+      if (settings != null) {
+         String makeCommand    = settings.get(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "");
+         String removeCommand  = settings.get(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR,   "");
 
-      if (makeCommand.isEmpty()) {
-         settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT);
-      }         
-      if (removeCommand.isEmpty() ) {
-         settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT);
-      }         
+         if (makeCommand.isEmpty()) {
+            settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT);
+         }         
+         if (removeCommand.isEmpty() ) {
+            settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT);
+         }         
+      }
    }
-   
+
    /**
     * Set default settings
     * 
@@ -134,6 +149,12 @@ public class ToolChainPaths {
    public static void setDefaults(UsbdmSharedSettings settings) {
       setDefaultToolPaths(settings);
       setDefaultCommands(settings);
-      settings.flush();
+      if (settings != null) {
+         settings.flush();
+      }
+   }
+
+   public static void main(String[] args) {
+      setDefaults(null);
    }
 }
