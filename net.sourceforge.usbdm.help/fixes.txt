@@ -1,15 +1,7 @@
-Convert >> to &lt;&lt;
-Convert << to &gt;&gt;
+Convert operator>> to operator&gt;&gt;
+Convert operator<< to operator&lt;&lt;
   in 
-class_u_s_b_d_m_1_1_formatted_i_o.html
-class_u_s_b_d_m_1_1_string_formatter.html
-class_u_s_b_d_m_1_1_uart.html
-class_u_s_b_d_m_1_1_uart___t.html
-class_u_s_b_d_m_1_1_uart__basic___t.html
-class_u_s_b_d_m_1_1_uart__brfa___t.html
-class_u_s_b_d_m_1_1_uart_buffered___t.html
-class_u_s_b_d_m_1_1_uart_buffered__basic___t.html
-class_u_s_b_d_m_1_1_uart_buffered__brfa___t.html
+class_*.html
 
 Convert href="  to href="html/
 Convert topic=" to topic="html/
