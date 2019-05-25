@@ -449,6 +449,7 @@ public class Device implements Cloneable {
     * @return ArrayList of ProjectActionLists (an empty list if none)
     */
    public ProjectActionList getProjectActionList(Map<String, String> variableMap) {
+//      System.err.println("getProjectActionList()");
       return PackageParser.getDevicePackageList(this, variableMap);
    }
 

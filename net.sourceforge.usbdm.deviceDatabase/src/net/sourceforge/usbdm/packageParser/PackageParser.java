@@ -38,7 +38,7 @@ public class PackageParser {
     * @return Applicable actions
     */
    static public ProjectActionList getDevicePackageList(final Device device, final Map<String, String> variableMap) {
-      //      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
+//      System.err.println(String.format("PackageParser.getDevicePackageList(): Device = %s",  device.getName()));
       ProjectActionList projectActionList = new ProjectActionList("---root " + device.getName() + " ---");
       IPath packagesDirectoryPath = Usbdm.getResourcePath().append("Stationery/Packages");
       File[] packageDirectories = packagesDirectoryPath.toFile().listFiles();

@@ -59,8 +59,9 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  */
 public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProjectTypeSelection {
 
-   static final String PAGE_NAME  = "UsbdmProjectParametersPage";
-   static final String PAGE_TITLE = "USBDM Device Selection";
+   static final String PAGE_NAME   = "UsbdmProjectParametersPage";
+   static final String PAGE_TITLE  = "USBDM Device Selection";
+   static final String DESCRIPTION = "Device selected";
 
    private InterfaceType         fInterfaceType;
    private Combo                 fBuildToolsCombo;
@@ -77,15 +78,15 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
     * @param paramMap               
     * @param usbdmNewProjectWizard
     */
-   public UsbdmDeviceSelectionPage_2(Map<String, String> paramMap, UsbdmNewProjectWizard usbdmNewProjectWizard) {
+   public UsbdmDeviceSelectionPage_2(InterfaceType interfaceType, UsbdmNewProjectWizard usbdmNewProjectWizard) {
       super(PAGE_NAME);
       try {
-         fInterfaceType = InterfaceType.valueOf(paramMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
+         fInterfaceType = interfaceType;
       } catch (Exception e) {
          fInterfaceType = InterfaceType.T_ARM;
       }
       setTitle(PAGE_TITLE);
-      setDescription("Select project parameters");
+      setDescription(DESCRIPTION);
       setPageComplete(false);
       setWizard(usbdmNewProjectWizard);
    }
@@ -93,31 +94,45 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    Device lastDevice = null;
    
    /**
+    * 
+    * @param device
+    * 
+    * @return true => need to update device information
+    */
+   synchronized boolean changeDevice(Device device) {
+//    System.err.println("changeDevice("+device.getName()+")");
+    if (device == lastDevice) {
+       return false;
+    }
+    lastDevice = device;
+    fHasChanged = true;
+    return true;
+   }
+   
+   /**
     * Updates the internal state
     * This is done on a worker thread as it is time consuming
     * After completion it calls page.setPageComplete() to notify wizard of changes
     */
-   synchronized void updateState() {
-      final Device device = getDevice();
-//      System.err.println("updateState("+device.getName()+")");
-      if (device == lastDevice) {
-         setPageComplete(true);
-         return;
-      }
-      lastDevice = device;
-
+    void updateState() {
+//      System.err.println("updateState()");
       final UsbdmNewProjectWizard wizard = (UsbdmNewProjectWizard) getWizard();
       final UsbdmDeviceSelectionPage_2 page = this;
-
+      final Device device = lastDevice;
+      
       if (wizard != null) {
          Job job = new Job("Updating configuration") {
             protected IStatus run(IProgressMonitor monitor) {
                monitor.beginTask("Updating Pages...", 10);
                createPageData(device);
+               wizard.setDevice(device);
+               wizard.updateParamMap(page);
                Display.getDefault().syncExec(new Runnable() {
                   @Override
                   public void run() {
-                     page.setPageComplete(true);
+//                     System.err.println("page.setPageComplete()");
+                     validate();
+//                     page.setPageComplete(true);
                   }
                });
                monitor.done();
@@ -144,10 +159,17 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          }
       }
       //      System.err.println("UsbdmProjectParametersPage.validate() - " + ((message==null)?"(null)":message));
-      setErrorMessage(message);
       if (message == null) {
-         updateState();
+         if (changeDevice(getDevice())) {
+            setDescription("Updating configuration...");
+            updateState();
+         }
+         else {
+            setDescription(DESCRIPTION);
+            setPageComplete(true);
+         }
       }
+      setErrorMessage(message);
 //      System.err.println("validate() - complete");
    }
 
@@ -172,9 +194,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
    private void updateBuildToolId() {
       int buildToolIndex = fBuildToolsCombo.getSelectionIndex();
       if (buildToolIndex<0) {
+         buildToolIndex = 0;
          fBuildToolsCombo.select(0);
       }
-      fBuildToolId = fBuildToolIds[fBuildToolsCombo.getSelectionIndex()];
+      fBuildToolId = fBuildToolIds[buildToolIndex];
    }
 
    private void createUsbdmParametersControl(Composite parent) {

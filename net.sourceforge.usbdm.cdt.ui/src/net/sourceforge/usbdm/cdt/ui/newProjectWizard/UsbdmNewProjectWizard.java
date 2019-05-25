@@ -27,7 +27,11 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
@@ -35,6 +39,7 @@ import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
@@ -50,7 +55,7 @@ import net.sourceforge.usbdm.packageParser.WizardPageInformation;
  * @author pgo
  */
 public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnableWithProgress {
-   
+
    private UsbdmNewProjectPage_1                fUsbdmNewProjectPage_1 = null;
    private UsbdmDeviceSelectionPage_2           fUsbdmProjectParametersPage_2 = null;
    private ArrayList<UsbdmDynamicOptionPage_N>  fDynamicWizardPages  = null;
@@ -66,7 +71,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    public void init(IWorkbench workbench, IStructuredSelection selection) {
       setNeedsProgressMonitor(true);
       setDefaultPageImageDescriptor(UsbdmSharedConstants.getUsbdmIcon());
-      
+
       IDialogSettings settings = null;
       Activator activator = Activator.getDefault();
       if (activator == null) {
@@ -94,10 +99,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    @Override
    public boolean canFinish() {
-//      super.canFinish();
+      //      super.canFinish();
       if ((fUsbdmNewProjectPage_1 == null)        || !fUsbdmNewProjectPage_1.isPageComplete() ||
-          (fUsbdmProjectParametersPage_2 == null) || !fUsbdmProjectParametersPage_2.isPageComplete() ||
-          fDynamicWizardPages == null) {
+            (fUsbdmProjectParametersPage_2 == null) || !fUsbdmProjectParametersPage_2.isPageComplete() ||
+            fDynamicWizardPages == null) {
          return false;
       }
       if (fDynamicWizardPages.size() != fWizardPageInformation.size()) {
@@ -118,48 +123,60 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    }
 
    /**
-    * Updates fParamMap from fBaseParamMap and buttons on dynamic pages
+    * Visits the nodes of the projectActionList and add constants found 
+    * 
+    * @param paramMap            Map to add constants to
+    * @param projectActionList   Action list to visit
     */
-   void updateParamMap() {
-//      System.err.println("UsbdmNewProjectWizard.updateParamMap() - entry");
-
-//      listParamMap("fBaseParamMap\n===========================================", fBaseParamMap);
-
-      fParamMap = new HashMap<String, String>(fBaseParamMap);
-      
-      if (fUsbdmProjectParametersPage_2 == null) {
-         return;
-      }
-      fUsbdmProjectParametersPage_2.getPageData(fParamMap);
-//      listParamMap("fParamMap\n===========================================", fParamMap);
-      fDevice = fUsbdmProjectParametersPage_2.getDevice();
-      if (fDevice == null) {
-         return;
-      }
-      fProjectActionList = fDevice.getProjectActionList(fParamMap);
-      
-      if (fDynamicWizardPages != null) {
-         for (final UsbdmDynamicOptionPage_N p:fDynamicWizardPages) {
-                  p.getPageData(fParamMap);
+   void updateMapConstants(final Map<String, String> paramMap, ProjectActionList projectActionList, final Device device) {
+      Visitor visitor = new Visitor() {
+         @Override
+         public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
+            try {
+               if (action instanceof ProjectActionList) {
+                  ProjectActionList projectActionList = (ProjectActionList) action;
+                  return projectActionList.appliesTo(device, paramMap)?CONTINUE:PRUNE;
+               }
+               else if (action instanceof ProjectConstant) {
+                  ProjectConstant projectConstant = (ProjectConstant) action;
+                  //                  System.err.println(String.format("updateMapConstants(): Found constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                  String value = paramMap.get(projectConstant.getId());
+                  if (value != null) {
+                     if (projectConstant.isWeak()) {
+                        // Ignore - assume constant is a default that has been overwritten
+                        return CONTINUE;
+                     }
+                     if (!projectConstant.doOverwrite() && !value.equals(projectConstant.getValue())) {
+                        return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
+                     }
+                  }
+                  paramMap.put(projectConstant.getId(), projectConstant.getValue());
+               }
+               return CONTINUE;
+            } catch (Exception e) {
+               return new Result(e);
+            }
          }
+      };
+      // Visit all enabled actions and collect constants
+      Result result = projectActionList.visit(visitor, null);
+      if (result.getStatus() == Status.EXCEPTION) {
+         result.getException().printStackTrace();
       }
-      updateMapConstants(fParamMap, fProjectActionList);
-//      listParamMap("fParamMap\n===========================================", fParamMap);
-//      System.err.println("UsbdmNewProjectWizard.updateParamMap() - exit");
    }
 
    /**
     * Collects information about dynamic wizard pages
     */
    void updateDynamicWizardPageInformation() {
-//      System.err.println("updateDynamicWizardPageInformation()");
+      //      System.err.println("updateDynamicWizardPageInformation()");
       fWizardPageInformation = new ArrayList<WizardPageInformation>();
       Visitor visitor = new ProjectActionList.Visitor() {
          @Override
          public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
             if (action instanceof WizardPageInformation) {
                WizardPageInformation page = (WizardPageInformation) action;
-//               System.err.println("Adding dynamic page info " + page.getName());
+               //               System.err.println("Adding dynamic page info " + page.getName());
                fWizardPageInformation.add(page);
             }
             return CONTINUE;
@@ -169,7 +186,73 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          fProjectActionList.visit(visitor, null);
       }
    }
+
+   /**
+    * Set device
+    * 
+    * @param device
+    */
+   void setDevice(Device device) {
+      fDevice = device;
+   }
    
+   /**
+    * Updates fParamMap and pages
+    */
+   void updateParamMap(WizardPage currentPage) {
+//      System.err.println("updateParamMap()");
+      fParamMap = new HashMap<String, String>(fBaseParamMap);
+      final UsbdmNewProjectWizard wizard = this;
+      if (fUsbdmProjectParametersPage_2 != null) {
+         Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+               if (fUsbdmProjectParametersPage_2 != null) {
+                  fUsbdmProjectParametersPage_2.getPageData(fParamMap);
+               }
+            }
+         });
+         fProjectActionList = fDevice.getProjectActionList(fParamMap);
+         if (currentPage == fUsbdmProjectParametersPage_2) {
+            // Create 1st dynamic page
+//            System.err.println("updateParamMap() - Re-create dynamic pages");
+
+            updateDynamicWizardPageInformation();
+
+            fDynamicWizardPages = new ArrayList<UsbdmDynamicOptionPage_N>();
+            UsbdmDynamicOptionPage_N newPage = new UsbdmDynamicOptionPage_N(fDevice, fParamMap, fProjectActionList, fWizardPageInformation.get(0));
+            newPage.setWizard(wizard);
+            fDynamicWizardPages.add(newPage);
+         }
+         if (fDynamicWizardPages != null) {
+            for (final UsbdmDynamicOptionPage_N page:fDynamicWizardPages) {
+               Display.getDefault().syncExec(new Runnable() {
+                  @Override
+                  public void run() {
+                     page.getPageData(fParamMap);
+                  }
+               });
+               updateMapConstants(fParamMap, fProjectActionList, fDevice);
+               if (page == currentPage) {
+                  break;
+               }
+            }
+         }
+         int dynamicIndex = fDynamicWizardPages.indexOf(currentPage);
+         if (dynamicIndex>=0) {
+            int newPageIndex = dynamicIndex + 1;
+            // Remove pages after current page
+            fDynamicWizardPages.removeAll(fDynamicWizardPages.subList(newPageIndex, fDynamicWizardPages.size()));
+            if (fWizardPageInformation.size()>newPageIndex) {
+               // Regenerate page after current page
+               UsbdmDynamicOptionPage_N newPage = new UsbdmDynamicOptionPage_N(fDevice, fParamMap, fProjectActionList, fWizardPageInformation.get(newPageIndex));
+               newPage.setWizard(wizard);
+               fDynamicWizardPages.add(newPage);
+            }
+         }
+      }
+   }
+
    boolean hasChanged(IWizardPage currentPage) {
       boolean changed = false;
       if (fUsbdmNewProjectPage_1 != null) {
@@ -198,125 +281,52 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return false;
    }
 
-   /**
-    * Visits the nodes of the projectActionList and add constants found 
-    * 
-    * @param paramMap            Map to add constants to
-    * @param projectActionList   Action list to visit
-    */
-   void updateMapConstants(final Map<String, String> paramMap, ProjectActionList projectActionList) {
-      Visitor visitor = new Visitor() {
-         @Override
-         public Result applyTo(ProjectAction action, Value result, IProgressMonitor monitor) {
-            try {
-               if (action instanceof ProjectActionList) {
-                  ProjectActionList projectActionList = (ProjectActionList) action;
-                  return projectActionList.appliesTo(fUsbdmProjectParametersPage_2.getDevice(), paramMap)?CONTINUE:PRUNE;
-               }
-               else if (action instanceof ProjectConstant) {
-                  ProjectConstant projectConstant = (ProjectConstant) action;
-//                  System.err.println(String.format("updateMapConstants(): Found constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
-                  String value = paramMap.get(projectConstant.getId());
-                  if (value != null) {
-                     if (projectConstant.isWeak()) {
-                        // Ignore - assume constant is a default that has been overwritten
-                        return CONTINUE;
-                     }
-                     if (!projectConstant.doOverwrite() && !value.equals(projectConstant.getValue())) {
-                        return new Result(new Exception("paramMap already contains constant " + projectConstant.getId()));
-                     }
-                  }
-                  paramMap.put(projectConstant.getId(), projectConstant.getValue());
-               }
-               return CONTINUE;
-            } catch (Exception e) {
-               return new Result(e);
-            }
-         }
-      };
-      // Visit all enabled actions and collect constants
-      Result result = fProjectActionList.visit(visitor, null);
-      if (result.getStatus() == Status.EXCEPTION) {
-         result.getException().printStackTrace();
-      }
-   }
- 
-   public void updateDynamicInformation(IWizardPage currentPage) {
-//      System.err.println("updateDynamicInformation()");
-      updateParamMap();
-      updateDynamicWizardPageInformation();
-      
-      if (currentPage == fUsbdmProjectParametersPage_2) {
-         // Re-create all dynamic pages
-         UsbdmDynamicOptionPage_N newPage = new UsbdmDynamicOptionPage_N(fDevice, fProjectActionList, fWizardPageInformation.get(0));
-         newPage.setWizard(this);
-         fDynamicWizardPages = new ArrayList<UsbdmDynamicOptionPage_N>();
-         fDynamicWizardPages.add(newPage);
-      }
-   }
-
    @Override
    public IWizardPage getNextPage(IWizardPage currentPage) {
-//      System.err.println("getNextPage() " + currentPage.getTitle());
+//      System.err.println("getNextPage(" + currentPage.getTitle() + ")");
       if (currentPage == fUsbdmNewProjectPage_1) {
          // Create new project page if none or interface has changed
          if (hasChanged(currentPage) || (fUsbdmProjectParametersPage_2 == null)) {
             fBaseParamMap = new HashMap<String, String>();
             fUsbdmNewProjectPage_1.getPageData(fBaseParamMap);
-            fUsbdmProjectParametersPage_2 = new UsbdmDeviceSelectionPage_2(fBaseParamMap, this);
+            InterfaceType interfaceType = InterfaceType.valueOf(fBaseParamMap.get(UsbdmConstants.INTERFACE_TYPE_KEY));
+            fUsbdmProjectParametersPage_2 = new UsbdmDeviceSelectionPage_2(interfaceType, this);
             fDynamicWizardPages = null;
          }
          return fUsbdmProjectParametersPage_2;
       }
+      int newDynamicPageIndex = 0;
       if (currentPage == fUsbdmProjectParametersPage_2) {
-         if (hasChanged(currentPage)) {
-            updateDynamicInformation(currentPage);
-         }
          if ((fDynamicWizardPages == null) || (fDynamicWizardPages.size() == 0)) {
+//            System.err.println("getNextPage(" + currentPage.getTitle() + ") => null");
             return null;
          }
-         return fDynamicWizardPages.get(0);
+//         System.err.println("getNextPage(" + currentPage.getTitle() + ") => " + fDynamicWizardPages.get(0));
+         newDynamicPageIndex = 0;
       }
-      // Check if current page is a dynamic page
-      int dynamicPageIndex = -1;
-      if (fDynamicWizardPages != null) {
-         dynamicPageIndex = fDynamicWizardPages.indexOf(currentPage);
-      }
-      if (dynamicPageIndex < 0) {
-         // Non-existent page!
-         // Should be impossible
-         return null;
-      }
-      int newDynamicPageIndex = dynamicPageIndex+1;
-      if (hasChanged(currentPage)) {
-         if (newDynamicPageIndex<fDynamicWizardPages.size()) {
-            // Remove invalidated pages
-            fDynamicWizardPages.subList(newDynamicPageIndex, fDynamicWizardPages.size()).clear();
+      else {
+         // Check if current page is a dynamic page
+         int dynamicPageIndex = -1;
+         if (fDynamicWizardPages != null) {
+            dynamicPageIndex = fDynamicWizardPages.indexOf(currentPage);
          }
+         if (dynamicPageIndex < 0) {
+            // Non-existent page!
+            // Should be impossible
+            return null;
+         }
+         newDynamicPageIndex = dynamicPageIndex+1;
       }
       if (newDynamicPageIndex < fDynamicWizardPages.size()) {
          // Return existing page
-         return fDynamicWizardPages.get(newDynamicPageIndex);
+         UsbdmDynamicOptionPage_N page = fDynamicWizardPages.get(newDynamicPageIndex);
+//         page.setProjectInformation(fProjectActionList, fParamMap);
+         return page;
       }
-      if (newDynamicPageIndex >= fWizardPageInformation.size()) {
+      else {
          // No more dynamic pages to create
          return null;
       }
-      // Create dynamic page
-      updateDynamicWizardPageInformation();
-      if (fDynamicWizardPages != null) {
-         for (final UsbdmDynamicOptionPage_N p:fDynamicWizardPages) {
-            Display.getDefault().syncExec(new Runnable() {
-               public void run() {
-                  p.getPageData(fParamMap);
-               }
-            });
-         }
-      }
-      UsbdmDynamicOptionPage_N newPage = new UsbdmDynamicOptionPage_N(fUsbdmProjectParametersPage_2.getDevice(), fProjectActionList, fWizardPageInformation.get(newDynamicPageIndex));
-      newPage.setWizard(this);
-      fDynamicWizardPages.add(newPage);
-      return newPage;
    }
 
    @Override
@@ -355,7 +365,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       }
       System.err.println("================================================");
    }
-   
+
    public void buildConfigurations(IProject project, IProgressMonitor monitor) {
       final int WORK_SCALE = 1000;
       try {
@@ -398,9 +408,9 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          for (UsbdmDynamicOptionPage_N page:fDynamicWizardPages) {
             page.saveSettings();
          }
-         updateParamMap();
+         updateParamMap(fDynamicWizardPages.get(fDynamicWizardPages.size()-1));
          listParamMap("fParamMap\n===========================================", fParamMap);
-         
+
          getContainer().run(true, false, this);
       } catch (Exception e) {
          e.printStackTrace();
@@ -408,39 +418,67 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return true;
    }
 
+   //   /**
+   //    * Used to suppress C indexing
+   //    */
+   //   static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
+   //      IProject fProject;
+   //      
+   //      MyIndexerSetupParticipant(IProject project) {
+   //         System.err.println("MyIndexerSetupParticipant(fProject = "+project+")");
+   //         fProject = project;
+   //      }
+   //      
+   //      @Override
+   //      public boolean postponeIndexerSetup(ICProject cProject) {
+   //         IProject project = cProject.getProject() ;
+   //         System.err.print("postponeIndexerSetup("+cProject+")");
+   //         System.err.print(", project = "+project);
+   //         System.err.print(", fProject = "+fProject);
+   //         System.err.print("deferred? = " + (project == fProject));
+   //         return project == fProject;
+   //      }
+   //   }
+   //   
    /**
     * Used to suppress C indexing
     */
    static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
-      IProject fProject;
-      
-      MyIndexerSetupParticipant(IProject project) {
-         fProject = project;
+      MyIndexerSetupParticipant() {
       }
+
       @Override
       public boolean postponeIndexerSetup(ICProject cProject) {
          IProject project = cProject.getProject() ;
-         return project == fProject;
+         System.err.print("postponeIndexerSetup("+cProject+")");
+         System.err.println(", project = "+project);
+         return true;
       }
    }
-   
+
    @Override
    public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
       final int WORK_SCALE = 1000;
       SubMonitor monitor   = SubMonitor.convert(progressMonitor, WORK_SCALE);
 
-//      System.err.println("UsbdmNewProjectWizard.run()");
+      //      System.err.println("UsbdmNewProjectWizard.run()");
 
       // Turn off Auto-build in workspace
       // TODO - should restore to original after project construction?
-      IWorkspace            workspace     = ResourcesPlugin.getWorkspace();
+      IWorkspace            workspace = null;
+      try {
+         // For debug without workspace
+         workspace = ResourcesPlugin.getWorkspace();
+      } catch (Exception e) {
+         return;
+      }
       IWorkspaceDescription workspaceDesc = workspace.getDescription();
       workspaceDesc.setAutoBuilding(false);
       try {
          workspace.setDescription(workspaceDesc);
       } catch (CoreException e1) {
       }
-      
+
       IndexerSetupParticipant indexerParticipant = null;
       IProject project = null;
       try {
@@ -454,20 +492,21 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
 
          // Used to suppress indexing while project is constructed
-         indexerParticipant = new MyIndexerSetupParticipant(project);
-         
+         indexerParticipant = new MyIndexerSetupParticipant();
+
          // Suppress project indexing while project is constructed
          CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
+         Device device = fUsbdmProjectParametersPage_2.getDevice();
 
          // Apply device project options etc
-         ProcessProjectActions.process(this, project, fDevice, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
+         ProcessProjectActions.process(this, project, device, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
 
          // Generate CPP code as needed
          DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
 
          project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
 
-//         reindexProject(project, monitor.newChild(WORK_SCALE * 20));
+         //         reindexProject(project, monitor.newChild(WORK_SCALE * 20));
 
          CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor.newChild(WORK_SCALE));
 
@@ -495,7 +534,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          monitor.done();
       }
    }
-   
+
    @Override
    public IWizardPage getPage(String name) {
       if (fUsbdmNewProjectPage_1.getName().equals(name)) {
@@ -515,5 +554,27 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    public Map<String, String> getparamMap() {
       return fParamMap;
    }
-   
+
+   /**
+    * Test main
+    * 
+    * @param args
+    */
+   public static void main(String[] args) {
+      Display display = new Display();
+
+      Shell shell = new Shell(display);
+      shell.setText("Project Parameters");
+      shell.setLayout(new FillLayout());
+      shell.setSize(500, 350);
+
+      UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
+      new WizardDialog(shell, wizard).open();
+//      while (!shell.isDisposed()) {
+//         if (!display.readAndDispatch())
+//            display.sleep();
+//      }
+      display.dispose();
+   }
+
 }

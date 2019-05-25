@@ -346,7 +346,7 @@ public class UsbdmOptionsPanel  extends Composite {
       sc.setExpandHorizontal(true);
       sc.setExpandVertical(true);
       sc.setMinSize(200, 200);
-
+      
       fControl = sc;
    }
 

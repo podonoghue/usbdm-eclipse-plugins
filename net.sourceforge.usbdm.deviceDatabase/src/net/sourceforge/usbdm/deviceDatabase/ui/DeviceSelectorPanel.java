@@ -7,7 +7,6 @@ import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
@@ -120,6 +119,12 @@ public class DeviceSelectorPanel extends Composite {
       }
    };
    
+   class ErrorModel extends BaseModel {
+      public ErrorModel(BaseModel parent, String name) {
+         super(parent, name);
+      }
+   }
+   
    class CategoryModel extends BaseModel {
       public CategoryModel(BaseModel parent, String name) {
          super(parent, name);
@@ -210,18 +215,18 @@ public class DeviceSelectorPanel extends Composite {
     */
    private String getFamilyName(String name) {
       Pair[] armPatterns = {
-            new Pair("^(S32).*$",         "Automotive (S32K1xx)"),
-            new Pair("^(S9KEA).*$",       "Kinetis E (MKE/S9KEA)"),
-            new Pair("^(MKE).*$",         "Kinetis E (MKE/S9KEA)"),
-            new Pair("^(MKL).*$",         "Kinetis L (MKL)"),
-            new Pair("^(MKM).*$",         "Kinetis M (MKM)"),
-            new Pair("^(MKV).*$",         "Kinetis V (MKV)"),
-            new Pair("^(MK)[0-9].*$",     "Kinetis K (MK)"),
-            new Pair("^(FRDM|R41).*$",    "Evaluation boards (FRDM)"),
-            new Pair("^(TWR).*$",         "Tower boards (TWR)"),
-            new Pair("^(STM32).*$",       "ST Micro ($1)"),
-            new Pair("^(LPC).*$",         "NXP LPC ($1)"),
-            new Pair("^([a-zA-Z]+).*$",   "$1"),
+            new Pair("^(S32K).*$",         "Automotive (S32K)"),
+            new Pair("^(S9KEA).*$",        "Kinetis E (MKE/S9KEA)"),
+            new Pair("^(MKE).*$",          "Kinetis E (MKE/S9KEA)"),
+            new Pair("^(MKL).*$",          "Kinetis L (MKL)"),
+            new Pair("^(MKM).*$",          "Kinetis M (MKM)"),
+            new Pair("^(MKV).*$",          "Kinetis V (MKV)"),
+            new Pair("^(MK)[0-9].*$",      "Kinetis K (MK)"),
+            new Pair("^(FRDM|R41|EVB).*$", "Evaluation boards ($1)"),
+            new Pair("^(TWR).*$",          "Tower boards (TWR)"),
+            new Pair("^(STM32).*$",        "ST Micro ($1)"),
+            new Pair("^(LPC).*$",          "NXP LPC ($1)"),
+            new Pair("^([a-zA-Z]+).*$",    "$1"),
       };
       Pair[] cfv1Patterns = {
             new Pair("^(MCF[0-9]*).*$",   "$1"),
@@ -263,7 +268,8 @@ public class DeviceSelectorPanel extends Composite {
     */
    private String getSubFamilyNamePrefix(String name) {
       Pair[] armPatterns = {
-            new Pair("(S32K[0-9][0-9]).*$",                            "$1"),
+            new Pair("(S32K[0-9][0-9]).*$",                               "$1"),
+            new Pair("(EVB[-_]S32K).*$",                                 "$1"),
             new Pair("(FRDM[-_][a-zA-Z]*).*$",                            "$1"),
             new Pair("(TWR[-_].*)$",                                      "$1"),
             new Pair("^(STM32F[0-9]*).*$",                                "$1"),
@@ -434,64 +440,40 @@ public class DeviceSelectorPanel extends Composite {
    public void setTargetType(TargetType targetType) {
       fTargetType = targetType;
       fDeviceName = null;
-      fModel      = null;
-      
-      class ScanConfig extends Job {
+      fModel = new ErrorModel(null, "root");
+      new ErrorModel(fModel, "Scanning configurations");
+      fViewer.setInput(fModel);
 
-         public ScanConfig() {
-            super("Scanning configurations");
-         }
-
-         @Override
-         protected IStatus run(IProgressMonitor pm) {
-            pm.beginTask("Scanning configurations", 1000);
-            fModel = new BaseModel(null, "root");
+      Job job = new Job("Scanning configurations") {
+         protected IStatus run(IProgressMonitor monitor) {
+            monitor.beginTask("Scanning configurations", 1000);
+            BaseModel model = new BaseModel(null, "root");
             try {
-               buildTreeModel(pm, fModel);
+               buildTreeModel(monitor, model);
             } catch (InterruptedException e) {
+               model = new ErrorModel(null, "root");
+               model.addChild(new ErrorModel(fModel, "Config scan failed"));
                System.err.println("Config scan aborted, reason = "+e.getMessage());
             } finally {
-               pm.done();
+               monitor.done();
             }
+            fModel = model;
+            Display.getDefault().syncExec(new Runnable() {
+               @Override
+               public void run() {
+                  fViewer.setInput(fModel);
+                  fViewer.setAutoExpandLevel(0);
+//                  fViewer.refresh();
+                  setFilter(fDeviceText.getText());
+                  identifyFilteredDevice();
+                  filterNodesJob();
+               }
+            });
             return Status.OK_STATUS;
          }
-      }
-      ScanConfig x = new ScanConfig();
-
-      IProgressMonitor dialog = new NullProgressMonitor();
-
-      fViewer.setAutoExpandLevel(1);
-      IStatus status = x.run(dialog);
-      if (status.isOK()) {
-         fViewer.collapseAll();
-         fViewer.setInput(fModel);
-      }
-      else {
-         System.err.println("DeviceSelectorPanel.setTargetType() failed "+status.getMessage());
-         fViewer.setInput("Config scan failed");
-      }
-//      ProgressMonitorDialog dialog = new ProgressMonitorDialog(getShell());
-//
-//      fModel = new BaseModel(null, "root");
-//
-//      IRunnableWithProgress runnable = new IRunnableWithProgress() {
-//         @Override
-//         public void run(IProgressMonitor pm) throws InterruptedException {
-//            pm.beginTask( "Scanning configurations", 1000);
-//            try {
-//               buildTreeModel(pm, fModel);
-//            } finally {
-//               pm.done();
-//            }
-//         }
-//      };
-//
-//      try {
-//         dialog.run(true, true, runnable);
-//      } catch (Exception e) {
-//         System.err.println("DeviceSelectorPanel.setTargetType() failed "+e.getMessage());
-//         return;
-//      }
+      };
+      job.setUser(true);
+      job.schedule();
    }
 
    /**
@@ -520,7 +502,10 @@ public class DeviceSelectorPanel extends Composite {
     */
    boolean filterNodes(BaseModel model) {
       boolean isAvailable = false;
-      if (model instanceof DeviceModel) {
+      if (model instanceof ErrorModel) {
+         isAvailable = true;
+      }
+      else if (model instanceof DeviceModel) {
          try {
             isAvailable = fFilter.isVisible(model.getName());
          } catch (PatternSyntaxException e) {
@@ -552,27 +537,31 @@ public class DeviceSelectorPanel extends Composite {
          return;
       }
 //      System.err.println("filterNodesJob()");
-      testAndSetFilterPending(false);
       fMatchingNodesCount = 0;
       fMatchingNode = null;
       filterNodes(fModel);
+      
+      Display.getDefault().syncExec(new Runnable() {
+         public void run() {
+            if (fMatchingNodesCount == 1) {
+               if (forceDevice) {
+                  fDeviceText.setText(fMatchingNode.getName());
+               }
+               fViewer.expandToLevel(fMatchingNode, AbstractTreeViewer.ALL_LEVELS);
+               if (fViewer.getSelection().isEmpty()) {
+                  fViewer.setSelection(new StructuredSelection(fMatchingNode));
+               }
+            }
+            else if (fMatchingNodesCount < EXPAND_THRESHOLD) {
+               fViewer.expandAll();
+            }
+            identifyFilteredDevice();
+            fViewer.refresh();
+            notifyListeners(SWT.CHANGED, new Event());
+            forceDevice = false;
+         }
+       });
 //      System.err.println("filterNodesJob(): "+fMatchingNodesCount);
-      if (fMatchingNodesCount == 1) {
-         if (forceDevice) {
-            fDeviceText.setText(fMatchingNode.getName());
-         }
-         fViewer.expandToLevel(fMatchingNode, AbstractTreeViewer.ALL_LEVELS);
-         if (fViewer.getSelection().isEmpty()) {
-            fViewer.setSelection(new StructuredSelection(fMatchingNode));
-         }
-      }
-      else if (fMatchingNodesCount < EXPAND_THRESHOLD) {
-         fViewer.expandAll();
-      }
-      identifyFilteredDevice();
-      fViewer.refresh();
-      notifyListeners(SWT.CHANGED, new Event());
-      forceDevice = false;
    }
 
    /**
@@ -593,7 +582,7 @@ public class DeviceSelectorPanel extends Composite {
     * This is done on a delayed thread so that typing is not delayed
     */
    public synchronized void filterNodes() {
-      System.err.println("filterNodes()");
+//      System.err.println("filterNodes()");
       if (!testAndSetFilterPending(true)) {
          // Start new check
          Runnable runnable = new Runnable() {
@@ -602,18 +591,14 @@ public class DeviceSelectorPanel extends Composite {
                   Thread.sleep(100);
                } catch (InterruptedException e) {
                }
-               Display.getDefault().syncExec(new Runnable() {
-                 public void run() {
-                    filterNodesJob();
-                 }
-               });
+               testAndSetFilterPending(false);
+               filterNodesJob();
             }
          };
          new Thread(runnable).start();
       }
    }
    
-
    /**
     * See if the current filter value corresponds to an actual device
     * 

@@ -155,7 +155,7 @@ public class AddTargetFiles {
       SubMonitor subMonitor = SubMonitor.convert(monitor);
       subMonitor.beginTask("Copying File", 100);
 
-      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
+//      System.err.println(String.format("AddTargetFiles.process() sourcePath     = \'%s\'", sourcePath));
       sourcePath = resolvePath(sourcePath);
 
       // Check if directory
