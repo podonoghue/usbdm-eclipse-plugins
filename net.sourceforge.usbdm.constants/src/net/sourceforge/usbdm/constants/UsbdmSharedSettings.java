@@ -32,7 +32,7 @@ public class UsbdmSharedSettings {
             sharedSettings.save(usbdmDataPath.toOSString());
 //            System.err.println("UsbdmSharedSettings.flush() - written data to file \'"+usbdmDataPath.toOSString()+"\'\n");
          } catch (IOException e) {
-            e.printStackTrace();
+            Activator.logError(e.getMessage(), e);
          }
       }
    }
@@ -185,10 +185,10 @@ public class UsbdmSharedSettings {
             sharedSettings = new DialogSettings(USBDM_COMMON_SETTINGS);
             try {
                sharedSettings.load(usbdmDataPath.toOSString());
-               System.err.println("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmDataPath.toOSString()+"\'\n");
+               Activator.log("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmDataPath.toOSString()+"\'\n");
             } catch (IOException e) {
                // Ignore as the file may not exist yet
-               System.err.println("UsbdmSharedSettings.getSharedSettings() - file doesn't exist");
+               Activator.logError("UsbdmSharedSettings.getSharedSettings() - file doesn't exist", e);
             }
             ToolChainPaths.setDefaults(settings);
          }

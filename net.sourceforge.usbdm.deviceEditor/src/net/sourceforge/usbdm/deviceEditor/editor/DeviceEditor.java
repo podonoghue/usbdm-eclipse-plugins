@@ -128,8 +128,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 			fFactory = ModelFactory.createModels(fPath, true);
 		} catch (Exception e) {
 			failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
-			System.err.println(failureReason);
-			e.printStackTrace();
+			Activator.logError(failureReason, e);
 		}
 		if (fFactory == null) {
 			Label label = new Label(parent, SWT.NONE);
@@ -159,9 +158,6 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 			IEditorPage editorPage = page.createEditorPage();
 			editors.add(editorPage);
 			tabItem.setControl(editorPage.createComposite(fTabFolder));
-			if ((page.getToolTip() == null) || page.getToolTip().isEmpty()) {
-				System.err.println("No tooltip");
-			}
 			tabItem.setToolTipText(page.getToolTip());
 		}
 		fEditors = editors.toArray(new IEditorPage[editors.size()]);
@@ -248,8 +244,7 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 						fFactory.getDeviceInfo().generateCppFiles();
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
-
+				   Activator.logError(e.getMessage(), e);
 					return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
 				} finally {
 					//               // Allow indexing if suspended

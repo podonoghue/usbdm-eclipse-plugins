@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.wizard.Wizard;
 
+import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.utilties.AddTargetFiles;
 import net.sourceforge.usbdm.cdt.utilties.ApplyOptions;
 import net.sourceforge.usbdm.cdt.utilties.DeleteResource;
@@ -95,12 +96,10 @@ public class ProcessProjectActions {
                   throw new Exception("Unexpected action class: " + action.getClass());
                }
             } catch (Exception e) {
-//               e.printStackTrace();
                StringBuffer sb = new StringBuffer();
                sb.append("Unable to process Action "+action.toString() + "\n");
                sb.append("Action id = " + action.getId() + "\n");
                sb.append("Action owned by = " + action.getOwnerId() + "\n");
-               sb.append(e.getMessage());
                return new Result(new Exception(sb.toString(), e));
             }
             return new Result(Status.CONTINUE);
@@ -110,7 +109,7 @@ public class ProcessProjectActions {
       MyVisitor visitor = new MyVisitor();
       Result res = actionList.visit(visitor, null, monitor);
       if (res.getStatus() == Status.EXCEPTION) {
-         throw res.getException();
+         Activator.log(res.getMessage(), res.getException());
       }
    }
 }

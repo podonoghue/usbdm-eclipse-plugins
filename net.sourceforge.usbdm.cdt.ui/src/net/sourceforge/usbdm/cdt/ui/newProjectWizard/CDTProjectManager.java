@@ -152,10 +152,6 @@ public class CDTProjectManager {
          Assert.isTrue(projectDescription.getConfigurations().length > 0, "No Configurations!");
 
          coreModel.setProjectDescription(project, projectDescription);
-//         if (hasCCNature) {
-//            System.err.println("Info - adding CCProjectNature");
-//            CCProjectNature.addCCNature(project, monitor);
-//         }
          if (!(hasCCNature && !project.hasNature(CCProjectNature.CC_NATURE_ID))) {
             CCProjectNature.addCCNature(project, monitor.newChild(5));
          }

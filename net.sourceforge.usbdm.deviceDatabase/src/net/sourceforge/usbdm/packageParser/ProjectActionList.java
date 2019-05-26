@@ -79,38 +79,75 @@ public class ProjectActionList extends ProjectAction {
             fException = e;
          }
          
+         /**
+          * Construct Result encapsulating status
+          * 
+          * @param status
+          */
          public Result(final Status status) {
             this(status, null);
          }
          
-         public Result(final Exception e) {
-            this(Status.EXCEPTION, e);
+         /**
+          * Construct Result encapsulating exception
+          * 
+          * @param exception
+          */
+         public Result(final Exception exception) {
+            this(Status.EXCEPTION, exception);
          }
          
          public Result(final Result other) {
             this(other.fStatus, other.fException);
          }
          
+         /**
+          * Get message from encapsulated exception
+          * 
+          * @return Message
+          */
          public String getMessage() { 
-            return fException.getMessage();
+            String msg = "No Exception";
+            if (fException != null) {
+               msg = fException.getMessage();
+            }
+            return msg;
          }
+         
+         /**
+          * Get status from result
+          * 
+          * @return
+          */
          public Status getStatus() { 
             return fStatus;
          }
 
+         /**
+          * Get encapsulated exception
+          * 
+          * @return
+          */
          public Exception getException() {
             if (fException == null) {
                return new Exception("Unexpected Result.getException()");
             }
             return fException;
          }
+         
          public String toString() {
+            StringBuffer sb = new StringBuffer();
+            
             switch (fStatus) {
-            case CONTINUE:  return "CONTINUE";
-            case EXCEPTION: return "EXCEPTION";
-            case PRUNE:     return "PRUNE";
+            case CONTINUE:  sb.append("CONTINUE");    break;
+            case EXCEPTION: sb.append("EXCEPTION");   break;
+            case PRUNE:     sb.append("PRUNE");       break;
+            default:        sb.append("ILLEGAL");     break;
             }
-            return "ILLEGAL";
+            if (fException != null) {
+               sb.append(fException.getMessage());
+            }
+            return sb.toString();
          }
       };
       /**

@@ -21,7 +21,11 @@ import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobFunction;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -47,7 +51,6 @@ import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result;
-import net.sourceforge.usbdm.packageParser.ProjectActionList.Visitor.Result.Status;
 import net.sourceforge.usbdm.packageParser.ProjectConstant;
 import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 
@@ -75,12 +78,12 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       IDialogSettings settings = null;
       Activator activator = Activator.getDefault();
       if (activator == null) {
-         System.err.println("*************************** plugin is null *********************");
+         Activator.log("*************************** plugin is null *********************");
       }
       if (activator != null) {
          settings = activator.getDialogSettings();
          if (settings == null) {
-            System.err.println("*************************** settings is null *********************");
+            Activator.log("*************************** settings is null *********************");
          }
       }
       setDialogSettings(settings);
@@ -139,7 +142,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
                }
                else if (action instanceof ProjectConstant) {
                   ProjectConstant projectConstant = (ProjectConstant) action;
-                  //                  System.err.println(String.format("updateMapConstants(): Found constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
+                  //                  Activator.log(String.format("updateMapConstants(): Found constant %s => %s",  projectConstant.getId(), projectConstant.getValue()));
                   String value = paramMap.get(projectConstant.getId());
                   if (value != null) {
                      if (projectConstant.isWeak()) {
@@ -160,7 +163,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       };
       // Visit all enabled actions and collect constants
       Result result = projectActionList.visit(visitor, null);
-      if (result.getStatus() == Status.EXCEPTION) {
+      if (result.getStatus() == Result.Status.EXCEPTION) {
          result.getException().printStackTrace();
       }
    }
@@ -169,14 +172,14 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     * Collects information about dynamic wizard pages
     */
    void updateDynamicWizardPageInformation() {
-      //      System.err.println("updateDynamicWizardPageInformation()");
+      //      Activator.log("updateDynamicWizardPageInformation()");
       fWizardPageInformation = new ArrayList<WizardPageInformation>();
       Visitor visitor = new ProjectActionList.Visitor() {
          @Override
          public Result applyTo(ProjectAction action, ProjectActionList.Value result, IProgressMonitor monitor) {
             if (action instanceof WizardPageInformation) {
                WizardPageInformation page = (WizardPageInformation) action;
-               //               System.err.println("Adding dynamic page info " + page.getName());
+               //               Activator.log("Adding dynamic page info " + page.getName());
                fWizardPageInformation.add(page);
             }
             return CONTINUE;
@@ -200,7 +203,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
     * Updates fParamMap and pages
     */
    void updateParamMap(WizardPage currentPage) {
-//      System.err.println("updateParamMap()");
+//      Activator.log("updateParamMap()");
       fParamMap = new HashMap<String, String>(fBaseParamMap);
       final UsbdmNewProjectWizard wizard = this;
       if (fUsbdmProjectParametersPage_2 != null) {
@@ -215,7 +218,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          fProjectActionList = fDevice.getProjectActionList(fParamMap);
          if (currentPage == fUsbdmProjectParametersPage_2) {
             // Create 1st dynamic page
-//            System.err.println("updateParamMap() - Re-create dynamic pages");
+//            Activator.log("updateParamMap() - Create 1st dynamic page");
 
             updateDynamicWizardPageInformation();
 
@@ -283,7 +286,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    @Override
    public IWizardPage getNextPage(IWizardPage currentPage) {
-//      System.err.println("getNextPage(" + currentPage.getTitle() + ")");
+//      Activator.log("getNextPage(" + currentPage.getTitle() + ")");
       if (currentPage == fUsbdmNewProjectPage_1) {
          // Create new project page if none or interface has changed
          if (hasChanged(currentPage) || (fUsbdmProjectParametersPage_2 == null)) {
@@ -298,10 +301,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       int newDynamicPageIndex = 0;
       if (currentPage == fUsbdmProjectParametersPage_2) {
          if ((fDynamicWizardPages == null) || (fDynamicWizardPages.size() == 0)) {
-//            System.err.println("getNextPage(" + currentPage.getTitle() + ") => null");
+//            Activator.log("getNextPage(" + currentPage.getTitle() + ") => null");
             return null;
          }
-//         System.err.println("getNextPage(" + currentPage.getTitle() + ") => " + fDynamicWizardPages.get(0));
+//         Activator.log("getNextPage(" + currentPage.getTitle() + ") => " + fDynamicWizardPages.get(0));
          newDynamicPageIndex = 0;
       }
       else {
@@ -347,23 +350,45 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return null;
    }
 
-   private void listParamMap(String title, final Map<String, String> paramMap) {
-      System.err.println(title);
-      ArrayList<String> keySet = new ArrayList<String>(paramMap.keySet());
-      Collections.sort(keySet);
-      for (String key:keySet) {
-         if (key.equals("linkerInformation")) {
-            continue;
+   /**
+    * Write parameter map to log.
+    * Done as job as time consuming
+    * 
+    * @param title
+    * @param paramMap
+    */
+   private void listParamMap(final String title, final Map<String, String> paramMap) {
+      Job job = Job.create("Log paramater map", new IJobFunction() {
+         @Override
+         public IStatus run(IProgressMonitor pm) {
+
+            StringBuffer sb = new StringBuffer();
+            sb.append(title+"\n");
+            sb.append("================================================\n");
+            ArrayList<String> keySet = new ArrayList<String>(paramMap.keySet());
+            Collections.sort(keySet);
+            for (String key:keySet) {
+               if (key.equals("linkerExtraRegions")) {
+                  continue;
+               }
+               if (key.equals("linkerInformation")) {
+                  continue;
+               }
+               if (key.equals("cVectorTable")) {
+                  continue;
+               }
+               if (key.startsWith("demo.KSDK")) {
+                  continue;
+               }
+               sb.append(String.format("%-60s => %s\n", key, paramMap.get(key)));
+            }
+            sb.append("================================================\n");
+            Activator.log(sb.toString());
+            return Status.OK_STATUS;
          }
-         if (key.equals("cVectorTable")) {
-            continue;
-         }
-         if (key.startsWith("demo.KSDK")) {
-            continue;
-         }
-         System.err.println(String.format("%-60s => %s", key, paramMap.get(key)));
-      }
-      System.err.println("================================================");
+      });
+      // Start the Job
+      job.schedule();
    }
 
    public void buildConfigurations(IProject project, IProgressMonitor monitor) {
@@ -375,7 +400,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          try {
             ManagedBuildManager.buildConfigurations(projectConfigs, monitor);
          } catch (CoreException e) {
-            e.printStackTrace();
+            Activator.logError("buildConfigurations()", e);
          }
       }
       finally {
@@ -408,12 +433,10 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
          for (UsbdmDynamicOptionPage_N page:fDynamicWizardPages) {
             page.saveSettings();
          }
-         updateParamMap(fDynamicWizardPages.get(fDynamicWizardPages.size()-1));
-         listParamMap("fParamMap\n===========================================", fParamMap);
-
+         listParamMap("fParamMap", fParamMap);
          getContainer().run(true, false, this);
       } catch (Exception e) {
-         e.printStackTrace();
+         Activator.log("performFinish()", e);
       }
       return true;
    }
@@ -425,7 +448,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
    //      IProject fProject;
    //      
    //      MyIndexerSetupParticipant(IProject project) {
-   //         System.err.println("MyIndexerSetupParticipant(fProject = "+project+")");
+   //         Activator.log("MyIndexerSetupParticipant(fProject = "+project+")");
    //         fProject = project;
    //      }
    //      
@@ -450,8 +473,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       @Override
       public boolean postponeIndexerSetup(ICProject cProject) {
          IProject project = cProject.getProject() ;
-         System.err.print("postponeIndexerSetup("+cProject+")");
-         System.err.println(", project = "+project);
+         System.err.println("postponeIndexerSetup(" + cProject + ")" + ", project = " + project);
          return true;
       }
    }
@@ -461,7 +483,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       final int WORK_SCALE = 1000;
       SubMonitor monitor   = SubMonitor.convert(progressMonitor, WORK_SCALE);
 
-      //      System.err.println("UsbdmNewProjectWizard.run()");
+      //      Activator.log("UsbdmNewProjectWizard.run()");
 
       // Turn off Auto-build in workspace
       // TODO - should restore to original after project construction?
@@ -520,11 +542,11 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
          boolean       hasCCNature   = Boolean.valueOf(fParamMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
          if (hasCCNature) {
-            System.err.println("Last ditch adding CC nature");
+            Activator.log("Last ditch adding CC nature");
             CCProjectNature.addCCNature(project, monitor.newChild(WORK_SCALE));
          }
       } catch (Exception e) {
-         e.printStackTrace();
+         Activator.logError("", e);
          throw new InvocationTargetException(e);
       } finally {
          // Allow indexing if suspended
@@ -570,10 +592,6 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
       UsbdmNewProjectWizard wizard = new UsbdmNewProjectWizard();
       new WizardDialog(shell, wizard).open();
-//      while (!shell.isDisposed()) {
-//         if (!display.readAndDispatch())
-//            display.sleep();
-//      }
       display.dispose();
    }
 

@@ -1676,7 +1676,7 @@ public class Usbdm {
             serial = utf16leCharsetDecoder.decode(buff).toString();
          }
       } catch (CharacterCodingException e) {
-         e.printStackTrace();
+         Activator.logError("Description contains illegal characters", e);
          return "Description contains illegal characters";
       }
       return serial;
@@ -1738,7 +1738,7 @@ public class Usbdm {
          deviceDescription  = desc;
          deviceSerialNumber = ser;
          bdmInfo            = bdmI;
-//         System.err.println("BdmInformation.USBDMDeviceInfo()");
+//         Activator.logError("BdmInformation.USBDMDeviceInfo()");
       }
       public String toString() {
          return "  Description   = "+deviceDescription+";\n" +
@@ -1796,18 +1796,19 @@ public class Usbdm {
       if (libraryLoaded) {
          return;
       }
+      StringBuilder sb = new StringBuilder();
       try {
          //String property = System.getProperty("java.library.path");
          //StringTokenizer parser = new StringTokenizer(property, ":");
          //while (parser.hasMoreTokens()) {
-         //    System.err.println(parser.nextToken());
+         //    Activator.logError(parser.nextToken());
          //    }
          String os    = System.getProperty("os.name");            
          String arch  = System.getProperty("os.arch");            
          String jvm   = System.getProperty("java.vm.name");
-         System.err.println("os.name      => "+os );
-         System.err.println("java.vm.name => "+jvm );
-         System.err.println("os.arch      => "+arch );
+         sb.append("os.name      => " + os   + "\n");
+         sb.append("java.vm.name => " + jvm  + "\n" );
+         sb.append("os.arch      => " + arch + "\n" );
          String libraryList[];
          if ((os != null) && os.toUpperCase().contains("LINUX")) {
             if (arch.toLowerCase().contains("amd64")) {
@@ -1848,14 +1849,14 @@ public class Usbdm {
             }
          }
          for (String libraryName : libraryList) {
-            System.err.println("Loading library name = " + libraryName);
+            sb.append("Loading library name = " + libraryName + "\n");
             System.loadLibrary(libraryName);
          }
          usbdmInit();
          libraryLoaded = true;
-         //            System.err.println("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
+         //            Activator.logError("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
 
-         //            System.err.println("Libraries successfully loaded");
+         //            Activator.logError("Libraries successfully loaded");
          //            Shell shell;
          //            // Find the default display and get the active shell
          //            final Display disp = Display.getDefault();
@@ -1869,9 +1870,10 @@ public class Usbdm {
          //            msgbox.setText("USBDM Notice");
          //            msgbox.setMessage("Loading of USBDM native library OK.");
          //            msgbox.open();
-
-      } catch (Error e) {
-         e.printStackTrace();
+         Activator.log(sb.toString());
+      } catch (Exception e) {
+         Activator.log(sb.toString());
+         Activator.logError(e.getMessage(), e);
 //         String reason = e.getMessage();
 //         // Report first failure only
 //         if (!libraryLoadFailed) {
@@ -1884,7 +1886,7 @@ public class Usbdm {
 //            else {
 //               shell = new Shell(disp);
 //            }
-//            System.err.println("Libary Path = "+System.getProperty("java.library.path"));
+//            Activator.logError("Libary Path = "+System.getProperty("java.library.path"));
 //            libraryLoadFailed = true;
 //            MessageBox msgbox = new MessageBox(shell, SWT.OK);
 //            msgbox.setText("USBDM Error");
@@ -1897,7 +1899,7 @@ public class Usbdm {
 //               e1.printStackTrace();
 //            }
 //         }
-//         System.err.println("USBDM Libraries failed to load");
+//         Activator.logError("USBDM Libraries failed to load");
 //         return;
       }
    }
@@ -1919,7 +1921,7 @@ public class Usbdm {
     * @throws CharacterCodingException 
     */
    public static ArrayList<USBDMDeviceInfo> getDeviceList() {
-      //      System.err.println("Usbdm.getDeviceList()");
+      //      Activator.logError("Usbdm.getDeviceList()");
 
       ArrayList<USBDMDeviceInfo> deviceList = new ArrayList<USBDMDeviceInfo>();
 
@@ -1933,27 +1935,20 @@ public class Usbdm {
          if (deviceCount == 0) {
             return deviceList;
          }
-         //         System.err.println("Usbdm.findDevices(): Found  " + deviceCount + " devices");
+         //         Activator.logError("Usbdm.findDevices(): Found  " + deviceCount + " devices");
          for (int deviceNum=0; deviceNum < deviceCount; deviceNum++) {
             String description = new String("Unresponsive device");
             String serialNum   = new String("Unknown");
             try {
                // Open device without releasing device list
                open(deviceNum, false);
-               //            System.err.println("Usbdm.findDevices(): Opened device");
                description = getBDMDescription();
-               //            System.err.println("Usbdm.findDevices(): Retrieved description \'"+description+"\'");
                serialNum   = getBDMSerialNumber();
-               //            System.err.println("Usbdm.findDevices(): Retrieved serial number \'"+serialNum+"\'");
                bdmInfo     = getBDMInformation();
-               //            System.err.println("Usbdm.findDevices(): Retrieved BDM information\n"+bdmInfo.toString());
                deviceInfo  = new USBDMDeviceInfo(description, serialNum, bdmInfo);
                deviceList.add(deviceInfo);
             } catch (UsbdmException e1) {
-   //             try {
-   //                releaseDevices();
-   //             } catch (UsbdmException e) {
-   //             } 
+               Activator.logError(e1.getMessage(), e1);
             }
             close();
          }
@@ -1979,20 +1974,14 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmApplicationPath(pathArray);
          if (rc == BDM_RC_OK) {
-//            System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() OK");
             int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
-//            System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() len = " + len);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
             path = utf8CharsetDecoder.decode(buff).toString();
-//            System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() path = " + path);
          }
-//         else {
-//            System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() failed");
-//         }
       } catch (CharacterCodingException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path;
    }
@@ -2007,7 +1996,7 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmApplicationPath());
       } catch (UsbdmException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path;
    }
@@ -2027,20 +2016,14 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmResourcePath(pathArray);
          if (rc == BDM_RC_OK) {
-//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() OK");
             int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
-//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() len = " + len);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
             path = utf8CharsetDecoder.decode(buff).toString();
-//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() path = " + path);
          }
-//         else {
-//            System.err.println("Usbdm.getUsbdmResourcePath(): getUsbdmApplicationPath() failed");
-//         }
       } catch (CharacterCodingException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path;
    }
@@ -2055,7 +2038,7 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmResourcePath());
       } catch (UsbdmException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path;
    }
@@ -2075,20 +2058,14 @@ public class Usbdm {
       try {
          int rc = Usbdm.usbdmGetUsbdmDataPath(pathArray);
          if (rc == BDM_RC_OK) {
-//          System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() OK");
             int len = (pathArray[0]<<8)+(((int)pathArray[1])&0xFF);
-//          System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() len = " + len);
             ByteBuffer buff = ByteBuffer.allocate(len);
             buff.put(pathArray, 2, len);
             buff.rewind();
             path = utf8CharsetDecoder.decode(buff).toString();
-//          System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() path = " + path);
          }
-         //       else {
-         //          System.err.println("Usbdm.getUsbdmApplicationPath(): getUsbdmApplicationPath() failed");
-         //       }
       } catch (CharacterCodingException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path.replace('\\', '/');
    }
@@ -2103,7 +2080,7 @@ public class Usbdm {
       try {
          path = new Path(getUsbdmDataPath());
       } catch (UsbdmException e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       return path;
    }
