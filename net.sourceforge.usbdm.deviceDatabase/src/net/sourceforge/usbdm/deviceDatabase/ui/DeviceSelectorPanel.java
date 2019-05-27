@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -557,8 +558,12 @@ public class DeviceSelectorPanel extends Composite {
             }
             identifyFilteredDevice();
             fViewer.refresh();
-            notifyListeners(SWT.CHANGED, new Event());
             forceDevice = false;
+         }
+       });
+      Display.getDefault().syncExec(new Runnable() {
+         public void run() {
+            notifyListeners(SWT.CHANGED, new Event());
          }
        });
 //      System.err.println("filterNodesJob(): "+fMatchingNodesCount);
@@ -585,17 +590,32 @@ public class DeviceSelectorPanel extends Composite {
 //      System.err.println("filterNodes()");
       if (!testAndSetFilterPending(true)) {
          // Start new check
-         Runnable runnable = new Runnable() {
-            public void run() {
+         Job job = Job.create("", new IJobFunction() {
+            
+            @Override
+            public IStatus run(IProgressMonitor arg0) {
                try {
                   Thread.sleep(100);
                } catch (InterruptedException e) {
                }
                testAndSetFilterPending(false);
                filterNodesJob();
+               return Status.OK_STATUS;
             }
-         };
-         new Thread(runnable).start();
+         });
+         job.setUser(true);
+         job.schedule();
+//         Runnable runnable = new Runnable() {
+//            public void run() {
+//               try {
+//                  Thread.sleep(100);
+//               } catch (InterruptedException e) {
+//               }
+//               testAndSetFilterPending(false);
+//               filterNodesJob();
+//            }
+//         };
+//         new Thread(runnable).start();
       }
    }
    

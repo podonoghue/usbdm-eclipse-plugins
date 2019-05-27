@@ -6,16 +6,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.cdt.core.CCProjectNature;
 import org.eclipse.cdt.core.CCorePlugin;
-import org.eclipse.cdt.core.index.IIndexManager;
-import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.model.CoreModel;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -23,7 +19,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -41,11 +36,9 @@ import org.eclipse.ui.IWorkbench;
 
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.ui.Activator;
-import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 import net.sourceforge.usbdm.constants.UsbdmSharedConstants.InterfaceType;
 import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.packageParser.ProjectAction;
 import net.sourceforge.usbdm.packageParser.ProjectActionList;
 import net.sourceforge.usbdm.packageParser.ProjectActionList.Value;
@@ -441,122 +434,21 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return true;
    }
 
-   //   /**
-   //    * Used to suppress C indexing
-   //    */
-   //   static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
-   //      IProject fProject;
-   //      
-   //      MyIndexerSetupParticipant(IProject project) {
-   //         Activator.log("MyIndexerSetupParticipant(fProject = "+project+")");
-   //         fProject = project;
-   //      }
-   //      
-   //      @Override
-   //      public boolean postponeIndexerSetup(ICProject cProject) {
-   //         IProject project = cProject.getProject() ;
-   //         System.err.print("postponeIndexerSetup("+cProject+")");
-   //         System.err.print(", project = "+project);
-   //         System.err.print(", fProject = "+fProject);
-   //         System.err.print("deferred? = " + (project == fProject));
-   //         return project == fProject;
-   //      }
-   //   }
-   //   
    /**
-    * Used to suppress C indexing
+    *  Turn off Auto-build in workspace
+    *  TODO - should restore to original after project construction?
     */
-   static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
-      MyIndexerSetupParticipant() {
-      }
-
-      @Override
-      public boolean postponeIndexerSetup(ICProject cProject) {
-         IProject project = cProject.getProject() ;
-         System.err.println("postponeIndexerSetup(" + cProject + ")" + ", project = " + project);
-         return true;
-      }
-   }
-
-   @Override
-   public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
-      final int WORK_SCALE = 1000;
-      SubMonitor monitor   = SubMonitor.convert(progressMonitor, WORK_SCALE);
-
-      //      Activator.log("UsbdmNewProjectWizard.run()");
-
-      // Turn off Auto-build in workspace
-      // TODO - should restore to original after project construction?
-      IWorkspace            workspace = null;
+   void disableAutoBuild() {
       try {
-         // For debug without workspace
-         workspace = ResourcesPlugin.getWorkspace();
-      } catch (Exception e) {
-         return;
-      }
-      IWorkspaceDescription workspaceDesc = workspace.getDescription();
-      workspaceDesc.setAutoBuilding(false);
-      try {
+         IWorkspace            workspace = ResourcesPlugin.getWorkspace();
+         IWorkspaceDescription workspaceDesc = workspace.getDescription();
+         workspaceDesc.setAutoBuilding(false);
          workspace.setDescription(workspaceDesc);
-      } catch (CoreException e1) {
-      }
-
-      IndexerSetupParticipant indexerParticipant = null;
-      IProject project = null;
-      try {
-         monitor.beginTask("Creating USBDM Project", WORK_SCALE*100);
-
-         if (CCorePlugin.getDefault() == null) {
-            Activator.log("CCorePlugin not found (for testing)");
-            return;
-         }
-         // Create project
-         project = new CDTProjectManager().createUSBDMProject(fParamMap, monitor.newChild(WORK_SCALE * 20));
-
-         // Used to suppress indexing while project is constructed
-         indexerParticipant = new MyIndexerSetupParticipant();
-
-         // Suppress project indexing while project is constructed
-         CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
-         Device device = fUsbdmProjectParametersPage_2.getDevice();
-
-         // Apply device project options etc
-         ProcessProjectActions.process(this, project, device, fProjectActionList, fParamMap, monitor.newChild(WORK_SCALE * 20));
-
-         // Generate CPP code as needed
-         DeviceInfo.generateFiles(project, monitor.newChild(WORK_SCALE * 5));
-
-         project.refreshLocal(IResource.DEPTH_INFINITE, monitor.newChild(WORK_SCALE));
-
-         //         reindexProject(project, monitor.newChild(WORK_SCALE * 20));
-
-         CoreModel.getDefault().updateProjectDescriptions(new IProject[]{project}, monitor.newChild(WORK_SCALE));
-
-         // Allow indexing and re-index
-         final IIndexManager indexManager = CCorePlugin.getIndexManager();
-         final ICProject cProject = CoreModel.getDefault().create(project);
-         indexerParticipant.notifyIndexerSetup(cProject);
-         monitor.subTask("Refreshing Index...");
-         indexManager.reindex(cProject);
-         indexManager.joinIndexer(IIndexManager.FOREVER, monitor.newChild(WORK_SCALE)); 
-
-         boolean       hasCCNature   = Boolean.valueOf(fParamMap.get(UsbdmConstants.HAS_CC_NATURE_KEY));
-         if (hasCCNature) {
-            Activator.log("Last ditch adding CC nature");
-            CCProjectNature.addCCNature(project, monitor.newChild(WORK_SCALE));
-         }
-      } catch (Exception e) {
-         Activator.logError("", e);
-         throw new InvocationTargetException(e);
-      } finally {
-         // Allow indexing if suspended
-         if (indexerParticipant != null) {
-            CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
-         }
-         monitor.done();
+      } catch (CoreException e) {
+         // Ignore - For debug without workspace
       }
    }
-
+   
    @Override
    public IWizardPage getPage(String name) {
       if (fUsbdmNewProjectPage_1.getName().equals(name)) {
@@ -577,6 +469,22 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       return fParamMap;
    }
 
+ @Override
+ public void run(IProgressMonitor progressMonitor) throws InvocationTargetException, InterruptedException {
+    disableAutoBuild();
+    Job job = Job.create("Project]", new IJobFunction() {
+      
+      @Override
+      public IStatus run(IProgressMonitor progressMonitor) {
+         UsbdmCdtProjectManager.createUsbdmProject(fParamMap, fProjectActionList, progressMonitor, fDevice);
+         return Status.OK_STATUS;
+      }
+   });
+    job.setUser(true);
+    job.schedule();
+    job.join();
+ }
+
    /**
     * Test main
     * 
@@ -595,4 +503,5 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
       display.dispose();
    }
 
+   
 }

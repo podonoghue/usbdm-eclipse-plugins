@@ -264,7 +264,12 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
       fDeviceSelector.addListener(SWT.CHANGED, new Listener() {
          @Override
          public void handleEvent(Event event) {
-            validate();
+            Display.getDefault().asyncExec(new Runnable() {
+               @Override
+               public void run() {
+                  validate();
+               }
+            });
          }
       });
 

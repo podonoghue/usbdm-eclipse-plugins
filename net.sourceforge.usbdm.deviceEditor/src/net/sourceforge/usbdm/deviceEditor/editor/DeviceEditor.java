@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -25,11 +26,14 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -53,399 +57,477 @@ import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 public class DeviceEditor extends EditorPart implements IModelChangeListener {
 
-	/** Path from which the data was loaded */
-	private Path         fPath                = null;
+   private final String ActiveTab_key           = "ActiveTab";
+   private final String PeripheralTabNumber_key = "PeripheralTabNumber";
+   
+   /** Path from which the data was loaded */
+   private Path         fPath                = null;
 
-	/** Factory containing all data */
-	private ModelFactory fFactory             = null;
+   /** Factory containing all data */
+   private ModelFactory fFactory             = null;
 
-	/** Folder containing all the tabs */
-	private CTabFolder    fTabFolder          = null;
+   /** Folder containing all the tabs */
+   private CTabFolder    fTabFolder          = null;
 
-	/** Editors for each page */
-	private IEditorPage[] fEditors            = null;
+   /** Folder containing all the peripheral parameters */
+   private CTabFolder    fPeripheralParametersFolder = null;
+   
+   /** Editors for each page */
+   private IEditorPage[] fEditors            = null;
 
-	/** Actions to add to pop-up menus */
-	ArrayList<MyAction>  popupActions         = new ArrayList<MyAction>();
+   /** Actions to add to pop-up menus */
+   ArrayList<MyAction>  popupActions         = new ArrayList<MyAction>();
 
-	/** Associated project */
-	private IProject fProject                 = null;
+   /** Associated project */
+   private IProject fProject                 = null;
 
-	/** Eclipse status line manager */
-	IStatusLineManager fStatusLineManager     = null;
+   /** Eclipse status line manager */
+   IStatusLineManager fStatusLineManager     = null;
 
-	@Override
-	public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
-		super.setSite(editorSite);
-		super.setInput(editorInput);
+   @Override
+   public void init(IEditorSite editorSite, IEditorInput editorInput) throws PartInitException {
+      super.setSite(editorSite);
+      super.setInput(editorInput);
 
-		fFactory = null;
-		IResource input = (IResource)editorInput.getAdapter(IResource.class);
-		fProject = input.getProject();
-		fPath = Paths.get(input.getLocation().toPortableString());
+      fFactory = null;
+      IResource input = (IResource)editorInput.getAdapter(IResource.class);
+      fProject = input.getProject();
+      fPath = Paths.get(input.getLocation().toPortableString());
 
-		setPartName(input.getName());
-		IActionBars bars = getEditorSite().getActionBars();
-		fStatusLineManager = bars.getStatusLineManager();
-	}
+      setPartName(input.getName());
+      IActionBars bars = getEditorSite().getActionBars();
+      fStatusLineManager = bars.getStatusLineManager();
+   }
 
-	/** Initialise the editor for testing */
-	public void init(Path path) {
-		fFactory = null;
-		fPath = path;
-	}
+   /** Initialise the editor for testing */
+   public void init(Path path) {
+      fFactory = null;
+      fPath = path;
+   }
 
-	@Override
-	public void setFocus() {
-		if (fTabFolder != null) {
-			fTabFolder.setFocus();
-		}
-	}
+   @Override
+   public void setFocus() {
+      if (fTabFolder != null) {
+         fTabFolder.setFocus();
+      }
+   }
 
-	/**
-	 * Set the models for page 1..N<br>
-	 * Page 0 is assumed unchanged
-	 * 
-	 */
-	private void refreshModels() {
-		ArrayList<IPage> models = fFactory.getModels();
-		int index = 0;
-		for (IEditorPage page:fEditors) {
-			page.update(models.get(index++));
-		}
-	}
+   /**
+    * Set the models for page 1..N<br>
+    * Page 0 is assumed unchanged
+    * 
+    */
+   private void refreshModels() {
+      ArrayList<IPage> models = fFactory.getModels();
+      int index = 0;
+      for (IEditorPage page:fEditors) {
+         page.update(models.get(index++));
+      }
+   }
 
-	/**
-	 * Creates the editor pages.
-	 */
-	@Override
-	public void createPartControl(Composite parent) {
+   /**
+    * Creates the editor page.
+    */
+   @Override
+   public void createPartControl(final Composite parent) {
 
-		fFactory = null;
+      parent.addDisposeListener(new DisposeListener() {
+         @Override
+         public void widgetDisposed(DisposeEvent arg0) {
 
-		String failureReason = "Unknown";
-		try {
-			fFactory = ModelFactory.createModels(fPath, true);
-		} catch (Exception e) {
-			failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
-			Activator.logError(failureReason, e);
-		}
-		if (fFactory == null) {
-			Label label = new Label(parent, SWT.NONE);
-			label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-			label.setText(failureReason);
-			return;
-		}
-		Display display = Display.getCurrent();
-		// Create the containing tab folder
-		fTabFolder = new CTabFolder(parent, SWT.NONE);
-		fTabFolder.setSimple(false);
-		fTabFolder.setBackground(new Color[]{
-				display.getSystemColor(SWT.COLOR_WHITE),
-				display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)}, 
-				new int[]{100}, true);
-		fTabFolder.setSelectionBackground(new Color[]{
-				display.getSystemColor(SWT.COLOR_WHITE),
-				display.getSystemColor(SWT.COLOR_WHITE)}, 
-				new int[]{100}, true);
+            Activator activator = Activator.getDefault();
+            if (activator != null) {
+               IDialogSettings dialogSettings = activator.getDialogSettings();
+               if (dialogSettings != null) {
+                  if (fTabFolder != null)  {
+                     dialogSettings.put(ActiveTab_key,           fTabFolder.getSelectionIndex());
+                  }
+                  if (fPeripheralParametersFolder != null) {
+                     dialogSettings.put(PeripheralTabNumber_key, fPeripheralParametersFolder.getSelectionIndex());
+                  }
+               }
+            }
+         }
+      });
+      
+      final Display display = Display.getCurrent();
 
-		ArrayList<IEditorPage> editors = new ArrayList<IEditorPage>();
-		for (IPage page:fFactory.getModels()) {
-			// Pin view
-			CTabItem tabItem;
-			tabItem = new CTabItem(fTabFolder, SWT.NONE);
-			tabItem.setText(page.getName());
-			IEditorPage editorPage = page.createEditorPage();
-			editors.add(editorPage);
-			tabItem.setControl(editorPage.createComposite(fTabFolder));
-			tabItem.setToolTipText(page.getToolTip());
-		}
-		fEditors = editors.toArray(new IEditorPage[editors.size()]);
+      final Label label = new Label(parent, SWT.NONE);
+//      label.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+      label.setText("Reading configuration");
 
-		refreshModels();
+      FontDescriptor boldDescriptor = FontDescriptor.createFrom(label.getFont()).setStyle(SWT.BOLD).setHeight(15);
+      Font boldFont = boldDescriptor.createFont(label.getDisplay());
+      label.setFont( boldFont );
+      
+      // Populate pages in background
+      Job job = Job.create("Populating editor", new IJobFunction() {
+         @Override
+         public IStatus run(IProgressMonitor arg0) {
+            createPartControlJob(display, parent, label);
+            return Status.OK_STATUS;
+         }
+      });
+      job.setUser(true);
+      job.schedule();
+   }
 
-		fFactory.addListener(this);
+   /**
+    * Creates the editor pages.
+    * @param display 
+    * @param label 
+    */
+   public void createPartControlJob(final Display display, final Composite parent, final Label status) {
 
-		// Create the actions
-		makeActions();
-		// Add selected actions to context menu
-		hookContextMenu();
-		// Add selected actions to menu bar
-		//      contributeToActionBars();
+      final DeviceEditor editor = this;
+      fFactory = null;
 
-		try {
-			Activator activator = Activator.getDefault();
-			if (activator != null) {
-				IDialogSettings dialogSettings = activator.getDialogSettings();
-				if (dialogSettings != null) {
-					fTabFolder.setSelection(dialogSettings.getInt("ActiveTab"));
-				}
-			}
-		} catch (NumberFormatException e) {
-		}
-	}
+      String failureReason = "Unknown";
+      try {
+         // Get page data
+         fFactory = ModelFactory.createModels(fPath, true);
+      } catch (Exception e) {
+         failureReason = "Failed to create editor content for '"+fPath+"'.\nReason: "+e.getMessage();
+         Activator.logError(failureReason, e);
+      }
+      
+      if (fFactory == null) {
+         final String reason = failureReason;
+         display.asyncExec(new Runnable() {
+            @Override
+            public void run() {
+               // Remove status message form parent
+               status.setText(reason);
+               parent.layout();
+               parent.redraw();
+            }
+         });
+         return;
+      }
 
-	/**
-	 * Used to suppress C indexing
-	 */
-	static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
-		IProject fProject;
+      display.asyncExec(new Runnable() {
+         @Override
+         public void run() {
 
-		MyIndexerSetupParticipant(IProject project) {
-			fProject = project;
-		}
-		@Override
-		public boolean postponeIndexerSetup(ICProject cProject) {
-			IProject project = cProject.getProject() ;
-			return project == fProject;
-		}
-	}
+            fFactory.addListener(editor);
+            
+            status.dispose();
+            
+            // Create the containing tab folder
+            fTabFolder = new CTabFolder(parent, SWT.NONE);
+            fTabFolder.setSimple(false);
+            fTabFolder.setBorderVisible(true);
+            fTabFolder.setBackground(new Color[]{
+                  display.getSystemColor(SWT.COLOR_WHITE),
+                  display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT)}, 
+                  new int[]{100}, true);
+            fTabFolder.setSelectionBackground(new Color[]{
+                  display.getSystemColor(SWT.COLOR_WHITE),
+                  display.getSystemColor(SWT.COLOR_WHITE)}, 
+                  new int[]{100}, true);
 
-	/**
-	 * Generate C code files
-	 * @return 
-	 */
-	public void generateCode() {
+            fPeripheralParametersFolder = null;
+            
+            ArrayList<IEditorPage> editors = new ArrayList<IEditorPage>();
+            for (IPage page:fFactory.getModels()) {
+               // Pin view
+               CTabItem tabItem;
+               tabItem = new CTabItem(fTabFolder, SWT.NONE);
+               tabItem.setText(page.getName());
+               IEditorPage editorPage = page.createEditorPage();
+               editors.add(editorPage);
+               tabItem.setControl(editorPage.createComposite(fTabFolder));
+               tabItem.setToolTipText(page.getToolTip());
+               if (page.getName().equalsIgnoreCase("Peripheral Parameters")) {
+                  fPeripheralParametersFolder = (CTabFolder) tabItem.getControl();
+               }
+            }
+            fEditors = editors.toArray(new IEditorPage[editors.size()]);
+            parent.layout();
+            parent.redraw();
+            refreshModels();
+            fTabFolder.setSelection(0);
 
-		Job job = new Job("Regenerate code files") {
+            // Create the actions
+            makeActions();
+            // Add selected actions to context menu
+            hookContextMenu();
+            // Add selected actions to menu bar
+            //      contributeToActionBars();
 
-			protected IStatus run(IProgressMonitor monitor) {
-				SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
+            int tabNum           = fTabFolder.getItemCount()-1;
+            int peripheralTabNum = 0;
+            Activator activator = Activator.getDefault();
+            if (activator != null) {
+               IDialogSettings dialogSettings = activator.getDialogSettings();
+               if (dialogSettings != null) {
+                  try {
+                     tabNum              = dialogSettings.getInt(ActiveTab_key);
+                     peripheralTabNum = dialogSettings.getInt(PeripheralTabNumber_key);
+                  } catch (NumberFormatException e) {
+                  }
+               }
+            }
+            if (tabNum>=fTabFolder.getItemCount()) {
+               tabNum = 0;
+            }
+            if (peripheralTabNum>=fPeripheralParametersFolder.getItemCount()) {
+               peripheralTabNum = 0;
+            }
+            fTabFolder.setSelection(tabNum);
+            fTabFolder.layout();
+            fPeripheralParametersFolder.setSelection(peripheralTabNum);
+         }
+      });
+      return;
+   }
 
-				if (fFactory == null) {
-					return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
-				}
-				//            MyIndexerSetupParticipant indexerParticipant= null;
-				try {
-					subMonitor.setTaskName("Regenerate project files");
-					subMonitor.subTask("Starting...");
-					if (fProject != null) {
-						//                  indexerParticipant = new MyIndexerSetupParticipant(fProject); 
+   /**
+    * Used to suppress C indexing
+    */
+   static class MyIndexerSetupParticipant extends IndexerSetupParticipant {
+      IProject fProject;
 
-						// Suppress project indexing while project is constructed
-						//                  CCorePlugin.getIndexManager().addIndexerSetupParticipant(indexerParticipant);
+      MyIndexerSetupParticipant(IProject project) {
+         fProject = project;
+      }
+      @Override
+      public boolean postponeIndexerSetup(ICProject cProject) {
+         IProject project = cProject.getProject() ;
+         return project == fProject;
+      }
+   }
 
-						// Regenerate files
-						fFactory.getDeviceInfo().generateCppFiles(fProject, subMonitor.newChild(50));
+   /**
+    * Generate C code files
+    * @return 
+    */
+   public void generateCode() {
 
-						// Refresh project
-						subMonitor.subTask("Refreshing files...");
-						fProject.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(10));
+      Job job = new Job("Regenerate code files") {
 
-						final IIndexManager indexManager = CCorePlugin.getIndexManager();
-						final ICProject cProject = CoreModel.getDefault().create(fProject);
-						//                  indexerParticipant.notifyIndexerSetup(cProject);
-						subMonitor.subTask("Refreshing Index...");
-						indexManager.reindex(cProject);
-						indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(40)); 
-					}
-					else {
-						// Used for testing
-						fFactory.getDeviceInfo().generateCppFiles();
-					}
-				} catch (Exception e) {
-				   Activator.logError(e.getMessage(), e);
-					return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
-				} finally {
-					//               // Allow indexing if suspended
-					//               if (indexerParticipant != null) {
-					//                  CCorePlugin.getIndexManager().removeIndexerSetupParticipant(indexerParticipant);
-					//               }
-					monitor.done();
-				}
-				return Status.OK_STATUS;
-			}
-		};
-		job.setUser(true);
-		job.schedule();
-	}
+         protected IStatus run(IProgressMonitor monitor) {
+            SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
-	class GenerateCodeAction extends MyAction {
-		GenerateCodeAction() {
-			super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_GEN_FILES_IMAGE);
-		}
+            if (fFactory == null) {
+               return new Status(IStatus.ERROR, Activator.getPluginId(), "No factory open");
+            }
+            //            MyIndexerSetupParticipant indexerParticipant= null;
+            try {
+               subMonitor.setTaskName("Regenerate project files");
+               subMonitor.subTask("Starting...");
+               if (fProject != null) {
+                  // Regenerate files
+                  fFactory.getDeviceInfo().generateCppFiles(fProject, subMonitor.newChild(20));
 
-		@Override
-		public void run() {
-			generateCode();
-		}
-	}
+                  // Refresh project
+                  subMonitor.subTask("Refreshing files...");
+                  fProject.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(20));
 
-	private GenerateCodeAction generateCodeAction = new GenerateCodeAction();
+                  final IIndexManager indexManager = CCorePlugin.getIndexManager();
+                  final ICProject cProject = CoreModel.getDefault().create(fProject);
+                  subMonitor.subTask("Refreshing Index...");
+                  indexManager.reindex(cProject);
+                  indexManager.joinIndexer(IIndexManager.FOREVER, subMonitor.newChild(60)); 
+               }
+               else {
+                  // Used for testing
+                  fFactory.getDeviceInfo().generateCppFiles();
+               }
+            } catch (Exception e) {
+               Activator.logError(e.getMessage(), e);
+               return new Status(IStatus.ERROR, Activator.getPluginId(), e.toString(), e);
+            } finally {
+               monitor.done();
+            }
+            return Status.OK_STATUS;
+         }
+      };
+      job.setUser(true);
+      job.schedule();
+   }
 
-	MyAction fActions[] = {generateCodeAction};
+   class GenerateCodeAction extends MyAction {
+      GenerateCodeAction() {
+         super("Regenerate Files", IAction.AS_PUSH_BUTTON, Activator.ID_GEN_FILES_IMAGE);
+      }
 
-	Action getGenerateCodeAction() {
-		return generateCodeAction;
-	}
+      @Override
+      public void run() {
+         generateCode();
+      }
+   }
 
-	/** 
-	 * Create menu actions
-	 */
-	private void makeActions() {
+   private GenerateCodeAction generateCodeAction = new GenerateCodeAction();
 
-		// These actions end up on the pop-up menu
-		for(MyAction action:fActions) {
-			popupActions.add(action);
-		}
-	}
+   MyAction fActions[] = {generateCodeAction};
 
-	/**
-	 * Add menu manager for right click pop-up menu
-	 */
-	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
-		menuMgr.setRemoveAllWhenShown(true);
-		menuMgr.addMenuListener(new IMenuListener() {
-			public void menuAboutToShow(IMenuManager manager) {
-				// Dynamically fill context menu
-				DeviceEditor.this.fillContextMenu(manager);
-			}
-		});
-		Menu menu = menuMgr.createContextMenu(fTabFolder);
-		for (Control c:fTabFolder.getChildren()) {
-			c.setMenu(menu);
-		}
-	}
+   Action getGenerateCodeAction() {
+      return generateCodeAction;
+   }
 
-	/**
-	 * Dynamically fill context menu
-	 * 
-	 * @param manager
-	 */
-	private void fillContextMenu(IMenuManager manager) {
-		for (MyAction action:popupActions) {
-			manager.add(action);
-		}
-	}
+   /** 
+    * Create menu actions
+    */
+   private void makeActions() {
 
-	@SuppressWarnings("unused")
-	private void contributeToActionBars() {
-		IEditorSite site = getEditorSite();
-		if (site == null) {
-			System.err.println("site is null");
-			return;
-		}
-		IActionBars bars = site.getActionBars();
-		fillLocalPullDown(bars.getMenuManager());
-		fillLocalToolBar(bars.getToolBarManager());
-	}
+      // These actions end up on the pop-up menu
+      for(MyAction action:fActions) {
+         popupActions.add(action);
+      }
+   }
 
-	/**
-	 * Fill menu bar
-	 * 
-	 * @param manager
-	 */
-	private void fillLocalToolBar(IToolBarManager manager) {
-		for(MyAction action:fActions) {
-			manager.add(action);
-		}
-	}
+   /**
+    * Add menu manager for right click pop-up menu
+    */
+   private void hookContextMenu() {
+      MenuManager menuMgr = new MenuManager("#PopupMenu");
+      menuMgr.setRemoveAllWhenShown(true);
+      menuMgr.addMenuListener(new IMenuListener() {
+         public void menuAboutToShow(IMenuManager manager) {
+            // Dynamically fill context menu
+            DeviceEditor.this.fillContextMenu(manager);
+         }
+      });
+      Menu menu = menuMgr.createContextMenu(fTabFolder);
+      for (Control c:fTabFolder.getChildren()) {
+         c.setMenu(menu);
+      }
+   }
 
-	/**
-	 * Fill menu bar drop-down menu
-	 * 
-	 * @param manager
-	 */
-	private void fillLocalPullDown(IMenuManager manager) {
-		for(MyAction action:fActions) {
-			manager.add(action);
-		}
-	}
+   /**
+    * Dynamically fill context menu
+    * 
+    * @param manager
+    */
+   private void fillContextMenu(IMenuManager manager) {
+      for (MyAction action:popupActions) {
+         manager.add(action);
+      }
+   }
 
-	@Override
-	public void doSaveAs() {  
-		FileDialog dialog = new FileDialog(getSite().getShell(), SWT.SAVE);
-		dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.PROJECT_FILE_EXTENSION});
-		dialog.setFilterPath(fPath.getParent().toString());
-		String result = dialog.open();
-		if (result != null) {
-			DeviceInfo deviceInfo = fFactory.getDeviceInfo();
-			if (deviceInfo == null) {
-				return;
-			}
-			Path path = FileSystems.getDefault().getPath(result);
-			deviceInfo.saveSettingsAs(path, fProject);
-		}
-	}   
+   @SuppressWarnings("unused")
+   private void contributeToActionBars() {
+      IEditorSite site = getEditorSite();
+      if (site == null) {
+         System.err.println("site is null");
+         return;
+      }
+      IActionBars bars = site.getActionBars();
+      fillLocalPullDown(bars.getMenuManager());
+      fillLocalToolBar(bars.getToolBarManager());
+   }
 
-	@Override
-	public void doSave(IProgressMonitor monitor) {
-		SubMonitor.convert(monitor, 100);
+   /**
+    * Fill menu bar
+    * 
+    * @param manager
+    */
+   private void fillLocalToolBar(IToolBarManager manager) {
+      for(MyAction action:fActions) {
+         manager.add(action);
+      }
+   }
 
-		if (fFactory == null) {
-			return;
-		}
-		DeviceInfo deviceInfo = fFactory.getDeviceInfo();
-		if (deviceInfo == null) {
-			return;
-		}
-		deviceInfo.saveSettings(fProject);
-		Activator activator = Activator.getDefault();
-		if (activator != null) {
-			IDialogSettings dialogSettings = activator.getDialogSettings();
-			if (dialogSettings != null) {
-				dialogSettings.put("ActiveTab", fTabFolder.getSelectionIndex());
-			}
-		}
-	}
+   /**
+    * Fill menu bar drop-down menu
+    * 
+    * @param manager
+    */
+   private void fillLocalPullDown(IMenuManager manager) {
+      for(MyAction action:fActions) {
+         manager.add(action);
+      }
+   }
 
-	@Override
-	public boolean isDirty() {
-		return (fFactory != null) && (fFactory.getDeviceInfo().isDirty());
-	}
+   @Override
+   public void doSaveAs() {  
+      FileDialog dialog = new FileDialog(getSite().getShell(), SWT.SAVE);
+      dialog.setFilterExtensions(new String [] {"*"+DeviceInfo.PROJECT_FILE_EXTENSION});
+      dialog.setFilterPath(fPath.getParent().toString());
+      String result = dialog.open();
+      if (result != null) {
+         DeviceInfo deviceInfo = fFactory.getDeviceInfo();
+         if (deviceInfo == null) {
+            return;
+         }
+         Path path = FileSystems.getDefault().getPath(result);
+         deviceInfo.saveSettingsAs(path, fProject);
+      }
+   }   
+
+   @Override
+   public void doSave(IProgressMonitor monitor) {
+      SubMonitor.convert(monitor, 100);
+
+      if (fFactory == null) {
+         return;
+      }
+      DeviceInfo deviceInfo = fFactory.getDeviceInfo();
+      if (deviceInfo == null) {
+         return;
+      }
+      deviceInfo.saveSettings(fProject);
+   }
+
+   @Override
+   public boolean isDirty() {
+      return (fFactory != null) && (fFactory.getDeviceInfo().isDirty());
+   }
 
 
-	@Override
-	public boolean isSaveAsAllowed() {
-		return true;
-	}
+   @Override
+   public boolean isSaveAsAllowed() {
+      return true;
+   }
 
-	/** Used when the models have been re-generated */
-	@Override
-	public void modelElementChanged(ObservableModel model) {
-		if (model == fFactory) {
-			firePropertyChange(PROP_DIRTY);      
-		}
-	}
+   /** Used when the models have been re-generated */
+   @Override
+   public void modelElementChanged(ObservableModel model) {
+      if (model == fFactory) {
+         firePropertyChange(PROP_DIRTY);      
+      }
+   }
 
-	@Override
-	public void modelStructureChanged(ObservableModel model) {
-		if (model == fFactory) {
-			refreshModels();
-		}
-		firePropertyChange(PROP_DIRTY);      
-	}
+   @Override
+   public void modelStructureChanged(ObservableModel model) {
+      if (model == fFactory) {
+         refreshModels();
+      }
+      firePropertyChange(PROP_DIRTY);      
+   }
 
-	DeviceEditorOutlinePage fOutlinePage = null;
+   DeviceEditorOutlinePage fOutlinePage = null;
 
-	//   @Override
-	//   public <T> T getAdapter(Class<T> required) {
-	//      if (IContentOutlinePage.class.equals(required)) {
-	//         if (fOutlinePage == null) {
-	//            fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
-	//            fOutlinePage.setInput(getEditorInput());
-	//         }
-	//         return required.cast(fOutlinePage);
-	//      }
-	//      return super.getAdapter(required);
-	//   }
+   
+//   @Override
+//   public void dispose() {
+//      Activator activator = Activator.getDefault();
+//      if (activator != null) {
+//         IDialogSettings dialogSettings = activator.getDialogSettings();
+//         if (dialogSettings != null) {
+//            dialogSettings.put(ActiveTab_key,           fTabFolder.getSelectionIndex());
+//            dialogSettings.put(PeripheralTabNumber_key, fPeripheralParametersFolder.getSelectionIndex());
+//         }
+//      }
+//      super.dispose();
+//   }
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public Object getAdapter(Class adapter) {
-		if (IContentOutlinePage.class.equals(adapter)) {
-			if (fOutlinePage == null) {
-				fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
-				fOutlinePage.setInput(getEditorInput());
-			}
-			return adapter.cast(fOutlinePage);
-		}
-		return super.getAdapter(adapter);
-	}
+   @SuppressWarnings("rawtypes")
+   @Override
+   public Object getAdapter(Class adapter) {
+      if (IContentOutlinePage.class.equals(adapter)) {
+         if (fOutlinePage == null) {
+            fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);
+            fOutlinePage.setInput(getEditorInput());
+         }
+         return adapter.cast(fOutlinePage);
+      }
+      return super.getAdapter(adapter);
+   }
 
-	@Override
-	public void elementStatusChanged(ObservableModel observableModel) {
-	}
+   @Override
+   public void elementStatusChanged(ObservableModel observableModel) {
+   }
 
 }

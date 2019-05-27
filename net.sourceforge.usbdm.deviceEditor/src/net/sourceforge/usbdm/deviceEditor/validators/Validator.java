@@ -20,7 +20,7 @@ public abstract class Validator {
    protected final VariableProvider fProvider;
    protected final int              fDimension;
    protected int                    fIndex=0;
-   
+   protected boolean                fVerbose = false;
    /**
     * Create validator
     * 

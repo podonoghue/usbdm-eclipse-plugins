@@ -5,16 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
-import net.sourceforge.usbdm.cdt.ui.Activator;
-import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
-import net.sourceforge.usbdm.cdt.ui.newProjectWizard.CDTProjectManager;
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-import net.sourceforge.usbdm.deviceDatabase.Device;
-import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-import net.sourceforge.usbdm.packageParser.ProjectActionList;
-
 import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
@@ -30,6 +20,16 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
+
+import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
+import net.sourceforge.usbdm.cdt.ui.Activator;
+import net.sourceforge.usbdm.cdt.ui.actions.ProcessProjectActions;
+import net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmCdtProjectManager;
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
+import net.sourceforge.usbdm.deviceDatabase.Device;
+import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
+import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.packageParser.ProjectActionList;
 
 /**
  * @author pgo
@@ -147,18 +147,20 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
 
          // Create project
          System.err.println("KSDKLibraryImportWizard.run() - Creating project");
-         IProject project = new CDTProjectManager().createUSBDMProject(paramMap, monitor.newChild(30));
+         IProject project = UsbdmCdtProjectManager.createUsbdmProject(paramMap, deviceActionList, progressMonitor, device);
+         
+//         IProject project = new CDTProjectManager().createUSBDMProject(paramMap, monitor.newChild(30));
          
          // Apply default device project options
-         System.err.println("KSDKLibraryImportWizard.run() - Applying deviceActionLists");
-         ProcessProjectActions.process(this, project, device, deviceActionList, paramMap, monitor.newChild(30));
+//         System.err.println("KSDKLibraryImportWizard.run() - Applying deviceActionLists");
+//         ProcessProjectActions.process(project, device, deviceActionList, paramMap, monitor.newChild(30));
          
          // Apply Library options
          System.err.println("KSDKLibraryImportWizard.run() - Getting libraryActionList");
          ProjectActionList libraryActionList = kdsLibraryImportWizardPage.getProjectActionList();
          
          System.err.println("KSDKLibraryImportWizard.run() - Applying libraryActionList");
-         ProcessProjectActions.process(this, project, device, libraryActionList, paramMap, monitor.newChild(30));
+         ProcessProjectActions.process(project, device, libraryActionList, paramMap, monitor.newChild(30));
 
          updateConfigurations(project, monitor.newChild(10));
          

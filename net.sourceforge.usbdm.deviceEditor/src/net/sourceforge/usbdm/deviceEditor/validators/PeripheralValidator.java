@@ -120,7 +120,9 @@ public class PeripheralValidator extends Validator {
       Variable var = safeGetVariable(name);
       if (var == null) {
          if (fIndex==0) {
-            System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+            if (fVerbose) {
+               System.err.println("Failed to watch variable " + name + " in peripheral " + getClass().getName());
+            }
          }
       }
       else {
@@ -186,7 +188,9 @@ public class PeripheralValidator extends Validator {
    protected String getParameter(String parameterName, String defaultValue) {
       StringVariable   parameterVar = safeGetStringVariable(parameterName);
       if (parameterVar == null) {
-         System.err.println("Note: Failed to get parameter " + parameterName + ", using default '" + defaultValue + "'");
+         if (fVerbose) {
+            System.err.println("Note: Failed to get parameter " + parameterName + ", using default '" + defaultValue + "'");
+         }
          return defaultValue;
       }
       return parameterVar.getValueAsString();

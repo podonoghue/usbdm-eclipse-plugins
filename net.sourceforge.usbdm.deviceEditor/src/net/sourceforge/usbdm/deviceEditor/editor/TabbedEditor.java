@@ -29,10 +29,11 @@ public class TabbedEditor implements IEditor {
       // Create the containing tab folder
       Display display = Display.getCurrent();
       fTabFolder   = new CTabFolder(parent, style);
+      fTabFolder.setBorderVisible(true);
       fTabFolder.setSimple(false);
       fTabFolder.setBackground(new Color[]{
-            display.getSystemColor(SWT.COLOR_WHITE),
-            display.getSystemColor(SWT.COLOR_CYAN)}, 
+            display.getSystemColor(SWT.COLOR_TITLE_BACKGROUND_GRADIENT),
+            display.getSystemColor(SWT.COLOR_WHITE)}, 
             new int[]{100}, true);
       fTabFolder.setSelectionBackground(new Color[]{
             display.getSystemColor(SWT.COLOR_WHITE),

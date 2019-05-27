@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.wizard.Wizard;
 
 import net.sourceforge.usbdm.cdt.ui.Activator;
 import net.sourceforge.usbdm.cdt.utilties.AddTargetFiles;
@@ -31,7 +30,6 @@ import net.sourceforge.usbdm.packageParser.WizardPageInformation;
 public class ProcessProjectActions {
  
    public static void process(
-         final Wizard                wizard, 
          final IProject              projectHandle, 
          final Device                device, 
          final ProjectActionList     actionList,
