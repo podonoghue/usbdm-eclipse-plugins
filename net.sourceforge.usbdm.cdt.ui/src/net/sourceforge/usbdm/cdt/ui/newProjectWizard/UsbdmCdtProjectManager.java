@@ -139,7 +139,7 @@ public class UsbdmCdtProjectManager {
          }
 
          // ================== Start - createProject =======================
-         Activator.log(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
+//         Activator.log(String.format("CDTProjectManager.createProject(%s, %s)", projectName, directoryPath));
 
          monitor.beginTask("Creating project", IProgressMonitor.UNKNOWN);
 
@@ -227,7 +227,7 @@ public class UsbdmCdtProjectManager {
          //         reindexProject(project, monitor.newChild(WORK_SCALE * 20));
 
          if (hasCCNature) {
-            Activator.log("Last ditch adding CC nature");
+//            Activator.log("Last ditch adding CC nature");
             CCProjectNature.addCCNature(project, monitor.newChild(WORK_SCALE));
          }
          
