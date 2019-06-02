@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -249,42 +249,37 @@ public class LaunchParameterUtilities {
          @Override
          public void run(IProgressMonitor pm) throws InterruptedException {
             int nElements = elements.length;
-            pm.beginTask( "Looking for executables", nElements);
-            try {
-               IProgressMonitor sub = new SubProgressMonitor(pm, 1);
-               for (int i = 0; i < nElements; i++) {
-//                  System.err.println("Checking IResource " + elements[i] );
-                  if (elements[i] instanceof IAdaptable) {
-//                     System.err.println("Checking IAdaptable " + elements[i] );
-                     IResource r = (IResource) ((IAdaptable) elements[i]).getAdapter(IResource.class);
-//                     System.err.println("Checking IResource " + r );
-                     if (r != null) {
-//                        System.err.println("Found IResource " + r.getName());
-                        ICProject cproject = CoreModel.getDefault().create(r.getProject());
-                        if (cproject != null) {
-//                           System.err.println("Found project " + cproject.getPath() );
-                           try {
-                              IBinary[] bins = cproject.getBinaryContainer().getBinaries();
-                              for (IBinary bin : bins) {
-                                 if (!bin.isExecutable()) {
-                                    continue;
-                                 }
-//                                 System.err.println("Found suitable binary " + bin.getPath() );
-                                 results.add(bin);
+            SubMonitor subMonitor = SubMonitor.convert(pm, "Looking for executables", nElements);
+            subMonitor.split(1);
+            for (int i = 0; i < nElements; i++) {
+//             System.err.println("Checking IResource " + elements[i] );
+               if (elements[i] instanceof IAdaptable) {
+//                System.err.println("Checking IAdaptable " + elements[i] );
+                  IResource r = (IResource) ((IAdaptable) elements[i]).getAdapter(IResource.class);
+//                System.err.println("Checking IResource " + r );
+                  if (r != null) {
+                     //                        System.err.println("Found IResource " + r.getName());
+                     ICProject cproject = CoreModel.getDefault().create(r.getProject());
+                     if (cproject != null) {
+//                      System.err.println("Found project " + cproject.getPath() );
+                        try {
+                           IBinary[] bins = cproject.getBinaryContainer().getBinaries();
+                           for (IBinary bin : bins) {
+                              if (!bin.isExecutable()) {
+                                 continue;
                               }
-                           } catch (CModelException e) {
-                              // Ignored
+//                            System.err.println("Found suitable binary " + bin.getPath() );
+                              results.add(bin);
                            }
+                        } catch (CModelException e) {
+                           // Ignored
                         }
                      }
                   }
-                  if (pm.isCanceled()) {
-                     throw new InterruptedException();
-                  }
-                  sub.done();
                }
-            } finally {
-               pm.done();
+               if (pm.isCanceled()) {
+                  throw new InterruptedException();
+               }
             }
          }
       };

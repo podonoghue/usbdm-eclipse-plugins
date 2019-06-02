@@ -22,17 +22,14 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 
 import net.sourceforge.usbdm.gdb.service.command.UsbdmCommandFactory_6_8;
 
-/**
- * @since 5.1
- */
 public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
 
 	public UsbdmGdbDebugServicesFactory(String version) {
-		super(version);
+      super(version, null);
 	}
 
 	public UsbdmGdbDebugServicesFactory(String version, ILaunchConfiguration config) {
-		super(version);
+		super(version, config);
 		//      System.err.println("UsbdmGdbDebugServicesFactory(...)");
 	}
 

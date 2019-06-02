@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.eclipse.cdt.build.core.scannerconfig.ScannerConfigBuilder;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;

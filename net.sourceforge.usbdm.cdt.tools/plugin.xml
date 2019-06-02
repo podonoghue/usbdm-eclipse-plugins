@@ -2737,23 +2737,38 @@
       </provider>
    </extension>
    <extension
-         id="ArmProjectNature"
-         name="USBDM ARM C/C++ project"
+         id="cnature"
+         name="USBDM C project"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="net.sourceforge.usbdm.cdt.tools.ProjectNature">
+               class="net.sourceforge.usbdm.cdt.tools.UsbdmProjectNature">
          </run>
       </runtime>
+      <requires-nature
+            id="org.eclipse.cdt.core.cnature">
+      </requires-nature>
    </extension>
    <extension
-         id="ColdfireProjectNature"
-         name="USBDM Coldfire C/C++ project"
+         id="ccnature"
+         name="USBDM C++ project"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="net.sourceforge.usbdm.cdt.tools.ProjectNature">
+               class="net.sourceforge.usbdm.cdt.tools.UsbdmProjectNature">
          </run>
       </runtime>
+      <requires-nature
+            id="org.eclipse.cdt.core.ccnature">
+      </requires-nature>
+   </extension>
+   <extension
+         id="net.sourceforge.usbdm.cdt.CConfigurationDataProvider"
+         name="USBDM Configuration Data Provider"
+         point="org.eclipse.cdt.core.CConfigurationDataProvider">
+      <provider
+            class="net.sourceforge.usbdm.cdt.tools.UsbdmCConfigurationDataProvider"
+            natures="net.sourceforge.usbdm.cdt.tools.cnature,net.sourceforge.usbdm.cdt.tools.ccnature,net.sourceforge.usbdm.cdt.usbdmNature">
+      </provider>
    </extension>
 </plugin>

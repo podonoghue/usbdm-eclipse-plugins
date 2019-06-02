@@ -8,7 +8,7 @@ import java.util.regex.PatternSyntaxException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.IJobFunction;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
@@ -380,7 +380,7 @@ public class DeviceSelectorPanel extends Composite {
     * @return
     * @throws InterruptedException 
     */
-   void buildTreeModel(IProgressMonitor pm, BaseModel root) throws InterruptedException {
+   void buildTreeModel(IProgressMonitor progressMonitor, BaseModel root) throws InterruptedException {
       fDeviceName = null;
 
       if ((fDeviceDatabase == null) || (fDeviceDatabase.getTargetType() != fTargetType)) {
@@ -394,40 +394,38 @@ public class DeviceSelectorPanel extends Composite {
       BaseModel familyTree     = null;
       String currentSubFamily  = null;
       BaseModel subFamilyTree  = null;
-      for (Device device : fDeviceDatabase.getDeviceList()) {
-         IProgressMonitor sub = new SubProgressMonitor(pm, 1);
-         try {
-            if (device.isHidden()) {
-               continue;
-            }
-            String family = getFamilyName(device.getName());
-            if ((familyTree == null) || (currentFamily == null) || !currentFamily.equalsIgnoreCase(family)) {
-               familyTree = findCategoryNode(root, family);
-            }
-            if (familyTree == null) {
-               currentFamily = family;
-               familyTree = new CategoryModel(root, family);
-               currentSubFamily = null;
-               subFamilyTree = null;
-            }
-            String subFamily = getSubFamilyNamePrefix(device.getName());
-            if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
-               subFamilyTree = findCategoryNode(familyTree, subFamily);
-            }
-            if (subFamilyTree == null) {
-               currentSubFamily = subFamily;
-               subFamilyTree = new CategoryModel(familyTree, currentSubFamily);
-            }
-            if (device.getName().equalsIgnoreCase(currentSubFamily)) {
-               continue;
-            }
-            new DeviceModel(subFamilyTree, device.getName());
-            if (pm.isCanceled()) {
-               throw new InterruptedException();
-            } 
-         } finally {
-            sub.done();
+      ArrayList<Device> devices = fDeviceDatabase.getDeviceList();
+      SubMonitor subMonitor = SubMonitor.convert(progressMonitor, "Building devcie tree", devices.size());
+      for (Device device : devices) {
+         IProgressMonitor sub = subMonitor.split(1);
+         if (device.isHidden()) {
+            continue;
          }
+         String family = getFamilyName(device.getName());
+         if ((familyTree == null) || (currentFamily == null) || !currentFamily.equalsIgnoreCase(family)) {
+            familyTree = findCategoryNode(root, family);
+         }
+         if (familyTree == null) {
+            currentFamily = family;
+            familyTree = new CategoryModel(root, family);
+            currentSubFamily = null;
+            subFamilyTree = null;
+         }
+         String subFamily = getSubFamilyNamePrefix(device.getName());
+         if ((subFamilyTree == null) || (currentSubFamily == null) || (!currentSubFamily.equalsIgnoreCase(subFamily))) {
+            subFamilyTree = findCategoryNode(familyTree, subFamily);
+         }
+         if (subFamilyTree == null) {
+            currentSubFamily = subFamily;
+            subFamilyTree = new CategoryModel(familyTree, currentSubFamily);
+         }
+         if (device.getName().equalsIgnoreCase(currentSubFamily)) {
+            continue;
+         }
+         new DeviceModel(subFamilyTree, device.getName());
+         if (sub.isCanceled()) {
+            throw new InterruptedException();
+         } 
       }
    }
    

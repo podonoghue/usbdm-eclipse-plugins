@@ -513,9 +513,8 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
 //      super.dispose();
 //   }
 
-   @SuppressWarnings("rawtypes")
    @Override
-   public Object getAdapter(Class adapter) {
+   public <T> T getAdapter(Class<T> adapter) {
       if (IContentOutlinePage.class.equals(adapter)) {
          if (fOutlinePage == null) {
             fOutlinePage = new DeviceEditorOutlinePage(fFactory, this);

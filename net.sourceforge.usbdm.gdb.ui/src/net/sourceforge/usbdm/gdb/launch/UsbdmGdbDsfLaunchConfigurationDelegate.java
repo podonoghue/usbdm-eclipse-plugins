@@ -74,7 +74,7 @@ public class UsbdmGdbDsfLaunchConfigurationDelegate extends GdbLaunchDelegate {
 //      System.err.println("UsbdmGdbDsfLaunchConfigurationDelegate.launchDebugger(...)");
       monitor.beginTask("Launching debugger session", 10);  //$NON-NLS-1$
       if ( monitor.isCanceled() ) {
-         cleanupLaunch();
+         cleanupLaunch(launch);
          return;
       }
       try {

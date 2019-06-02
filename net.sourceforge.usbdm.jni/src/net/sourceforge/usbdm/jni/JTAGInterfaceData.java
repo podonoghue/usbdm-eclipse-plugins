@@ -40,7 +40,7 @@ public class JTAGInterfaceData {
       F_12MHZ       ("12MHz",      12000000),
       F_24MHZ       ("24MHz",      24000000),
       ;
-      static final ClockSpeed defFrequency = F_1MHZ;
+      static final ClockSpeed defFrequency = F_4MHZ;
       final String name;
       final int    frequency;
 

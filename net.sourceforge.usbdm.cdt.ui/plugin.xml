@@ -260,7 +260,7 @@
                   </with>
                   <iterate operator="and">
                      <adapt type="org.eclipse.core.resources.IResource">
-                        <test property="org.eclipse.core.resources.projectNature" value="net.sourceforge.usbdm.cdt.usbdmNature" />
+                        <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.cdt.core.cnature" />
                      </adapt>
                   </iterate>
                </and>
@@ -403,14 +403,5 @@
             </iterate>
          </with>
       </definition>
-   </extension>
-   <extension
-         point="org.eclipse.core.resources.natures"
-         id="net.sourceforge.usbdm.cdt.usbdmNature"
-         name="USBDM Project Nature">
-      <runtime>
-         <run class="net.sourceforge.usbdm.cdt.ui.newProjectWizard.UsbdmProjectNature" />
-      </runtime>
-      <requires-nature id="org.eclipse.cdt.core.cnature"/>
    </extension>
 </plugin>

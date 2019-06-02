@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import net.sourceforge.usbdm.cdt.ui.examplewizard.ExampleList.ProjectInformation;
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.IUsbdmProjectTypeSelection;
 import net.sourceforge.usbdm.constants.ToolInformationData;
-
 import org.eclipse.core.variables.VariablesPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.IWizardPage;

@@ -1871,9 +1871,9 @@ public class Usbdm {
          //            msgbox.setMessage("Loading of USBDM native library OK.");
          //            msgbox.open();
          Activator.log(sb.toString());
-      } catch (Exception e) {
+      } catch (UnsatisfiedLinkError e) {
          Activator.log(sb.toString());
-         Activator.logError(e.getMessage(), e);
+         Activator.logError(e.getMessage(), new Exception(e));
 //         String reason = e.getMessage();
 //         // Report first failure only
 //         if (!libraryLoadFailed) {

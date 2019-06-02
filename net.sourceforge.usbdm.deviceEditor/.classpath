@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry excluding="net/sourceforge/usbdm/configEditor/parser/Save.java|net/sourceforge/usbdm/configEditor/parser/MiscellaneousPeripheralTemplateInformation.java|net/sourceforge/usbdm/deviceEditor/parser/MiscellaneousPeripheralTemplateInformation.java|net/sourceforge/usbdm/deviceEditor/parser/Save.java|net/sourceforge/usbdm/deviceEditor/model/PinModel2.java|net/sourceforge/usbdm/deviceEditor/editor/IrqDialogue.java" kind="src" path="src"/>
 	<classpathentry kind="output" path="bin"/>
