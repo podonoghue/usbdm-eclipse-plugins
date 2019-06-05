@@ -87,6 +87,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsb;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhs;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForUsbhsdcd;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForVref;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForWdog;
 import net.sourceforge.usbdm.deviceEditor.validators.Validator;
@@ -1004,7 +1005,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void initialiseTemplates() throws Exception {
       /*
-       *  XXX - Add peripheral types here 
+       *  TODO - Add peripheral types here 
        */
       createPeripheralTemplateInformation(
             "GPIO", "$2", "$4",
@@ -1237,7 +1238,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "$1", "", "",
                "(USBHSDCD)",
                getDeviceFamily(),
-               WriterForToDo.class);
+               WriterForUsbhsdcd.class);
          createPeripheralTemplateInformation(
                "$1", "", "",
                "(USBHSPHY)",

@@ -70,7 +70,7 @@ public class VariableProvider {
    }
    
    /**
-    * Get name used to identify this provider
+    * Get name used to identify this provider e.g. FTM2
     * 
     * @return
     */

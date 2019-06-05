@@ -546,21 +546,19 @@ public abstract class Peripheral extends VariableProvider {
     * Writes definitions to be included in the information class describing the peripheral
     * 
     * <pre>
-    *    //! Hardware base pointer
-    *    static __attribute__((always_inline)) static volatile ADC_Type &adc() {...}
-    * 
-    *    //! Clock mask for peripheral
-    *    static constexpr uint32_t clockMask = SIM_SCGC6_ADC0_MASK;
-    * 
-    *    //! Address of clock register for peripheral
-    *    static __attribute__((always_inline)) static volatile uint32_t &clockReg() {...}
-    * 
+    *    //! Hardware base address as uint32_t 
+    *    static constexpr uint32_t baseAddress = USB0_BasePtr;
+    *    
+    *   __attribute__((always_inline)) static volatile USB_Type &usb() {
+    *      return *(USB_Type *)baseAddress;
+    *   }
+    *
     *    //! Number of IRQs for hardware
     *    static constexpr uint32_t irqCount  = 1;
     * 
     *    //! IRQ numbers for hardware
     *    static constexpr IRQn_Type irqNums[]  = {
-    *       ADC0_IRQn, };
+    *       USB0_IRQn, };
     * </pre>
     * 
     * @param pinMappingHeaderFile   Where to write definitions
@@ -569,37 +567,37 @@ public abstract class Peripheral extends VariableProvider {
     * @throws Exception 
     */
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      StringBuffer sb = new StringBuffer();
+//      StringBuffer sb = new StringBuffer();
+//
+//      // Base address as uint32_t
+//      sb.append(String.format(
+//            "   //! Hardware base address as uint32_t \n"+
+//                  "   static constexpr uint32_t baseAddress = %s;\n\n",
+//                  getName()+"_BasePtr"
+//            ));
+//      // Base address as pointer to struct
+//      sb.append(String.format(
+//            "   //! Hardware base pointer\n"+
+//                  "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
+//                  "      return *(%s_Type *)baseAddress;\n"+
+//                  "   }\n\n",
+//                  getBaseName(), getBaseName().toLowerCase(), getBaseName()
+//            ));
 
-      // Base address as uint32_t
-      sb.append(String.format(
-            "   //! Hardware base address as uint32_t \n"+
-                  "   static constexpr uint32_t baseAddress = %s;\n\n",
-                  getName()+"_BasePtr"
-            ));
-      // Base address as pointer to struct
-      sb.append(String.format(
-            "   //! Hardware base pointer\n"+
-                  "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
-                  "      return *(%s_Type *)baseAddress;\n"+
-                  "   }\n\n",
-                  getBaseName(), getBaseName().toLowerCase(), getBaseName()
-            ));
-
-      // Number of IRQs
-      sb.append(String.format(
-         "   //! Number of IRQs for hardware\n"+
-         "   static constexpr uint32_t irqCount  = %s;\n\n",
-         getIrqCount()));
-
-      // Explicit IRQ numbers
-      if (getIrqNumsAsInitialiser() != null) {
-         sb.append(String.format(
-            "   //! IRQ numbers for hardware\n"+
-            "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-            getIrqNumsAsInitialiser()));
-      }
-      pinMappingHeaderFile.write(sb.toString());
+//      // Number of IRQs
+//      sb.append(String.format(
+//         "   //! Number of IRQs for hardware\n"+
+//         "   static constexpr uint32_t irqCount  = %s;\n\n",
+//         getIrqCount()));
+//
+//      // Explicit IRQ numbers
+//      if (getIrqNumsAsInitialiser() != null) {
+//         sb.append(String.format(
+//            "   //! IRQ numbers for hardware\n"+
+//            "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
+//            getIrqNumsAsInitialiser()));
+//      }
+//      pinMappingHeaderFile.write(sb.toString());
    }
 
    /**

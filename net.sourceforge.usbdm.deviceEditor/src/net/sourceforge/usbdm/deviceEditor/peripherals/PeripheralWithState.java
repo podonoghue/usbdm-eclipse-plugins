@@ -146,7 +146,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     */
    protected Map<String, String> addTemplatesToSymbolMap(Map<String, String> map) {
       map.put("_instance",   getInstance());       // FTM0 => 0
-      map.put("_name",       getName());           // FTM0 => FTM
+      map.put("_name",       getName());           // FTM0 => FTM0
       map.put("_class",      getClassName());      // FTM0 => Ftm0
       map.put("_base_class", getClassBaseName());  // FTM0 => Ftm
 
