@@ -37,8 +37,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
    public void start(BundleContext context) throws Exception {
       super.start(context);
@@ -55,8 +54,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
@@ -184,11 +182,11 @@ public class Activator extends AbstractUIPlugin {
       log(msg, null);
    }
 
-   /**
-    * @since 5.0
-    */
    static public void log(String msg, Exception e) {
       if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
          System.out.println(msg + ((e!=null)?e.getMessage():""));
          return;
       }
@@ -197,6 +195,9 @@ public class Activator extends AbstractUIPlugin {
 
    static public void logError(String msg, Exception e) {
       if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
          System.err.println(msg + ((e!=null)?e.getMessage():""));
          return;
       }

@@ -8,6 +8,7 @@ Bundle-Activator: net.sourceforge.usbdm.peripherals.atmel.Activator
 Bundle-Vendor: USBDM
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Import-Package: org.osgi.framework
+Import-Package: org.eclipse.ui.plugin,
+ org.osgi.framework
 Require-Bundle: net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0"
 Export-Package: net.sourceforge.usbdm.peripherals.atmel

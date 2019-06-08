@@ -132,7 +132,15 @@ public class Activator extends AbstractUIPlugin {
       return PLUGIN_ID;
    }
 
+   /**
+    * Get Bundle context
+    * 
+    * @return The bundle context or null if unavailable
+    */
    public static BundleContext getBundleContext() {
+      if (getDefault() == null) {
+         return null;
+      }
       return getDefault().getBundle().getBundleContext();
    }
 
@@ -143,14 +151,25 @@ public class Activator extends AbstractUIPlugin {
       log(msg, null);
    }
 
-   /**
-    * @since 5.0
-    */
    static public void log(String msg, Exception e) {
+      if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
+         System.out.println(msg + ((e!=null)?e.getMessage():""));
+         return;
+      }
       getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
    }
 
-   static public void error(String msg, Exception e) {
+   static public void logError(String msg, Exception e) {
+      if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
+         System.err.println(msg + ((e!=null)?e.getMessage():""));
+         return;
+      }
       getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
    }
 

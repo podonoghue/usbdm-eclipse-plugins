@@ -12,4 +12,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: Test,
  net.sourceforge.usbdm.peripheralDatabase;uses:="org.osgi.framework"
-Import-Package: net.sourceforge.usbdm.cdt.utilties
+Import-Package: net.sourceforge.usbdm.cdt.utilties,
+ org.eclipse.ui.plugin

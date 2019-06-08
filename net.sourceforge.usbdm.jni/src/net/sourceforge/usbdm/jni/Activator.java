@@ -25,8 +25,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
    public void start(BundleContext context) throws Exception {
       super.start(context);
@@ -38,8 +37,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
    public void stop(BundleContext context) throws Exception {
       Usbdm.exit();
@@ -57,12 +55,34 @@ public class Activator extends AbstractUIPlugin {
       return plugin;
    }
 
+   public static String getPluginId() {
+      return PLUGIN_ID;
+   }
+
+   /**
+    * Get Bundle context
+    * 
+    * @return The bundle context or null if unavailable
+    */
+   public static BundleContext getBundleContext() {
+      if (getDefault() == null) {
+         return null;
+      }
+      return getDefault().getBundle().getBundleContext();
+   }
+
+   /**
+    * @since 5.0
+    */
    static public void log(String msg) {
       log(msg, null);
    }
 
    static public void log(String msg, Exception e) {
       if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
          System.out.println(msg + ((e!=null)?e.getMessage():""));
          return;
       }
@@ -71,11 +91,13 @@ public class Activator extends AbstractUIPlugin {
 
    static public void logError(String msg, Exception e) {
       if (getDefault() == null) {
-         System.err.println(msg + ", " + ((e!=null)?e.getMessage():""));
+         if (e != null) {
+            e.printStackTrace();
+         }
+         System.err.println(msg + ((e!=null)?e.getMessage():""));
          return;
       }
       getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
    }
-
 
 }

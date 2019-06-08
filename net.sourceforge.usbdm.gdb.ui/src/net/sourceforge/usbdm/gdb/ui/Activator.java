@@ -12,7 +12,6 @@ import org.osgi.framework.BundleContext;
 
 /**
  * The activator class controls the plug-in life cycle
- * @since 4.12
  */
 public class Activator extends AbstractUIPlugin {
 
@@ -32,8 +31,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
     */
    public void start(BundleContext context) throws Exception {
       super.start(context);
@@ -45,8 +43,7 @@ public class Activator extends AbstractUIPlugin {
     * (non-Javadoc)
     * 
     * @see
-    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext
-    * )
+    * org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
@@ -96,7 +93,15 @@ public class Activator extends AbstractUIPlugin {
       return PLUGIN_ID;
    }
 
+   /**
+    * Get Bundle context
+    * 
+    * @return The bundle context or null if unavailable
+    */
    public static BundleContext getBundleContext() {
+      if (getDefault() == null) {
+         return null;
+      }
       return getDefault().getBundle().getBundleContext();
    }
 
@@ -107,29 +112,26 @@ public class Activator extends AbstractUIPlugin {
       log(msg, null);
    }
 
-   /**
-    * @since 5.0
-    */
    static public void log(String msg, Exception e) {
-      Status status = new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e);
-      Activator activator = getDefault();
-      if (activator !=null) {
-         getDefault().getLog().log(status);
+      if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
+         System.out.println(msg + ((e!=null)?e.getMessage():""));
+         return;
       }
-      else {
-         System.err.println(status);
-      }
+      getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, Status.OK, msg, e));
    }
 
-   static public void error(String msg, Exception e) {
-      Status status = new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e);
-      Activator activator = getDefault();
-      if (activator !=null) {
-         getDefault().getLog().log(status);
+   static public void logError(String msg, Exception e) {
+      if (getDefault() == null) {
+         if (e != null) {
+            e.printStackTrace();
+         }
+         System.err.println(msg + ((e!=null)?e.getMessage():""));
+         return;
       }
-      else {
-         System.err.println(status);
-      }
+      getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));
    }
 
 }

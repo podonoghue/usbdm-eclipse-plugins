@@ -1,14 +1,9 @@
 package tests.internal;
-//import java.util.ArrayList;
-//import java.util.ListIterator;
-//import net.sourceforge.usbdm.jni.Usbdm;
-//import net.sourceforge.usbdm.jni.Usbdm.USBDMDeviceInfo;
 
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.deviceDatabase.IDatabaseListener;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-
 
 public class DeviceDatabaseTest {
 
