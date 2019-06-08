@@ -56,12 +56,6 @@ public class WriterForGpio extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      // Entirely done by template
-      writeInfoTemplate(pinMappingHeaderFile);
-   }
-
-   @Override
    public void modifyVectorTable(VectorTable vectorTable) {
       for (IrqVariable var : irqVariables) {
          modifyVectorTable(vectorTable, var, "Port");

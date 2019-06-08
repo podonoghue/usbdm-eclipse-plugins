@@ -26,11 +26,6 @@ public class WriterForRadio extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      writeInfoTemplate(pinMappingHeaderFile);
-   }
-
-   @Override
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoClass(pinMappingHeaderFile);
    }

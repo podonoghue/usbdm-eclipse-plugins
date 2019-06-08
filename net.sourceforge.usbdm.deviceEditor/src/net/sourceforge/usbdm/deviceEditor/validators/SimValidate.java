@@ -7,6 +7,7 @@ import java.util.ListIterator;
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.EngineeringNotation;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
@@ -103,11 +104,16 @@ public class SimValidate extends PeripheralValidator {
       final LongVariable     osc0_oscer_clockVar          = getLongVariable(osc0_peripheral+"/oscer_clock");
       final LongVariable     osc0_osc32k_clockVar         = getLongVariable(osc0_peripheral+"/osc32k_clock");
 
-      final String           osc32k_peripheral            = getStringVariable("/SIM/osc32k_peripheral").getValueAsString();
-      final LongVariable     rtcclk_gated_clockVar        = safeGetLongVariable(osc32k_peripheral+"/rtcclk_gated_clock");
-      final LongVariable     rtc_1hz_clockVar             = safeGetLongVariable(osc32k_peripheral+"/rtc_1hz_clock");
-      final LongVariable     rtc_clkoutVar                = safeGetLongVariable("rtc_clkout");
-
+      final StringVariable   osc32k_peripheralVar         = safeGetStringVariable("/SIM/osc32k_peripheral");
+      LongVariable     rtcclk_gated_clockVar  = null;
+      LongVariable     rtc_1hz_clockVar       = null;
+      LongVariable     rtc_clkoutVar          = null;
+      if (osc32k_peripheralVar != null) {
+         final String           osc32k_peripheral            = osc32k_peripheralVar.getValueAsString();
+          rtcclk_gated_clockVar        = safeGetLongVariable(osc32k_peripheral+"/rtcclk_gated_clock");
+          rtc_1hz_clockVar             = safeGetLongVariable(osc32k_peripheral+"/rtc_1hz_clock");
+          rtc_clkoutVar                = safeGetLongVariable("rtc_clkout");
+      }
       // MCG
       //=================
       final LongVariable     system_low_power_clockVar    =  getLongVariable("/MCG/system_low_power_clock");
@@ -634,16 +640,27 @@ public class SimValidate extends PeripheralValidator {
 
    @Override
    protected void createDependencies() throws Exception {
-      // Clock Mapping
-      //=================
-      final String   osc0_peripheral   = getStringVariable("osc0_peripheral").getValueAsString();
-      final String   osc32k_peripheral  = getStringVariable("osc32k_peripheral").getValueAsString();
-
+      
+      StringVariable   osc0_peripheral_var    = safeGetStringVariable("osc0_peripheral");
+      if (osc0_peripheral_var != null) {
+         String   osc0_peripheral    = getStringVariable("osc0_peripheral").getValueAsString();
+         final String[] externalVariables = {
+               osc0_peripheral+"/oscer_clock",
+               osc0_peripheral+"/osc32k_clock",
+         };
+         addToWatchedVariables(externalVariables);
+      }
+      
+      StringVariable   osc32k_peripheral_var  = safeGetStringVariable("osc32k_peripheral");
+      if (osc32k_peripheral_var != null) {
+         String   osc32k_peripheral  = getStringVariable("osc32k_peripheral").getValueAsString();
+         final String[] externalVariables = {
+               osc32k_peripheral+"/rtcclk_gated_clock",
+               osc32k_peripheral+"/rtc_1hz_clock",
+         };
+         addToWatchedVariables(externalVariables);
+      }
       final String[] externalVariables = {
-            osc0_peripheral+"/oscer_clock",
-            osc0_peripheral+"/osc32k_clock",
-            osc32k_peripheral+"/rtcclk_gated_clock",
-            osc32k_peripheral+"/rtc_1hz_clock",
             "/MCG/system_low_power_clock",
             "/MCG/system_mcgfllclk_clock",
             "/MCG/system_mcgpllclk_clock",

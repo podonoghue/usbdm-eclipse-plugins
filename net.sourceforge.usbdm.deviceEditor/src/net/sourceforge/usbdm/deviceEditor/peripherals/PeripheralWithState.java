@@ -91,10 +91,36 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    @Override
    public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      super.writeInfoConstants(pinMappingHeaderFile);
       writeInfoTemplate(pinMappingHeaderFile);
    }
 
+   /**
+    * Writes template-based definitions to be included in the information class describing the peripheral<br>
+    * 
+    * <b>Example:</b>
+    * <pre>
+    *    // Template:usb0_mk
+    *
+    *    //! Hardware base address as uint32_t 
+    *    static constexpr uint32_t baseAddress = USB0_BasePtr;
+    *    
+    *   __attribute__((always_inline)) static volatile USB_Type &usb() {
+    *      return *(USB_Type *)baseAddress;
+    *   }
+    *
+    *    //! Number of IRQs for hardware
+    *    static constexpr uint32_t irqCount  = 1;
+    * 
+    *    //! IRQ numbers for hardware
+    *    static constexpr IRQn_Type irqNums[]  = {
+    *       USB0_IRQn, };
+    * </pre>
+    * 
+    * @param pinMappingHeaderFile   Where to write definitions
+    * 
+    * @throws IOException 
+    * @throws Exception 
+    */
    public void writeInfoTemplate(DocumentUtilities pinMappingHeaderFile) throws IOException  {
       pinMappingHeaderFile.write("   // Template:" + getPeripheralVersionName()+"\n\n");
       if (fMenuData == null) {

@@ -97,9 +97,13 @@ public class OscValidate extends PeripheralValidator {
       LongVariable     osc_input_freqVar              =  getLongVariable("osc_input_freq");
 
       // Check if RTC has control of oscillator pins
+      Variable rtcSharesPins_Var = safeGetVariable("/SIM/rtcSharesPins");
+      Variable rtc_cr_osce_Var   = safeGetVariable("/RTC/rtc_cr_osce");
       boolean rtcForcing = 
-            getVariable("/SIM/rtcSharesPins").getValueAsBoolean() &&
-            getBooleanVariable("/RTC/rtc_cr_osce").getValueAsBoolean();
+            (rtcSharesPins_Var != null) &&
+            rtcSharesPins_Var.getValueAsBoolean() &&
+            (rtc_cr_osce_Var != null) &&
+            rtc_cr_osce_Var.getValueAsBoolean();
       
       String  rangeOrigin  = "Unused";
       int     range        = UNCONSTRAINED_RANGE;

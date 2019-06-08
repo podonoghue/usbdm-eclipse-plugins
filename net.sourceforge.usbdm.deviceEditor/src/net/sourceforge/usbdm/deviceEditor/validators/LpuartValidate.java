@@ -32,7 +32,7 @@ public class LpuartValidate extends PeripheralValidator {
       LongVariable      receiveBufferSizeVar   =  getLongVariable("receiveBufferSize");
       LongVariable      transmitBufferSizeVar  =  getLongVariable("transmitBufferSize");
 
-      IrqVariable       txrxHandlerVar         =  getIrqVariable("irqHandlers");
+      IrqVariable       txrxHandlerVar         =  getIrqVariable("irqHandlingMethod");
       
       // Enable/disable parameters that depend on mode
       boolean uartClass = uartClassVar.getValueAsBoolean();

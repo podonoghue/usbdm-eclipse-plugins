@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 
+import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.ConstantModel;
@@ -60,6 +61,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLpuart;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcg;
+import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForMcm;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForNull;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOsc;
 import net.sourceforge.usbdm.deviceEditor.peripherals.WriterForOscRf;
@@ -392,6 +394,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
          else if (deviceSubfamily.startsWith("MKW")) {
             fDeviceFamily = DeviceFamily.mkw;
+         }
+         else if (deviceSubfamily.startsWith("S32")) {
+            fDeviceFamily = DeviceFamily.s32k;
          }
          else {
             fDeviceFamily = DeviceFamily.mk;
@@ -1230,23 +1235,28 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                getDeviceFamily(),
                WriterForUsb.class);
          createPeripheralTemplateInformation(
-               "USBHS", "", "$2",
-               "(USB1)_?(.*)",
+               "USBHS", "0", "$3",
+               "(USB1)(_)(.*)",
                getDeviceFamily(),
                WriterForUsbhs.class);
          createPeripheralTemplateInformation(
-               "$1", "", "",
-               "(USBHSDCD)",
+               "$1", "$2", "$2",
+               "(USBHS)(\\\\d+)(.*)",
+               getDeviceFamily(),
+               WriterForUsbhs.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(USBHSDCD)(\\d+)(.*)",
                getDeviceFamily(),
                WriterForUsbhsdcd.class);
          createPeripheralTemplateInformation(
-               "$1", "", "",
-               "(USBHSPHY)",
+               "$1", "$2", "",
+               "(USBHSPHY)(\\d+)(.*)",
                getDeviceFamily(),
                WriterForToDo.class);
          createPeripheralTemplateInformation(
-               "USBDCD", "", "$3",
-               "(USBDCD)_?(.*)",
+               "USBDCD", "$2", "$3",
+               "(USBDCD)(\\d+)(.*)",
                getDeviceFamily(),
                WriterForUsbdcd.class);
          createPeripheralTemplateInformation(
@@ -1334,6 +1344,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                "(TRGMUX)(\\d)?_(.*)",
                getDeviceFamily(),
                WriterForTrgmux.class);
+         createPeripheralTemplateInformation(
+               "$1", "$2", "$3",
+               "(KBI)(\\d)?_(.*)",
+               getDeviceFamily(),
+               WriterForToDo.class);
+         createPeripheralTemplateInformation(
+               "$1", "", "",
+               "(MCM)",
+               getDeviceFamily(),
+               WriterForMcm.class);
       }
       createPeripheralTemplateInformation(
             "$1", "$2", "$3",
@@ -1457,9 +1477,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    //      return fDmaInfoList;
    //   }
 
-   private final static HashMap<String, MuxSelection> exceptions = new  HashMap<String, MuxSelection>();
+   private final static HashMap<String, Integer> exceptions = new  HashMap<String, Integer>();
 
-   private static boolean checkOkException(Pin pin) {
+   private static boolean checkOkException(DeviceFamily deviceFamily, Pin pin) {
+      if (deviceFamily == DeviceFamily.mke) {
+         return true;
+      }
       if (pin.getResetValue() == MuxSelection.mux0) {
          return true;
       }
@@ -1470,21 +1493,50 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          return true;
       }
       if (exceptions.size() == 0) {
-         exceptions.put("PTA0",  MuxSelection.mux7);  // JTAG_TCLK/SWD_CLK
-         exceptions.put("PTA1",  MuxSelection.mux7);  // JTAG_TDI
-         exceptions.put("PTA2",  MuxSelection.mux7);  // JTAG_TDO/TRACE_SWO
-         exceptions.put("PTA3",  MuxSelection.mux7);  // JTAG_TMS/SWD_DIO
-         exceptions.put("PTA4",  MuxSelection.mux7);  // NMI_b
-         exceptions.put("PTA5",  MuxSelection.mux7);  // JTAG_TRST_b
+         exceptions.put(DeviceFamily.mk.name()+".PTA0",    1<<MuxSelection.mux7.value);  // JTAG_TCLK/SWD_CLK
+         exceptions.put(DeviceFamily.mk.name()+".PTA1",    1<<MuxSelection.mux7.value);  // JTAG_TDI
+         exceptions.put(DeviceFamily.mk.name()+".PTA2",    1<<MuxSelection.mux7.value);  // JTAG_TDO/TRACE_SWO
+         exceptions.put(DeviceFamily.mk.name()+".PTA3",    1<<MuxSelection.mux7.value);  // JTAG_TMS/SWD_DIO
+         exceptions.put(DeviceFamily.mk.name()+".PTA4",    1<<MuxSelection.mux7.value);  // NMI_b
+         exceptions.put(DeviceFamily.mk.name()+".PTA5",    1<<MuxSelection.mux7.value);  // JTAG_TRST_b
          // MKL
-         exceptions.put("PTA20", MuxSelection.mux7);  // RESET_b
+         exceptions.put(DeviceFamily.mkl.name()+".PTA0",   1<<MuxSelection.mux3.value);  // SWD_CLK
+         exceptions.put(DeviceFamily.mkl.name()+".PTA1",   1<<MuxSelection.mux3.value);  // RESET_b
+         exceptions.put(DeviceFamily.mkl.name()+".PTA2",   1<<MuxSelection.mux3.value);  // SWD_DIO
+         exceptions.put(DeviceFamily.mkl.name()+".PTA3",   1<<MuxSelection.mux7.value);  // SWD_DIO
+         exceptions.put(DeviceFamily.mkl.name()+".PTA4",   1<<MuxSelection.mux7.value);  // NMI_b
+         exceptions.put(DeviceFamily.mkl.name()+".PTB5",   1<<MuxSelection.mux3.value);  // NMI_b
+         exceptions.put(DeviceFamily.mkl.name()+".PTA20",  1<<MuxSelection.mux7.value);  // RESET_b
          // MKM
-         exceptions.put("PTE6",  MuxSelection.mux7);  // SWD_DIO
-         exceptions.put("PTE7",  MuxSelection.mux7);  // SWD_CLK
-         exceptions.put("PTE1",  MuxSelection.mux7);  // RESET_b
+         exceptions.put(DeviceFamily.mkm.name()+".PTE6",   1<<MuxSelection.mux7.value);  // SWD_DIO
+         exceptions.put(DeviceFamily.mkm.name()+".PTE7",   1<<MuxSelection.mux7.value);  // SWD_CLK
+         exceptions.put(DeviceFamily.mkm.name()+".PTE1",   1<<MuxSelection.mux7.value);  // RESET_b
+         // MKV
+         exceptions.put(DeviceFamily.mkv.name()+".PTA0",   1<<MuxSelection.mux7.value);  // JTAG_TCLK/SWD_CLK
+         exceptions.put(DeviceFamily.mkv.name()+".PTA1",   1<<MuxSelection.mux7.value);  // JTAG_TDI
+         exceptions.put(DeviceFamily.mkv.name()+".PTA2",   1<<MuxSelection.mux7.value);  // JTAG_TDO/TRACE_SWO
+         exceptions.put(DeviceFamily.mkv.name()+".PTA3",   1<<MuxSelection.mux7.value);  // JTAG_TMS/SWD_DIO
+         exceptions.put(DeviceFamily.mkv.name()+".PTA4",   1<<MuxSelection.mux7.value);  // NMI_b
+         // MKW
+         exceptions.put(DeviceFamily.mkw.name()+".PTB18",  1<<MuxSelection.mux7.value);  // NMI_b
+         exceptions.put(DeviceFamily.mkw.name()+".PTA0",   1<<MuxSelection.mux7.value);  // SWD_DIO
+         exceptions.put(DeviceFamily.mkw.name()+".PTA1",   1<<MuxSelection.mux7.value);  // SWD_CLK
+         exceptions.put(DeviceFamily.mkw.name()+".PTA2",   1<<MuxSelection.mux7.value);  // RESET_b
+         // S32
+         exceptions.put(DeviceFamily.s32k.name()+".PTA4",  1<<MuxSelection.mux7.value);  // JTAG_TMS/SWD_DIO
+         exceptions.put(DeviceFamily.s32k.name()+".PTA5",  1<<MuxSelection.mux7.value);  // RESET_b
+         exceptions.put(DeviceFamily.s32k.name()+".PTA10", 1<<MuxSelection.mux7.value);  // JTAG_TDO/noetm_TRACE_SWO
+         exceptions.put(DeviceFamily.s32k.name()+".PTC4",  1<<MuxSelection.mux7.value);  // JTAG_TCLK/SWD_CLK
+         exceptions.put(DeviceFamily.s32k.name()+".PTC5",  1<<MuxSelection.mux7.value);  // JTAG_TDI
       }
-      MuxSelection exception = exceptions.get(pin.getName());
-      return (exceptions != null) && (pin.getResetValue() == exception);
+      String key = deviceFamily.name()+"."+pin.getName();
+      Integer exception = exceptions.get(key);
+      boolean ok = (exception != null) && ((pin.getResetValue().value & exception) == 0);
+      if (!ok) {
+         System.err.println("exception = " + exception);
+         System.err.println("key       = " + key);
+      }
+      return ok;
    }
    /**
     * Does some basic consistency checks on the data
@@ -1493,7 +1545,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       // Every pin should have a reset entry
       for (String pName:getPins().keySet()) {
          Pin pin = getPins().get(pName);
-         if (!checkOkException(pin)) {
+         if (!checkOkException(this.fDeviceFamily, pin)) {
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
@@ -1555,7 +1607,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          try {
             path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
          } catch (UsbdmException e) {
-            e.printStackTrace();
+            Activator.logError(e.getMessage(), e);
          }
       }
       if (!Files.isRegularFile(path)) {
@@ -1678,7 +1730,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             }
          }
       } catch (Exception e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       setDirty(false);
    }
@@ -1721,7 +1773,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       try {
          settings.save(fProjectSettingsPath.toAbsolutePath());
       } catch (Exception e) {
-         e.printStackTrace();
+         Activator.logError(e.getMessage(), e);
       }
       setDirty(false);
    }
@@ -1916,7 +1968,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             try {
                project.getFile(ePath).getParent().refreshLocal(IFile.DEPTH_ONE, null);
             } catch (CoreException e) {
-               e.printStackTrace();
+               Activator.logError(e.getMessage(), e);
             }
 
          }

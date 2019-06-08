@@ -1,5 +1,5 @@
 TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,
-TargetDeviceSubFamily,MKW41Z4,mk,,,,,,,,,,,,,
+TargetDeviceSubFamily,MKW41Z4,mkw,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,
 ,Variant,Manual,Package,,,,,,,,,,,,
 Device,MKW21Z512VHT4,MKW41Z512RM,QFN48,,,,,,,,,,,,

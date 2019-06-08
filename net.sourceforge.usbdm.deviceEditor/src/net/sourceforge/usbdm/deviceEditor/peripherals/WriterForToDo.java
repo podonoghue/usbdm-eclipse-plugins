@@ -52,4 +52,8 @@ public class WriterForToDo extends Peripheral {
    public boolean isSynthetic() {
       return true;
    }
+
+   @Override
+   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
+   }
 }

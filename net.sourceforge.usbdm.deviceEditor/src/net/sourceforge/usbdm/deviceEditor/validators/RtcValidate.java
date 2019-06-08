@@ -47,13 +47,16 @@ public class RtcValidate extends PeripheralValidator {
 
       // Indicates RTC uses main oscillator XTAL/EXTAL pins
       Variable rtcSharesPinsVar = safeGetVariable("/SIM/rtcSharesPins");
-      boolean  rtcSharesPins    = (safeGetVariable("/SIM/rtcSharesPins") != null) && rtcSharesPinsVar.getValueAsBoolean();
+      boolean  rtcSharesPins    = (rtcSharesPinsVar != null) && rtcSharesPinsVar.getValueAsBoolean();
 
       super.validate(variable);
 
       // RTC
       //=================================
-      BooleanVariable  rtc_cr_osceVar    = getBooleanVariable("rtc_cr_osce");
+      BooleanVariable  rtc_cr_osceVar    = safeGetBooleanVariable("rtc_cr_osce");
+      if (rtc_cr_osceVar == null) {
+         return;
+      }
       ChoiceVariable   rtc_cr_scpVar     = getChoiceVariable("rtc_cr_scp");
       Variable         rtc_cr_umVar      = getVariable("rtc_cr_um");
       Variable         rtc_cr_supVar     = getVariable("rtc_cr_sup");

@@ -460,6 +460,8 @@ public class Field extends ModeControl implements Cloneable {
          mappedMacros.add(new Pair(Pattern.compile("^((?:LP)?SPI)[0-9](_.*)$"),                    "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(QSPI)[0-9](_.*)$"),                     "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(USB)[0-9](_.*)$"),                      "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(USBHS)[0-9](_.*)$"),                    "$1$2"));
+         mappedMacros.add(new Pair(Pattern.compile("^(USBDCD)[0-9](_.*)$"),                   "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TPM)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TSI)[0-9](_.*)$"),                      "$1$2"));
          mappedMacros.add(new Pair(Pattern.compile("^(TRNG)[0-9](_.*)$"),                     "$1$2"));

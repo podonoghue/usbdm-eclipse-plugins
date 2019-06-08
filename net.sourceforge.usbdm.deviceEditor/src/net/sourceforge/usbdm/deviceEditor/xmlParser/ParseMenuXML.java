@@ -1574,8 +1574,9 @@ public class ParseMenuXML extends XML_BaseParser {
       if (Files.isRegularFile(path)) {
          return path;
       }
-      // Look in USBDM installation
-      path = Paths.get(Usbdm.getUsbdmResourcePath()).resolve(path);
+      // Look in USBDM installation\
+      String p = Usbdm.getUsbdmResourcePath();
+      path = Paths.get(p).resolve(path);
 //      System.err.println("Looking in " + path);
       if (!Files.isRegularFile(path)) {
          throw new FileNotFoundException("Failed to find hardware file for '"+ name + "'");

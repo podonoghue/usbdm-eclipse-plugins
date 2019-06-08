@@ -543,8 +543,9 @@ public abstract class Peripheral extends VariableProvider {
 //   }
 
    /**
-    * Writes definitions to be included in the information class describing the peripheral
+    * Writes definitions to be included in the information class describing the peripheral<br>
     * 
+    * <b>Example:</b>
     * <pre>
     *    //! Hardware base address as uint32_t 
     *    static constexpr uint32_t baseAddress = USB0_BasePtr;
@@ -566,39 +567,7 @@ public abstract class Peripheral extends VariableProvider {
     * @throws IOException 
     * @throws Exception 
     */
-   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-//      StringBuffer sb = new StringBuffer();
-//
-//      // Base address as uint32_t
-//      sb.append(String.format(
-//            "   //! Hardware base address as uint32_t \n"+
-//                  "   static constexpr uint32_t baseAddress = %s;\n\n",
-//                  getName()+"_BasePtr"
-//            ));
-//      // Base address as pointer to struct
-//      sb.append(String.format(
-//            "   //! Hardware base pointer\n"+
-//                  "   __attribute__((always_inline)) static volatile %s_Type &%s() {\n"+
-//                  "      return *(%s_Type *)baseAddress;\n"+
-//                  "   }\n\n",
-//                  getBaseName(), getBaseName().toLowerCase(), getBaseName()
-//            ));
-
-//      // Number of IRQs
-//      sb.append(String.format(
-//         "   //! Number of IRQs for hardware\n"+
-//         "   static constexpr uint32_t irqCount  = %s;\n\n",
-//         getIrqCount()));
-//
-//      // Explicit IRQ numbers
-//      if (getIrqNumsAsInitialiser() != null) {
-//         sb.append(String.format(
-//            "   //! IRQ numbers for hardware\n"+
-//            "   static constexpr IRQn_Type irqNums[]  = {%s};\n\n",
-//            getIrqNumsAsInitialiser()));
-//      }
-//      pinMappingHeaderFile.write(sb.toString());
-   }
+   public abstract void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException;
 
    /**
     * Write extra information within the class

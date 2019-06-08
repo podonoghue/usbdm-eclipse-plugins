@@ -25,10 +25,6 @@ public class WriterForFtmShared extends PeripheralWithState {
       return "PWM, Input capture and Output compare";
    }
 
-   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-      writeInfoTemplate(pinMappingHeaderFile);
-   }
-
    @Override
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoClass(pinMappingHeaderFile);
