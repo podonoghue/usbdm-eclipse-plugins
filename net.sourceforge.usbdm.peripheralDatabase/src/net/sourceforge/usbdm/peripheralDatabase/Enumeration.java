@@ -49,7 +49,7 @@ public class Enumeration extends ModeControl {
     */
    @Override
    public String toString() {
-      return String.format("Enumeration[%s,%s]", getName(), getDescription());
+      return String.format("Enumeration[n=%s,v=%s,d=$s]", getName(), getValue(), getDescription());
    }
 
    /** Determines if two enumerations are equivalent
@@ -208,7 +208,7 @@ public class Enumeration extends ModeControl {
    }
    
    public void report() {
-      System.out.println(String.format("             Enumeration \"%s\", V=0x%08X, M=0x%08X, description = \"%s\"",
+      System.out.println(String.format("             Enumeration \"%s\", V=0x%08X, M=0x%08X, description = \"%s\"", 
             getName(), getValue(), getMask(), getDescription())); 
    }
 
@@ -234,4 +234,5 @@ public class Enumeration extends ModeControl {
       }
       writer.write(                 indenter+"</enumeratedValue>\n");
    }
+
 }

@@ -1914,6 +1914,7 @@ public class Peripheral extends ModeControl implements Cloneable {
     * @throws UsbdmException 
     */
    void writeHeaderFileDmaInformation(PrintWriter writer) throws UsbdmException  {
+      // Only applies to DMAMUX devices
       final Pattern peripheralPattern = Pattern.compile("DMAMUX(\\d+)");
       final Matcher peripheralMatcher = peripheralPattern.matcher(getName());
       if (!peripheralMatcher.matches()) {
