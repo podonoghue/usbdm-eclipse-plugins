@@ -26,7 +26,7 @@ public class WriterForGpio extends PeripheralWithState {
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName(), signal);
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance(), signal);
    }
 
    @Override

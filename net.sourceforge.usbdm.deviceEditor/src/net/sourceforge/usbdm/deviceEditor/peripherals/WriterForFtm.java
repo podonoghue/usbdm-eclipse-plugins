@@ -44,7 +44,7 @@ public class WriterForFtm extends PeripheralWithState {
    @Override
    protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
       int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signal);
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signal);
    }
 
    @Override

@@ -48,7 +48,7 @@ public class WriterForAdc extends PeripheralWithState {
          return null;
       }
       int signalIndex = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassName()+"Channel", signalIndex);
+      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signalIndex);
    }
 
    @Override
