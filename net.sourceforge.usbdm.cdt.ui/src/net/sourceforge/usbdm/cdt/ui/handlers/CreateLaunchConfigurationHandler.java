@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.ui.newProjectWizard.LaunchParameterUtilities;
 
 public class CreateLaunchConfigurationHandler implements IHandler {
@@ -67,7 +68,7 @@ public class CreateLaunchConfigurationHandler implements IHandler {
             LaunchParameterUtilities.createLaunchConfig(shell, (IProject) selection.getFirstElement(), bin);
          }
       } catch (Exception e) {
-         System.err.println(e.getMessage());
+         Activator.logError("Failed to launch program", e);
          displayError(shell, e.getMessage());
       }
       return  null;

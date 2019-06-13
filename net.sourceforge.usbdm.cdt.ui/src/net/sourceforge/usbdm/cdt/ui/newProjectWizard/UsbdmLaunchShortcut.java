@@ -27,6 +27,8 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
+import net.sourceforge.usbdm.cdt.tools.Activator;
+
 public class UsbdmLaunchShortcut implements ILaunchShortcut {
 
    /**
@@ -68,6 +70,7 @@ public class UsbdmLaunchShortcut implements ILaunchShortcut {
          DebugUITools.launch(findLaunchConfiguration(bin), mode);
       } catch (Exception e) {
          handleFail(getActiveWorkbenchShell(), e.getMessage());
+         Activator.logError("Launch Failed", e);
       }
    }
 

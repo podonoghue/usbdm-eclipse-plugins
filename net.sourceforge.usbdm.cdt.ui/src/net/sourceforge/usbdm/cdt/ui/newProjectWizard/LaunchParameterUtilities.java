@@ -36,6 +36,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.TwoPaneElementSelector;
 
+import net.sourceforge.usbdm.cdt.tools.Activator;
 import net.sourceforge.usbdm.cdt.tools.UsbdmConstants;
 import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceDatabase.Device;
@@ -75,28 +76,30 @@ public class LaunchParameterUtilities {
 //      }
    }
 
-
    /**
     * Reads a file into a string
     * 
     * @param filename
     * 
     * @return String containing file contents
-    * 
-    * @throws IOException
+    * @throws Exception 
     */
-   private static String readFile(String filename) throws IOException {
+   private static String readFile(String filename) throws Exception {
       URL url = new URL("platform:/plugin/net.sourceforge.usbdm.cdt.ui/files/" + filename);
-      InputStream inputStream = url.openConnection().getInputStream();
-
       StringBuilder buffer = new StringBuilder();
-      BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-      String inputLine;
-      while ((inputLine = in.readLine()) != null) {
-         buffer.append(inputLine);
-         buffer.append('\n');
+      try {
+         InputStream inputStream = url.openConnection().getInputStream();
+         BufferedReader in = null;
+         in = new BufferedReader(new InputStreamReader(inputStream));
+         String inputLine;
+         while ((inputLine = in.readLine()) != null) {
+            buffer.append(inputLine);
+            buffer.append('\n');
+         }
+         in.close();
+      } catch (Exception e) {
+         throw new Exception("Failed to open template file: "+url+"\n "+e.getMessage(), e);
       }
-      in.close();
       return buffer.toString();
    }
 
@@ -173,6 +176,7 @@ public class LaunchParameterUtilities {
 
    /** Patterns to search files with */
    final static Tuple tuples[] = {
+         new Tuple(".*net.sourceforge.usbdm.gdb.deviceName.*value\\s*=\\s*\"(.*)\".*", "$1"),    // USBDM Launch
          new Tuple(".*DEVICE_NAME.*\"(?:Freescale|NXP)_.*_(.+)\".*",                   "$1"),    // PE Launch
          new Tuple(".*gdbServerDeviceName.*\"\\s*value\\s*=\\s*\"M?(.+?)x+(.*?)\".*",  "$1M$2"), // Segger launch
          new Tuple(".*&lt;name&gt;(LPC.*)/(.*)&lt;/name&gt;&#13;.*",                   "$1_$2"), // mcuExpress .cproject
@@ -190,10 +194,14 @@ public class LaunchParameterUtilities {
 
       // Which files to scrape
       final String probeFiles[] = {
-            "Project_Settings/Debugger/"+project.getName()+"_Debug_PNE.launch",
-            project.getName()+"_Debug_PNE.launch",
-            "Project_Settings/Debugger/"+project.getName()+"_Debug.launch",
-            project.getName()+"_Debug.launch",
+            "Project_Settings/"+project.getName()+"-Debug.launch",               // Old USBDM
+            "Project_Settings/"+project.getName()+"-Release.launch",             // Old USBDM
+            "Project_Settings/"+project.getName()+"_Debug_USBDM.launch",         // New USBDM
+            "Project_Settings/"+project.getName()+"_Release_USBDM.launch",       // New USBDM
+            "Project_Settings/Debugger/"+project.getName()+"_Debug_PNE.launch",  // P&E
+            project.getName()+"_Debug_PNE.launch",                               // P&E
+            "Project_Settings/Debugger/"+project.getName()+"_Debug.launch",      // mcuExpress
+            project.getName()+"_Debug.launch",                                   // mcuExpress
             ".cproject",
       };
 
@@ -292,7 +300,7 @@ public class LaunchParameterUtilities {
    }
 
    /**
-    * Creates a launch file from template file and map of variable for substitution
+    * Creates a launch file from template file and map of variables for substitution
     * 
     * @param variableMap
     * 
@@ -341,7 +349,7 @@ public class LaunchParameterUtilities {
          }
       }
       if (folder == null) {
-//         System.err.println("'Project_Settings folder' doesn't exist, creating launch config in root directory");
+         Activator.log("'Project_Settings' folder doesn't exist, creating launch config in root directory");
          folder = project;
       }
       // Create launch file name e.g. project_debug_USBDM.launch
