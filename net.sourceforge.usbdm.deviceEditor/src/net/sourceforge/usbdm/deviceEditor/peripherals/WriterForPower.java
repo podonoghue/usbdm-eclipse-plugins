@@ -26,13 +26,6 @@ public class WriterForPower extends PeripheralWithState {
    }
 
    @Override
-   public void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException {
-//      if (needPCRTable()) {
-//         pinMappingHeaderFile.write(getPcrDefinition());
-//      }
-   }
-
-   @Override
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
       super.writeInfoClass(pinMappingHeaderFile);
    }

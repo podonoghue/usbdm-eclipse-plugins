@@ -527,32 +527,21 @@ public abstract class Peripheral extends VariableProvider {
    }
 
    /**
-    * Returns the PCR constant to use with pins from this peripheral
-    * e.g. 
-    * <pre>
-    *   //! Base value for PCR (excluding MUX value)
-    *   static constexpr uint32_t pcrValue  = DEFAULT_PCR;
-    * </pre>
+    * Write USBDM namespace level information associated with a peripheral to <b>pin_mapping.h</b><br>
+    * This appears before the peripheral class at USBDM namespace level.
     * 
-    * @return String
+    * @param documentUtilities
+    * @throws IOException
+    * @throws Exception 
     */
-//   public String getPcrDefinition() {
-//      return String.format(
-//            "   //! Base value for PCR (excluding MUX value)\n"+
-//            "   static constexpr uint32_t %s  = DEFAULT_PCR;\n\n", DEFAULT_PCR_VALUE_NAME);
-//   }
+   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+   }
 
    /**
-    * Writes definitions to be included in the information class describing the peripheral<br>
+    * Writes definitions to be included in the information class describing the peripheral to <b>pin_mapping.h</b><br>
     * 
     * <b>Example:</b>
     * <pre>
-    *    //! Hardware base address as uint32_t 
-    *    static constexpr uint32_t baseAddress = USB0_BasePtr;
-    *    
-    *   __attribute__((always_inline)) static volatile USB_Type &usb() {
-    *      return *(USB_Type *)baseAddress;
-    *   }
     *
     *    //! Number of IRQs for hardware
     *    static constexpr uint32_t irqCount  = 1;
@@ -578,16 +567,6 @@ public abstract class Peripheral extends VariableProvider {
    public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
-   /**
-    * Write USBDM namespace level information associated with a peripheral
-    * 
-    * @param documentUtilities
-    * @throws IOException
-    * @throws Exception 
-    */
-   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
-   }
-
    /**
     * Writes extra definitions to the device XML file
     * 

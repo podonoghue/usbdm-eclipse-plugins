@@ -453,5 +453,34 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          fMenuData.instantiateAliases(this);
       }
    }
+   
+   /**
+    * Converts a pin name to more pretty form e.g. PTC6 => Ptc6, VREF_OUT => VrefOut
+    * 
+    * @param pin Original name
+    * 
+    * @return Converted name
+    */
+   public String prettyPinName(String pin) {
+      char[] p = pin.toLowerCase().toCharArray();
+      StringBuffer sb = new StringBuffer();
+      
+      // Upper-case 1st character
+      boolean convertFlag = true;
+      for (int index=0; index<p.length; index++) {
+         if (p[index]=='_') {
+            // Discard and upper-case next character
+            convertFlag = true;
+         }
+         else if (convertFlag) {
+            sb.append(Character.toUpperCase(p[index]));
+            convertFlag = false;
+         }
+         else {
+            sb.append(p[index]);
+         }
+      }
+      return sb.toString();
+   }
 
 }

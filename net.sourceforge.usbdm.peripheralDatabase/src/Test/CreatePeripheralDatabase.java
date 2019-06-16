@@ -884,8 +884,8 @@ public class CreatePeripheralDatabase {
 
 //      firstFileToProcess  = ("^MKL82Z7.*");
 
-      firstFileToProcess = ("^MK20D5.*");
-      firstFileToReject  = ("^MK20D7.*");
+//      firstFileToProcess = ("^MK20D5.*");
+//      firstFileToReject  = ("^MK20D7.*");
 
 //    firstFileToProcess = ("^MK66F18.*");
 //    firstFileToReject  = ("^MK70F15.*");

@@ -2015,6 +2015,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
    
    /**
+    * Adds or replaces a variable
+    * 
+    * @param key       Key used to identify variable
+    * @param variable  Variable to add
+    */
+   public void addOrReplaceVariable(String key, Variable variable) {
+      fVariables.put(key, variable);
+   }
+   
+   /**
     * Removes a variable
     * 
     * @param key       Key used to identify variable

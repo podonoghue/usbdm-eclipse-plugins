@@ -1,19 +1,13 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
-import java.util.TreeSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.BooleanVariable;
 import net.sourceforge.usbdm.deviceEditor.information.ChoiceVariable;
 import net.sourceforge.usbdm.deviceEditor.information.LongVariable;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
-import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
-import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral.InfoTable;
 
 /**
  * Class to validate LLWU settings
@@ -60,100 +54,32 @@ public class LlwuValidate extends PeripheralValidator {
    }
    
    /**
-    * Extract pin names and create LLWU pin and peripheral C enum tables.<br>
-    * The description for pins is also annotated with the pin number found or (Reserved)<br>
+    * Create LLWU peripheral C enum table values<br>
     * 
     * Tables are added to the following Peripheral Variables:
-    *  <li>LlwuPins
-    *  <li>LlwuPeripherals
-    *  
+    *  <li>InputPeripherals
     */
-   private void doPinNames() {
-      final String RESERVED = "Reserved";
-
+   private void doPeriperalNames() {
       if (donePinNames) {
          return;
       }
       donePinNames = true;
       StringBuilder sb = new StringBuilder();
-      sb.append(
-            "/**\n"+
-                  " * LLWU pin sources\n"+
-                  " */\n"+
-                  "enum LlwuPin : uint32_t {\n"
-            );
-      InfoTable pinTable = getPeripheral().getSignalTables().get(0);
-      for (int index=0; index<32; index++) {
-         String         choiceName = "llwu_pe"+((index/4)+1)+"_wupe"+index;
-         ChoiceVariable choiceVar  = safeGetChoiceVariable(choiceName);
-         if (choiceVar == null) {
-            continue;
-         }
-         String llwuPinName;
-         if (index>=pinTable.table.size()) {
-            // Pin not in table (doesn't exist)
-            choiceVar.enable(false);
-            llwuPinName = RESERVED;
-         }
-         else {
-            // Look up possible pin mapping in table
-            Signal signal = pinTable.table.elementAt(index);
-            Pin mappablePin = null;
-            if (signal != null) {
-               TreeSet<MappingInfo> pinMappings = signal.getPinMapping();
-               for (MappingInfo pinMapping:pinMappings) {
-                  if (pinMapping.getMux() == MuxSelection.mux1) {
-                     mappablePin = pinMapping.getPin();
-                  }
-               }
-            }
-            if (mappablePin == null) {
-               // No mappable pin
-               choiceVar.enable(false);
-               llwuPinName = RESERVED;
-            }
-            else {
-               // Mappable pin
-               choiceVar.enable(true);
-               llwuPinName = mappablePin.getName();
-            }
-         }
-         if (llwuPinName != RESERVED) {
-            String llwuPinLine = String.format(
-                  "   LlwuPin_%-15s = %2d, //!< Wake-up pin LLWU_P%d\n", 
-                  capitalCase(llwuPinName), index, index); 
-            sb.append(llwuPinLine);
-         }
-         choiceVar.setDescription(choiceVar.getDescription() + " - "+llwuPinName);
-      }
-      sb.append("};\n\n");
-      StringVariable llwuPinsVar = new StringVariable("LlwuPins", getPeripheral().makeKey("LlwuPins"));
-      llwuPinsVar.setValue(sb.toString());
-      llwuPinsVar.setDerived(true);
-      getPeripheral().addVariable(llwuPinsVar);
 
       sb = new StringBuilder();
-      sb.append(
-            "/**\n"+
-                  " * LLWU peripheral sources\n"+
-                  " */\n"+
-                  "enum LlwuPeripheral : uint32_t {\n"
-            );
       for (int index=0; index<=7; index++) {
          String         choiceName = "llwu_me_wume"+index;
          BooleanVariable choiceVar  = safeGetBooleanVariable(choiceName);
-         String llwuPeripheralName;
          if (choiceVar != null) {
-            llwuPeripheralName = choiceVar.getDescription();
+            String llwuPeripheralName = capitalCase(choiceVar.getDescription());
             String llwuPeripheralLine = String.format(
-                  "   LlwuPeripheral_%-15s = (1<<%d), //!< Wake-up peripheral LLWU_M%dIF\n", 
-                  capitalCase(llwuPeripheralName), index, index
+                  "   LlwuPeripheral_%-15s = LlwuPeripheral_%d, //!< %s wake-up\n", 
+                  llwuPeripheralName, index, choiceVar.getDescription()
                   );
             sb.append(llwuPeripheralLine);
          }
       }
-      sb.append("};\n\n");
-      StringVariable llwuPeripheralsVar = new StringVariable("LlwuPeripherals", getPeripheral().makeKey("LlwuPeripherals"));
+      StringVariable llwuPeripheralsVar = new StringVariable("InputPeripherals", getPeripheral().makeKey("InputPeripherals"));
       llwuPeripheralsVar.setValue(sb.toString());
       llwuPeripheralsVar.setDerived(true);
       getPeripheral().addVariable(llwuPeripheralsVar);
@@ -167,7 +93,7 @@ public class LlwuValidate extends PeripheralValidator {
    public void validate(Variable variable) throws Exception {
       
       super.validate(variable);
-      doPinNames();
+      doPeriperalNames();
       
       for (int index=0; index<8; index++) {
          // Filter variables

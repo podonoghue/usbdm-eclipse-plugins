@@ -22,7 +22,7 @@ public class TabModel extends BaseModel implements IPage {
       return new IEditorPage() {
 
          private TabbedEditor fEditor = null;
-
+         
          @Override
          public Control createComposite(Composite parent) {
             if (fEditor == null) {

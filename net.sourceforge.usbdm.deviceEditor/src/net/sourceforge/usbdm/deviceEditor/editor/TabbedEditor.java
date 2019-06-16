@@ -10,6 +10,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+//import org.eclipse.swt.widgets.Event;
+//import org.eclipse.swt.widgets.Listener;
+//import org.eclipse.swt.widgets.Tree;
+//import org.eclipse.swt.widgets.TreeItem;
+//import org.eclipse.swt.widgets.Widget;
 
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IEditor;
@@ -28,7 +33,7 @@ public class TabbedEditor implements IEditor {
    public Control createControl(Composite parent, int style) {
       // Create the containing tab folder
       Display display = Display.getCurrent();
-      fTabFolder   = new CTabFolder(parent, style);
+      fTabFolder = new CTabFolder(parent, style);
       fTabFolder.setBorderVisible(true);
       fTabFolder.setSimple(false);
       fTabFolder.setBackground(new Color[]{
@@ -39,7 +44,21 @@ public class TabbedEditor implements IEditor {
             display.getSystemColor(SWT.COLOR_WHITE),
             display.getSystemColor(SWT.COLOR_WHITE)}, 
             new int[]{100}, true);
-      
+//      fTabFolder.addListener(SWT.Selection, new Listener() {
+//         
+//         @Override
+//         public void handleEvent(Event event) {
+//            Widget item = event.item;
+//            item.
+//            Control c = fTabFolder.getSelection().getControl();
+//            if (c instanceof Tree) {
+//               Tree tree = (Tree) c;
+//               TreeItem item = tree.getItem(0);
+//               fPeripheralPageModel.updatePage();
+//               System.err.println("Selection event" + fTabFolder.getSelectionIndex() + ", c = " + c);
+//            }
+//         }
+//      });
       return fTabFolder;
    }
 
@@ -93,6 +112,7 @@ public class TabbedEditor implements IEditor {
 
    @Override
    public void refresh() {
+      
    }
 
    public Control createControl(Composite parent) {

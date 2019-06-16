@@ -126,8 +126,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       return super.getStatus();
    }
 
-   @Override
-   public String getToolTip() {
+   protected String getPinListDescription() {
       String tip = super.getToolTip();
       if (tip==null) {
          StringBuilder sb = new StringBuilder();
@@ -152,14 +151,40 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       }
       return tip;
    }
+   
+   @Override
+   public String getToolTip() {
+      String tip = super.getToolTip();
+      if (tip==null) {
+         MappingInfo currentMapping = fSignal.getMappedPin();
+         if ((currentMapping != null) && (currentMapping != MappingInfo.UNASSIGNED_MAPPING)) {
+            tip = getPinListDescription();
+         }
+         else {
+            tip = "Select pin mapping";
+         }
+      }
+      return tip;
+   }
 
    @Override
    public String getSimpleDescription() {
       MappingInfo currentMapping = fSignal.getMappedPin();
+      String description = null;
+      
+      // Try to get description from currently mapped pin
       if (currentMapping != null) {
-         return currentMapping.getPin().getPinUseDescription();
+         if (currentMapping != MappingInfo.UNASSIGNED_MAPPING) {
+            description = currentMapping.getPin().getPinUseDescription();
+         }
+         else {
+            String pinListDescription = getPinListDescription();
+            if (pinListDescription != null) {
+               description = "[" + pinListDescription + "]";
+            }
+         }
       }
-      return super.getDescription();
+      return description;
    }
 
    @Override
@@ -183,6 +208,12 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public void elementStatusChanged(ObservableModel observableModel) {
       updateAncestors();
+   }
+
+   @Override
+   protected Object clone() throws CloneNotSupportedException {
+      // TODO Auto-generated method stub
+      return super.clone();
    }
 
 }

@@ -34,6 +34,10 @@ public class PcrInitialiser {
          // Discard unmapped signals on this package 
          return;
       }
+      if (pin.getPort() == null) {
+         // Fixed port mapping
+         return;
+      }
       MuxSelection mux = pin.getMuxValue();
       if (!mux.isMappedValue()) {
          // Skip unmapped pin
@@ -41,6 +45,8 @@ public class PcrInitialiser {
       }
       pcrValue = pcrValue+"|PORT_PCR_MUX("+mux.value+")";
       if (mappingInfo.isSelected()) {
+//         System.err.println("Pin = "+pin);
+//         System.err.println("portClockMasks = "+portClockMasks);
          portClockMasks.add(pin.getPort());
          String bitNums = pin.getGpioBitNum();
          if (bitNums != null) {
