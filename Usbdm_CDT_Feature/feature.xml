@@ -29,19 +29,22 @@ Non-derivative components are licensed under the GPL.
       <import plugin="org.eclipse.ui.workbench"/>
       <import plugin="org.eclipse.osgi"/>
       <import plugin="net.sourceforge.usbdm.jni" version="5.0.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.jobs"/>
       <import plugin="org.eclipse.core.resources"/>
       <import plugin="org.eclipse.ui.ide"/>
       <import plugin="net.sourceforge.usbdm.constants" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.deviceDatabase" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.cdt.core"/>
+      <import plugin="org.eclipse.cdt.core" version="6.7.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.managedbuilder.core"/>
       <import plugin="org.eclipse.core.variables"/>
       <import plugin="org.eclipse.ui.console"/>
+      <import plugin="net.sourceforge.usbdm.gdb.ui" version="5.2.0" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.cdt.tools" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.ui"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.cdt.debug.core"/>
+      <import plugin="net.sourceforge.usbdm.windowsRegistry" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
       <import plugin="org.eclipse.cdt.launch"/>
       <import plugin="org.eclipse.cdt.dsf.ui" version="2.3.0" match="greaterOrEqual"/>
@@ -52,9 +55,6 @@ Non-derivative components are licensed under the GPL.
       <import plugin="net.sourceforge.usbdm.peripherals.usbdm" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.views"/>
-      <import plugin="org.eclipse.core.jobs"/>
-      <import plugin="org.eclipse.cdt.core" version="6.7.0" match="greaterOrEqual"/>
-      <import plugin="net.sourceforge.usbdm.gdb.ui" version="5.2.0" match="greaterOrEqual"/>
    </requires>
 
    <plugin
@@ -157,5 +157,11 @@ Non-derivative components are licensed under the GPL.
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="net.sourceforge.usbdm.windowsRegistry"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>

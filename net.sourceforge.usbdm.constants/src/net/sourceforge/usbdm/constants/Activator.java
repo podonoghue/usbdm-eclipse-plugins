@@ -42,7 +42,7 @@ public class Activator extends AbstractUIPlugin {
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
-      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      Activator.log(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
       try {
          loadUsbdmPaths();
       } catch (Exception e) {
@@ -58,7 +58,7 @@ public class Activator extends AbstractUIPlugin {
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
-      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      Activator.log(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
       super.stop(context);
    }
 
@@ -76,7 +76,7 @@ public class Activator extends AbstractUIPlugin {
       String resPathName = UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR;
       String kdsPathName = UsbdmSharedConstants.USBDM_KSDK_PATH;
 
-      System.err.println("loadUsbdmPaths()");
+      Activator.log("loadUsbdmPaths()");
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();
@@ -89,49 +89,49 @@ public class Activator extends AbstractUIPlugin {
 
       if (!pathMan.validateValue(usbdmApplicationPath).isOK()) {
          usbdmApplicationPath = new Path("USBDM APPLICATION PATH NOT FOUND");
-         System.err.println("loadUsbdmPath() - setting USBDM Application path variable");
+         Activator.log("loadUsbdmPath() - setting USBDM Application path variable");
       }
       if (!pathMan.validateValue(usbdmResourcePath).isOK()) {
          usbdmResourcePath = new Path("USBDM RESOURCE PATH NOT FOUND");
-         System.err.println("loadUsbdmPath() - setting USBDM Resource path variable");
+         Activator.log("loadUsbdmPath() - setting USBDM Resource path variable");
       }
       if (!pathMan.validateValue(kdsPath).isOK()) {
          kdsPath = new Path("");
-         System.err.println("loadUsbdmPath() - KDS path is invalid or not set = " + kdsPath);
+         Activator.log("loadUsbdmPath() - KDS path is invalid or not set = " + kdsPath);
       }
       if (pathMan.validateValue(usbdmApplicationPath).isOK()) {
          try {
             pathMan.setURIValue(appPathName, usbdmApplicationPath.toFile().toURI());
          } catch (Exception e) {
-            System.err.println("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
+            Activator.log("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
          }
       } else {
-         System.err.println("loadUsbdmPath() - Failed to set USBDM path variables");
+         Activator.log("loadUsbdmPath() - Failed to set USBDM path variables");
       }   
       if (pathMan.validateValue(usbdmResourcePath).isOK()) {
          try {
             pathMan.setURIValue(resPathName, usbdmResourcePath.toFile().toURI());
          } catch (Exception e) {
-            System.err.println("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
+            Activator.log("loadUsbdmPath() - Failed to set USBDM path variables, Exception = "+e.getMessage());
          }
       } else {
-         System.err.println("loadUsbdmPath() - Failed to set USBDM path variables");
+         Activator.log("loadUsbdmPath() - Failed to set USBDM path variables");
       }   
       if (pathMan.validateValue(kdsPath).isOK()) {
          try {
             pathMan.setURIValue(kdsPathName, kdsPath.toFile().toURI());
          } catch (Exception e) {
-            System.err.println("loadUsbdmPath() - Failed to set kdsPath path variables, Exception = "+e.getMessage());
+            Activator.log("loadUsbdmPath() - Failed to set kdsPath path variables, Exception = "+e.getMessage());
          }
       } else {
-         System.err.println("loadUsbdmPath() - Failed to set kdsPath path variables");
+         Activator.log("loadUsbdmPath() - Failed to set kdsPath path variables");
       }   
-      //      System.err.println("loadUsbdmPath() - Path names =================================");
+      //      Activator.log("loadUsbdmPath() - Path names =================================");
       //      String[] names = pathMan.getPathVariableNames();
       //      for (String s:names) {
-      //         System.err.println(String.format("loadUsbdmPath() \'%s\' => \'%s\'", s, pathMan.getURIValue(s)));
+      //         Activator.log(String.format("loadUsbdmPath() \'%s\' => \'%s\'", s, pathMan.getURIValue(s)));
       //      }
-      //      System.err.println("loadUsbdmPath() - ============================================");
+      //      Activator.log("loadUsbdmPath() - ============================================");
    }
    @Override
    protected void initializeImageRegistry(ImageRegistry registry) {
@@ -198,7 +198,7 @@ public class Activator extends AbstractUIPlugin {
          if (e != null) {
             e.printStackTrace();
          }
-         System.err.println(msg + ((e!=null)?e.getMessage():""));
+         Activator.log(msg + ((e!=null)?e.getMessage():""));
          return;
       }
       getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, Status.ERROR, msg, e));

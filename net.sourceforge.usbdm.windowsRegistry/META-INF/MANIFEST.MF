@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: WindowsRegistry
+Bundle-NativeCode: 
+ reg.dll;osname=Win32;processor=i386,
+ reg_x64.dll;osname=Win32;processor=x86_64,
+ *
+Bundle-SymbolicName: net.sourceforge.usbdm.windowsRegistry;singleton:=true
+Bundle-Version: 5.0.0.qualifier
+Bundle-ClassPath: jregistry-1.8.3.jar
+Export-Package: com.registry;uses:="com.registry.event,new com.registry",
+ com.registry.event;uses:="com.registry"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Automatic-Module-Name: net.sourceforge.usbdm.windowsRegistry
+Bundle-Vendor: USBDM
+Eclipse-PlatformFilter: (& (osgi.ws=win32) (osgi.os=win32) )

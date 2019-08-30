@@ -6,6 +6,7 @@ Bundle-SymbolicName: net.sourceforge.usbdm.constants;singleton:=true
 Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.constants.Activator
 Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
+ net.sourceforge.usbdm.windowsRegistry;bundle-version="5.0.0",
  org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.debug.ui
@@ -14,5 +15,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
 Import-Package: org.eclipse.core.resources
-Bundle-ClassPath: .,
- jregistry-1.8.3.jar
+Bundle-ClassPath: .
