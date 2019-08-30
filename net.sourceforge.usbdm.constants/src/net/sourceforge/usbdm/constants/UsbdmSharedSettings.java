@@ -188,7 +188,7 @@ public class UsbdmSharedSettings {
                Activator.log("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmDataPath.toOSString()+"\'\n");
             } catch (IOException e) {
                // Ignore as the file may not exist yet
-               Activator.logError("UsbdmSharedSettings.getSharedSettings() - file doesn't exist", e);
+               Activator.log("UsbdmSharedSettings.getSharedSettings() - file doesn't exist", e);
             }
             ToolChainPaths.setDefaults(settings);
          }
