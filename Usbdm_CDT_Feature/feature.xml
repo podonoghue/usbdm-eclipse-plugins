@@ -62,7 +62,6 @@ Non-derivative components are licensed under the GPL.
       <import plugin="net.sourceforge.usbdm.peripherals.usbdm" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.views"/>
-      <import plugin="net.sourceforge.usbdm.windowsRegistry"/>
    </requires>
 
    <plugin
