@@ -22,6 +22,14 @@ Copyright (C) 2007-15  Peter O&apos;Donoghue
 Non-derivative components are licensed under the GPL.
    </license>
 
+   <includes
+         id="net.sourceforge.usbdm.windowsRegistryFeature"
+         version="0.0.0"
+         name="Windows Registry"
+         optional="true"
+         os="win32"
+         search-location="self"/>
+
    <requires>
       <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.jface"/>
@@ -44,7 +52,6 @@ Non-derivative components are licensed under the GPL.
       <import plugin="org.eclipse.cdt.ui"/>
       <import plugin="org.eclipse.debug.ui"/>
       <import plugin="org.eclipse.cdt.debug.core"/>
-      <import plugin="net.sourceforge.usbdm.windowsRegistry" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.cdt.dsf.gdb"/>
       <import plugin="org.eclipse.cdt.launch"/>
       <import plugin="org.eclipse.cdt.dsf.ui" version="2.3.0" match="greaterOrEqual"/>
@@ -55,6 +62,7 @@ Non-derivative components are licensed under the GPL.
       <import plugin="net.sourceforge.usbdm.peripherals.usbdm" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="net.sourceforge.usbdm.peripheralDatabase" version="5.0.0" match="greaterOrEqual"/>
       <import plugin="org.eclipse.ui.views"/>
+      <import plugin="net.sourceforge.usbdm.windowsRegistry"/>
    </requires>
 
    <plugin
