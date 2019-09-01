@@ -13,6 +13,5 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
-Import-Package: com.registry,
- org.eclipse.core.resources
+Import-Package: org.eclipse.core.resources
 Bundle-ClassPath: .

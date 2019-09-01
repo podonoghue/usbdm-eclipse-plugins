@@ -34,11 +34,11 @@ public class UsbdmJniPluginTest {
       for (USBDMDeviceInfo device:deviceList) {
          System.err.println(
                "==========================================\n" +
-               "Device \n" + device +
+                     "Device \n" + device +
                "\n==========================================\n");
       }
    }
-   
+
    public static void dumpHex(int address, byte data[]) {
       final int width = 16;
       System.err.print("          ");         
@@ -69,7 +69,7 @@ public class UsbdmJniPluginTest {
          System.err.println();         
       }
    }
-   
+
    public static void testKinetis() throws UsbdmException {
       TargetType target = TargetType.T_ARM;
 
@@ -77,16 +77,16 @@ public class UsbdmJniPluginTest {
       System.err.println("Default options: " + options);
       options.targetVdd = TargetVddSelect.BDM_TARGET_VDD_3V3;
       Usbdm.setExtendedOptions(options);
-      
+
       Usbdm.setTargetType(target);
-      
+
       options = Usbdm.getExtendedOptions();
       System.err.println("Current options: " + options);
 
       Usbdm.targetReset(ResetType.RESET_SPECIAL);
       Usbdm.targetConnect();
       Usbdm.targetHalt();
-            
+
       final int memSize = 80;
       final int flashAdress = 0x00000000;
       final int ramAddress  = 0x20000000;
@@ -94,12 +94,12 @@ public class UsbdmJniPluginTest {
       Usbdm.readMemory(MemorySpace.Byte,  memSize, flashAdress, data);
       System.err.println("Flash Read = ");
       dumpHex(flashAdress, data);
-      
+
       Usbdm.writeMemory(MemorySpace.Long, memSize, ramAddress, data);
       Usbdm.readMemory(MemorySpace.Long, memSize, ramAddress, data);
       System.err.println("RAM Write & Read = ");
       dumpHex(ramAddress, data);
-      
+
       Usbdm.writeReg(Usbdm.Reg.ARM_RegR0, 100);
       {
          // Test Custom registers
@@ -107,40 +107,40 @@ public class UsbdmJniPluginTest {
          int registerValue = Usbdm.readReg(customReg);
          System.err.println(String.format("customReg \'%s\' = 0x%08X", customReg.name(), registerValue));
          System.err.println(String.format("customReg \'%s\' = 0x%08X", customReg.toString(), registerValue));
-         
+
       }
       int i = 0;
       for (Reg register = Reg.ARM_RegR0;
-                    register.ordinal() <= Reg.ARM_RegR12.ordinal();
-                    register = Reg.values()[register.ordinal()+1]) {
+            register.ordinal() <= Reg.ARM_RegR12.ordinal();
+            register = Reg.values()[register.ordinal()+1]) {
          int registerValue;
          Usbdm.writeReg(register, i++);
          registerValue = Usbdm.readReg(register);
          if (registerValue != i-1) {
             System.err.println(String.format("Failed Read/Write to %s = 0x%08X", register.name(), registerValue));
          }
-         }
+      }
       for (Reg register = Reg.ARM_RegR0;
-                    register.ordinal() < Reg.ARM_RegMISC.ordinal();
-                    register = Reg.values()[register.ordinal()+1]) {
+            register.ordinal() < Reg.ARM_RegMISC.ordinal();
+            register = Reg.values()[register.ordinal()+1]) {
          int registerValue;
          registerValue = Usbdm.readReg(register);
          System.err.println(String.format("%s = 0x%08X", register.name(), registerValue));
-         }
-      
-//      int registerValue = Usbdm.readReg(Reg.ARM_RegMDM_AP_Status);
-      
+      }
+
+      //      int registerValue = Usbdm.readReg(Reg.ARM_RegMDM_AP_Status);
+
       Usbdm.controlPins(Usbdm.PIN_RESET_LOW);
       Usbdm.controlPins(Usbdm.PIN_RELEASE);
-      
+
       // Close device
       System.err.println("Closing device: " + Usbdm.getBDMDescription());
       Usbdm.close();
    }
-   
+
    public static void testCFV1() throws UsbdmException {
       TargetType target = TargetType.T_CFV1;
-      
+
       ExtendedOptions options = Usbdm.getDefaultExtendedOptions(target);
       System.err.println("Default options: " + options);
       options.targetVdd = TargetVddSelect.BDM_TARGET_VDD_3V3;
@@ -154,14 +154,14 @@ public class UsbdmJniPluginTest {
       }
       // Opens target device
       Usbdm.setTargetType(target);
-      
+
       options = Usbdm.getExtendedOptions();
       System.err.println("Current options: " + options);
 
       Usbdm.targetConnect();
 
       Usbdm.targetHalt();
-            
+
       final int memSize = 80;
       final int flashAdress = 0x00000000;
       final int ramAddress  = 0x20000000;
@@ -169,84 +169,106 @@ public class UsbdmJniPluginTest {
       Usbdm.readMemory(MemorySpace.Byte,  memSize, flashAdress, data);
       System.err.println("Flash Read = ");
       dumpHex(flashAdress, data);
-      
+
       Usbdm.writeMemory(MemorySpace.Long, memSize, ramAddress, data);
       Usbdm.readMemory(MemorySpace.Long, memSize, ramAddress, data);
       System.err.println("RAM Write & Read = ");
       dumpHex(ramAddress, data);
-      
+
       {
          // Test Custom registers
          CustomReg customReg = new Usbdm.CustomReg(Usbdm.Reg.CFV1_RegPC);
          int registerValue = Usbdm.readReg(customReg);
          System.err.println(String.format("customReg \'%s\' = 0x%08X", customReg.name(), registerValue));
          System.err.println(String.format("customReg \'%s\' = 0x%08X", customReg.toString(), registerValue));
-         
+
       }
       // Test register read & write
       int i = 0;
       for (Reg register = Reg.CFV1_RegD0;
-                    register.ordinal() <= Reg.CFV1_RegA7.ordinal();
-                    register = Reg.values()[register.ordinal()+1]) {
+            register.ordinal() <= Reg.CFV1_RegA7.ordinal();
+            register = Reg.values()[register.ordinal()+1]) {
          int registerValue;
          Usbdm.writeReg(register, i++);
          registerValue = Usbdm.readReg(register);
          if (registerValue != i-1) {
             System.err.println(String.format("Failed Read/Write to %s = 0x%08X", register.name(), registerValue));
          }
-         }
+      }
       for (Reg register = Reg.CFV1_RegD0;
             register.ordinal() <= Reg.CFV1_RegA7.ordinal();
-                    register = Reg.values()[register.ordinal()+1]) {
+            register = Reg.values()[register.ordinal()+1]) {
          int registerValue;
          registerValue = Usbdm.readReg(register);
          System.err.println(String.format("%s = 0x%08X", register.name(), registerValue));
-         }
-      
+      }
+
       Usbdm.controlPins(Usbdm.PIN_RESET_LOW);
       Usbdm.controlPins(Usbdm.PIN_RELEASE);
-      
+
       // Close device
       System.err.println("Closing device: " + Usbdm.getBDMDescription());
       Usbdm.close();
    }
 
-//   public static void testDatabase() {
-//      try {
-//         ArrayList<Usbdm.USBDMDeviceInfo> deviceList = Usbdm.getDeviceList();
-//         ListIterator<Usbdm.USBDMDeviceInfo> it = deviceList.listIterator();
-//         while (it.hasNext()) {
-//            USBDMDeviceInfo di = it.next();
-//            System.err.println("Device \n" + di);
-//         }
-//         System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
-//         System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
-//         
-//         DeviceDatabase database = new DeviceDatabase(UsbdmJniConstants.ARM_DEVICE_FILE);
-//         database.listDevices();
-//      } catch (Exception opps) {
-//         System.err.println("Opps exception :"+opps.toString());
-//      }
-//   }
+   //   public static void testDatabase() {
+   //      try {
+   //         ArrayList<Usbdm.USBDMDeviceInfo> deviceList = Usbdm.getDeviceList();
+   //         ListIterator<Usbdm.USBDMDeviceInfo> it = deviceList.listIterator();
+   //         while (it.hasNext()) {
+   //            USBDMDeviceInfo di = it.next();
+   //            System.err.println("Device \n" + di);
+   //         }
+   //         System.err.println("Application Path : " + Usbdm.getUsbdmApplicationPath());
+   //         System.err.println("Data Path        : " + Usbdm.getUsbdmDataPath());
+   //         
+   //         DeviceDatabase database = new DeviceDatabase(UsbdmJniConstants.ARM_DEVICE_FILE);
+   //         database.listDevices();
+   //      } catch (Exception opps) {
+   //         System.err.println("Opps exception :"+opps.toString());
+   //      }
+   //   }
 
    static void listEnvironment() {
-	   String envs[] = {
-		   "os.name",
-		   "java.vm.specification.version",
-		   "java.vm.specification.name",
-		   "java.version",
-		   "java.vm.version",
-		   "java.vm.name",
-		   "java.compiler",
-		   "java.library.path",
-		   "os.arch",
-	   };
-	   for (String env : envs) {
-		   String prop = System.getProperty(env);
-		   System.err.println(env + " => " + prop);
-	   } 
+      String envs[] = {
+            "os.name",
+            "java.vm.specification.version",
+            "java.vm.specification.name",
+            "java.version",
+            "java.vm.version",
+            "java.vm.name",
+            "java.compiler",
+            "java.library.path",
+            "os.arch",
+      };
+      for (String env : envs) {
+         String prop = System.getProperty(env);
+         System.err.println(env + " => " + prop);
+      } 
    }
-   
+
+   static class WinRegistryInformation {
+      final String key;
+      final String name;
+      final String pathExtra;
+
+      public WinRegistryInformation(String key, String name, String pathExtra) {
+         super();
+         this.key = key;
+         this.name = name;
+         this.pathExtra = pathExtra;
+      }
+   }
+
+   // Where to look for windows tool-chain in registry
+   static final WinRegistryInformation winRegistryInformation[] = {
+         new WinRegistryInformation("SOFTWARE\\WOW6432Node\\Eclipse Foundation\\Eclipse CDT", "InstallationDirectory", "/GNU Tools ARM Embedded/8 2018-q4-major/bin/arm-none-eabi-gcc.exe"),
+         new WinRegistryInformation("SOFTWARE\\WOW6432Node\\ARM\\GNU Tools for ARM Embedded Processors", "InstallFolder", "/bin/arm-none-eabi-gcc.exe"),
+         new WinRegistryInformation("SOFTWARE\\WOW6432Node\\NXP\\S32 Design Studio\\Product Versions\\S32 Design Studio for ARM Version 2018.R1", "Path", "/Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc.exe"),
+         new WinRegistryInformation("SOFTWARE\\Freescale\\Kinetis Design Studio 3.2.0", "Path", "/Toolchain/bin/arm-none-eabi-gcc.exe"),
+         new WinRegistryInformation("SOFTWARE\\Freescale\\Kinetis Design Studio 3", "Path", "/Toolchain/bin/arm-none-eabi-gcc.exe"),
+   };
+
    /**
     * @param args
     * @throws InterruptedException 
@@ -254,24 +276,30 @@ public class UsbdmJniPluginTest {
     */
    public static void main(String[] args) throws InterruptedException, UsbdmException {
       String errorMessage = null;
-//      testDatabase();
+      //      testDatabase();
       try {
          listEnvironment();
 
-//         CustomClassLoader ccl = new CustomClassLoader();
-//         
-//         Class<?> ca = ccl.findClass("net.sourceforge.usbdm.jni.Usbdm");
-//         Object a = ca.newInstance();
-//         ccl = null;
-//         System.gc();
+         //         CustomClassLoader ccl = new CustomClassLoader();
+         //         
+         //         Class<?> ca = ccl.findClass("net.sourceforge.usbdm.jni.Usbdm");
+         //         Object a = ca.newInstance();
+         //         ccl = null;
+         //         System.gc();
 
          // Print USBDM paths
          System.err.println("Application Path : " + Usbdm.getApplicationPath().toOSString());
          System.err.println("Resource Path    : " + Usbdm.getResourcePath().toOSString());
          System.err.println("Data Path        : " + Usbdm.getDataPath().toOSString());
 
-//         listDevices();
+         for (WinRegistryInformation info:winRegistryInformation) {
+            System.err.println("Registry value    : " + Usbdm.readWindowsRegistry(info.key, info.name));
+         }
          
+//         ToolChainPaths.getDefaultWindowsToolchainBinDirectory();
+         
+         //         listDevices();
+
          // Get count of devices (creates internal list)
          int deviceCount = Usbdm.findDevices();
          if (deviceCount == 0) {
@@ -297,12 +325,20 @@ public class UsbdmJniPluginTest {
          if (errorMessage == null) {
             errorMessage = "Unknown exception";
          }
+      } catch (java.lang.NoClassDefFoundError e) {
+         e.printStackTrace();
+         errorMessage = e.getMessage();
+         if (errorMessage == null) {
+            errorMessage = e.toString();
+         }
+         if (errorMessage == null) {
+            errorMessage = "Unknown exception";
+         }
       }
       finally {
-         Usbdm.exit();
-       if (errorMessage != null) {
-    	   System.console().format("%s", errorMessage);
-       }
+         if (errorMessage != null) {
+            System.err.print("Error message = " + errorMessage);
+         }
 //         if (errorMessage != null) {
 //            Shell shell;
 //            // Find the default display and get the active shell

@@ -4,8 +4,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.registry.RegStringValue;
-import com.registry.RegistryKey;
+import net.sourceforge.usbdm.jni.Usbdm;
+import net.sourceforge.usbdm.jni.UsbdmException;
+
+
+//import com.registry.RegStringValue;
+//import com.registry.RegistryKey;
 
 public class ToolChainPaths {
 
@@ -37,30 +41,26 @@ public class ToolChainPaths {
     * @param key        Registry key
     * @param name       Name of registry value
     * @param lastPart   Extra path to append to value from registry
+    * 
     * @return
     */
    static private String getPath(String key, String name, String lastPart) {
-
-      String rv = null;
-
-      RegistryKey software = new RegistryKey(RegistryKey.listRoots()[RegistryKey.HKEY_LOCAL_MACHINE_INDEX], key);
-      software.view64BitRegistry(true);
-      RegStringValue regValue = (RegStringValue)software.getValue(name);
-      if (regValue != null) {
-         System.err.println("regValue = " +regValue);
-         rv = regValue.getValue();
-         System.err.println("rv = " +rv);
+      try {
+         String rv = Usbdm.readWindowsRegistry(key, name);
+         Activator.log(String.format("getPath('%s', '%s', '%s') => ", key, name, lastPart) + rv);
          if (rv != null) {
             rv = rv.replaceAll("\\\\", "/");
+            if (rv.endsWith("/")) {
+               rv = rv.substring(0, rv.lastIndexOf('/'));
+            }
+            Path p = Paths.get(rv, lastPart);
+            rv += lastPart;
+            if (p.toFile().exists()) {
+               return rv;
+            }
          }
-         if (rv.endsWith("/")) {
-            rv = rv.substring(0, rv.lastIndexOf('/'));
-         }
-         Path p = Paths.get(rv, lastPart);
-         rv += lastPart;
-         if (p.toFile().exists()) {
-            return rv;
-         }
+      } catch (UsbdmException e) {
+         e.printStackTrace();
       }
       return null;
    }

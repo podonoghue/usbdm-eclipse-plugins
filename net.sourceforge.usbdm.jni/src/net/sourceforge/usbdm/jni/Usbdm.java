@@ -1209,6 +1209,11 @@ public class Usbdm {
       }
    };
 
+   public static class Version {
+      public int  bdmSoftwareVersion;
+      public int  bdmHardwareVersion;
+   };
+   
    private static boolean        libraryLoaded     = false;
    private static boolean        libraryLoadFailed = false;
 
@@ -1254,11 +1259,14 @@ public class Usbdm {
    private static native int     usbdmSetSpeed(int speed);
    private static native int     usbdmGetSpeed(int speed[]);
    
-   private static native int     getVersion(int[] version);
+   private static native int     usbdmGetVersion(Version version);
    
+   private static native String  usbdmReadWindowsRegistry(String regPath, String valueName);
+
    private static final  int     BDM_RC_OK                 = 0;
    private static final  int     BDM_RC_NO_USBDM_DEVICE    = 36;    //!< No usbdm device was located
 
+   
    /**
     * Obtains a default set of options appropriate to the target type
     * 
@@ -1791,8 +1799,9 @@ public class Usbdm {
     * Load the USBDM JNI library
     * 
     * @param debug True to load debug version of DLLs
+    * @throws Exception 
     */
-   public static void loadUsbdmLibraries(final Boolean debug) {
+   public static void loadUsbdmLibraries(final Boolean debug) throws Exception {
       if (libraryLoaded) {
          return;
       }
@@ -1852,28 +1861,11 @@ public class Usbdm {
             sb.append("Loading library name = " + libraryName + "\n");
             System.loadLibrary(libraryName);
          }
+         System.err.print(sb.toString());
          usbdmInit();
          libraryLoaded = true;
-         //            Activator.logError("Loaded Library: "+UsbdmJniConstants.UsbdmJniLibraryName);
-
-         //            Activator.logError("Libraries successfully loaded");
-         //            Shell shell;
-         //            // Find the default display and get the active shell
-         //            final Display disp = Display.getDefault();
-         //            if (disp == null) {
-         //               shell = new Shell(new Display());
-         //            }
-         //            else {
-         //               shell = new Shell(disp);
-         //            }
-         //            MessageBox msgbox = new MessageBox(shell, SWT.OK);
-         //            msgbox.setText("USBDM Notice");
-         //            msgbox.setMessage("Loading of USBDM native library OK.");
-         //            msgbox.open();
-         Activator.log(sb.toString());
+//         Activator.log(sb.toString());
       } catch (UnsatisfiedLinkError e) {
-         Activator.log(sb.toString());
-         Activator.logError(e.getMessage(), new Exception(e));
 //         String reason = e.getMessage();
 //         // Report first failure only
 //         if (!libraryLoadFailed) {
@@ -1901,6 +1893,7 @@ public class Usbdm {
 //         }
 //         Activator.logError("USBDM Libraries failed to load");
 //         return;
+         throw new Exception(sb.toString(), e);
       }
    }
    
@@ -1909,7 +1902,12 @@ public class Usbdm {
     */
    static {
       // TO DO - change to non-debug version
-      loadUsbdmLibraries(false);
+      try {
+         loadUsbdmLibraries(false);
+      } catch (Exception e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
    }
    
    /**
@@ -2069,7 +2067,7 @@ public class Usbdm {
       }
       return path.replace('\\', '/');
    }
-   
+    
    /**
     *  Obtain USBDM Data path
     * 
@@ -2085,5 +2083,19 @@ public class Usbdm {
       return path;
    }
    
+   /**
+    * Read string value from windows registry 
+    * 
+    * @param path REgistry path e.g. "SOFTWARE\pgo\USBDM"
+    * 
+    * @param name Name of value to obtain e.g. "InstallationDirectory"
+    * 
+    * @return String value from registry
+    * 
+    * @throws UsbdmException
+    */
+   public static String readWindowsRegistry(String path, String name) throws UsbdmException {
+      return Usbdm.usbdmReadWindowsRegistry(path, name);
+   }
    
 }
