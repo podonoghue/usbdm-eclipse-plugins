@@ -1,0 +1,45 @@
+#!/bin/bash
+
+HOME_DIR=`pwd`
+
+BUILD_DIR="$HOME_DIR/../../usbdm-eclipse-makefiles-build"
+LIB_i386="$BUILD_DIR/PackageFiles/lib/i386-linux-gnu"
+LIB_x86_64="$BUILD_DIR/PackageFiles/lib/x86_64-linux-gnu"
+DEST_i386=$HOME_DIR/i386
+DEST_x86_64=$HOME_DIR/x86_64
+
+if [[ -d ${LIB_i386} ]]; then
+    if [[ ! -d ${DEST_i386} ]]; then
+        mkdir ${DEST_i386}
+    fi
+
+    cd ${DEST_i386}
+    pwd
+
+    FILES="libusbdm-jni-debug.so  libusbdm-jni.so"
+    for FILE in $FILES; do
+        echo "$LIB_i386/$FILE" 
+        #cp  "$LIB_i386/$FILE" .
+    done
+
+    cd ${HOME_DIR}
+fi
+
+if [[ -d ${LIB_x86_64} ]]; then
+    echo Copy from ${LIB_x86_64}
+    if [[ ! -d ${DEST_x86_64} ]]; then
+        mkdir ${DEST_x86_64}
+    fi
+
+    cd ${DEST_x86_64}
+
+    FILES="libusbdm-jni-debug.so  libusbdm-jni.so"
+    for FILE in $FILES; do
+        echo Copying "$LIB_x86_64/$FILE" 
+        cp "$LIB_x86_64/$FILE" . 
+    done
+
+    cd ${HOME_DIR}
+fi
+
+
