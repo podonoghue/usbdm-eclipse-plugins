@@ -7,10 +7,6 @@ import java.nio.file.Paths;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
-
-//import com.registry.RegStringValue;
-//import com.registry.RegistryKey;
-
 public class ToolChainPaths {
 
    static class WinRegistryInformation {
