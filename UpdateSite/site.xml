@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/net.sourceforge.usbdm.cdt.feature_5.1.0.201908310002.jar" id="net.sourceforge.usbdm.cdt.feature" version="5.1.0.201908310002" os="linux,win32" arch="x86,x86_64">
+   <feature url="features/net.sourceforge.usbdm.cdt.feature_5.1.0.201909011740.jar" id="net.sourceforge.usbdm.cdt.feature" version="5.1.0.201909011740" os="linux,win32" arch="x86,x86_64">
       <category name="usbdm.cdt.plugin"/>
    </feature>
    <category-def name="usbdm.cdt.plugin" label="USBDM CDT Plugin">

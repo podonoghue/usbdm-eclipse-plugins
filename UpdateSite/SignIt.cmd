@@ -1,4 +1,4 @@
- @echo off
+@echo off
 rem if "%1"=="" goto usage
 
 set HOME_DIR=%~dp0
