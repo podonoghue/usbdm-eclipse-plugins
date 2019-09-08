@@ -90,7 +90,7 @@ public class BinaryOptionModelNode extends NumericOptionModelNode {
 
    @Override
    public Object getValue() throws Exception {
-      return new Boolean(((Long)super.getValue()) != 0);
+      return Boolean.valueOf(((Long)super.getValue()) != 0);
    }
 
    /**

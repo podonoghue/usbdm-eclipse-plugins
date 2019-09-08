@@ -908,7 +908,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
           name.toUpperCase().startsWith("VSS")) {
          Integer item = sharedPinMap.get(name);
          if (item == null) {
-            item = new Integer(0);
+            item = 0;
             sharedPinMap.put(name, item);
          }
 //         System.err.print("Mapping '" + name);

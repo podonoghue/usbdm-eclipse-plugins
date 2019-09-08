@@ -86,8 +86,8 @@ public class Pll0ClockValidate_MKxxM12 extends MyValidator {
       }
       if (valid) {
          // Valid - update
-         update(viewer, mcg_prdivNode, new Long(mcg_prdiv));
-         update(viewer, mcg_vdivNode, new Long(mcg_vdiv));
+         update(viewer, mcg_prdivNode, (long)mcg_prdiv);
+         update(viewer, mcg_vdivNode, (long)mcg_vdiv);
 //         System.err.println(String.format("PllClockValidate.validate() Valid: prdiv=%d, vdiv=%d", mcg_prdiv, mcg_vdiv));
       }
       String pllTargetFrequencyMessage = null;

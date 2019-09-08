@@ -58,7 +58,7 @@ public class PcrInitialiser {
             }
             Long bitMask = pcrValueToBitsMap.get(pcrValue);
             if (bitMask == null) {
-               bitMask = new Long(0);
+               bitMask = (long) 0;
             }
             bitMask |= 1<<bitNum;
             pcrValueToBitsMap.put(pcrValue, bitMask);
@@ -100,7 +100,7 @@ public class PcrInitialiser {
          }
          Long bitMask = pcrValueToBitsMap.get(pcrValue);
          if (bitMask == null) {
-            bitMask = new Long(0);
+            bitMask = (long) 0;
          }
          bitMask |= 1<<bitNum;
          pcrValueToBitsMap.put(pcrValue, bitMask);

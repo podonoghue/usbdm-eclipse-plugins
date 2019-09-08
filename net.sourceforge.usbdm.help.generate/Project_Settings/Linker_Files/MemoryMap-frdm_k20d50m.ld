@@ -1,4 +1,4 @@
-/* MemoryMap-sramu.ld
+/* MemoryMap-mk-sramu.ld (Packages\100.ARM_DeviceOptions\Project_Settings\Linker_Files)
  *
  * Memory map for devices with SRAM_U allocation for bit-band/bme
  */
@@ -8,13 +8,14 @@
 /* <o> Stack Size
    <i> Required amount of stack space
    <i> In CMSIS this will determine the ISR stack size
-   <0x0-0x4000> 
+   <0x0-0x2000:4> 
 */
 __stack_size = 0x1000;
 
 /* <o> Minimum Heap Size 
-   <i> Actual heap may be larger as it fills all unused RAM up to STACK
-   <0x0-0x4000> 
+   <i> This is the minimum allocated.  
+   <i> Available heap may be larger.
+   <0x0-0x2000:4> 
 */
 __heap_size  = 0x1000;
 
@@ -31,6 +32,7 @@ __heap_size  = 0x1000;
    <i>    __attribute__ ((section(".bitband"))) uint32_t variable_bits[8*sizeof(variable)];
    <i>
    <i>  See bme.h and bitband.h for more information
+   <0x0-0x1000:4> 
 */
 __sram_u_size = 0;
    
@@ -46,8 +48,8 @@ MEMORY
   gpioBitband    (rw)  : ORIGIN = 0x42000000, LENGTH = 0x02000000
   peripherals    (rw)  : ORIGIN = 0xE0000000, LENGTH = 0x00100000
 /*
- *  <o>  Flex RAM address <constant>
- *  <o1> Flex RAM size    <constant>
+ *  <o>  flexRAM address <constant>
+ *  <o1> flexRAM size    <constant>
  */
   flexRAM        (rw)  : ORIGIN = 0x14000000, LENGTH = 0x00000800
 /*
@@ -61,12 +63,49 @@ MEMORY
  */
   flash          (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00020000
 /*
- *  <o>  RAM    address <constant>
- *  <o1> RAM    size    <constant>
+ *  <o>  ram_high address <constant>
+ *  <o1> ram_high size    <constant>
  */
-  ram            (rwx) : ORIGIN = 0x1FFFE000, LENGTH = 0x00004000
-  /* Guard region above stack for GDB */
-  gdbGuard       (r)   : ORIGIN = 0x20002000, LENGTH = 0x00000020
+  ram_high       (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00002000
+/*
+ *  <o>  ram_low address <constant>
+ *  <o1> ram_low size    <constant>
+ */
+  ram_low        (rwx) : ORIGIN = 0x1FFFE000, LENGTH = 0x00002000
+/*
+ * Guard region above stack for GDB 
+ */
+  gdbGuard       (r)   : ORIGIN = 0x20000000, LENGTH = 0x00000020
 };
+
+REGION_ALIAS("ram","ram_low");
+
+
+/*
+  <h> Section placement in RAM
+  <i> The RAM on Cortex-M4 Kinetis devices is divided into upper and lower memory regions.
+  <i> These settings control which region is used for various linker sections.
+*/
+/*  <s1>  Micro Trace Buffer                <"ram_low"=> ram_low <"ram_high"=> ram_high <i> mtb_ram        */
+REGION_ALIAS("mtb_ram", 	   "ram_low");
+/*  <s1>  Vector table relocated to RAM     <"ram_low"=> ram_low <"ram_high"=> ram_high <i> interrupts_ram */
+REGION_ALIAS("interrupts_ram", "ram_low");
+/*  <s1>  USB Endpoint buffers              <"ram_low"=> ram_low <"ram_high"=> ram_high <i> bdts_ram       */
+REGION_ALIAS("bdts_ram",       "ram_low");
+/*  <s1>  Initialised DATA                  <"ram_low"=> ram_low <"ram_high"=> ram_high <i> data_ram       */
+REGION_ALIAS("data_ram",       "ram_low");
+/*  <s1>  Non-initialised DATA              <"ram_low"=> ram_low <"ram_high"=> ram_high <i> noinit_ram     */
+REGION_ALIAS("noinit_ram",     "ram_low");
+/*  <s1>  Zeroed Data (BSS)                 <"ram_low"=> ram_low <"ram_high"=> ram_high <i> bss_ram        */
+REGION_ALIAS("bss_ram",        "ram_low");
+/*  <s1>  Heap                              <"ram_low"=> ram_low <"ram_high"=> ram_high <i> heap_ram       */
+REGION_ALIAS("heap_ram",       "ram_low");
+/*  <s1>  Stack                             <"ram_low"=> ram_low <"ram_high"=> ram_high <i> stack_ram      */
+REGION_ALIAS("stack_ram",      "ram_high");
+/* </h> */
+
+/* These must be in upper RAM */
+REGION_ALIAS("sram_u_ram",     "ram_high");
+REGION_ALIAS("bitband_ram",    "ram_high");
 
 

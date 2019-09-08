@@ -115,7 +115,7 @@ public class NumericOptionModelNode extends OptionModelNode {
    @Override
    public void setValue(Object value) throws Exception {
       if (value instanceof Boolean) {
-         setValue(new Long(((Boolean)value)?1:0));
+         setValue(((boolean)value)?1L:0L);
       }
       else {
          setValue((long)(Long)value);
@@ -242,7 +242,7 @@ public class NumericOptionModelNode extends OptionModelNode {
          }
 //         System.err.println(String.format("NumericOptionModelNode.getValue() Modified=> 0x%X", value));
       }
-      return new Long(value);
+      return Long.valueOf(value);
    }
 
    /**

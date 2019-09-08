@@ -84,9 +84,9 @@ public class PllClockValidate_CFV1 extends MyValidator {
          // Valid - update
          if (mcg_c3_plls == 1) {
             // PLL in use - mcg_c1_rdiv is shared by FLL & PLL 
-            update(viewer, mcg_c1_rdivNode, new Long(mcg_c1_rdiv));
+            update(viewer, mcg_c1_rdivNode, (long)mcg_c1_rdiv);
          }
-         update(viewer, mcg_c3_vdivNode, new Long(mcg_c3_vdiv));
+         update(viewer, mcg_c3_vdivNode, (long)mcg_c3_vdiv);
 //         System.err.println(String.format("PllClockValidate.validate() Valid: rdiv=%d, vdiv=%d", mcg_c1_rdiv, mcg_c3_vdiv));
       }
       String pllTargetFrequencyMessage = null;

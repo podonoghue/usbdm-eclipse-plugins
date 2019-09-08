@@ -143,7 +143,7 @@ public class AnnotationEditingSupport  extends EditingSupport {
             if (element instanceof NumericOptionModelNode) {
                BitField field = ((NumericOptionModelNode)element).getBitField();
                if ((field != null) && (field.getStart() == field.getEnd())) {
-                  return new Boolean(((NumericOptionModelNode)element).getValueAsLong()!=0);
+                  return Boolean.valueOf(((NumericOptionModelNode)element).getValueAsLong()!=0);
                }
             }
             return ((AnnotationModelNode) element).getDialogueValueAsString();

@@ -83,7 +83,7 @@ public class JTAGInterfaceData {
        *   @return ClockSpeed matching (exactly) the frequency given or the default value if not found.
        */
       static public ClockSpeed lookup(int frequency) {
-         ClockSpeed rv = lookupFrequency.get(new Integer(frequency));
+         ClockSpeed rv = lookupFrequency.get(frequency);
          if (rv == null) {
             rv = defFrequency;
          }
