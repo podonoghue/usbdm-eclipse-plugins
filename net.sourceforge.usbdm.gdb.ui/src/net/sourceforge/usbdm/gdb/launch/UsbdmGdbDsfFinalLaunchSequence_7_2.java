@@ -38,7 +38,7 @@ import net.sourceforge.usbdm.gdb.ui.Activator;
 /**
  * @since 5.1
  */
-public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence {
+public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSequence_7_0 {
 
    private IGDBControl fGdbControl;
 
@@ -48,8 +48,9 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
 
    @Override
    protected String[] getExecutionOrder(String group) {
+//    System.err.println("UsbdmGdbDsfFinalLaunchSequence_7_2.getExecutionOrder("+group+") => ");
       if (GROUP_TOP_LEVEL.equals(group)) {
-         // Initialize the list with the base class' steps
+         // Initialise the list with the base class' steps
          // We need to create a list that we can modify, which is why we create our own ArrayList.
          List<String> orderList = new ArrayList<String>(Arrays.asList(super.getExecutionOrder(GROUP_TOP_LEVEL)));
 
@@ -58,13 +59,16 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
          orderList.add(orderList.indexOf("stepSetBreakpointPending") + 1, "stepDetachOnFork"); //$NON-NLS-1$ //$NON-NLS-2$
          
          return orderList.toArray(new String[orderList.size()]);
+//         System.err.print(rv);
       }
-
+      if (GROUP_USBDM.equals(group)) {
+         return super.getExecutionOrder(group);
+      }
       return null;
    }
    
    /** 
-    * Initialize the members of the FinalLaunchSequence_7_2 class.
+    * Initialise the members of the FinalLaunchSequence_7_2 class.
     * This step is mandatory for the rest of the sequence to complete.
     */
    @Execute

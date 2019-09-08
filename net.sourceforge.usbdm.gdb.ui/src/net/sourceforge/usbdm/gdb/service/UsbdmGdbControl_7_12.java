@@ -14,7 +14,7 @@ import java.util.Map;
 
 import org.eclipse.cdt.dsf.concurrent.RequestMonitorWithProgress;
 import org.eclipse.cdt.dsf.concurrent.Sequence;
-import org.eclipse.cdt.dsf.gdb.service.command.GDBControl_7_2;
+import org.eclipse.cdt.dsf.gdb.service.command.GDBControl_7_12;
 import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -24,15 +24,16 @@ import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence_7_2;
 /**
  * @since 5.1
  */
-public class UsbdmGdbControl_7_2 extends GDBControl_7_2 {
+public class UsbdmGdbControl_7_12 extends GDBControl_7_12 {
 
-	public UsbdmGdbControl_7_2(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {
+	public UsbdmGdbControl_7_12(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {
 		super(session, config, factory);
-      System.err.println("UsbdmGdbControl_7_2()");
+//      System.err.println("UsbdmGdbControl_7_12()");
 	}
 
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
+//      System.err.println("UsbdmGdbControl_7_12.getCompleteInitializationSequence()");
 		return new UsbdmGdbDsfFinalLaunchSequence_7_2(getSession(), attributes, rm);
 	}
 	

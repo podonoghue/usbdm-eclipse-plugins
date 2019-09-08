@@ -71,7 +71,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  * This class is based on the implementation of the standard DSF/GDB debugging
  * <code>org.eclipse.cdt.dsf.gdb.launching.FinalLaunchSequence</code>
  * <p>
- * It adds hardware debugging specific steps to initialize a USBDM interface
+ * It adds hardware debugging specific steps to Initialise a USBDM interface
  * @since 5.1
  * 
  */
@@ -116,7 +116,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    @Override
    protected String[] getExecutionOrder(String group) {
       if (GROUP_TOP_LEVEL.equals(group)) {
-         // Initialize the list with the base class' steps
+         // Initialise the list with the base class' steps
          // We need to create a list that we can modify, which is why we create our own ArrayList.
          List<String> orderList = new ArrayList<String>(Arrays.asList(super.getExecutionOrder(GROUP_TOP_LEVEL)));
 //         System.err.println("============ GROUP_TOP_LEVEL original =========== \n");
@@ -210,7 +210,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    }
 
    /** 
-    * Initialize the members of the class.
+    * Initialise the members of the class.
     * This step is mandatory for the rest of the sequence to complete.
     */
    @Execute
@@ -704,7 +704,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
    }
    
    /**
-    * Initialize the memory service with the data for given process.
+    * Initialise the memory service with the data for given process.
     * @since 8.3
     */
    @Execute
