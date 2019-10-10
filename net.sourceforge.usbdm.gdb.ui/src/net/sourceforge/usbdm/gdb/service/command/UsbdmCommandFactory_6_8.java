@@ -8,7 +8,7 @@ import org.eclipse.cdt.dsf.debug.service.command.ICommand;
 import org.eclipse.cdt.dsf.gdb.service.command.CommandFactory_6_8;
 import org.eclipse.cdt.dsf.mi.service.command.output.MIInfo;
 
-import net.sourceforge.usbdm.gdb.service.command.commands.MIExecInterrupt;
+//import net.sourceforge.usbdm.gdb.service.command.commands.MIExecInterrupt;
 import net.sourceforge.usbdm.gdb.service.command.commands.MIExecReset;
 
 /**
@@ -16,17 +16,17 @@ import net.sourceforge.usbdm.gdb.service.command.commands.MIExecReset;
  */
 public class UsbdmCommandFactory_6_8 extends CommandFactory_6_8 {
    
-	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc) {
-		return new MIExecInterrupt(dmc);
-	}
-
-	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc, boolean allThreads) {
-		return new MIExecInterrupt(dmc, allThreads);
-	}
-
-	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc, String groupId) {
-		return new MIExecInterrupt(dmc, groupId);
-	}
+//	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc) {
+//		return new MIExecInterrupt(dmc);
+//	}
+//
+//	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc, boolean allThreads) {
+//		return new MIExecInterrupt(dmc, allThreads);
+//	}
+//
+//	public ICommand<MIInfo> createMIExecInterrupt(IExecutionDMContext dmc, String groupId) {
+//		return new MIExecInterrupt(dmc, groupId);
+//	}
 
 	public ICommand<MIInfo> createMIExecReset(IExecutionDMContext dmc) {
       return new MIExecReset(dmc);

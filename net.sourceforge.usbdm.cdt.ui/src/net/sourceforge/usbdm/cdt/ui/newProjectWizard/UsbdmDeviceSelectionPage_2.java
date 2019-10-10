@@ -659,10 +659,10 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
             ramSize   = t;
             ramRegion = region;
          }
-         if (region.getName().equalsIgnoreCase(DEFAULT_RAM_HIGH_REGION)) {
+         if (DEFAULT_RAM_HIGH_REGION.equalsIgnoreCase(region.getName())) {
             ramHigh = region;
          }
-         if (region.getName().equalsIgnoreCase(DEFAULT_RAM_LOW_REGION)) {
+         if (DEFAULT_RAM_LOW_REGION.equalsIgnoreCase(region.getName())) {
             ramLow = region;
          }
       }
@@ -681,7 +681,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          memoryMap.append(MAP_SUFFIX);
       }
       
-      if (!ramRegion.getName().equals(DEFAULT_RAM_REGION)) {
+      if (!DEFAULT_RAM_REGION.equalsIgnoreCase(ramRegion.getName())) {
          // Add alias for main RAM region (if needed)
          memoryMap.append(String.format("REGION_ALIAS(\"%s\",\"%s\");\n", DEFAULT_RAM_REGION,   ramRegion.getName()));
       }
