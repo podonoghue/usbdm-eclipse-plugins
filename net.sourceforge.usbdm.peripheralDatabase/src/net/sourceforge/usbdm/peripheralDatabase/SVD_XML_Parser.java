@@ -821,6 +821,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       return name;
    }
+   
    /**
     * Parse a <interrupt> element
     * 
@@ -889,6 +890,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       return interruptEntry;
    }
+   
    /**
     * Parse a <peripheral> element
     * 

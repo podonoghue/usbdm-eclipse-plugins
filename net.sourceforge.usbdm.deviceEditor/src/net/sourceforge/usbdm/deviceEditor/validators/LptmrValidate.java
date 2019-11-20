@@ -63,7 +63,7 @@ public class LptmrValidate extends PeripheralValidator {
          clockSourceVar = getVariable("/MCG/system_mcgirclk_clock[0]");
          break;
       case 1:
-         clockSourceVar = getVariable("/MCG/system_low_power_clock");
+         clockSourceVar = getVariable("/PMC/system_low_power_clock");
          break;
       case 2:
          clockSourceVar = getVariable("/SIM/system_erclk32k_clock");
@@ -177,7 +177,7 @@ public class LptmrValidate extends PeripheralValidator {
       
       final String externalVariables[] = {
             "/MCG/system_mcgirclk_clock",
-            "/MCG/system_low_power_clock",
+            "/PMC/system_low_power_clock",
             "/SIM/system_erclk32k_clock",
             osc0_peripheral+"/oscer_clock",
       };

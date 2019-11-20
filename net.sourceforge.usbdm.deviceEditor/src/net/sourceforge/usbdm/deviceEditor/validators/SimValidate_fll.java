@@ -97,7 +97,7 @@ public class SimValidate_fll extends PeripheralValidator {
 
       // MCG
       //=================
-      final LongVariable     system_low_power_clockVar    =  getLongVariable("/MCG/system_low_power_clock");
+      final LongVariable     system_low_power_clockVar    =  getLongVariable("/PMC/system_low_power_clock");
       final LongVariable     system_mcgirclk_clockVar     =  getLongVariable("/MCG/system_mcgirclk_clock");
       final LongVariable     system_usb_clkin_clockVar    =  safeGetLongVariable("/MCG/system_usb_clkin_clock");
 
@@ -452,7 +452,7 @@ public class SimValidate_fll extends PeripheralValidator {
       final String   rtc_clkin         = getStringVariable("rtc_clkin").getValueAsString();
 
       final String[] externalVariables = {
-            "/MCG/system_low_power_clock",
+            "/PMC/system_low_power_clock",
             "/MCG/system_mcgfllclk_clock",
             "/MCG/system_mcgoutclk_clock",
             "/MCG/system_mcgirclk_clock",

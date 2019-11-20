@@ -138,6 +138,7 @@ public class WriteFamilyCpp {
       priorityClasses.add("RTC");
       priorityClasses.add("MCG");
       priorityClasses.add("SIM");
+      priorityClasses.add("PMC");
       for (String key : priorityClasses) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
          if (peripheral != null) {
