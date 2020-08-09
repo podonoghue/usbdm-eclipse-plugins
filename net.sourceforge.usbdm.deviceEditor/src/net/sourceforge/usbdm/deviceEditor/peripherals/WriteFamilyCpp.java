@@ -249,6 +249,7 @@ public class WriteFamilyCpp {
     * Example:
     * 
     * <pre>
+    *    #include "gpio.h"
     *    #include "adc.h"
     *    #include "ftm.h"
     * </pre>
@@ -257,6 +258,7 @@ public class WriteFamilyCpp {
     * @throws IOException
     */
    private void writeIncludes(DocumentUtilities writer) throws IOException {
+      writer.writeHeaderFileInclude("gpio.h");
       if (fDeviceInfo.getPeripherals().containsKey("ADC0") || fDeviceInfo.getPeripherals().containsKey("ADC1")) {
          writer.writeHeaderFileInclude("adc.h");
       }
@@ -266,7 +268,6 @@ public class WriteFamilyCpp {
       if (fDeviceInfo.getPeripherals().containsKey("TPM0") | fDeviceInfo.getPeripherals().containsKey("TPM1")) {
          writer.writeHeaderFileInclude("tpm.h");
       }
-      writer.writeHeaderFileInclude("gpio.h");
       writer.write("\n");
    }
 

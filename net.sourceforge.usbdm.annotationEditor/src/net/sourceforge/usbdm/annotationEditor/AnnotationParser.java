@@ -12,9 +12,9 @@ import net.sourceforge.usbdm.annotationEditor.AnnotationModel.OptionHeadingModel
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Polarity;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.Range;
 import net.sourceforge.usbdm.annotationEditor.AnnotationModel.SelectionTag;
-import net.sourceforge.usbdm.annotationEditor.ErrorNode;
-import net.sourceforge.usbdm.annotationEditor.AnnotationModelNode;
-import net.sourceforge.usbdm.annotationEditor.HeadingModelNode;
+//import net.sourceforge.usbdm.annotationEditor.ErrorNode;
+//import net.sourceforge.usbdm.annotationEditor.AnnotationModelNode;
+//import net.sourceforge.usbdm.annotationEditor.HeadingModelNode;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;

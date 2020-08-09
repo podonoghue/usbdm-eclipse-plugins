@@ -24,7 +24,7 @@ public class ToolChainPaths {
 
    // Where to look for windows tool-chain in registry
    static final WinRegistryInformation winRegistryInformation[] = {
-         new WinRegistryInformation("SOFTWARE\\WOW6432Node\\Eclipse Foundation\\Eclipse CDT", "InstallationDirectory", "/GNU Tools ARM Embedded/8 2018-q4-major/bin/arm-none-eabi-gcc.exe"),
+         new WinRegistryInformation("SOFTWARE\\WOW6432Node\\Eclipse Foundation\\Eclipse CDT", "InstallationDirectory", "/GNU Tools ARM Embedded/bin/arm-none-eabi-gcc.exe"),
          new WinRegistryInformation("SOFTWARE\\WOW6432Node\\ARM\\GNU Tools for ARM Embedded Processors", "InstallFolder", "/bin/arm-none-eabi-gcc.exe"),
          new WinRegistryInformation("SOFTWARE\\WOW6432Node\\NXP\\S32 Design Studio\\Product Versions\\S32 Design Studio for ARM Version 2018.R1", "Path", "/Cross_Tools/gcc-arm-none-eabi-4_9/bin/arm-none-eabi-gcc.exe"),
          new WinRegistryInformation("SOFTWARE\\Freescale\\Kinetis Design Studio 3.2.0", "Path", "/Toolchain/bin/arm-none-eabi-gcc.exe"),

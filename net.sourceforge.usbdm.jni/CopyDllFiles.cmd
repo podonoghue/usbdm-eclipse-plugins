@@ -11,7 +11,7 @@ set DEST_x86_64=%HOME_DIR%\x86_64
 if not exist %DEST_i386% mkdir %DEST_i386%
 cd %DEST_i386%
 cd
-set FILES=libgcc_s_dw2-1.dll libstdc++-6.dll usbdm.4.dll usbdm-debug.4.dll usbdm-jni.4.dll usbdm-jni-debug.4.dll libusb-1.0.dll
+set FILES=libgcc_s_dw2-1.dll libstdc++-6.dll libusb-1.0.dll usbdm.4.dll usbdm-debug.4.dll usbdm-jni.4.dll usbdm-jni-debug.4.dll
 for %%f in (%FILES%) do copy "%LIB_i386%\%%f"
 
 if not exist %DEST_x86_64% mkdir %DEST_x86_64%
