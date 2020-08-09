@@ -11,7 +11,6 @@ Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
 Bundle-Version: 5.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.jni,
  tests.internal;x-internal:=true
@@ -23,3 +22,4 @@ Import-Package: org.eclipse.core.runtime;version="3.4.0",
  org.eclipse.swt.widgets,
  org.eclipse.ui.plugin,
  org.osgi.framework
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

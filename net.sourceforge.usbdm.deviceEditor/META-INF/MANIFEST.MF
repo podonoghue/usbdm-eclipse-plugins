@@ -11,7 +11,6 @@ Require-Bundle: net.sourceforge.usbdm.peripheralDatabase;bundle-version="5.0.0",
  org.eclipse.core.runtime,
  org.eclipse.swt,
  org.eclipse.ui
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Import-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.utilties,
@@ -34,3 +33,4 @@ Export-Package: net.sourceforge.usbdm.deviceEditor,
  net.sourceforge.usbdm.deviceEditor.validators,
  net.sourceforge.usbdm.deviceEditor.xmlParser,
  tests.internal;x-internal:=true
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

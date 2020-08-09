@@ -9,6 +9,6 @@ Bundle-Vendor: USBDM
 Require-Bundle: org.eclipse.core.runtime,
  net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.osgi
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.peripherals.stmicro
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
