@@ -21,4 +21,4 @@ Export-Package: net.sourceforge.usbdm.cdt.tools,
  net.sourceforge.usbdm.cdt.tools.scanners,
  net.sourceforge.usbdm.cdt.utilties,
  net.sourceforge.usbdm.not.used.internal;x-internal:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

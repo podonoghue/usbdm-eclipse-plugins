@@ -1,0 +1,20 @@
+# Templates for Device Selection Dialogue
+# <Target Type>,<match pattern>,<description>
+# This divides devices into families
+
+ARM, ^(S32K).*$,         Automotive (S32K),
+ARM, ^(S9KEA|MKE).*$,    Kinetis E (MKE/S9KEA),
+ARM, ^(MKL).*$,          Kinetis L (MKL),
+ARM, ^(MKM).*$,          Kinetis M (MKM),
+ARM, ^(MKV).*$,          Kinetis V (MKV),
+ARM, ^(MK)[0-9].*$,      Kinetis K (MK),
+ARM, ^(FRDM|R41|EVB).*$, Evaluation boards ($1),
+ARM, ^(TWR).*$,          Tower boards (TWR),
+ARM, ^(STM32).*$,        ST Micro ($1),
+ARM, ^(LPC).*$,          NXP LPC ($1),
+ARM, ^([a-zA-Z]+).*$,    $1,
+xxx
+CFV1, ^(MCF[0-9]*).*$,   $1,
+CFV1, ^([a-zA-Z]+).*$,   $1,
+
+CFVx, ^(MCF[0-9]{4}).*$, $1,

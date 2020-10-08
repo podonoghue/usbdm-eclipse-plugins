@@ -25,11 +25,4 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>Stationery</name>
-			<type>2</type>
-			<locationURI>PARENT-1-WORKSPACE_LOC/usbdm-eclipse-makefiles-build/PackageFiles/Stationery</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>

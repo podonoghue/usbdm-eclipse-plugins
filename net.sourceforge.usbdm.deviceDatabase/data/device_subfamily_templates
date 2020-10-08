@@ -1,0 +1,29 @@
+# Templates for Device Sub-family Selection Dialogue
+# <Target Type>,<match pattern>,<description>
+# This divides devices into sub-families within a family
+
+ARM, (S32K[0-9][0-9]).*$,                               $1,
+ARM, (EVB[-_]S32K).*$,                                  $1,
+ARM, (FRDM[-_][a-zA-Z]*).*$,                            $1,
+ARM, (TWR[-_].*)$,                                      $1,
+ARM, ^(STM32F[0-9]*).*$,                                $1,
+ARM, ^(LPC[0-9][0-9][A-Z|a-z]*).*$,                     $1,
+ARM, ^(PK[0-9]*).*$,                                    $1,
+ARM, ^(S9KEA)[a-zA-Z]*[0-9]*(M[0-9]+)$,                 $1xxx$2,
+ARM, ^(MKE02)Z.*(M2)$,                                  $1xxx$2 (20MHz),
+ARM, ^(MKE02)Z.*(M4)$,                                  $1xxx$2 (40MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M4)$,      $1xxx$2 (48MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M5)$,      $1xxx$2 (50MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M7)$,      $1xxx$2 (70MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M10)$,     $1xxx$2 (100MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M12)$,     $1xxx$2 (120MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M15)$,     $1xxx$2 (150MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M16)$,     $1xxx$2 (160MHz),
+ARM, ^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M18)$,     $1xxx$2 (180MHz),
+ 
+CFV1, ^(MCF[0-9]*[a-zA-z]*).*$, $1,
+CFV1, ^uuu(.*)$,                $1,
+CFV1, ^(TWR.*)$,                $1,
+CFV1, ^([a-zA-Z]+).*$,          $1,
+
+CFVx, ^(.*)$,      $1,

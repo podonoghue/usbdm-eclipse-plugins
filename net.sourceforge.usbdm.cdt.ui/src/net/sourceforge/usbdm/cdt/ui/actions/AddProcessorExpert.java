@@ -187,7 +187,7 @@ public class AddProcessorExpert implements CustomAction {
          final String className = "com.processorexpert.core.ide.newprojectwizard.NewProjectWizardPlugin";
          Class<?> theClass = Class.forName(className);
          System.err.println("tryIt() - Obtained class " + className);
-         Object clsInstance = theClass.newInstance();
+         Object clsInstance = theClass.getConstructor().newInstance();
          System.err.println("tryIt() - Instantiated class");
 
          System.err.println("Calling method getCachedWizards()");

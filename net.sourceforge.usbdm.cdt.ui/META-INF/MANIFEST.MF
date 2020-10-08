@@ -80,4 +80,4 @@ Export-Package: net.sourceforge.usbdm.cdt.ui;
    org.eclipse.core.resources,
    net.sourceforge.usbdm.deviceDatabase",
  tests.internal;x-internal:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

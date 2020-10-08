@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
+<!DOCTYPE plugin>
 <plugin>
-   <extension-point id="net.sourceforge.usbdm.peripherals.DevicePeripheralsProvider" 
+   <extension-point 
+   id="net.sourceforge.usbdm.peripherals.DevicePeripheralsProvider" 
    name="DevicePeripheralsProvider" 
    schema="schema/net.sourceforge.usbdm.peripherals.DevicePeripheralsProvider.exsd"/>
 </plugin>

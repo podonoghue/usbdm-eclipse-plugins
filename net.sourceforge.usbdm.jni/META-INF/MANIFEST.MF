@@ -1,25 +1,19 @@
-Automatic-Module-Name: net.sourceforge.usbdm.jni
 Manifest-Version: 1.0
-Bundle-Name: USBDM JNI Plugin
-Bundle-NativeCode: 
- i386/usbdm.4.dll;i386/usbdm-jni.4.dll;i386/usbdm-debug.4.dll;i386/usbdm-jni-debug.4.dll;osname=Win32;processor=i386,
- x86_64/libwinpthread-1.dll;x86_64/libgcc_s_seh-1.dll;x86_64/libstdc++-6.dll;x86_64/usbdm.4.dll;x86_64/usbdm-jni.4.dll;x86_64/usbdm-debug.4.dll;x86_64/usbdm-jni-debug.4.dll;osname=Win32;processor=x86_64,
- i386/libusbdm-jni.so;i386/libusbdm-jni-debug.so;osname=linux;processor=i386,
- x86_64/libusbdm-jni.so;x86_64/libusbdm-jni-debug.so;osname=linux;processor=x86_64,
- *
-Bundle-Activator: net.sourceforge.usbdm.jni.Activator
 Bundle-ManifestVersion: 2
+Bundle-Name: USBDM JNI Plugin
 Bundle-SymbolicName: net.sourceforge.usbdm.jni;singleton:=true
 Bundle-Version: 5.0.0.qualifier
-Bundle-ActivationPolicy: lazy
-Export-Package: net.sourceforge.usbdm.jni,
- tests.internal;x-internal:=true
-Bundle-Vendor: USBDM
 Bundle-ClassPath: .
+Bundle-Activator: net.sourceforge.usbdm.jni.Activator
+Bundle-Vendor: USBDM
+Bundle-NativeCode: i386/usbdm.4.dll;i386/usbdm-jni.4.dll;i386/usbdm-debug.4.dll;i386/usbdm-jni-debug.4.dll;osname=Win32;processor=i386,x86_64/libwinpthread-1.dll;x86_64/libgcc_s_seh-1.dll;x86_64/libstdc++-6.dll;x86_64/usbdm.4.dll;x86_64/usbdm-jni.4.dll;x86_64/usbdm-debug.4.dll;x86_64/usbdm-jni-debug.4.dll;osname=Win32;processor=x86_64,i386/libusbdm-jni.so;i386/libusbdm-jni-debug.so;osname=linux;processor=i386,x86_64/libusbdm-jni.so;x86_64/libusbdm-jni-debug.so;osname=linux;processor=x86_64,*
 Import-Package: org.eclipse.core.runtime;version="3.4.0",
  org.eclipse.jface.resource,
  org.eclipse.swt,
  org.eclipse.swt.widgets,
  org.eclipse.ui.plugin,
  org.osgi.framework
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: net.sourceforge.usbdm.jni
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Export-Package: net.sourceforge.usbdm.jni

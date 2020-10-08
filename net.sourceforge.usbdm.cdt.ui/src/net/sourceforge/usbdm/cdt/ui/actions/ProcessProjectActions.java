@@ -72,7 +72,7 @@ public class ProcessProjectActions {
                   
                   ProjectCustomAction customAction = (ProjectCustomAction) action;
                   Class<?> actionClass = Class.forName(customAction.getclassName());
-                  Object clsInstance = actionClass.newInstance();
+                  Object clsInstance = actionClass.getConstructor().newInstance();
                   if (!(clsInstance instanceof CustomAction)) {
                      throw new Exception("Custom action does not implement required interface");
                   }

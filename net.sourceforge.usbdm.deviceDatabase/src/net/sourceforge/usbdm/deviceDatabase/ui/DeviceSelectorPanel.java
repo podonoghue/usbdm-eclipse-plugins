@@ -1,10 +1,23 @@
 package net.sourceforge.usbdm.deviceDatabase.ui;
+
+import net.sourceforge.usbdm.deviceDatabase.Activator;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -42,10 +55,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
+import net.sourceforge.usbdm.jni.UsbdmException;
 
 public class DeviceSelectorPanel extends Composite {
 
@@ -81,14 +97,14 @@ public class DeviceSelectorPanel extends Composite {
          return getChildren(element).length>0;
       }
    }
-   
+
    class BaseModel {
       private final String                fName;
       private final BaseModel             fParent;
       private final ArrayList<BaseModel>  fChildren = new ArrayList<BaseModel>();
-      
+
       private boolean fAvailable = true;
-      
+
       public BaseModel(BaseModel parent, String name) {
          fName   = name;
          fParent = parent;
@@ -119,19 +135,19 @@ public class DeviceSelectorPanel extends Composite {
          return fAvailable;
       }
    };
-   
+
    class ErrorModel extends BaseModel {
       public ErrorModel(BaseModel parent, String name) {
          super(parent, name);
       }
    }
-   
+
    class CategoryModel extends BaseModel {
       public CategoryModel(BaseModel parent, String name) {
          super(parent, name);
       }
    }
-   
+
    class DeviceModel extends BaseModel {
       public DeviceModel(BaseModel parent, String name) {
          super(parent, name);
@@ -140,11 +156,11 @@ public class DeviceSelectorPanel extends Composite {
          throw new RuntimeException("Can't add child to device model node");
       }
    }
-   
-   private static class Pair {
-      String pattern;
+
+   private static class PatternMatchPair {
+      Pattern pattern;
       String substitution;
-      Pair(String pattern, String substitution) {
+      PatternMatchPair(Pattern pattern, String substitution) {
          this.pattern      = pattern;
          this.substitution = substitution;
       }
@@ -157,28 +173,28 @@ public class DeviceSelectorPanel extends Composite {
          return true;
       }
    }
-   
+
    private static class NameFilter extends Filter {
       private final Pattern filterPattern;
-      
+
       public NameFilter(String pattern) {
          String qPattern = ".*"+pattern.toUpperCase()+".*";
-//         System.err.println("NameFilter("+qPattern+")");
+         //         System.err.println("NameFilter("+qPattern+")");
          filterPattern = Pattern.compile(qPattern);
       }
-      
+
       public boolean isVisible(String name) {
          return filterPattern.matcher(name).matches();
       }
    }
-   
+
    // Controls
    private Text       fDeviceText   = null;
    private TreeViewer fViewer       = null;
    private Button     fButton       = null;
 
    private BaseModel  fModel        = null;
-   
+
    // Internal state
    private TargetType      fTargetType     = TargetType.T_ARM;
    private DeviceDatabase  fDeviceDatabase = null;
@@ -192,7 +208,7 @@ public class DeviceSelectorPanel extends Composite {
 
    private static final String NO_DEVICE_STRING = "";
    private static final int    EXPAND_THRESHOLD = 20;
-   
+
    /** Used to force device update when setting device name */
    private boolean forceDevice = false;
 
@@ -205,6 +221,104 @@ public class DeviceSelectorPanel extends Composite {
    public DeviceSelectorPanel(Composite parent, int style) {
       super(parent, style);
       createControl(parent);
+      initialiseTemplates();
+   }
+
+   private PatternMatchPair[] armFamilyPatterns  = null;
+   private PatternMatchPair[] cfv1FamilyPatterns = null;
+   private PatternMatchPair[] cfvxFamilyPatterns = null;
+   private PatternMatchPair[] armSubFamilyPatterns = null;
+   private PatternMatchPair[] cfv1SubFamilyPatterns = null;
+   private PatternMatchPair[] cfvxSubFamilyPatterns = null;
+
+   private Vector<PatternMatchPair[]> loadTemplates(String filename) {
+      Path path = null;
+      
+      filename = "data/"+filename;
+      
+      BundleContext context = Activator.getBundleContext();
+      if (context != null) {
+         try {
+            //            System.err.println("getDataPath() context = " + context);
+            Bundle bundle = context.getBundle();
+            //            System.err.println("getDataPath() bundle = " + bundle);
+            URL url = FileLocator.find(bundle, new org.eclipse.core.runtime.Path(filename), null);
+            //            System.err.println("getDataPath() URL = " + folder);
+            url = FileLocator.resolve(url);
+            //            System.err.println("getDataPath() URL = " + folder);
+            path = Paths.get(url.toURI());
+            //            System.err.println("getDataPath() path = " + path);
+         } catch (IOException e) {
+            e.printStackTrace();
+         } catch (URISyntaxException e) {
+            e.printStackTrace();
+         }
+      }
+      if (path == null) {
+         path = FileSystems.getDefault().getPath(filename);
+         //         System.err.println("getDataPath() default path = " + path);
+      }
+      Vector<PatternMatchPair>armPats = new Vector<>();
+      Vector<PatternMatchPair>cfv1Pats = new Vector<>();
+      Vector<PatternMatchPair>cfvxPats = new Vector<>();
+      Vector<PatternMatchPair[]> rv = null;
+
+      Charset charset = Charset.forName("US-ASCII");
+      try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
+         int lineCount = 0;
+         String line = null;
+         while ((line = reader.readLine()) != null) {
+            lineCount++;
+            String[] values = line.split(",");
+            if (values.length == 0) {
+               continue;
+            }
+            values[0] = values[0].trim();
+            if (values[0].length() == 0) {
+               continue;
+            }
+            if (values[0].charAt(0) == '#') {
+               continue;
+            }
+            if (values.length < 3) {
+               System.err.println("File "+path.toAbsolutePath()+" has illegal format at line #" + lineCount);
+               continue;
+            }
+            Pattern pattern = Pattern.compile(values[1].trim());
+            values[2] = values[2].trim();
+            if (values[0].trim().equals("ARM")) {
+               armPats.add(new PatternMatchPair(pattern, values[2]));
+//               System.out.println("ARM - "+line);
+            }
+            if (values[0].equals("CFV1")) {
+               cfv1Pats.add(new PatternMatchPair(pattern, values[2]));
+//               System.out.println("CFV1 - "+line);
+            }
+            if (values[0].equals("CFVx")) {
+               cfvxPats.add(new PatternMatchPair(pattern, values[2]));
+//               System.out.println("CFVx - "+line);
+            }
+         }
+         rv = new Vector<PatternMatchPair[]>(3);
+         rv.add(armPats.toArray(new PatternMatchPair[armPats.size()]));
+         rv.add(cfv1Pats.toArray(new PatternMatchPair[armPats.size()]));
+         rv.add(cfvxPats.toArray(new PatternMatchPair[armPats.size()]));
+      } catch (IOException x) {
+         System.err.format("IOException: %s%n", x);
+      }
+      return rv;
+   }
+
+   private void initialiseTemplates() {
+      Vector<PatternMatchPair[]> patterns;
+      patterns = loadTemplates("device_family_templates");
+      armFamilyPatterns  = patterns.get(0);
+      cfv1FamilyPatterns = patterns.get(1);
+      cfvxFamilyPatterns = patterns.get(2);
+      patterns = loadTemplates("device_subfamily_templates");
+      armSubFamilyPatterns  = patterns.get(0);
+      cfv1SubFamilyPatterns = patterns.get(1);
+      cfvxSubFamilyPatterns = patterns.get(2);
    }
 
    /**
@@ -213,48 +327,28 @@ public class DeviceSelectorPanel extends Composite {
     * @param name Name of device e.g. MK20DX128M5
     * 
     * @return Device prefix for display e.g. "Kinetis K (MK)"
+    * @throws UsbdmException 
     */
    private String getFamilyName(String name) {
-      Pair[] armPatterns = {
-            new Pair("^(S32K).*$",         "Automotive (S32K)"),
-            new Pair("^(S9KEA).*$",        "Kinetis E (MKE/S9KEA)"),
-            new Pair("^(MKE).*$",          "Kinetis E (MKE/S9KEA)"),
-            new Pair("^(MKL).*$",          "Kinetis L (MKL)"),
-            new Pair("^(MKM).*$",          "Kinetis M (MKM)"),
-            new Pair("^(MKV).*$",          "Kinetis V (MKV)"),
-            new Pair("^(MK)[0-9].*$",      "Kinetis K (MK)"),
-            new Pair("^(FRDM|R41|EVB).*$", "Evaluation boards ($1)"),
-            new Pair("^(TWR).*$",          "Tower boards (TWR)"),
-            new Pair("^(STM32).*$",        "ST Micro ($1)"),
-            new Pair("^(LPC).*$",          "NXP LPC ($1)"),
-            new Pair("^([a-zA-Z]+).*$",    "$1"),
-      };
-      Pair[] cfv1Patterns = {
-            new Pair("^(MCF[0-9]*).*$",   "$1"),
-            new Pair("^([a-zA-Z]+).*$",   "$1"),
-      };
-      Pair[] cfvxPatterns = {
-            new Pair("^(MCF[0-9]{4}).*$", "$1"),
-      };
-      Pair[] patterns = null;
+      PatternMatchPair[] patterns = null;
       switch (fTargetType) {
       case T_ARM:
-         patterns = armPatterns;
+         patterns = armFamilyPatterns;
          break;
       case T_CFV1:
-         patterns = cfv1Patterns;
+         patterns = cfv1FamilyPatterns;
          break;
       case T_CFVx:
-         patterns = cfvxPatterns;
+         patterns = cfvxFamilyPatterns;
          break;
       default:
          break;
       }
-      for (Pair pattern:patterns) {
-         Pattern p = Pattern.compile(pattern.pattern);
+      for (PatternMatchPair pair:patterns) {
+         Pattern p = pair.pattern;
          Matcher m = p.matcher(name);
          if (m.matches()) {
-            return m.replaceAll(pattern.substitution);
+            return m.replaceAll(pair.substitution);
          }
       }
       return name;
@@ -268,52 +362,22 @@ public class DeviceSelectorPanel extends Composite {
     * @return Device prefix for display e.g. "MK20xxxM5 (50MHz)"
     */
    private String getSubFamilyNamePrefix(String name) {
-      Pair[] armPatterns = {
-            new Pair("(S32K[0-9][0-9]).*$",                               "$1"),
-            new Pair("(EVB[-_]S32K).*$",                                 "$1"),
-            new Pair("(FRDM[-_][a-zA-Z]*).*$",                            "$1"),
-            new Pair("(TWR[-_].*)$",                                      "$1"),
-            new Pair("^(STM32F[0-9]*).*$",                                "$1"),
-            new Pair("^(LPC[0-9][0-9][A-Z|a-z]*).*$",                     "$1"),
-            new Pair("^(PK[0-9]*).*$",                                    "$1"),
-            new Pair("^(S9KEA)[a-zA-Z]*[0-9]*(M[0-9]+)$",                 "$1xxx$2"),
-            new Pair("^(MKE02)Z.*(M2)$",                                  "$1xxx$2 (20MHz)"),
-            new Pair("^(MKE02)Z.*(M4)$",                                  "$1xxx$2 (40MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M4)$",      "$1xxx$2 (48MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M5)$",      "$1xxx$2 (50MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M7)$",      "$1xxx$2 (70MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M10)$",     "$1xxx$2 (100MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M12)$",     "$1xxx$2 (120MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M15)$",     "$1xxx$2 (150MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M16)$",     "$1xxx$2 (160MHz)"),
-            new Pair("^([a-zA-Z]+[0-9]*)(?:DN|DX|FN|FX|Z|F).*(M18)$",     "$1xxx$2 (180MHz)"),
-            //            new Pair("^([a-zA-Z]+[0-9]*).*$",
-      };
-      Pair[] cfv1Patterns = {
-            new Pair("^(MCF[0-9]*[a-zA-z]*).*$", "$1"),
-            new Pair("^uuu(.*)$",                "$1"),
-            new Pair("^(TWR.*)$",                "$1"),
-            new Pair("^([a-zA-Z]+).*$",          "$1"),
-      };
-      Pair[] cfvxPatterns = {
-            new Pair("^(.*)$",      "$1"),
-      };
-      Pair[] patterns = null;
+      PatternMatchPair[] patterns = null;
       switch (fTargetType) {
       case T_ARM:
-         patterns = armPatterns;
+         patterns = armSubFamilyPatterns;
          break;
       case T_CFV1:
-         patterns = cfv1Patterns;
+         patterns = cfv1SubFamilyPatterns;
          break;
       case T_CFVx:
-         patterns = cfvxPatterns;
+         patterns = cfvxSubFamilyPatterns;
          break;
       default:
          break;
       }
-      for (Pair pattern:patterns) {
-         Pattern p = Pattern.compile(pattern.pattern);
+      for (PatternMatchPair pattern:patterns) {
+         Pattern p = pattern.pattern;
          Matcher m = p.matcher(name);
          if (m.matches()) {
             return m.replaceAll(pattern.substitution);
@@ -347,7 +411,7 @@ public class DeviceSelectorPanel extends Composite {
       }
       return deviceModel;
    }
-   
+
    /**
     * Find a category node with given name
     * 
@@ -372,7 +436,7 @@ public class DeviceSelectorPanel extends Composite {
       }
       return deviceModel;
    }
-   
+
    /**
     * Build the model representing the device choices
     * @param pm 
@@ -428,7 +492,7 @@ public class DeviceSelectorPanel extends Composite {
          } 
       }
    }
-   
+
    /**
     * Set target type<br>
     * Used to determine which device list to display
@@ -462,7 +526,7 @@ public class DeviceSelectorPanel extends Composite {
                public void run() {
                   fViewer.setInput(fModel);
                   fViewer.setAutoExpandLevel(0);
-//                  fViewer.refresh();
+                  //                  fViewer.refresh();
                   setFilter(fDeviceText.getText());
                   identifyFilteredDevice();
                   filterNodesJob();
@@ -525,7 +589,7 @@ public class DeviceSelectorPanel extends Composite {
       model.setAvailable(isAvailable);
       return isAvailable;
    }
-   
+
    /**
     * Traverse models marking their visibility according to the filter set
     * @return
@@ -535,11 +599,11 @@ public class DeviceSelectorPanel extends Composite {
          // In case just disposed
          return;
       }
-//      System.err.println("filterNodesJob()");
+      //      System.err.println("filterNodesJob()");
       fMatchingNodesCount = 0;
       fMatchingNode = null;
       filterNodes(fModel);
-      
+
       Display.getDefault().syncExec(new Runnable() {
          public void run() {
             if (fMatchingNodesCount == 1) {
@@ -558,13 +622,13 @@ public class DeviceSelectorPanel extends Composite {
             fViewer.refresh();
             forceDevice = false;
          }
-       });
+      });
       Display.getDefault().syncExec(new Runnable() {
          public void run() {
             notifyListeners(SWT.CHANGED, new Event());
          }
-       });
-//      System.err.println("filterNodesJob(): "+fMatchingNodesCount);
+      });
+      //      System.err.println("filterNodesJob(): "+fMatchingNodesCount);
    }
 
    /**
@@ -579,17 +643,17 @@ public class DeviceSelectorPanel extends Composite {
       fFilterPending = state;
       return rv;
    }
-   
+
    /**
     * Filter visible nodes<br>
     * This is done on a delayed thread so that typing is not delayed
     */
    public synchronized void filterNodes() {
-//      System.err.println("filterNodes()");
+      //      System.err.println("filterNodes()");
       if (!testAndSetFilterPending(true)) {
          // Start new check
          Job job = Job.create("", new IJobFunction() {
-            
+
             @Override
             public IStatus run(IProgressMonitor arg0) {
                try {
@@ -603,20 +667,20 @@ public class DeviceSelectorPanel extends Composite {
          });
          job.setUser(true);
          job.schedule();
-//         Runnable runnable = new Runnable() {
-//            public void run() {
-//               try {
-//                  Thread.sleep(100);
-//               } catch (InterruptedException e) {
-//               }
-//               testAndSetFilterPending(false);
-//               filterNodesJob();
-//            }
-//         };
-//         new Thread(runnable).start();
+         //         Runnable runnable = new Runnable() {
+         //            public void run() {
+         //               try {
+         //                  Thread.sleep(100);
+         //               } catch (InterruptedException e) {
+         //               }
+         //               testAndSetFilterPending(false);
+         //               filterNodesJob();
+         //            }
+         //         };
+         //         new Thread(runnable).start();
       }
    }
-   
+
    /**
     * See if the current filter value corresponds to an actual device
     * 
@@ -634,9 +698,9 @@ public class DeviceSelectorPanel extends Composite {
       }
       return item;
    }
-   
+
    String fFilterName = null;
-   
+
    /**
     * Set filter for selection
     * 
@@ -656,7 +720,7 @@ public class DeviceSelectorPanel extends Composite {
       }
       filterNodes();
    }
-   
+
    /**
     * Create control composite
     * 
@@ -715,7 +779,7 @@ public class DeviceSelectorPanel extends Composite {
       fViewer.addSelectionChangedListener(new ISelectionChangedListener() {
          @Override
          public void selectionChanged(SelectionChangedEvent event) {
-//            System.err.println("selectionChanged() "+event);
+            //            System.err.println("selectionChanged() "+event);
             if (!((TreeViewer)event.getSource()).getControl().isFocusControl()) {
                // Filter selection events due to re-population of tree i.e. when  tree doesn't have focus
                return;
@@ -766,7 +830,7 @@ public class DeviceSelectorPanel extends Composite {
          }
       });
    }
-   
+
    /**
     * Validates control
     * 
@@ -784,7 +848,7 @@ public class DeviceSelectorPanel extends Composite {
       }
       return null;
    }
-   
+
    /**
     * Get selected device
     * 
@@ -792,8 +856,8 @@ public class DeviceSelectorPanel extends Composite {
     */
    public Device getDevice() {
       if ((fDeviceDatabase == null) || 
-          (!fDeviceDatabase.isValid()) || 
-          (fDeviceDatabase.getTargetType() != fTargetType)) {
+            (!fDeviceDatabase.isValid()) || 
+            (fDeviceDatabase.getTargetType() != fTargetType)) {
          return null;
       }
       Device device = null;
@@ -806,7 +870,7 @@ public class DeviceSelectorPanel extends Composite {
    public int getMatchingDevices() {
       return fMatchingNodesCount;
    }
-   
+
    /**
     * Get name of selected device (or null if none)
     * 
@@ -815,11 +879,11 @@ public class DeviceSelectorPanel extends Composite {
    public String getDeviceName() {
       return fDeviceName;
    }
-   
-//   @Override
-//   public void addListener(int eventType, Listener listener) {
-//   }
-//
+
+   //   @Override
+   //   public void addListener(int eventType, Listener listener) {
+   //   }
+   //
    public static void main(String[] args) {
       Display display = new Display();
       Shell shell = new Shell(display);
@@ -827,13 +891,13 @@ public class DeviceSelectorPanel extends Composite {
       shell.setSize(500, 400);
       shell.setBackground(new Color(display, 255,0,0));
       shell.setLayout(new FillLayout());
-      
+
       DeviceSelectorPanel deviceSelectorPanel = new DeviceSelectorPanel(shell, SWT.NONE);
       deviceSelectorPanel.setTargetType(TargetType.T_ARM);
       deviceSelectorPanel.setDevice("MK20DX128M5");
-      
+
       shell.layout();
-      
+
       shell.open();
       while (!shell.isDisposed()) {
          if (!display.readAndDispatch())

@@ -30,4 +30,4 @@ Bundle-Vendor: USBDM
 Export-Package: net.sourceforge.usbdm.peripherals.model,
  net.sourceforge.usbdm.peripherals.view,
  tests.internal;x-internal:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

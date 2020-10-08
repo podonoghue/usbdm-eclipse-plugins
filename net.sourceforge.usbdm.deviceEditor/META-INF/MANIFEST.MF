@@ -33,4 +33,4 @@ Export-Package: net.sourceforge.usbdm.deviceEditor,
  net.sourceforge.usbdm.deviceEditor.validators,
  net.sourceforge.usbdm.deviceEditor.xmlParser,
  tests.internal;x-internal:=true
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

@@ -12,4 +12,4 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.peripherals.usbdm;uses:="org.osgi.framework,net.sourceforge.usbdm.peripheralDatabase"
 Import-Package: org.eclipse.ui.plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

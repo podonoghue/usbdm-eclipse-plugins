@@ -14,8 +14,7 @@ Require-Bundle: net.sourceforge.usbdm.jni;bundle-version="5.0.0",
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.deviceDatabase;uses:="org.osgi.framework",
  net.sourceforge.usbdm.deviceDatabase.ui,
- net.sourceforge.usbdm.packageParser,
- tests.internal;x-internal:=true
+ net.sourceforge.usbdm.packageParser
 Import-Package: org.eclipse.core.resources,
  org.eclipse.swt,
  org.eclipse.swt.events,
@@ -24,4 +23,4 @@ Import-Package: org.eclipse.core.resources,
  org.eclipse.swt.widgets,
  org.eclipse.ui,
  org.eclipse.ui.plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11

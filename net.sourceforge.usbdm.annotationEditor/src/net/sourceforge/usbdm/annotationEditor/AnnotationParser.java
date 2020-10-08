@@ -536,7 +536,7 @@ public class AnnotationParser {
          if (sArgs == null) {
             // Use default constructor
             //            System.err.println(String.format("Creating function: %s()", className));
-            validatorClass = (MyValidator) clazz.newInstance();         
+            validatorClass = (MyValidator) clazz.getConstructor().newInstance();         
          }
          else {
             long args[] = new long[sArgs.length];
