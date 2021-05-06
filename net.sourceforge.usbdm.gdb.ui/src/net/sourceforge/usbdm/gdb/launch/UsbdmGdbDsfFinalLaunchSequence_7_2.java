@@ -55,16 +55,14 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
          List<String> orderList = new ArrayList<String>(Arrays.asList(super.getExecutionOrder(GROUP_TOP_LEVEL)));
 
          // Now insert our steps right after the initialization of the base class.
-         orderList.add(orderList.indexOf("stepInitializeFinalLaunchSequence_7_0") + 1, "stepInitializeFinalLaunchSequence_7_2"); //$NON-NLS-1$ //$NON-NLS-2$
+         orderList.add(orderList.indexOf("stepInitializeFinalLaunchSequence_7_0") + 1, 
+            "stepInitializeFinalLaunchSequence_7_2"); //$NON-NLS-1$ //$NON-NLS-2$
          orderList.add(orderList.indexOf("stepSetBreakpointPending") + 1, "stepDetachOnFork"); //$NON-NLS-1$ //$NON-NLS-2$
          
          return orderList.toArray(new String[orderList.size()]);
 //         System.err.print(rv);
       }
-      if (GROUP_USBDM.equals(group)) {
-         return super.getExecutionOrder(group);
-      }
-      return null;
+      return super.getExecutionOrder(group);
    }
    
    /** 
@@ -78,7 +76,8 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
       tracker.dispose();
       
         if (fGdbControl == null) {
-         rm.setStatus(new Status(IStatus.ERROR, Activator.getPluginId(), IDsfStatusConstants.INTERNAL_ERROR, "Cannot obtain service", null)); //$NON-NLS-1$
+         rm.setStatus(new Status(IStatus.ERROR, Activator.getPluginId(), IDsfStatusConstants.INTERNAL_ERROR, 
+            "Cannot obtain service", null)); //$NON-NLS-1$
          rm.done();
          return;
       }
@@ -98,4 +97,5 @@ public class UsbdmGdbDsfFinalLaunchSequence_7_2 extends UsbdmGdbDsfFinalLaunchSe
       fGdbControl.queueCommand(
             fGdbControl.getCommandFactory().createMIGDBSetDetachOnFork(fGdbControl.getContext(), !debugOnFork), 
             new ImmediateDataRequestMonitor<MIInfo>(rm));
-   }}
+	}
+}

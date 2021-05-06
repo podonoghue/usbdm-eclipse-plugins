@@ -99,6 +99,41 @@ public class UsbdmGdbRestartTargetHandler  implements IRestartHandler {
       Sequence seq = new UsbdmGdbRestartSequence(fSession, executionContext, attributes, rm);
       fSession.getExecutor().execute(seq);
       return false;
+      
+      /*
+       * Broken stuff
+       * Attempt to halt target first
+       *       // This request monitor actually performs the restart
+      RequestMonitor restartRm = new ImmediateRequestMonitor() {
+         @Override
+         protected void handleSuccess() {
+            RequestMonitor rm = new RequestMonitor(fSession.getExecutor(), null) {
+               @Override
+               protected void handleCompleted() {
+                  request.setStatus(getStatus());
+                  request.done();
+               }
+            };
+            Sequence seq = new UsbdmGdbRestartSequence(fSession, executionContext, attributes, rm);
+            fSession.getExecutor().execute(seq);
+         }
+      };
+      final DsfServicesTracker fTracker    = new DsfServicesTracker(Activator.getBundleContext(), fSession.getId());
+      IGDBBackend fGDBBackend = fTracker.getService(IGDBBackend.class);
+      fTracker.dispose();
+
+      IGDBControl                 fCommandControl;
+      fCommandControl = fTracker.getService(IGDBControl.class);
+      List<String> commands = new ArrayList<String>();
+      UsbdmGdbInterface fUsbdmGdbInterface = new UsbdmGdbInterface();
+      fUsbdmGdbInterface.doInterrupt(commands);
+      queueCommands(commands, rm);
+
+      fCommandControl.queueCommand(
+            new CLICommand<MIInfo>(fCommandControl.getContext(), commands.get(0)),
+            new DataRequestMonitor<MIInfo>(getExecutor(), crm));
+
+       */
    }
  
 }

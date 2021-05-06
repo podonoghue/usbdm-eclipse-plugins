@@ -419,7 +419,7 @@ public class UsbdmGdbDsfFinalLaunchSequence extends FinalLaunchSequence {
            CDebugUtils.getAttribute(fAttributes, UsbdmSharedConstants.ATTR_DO_HALT,        UsbdmSharedConstants.DEFAULT_DO_HALT)) {
          
          List<String> commands = new ArrayList<String>();
-         fUsbdmGdbInterface.doHalt(commands);
+         fUsbdmGdbInterface.doInterrupt(commands);
          queueCommands(commands, rm);								
          fDoSyncTarget = true;
       } else {

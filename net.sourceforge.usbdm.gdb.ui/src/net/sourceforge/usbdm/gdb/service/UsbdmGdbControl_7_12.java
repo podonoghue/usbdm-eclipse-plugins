@@ -19,7 +19,7 @@ import org.eclipse.cdt.dsf.mi.service.command.CommandFactory;
 import org.eclipse.cdt.dsf.service.DsfSession;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
-import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence_7_2;
+import net.sourceforge.usbdm.gdb.launch.UsbdmGdbDsfFinalLaunchSequence_7_12;
 
 /**
  * @since 5.1
@@ -33,8 +33,9 @@ public class UsbdmGdbControl_7_12 extends GDBControl_7_12 {
 
 	@Override
 	protected Sequence getCompleteInitializationSequence(Map<String,Object> attributes, RequestMonitorWithProgress rm) {
+//	   super.getCompleteInitializationSequence(attributes, rm);
 //      System.err.println("UsbdmGdbControl_7_12.getCompleteInitializationSequence()");
-		return new UsbdmGdbDsfFinalLaunchSequence_7_2(getSession(), attributes, rm);
+		return new UsbdmGdbDsfFinalLaunchSequence_7_12(getSession(), attributes, rm);
 	}
 	
 }

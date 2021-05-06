@@ -38,7 +38,7 @@ public class UsbdmGdbRestartSequence extends Sequence {
 
    private final Map<String, Object>   fAttributes;
    private final DsfSession            fSession;
-   private final IMIExecutionDMContext fExecutionContext;
+//   private final IMIExecutionDMContext fExecutionContext;
    private boolean                     fDoSyncTarget = false;
 
    private GdbServerParameters         fGdbServerParameters;
@@ -65,7 +65,7 @@ public class UsbdmGdbRestartSequence extends Sequence {
       
       fAttributes          = attributes;
       fSession             = session;
-      fExecutionContext    = executionContext;
+//      fExecutionContext    = executionContext;
    }
    
    @Override
@@ -202,39 +202,71 @@ public class UsbdmGdbRestartSequence extends Sequence {
                rm.done();
             }
          },
-         new Step() {
-            /**
-             * Halt the target (if running)
-             */
-            @Override
-            public void execute(RequestMonitor rm) {
-//               System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepHaltTarget()");
-
-               if (fExecutionContext == null) {
-//                  System.err.println("Cannot obtain executionContext");
-                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "No executionContext")); //$NON-NLS-1$
-                  return;
-               }
-               // Check if target running
-               DataRequestMonitor<Boolean> brm = new DataRequestMonitor<Boolean>(fRunControl.getExecutor(), null);
-               fRunControl.canSuspend(fExecutionContext, brm);
-               if (brm.getData()) {
-                  // Suspend target 
-//                  System.err.println("Suspending target");
-                  fRunControl.suspend(fExecutionContext, new RequestMonitor(fRunControl.getExecutor(), null) {
-                     protected void handleSuccess(){
-//                        System.err.println("Halted target OK");
-                     }
-                     @Override
-                     protected void handleError() {
-//                        System.err.println("Halting target Failed");
-                        fGDBBackend.interruptAndWait(100, this);
-                     }
-                  });
-               }
-               rm.done();
-            }
-         },
+//         new Step() {
+//            /**
+//             * Halt the target (if running)
+//             * Doesn't work because the sequence doesn't wait for the target to actually halt so
+//             * later commands can't execute as target is still seen as running
+//             */
+//            @Override
+//            public void execute(RequestMonitor rm) {
+////               System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepHaltTarget()");
+//
+//               if (fExecutionContext == null) {
+////                  System.err.println("Cannot obtain executionContext");
+//                  rm.done(new Status(IStatus.ERROR, Activator.getPluginId(), "No executionContext")); //$NON-NLS-1$
+//                  return;
+//               }
+//               // Check if target running
+//               DataRequestMonitor<Boolean> brm = new DataRequestMonitor<Boolean>(fRunControl.getExecutor(), null);
+//               fRunControl.canSuspend(fExecutionContext, brm);
+//               if (brm.getData()) {
+//                  // Suspend target 
+////                  System.err.println("Suspending target");
+//                  fRunControl.suspend(fExecutionContext, new RequestMonitor(fRunControl.getExecutor(), null) {
+//                     protected void handleSuccess(){
+////                        System.err.println("Halted target OK");
+//                     }
+//                     @Override
+//                     protected void handleError() {
+////                        System.err.println("Halting target Failed");
+//                        fGDBBackend.interruptAndWait(100, this);
+//                     }
+//                  });
+//               }
+//               rm.done();
+//            }
+//         },
+//         new Step() {
+//            /**
+//             * Run device-specific code to halt the board
+//             */
+//            @Override
+//            public void execute(RequestMonitor rm) {
+////               System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResetTarget()");
+//
+//               // Always reset if Run mode or loading an image
+//               List<String> commands = new ArrayList<String>();
+//               fUsbdmGdbInterface.doInterrupt(commands);
+//               fDoSyncTarget = true;
+//               queueCommands(commands, rm);
+//            }
+//         },
+//         new Step() {
+//            /**
+//                for debug
+//             */
+//            @Override
+//            public void execute(RequestMonitor rm) {
+////               System.err.println("UsbdmGdbDsfFinalLaunchSequence.stepResetTarget()");
+//
+//               // Always reset if Run mode or loading an image
+//               List<String> commands = new ArrayList<String>();
+//               fUsbdmGdbInterface.doXX(commands);
+//               fDoSyncTarget = true;
+//               queueCommands(commands, rm);
+//            }
+//         },
          new Step() {
             /**
              * Run device-specific code to reset the board

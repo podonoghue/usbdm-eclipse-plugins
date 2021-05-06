@@ -28,7 +28,7 @@ public class UsbdmGdbControl_7_2 extends GDBControl_7_2 {
 
 	public UsbdmGdbControl_7_2(DsfSession session, ILaunchConfiguration config, CommandFactory factory) {
 		super(session, config, factory);
-      System.err.println("UsbdmGdbControl_7_2()");
+//      System.err.println("UsbdmGdbControl_7_2()");
 	}
 
 	@Override

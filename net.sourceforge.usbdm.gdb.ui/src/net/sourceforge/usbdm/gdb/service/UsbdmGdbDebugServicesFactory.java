@@ -28,16 +28,11 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
       //      System.err.println("UsbdmGdbDebugServicesFactory(...)");
    }
 
-   @Deprecated
-	public UsbdmGdbDebugServicesFactory(String version) {
-      super(version, null);
-	}
-
 	@Override
 	protected ICommandControl createCommandControl(DsfSession session, ILaunchConfiguration config) {
 	   if (compareVersionWith(GDB_7_12_VERSION) >= 0) {
 //	      System.err.println("UsbdmGdbDebugServicesFactory.createCommandControl(...) GDB_7_12_VERSION");
-         return new UsbdmGdbControl_7_12(session, config, new UsbdmCommandFactory_6_8());
+         return new UsbdmGdbControl_HEAD(session, config, new UsbdmCommandFactory_6_8());
       }
       if (compareVersionWith(GDB_7_7_VERSION) >= 0) {
 //         System.err.println("UsbdmGdbDebugServicesFactory.createCommandControl(...) GDB_7_7_VERSION");
@@ -51,9 +46,6 @@ public class UsbdmGdbDebugServicesFactory extends GdbDebugServicesFactory {
 		}
 		if (compareVersionWith(GDB_7_0_VERSION) <= 0) {
 			return new UsbdmGdbControl_7_0(session, config, new UsbdmCommandFactory_6_8());
-		}
-		if (compareVersionWith(GDB_6_8_VERSION) <= 0) {
-			return new UsbdmGdbControl(session, config, new UsbdmCommandFactory_6_8());
 		}
 		return new UsbdmGdbControl(session, config, new UsbdmCommandFactory_6_8());
 	}

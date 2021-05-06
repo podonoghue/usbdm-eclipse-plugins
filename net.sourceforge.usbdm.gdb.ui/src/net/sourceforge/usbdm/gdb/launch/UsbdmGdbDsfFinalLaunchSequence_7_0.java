@@ -79,10 +79,7 @@ protected String[] getExecutionOrder(String group) {
 
       return orderList.toArray(new String[orderList.size()]);
    }
-   if (GROUP_USBDM.equals(group)) {
-      return super.getExecutionOrder(group);
-   }
-   return null;
+   return super.getExecutionOrder(group);
 }
 
 /**
@@ -172,5 +169,6 @@ public void stepSetCharset(final RequestMonitor rm) {
                      });
             }
          });
-}}
+}
+}
 

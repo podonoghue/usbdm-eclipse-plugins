@@ -87,13 +87,27 @@ public class UsbdmGdbInterface {
    }
 
    /**
+    * Add commands to ... debugging code
+    * 
+    * @param commands    Collection to add commands to
+    */
+   public void doXX(Collection<String> commands) {
+//      System.err.println("UsbdmGdbInterface.doReset()");
+//      commands.add("-exec-interrupt");    //$NON-NLS-1$
+//      commands.add("monitor reset halt"); //$NON-NLS-1$
+//      commands.add("-thread-info 1"); //$NON-NLS-1$
+   }
+
+   /**
     * Add commands to reset target
     * 
     * @param commands    Collection to add commands to
     */
    public void doReset(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doReset()");
-      commands.add("monitor reset halt"); //$NON-NLS-1$
+//      commands.add("-exec-interrupt");    //$NON-NLS-1$
+//      commands.add("monitor reset halt"); //$NON-NLS-1$
+      commands.add("-interpreter-exec console \"monitor reset halt\""); //$NON-NLS-1$
    }
 
    /**
@@ -122,7 +136,7 @@ public class UsbdmGdbInterface {
     * 
     * @param commands   Collection to add commands to
     */
-   public void doHalt(Collection<String> commands) {
+   public void doInterrupt(Collection<String> commands) {
 //      System.err.println("UsbdmGdbInterface.doHalt()");
       commands.add("-exec-interrupt"); //$NON-NLS-1$
    }
