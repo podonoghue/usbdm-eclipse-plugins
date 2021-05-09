@@ -9,10 +9,6 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-//import org.eclipse.swt.SWT;
-//import org.eclipse.swt.widgets.Display;
-//import org.eclipse.swt.widgets.MessageBox;
-//import org.eclipse.swt.widgets.Shell;
 
 /**
  * @author podonoghue
@@ -680,7 +676,7 @@ public class Usbdm {
     *  Describes Reset mode and method
     */
    public static class ResetType {
-      enum Mode {
+      public enum Mode {
          // Modes
          SPECIAL   (0<<0), //!< Special mode [BDM active, Target halted]
          NORMAL    (1<<0), //!< Normal mode [usual reset, Target executes]
@@ -690,7 +686,7 @@ public class Usbdm {
             this.mask = mode;
          } 
       };
-      enum Method {
+      public enum Method {
          // Methods
          ALL       (0<<2), //!< Use all reset strategies as appropriate
          HARDWARE  (1<<2), //!< Use hardware RESET pin reset
@@ -710,6 +706,7 @@ public class Usbdm {
       public static final ResetType RESET_NORMAL  = new ResetType(ResetType.Mode.NORMAL,  ResetType.Method.DEFAULT);
 
       private int mask;
+      
       public ResetType(Mode mode, Method method) {
          this.mask = mode.mask|method.mask;
       }
@@ -1050,7 +1047,7 @@ public class Usbdm {
    /**
     *  Internal class to JNI layer
     */
-   private static class ExtendedOptions_ {
+   public static class ExtendedOptions_ {
       // Options passed to the BDM
       public int               targetType;                 //!< Target type
       public int               targetVdd;                  //!< Target Vdd (off, 3.3V or 5V)
@@ -1191,7 +1188,7 @@ public class Usbdm {
       public Boolean            resetRecent;      //!< Target reset recently?
       public Boolean            halted;           //!< CFVx halted (from ALLPST)?
       public TargetVddState     powerState;       //!< Target has power?
-      public Status(Status_ status) {
+      private Status(Status_ status) {
         acknState       = status.acknState   != 0;
         connectionState = ConnectMode.valueOf(status.connectionState);
         resetState      = status.resetState  != 0;
@@ -1905,7 +1902,6 @@ public class Usbdm {
       try {
          loadUsbdmLibraries(false);
       } catch (Exception e) {
-         // TODO Auto-generated catch block
          e.printStackTrace();
       }
    }

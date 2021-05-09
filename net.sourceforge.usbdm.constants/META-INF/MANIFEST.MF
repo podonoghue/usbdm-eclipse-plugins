@@ -8,10 +8,10 @@ Bundle-Activator: net.sourceforge.usbdm.constants.Activator
 Require-Bundle: net.sourceforge.usbdm.jni,
  org.eclipse.core.runtime,
  org.eclipse.ui,
- org.eclipse.debug.ui
+ org.eclipse.debug.ui,
+ org.eclipse.core.resources
 Bundle-ActivationPolicy: lazy
 Export-Package: net.sourceforge.usbdm.constants
 Bundle-Vendor: USBDM
-Import-Package: org.eclipse.core.resources
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

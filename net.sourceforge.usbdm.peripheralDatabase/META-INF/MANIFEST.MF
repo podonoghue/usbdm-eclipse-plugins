@@ -13,4 +13,4 @@ Export-Package: Test,
  net.sourceforge.usbdm.peripheralDatabase;uses:="org.osgi.framework"
 Import-Package: net.sourceforge.usbdm.cdt.utilties,
  org.eclipse.ui.plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

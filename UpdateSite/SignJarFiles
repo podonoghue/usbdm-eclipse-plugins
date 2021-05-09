@@ -1,0 +1,29 @@
+#!/bin/bash
+
+export JAVA_HOME=/usr/lib/jvm/default-java
+
+#KEY_PASSWORD=MHYe7EhRRqv2mKYK
+STORE_PASSWORD=changeit
+KEY_STORE=$JAVA_HOME/lib/security/cacerts
+USBDM_PLUGIN_HOME=/home/peter/Documents/Development/usbdm/usbdm-eclipse-plugins
+USBDM_UPDATE_SITE=${USBDM_PLUGIN_HOME}/UpdateSite
+KEY_ALIAS=Peter
+
+# Get key password 
+read -s -p "Password for certificate: " KEY_PASSWORD
+#echo password = ${KEY_PASSWORD}
+
+# Generate self-signed certificate
+#sudo keytool -genkey -dname cn=Peter\ O\'Donoghue,c=AU -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} -validity 180
+
+# Delete self-signed certificate
+#sudo keytool -delete -alias ${KEY_ALIAS} -cacerts -storepass ${STORE_PASSWORD} -validity 180
+
+# List certificates
+#sudo keytool -list -cacerts -storepass ${STORE_PASSWORD} -validity 180
+
+# Sign jars
+ for f in ${USBDM_UPDATE_SITE}/features/*.jar ${USBDM_UPDATE_SITE}/plugins/*.jar ${USBDM_UPDATE_SITE}/*.jar; do
+    echo $f
+    jarsigner -keystore ${KEY_STORE} -storepass ${STORE_PASSWORD} -keypass ${KEY_PASSWORD} $f ${KEY_ALIAS}
+ done

@@ -265,7 +265,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                continue;
             }
             // Debug location
-            path = Paths.get("hardware").resolve(hardwarePath);
+            path = Paths.get("Hardware").resolve(hardwarePath);
             if (Files.isReadable(path)) {
                hardwarePath = path;
                continue;

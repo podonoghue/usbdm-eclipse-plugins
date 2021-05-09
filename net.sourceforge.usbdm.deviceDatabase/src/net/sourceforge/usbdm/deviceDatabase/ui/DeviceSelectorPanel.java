@@ -1,15 +1,13 @@
 package net.sourceforge.usbdm.deviceDatabase.ui;
 
-import net.sourceforge.usbdm.deviceDatabase.Activator;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
@@ -17,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -55,13 +52,12 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
+import net.sourceforge.usbdm.deviceDatabase.Activator;
 import net.sourceforge.usbdm.deviceDatabase.Device;
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
-import net.sourceforge.usbdm.jni.UsbdmException;
 
 public class DeviceSelectorPanel extends Composite {
 
@@ -232,39 +228,34 @@ public class DeviceSelectorPanel extends Composite {
    private PatternMatchPair[] cfvxSubFamilyPatterns = null;
 
    private Vector<PatternMatchPair[]> loadTemplates(String filename) {
-      Path path = null;
-      
+      BufferedReader reader = null;
+      Vector<PatternMatchPair[]> rv = null;
+
       filename = "data/"+filename;
-      
+
       BundleContext context = Activator.getBundleContext();
       if (context != null) {
+         System.err.println("getDataPath() context = " + context);
+
+         InputStream is = getClass().getClassLoader().getResourceAsStream(filename);
+         InputStreamReader isr = new InputStreamReader(is);
+         reader = new BufferedReader(isr);
+      }
+      if (reader == null) {
+         Path path = FileSystems.getDefault().getPath(filename);
+         Charset charset = Charset.forName("US-ASCII");
          try {
-            //            System.err.println("getDataPath() context = " + context);
-            Bundle bundle = context.getBundle();
-            //            System.err.println("getDataPath() bundle = " + bundle);
-            URL url = FileLocator.find(bundle, new org.eclipse.core.runtime.Path(filename), null);
-            //            System.err.println("getDataPath() URL = " + folder);
-            url = FileLocator.resolve(url);
-            //            System.err.println("getDataPath() URL = " + folder);
-            path = Paths.get(url.toURI());
-            //            System.err.println("getDataPath() path = " + path);
+            reader = Files.newBufferedReader(path, charset);
          } catch (IOException e) {
             e.printStackTrace();
-         } catch (URISyntaxException e) {
-            e.printStackTrace();
          }
-      }
-      if (path == null) {
-         path = FileSystems.getDefault().getPath(filename);
          //         System.err.println("getDataPath() default path = " + path);
       }
       Vector<PatternMatchPair>armPats = new Vector<>();
       Vector<PatternMatchPair>cfv1Pats = new Vector<>();
       Vector<PatternMatchPair>cfvxPats = new Vector<>();
-      Vector<PatternMatchPair[]> rv = null;
 
-      Charset charset = Charset.forName("US-ASCII");
-      try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
+      try {
          int lineCount = 0;
          String line = null;
          while ((line = reader.readLine()) != null) {
@@ -281,22 +272,22 @@ public class DeviceSelectorPanel extends Composite {
                continue;
             }
             if (values.length < 3) {
-               System.err.println("File "+path.toAbsolutePath()+" has illegal format at line #" + lineCount);
+               System.err.println("File "+filename+" has illegal format at line #" + lineCount);
                continue;
             }
             Pattern pattern = Pattern.compile(values[1].trim());
             values[2] = values[2].trim();
             if (values[0].trim().equals("ARM")) {
                armPats.add(new PatternMatchPair(pattern, values[2]));
-//               System.out.println("ARM - "+line);
+               //               System.out.println("ARM - "+line);
             }
             if (values[0].equals("CFV1")) {
                cfv1Pats.add(new PatternMatchPair(pattern, values[2]));
-//               System.out.println("CFV1 - "+line);
+               //               System.out.println("CFV1 - "+line);
             }
             if (values[0].equals("CFVx")) {
                cfvxPats.add(new PatternMatchPair(pattern, values[2]));
-//               System.out.println("CFVx - "+line);
+               //               System.out.println("CFVx - "+line);
             }
          }
          rv = new Vector<PatternMatchPair[]>(3);

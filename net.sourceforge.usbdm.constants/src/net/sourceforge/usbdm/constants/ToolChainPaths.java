@@ -88,7 +88,10 @@ public class ToolChainPaths {
 
    // Where to look for Linux tool-chain
    static final LinuxInformation linuxInformation[] = {
-         new LinuxInformation("/GNU Tools ARM Embedded/8 2018-q4-major/bin/arm-none-eabi-gcc.exe"),
+         new LinuxInformation("/opt/gcc-arm-none-eabi-9-2020-q2-update"),
+         new LinuxInformation("/opt/eclipse-usbdm/eclipse/gcc-arm-none-eabi/bin/arm-none-eabi-gcc"),
+         // For testing
+         new LinuxInformation("/home/peter/Documents/Development/EclipseWxInstaller/eclipse/gcc-arm-none-eabi/bin/arm-none-eabi-gcc"),
    };
 
    /**
@@ -132,6 +135,9 @@ public class ToolChainPaths {
             prefix = null;
 
             String path = getDefaultLinuxToolchainBinDirectory();
+            if (path == null) {
+               return;
+            }
             path = path.replaceAll("\\\\", "/");
 
             int index = path.lastIndexOf("/");
