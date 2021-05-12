@@ -487,8 +487,8 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
 
    private final static String MEM_DOCUMENTATION = 
          "/*\n"                             +
-               " *  <o>  %-6s address <constant>\n" +
-               " *  <o1> %-6s size    <constant>\n"  +
+               "    <o>  %-6s address <constant>\n" +
+               "    <o1> %-6s size    <constant>\n"  +
                " */\n";
 
    private final static String LINKER_FLEXNVM_REGION =
