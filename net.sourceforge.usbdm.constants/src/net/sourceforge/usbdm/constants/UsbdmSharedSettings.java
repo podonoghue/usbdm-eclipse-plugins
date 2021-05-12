@@ -5,32 +5,44 @@
 package net.sourceforge.usbdm.constants;
 
 import java.io.IOException;
-import net.sourceforge.usbdm.jni.Usbdm;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.DialogSettings;
+
+import net.sourceforge.usbdm.jni.Usbdm;
 
 public class UsbdmSharedSettings {
 
    private static final String USBDM_COMMON_SETTINGS     = "UsbdmCommonSettings";
    private static final String SHARED_SETTINGS_FILENAME  = "UsbdmEclipseSharedSettings.xml";
-   private static final IPath  usbdmDataPath = Usbdm.getDataPath().append(SHARED_SETTINGS_FILENAME);
-   
+   private static final IPath  usbdmEclipseSettingsFile  = Usbdm.getDataPath().append(SHARED_SETTINGS_FILENAME);
+
    private static DialogSettings sharedSettings = null;
-      
+
    /**
     *    Constructor
     */
    private UsbdmSharedSettings() {
    }
-   
+
    /**
     *    Save settings to file
     */
    public void flush() {
       synchronized (USBDM_COMMON_SETTINGS) {
          try {
-            sharedSettings.save(usbdmDataPath.toOSString());
-//            System.err.println("UsbdmSharedSettings.flush() - written data to file \'"+usbdmDataPath.toOSString()+"\'\n");
+            Path usbdmDataPath = Paths.get(Usbdm.getDataPath().toString());
+
+            // Make sure USBDM settings directory exists
+            if (!Files.isDirectory(usbdmDataPath, LinkOption.NOFOLLOW_LINKS)) {
+               Files.createDirectories(usbdmDataPath);
+            }
+            sharedSettings.save(usbdmEclipseSettingsFile.toOSString());
+            //            System.err.println("UsbdmSharedSettings.flush() - written data to file \'"+usbdmDataPath.toOSString()+"\'\n");
          } catch (IOException e) {
             Activator.logError(e.getMessage(), e);
          }
@@ -103,7 +115,7 @@ public class UsbdmSharedSettings {
       }
       return value;
    }
-   
+
    /**
     * Retrieve value for key
     * 
@@ -123,7 +135,7 @@ public class UsbdmSharedSettings {
       }
       return value;
    }
-   
+
    /**
     * Retrieve value for key
     * 
@@ -143,7 +155,7 @@ public class UsbdmSharedSettings {
       }
       return value;
    }
-  
+
    /**
     * Retrieve value for key
     * 
@@ -163,7 +175,7 @@ public class UsbdmSharedSettings {
       }
       return value;
    }
-   
+
    /**
     * Retrieve value for key
     * 
@@ -174,7 +186,7 @@ public class UsbdmSharedSettings {
    public String get(String key) {
       return get(key, (String)null);
    }
-   
+
    /**
     * @return Shared settings object
     */
@@ -184,8 +196,8 @@ public class UsbdmSharedSettings {
          if (sharedSettings == null) {
             sharedSettings = new DialogSettings(USBDM_COMMON_SETTINGS);
             try {
-               sharedSettings.load(usbdmDataPath.toOSString());
-               Activator.log("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmDataPath.toOSString()+"\'\n");
+               sharedSettings.load(usbdmEclipseSettingsFile.toOSString());
+               Activator.log("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmEclipseSettingsFile.toOSString()+"\'\n");
             } catch (IOException e) {
                // Ignore as the file may not exist yet
                Activator.log("UsbdmSharedSettings.getSharedSettings() - file doesn't exist", e);

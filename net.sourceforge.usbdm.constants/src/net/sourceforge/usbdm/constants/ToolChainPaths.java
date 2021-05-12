@@ -70,7 +70,7 @@ public class ToolChainPaths {
       for (WinRegistryInformation info:winRegistryInformation) {
          String rv = getPath(info.key, info.name, info.pathExtra);
          if (rv != null) {
-            System.err.print("Path = " +rv);
+            System.err.print("Found new default toolchain at  = '" +rv+"'");
             return rv;
          }
       }
@@ -88,10 +88,8 @@ public class ToolChainPaths {
 
    // Where to look for Linux tool-chain
    static final LinuxInformation linuxInformation[] = {
-         new LinuxInformation("/opt/gcc-arm-none-eabi-9-2020-q2-update"),
-         new LinuxInformation("/opt/eclipse-usbdm/eclipse/gcc-arm-none-eabi/bin/arm-none-eabi-gcc"),
-         // For testing
-         new LinuxInformation("/home/peter/Documents/Development/EclipseWxInstaller/eclipse/gcc-arm-none-eabi/bin/arm-none-eabi-gcc"),
+         new LinuxInformation("/opt/eclipse-usbdm/gcc-arm-none-eabi/bin/arm-none-eabi-gcc"),
+         new LinuxInformation("/opt/gcc-arm-none-eabi-9-2020-q2-update/bin/arm-none-eabi-gcc"),
    };
 
    /**
@@ -103,7 +101,7 @@ public class ToolChainPaths {
       for (LinuxInformation info:linuxInformation) {
          File file = new File(info.path);
          if (file.exists()) {
-            Activator.log("Found Toolchain at " + info.path);
+            Activator.log("Found new default toolchain at '" + info.path + "'");
             return info.path;
          };
       }
@@ -192,11 +190,23 @@ public class ToolChainPaths {
          String makeCommand    = settings.get(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "");
          String removeCommand  = settings.get(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR,   "");
 
+         String os    = System.getProperty("os.name");            
+         boolean isLinux = (os != null) && os.toUpperCase().contains("LINUX");
          if (makeCommand.isEmpty()) {
-            settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT);
+            if (isLinux) {
+               settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, "make");
+            }
+            else {
+               settings.put(UsbdmSharedConstants.USBDM_MAKE_COMMAND_VAR, UsbdmSharedConstants.USBDM_MAKE_COMMAND_DEFAULT);
+            }
          }         
          if (removeCommand.isEmpty() ) {
-            settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT);
+            if (isLinux) {
+               settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, "rm");
+            }
+            else {
+               settings.put(UsbdmSharedConstants.USBDM_RM_COMMAND_VAR, UsbdmSharedConstants.USBDM_RM_COMMAND_DFAULT);
+            }
          }         
       }
    }
