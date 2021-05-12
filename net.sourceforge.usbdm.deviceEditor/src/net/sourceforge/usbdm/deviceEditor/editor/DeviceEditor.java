@@ -159,6 +159,12 @@ public class DeviceEditor extends EditorPart implements IModelChangeListener {
       FontDescriptor boldDescriptor = FontDescriptor.createFrom(label.getFont()).setStyle(SWT.BOLD).setHeight(15);
       Font boldFont = boldDescriptor.createFont(label.getDisplay());
       label.setFont( boldFont );
+      label.addDisposeListener(new DisposeListener() {
+         @Override
+         public void widgetDisposed(DisposeEvent arg0) {
+            boldFont.dispose();
+         }
+      });
       
       // Populate pages in background
       Job job = Job.create("Populating editor", new IJobFunction() {
