@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.ui,
  net.sourceforge.usbdm.jni,
  net.sourceforge.usbdm.peripheralDatabase,
  org.eclipse.cdt.managedbuilder.core,
- net.sourceforge.usbdm.deviceEditor;bundle-version="5.0.0"
+ net.sourceforge.usbdm.deviceEditor
 Automatic-Module-Name: net.sourceforge.usbdm.cdt.ui2
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: USBDM

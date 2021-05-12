@@ -7,7 +7,7 @@ Bundle-Version: 5.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.peripherals.configuration.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.jface.text,
  org.eclipse.swt.widgets,

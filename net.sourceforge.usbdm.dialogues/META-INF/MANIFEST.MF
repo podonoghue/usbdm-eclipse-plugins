@@ -7,7 +7,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: net.sourceforge.usbdm.dialogues.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.swt.widgets
 Export-Package: net.sourceforge.usbdm.dialogues
