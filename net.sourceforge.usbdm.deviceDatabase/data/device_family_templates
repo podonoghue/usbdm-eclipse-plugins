@@ -13,7 +13,7 @@ ARM, ^(TWR).*$,          Tower boards (TWR),
 ARM, ^(STM32).*$,        ST Micro ($1),
 ARM, ^(LPC).*$,          NXP LPC ($1),
 ARM, ^([a-zA-Z]+).*$,    $1,
-xxx
+
 CFV1, ^(MCF[0-9]*).*$,   $1,
 CFV1, ^([a-zA-Z]+).*$,   $1,
 
