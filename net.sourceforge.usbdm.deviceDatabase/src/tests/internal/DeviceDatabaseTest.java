@@ -1,14 +1,12 @@
 package tests.internal;
 
 import net.sourceforge.usbdm.deviceDatabase.DeviceDatabase;
-import net.sourceforge.usbdm.deviceDatabase.IDatabaseListener;
 import net.sourceforge.usbdm.jni.Usbdm;
 import net.sourceforge.usbdm.jni.Usbdm.TargetType;
 
 public class DeviceDatabaseTest {
 
-   static class TestClass implements IDatabaseListener {
-      DeviceDatabase database = null;
+   static class TestClass {
       void doTest(TargetType targetType) {
          try {
 //          ArrayList<Usbdm.USBDMDeviceInfo> deviceList = Usbdm.getDeviceList();
@@ -17,17 +15,12 @@ public class DeviceDatabaseTest {
 //             USBDMDeviceInfo di = it.next();
 //             System.err.println("Device \n" + di);
 //          }
-            database = new DeviceDatabase(targetType, this);
+            DeviceDatabase.getDeviceDatabase(targetType).listDevices(System.err, true);
 //             database.toOptionXML(System.err);
 //             database.toXML(System.err);
          } catch (Exception e) {
             e.printStackTrace();
          }
-      }
-
-      @Override
-      public void databaseLoaded(DeviceDatabase database) {
-         database.listDevices(System.err, true);
       }
    }
    

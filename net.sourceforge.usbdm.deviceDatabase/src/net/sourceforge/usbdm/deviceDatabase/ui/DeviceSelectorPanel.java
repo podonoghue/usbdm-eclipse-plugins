@@ -203,7 +203,7 @@ public class DeviceSelectorPanel extends Composite {
    private boolean         fFilterPending  = false;
 
    private static final String NO_DEVICE_STRING = "";
-   private static final int    EXPAND_THRESHOLD = 20;
+   private static final int    EXPAND_THRESHOLD = 100;
 
    /** Used to force device update when setting device name */
    private boolean forceDevice = false;
@@ -439,7 +439,7 @@ public class DeviceSelectorPanel extends Composite {
       fDeviceName = null;
 
       if ((fDeviceDatabase == null) || (fDeviceDatabase.getTargetType() != fTargetType)) {
-         fDeviceDatabase = new DeviceDatabase(fTargetType);
+         fDeviceDatabase = DeviceDatabase.getDeviceDatabase(fTargetType);
       }
       if (!fDeviceDatabase.isValid()) {
          fDeviceText.setText("<Device database invalid>");
@@ -606,6 +606,10 @@ public class DeviceSelectorPanel extends Composite {
                   fViewer.setSelection(new StructuredSelection(fMatchingNode));
                }
             }
+            else if (fFilterName.isEmpty()) {
+//               System.err.println("filterNodesJob(), filter = "+fFilterName);
+               fViewer.collapseAll();
+            }
             else if (fMatchingNodesCount < EXPAND_THRESHOLD) {
                fViewer.expandAll();
             }
@@ -640,7 +644,7 @@ public class DeviceSelectorPanel extends Composite {
     * This is done on a delayed thread so that typing is not delayed
     */
    public synchronized void filterNodes() {
-      //      System.err.println("filterNodes()");
+//      System.err.println("filterNodes(), filter = "+fFilterName);
       if (!testAndSetFilterPending(true)) {
          // Start new check
          Job job = Job.create("", new IJobFunction() {

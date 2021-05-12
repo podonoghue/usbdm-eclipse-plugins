@@ -654,18 +654,17 @@ public class DeviceDatabase {
   /**
     *  Constructor
     * 
-    *  @param xmlFilename device database file name e.g. arm_devices.xml
-    *  
-    *  @throws Exception 
+    * @param targetType
     */
-   public DeviceDatabase(final TargetType targetType) {
+   private DeviceDatabase(final TargetType targetType) {
 
       fTargetType   = targetType;
 
       deviceList        = new ArrayList<Device>();
       sharedInformation = new SharedInformationMap();
       valid             = false;
-
+      
+      Activator.log("Creating DeviceDatabase("+targetType+")");
       BusyIndicator.showWhile(null, new Runnable() {
          public void run() {
             try {
@@ -684,11 +683,10 @@ public class DeviceDatabase {
    /**
     *  Constructor
     * 
-    *  @param xmlFilename device database file name e.g. arm_devices.xml
-    *  
-    *  @throws Exception 
+    * @param targetType
+    * @param listener
     */
-   public DeviceDatabase(final TargetType targetType, final IDatabaseListener listener) {
+   private DeviceDatabase(final TargetType targetType, final IDatabaseListener listener) {
 
       fTargetType       = targetType;
       deviceList        = new ArrayList<Device>();
@@ -722,6 +720,28 @@ public class DeviceDatabase {
       return fTargetType;
    }
 
+   static HashMap<TargetType, DeviceDatabase> databases = null;
+   
+   /**
+    * Factory for device database
+    * 
+    * @param targetType
+    * 
+    * @return Database for devices in target family
+    */
+   public synchronized static DeviceDatabase getDeviceDatabase(final TargetType targetType) {
+      if (databases == null) {
+         databases = new HashMap<TargetType, DeviceDatabase>();
+      }
+      DeviceDatabase deviceDatabase = databases.get(targetType);
+      if (deviceDatabase == null) {
+         deviceDatabase = new DeviceDatabase(targetType);
+         databases.put(targetType, deviceDatabase);
+      }
+      return deviceDatabase;
+   }
+   
+   
 final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
 
  /**

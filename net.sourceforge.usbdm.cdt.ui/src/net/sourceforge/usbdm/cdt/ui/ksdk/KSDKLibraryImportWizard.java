@@ -85,7 +85,7 @@ public class KSDKLibraryImportWizard extends Wizard implements INewWizard, IRunn
     *    @return
     */
    private static Device getDevice(String deviceName) {
-      DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
+      DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
       if (!deviceDatabase.isValid()) {
          return null;
       }

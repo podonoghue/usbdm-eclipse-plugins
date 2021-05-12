@@ -252,7 +252,7 @@ public class Device implements Cloneable {
     * 
     * Note: not checked
     */
-   public void setDefault() {
+   void setDefault() {
       fDefaultDevice = true;
    }
    /**
@@ -263,10 +263,11 @@ public class Device implements Cloneable {
    public boolean isDefault() {
       return fDefaultDevice;
    }
+
    /**
     * @param name
     */
-   public void setAlias(String name) {
+   void setAlias(String name) {
       fAlias = name;
    }
    /**
@@ -290,7 +291,7 @@ public class Device implements Cloneable {
    /**
     * @param family
     */
-   public void setFamily(String family) {
+   void setFamily(String family) {
       this.fFamily = family;
    }
    /**
@@ -302,7 +303,7 @@ public class Device implements Cloneable {
    /**
     * @param subFamily
     */
-   public void setSubFamily(String subFamily) {
+   void setSubFamily(String subFamily) {
       this.fSubFamily = subFamily;
    }
    /**
@@ -322,14 +323,14 @@ public class Device implements Cloneable {
    /**
     * @param hardware the hardware to set
     */
-   public void setHardware(String hardware) {
+   void setHardware(String hardware) {
       this.fHardware = hardware;
    }
 
    /**
     * @param soptAddress
     */
-   public void setSoptAddress(long soptAddress) {
+   void setSoptAddress(long soptAddress) {
       this.fSoptAddress = soptAddress;
    }
    /**
@@ -349,7 +350,7 @@ public class Device implements Cloneable {
    /**
     * @param clockType
     */
-   public void setClockType(ClockTypes clockType) {
+   void setClockType(ClockTypes clockType) {
       this.fClockType = clockType;
    }
 
@@ -363,7 +364,7 @@ public class Device implements Cloneable {
    /**
     * @param clockAddres
     */
-   public void setClockAddres(int clockAddres) {
+   void setClockAddres(int clockAddres) {
       this.fClockAddres = clockAddres;
    }
 
@@ -377,7 +378,7 @@ public class Device implements Cloneable {
    /**
     * @param clockNvAddress
     */
-   public void setClockNvAddress(int clockNvAddress) {
+   void setClockNvAddress(int clockNvAddress) {
       this.fClockNvAddress = clockNvAddress;
    }
 
@@ -391,15 +392,8 @@ public class Device implements Cloneable {
    /**
     * @param clockTrimFrequency
     */
-   public void setClockTrimFrequency(int clockTrimFrequency) {
+   void setClockTrimFrequency(int clockTrimFrequency) {
       this.fClockTrimFrequency = clockTrimFrequency;
-   }
-
-   /**
-    * @return
-    */
-   public boolean isDefaultDevice() {
-      return fDefaultDevice;
    }
 
    /**
@@ -430,7 +424,7 @@ public class Device implements Cloneable {
    /**
     * @param hidden
     */
-   public void setHidden(boolean hidden) {
+   void setHidden(boolean hidden) {
       this.fHidden = hidden;
   }
 
@@ -475,7 +469,7 @@ public class Device implements Cloneable {
     * 
     * @param method Method to add
     */
-   public void setResetMethod(ResetMethods methods) {
+   void setResetMethod(ResetMethods methods) {
       fResetMethods = methods;
    }
    
@@ -502,7 +496,7 @@ public class Device implements Cloneable {
     * 
     * @param method Preferred method
     */
-   public void setPreferredResetMethod(ResetMethod method) {
+   void setPreferredResetMethod(ResetMethod method) {
       fResetMethods.setPreferredMethod(method);
    }
 
@@ -514,7 +508,7 @@ public class Device implements Cloneable {
     * 
     * @param method Method to add
     */
-   public void setEraseMethod(EraseMethods methods) {
+   void setEraseMethod(EraseMethods methods) {
       fEraseMethods = methods;
    }
    
@@ -541,7 +535,7 @@ public class Device implements Cloneable {
     * 
     * @param method Preferred method
     */
-   public void setPreferredEraseMethod(EraseMethod method) {
+   void setPreferredEraseMethod(EraseMethod method) {
       fEraseMethods.setPreferredMethod(method);
    }
 

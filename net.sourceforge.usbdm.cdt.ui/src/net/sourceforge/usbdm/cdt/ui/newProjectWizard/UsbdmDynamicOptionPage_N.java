@@ -331,7 +331,7 @@ public class UsbdmDynamicOptionPage_N extends WizardPage {
 ////      UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(targetDevice, paramMap, "kinetis-CPP-abstraction-options-page");
 //      WizardPageInformation wizardPageInfo = new WizardPageInformation("kinetis-sdk-options-page", "Kinetis", "Kinetis description");
       WizardPageInformation wizardPageInfo = new WizardPageInformation("usbdm-project-options-page", "USBDM Project Options", "Select Project Options");
-      DeviceDatabase deviceDatabase = new DeviceDatabase(TargetType.T_ARM);
+      DeviceDatabase deviceDatabase = DeviceDatabase.getDeviceDatabase(TargetType.T_ARM);
       Device device = deviceDatabase.getDevice(targetDevice);
 
       UsbdmDynamicOptionPage_N page = new UsbdmDynamicOptionPage_N(device, paramMap, null, wizardPageInfo);
