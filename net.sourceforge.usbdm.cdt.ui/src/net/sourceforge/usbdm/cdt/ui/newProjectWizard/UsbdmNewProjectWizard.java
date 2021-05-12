@@ -361,13 +361,13 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
             ArrayList<String> keySet = new ArrayList<String>(paramMap.keySet());
             Collections.sort(keySet);
             for (String key:keySet) {
-               if (key.equals("linkerExtraRegions")) {
+               if (key.equals(UsbdmConstants.LINKER_EXTRA_REGION_KEY)) {
                   continue;
                }
-               if (key.equals("linkerInformation")) {
+               if (key.equals(UsbdmConstants.LINKER_INFORMATION_KEY)) {
                   continue;
                }
-               if (key.equals("cVectorTable")) {
+               if (key.equals(UsbdmConstants.C_VECTOR_TABLE_KEY)) {
                   continue;
                }
                if (key.startsWith("demo.KSDK")) {
