@@ -8,6 +8,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
@@ -17,6 +18,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -53,40 +55,55 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
    }
 
    class MyValueColumnLabelProvider extends ColumnLabelProvider {
-      Image uncheckedImage = null;
-      Image checkedImage   = null;
-      Image lockedImage    = null;
+      Image fUncheckedImage = null;
+      Image fCheckedImage   = null;
+      Image fLockedImage    = null;
       final Color disabledColour = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_LIGHT_SHADOW);
 
       @Override
       public Image getImage(Object element) {
-         if ((uncheckedImage == null) && (Activator.getDefault() != null)) {
-            uncheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
+         if ((fUncheckedImage == null) && (Activator.getDefault() != null)) {
+            fUncheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_UNCHECKED_IMAGE).createImage();
          }
-         if ((checkedImage == null) && (Activator.getDefault() != null)) {
-            checkedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
+         if ((fCheckedImage == null) && (Activator.getDefault() != null)) {
+            fCheckedImage = Activator.getImageDescriptor(Activator.ID_CHECKBOX_CHECKED_IMAGE).createImage();
          }
-         if ((lockedImage == null) && (Activator.getDefault() != null)) {
-            lockedImage = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
+         if ((fLockedImage == null) && (Activator.getDefault() != null)) {
+            fLockedImage = Activator.getImageDescriptor(Activator.ID_LOCKED_NODE_IMAGE).createImage();
          }
          if (element instanceof AnnotationModelNode) {
             if (!(element instanceof HeadingModelNode) && !((AnnotationModelNode)element).canModify()) {
-               return lockedImage;
+               return fLockedImage;
             }
             if (element instanceof BinaryOptionModelNode) {
-               return ((Boolean)((BinaryOptionModelNode)element).safeGetActiveValue())?checkedImage:uncheckedImage;
+               return ((Boolean)((BinaryOptionModelNode)element).safeGetActiveValue())?fCheckedImage:fUncheckedImage;
             }
             if (element instanceof NumericOptionModelNode) {
                BitField field = ((NumericOptionModelNode)element).getBitField();
                if ((field != null) && (field.getStart() == field.getEnd())) {
                   long value = ((NumericOptionModelNode)element).getValueAsLong();
-                  return (value!=0)?checkedImage:uncheckedImage;
+                  return (value!=0)?fCheckedImage:fUncheckedImage;
                }
             }
          }
          return null;
       }
       
+      @Override
+      public void dispose(ColumnViewer viewer, ViewerColumn column) {
+         if (fUncheckedImage != null) {
+            fUncheckedImage.dispose();
+         }
+         if (fCheckedImage != null) {
+            fCheckedImage.dispose();
+         }
+         if (fLockedImage != null) {
+            fLockedImage.dispose();
+         }
+
+         super.dispose(viewer, column);
+      }
+
       @Override
       public String getText(Object element) {
          try {
@@ -126,40 +143,51 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public void dispose() {
          super.dispose();
-         if (uncheckedImage != null) {
-            uncheckedImage.dispose();
+         if (fUncheckedImage != null) {
+            fUncheckedImage.dispose();
          }
-         if (checkedImage != null) {
-            checkedImage.dispose();
+         if (fCheckedImage != null) {
+            fCheckedImage.dispose();
          }
-         if (lockedImage != null) {
-            lockedImage.dispose();
+         if (fLockedImage != null) {
+            fLockedImage.dispose();
          }
       }
    }
    
    class MyNameColumnLabelProvider extends ColumnLabelProvider {
-      private final  Color errorColour       = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
-      private        Image errorImage        = null;
-      private        Image warningImage      = null;
+      private final  Color fErrorColour       = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
+      private        Image fErrorImage        = null;
+      private        Image fWarningImage      = null;
 
       @Override
       public Image getImage(Object element) {
-         if ((errorImage == null) && (Activator.getDefault() != null)) {
-            errorImage   = Activator.getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
-            warningImage = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
+         if ((fErrorImage == null) && (Activator.getDefault() != null)) {
+            fErrorImage   = Activator.getImageDescriptor(Activator.ID_INVALID_NODE_IMAGE).createImage();
+            fWarningImage = Activator.getImageDescriptor(Activator.ID_WARNING_NODE_IMAGE).createImage();
          }
          if (element instanceof AnnotationModelNode) {
             switch (((AnnotationModelNode)element).getErrorState()) {
             case OK:
             case INFORMATION:  return null;
-            case WARNING:      return warningImage;
-            case ERROR:        return errorImage;
+            case WARNING:      return fWarningImage;
+            case ERROR:        return fErrorImage;
             }
          }
          return null;
       }
       
+      @Override
+      public void dispose(ColumnViewer viewer, ViewerColumn column) {
+         if (fErrorImage != null) {
+            fErrorImage.dispose();
+         }
+         if (fWarningImage != null) {
+            fWarningImage.dispose();
+         }
+         super.dispose(viewer, column);
+      }
+
       @Override
       public String getText(Object element) {
          return ((AnnotationModelNode) element).getDescription();
@@ -168,7 +196,7 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public Color getBackground(Object element) {
          if (element instanceof ErrorNode) {
-            return errorColour;
+            return fErrorColour;
          }
          return super.getBackground(element);
       }
@@ -194,8 +222,8 @@ public class AnnotationEditor extends EditorPart implements IDocumentListener {
       @Override
       public void dispose() {
          super.dispose();
-         if (errorImage != null) {
-            errorImage.dispose();
+         if (fErrorImage != null) {
+            fErrorImage.dispose();
          }
       }
    }

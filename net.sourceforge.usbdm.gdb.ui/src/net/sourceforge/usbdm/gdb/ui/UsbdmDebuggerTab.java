@@ -35,6 +35,16 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
    
    private static final String   TAB_NAME = "Debugger";
    private static final String   TAB_ID   = "net.sourceforge.usbdm.gdb.ui.usbdmDebuggerTab";
+   
+   private Image fImage = null;
+
+   @Override
+   public void dispose() {
+      if (fImage != null) {
+         fImage.dispose();
+      }
+      super.dispose();
+   }
 
    UsbdmDebuggerPanel usbdmDebuggerPanel;
    
@@ -50,8 +60,11 @@ public class UsbdmDebuggerTab extends AbstractLaunchConfigurationTab {
 
    @Override
    public Image getImage() {
-      ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_BUG_IMAGE);
-      return imageDescriptor.createImage();
+      if (fImage == null) {
+         ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_BUG_IMAGE);
+         fImage = imageDescriptor.createImage();
+      }
+      return fImage;
    }
 
    public String getId() {

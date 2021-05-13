@@ -1,12 +1,9 @@
 package net.sourceforge.usbdm.gdb.ui;
 
-import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
@@ -24,6 +21,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import net.sourceforge.usbdm.constants.UsbdmSharedConstants;
 
 /**
  * @since 4.12
@@ -85,8 +84,18 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
    private  Text    initCommands;
    private  Text    runCommands;
 
+   private    Image fImage = null;
+   
    public UsbdmStartupTab() {
       super();
+   }
+
+   @Override
+   public void dispose() {
+      if (fImage != null) {
+         fImage.dispose();
+      }
+      super.dispose();
    }
 
    @Override
@@ -607,14 +616,16 @@ public class UsbdmStartupTab extends AbstractLaunchConfigurationTab {
          }
       });
    }
-   
+
    /* (non-Javadoc)
     * @see org.eclipse.debug.ui.AbstractLaunchConfigurationTab#getImage()
     */
    @Override
    public Image getImage() {
-      ImageDescriptor imageDescriptor = Activator.getImageDescriptor(Activator.ID_ARROW_IMAGE);
-      return imageDescriptor.createImage();
+      if (fImage == null) {
+         fImage = Activator.getImageDescriptor(Activator.ID_ARROW_IMAGE).createImage();
+      }
+      return fImage;
    }
 
    @Override
