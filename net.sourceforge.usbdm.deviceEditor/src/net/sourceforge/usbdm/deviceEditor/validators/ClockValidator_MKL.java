@@ -208,6 +208,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
       Variable fll_enabledVar                   = getVariable("fll_enabled");
       Variable fllInputFrequencyVar             = getVariable("fllInputFrequency");
 
+      boolean mcg_c2_ircsVar_StatusWarning = false;
+      
       switch (clock_mode) {
       default:
       case ClockMode_None:
@@ -263,6 +265,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
          pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
          fll_enabledVar.setValue(false);
+         // Add BLPE/BLPI warning
+         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
       case ClockMode_BLPE:
          mcg_c1_clks  = 2;
@@ -272,6 +276,8 @@ public class ClockValidator_MKL extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
          fll_enabledVar.setValue(false);
+         // Add BLPE/BLPI warning
+         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
       case ClockMode_PBE:
          mcg_c1_clks  = 2;
@@ -296,7 +302,12 @@ public class ClockValidator_MKL extends BaseClockValidator {
       mcg_c6_pllsVar.setValue(mcg_c6_plls);
       mcg_c2_lpVar.setValue(mcg_c2_lp);
       mcg_c1_irefsVar.setValue(mcg_c1_irefs);
-
+      if (mcg_c2_ircsVar_StatusWarning) {
+         mcg_c2_ircsVar.setStatus(new Status("Fast IRC clock should be selected if entering VLPR mode", Severity.WARNING));
+      }
+      else {
+         mcg_c2_ircsVar.clearStatus();
+      }
       Variable osc0_osc_cr_erclkenVar  = safeGetBooleanVariable(osc0_peripheral+"/osc_cr_erclken");
 
       //=======================================

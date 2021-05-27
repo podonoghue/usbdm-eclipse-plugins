@@ -233,6 +233,30 @@ public class ParseMenuXML extends XML_BaseParser {
    }
    
    /**
+    * @param element
+    * @param name
+    * 
+    * @return
+    * @throws Exception 
+    */
+   protected long getLongAttributeWithSubstitution(Element element, String name) throws Exception {
+      long value;
+      try {
+         // Try simple number
+         value = getLongAttribute(element, name);
+      } catch (NumberFormatException e1) {
+         // Try variable
+         String varName = element.getAttribute(name);
+         Variable var = safeGetVariable(varName);
+         if (var == null) {
+            throw new Exception("Variable not found " + varName);
+         }
+         value = var.getValueAsLong();
+      }
+      return value;
+   }
+
+   /**
     * Gets the toolTip attribute from the element and applies some simple transformations
     *  
     * @param element
@@ -527,8 +551,14 @@ public class ParseMenuXML extends XML_BaseParser {
       
       variable.setValue(varElement.getAttribute("value"));
 
-      int dimension = getIntAttribute(varElement, "dim");
-      model.setDimension(dimension);
+      long dimension = getLongAttributeWithSubstitution(varElement, "dim");
+      
+      if ((dimension<0) || (dimension>10)) {
+         throw new Exception("Dimension variable has illegal value "+dimension);
+      }
+//      int dimension = getIntAttribute(varElement, "dim");
+
+      model.setDimension((int)dimension);
       
       parseChildModels(model, varElement);
 
@@ -840,9 +870,9 @@ public class ParseMenuXML extends XML_BaseParser {
             throw new Exception("Named templates must have 'all' namespace, name='" + name + "'");
          }
          element.getNodeValue();
-         int dimension = getIntAttribute(element, "dim");
+         long dimension = getLongAttributeWithSubstitution(element, "dim");
          
-         TemplateInformation templateInfo = new TemplateInformation(name, namespace, dimension);
+         TemplateInformation templateInfo = new TemplateInformation(name, namespace, (int)dimension);
          addTemplate(templateInfo);
          for (Node node = element.getFirstChild();
                node != null;
@@ -1237,8 +1267,8 @@ public class ParseMenuXML extends XML_BaseParser {
       //         System.err.println(k + " => " + paramMap.get(k));
       //      }
       //      System.err.println("================================");
-      int dimension = getIntAttribute(validateElement, "dim");
-      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"), dimension);
+      long dimension = getLongAttributeWithSubstitution(validateElement, "dim");
+      ValidatorInformation validator = new ValidatorInformation(validateElement.getAttribute("class"), (int)dimension);
       
       for (Node node = validateElement.getFirstChild();
             node != null;

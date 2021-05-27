@@ -308,8 +308,7 @@ public class XML_BaseParser {
          value = multiplier*Long.decode(s.trim());
       } catch (NumberFormatException e) {
          //         System.out.println("getIntAttribute("+s+"), failed");
-         e.printStackTrace();
-         throw new RuntimeException("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
+         throw new NumberFormatException("Failed to parse Int Attribute \'"+name+"\', value = \'"+element.getAttribute(name)+"\'");
          //         throw e;
       }
       return value;

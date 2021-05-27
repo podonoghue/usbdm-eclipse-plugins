@@ -17,8 +17,6 @@ public class PeripheralValidator extends Validator {
 
    protected static final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
 
-   protected boolean fAddedExternalVariables = false;
-
    /**
     * Peripheral dialogue validator <br>
     * Constructor used by derived classes
@@ -136,16 +134,12 @@ public class PeripheralValidator extends Validator {
     * @param externalVariables Variables to add
     */
    protected void addToWatchedVariables(String[] externalVariables) {
-      if (fAddedExternalVariables) {
-         return;
-      }
       for(fIndex=0; fIndex<Math.max(1,fDimension); fIndex++) {
          for (String name:externalVariables) {
             addToWatchedVariables(name);
          }
       }
       fIndex = 0;
-      fAddedExternalVariables = true;
    }
 
    @Override

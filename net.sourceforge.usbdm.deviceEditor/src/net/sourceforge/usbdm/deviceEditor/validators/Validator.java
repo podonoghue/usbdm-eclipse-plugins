@@ -144,6 +144,7 @@ public abstract class Validator {
 
    /**
     * Get Variable from associated peripheral 
+    * Tries to obtain an indexed variable or failing that an unindexed one.
     * 
     * @param key  Key to lookup variable
     * 

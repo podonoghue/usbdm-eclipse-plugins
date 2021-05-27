@@ -97,6 +97,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
     * - mcg_c1_irefs
     * - mcg_c1_frdiv
     * - mcg_c2_lp
+    * - mcg_c2_ircs
     * - mcg_c4_drst_drs
     * - mcg_c6_plls
     * - mcg_c2_range
@@ -175,6 +176,7 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       Variable system_slow_irc_clockVar   = getVariable("system_slow_irc_clock");
       Variable mcg_c2_ircsVar             = getVariable("mcg_c2_ircs");
       Variable system_mcgir_ungated_clock = new LongVariable("system_mcgir_ungated", null);
+      
       if (mcg_c2_ircsVar.getValueAsBoolean()) {
          // Fast IRC selected
          if (mcg_sc_fcrdivVar != null) {
@@ -270,6 +272,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       Variable fll_enabledVar                   = getVariable("fll_enabled");
       Variable fllInputFrequencyVar             = getVariable("fllInputFrequency");
 
+      boolean mcg_c2_ircsVar_StatusWarning = false;
+      
       switch (clock_mode) {
       default:
       case ClockMode_None:
@@ -325,6 +329,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("MCGIRCLK");
          pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
          fll_enabledVar.setValue(false);
+         // Add BLPE/BLPI warning
+         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
       case ClockMode_BLPE:
          mcg_c1_clks  = 2;
@@ -334,6 +340,8 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
          system_mcgoutclk_clock_sourceVar.setValue("MCGERCLK");
          pll0EnabledVar.setValue(mcg_c5_pllclkenVar.getValueAsBoolean());
          fll_enabledVar.setValue(false);
+         // Add BLPE/BLPI warning
+         mcg_c2_ircsVar_StatusWarning = !mcg_c2_ircsVar.getValueAsBoolean();
          break;
       case ClockMode_PBE:
          mcg_c1_clks  = 2;
@@ -358,7 +366,12 @@ public class ClockValidator_MK_ICS48M extends BaseClockValidator {
       mcg_c6_pllsVar.setValue(mcg_c6_plls);
       mcg_c2_lpVar.setValue(mcg_c2_lp);
       mcg_c1_irefsVar.setValue(mcg_c1_irefs);
-
+      if (mcg_c2_ircsVar_StatusWarning) {
+         mcg_c2_ircsVar.setStatus(new Status("Fast IRC clock should be selected if entering VLPR mode", Severity.WARNING));
+      }
+      else {
+         mcg_c2_ircsVar.clearStatus();
+      }
       Variable osc0_osc_cr_erclkenVar  = safeGetBooleanVariable(osc0_peripheral+"/osc_cr_erclken");
 
       //=======================================
