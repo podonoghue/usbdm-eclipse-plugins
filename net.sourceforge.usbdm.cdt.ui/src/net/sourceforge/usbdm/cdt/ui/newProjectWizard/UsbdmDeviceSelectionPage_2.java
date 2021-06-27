@@ -497,7 +497,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "   .flexNVM (NOLOAD) :\n" + 
                "   {\n" + 
                "      . = ALIGN(4);\n" + 
+               "      PROVIDE(__FlexNvmStart = .);\n"+
                "      KEEP(*(.flexNVM))\n" + 
+               "      PROVIDE(__FlexNvmEnd = .);\n" + 
                "   } > flexNVM\n\n"; //$NON-NLS-1$
 
    private final static String LINKER_FLEXRAM_REGION =
@@ -505,7 +507,9 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
                "   .flexRAM (NOLOAD) :\n" + 
                "   {\n" + 
                "      . = ALIGN(4);\n" + 
-               "      KEEP(*(.flexRAM))\n" + 
+               "      PROVIDE(__FlexRamStart = .);\n"+
+               "      KEEP(*(.flexRAM))\n" +
+               "      PROVIDE(__FlexRamEnd = .);\n" + 
                "   } > flexRAM\n\n"; //$NON-NLS-1$
 
    private final static String DEFAULT_RAM_REGION        = "ram";

@@ -76,16 +76,24 @@ class PeripheralsViewContentProvider implements ITreeContentProvider, IModelChan
 
    @Override
    public void modelElementChanged(ObservableModel model) {
-      if (treeViewer != null) {
+      if (!(model instanceof BaseModel)) {
+         if (model == null) {
+            System.err.println("PeripheralsViewContentProvider.modelElementChanged(\"null)\"");
+         }
+         else {
+            System.err.println("PeripheralsViewContentProvider.modelElementChanged("+model.getClass().toString()+")");
+         }
+      }
+      if ((treeViewer != null) && (model != null)) {
          treeViewer.refresh(model, true);
-//         ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-//         if (selection.getFirstElement() == model) {
-//            PeripheralsInformationPanel panel = view.getInformationPanel();
-//            if (panel != null) {
-//               // TODO - Check if needed
-////               panel.updateContent();
-//            }
-//         }
+         //         ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
+         //         if (selection.getFirstElement() == model) {
+         //            PeripheralsInformationPanel panel = view.getInformationPanel();
+         //            if (panel != null) {
+         //               // TODO - Check if needed
+         ////               panel.updateContent();
+         //            }
+         //         }
       }
    }
 

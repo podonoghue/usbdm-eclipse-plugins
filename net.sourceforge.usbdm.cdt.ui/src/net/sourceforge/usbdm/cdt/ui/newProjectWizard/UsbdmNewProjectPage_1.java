@@ -91,7 +91,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
     validate();
  }
 
-   private Control createLocationControl(final Composite parent) {
+   private Control createProjectLocationControl(final Composite parent) {
       GridLayout layout;
 
       Group group = new Group(parent, SWT.NONE);
@@ -101,7 +101,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       group.setLayout(layout);
 
       //
-      // Custom linker file checkbox
+      // Custom project location checkbox
       //
       fUseDefaultLocationButton = new Button(group, SWT.CHECK);
       fUseDefaultLocationButton.setText(" Use default");
@@ -114,7 +114,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
          }
       });
       //
-      // Linker file browse
+      // Project location file browse
       //
       Composite composite = new Composite(group, SWT.NO_TRIM | SWT.NO_FOCUS);
       GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -137,7 +137,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       gd = new GridData(SWT.FILL, SWT.FILL, false, false);
       fProjectLocationBrowseButton.setLayoutData(gd);
       fProjectLocationBrowseButton.setText("Browse...");      
-      fProjectLocationBrowseButton.setToolTipText("Browse for linker script");
+      fProjectLocationBrowseButton.setToolTipText("Browse for project location");
       fProjectLocationBrowseButton.addSelectionListener(new SelectionListener() {
          @Override
          public void widgetSelected(SelectionEvent e) {
@@ -179,7 +179,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
          new ButtonValues(InterfaceType.T_CFVX, false, "Coldfire V2,3,4 Project  "),   new ButtonValues(InterfaceType.T_CFVX, true, null), 
    };
    
-   private Control createProjectChoiceControl(final Composite parent) {
+   private Control createProjectTypeControl(final Composite parent) {
 	      GridLayout layout;
 
 	      Group group = new Group(parent, SWT.NONE);
@@ -236,7 +236,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
 	   }
 	   
 
-   private Control createDebugChoiceControl(final Composite parent) {
+   private Control createDebugOptionsControl(final Composite parent) {
       GridLayout layout;
 
       Group group = new Group(parent, SWT.NONE);
@@ -271,7 +271,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       return group;
    }
    
-   private Control createFloatChoiceControl(final Composite parent) {
+   private Control createLibraryOptionsControl(final Composite parent) {
       GridLayout layout;
 
       Group group = new Group(parent, SWT.NONE);
@@ -323,7 +323,7 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       return group;
    }
    
-   private Control createProjectOutcome(final Composite parent) {
+   private Control createProjectOutputControl(final Composite parent) {
       GridLayout layout;
 
       Group group = new Group(parent, SWT.NONE);
@@ -382,23 +382,23 @@ public class UsbdmNewProjectPage_1 extends WizardPage {
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
-      control = createLocationControl(composite);
+      control = createProjectLocationControl(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
-      control = createProjectChoiceControl(composite);
+      control = createProjectTypeControl(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
-      control = createDebugChoiceControl(composite);
+      control = createDebugOptionsControl(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
 
-      control = createFloatChoiceControl(composite);
+      control = createLibraryOptionsControl(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
       
-      control = createProjectOutcome(composite);
+      control = createProjectOutputControl(composite);
       gd = new GridData(SWT.FILL, SWT.NONE, true, false);
       control.setLayoutData(gd);
       
