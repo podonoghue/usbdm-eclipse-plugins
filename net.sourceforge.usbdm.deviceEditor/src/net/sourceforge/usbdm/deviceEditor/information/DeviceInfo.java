@@ -317,7 +317,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception
     */
    private void parse(Path hardwarePath) throws Exception {
-      System.err.println("DeviceInfo.parse(" + hardwarePath.toAbsolutePath() + ")");
+      System.out.println("DeviceInfo.parse(" + hardwarePath.getFileName().toString() + ")");
       fHardwarePath = hardwarePath;
       String filename = fHardwarePath.getFileName().toString();
       if (filename.endsWith(HARDWARE_CSV_FILE_EXTENSION)) {
@@ -2184,6 +2184,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
        
       DevicePeripheralsFactory factory           = new DevicePeripheralsFactory();
       DevicePeripherals        devicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
+      System.out.println("Device sub family = "+fDeviceSubFamily);
       if (devicePeripherals == null) {
          throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ fDeviceSubFamily + "\'");
       }

@@ -582,7 +582,7 @@ public class ParseFamilyCSV {
 
 		// Information from device database
 		final DevicePeripherals fDevicePeripherals = fDeviceInfo.getDevicePeripherals();
-
+		System.out.println("SVD File = "+fDevicePeripherals.getSvdFilename());
 		// Create map to allow peripheral lookup
 		final Map<String, net.sourceforge.usbdm.peripheralDatabase.Peripheral> 
 		fPeripheralMap  = createPeripheralsMap(fDevicePeripherals);

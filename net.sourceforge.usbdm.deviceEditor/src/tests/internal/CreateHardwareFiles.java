@@ -18,12 +18,32 @@ public class CreateHardwareFiles {
       }
    };
 
+   /**
+    * Process each CSV input file XXX.csv to produce XXX.usbdmHardware file
+    * 
+    * @param filepath      File to process
+    * @param xmlDirectory  Directory for resulting file
+    * 
+    * @throws Exception
+    */
+   private static void processFile(Path filepath, Path xmlDirectory) throws Exception {
+      System.err.println(" ======================== Processing " + filepath.getFileName() + " ======================== ");
+      String sourceName      = filepath.getFileName().toString();
+      String destinationName = sourceName.replaceAll("(^.*)"+Pattern.quote(DeviceInfo.HARDWARE_CSV_FILE_EXTENSION)+"$", "$1"+DeviceInfo.HARDWARE_FILE_EXTENSION);
+      
+      DeviceInfo deviceInfo = DeviceInfo.create(filepath);
+      
+      Path xmlFilePath = xmlDirectory.resolve(destinationName);
+      FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);
+      writer.writeXmlFile(xmlFilePath);
+   }
+   
    public static void main(String[] args) throws Exception {
       
       Path directory = Paths.get("");
       
       // Locate data output directory  
-      Path xmlDirectory = directory.resolve("hardware");
+      Path xmlDirectory = directory.resolve("Hardware");
 
       // Create output directories if needed  
       if (!xmlDirectory.toFile().exists()) {
@@ -35,18 +55,7 @@ public class CreateHardwareFiles {
          if (!Files.isRegularFile(filePath)) {
             continue;
          }
-         /*
-          * Process each input file
-          */
-         System.err.println("Processing " + filePath.getFileName() + " ======================== ");
-         String sourceName      = filePath.getFileName().toString();
-         String destinationName = sourceName.replaceAll("(^.*)"+Pattern.quote(DeviceInfo.HARDWARE_CSV_FILE_EXTENSION)+"$", "$1"+DeviceInfo.HARDWARE_FILE_EXTENSION);
-         
-         DeviceInfo deviceInfo = DeviceInfo.create(filePath);
-         
-         Path xmlFilePath = xmlDirectory.resolve(destinationName);
-         FamilyXmlWriter writer = new FamilyXmlWriter(deviceInfo);
-         writer.writeXmlFile(xmlFilePath);
+         processFile(filePath, xmlDirectory);
       }
    }
 }
