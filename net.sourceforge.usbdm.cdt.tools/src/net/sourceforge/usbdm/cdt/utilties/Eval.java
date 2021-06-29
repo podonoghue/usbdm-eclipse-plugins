@@ -31,7 +31,7 @@ public class Eval {
       return value;
    }
    
-   int parseExpression() throws Exception {
+   int eval() throws Exception {
       skipSpace();
       int result = parseInt();
       skipSpace();
@@ -49,8 +49,15 @@ public class Eval {
       return result;
    }
    
+   /**
+    * Evaluate a simple expression
+    * 
+    * @param expression
+    * @return
+    * @throws Exception
+    */
    public static int eval(String expression) throws Exception {
       Eval evaluator = new Eval(expression);
-      return evaluator.parseExpression();
+      return evaluator.eval();
    }
 }
