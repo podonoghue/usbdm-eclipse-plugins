@@ -1420,6 +1420,10 @@ public class Peripheral extends ModeControl implements Cloneable {
       
       sortRegisters(registerList);
 
+      boolean  debugThisPeripheral = false; //getName().equals("ADC0"); 
+      if (debugThisPeripheral) {
+         System.err.println(String.format("    extractSimpleRegisterArrays(%s):1", getName()));
+      }
       for (int reg1 = 0; reg1<registerList.size(); reg1++) {
          Cluster mergeCluster = registerList.get(reg1);
          if (!(mergeCluster instanceof Register)) {
@@ -1437,10 +1441,9 @@ public class Peripheral extends ModeControl implements Cloneable {
          }
          String   mergeName = mergeReg.getName();
          
-         boolean  debug = false; 
-//         debug = mergeName.matches("CMD1");
-         if (debug) {
-            System.err.println(String.format("\n    extractSimpleRegisterArrays(), reg=\"%s\"", getName()+":"+mergeName));
+         boolean  debugThisRegister = debugThisPeripheral && mergeName.equals("CV1"); 
+         if (debugThisRegister) {
+            System.err.println(String.format("        extractSimpleRegisterArrays():2, reg=\"%s\"", getName()+":"+mergeName));
          }
          if (mergeName.contains("%s")) {
             throw new Exception("Merging register which is already merged " + getName()+"."+mergeReg.getName());
@@ -1485,10 +1488,10 @@ public class Peripheral extends ModeControl implements Cloneable {
             }
             String   victimName = victimReg.getName();
 
-            boolean debug2 = debug && victimName.matches("CMD2");
-            if (debug2) {
+            boolean  debugThisMatch = debugThisRegister && victimName.equals("CV2"); 
+            if (debugThisMatch) {
                System.err.println(
-                     String.format("    extractSimpleRegisterArrays(), comparing %-20s ?= %-20s",
+                     String.format("            extractSimpleRegisterArrays(), comparing %-20s ?= %-20s",
                            "\""+mergeName+"\"",
                            "\""+victimName+"\""));
             }
@@ -1567,9 +1570,6 @@ public class Peripheral extends ModeControl implements Cloneable {
          // Don't process derived peripherals
          return;
       }
-//      if (getName().startsWith("PDB")) {
-//         System.err.println("Checking PDB");
-//      }
       // Check if peripheral is excluded
       String excludedRegisterName = getExcludedSimpleRegisterArrayPeripherals(getName());
       Pattern excludedRegisterPattern = null;

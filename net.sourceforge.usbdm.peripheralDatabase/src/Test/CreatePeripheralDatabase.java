@@ -28,7 +28,7 @@ import net.sourceforge.usbdm.peripheralDatabase.PeripheralDatabaseMerger;
 import org.eclipse.core.runtime.IPath;
 
 public class CreatePeripheralDatabase {
-   private static final  Path PACKAGE_FOLDER    = Paths.get("C:/Users/podonoghue/Documents/Development/USBDM/usbdm-eclipse-makefiles-build/PackageFiles");
+   private static final  Path PACKAGE_FOLDER    = Paths.get("../../usbdm-eclipse-makefiles-build/PackageFiles");
    private static final  Path MAIN_FOLDER       = PACKAGE_FOLDER.resolve("Stationery/Device.SVD");
    //   @SuppressWarnings("unused")
    //   private static final  Path headerReducedMergedOptimisedManualFolder     = PACKAGE_FOLDER.resolve("Stationery/Project_Headers");
@@ -137,8 +137,8 @@ public class CreatePeripheralDatabase {
             if ((rejectPattern != null) && rejectPattern.matcher(fileName).matches()) {
                continue;
             }
-            if (fileName.endsWith(".svd.xml")) {
-               System.err.println("Merging SVD file : \""+filePath.toString()+"\"");
+            if (fileName.endsWith(".svd.xml") || (fileName.endsWith(".svd"))) {
+               System.err.println("Merging SVD file : "+filePath.getFileName());
 
                // Read device peripheral database
                DevicePeripherals devicePeripherals = new DevicePeripherals(filePath);
@@ -164,28 +164,31 @@ public class CreatePeripheralDatabase {
     */
    public static void mergeFiles(Path svdSourceFolderPath, Path svdOutputFolderPath, boolean removeFolder) throws IOException {
 
+      if (!Files.isDirectory(svdSourceFolderPath)) {
+         System.err.println("Source doesn't exist " + svdSourceFolderPath.toAbsolutePath()+"\"\n");
+         return;
+      }
+
+      System.err.println("Processing files from : \""+svdSourceFolderPath.getFileName()+"\"\n");
+      
       if (Files.exists(svdOutputFolderPath)) {
          if (!removeFolder) {
             System.err.println("Destination already exists " + svdOutputFolderPath.toString());
          }
          else {
-            System.err.println("Destination already exists -  deleting " + svdOutputFolderPath.toString());
+            System.err.println("Destination already exists -  deleting \'" + svdOutputFolderPath.getFileName() + "\'\n");
             removeDirectoryTree(svdOutputFolderPath);
          }
-      }
-      if (!Files.isDirectory(svdSourceFolderPath)) {
-         System.err.println("Source doesn't exist " + svdSourceFolderPath.toString());
-         return;
       }
       if (!Files.exists(svdOutputFolderPath)) {
          Files.createDirectory(svdOutputFolderPath);
       }
 
+      System.err.println("Writing SVD files to  : \""+svdOutputFolderPath.getFileName()+"\"");
+
       PeripheralDatabaseMerger merger = new PeripheralDatabaseMerger();
 
       merger.setXmlRootPath(svdOutputFolderPath.toFile());
-
-      System.err.println("Writing files to : \""+svdOutputFolderPath.toString()+"\"");
 
       DirectoryStream.Filter<Path> coldfireDirectoryFilter = new DirectoryStream.Filter<Path>() {
          @Override
@@ -238,16 +241,18 @@ public class CreatePeripheralDatabase {
 
       if (Files.exists(destinationFolderPath)) {
          if (!removeFolder) {
-            System.err.println("Destination already exists " + destinationFolderPath.toString());
+            System.err.println("Destination already exists \"" + destinationFolderPath.getFileName()+"\"\n");
          }
          else {
-            System.err.println("Destination already exists -  deleting " + destinationFolderPath.toString());
+            System.err.println("Destination already exists -  deleting \"" + destinationFolderPath.getFileName()+"\"\n");
             removeDirectoryTree(destinationFolderPath);
          }
       }
       if (!Files.exists(destinationFolderPath)) {
          Files.createDirectory(destinationFolderPath);
       }
+
+      System.err.println("\nWriting header files to  : \""+destinationFolderPath.getFileName()+"\"");
 
       DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
 
@@ -263,7 +268,6 @@ public class CreatePeripheralDatabase {
                continue;
             }
             if (fileName.endsWith(".svd.xml")) {
-               System.err.println("Processing File : \""+fileName+"\"");
                // Read device description
                DevicePeripherals devicePeripherals = new DevicePeripherals(svdSourceFile);
 
@@ -273,7 +277,9 @@ public class CreatePeripheralDatabase {
 
                // Create header file
                Path headerFilePath = destinationFolderPath.resolve(devicePeripherals.getName().toString()+".h");
-               System.err.println("Creating : \""+headerFilePath+"\"");
+               
+               System.err.print(String.format("Processing File : %-20s => %-20s\n", fileName, headerFilePath.getFileName()));
+               
                devicePeripherals.writeHeaderFile(headerFilePath);
             }
          }
@@ -364,9 +370,8 @@ public class CreatePeripheralDatabase {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
-         System.err.flush();
-         System.err.println("Destination already exists " + destinationFolderPath);
-         return;
+         System.err.println("Destination already exists -  deleting \"" + destinationFolderPath.getFileName()+"\"\n");
+         removeDirectoryTree(destinationFolderPath);
       }
 
       ArrayList<DevicePeripherals> deviceList = new ArrayList<DevicePeripherals>();
@@ -381,8 +386,6 @@ public class CreatePeripheralDatabase {
       ModeControl.setExpandDerivedPeripherals(true);
       ModeControl.setExpandDerivedRegisters(false);
       int maxDevices = 500;
-
-      Files.createDirectory(destinationFolderPath);
 
       DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
 
@@ -463,8 +466,8 @@ public class CreatePeripheralDatabase {
             writer.close();
          }
       }
-      Files.copy(MAIN_FOLDER.getParent().resolve(CMSIS_SCHEMA_FILENAME),       destinationFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(MAIN_FOLDER.getParent().resolve(DEVICE_LIST_SCHEMA_FILENAME), destinationFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(MAIN_FOLDER.resolve(CMSIS_SCHEMA_FILENAME),       destinationFolderPath.resolve(CMSIS_SCHEMA_FILENAME),       StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(MAIN_FOLDER.resolve(DEVICE_LIST_SCHEMA_FILENAME), destinationFolderPath.resolve(DEVICE_LIST_SCHEMA_FILENAME), StandardCopyOption.REPLACE_EXISTING);
    }
 
    /**
@@ -581,9 +584,8 @@ public class CreatePeripheralDatabase {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
 
       if (Files.exists(destinationFolderPath)) {
-         System.err.flush();
-         System.err.println("Destination already exists " + destinationFolderPath);
-         return;
+         System.err.println("Destination already exists -  deleting \"" + destinationFolderPath.getFileName()+"\"\n");
+         removeDirectoryTree(destinationFolderPath);
       }
       // Set optimisations
       ModeControl.setExtractComplexStructures(optimise);
@@ -639,7 +641,7 @@ public class CreatePeripheralDatabase {
    static void doUsualRegeneration() {
       final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
       final  Path usbdmFolder_Check         = MAIN_FOLDER.resolve("Internal.Check");
-      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("InternalHeader.Check");
 
       try {
          // Generate merged version of SVD files for testing (should be unchanging)
@@ -679,17 +681,18 @@ public class CreatePeripheralDatabase {
    }
 
    /**
-    * Generates new SVD and header file for the usual minor changes.
+    * Generates new SVD and header file from original unmerged SVD files
     * This includes merging peripherals 
     * 
-    * Source "Internal"
-    * Destinations "Internal.Check", "Internal_header.Check"
+    * Source "Raw"
+    * Destinations "Raw.Check", "Raw_header.Check"
     */
    static void doInitialRegeneration() {
-      final  Path usbdmFolder               = MAIN_FOLDER.resolve("Internal");
-      final  Path usbdmFolder_Temp          = MAIN_FOLDER.resolve("Internal.Temp");
-      final  Path usbdmFolder_Check         = MAIN_FOLDER.resolve("Internal.Check");
-      final  Path usbdmHeaderFolder_Check   = MAIN_FOLDER.resolve("Internal_header.Check");
+      final  Path sourceFolder                 = MAIN_FOLDER.resolve("Raw");
+      final  Path usbdmFolder_1st_Stage        = MAIN_FOLDER.resolve("Raw.1st_Stage_Commoned");
+      final  Path usbdmFolder_2nd_Stage        = MAIN_FOLDER.resolve("Raw.2nd_Stage_Folded");
+      final  Path usbdmHeaderFolder_2nd_Stage  = MAIN_FOLDER.resolve("Raw_header.2nd_Stage");
+      final  Path usbdmFolder_3rd_Stage        = MAIN_FOLDER.resolve("Raw.3rd_Stage_Flattened");
 
       try {
          // Generate merged version of SVD files for testing (should be unchanging)
@@ -698,10 +701,11 @@ public class CreatePeripheralDatabase {
          ModeControl.setExtractComplexStructures(false);
          ModeControl.setExtractDerivedPeripherals(true);
          ModeControl.setExtractSimpleRegisterArrays(false);
-         ModeControl.setMapFreescalePeriperalCommonNames(false);
+         ModeControl.setMapFreescalePeriperalCommonNames(true);
          ModeControl.setFoldRegisters(false);
          ModeControl.setFlattenArrays(true);
-         mergeFiles(usbdmFolder,     usbdmFolder_Temp, true);
+         ModeControl.setCollectVectors(true);
+         mergeFiles(sourceFolder,     usbdmFolder_1st_Stage, true);
          
          ModeControl.setExtractSimilarFields(true);
          ModeControl.setExtractComplexStructures(true);
@@ -710,9 +714,9 @@ public class CreatePeripheralDatabase {
          ModeControl.setMapFreescalePeriperalCommonNames(true);
          ModeControl.setFoldRegisters(true);
          ModeControl.setFlattenArrays(false);
-         mergeFiles(usbdmFolder_Temp,     usbdmFolder_Check, true);
+         mergeFiles(usbdmFolder_1st_Stage,     usbdmFolder_2nd_Stage, true);
          
-         // Turn of optimisation when generating header files
+         // Turn off optimisation when generating header files
          ModeControl.setRegenerateAddressBlocks(false);
          ModeControl.setExtractSimilarFields(false);
          ModeControl.setExtractComplexStructures(false);
@@ -726,8 +730,10 @@ public class CreatePeripheralDatabase {
          ModeControl.setFreescaleFieldNames(true);
          ModeControl.setUseShiftsInFieldMacros(false);
          ModeControl.setUseBytePadding(true);
-         createHeaderFiles(usbdmFolder_Check, usbdmHeaderFolder_Check, true);
+         createHeaderFiles(usbdmFolder_2nd_Stage, usbdmHeaderFolder_2nd_Stage, true);
 
+         createReducedDeviceList(usbdmFolder_2nd_Stage,     usbdmFolder_3rd_Stage);
+         
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -848,9 +854,10 @@ public class CreatePeripheralDatabase {
 
    /**
     * @param args
+    * @throws IOException 
     */
-   public static void main(String[] args) {
-
+   public static void main(String[] args) throws IOException {
+      
 //    firstFileToProcess = ("^SKE.*");
 //    firstFileToReject  = ("^MKEA.*");
       
@@ -915,10 +922,18 @@ public class CreatePeripheralDatabase {
 //      firstFileToProcess  = ("^MKW.*");
 //      firstFileToReject   = ("^S32K.*");
 
-      firstFileToProcess = ("^MKE02.*");
-      firstFileToReject  = ("^MKE06.*");
+//      firstFileToProcess = ("^MKE02.*");
+//      firstFileToReject  = ("^MKE06.*");
+
+      System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 
 //      doInitialRegeneration();
       doUsualRegeneration();
+//      try {
+//         createReducedDeviceList(MAIN_FOLDER.resolve("Raw"), MAIN_FOLDER.resolve("Raw.expanded"));
+//      } catch (Exception e) {
+//         // TODO Auto-generated catch block
+//         e.printStackTrace();
+//      }
    }
 }

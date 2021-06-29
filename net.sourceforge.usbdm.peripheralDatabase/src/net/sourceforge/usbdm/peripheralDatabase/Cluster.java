@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sourceforge.usbdm.cdt.utilties.Eval;
 import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 
@@ -29,6 +28,9 @@ public class Cluster extends ModeControl implements Cloneable {
    /** Address increment of iterated registers */
    private  int                  fDimensionIncrement;
    
+   
+   private String                fDim = null;
+
    /** Modifier for iterated register names (%s) */
    private  ArrayList<String>    fDimensionIndexes;
    
@@ -43,7 +45,6 @@ public class Cluster extends ModeControl implements Cloneable {
    
    /** Indicates Field Macros should be written even for derived registers */
    private boolean               fDoDerivedMacros = false;
-   private String                fDim = null;
 
    /** Used to isolate the memory block associated with this register */
    private boolean               fIsolated;
@@ -329,6 +330,64 @@ public class Cluster extends ModeControl implements Cloneable {
    }
 
    /**
+    * Set dimension indices 
+    * The dimensionIndexes will be split on commas
+    * 
+    * @param dimensionIndexes Array of indices or null to remove
+    */
+   public void setDimensionIndexes(ArrayList<String> dimensionIndexes) {
+      this.fDimensionIndexes = dimensionIndexes;
+   }
+
+   /**
+    * Set dimension indices 
+    * The dimensionIndexes will be split on commas
+    * 
+    * @param dimensionIndexes  String of indices or null to remove
+    */
+   public void setDimensionIndexes(String dimensionIndexes) {
+      if ((dimensionIndexes == null)||(dimensionIndexes.isEmpty())) {
+         this.fDimensionIndexes = null;
+         return;
+      }
+      String[] x = dimensionIndexes.split(",", 0);
+      this.fDimensionIndexes = new ArrayList<String>(x.length);
+      for (int index = 0; index < x.length; index++) {
+         String part = x[index];
+         Pattern p = Pattern.compile("^\\s*\\[?\\s*(\\d+)\\s*\\-\\s*(\\d+)\\s*\\]?\\s*$");
+         Matcher m = p.matcher(part);
+         if (m.matches()) {
+            int start = Integer.parseInt(m.group(1));
+            int end   = Integer.parseInt(m.group(2));
+            for (int sub=start; sub<=end; sub++) {
+               this.fDimensionIndexes.add(String.valueOf(sub));
+            }
+         }
+         else {
+            this.fDimensionIndexes.add(part.trim());
+         }
+      }
+   }
+
+   /**
+    * Get dimension indices
+    * 
+    * @return ArrayList of indices
+    */
+   public ArrayList<String> getDimensionIndexes() {
+      return fDimensionIndexes;
+   }
+
+   /**
+    * Get dimension indices
+    * 
+    * @return String representing the indices
+    */
+   public String getDimensionIndexesAsString() {
+      return appendStrings(fDimensionIndexes);
+   }
+   
+   /**
     * Get dimension as integer
     * 
     * @return dimension or zero if not an array
@@ -353,24 +412,6 @@ public class Cluster extends ModeControl implements Cloneable {
     */
    public String getDimAsExpressionForC() {
       return ReplacementParser.substituteWithSymbols(fDim, fOwner.getHeaderStructName());
-   }
-
-
-   /**
-    * Get dimension as integer
-    * 
-    * @return dimension as string e.g. "3" or "%VALUE" or null if not set (not an array)
-    * @throws Exception 
-    */
-   public int getDimAsInt() throws Exception {
-      String dim = fDim;
-      if (dim == null) {
-         return 0;
-      }
-      if (dim.contains("$")) {
-         dim = ReplacementParser.substitute(dim, fOwner.getSimpleParameterMap());
-      }
-      return Eval.eval(ReplacementParser.substitute(dim, fOwner.getSimpleParameterMap()));
    }
 
    /**
@@ -458,42 +499,6 @@ public class Cluster extends ModeControl implements Cloneable {
       return b.toString();
    }
 
-   public void setDimensionIndexes(ArrayList<String> dimensionIndexes) {
-      this.fDimensionIndexes = dimensionIndexes;
-   }
-
-   public void setDimensionIndexes(String dimensionIndexes) {
-      if ((dimensionIndexes == null)||(dimensionIndexes.isEmpty())) {
-         this.fDimensionIndexes = null;
-         return;
-      }
-      String[] x = dimensionIndexes.split(",", 0);
-      this.fDimensionIndexes = new ArrayList<String>(x.length);
-      for (int index = 0; index < x.length; index++) {
-         String part = x[index];
-         Pattern p = Pattern.compile("^\\s*\\[?\\s*(\\d+)\\s*\\-\\s*(\\d+)\\s*\\]?\\s*$");
-         Matcher m = p.matcher(part);
-         if (m.matches()) {
-            int start = Integer.parseInt(m.group(1));
-            int end   = Integer.parseInt(m.group(2));
-            for (int sub=start; sub<=end; sub++) {
-               this.fDimensionIndexes.add(String.valueOf(sub));
-            }
-         }
-         else {
-            this.fDimensionIndexes.add(part.trim());
-         }
-      }
-   }
-
-   public ArrayList<String> getDimensionIndexes() {
-      return fDimensionIndexes;
-   }
-
-   public String getDimensionIndexesAsString() {
-      return appendStrings(fDimensionIndexes);
-   }
-   
    /**
     * Returns minimum width of the register/cluster elements
     * 

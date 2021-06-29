@@ -424,7 +424,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setResetValue(peripheral.getResetValue());
          register.setResetMask(peripheral.getResetMask());
       }
-      String dimension = null;
+      String dimensionFromTag = null;
       for (Node node = registerElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -477,7 +477,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == DIM_TAG) {
             // Save for check or auto generate indices
-            dimension = element.getTextContent().trim();
+            dimensionFromTag = element.getTextContent().trim();
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             register.setDimensionIncrement((int) getIntElement(element));
@@ -523,12 +523,12 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setAccessType(peripheral.getAccessType());
       }
       int dim = -1;
-      if (dimension == null) {
+      if (dimensionFromTag == null) {
          // No dimension set (may inherit)
       }
       else {
-         register.setDim(dimension);
-         dim = Eval.eval(ReplacementParser.substitute(dimension, peripheral.getSimpleParameterMap()));
+         register.setDim(dimensionFromTag);
+         dim = Eval.eval(ReplacementParser.substitute(dimensionFromTag, peripheral.getSimpleParameterMap()));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information
@@ -536,8 +536,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          register.setDimensionIncrement(0);
       }
       if ((register.getDimension() == 0) && (dim > 0)) {
-         if (!dimension.contains("$")) {
-            System.err.println("Warning setting auto dimension to r=" + register.getName() + ", d="+dimension);
+         if (!dimensionFromTag.contains("$")) {
+            System.err.println("Warning setting auto dimension to r=" + register.getName() + ", d="+dimensionFromTag);
          }
          register.setAutoDimension(dim);
       }
@@ -595,7 +595,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       cluster.setResetValue(peripheral.getResetValue());
       cluster.setResetMask(peripheral.getResetMask());
 
-      String dimension = null;
+      String dimensionFromTag = null;
       for (Node node = clusterElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {
@@ -625,7 +625,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          Element element = (Element) node;
          if (element.getTagName() == DIM_TAG) {
             // Save for check or auto generate indices
-            dimension = element.getTextContent().trim();
+            dimensionFromTag = element.getTextContent().trim();
          }
          else if (element.getTagName() == DIMINCREMENT_TAG) {
             cluster.setDimensionIncrement((int) getIntElement(element));
@@ -654,12 +654,12 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
       }
       int dim = -1;
-      if (dimension == null) {
+      if (dimensionFromTag == null) {
          // No dimension set (may inherit)
       }
       else {
-         cluster.setDim(dimension);
-         dim = Eval.eval(ReplacementParser.substitute(dimension, peripheral.getSimpleParameterMap()));
+         cluster.setDim(dimensionFromTag);
+         dim = Eval.eval(ReplacementParser.substitute(dimensionFromTag, peripheral.getSimpleParameterMap()));
       }
       if (dim==0) {
          // Dimension explicitly set to zero - delete dimension information
@@ -667,8 +667,8 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          cluster.setDimensionIncrement(0);
       }
       if ((cluster.getDimension() == 0) && (dim > 0)) {
-         if (!dimension.contains("$")) {
-            System.err.println("Warning setting auto dimension to r=" + cluster.getName() + ", d="+dimension);
+         if (!dimensionFromTag.contains("$")) {
+            System.err.println("Warning setting auto dimension to r=" + cluster.getName() + ", d="+dimensionFromTag);
          }
          cluster.setAutoDimension(dim);
       }
@@ -803,6 +803,14 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       if (peripheral == null) {
          peripheral = devicePeripherals.findPeripheral(name+"0");
+      }
+      if (peripheral == null) {
+         Pattern p = Pattern.compile("(PT)([a-z|A-Z])");
+         Matcher m = p.matcher(name);
+         if (m.matches()) {
+            name = m.replaceFirst("GPIO$2");
+         }
+         peripheral = devicePeripherals.findPeripheral(name);
       }
       if (peripheral == null) {
          if (name.startsWith("Tamper")) {

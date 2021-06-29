@@ -35,6 +35,7 @@ import net.sourceforge.usbdm.peripheralDatabase.Field.AccessType;
 public class DevicePeripherals extends ModeControl {
 
    private String                       name;
+   private String                       svdFilename;
    private String                       version;
    private String                       description;
    private long                         addressUnitBits;
@@ -79,6 +80,7 @@ public class DevicePeripherals extends ModeControl {
 
       try {
          SVD_XML_Parser.parseDocument(path, this);
+         svdFilename = path.getFileName().toString();
       } catch (Exception e) {
          throw new UsbdmException("Failed to parse SVD file "+path, e);
       }
@@ -965,6 +967,10 @@ public class DevicePeripherals extends ModeControl {
     */
    public void setUseHeaderDefinitionsPrefix(boolean useHeaderDefinitionsPrefix) {
       this.useHeaderDefinitionsPrefix = useHeaderDefinitionsPrefix;
+   }
+
+   public String getSvdFilename() {
+      return svdFilename;
    }
 
    //   /**
