@@ -29,6 +29,8 @@ Device,MK20DN128VFT5,K20P48M50SF0RM,QFN_32,,,,,,,,,,,,,,,,,,
 Device,MK20DX128VFT5,K20P48M50SF0RM,QFN_32,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,
 Key,Pin,Pkg FRDM_K20D50M,Pkg LQFP_64,Pkg BGA_64,Pkg LQFP_48,Pkg QFN_32,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort,Seq,64MAPBGA,64LQFP,32QFN
+Pin,TempSensor,Internal,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,,,-2,Internal,Internal,Internal
+Pin,BandGap,Internal,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,,,-1,Internal,Internal,Internal
 Pin,PTE0,D1,p1,A1,*,*,DISABLED,,,GPIOE_0,,UART1_TX,,,,RTC_CLKOUT,,1,A1,1,-
 Pin,PTE1,D0,p2,B1,*,*,DISABLED,,,GPIOE_1/LLWU_P0,,UART1_RX,,,,,,2,B1,2,-
 Pin,VDD1,VDD1,p3,C5,p1,p1,VDD1,,,,,,,,,,,3,C5,3,1

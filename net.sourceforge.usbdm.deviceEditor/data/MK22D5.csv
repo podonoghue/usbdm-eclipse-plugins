@@ -8,6 +8,8 @@ Device,MK22DX256VLF5,K22P48M50SF4RM,LQFP_48,,,,,,,,,,
 ,,,,,,,,,,,,,
 ,,,,,,,,,,,,,
 Key,Pin,Pkg LQFP_48,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort
+Pin,TempSensor,Internal,ADC0_SE26,,,,,,,,,,
+Pin,BandGap,Internal,ADC0_SE27,,,,,,,,,,
 Pin,VDD1,p1,VDD1,,,,,,,,,,
 Pin,VSS1,p2,VSS1,,,,,,,,,,
 Pin,USB0_DP,p3,USB0_DP,,,,,,,,,,

@@ -6,6 +6,8 @@ Device,FRDM_K28F,K28P210M150SF5RM,FRDM_K28F,,,,,,,,,,,
 Device,MK28FN2M0CAU15R,K28P210M150SF5RM,WLCSP_210,,,,,,,,,,,
 ,,,,,,,,,,,,,,
 Key,Pin,Pkg FRDM_K28F,Pkg BGA_169,Pkg WLCSP_210,Reset,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,Order
+Pin,TempSensor,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,
+Pin,BandGap,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,
 Pin,ADC0_DM0,,L2,N13,ADC0_DM0,,,,,,,,,39
 Pin,ADC0_DM1,ADC0_DM1,L1,*,ADC0_DM1,,,,,,,,,49
 Pin,ADC0_DM3,,N2,P13,ADC0_DM3,,,,,,,,,41
