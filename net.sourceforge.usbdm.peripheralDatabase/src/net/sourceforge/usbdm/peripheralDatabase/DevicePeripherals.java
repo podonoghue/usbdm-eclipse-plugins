@@ -22,6 +22,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
@@ -808,13 +810,29 @@ public class DevicePeripherals extends ModeControl {
       sortPeripheralsByName();
       writer.print(String.format(HEADER_FILE_ANONYMOUS_UNION_PREAMBLE));
       writeGroupPreamble(writer, periphGroupSuffix, "Device Peripheral Access Layer", "C structs allowing access to peripheral registers");
+      
+      // Collect DMA slot numbers into single enum
+      StringBuilder muxSlotEnums = new StringBuilder();
+      
+      for (Peripheral peripheral : peripherals) {
+         if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
+            continue;
+         }
+         peripheral.setOwner(this);
+         peripheral.accumulateHeaderFileDmaInformation(muxSlotEnums);
+      }
+      Peripheral.completeHeaderFileDmaInformation(muxSlotEnums);
+      if (muxSlotEnums.length() == 0) {
+         // No Mux enums done
+         muxSlotEnums = null;
+      }
+      final Pattern dmamuxPeripheralPattern = Pattern.compile("DMAMUX(\\d+)");
       if (useFreescaleFieldNames()) {
          // Structs for each peripheral
          for (Peripheral peripheral : peripherals) {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
-            peripheral.setOwner(this);
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
 
             // typedef defining registers for each peripheral
@@ -832,9 +850,12 @@ public class DevicePeripherals extends ModeControl {
             writer.print(String.format(FREESCALE_PERIPHERAL_DECLARATION_FORMAT, peripheral.getName(), peripheral.getSafeHeaderStructName(), peripheral.getName()+PTR_BASE));
             writer.print(String.format(FREESCALE_BASE_ADDRESS_FORMAT, peripheral.getName()+FREESCALE_PTR_BASE, "("+peripheral.getName()+")"));
             
-            // #define list of Interrupt numbers
             peripheral.writeHeaderFileInterruptList(writer);
-            peripheral.writeHeaderFileDmaInformation(writer);
+            
+            if ((muxSlotEnums != null) && (dmamuxPeripheralPattern.matcher(peripheral.getName()).matches())) {
+               writer.write(muxSlotEnums.toString());
+               muxSlotEnums = null;
+            }
 
             if (isGenerateFreescaleRegisterMacros()) {
                // #define macros for each peripheral register 
@@ -851,7 +872,6 @@ public class DevicePeripherals extends ModeControl {
             if (isPeripheralExcludedFromHeaderFile(peripheral.getName())) {
                continue;
             }
-            peripheral.setOwner(this);
             writeGroupPreamble(writer, peripheral.getGroupName()+"_"+periphGroupSuffix, peripheral.getGroupName()+" Peripheral Access Layer", "C Struct for "+peripheral.getGroupName());
             // typedef defining registers for each peripheral
             peripheral.writeHeaderFileTypedef(writer);
@@ -861,7 +881,11 @@ public class DevicePeripherals extends ModeControl {
             
             // #define list of Interrupt numbers
             peripheral.writeHeaderFileInterruptList(writer);
-            peripheral.writeHeaderFileDmaInformation(writer);
+
+            if ((muxSlotEnums != null) && (dmamuxPeripheralPattern.matcher(peripheral.getName()).matches())) {
+               writer.write(muxSlotEnums.toString());
+               muxSlotEnums = null;
+            }
 
             // Arbitrary information
             peripheral.writeHeaderFileTemplates(writer);

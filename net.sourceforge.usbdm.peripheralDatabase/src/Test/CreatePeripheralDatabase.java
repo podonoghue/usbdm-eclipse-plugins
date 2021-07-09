@@ -13,6 +13,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -116,16 +117,63 @@ public class CreatePeripheralDatabase {
          return !include;
       }
    }
+   
+   static Path[] sortedFileList(Path folderPath, final DirectoryStream.Filter<Path> filter) throws IOException {
+      
+      DirectoryStream<Path> folderStream = null;
+      if (filter == null) {
+         folderStream = Files.newDirectoryStream(folderPath.toAbsolutePath());
+      }
+      else {
+         folderStream = Files.newDirectoryStream(folderPath.toAbsolutePath(), filter);
+      }
+      
+      ArrayList<Path> unsortedPaths =  new ArrayList<Path>();
+      for (Path filePath : folderStream) {
+         unsortedPaths.add(filePath);
+      }
+      Path[] sortedPaths = new Path[unsortedPaths.size()];
+      sortedPaths = unsortedPaths.toArray(sortedPaths);
+      
+      Arrays.sort(sortedPaths, new Comparator<Path>() {
+
+         @Override
+         public int compare(Path arg0, Path arg1) {
+            String f0 = arg0.getFileName().toString();
+            String f1 = arg1.getFileName().toString();
+            Pattern deviceNamePattern = Pattern.compile("([a-z|A-Z]*)(.*)");
+            Matcher m0 = deviceNamePattern.matcher(f0);
+            Matcher m1 = deviceNamePattern.matcher(f1);
+            int res = 0;
+//          System.err.println("m0.g1="+m0.group(1)+", m1.g1=" + m1.group(1));
+            if (!m0.matches() || !m1.matches()) {
+               System.err.println("no match for" + f0 + "," +  f1);
+               res = f0.compareTo(f1);
+            }
+            else {
+               res = m0.group(1).compareTo(m1.group(1));
+               if (res == 0) {
+                  res = m0.group(2).compareTo(m1.group(2));
+               }
+            }
+            return res;
+         }
+         
+      });
+      return sortedPaths;
+   }
+   
    static void mergeFiles(Path svdSourceFolderPath, final DirectoryStream.Filter<Path> directoryFilter, PeripheralDatabaseMerger merger) throws Exception {
       FileFilter fileFilter = new FileFilter(firstFileToProcess, firstFileToReject);
       Pattern rejectPattern = null;
       if (filesToReject != null) {
          rejectPattern = Pattern.compile(filesToReject);
       }
-
       int deviceCount = 500;
-      DirectoryStream<Path> svdSourceFolderStream = Files.newDirectoryStream(svdSourceFolderPath.toAbsolutePath(), directoryFilter);
-      for (Path filePath : svdSourceFolderStream) {
+      
+      Path[] files = sortedFileList(svdSourceFolderPath, directoryFilter);
+      
+      for (Path filePath : files) {
          if (deviceCount-- == 0) {
             break;
          }
@@ -254,14 +302,9 @@ public class CreatePeripheralDatabase {
 
       System.err.println("\nWriting header files to  : \""+destinationFolderPath.getFileName()+"\"");
 
-      DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
-
-      int deviceCount = 5000;
-
-      for (Path svdSourceFile : sourceFolderStream) {
-         if (deviceCount-- == 0) {
-            break;
-         }
+      Path[] files = sortedFileList(sourceFolderPath, null);
+      
+      for (Path svdSourceFile : files) {
          if (Files.isRegularFile(svdSourceFile)) {
             String fileName = svdSourceFile.getFileName().toString();
             if (fileFilter.skipFile(fileName)) {
@@ -387,10 +430,9 @@ public class CreatePeripheralDatabase {
       ModeControl.setExpandDerivedRegisters(false);
       int maxDevices = 500;
 
-      DirectoryStream<Path> sourceFolderStream = Files.newDirectoryStream(sourceFolderPath);
+      Path[] files = sortedFileList(sourceFolderPath, null);
 
-      //
-      for (Path svdSourceFile : sourceFolderStream) {
+      for (Path svdSourceFile : files) {
          // Create database of all devices
          if (Files.isRegularFile(svdSourceFile)) {
             String fileName = svdSourceFile.getFileName().toString();
@@ -858,72 +900,8 @@ public class CreatePeripheralDatabase {
     */
    public static void main(String[] args) throws IOException {
       
-//    firstFileToProcess = ("^SKE.*");
-//    firstFileToReject  = ("^MKEA.*");
-      
-//    firstFileToProcess = ("^MCF.*");
-//    filesToReject = ("^MK.*");
-      
-      
-//    firstFileToProcess = ("^S32K144.*");
-//    firstFileToReject  = ("^S32K146.*");
-
-//      firstFileToProcess = ("^LPC.*");
-//      filesToReject = ("^MK.*");
-//      firstFileToProcess = ("^MKE16F.*");
-//      firstFileToProcess  = ("^MKL46Z4.*");
-//      firstFileToProcess  = ("^MKV.*");
-//      firstFileToProcess = ("^LPC.*");
-//      firstFileToReject  = ("^M.*");
-
-//      firstFileToProcess = ("^MKE14.*");
-//      firstFileToReject  = ("^MKE16.*");
-
-//      firstFileToProcess = ("^MKW41.*");
-//      firstFileToReject  = ("^SKEA.*");
-
-//      firstFileToProcess = ("^MK12D5.*");
-//      firstFileToReject  = ("^MK20D7.*");
-
-//      firstFileToProcess = ("^MK28F15.*");
-//      firstFileToReject  = ("^MK30D10.*");
-
-//      firstFileToProcess = ("^MK22FA12.*");
-
-//      firstFileToProcess  = ("^MKL82Z7.*");
-
-//      firstFileToProcess = ("^MK20D5.*");
-//      firstFileToReject  = ("^MK20D7.*");
-
-//    firstFileToProcess = ("^MK66F18.*");
-//    firstFileToReject  = ("^MK70F15.*");
-
-//      firstFileToProcess = ("^MKL43.*");
-//      firstFileToReject  = ("^MKL46Z4.*");
-
-//    firstFileToProcess = ("^MKL27.*");
-//    firstFileToReject  = ("^MKL27Z644.*");
-
-//    firstFileToProcess = ("^MKL33Z.*");
-//    firstFileToReject  = ("^MKL34Z.*");
-
-//    firstFileToProcess = ("^MKM.*");
-//    firstFileToReject  = ("^MKV.*");
-
-//      firstFileToProcess = ("^S32K.*");
-//      firstFileToReject  = ("^SKE.*");
-
-//    firstFileToProcess  = ("^MKV.*");
-//    firstFileToReject   = ("^MKW.*");
-
-//    firstFileToProcess  = ("^MK10D10.*");
-//    firstFileToReject   = ("^MK10D5.*");
-
-//      firstFileToProcess  = ("^MKW.*");
-//      firstFileToReject   = ("^S32K.*");
-
-//      firstFileToProcess = ("^MKE02.*");
-//      firstFileToReject  = ("^MKE06.*");
+//    firstFileToProcess = ("^MK20.*");
+//    firstFileToReject  = ("^MK20.*");
 
       System.err.println("Main Folder : \""+MAIN_FOLDER.toRealPath()+"\"\n");
 
@@ -932,7 +910,6 @@ public class CreatePeripheralDatabase {
 //      try {
 //         createReducedDeviceList(MAIN_FOLDER.resolve("Raw"), MAIN_FOLDER.resolve("Raw.expanded"));
 //      } catch (Exception e) {
-//         // TODO Auto-generated catch block
 //         e.printStackTrace();
 //      }
    }

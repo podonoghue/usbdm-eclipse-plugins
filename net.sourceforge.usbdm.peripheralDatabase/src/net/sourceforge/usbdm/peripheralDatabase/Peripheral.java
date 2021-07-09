@@ -1907,23 +1907,36 @@ public class Peripheral extends ModeControl implements Cloneable {
       }
       return entries.toArray(new String[entries.size()]);
    }
+   
+   /**
+    * Write closing enum if required.
+    * 
+    * @param sb
+    * @throws UsbdmException 
+    */
+   static void completeHeaderFileDmaInformation(StringBuilder sb) throws UsbdmException  {
+      if (sb.length() > 0) {
+         sb.append(String.format(DMA_ENUM_CLOSING));
+      }
+   }
    /**
     * Write header file miscellaneous information
     * 
     * @param writer
     * @throws UsbdmException 
     */
-   void writeHeaderFileDmaInformation(PrintWriter writer) throws UsbdmException  {
+   void accumulateHeaderFileDmaInformation(StringBuilder sb) throws UsbdmException  {
       // Only applies to DMAMUX devices
       final Pattern peripheralPattern = Pattern.compile("DMAMUX(\\d+)");
       final Matcher peripheralMatcher = peripheralPattern.matcher(getName());
       if (!peripheralMatcher.matches()) {
          return;
       }
-      boolean doneBraces = false;
+      boolean doneBraces = sb.length() > 0;
 //      System.err.println("writeHeaderFileDmaInformation() - creating enum for "+ this);
       HashSet<String> usedEnums = null;
       String instance = peripheralMatcher.group(1);
+      String enumBasename = "Dma"+instance+"Slot";
       for (Cluster cluster:getRegisters()) {
          if (cluster instanceof Register) {
             Register register = (Register)cluster;
@@ -1951,30 +1964,28 @@ public class Peripheral extends ModeControl implements Cloneable {
                         if (e.getName().startsWith("Reserved")) {
                            continue;
                         }
-                        String identifier = "Dma"+instance+"Slot"+modifier+"_"+e.getName();
+                        String identifier = enumBasename+modifier+"_"+e.getName();
                         if (!Utiltity.isCIdentifier(identifier)) {
                            throw new UsbdmException("Invalid name for C identifier in DMAMUX names \'"+identifier+"\'");
                         }
                         if (!doneBraces) {
-                           usedEnums = new HashSet<String>();
-                           writer.print(String.format(DMA_ENUM_OPENING, description));
+                           sb.append(String.format(DMA_ENUM_OPENING, description));
                            doneBraces = true;
+                        }
+                        if (usedEnums == null) {
+                           usedEnums = new HashSet<String>();
                         }
                         if (usedEnums.contains(identifier)) {
                            continue;
 //                           throw new UsbdmException("Repeated enum value for DMA slot" + identifier);
                         }
                         usedEnums.add(identifier);
-                        writer.print(String.format(DMA_FORMAT, identifier, offset+e.getValue(), e.getDescription()+description));
+                        sb.append(String.format(DMA_FORMAT, identifier, offset+e.getValue(), e.getDescription()+description));
                      }
                   }
                }
             }
          }
-      }
-      if (doneBraces) {
-         writer.print(String.format(DMA_ENUM_CLOSING));
-         doneBraces = false;
       }
    }
    
