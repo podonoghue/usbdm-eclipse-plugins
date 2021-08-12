@@ -16,10 +16,10 @@ Pin,USB0_DP,p5,USB0_DP,USB0_DP,,,,,,,,,,,12,F1,5
 Pin,USB0_DM,p6,USB0_DM,USB0_DM,,,,,,,,,,,13,F2,6
 Pin,VOUT33,p7,VOUT33,VOUT33,,,,,,,,,,,14,G1,7
 Pin,VREGIN,p8,VREGIN,VREGIN,,,,,,,,,,,15,G2,8
-Pin,ADC0_DP0/ADC1_DP3,p9,A10,ADC0_DP0/ADC1_DP3,,,,,,,,,,,20,K1,9
-Pin,ADC0_DM0/ADC1_DM3,p10,A11,ADC0_DM0/ADC1_DM3,,,,,,,,,,,21,K2,10
-Pin,ADC1_DP0/ADC0_DP3,p11,A8,ADC1_DP0/ADC0_DP3,,,,,,,,,,,22,L1,11
-Pin,ADC1_DM0/ADC0_DM3,p12,A9,ADC1_DM0/ADC0_DM3,,,,,,,,,,,23,L2,12
+Pin,ADC0_DP0/ADC1_DP3,p9,A10,ADC0_DP0/ADC1_DP3/ADC0_SE0/ADC1_SE3,,,,,,,,,,,20,K1,9
+Pin,ADC0_DM0/ADC1_DM3,p10,A11,ADC0_DM0/ADC1_DM3/ADC0_SE19//ADC1_SE21,,,,,,,,,,,21,K2,10
+Pin,ADC1_DP0/ADC0_DP3,p11,A8,ADC1_DP0/ADC0_DP3/ADC1_SE0/ADC0_SE3,,,,,,,,,,,22,L1,11
+Pin,ADC1_DM0/ADC0_DM3,p12,A9,ADC1_DM0/ADC0_DM3/ADC1_SE19/ADC0_SE21,,,,,,,,,,,23,L2,12
 Pin,VDDA,p13,VDDA,VDDA,,,,,,,,,,,24,F5,13
 Pin,VREFH,p14,VREFH,VREFH,,,,,,,,,,,25,G5,14
 Pin,VREFL,p15,VREFL,VREFL,,,,,,,,,,,26,G6,15
@@ -132,6 +132,7 @@ Peripheral,CONSOLE,,,,,,,,,,,,,,,,
 Peripheral,LLWU,,,,,,,,,,,,,,,,
 Peripheral,PMC,,,,,,,,,,,,,,,,
 Peripheral,MCM,,,,,,,,,,,,,,,,
+Peripheral,RCM,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,
 LPTMR_PCS,0,MCGIRCLK,,,,,,,,,,,,,,,
 ,1,LPO - 1 kHz clock,,,,,,,,,,,,,,,
