@@ -238,8 +238,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    
    @Override
    public void modifyVectorTable(VectorTable vectorTable) {
-      for (IrqVariable var : irqVariables) {
-         modifyVectorTable(vectorTable, var, getClassBaseName());
+      try {
+         for (IrqVariable var : irqVariables) {
+            modifyVectorTable(vectorTable, var, getClassBaseName());
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
       }
    }
 
@@ -270,8 +274,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     *    </ul>
     * </ul>
     * @param className  Base name of C peripheral class e.g. Ftm 
+    * @throws Exception 
     */
-   public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) {
+   public void modifyVectorTable(VectorTable vectorTable, IrqVariable irqVariable, String className) throws Exception {
 
       if ((irqVariable==null) || (irqVariable.getValueAsLong() == 0)) {
          // No modification
@@ -279,43 +284,51 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       }
       final String headerFileName = getBaseName().toLowerCase()+".h";
       boolean classMemberHandlerSet = false;
-      String pattern = irqVariable.getPattern();
-      pattern = pattern.replaceAll("%b", getBaseName());
-      pattern = pattern.replaceAll("%i", getInstance());
-      pattern = pattern.replaceAll("%c", className);
-
-      Pattern p = Pattern.compile(pattern);
-      for (InterruptEntry entry:vectorTable.getEntries()) {
-         if (entry != null) {
-            Matcher m = p.matcher(entry.getName());
-            if (m.matches()) {
-//               String modifier = "";
-//               if (m.groupCount() > 0) {
-//                  modifier = m.group(1);
-//               }
-               String handlerName;
-               switch (irqVariable.getMode()) {
-               case ClassMethod:
-                  // Replace with name of class static method
-                  String classHandler = irqVariable.getClassHandler();
-                  classHandler = classHandler.replaceAll("%b", getBaseName());
-                  classHandler = classHandler.replaceAll("%i", getInstance());
-                  classHandler = classHandler.replaceAll("%c", className);
-                  handlerName  = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
-                  classMemberHandlerSet = true;
-                  break;
-               case NotInstalled:
-               default:
-                  handlerName  = "Default_Handler";
-                  break;
+      String p = irqVariable.getPattern();
+      String ch = irqVariable.getClassHandler();
+      String patterns[]      = p.split(";");
+      String classHandlers[] = ch.split(";");
+      if (patterns.length != classHandlers.length) {
+         throw new Exception(getClassName() + ": Pattern and classHandler have different lengths in irqOption");
+      }
+      for (int index=0; index<patterns.length; index++) {
+         String pattern = patterns[index].replaceAll("%b", getBaseName());
+         pattern = pattern.replaceAll("%i", getInstance());
+         pattern = pattern.replaceAll("%c", className);
+         String classHandler = classHandlers[index];
+         
+         Pattern px = Pattern.compile(pattern);
+         for (InterruptEntry entry:vectorTable.getEntries()) {
+            if (entry != null) {
+               Matcher m = px.matcher(entry.getName());
+               if (m.matches()) {
+                  //               String modifier = "";
+                  //               if (m.groupCount() > 0) {
+                  //                  modifier = m.group(1);
+                  //               }
+                  String handlerName;
+                  switch (irqVariable.getMode()) {
+                  case ClassMethod:
+                     // Replace with name of class static method
+                     classHandler = classHandler.replaceAll("%b", getBaseName());
+                     classHandler = classHandler.replaceAll("%i", getInstance());
+                     classHandler = classHandler.replaceAll("%c", className);
+                     handlerName  = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
+                     classMemberHandlerSet = true;
+                     break;
+                  case NotInstalled:
+                  default:
+                     handlerName  = "Default_Handler";
+                     break;
+                  }
+                  entry.setHandlerName(handlerName);
+                  entry.setHandlerMode(irqVariable.getMode());
                }
-               entry.setHandlerName(handlerName);
-               entry.setHandlerMode(irqVariable.getMode());
             }
-         }
-         if (classMemberHandlerSet) {
-            // Add include file
-            vectorTable.addIncludeFile(headerFileName);
+            if (classMemberHandlerSet) {
+               // Add include file
+               vectorTable.addIncludeFile(headerFileName);
+            }
          }
       }
    }

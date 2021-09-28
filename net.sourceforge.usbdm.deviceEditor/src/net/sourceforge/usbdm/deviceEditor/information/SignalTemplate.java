@@ -167,10 +167,9 @@ public class SignalTemplate {
          // No PCR - probably an analogue pin
          return "NoPortInfo, 0, 0, ";
       }
-      String gpioRegister     = pin.getGpioBasePtr();
       String gpioBitNum       = pin.getGpioBitNum();
       
-      return String.format("%-11s %-15s %-4s", portInfo+",", gpioRegister+",", gpioBitNum+",");
+      return String.format("%-11s %-4s", portInfo+",", gpioBitNum+",");
    }
 
    /**

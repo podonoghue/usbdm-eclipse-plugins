@@ -2,12 +2,12 @@ TargetDeviceFamily,CortexM4,,,,,,,,,,,,,,,,,,,,
 TargetDeviceSubFamily,MK20D5,mk,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,
 ,DeviceName,Manual,Package,,,,,,,,,,,,,,,,,,
-Device,MK20DN32VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
-Device,MK20DX32VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
-Device,MK20DN64VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
-Device,MK20DX64VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
-Device,MK20DN128VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
-Device,MK20DX128VLH5,K20P64M50SF0RM,LQFP_64,,,,,,,,,,,,,,,,,,
+Device,MK20DN32VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
+Device,MK20DX32VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
+Device,MK20DN64VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
+Device,MK20DX64VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
+Device,MK20DN128VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
+Device,MK20DX128VLH5,K20P64M50SF0RM,LQFP_64_MK20D5,,,,,,,,,,,,,,,,,,
 Device,MK20DN32VMP5,K20P64M50SF0RM,BGA_64,,,,,,,,,,,,,,,,,,
 Device,MK20DX32VMP5,K20P64M50SF0RM,BGA_64,,,,,,,,,,,,,,,,,,
 Device,MK20DN64VMP5,K20P64M50SF0RM,BGA_64,,,,,,,,,,,,,,,,,,
@@ -28,7 +28,7 @@ Device,MK20DX64VFT5,K20P48M50SF0RM,QFN_32,,,,,,,,,,,,,,,,,,
 Device,MK20DN128VFT5,K20P48M50SF0RM,QFN_32,,,,,,,,,,,,,,,,,,
 Device,MK20DX128VFT5,K20P48M50SF0RM,QFN_32,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,
-Key,Pin,Pkg FRDM_K20D50M,Pkg LQFP_64,Pkg BGA_64,Pkg LQFP_48,Pkg QFN_32,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort,Seq,64MAPBGA,64LQFP,32QFN
+Key,Pin,Pkg FRDM_K20D50M,Pkg LQFP_64_MK20D5,Pkg BGA_64,Pkg LQFP_48,Pkg QFN_32,Reset,Default,ALT0,ALT1,ALT2,ALT3,ALT4,ALT5,ALT6,ALT7,EzPort,Seq,64MAPBGA,64LQFP,32QFN
 Pin,TempSensor,Internal,Internal,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,,,-2,Internal,Internal,Internal
 Pin,BandGap,Internal,Internal,Internal,Internal,Internal,ADC0_SE27,,,,,,,,,,,-1,Internal,Internal,Internal
 Pin,PTE0,D1,p1,A1,*,*,DISABLED,,,GPIOE_0,,UART1_TX,,,,RTC_CLKOUT,,1,A1,1,-

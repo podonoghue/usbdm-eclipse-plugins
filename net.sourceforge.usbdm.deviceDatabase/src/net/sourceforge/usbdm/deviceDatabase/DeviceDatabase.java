@@ -773,7 +773,7 @@ final Pattern namePattern = Pattern.compile("^(.*)xxx([0-9]*)$");
 public Device getExactDevice(String name) {
   for (int index = 0; index<deviceList.size(); index++) {
      Device device = deviceList.get(index);
-     if (device.getName().equals(name)) {
+     if (device.getName().toUpperCase().equals(name.toUpperCase())) {
         return device;
      }
   }

@@ -180,7 +180,7 @@ public class DeviceSelectorPanel extends Composite {
       }
 
       public boolean isVisible(String name) {
-         return filterPattern.matcher(name).matches();
+         return filterPattern.matcher(name.toUpperCase()).matches();
       }
    }
 
@@ -292,8 +292,8 @@ public class DeviceSelectorPanel extends Composite {
          }
          rv = new Vector<PatternMatchPair[]>(3);
          rv.add(armPats.toArray(new PatternMatchPair[armPats.size()]));
-         rv.add(cfv1Pats.toArray(new PatternMatchPair[armPats.size()]));
-         rv.add(cfvxPats.toArray(new PatternMatchPair[armPats.size()]));
+         rv.add(cfv1Pats.toArray(new PatternMatchPair[cfv1Pats.size()]));
+         rv.add(cfvxPats.toArray(new PatternMatchPair[cfvxPats.size()]));
       } catch (IOException x) {
          System.err.format("IOException: %s%n", x);
       }
@@ -336,6 +336,9 @@ public class DeviceSelectorPanel extends Composite {
          break;
       }
       for (PatternMatchPair pair:patterns) {
+         if (pair.pattern == null) {
+            break;
+         }
          Pattern p = pair.pattern;
          Matcher m = p.matcher(name);
          if (m.matches()) {
@@ -388,7 +391,7 @@ public class DeviceSelectorPanel extends Composite {
    private DeviceModel findDeviceNode(Object node, String name) {
       BaseModel model = (BaseModel)node;
       if (node instanceof DeviceModel) {
-         if (((DeviceModel)node).getName().equals(name)) {
+         if (((DeviceModel)node).getName().toUpperCase().equals(name.toUpperCase())) {
             return (DeviceModel)node;
          }
          return null;
@@ -606,7 +609,7 @@ public class DeviceSelectorPanel extends Composite {
                   fViewer.setSelection(new StructuredSelection(fMatchingNode));
                }
             }
-            else if (fFilterName.isEmpty()) {
+            else if ((fFilterName == null) || fFilterName.isEmpty()) {
 //               System.err.println("filterNodesJob(), filter = "+fFilterName);
                fViewer.collapseAll();
             }

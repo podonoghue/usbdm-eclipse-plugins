@@ -70,9 +70,10 @@ public class PeripheralsViewCellLabelProvider extends CellLabelProvider implemen
    @Override
    public void dispose() {
       super.dispose();
-      if (changedColour != null) {
-         changedColour.dispose();
-      }
+      // System colour - don't dispose!!!
+//      if (changedColour != null) {
+//         changedColour.dispose();
+//      }
       if (boldFont != null) {
          boldFont.dispose();
       }

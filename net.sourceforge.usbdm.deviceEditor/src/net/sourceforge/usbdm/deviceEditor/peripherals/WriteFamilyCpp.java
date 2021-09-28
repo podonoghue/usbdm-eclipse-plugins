@@ -130,6 +130,13 @@ public class WriteFamilyCpp {
 
       // Write these classes in order as they declare dependent information etc.
       ArrayList<String> priorityClasses = new ArrayList<String>();
+      priorityClasses.add("GPIOA");
+      priorityClasses.add("GPIOB");
+      priorityClasses.add("GPIOC");
+      priorityClasses.add("GPIOD");
+      priorityClasses.add("GPIOE");
+      priorityClasses.add("GPIOF");
+      priorityClasses.add("GPIOG");
       priorityClasses.add("OSC");
       priorityClasses.add("OSC0");
       priorityClasses.add("OSC_RF0");

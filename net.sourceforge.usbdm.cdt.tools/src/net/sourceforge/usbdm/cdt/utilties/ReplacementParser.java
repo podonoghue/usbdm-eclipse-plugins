@@ -249,38 +249,56 @@ public class ReplacementParser {
       return index;
    }
 
-   /**
-    * Parses modifier field of replacement pattern e.g.
-    * <pre>
-    *   $(key:default:modifier)     
-    *                 ^......^
-    * </pre>
-    * @param inputText String containing entire input String 
-    * @param index     Position of current character (just past second colon)
-    * @param modifier  Builder to accumulate modifier in
-    * 
-    * @return  Updated position (at closing parenthesis)
-    * 
-    * @throws Exception 
-    */
-   private int parseModifier(String inputText, int index, StringBuilder modifier) throws Exception {
-      boolean  complete = false;
-      while((index<inputText.length()) && (!complete)) {
-         char c = inputText.charAt(index);
-         if (c==')') {
-            complete = true;
-         }
-         else {
-            index++;
-            modifier.append(c);
-         }  
-      }
-      if (!complete) {
-         throw new Exception("Missing ')' in '" + inputText + "'");
-      }
-      return index;
-   }
+//   /**
+//    * Parses modifier field of replacement pattern e.g.
+//    * <pre>
+//    *   $(key:default:modifier)     
+//    *                 ^......^
+//    * </pre>
+//    * @param inputText String containing entire input String 
+//    * @param index     Position of current character (just past second colon)
+//    * @param modifier  Builder to accumulate modifier in
+//    * 
+//    * @return  Updated position (at closing parenthesis)
+//    * 
+//    * @throws Exception 
+//    */
+//   private int parseModifier(String inputText, int index, StringBuilder modifier) throws Exception {
+//      boolean  complete = false;
+//      while((index<inputText.length()) && (!complete)) {
+//         char c = inputText.charAt(index);
+//         if (c==')') {
+//            complete = true;
+//         }
+//         else {
+//            index++;
+//            modifier.append(c);
+//         }  
+//      }
+//      if (!complete) {
+//         throw new Exception("Missing ')' in '" + inputText + "'");
+//      }
+//      return index;
+//   }
 
+   /**
+    * Make key from bare name
+    * 
+    * @param key Bare key
+    * 
+    * @return Key with added path etc.
+    */
+   String makeKey(String key) {
+      String  replaceWith = null;
+      if (fSymbols == null) {
+         replaceWith = fPrefix + "_" + key;
+      }
+      else {
+         replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+      }
+      return replaceWith;
+   }
+   
 /**
     * Parses replacement pattern e.g. 
     * <pre>
@@ -297,33 +315,38 @@ public class ReplacementParser {
     * @throws Exception 
     */
    private int parseSubstitution(String inputText, int index, StringBuilder sb) throws Exception {
-      
+
+      boolean conditional = (inputText.charAt(index) == '?');
+
+      if (conditional) {
+         index++;
+      }
       String key = null;
       {
-      StringBuilder keyBuffer = new StringBuilder(20);
-      index = parseKey(inputText, index, keyBuffer);
-      key = keyBuffer.toString();
+         StringBuilder keyBuffer = new StringBuilder(20);
+         index = parseKey(inputText, index, keyBuffer);
+         key = keyBuffer.toString();
       }
-      
-      String defaultValue = null;
+
+      String arg1 = null;
       char c = inputText.charAt(index);
       if (c == ':') {
          index++;
          StringBuilder defaultValueBuffer = new StringBuilder(20);
          index = parseDefault(inputText, index, defaultValueBuffer);
          if (defaultValueBuffer.length() != 0) {
-            defaultValue = defaultValueBuffer.toString().trim();
+            arg1 = defaultValueBuffer.toString().trim();
          }
          c = inputText.charAt(index);
       }
-      
-      String modifier = null;
+
+      String arg2 = null;
       if (c == ':') {
          index++;
          StringBuilder modifierBuffer = new StringBuilder(20);
-         index = parseModifier(inputText, index, modifierBuffer);
+         index = parseDefault(inputText, index, modifierBuffer);
          if (modifierBuffer.length() != 0) {
-            modifier = modifierBuffer.toString().trim();
+            arg2 = modifierBuffer.toString().trim();
          }
       }
       c = inputText.charAt(index);
@@ -331,45 +354,73 @@ public class ReplacementParser {
          throw new Exception("Missing ')' in '" + inputText + "'");
       }
       index++;
-      
+
       String  replaceWith = null;
-      if (fSymbols == null) {
-         replaceWith = fPrefix + "_" + key;
-      }
-      else {
+      if (conditional) {
          replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
-      }
-      if ((replaceWith == null) && fIgnoreUnknowns) {
-         // Don't expand unknown symbol (yet)
-         replaceWith = "$(" + key;
-         if (defaultValue != null) {
-            replaceWith += ":" + defaultValue;
-         }
-         if (modifier != null) {
-            if (defaultValue == null) {
-               replaceWith += ":";
+         if ((replaceWith == null) && fIgnoreUnknowns) {
+            // Don't expand unknown symbol (yet)
+            replaceWith = "$(?" + key;
+            if (arg1 != null) {
+               replaceWith += ":" + arg1;
             }
-            replaceWith += ":" + modifier;
-         }
-         replaceWith += ")";
-      }
-      else {
-         if (defaultValue == null) {
-            defaultValue = "Symbol '" + key + "' not found";
-         }
-         if (replaceWith == null) {
-            replaceWith = defaultValue;
-         }
-         if (modifier != null) {
-            if (modifier.equalsIgnoreCase("toupper")) {
-               replaceWith = replaceWith.toUpperCase();
+            if (arg2 != null) {
+               if (arg1 == null) {
+                  replaceWith += ":";
+               }
+               replaceWith += ":" + arg2;
             }
-            else if (modifier.equalsIgnoreCase("tolower")) {
-               replaceWith = replaceWith.toLowerCase();
+            replaceWith += ")";
+         }
+         else {
+            boolean isFalse = replaceWith.equals("false") || replaceWith.equals("0");
+            if (isFalse) {
+               replaceWith = arg2;
             }
             else {
-               // force error expansion for unknown modifier
-               replaceWith = null; 
+               replaceWith = arg1;
+            }
+         }
+      }
+      else {
+         if (fSymbols == null) {
+            replaceWith = fPrefix + "_" + key;
+         }
+         else {
+            replaceWith = fSymbols.get(fKeyMaker.makeKey(key));
+         }
+         if ((replaceWith == null) && fIgnoreUnknowns) {
+            // Don't expand unknown symbol (yet)
+            replaceWith = "$(" + key;
+            if (arg1 != null) {
+               replaceWith += ":" + arg1;
+            }
+            if (arg2 != null) {
+               if (arg1 == null) {
+                  replaceWith += ":";
+               }
+               replaceWith += ":" + arg2;
+            }
+            replaceWith += ")";
+         }
+         else {
+            if (arg1 == null) {
+               arg1 = "Symbol '" + key + "' not found";
+            }
+            if (replaceWith == null) {
+               replaceWith = arg1;
+            }
+            if (arg2 != null) {
+               if (arg2.equalsIgnoreCase("toupper")) {
+                  replaceWith = replaceWith.toUpperCase();
+               }
+               else if (arg2.equalsIgnoreCase("tolower")) {
+                  replaceWith = replaceWith.toLowerCase();
+               }
+               else {
+                  // force error expansion for unknown modifier
+                  replaceWith = null; 
+               }
             }
          }
       }
@@ -377,8 +428,8 @@ public class ReplacementParser {
          replaceWith = 
                "---Symbol not found or format incorrect for substitution '"+inputText+
                "' => key='" + key +
-               "', def='" + defaultValue + 
-               "', mod='" + modifier + "'";
+               "', def='" + arg1 + 
+               "', mod='" + arg2 + "'";
       }
       sb.append(replaceWith);
       return index;
