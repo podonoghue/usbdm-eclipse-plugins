@@ -125,12 +125,11 @@ public class SignalTemplate {
     * 
     * @return PeripheralFunction or null if template not applicable
     */
-   public Signal createSignal(String name) {         
+   public Signal createSignal(String name) {
       Matcher matcher = matcher(name);
       if ((matcher == null) || !matcher.matches()) {
          return null;
       }
-      
       String basename = matcher.replaceAll(fnamePattern);
       matcher.reset();
       String instance = matcher.replaceAll(fInstancePattern);

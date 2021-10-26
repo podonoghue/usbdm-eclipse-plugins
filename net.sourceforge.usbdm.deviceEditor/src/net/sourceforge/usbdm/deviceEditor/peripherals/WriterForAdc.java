@@ -21,6 +21,9 @@ public class WriterForAdc extends PeripheralWithState {
    /** Signals that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("InfoDP");
 
+   /** Signals that use this writer */
+//   protected InfoTable fPgaFunctions = new InfoTable("InfoPGA");
+
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
@@ -70,16 +73,46 @@ public class WriterForAdc extends PeripheralWithState {
       boolean required = 
            (fInfoTable.table.size() +
                   fDpFunctions.table.size() + 
-                  fDmFunctions.table.size()) > 0;
+                  fDmFunctions.table.size() /*+
+                  fPgaFunctions.table.size()*/) > 0;
       return required;
    }
 
    @Override
    protected void addSignalToTable(Signal function) {
+      final int DP_INDEX = 2;
+      
       InfoTable fFunctions = null;
 
-      Pattern p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
-      Matcher m = p.matcher(function.getSignalName());
+      Pattern p = Pattern.compile("PGA(\\d+)_(DM|DP)");
+      Matcher m = p.matcher(function.getName());
+      if (m.matches()) {
+         p = Pattern.compile("(DM|DP)");
+         m = p.matcher(function.getSignalName());
+         if (m.matches()) {
+//            System.out.println("Found " + function);
+            String signalType = m.group(1);
+            if (signalType.equalsIgnoreCase("DM")) {
+               if (DP_INDEX>=fDmFunctions.table.size()) {
+                  fDmFunctions.table.setSize(DP_INDEX+1);
+               }
+               fDmFunctions.table.setElementAt(function, DP_INDEX);
+            }
+            else if (signalType.equalsIgnoreCase("DP")) {
+               if (DP_INDEX>=fDpFunctions.table.size()) {
+                  fDpFunctions.table.setSize(DP_INDEX+1);
+               }
+               fDpFunctions.table.setElementAt(function, DP_INDEX);
+               if (DP_INDEX>=super.fInfoTable.table.size()) {
+                  super.fInfoTable.table.setSize(DP_INDEX+1);
+               }
+               super.fInfoTable.table.setElementAt(function, DP_INDEX);
+            }
+            return;
+         }
+      }
+      p = Pattern.compile("(SE|DM|DP)(\\d+)(a|b)?");
+      m = p.matcher(function.getSignalName());
       if (!m.matches()) {
          throw new RuntimeException("Function "+function+", Signal " + function.getSignalName() + " does not match expected pattern");
       }
@@ -113,6 +146,7 @@ public class WriterForAdc extends PeripheralWithState {
       rv.add(fInfoTable);
       rv.add(fDpFunctions);
       rv.add(fDmFunctions);
+//      rv.add(fPgaFunctions);
       return rv;
    }
 

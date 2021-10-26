@@ -30,7 +30,6 @@ public class ParseFamilyXML extends XML_BaseParser {
    private void parsePin(Element pinElement) throws Exception {
 
       Pin pin = fDeviceInfo.createPin(pinElement.getAttribute("name"));
-
       for (Node node = pinElement.getFirstChild();
             node != null;
             node = node.getNextSibling()) {

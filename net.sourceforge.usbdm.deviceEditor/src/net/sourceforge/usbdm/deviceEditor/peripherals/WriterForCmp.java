@@ -38,10 +38,10 @@ public class WriterForCmp extends PeripheralWithState {
       return NUMBER_OF_INPUTS+super.getSignalIndex(function, signalNames);
    }
 
-   static final String PIN_FORMAT   = "   %-20s = %-13s %s\n";
+   static final String PIN_FORMAT   = "      %-16s = %-8s %s\n";
    
    void writeInputEnum(DocumentUtilities documentUtilities) throws IOException {
-      String enumName    = getClassName()+"Input";
+      String enumName    = "Input";
       String commentRoot = "//!< ";
       ArrayList<InfoTable> signalTables = getSignalTables();
       
@@ -58,7 +58,7 @@ public class WriterForCmp extends PeripheralWithState {
             }
             MappingInfo mappingInfo = signal.getMappedPin();
             String pinName = enumName+"_"+prettyPinName(mappingInfo.getPin().getName());
-            String mapName = enumName+"_"+index;
+            int mapName = index;
             do {
                if (!mappingInfo.getPin().isAvailableInPackage()) {
                   // Discard unmapped signals on this package 
@@ -70,12 +70,11 @@ public class WriterForCmp extends PeripheralWithState {
                }
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+',', commentRoot+"Fixed pin  "+mappingInfo.getPin().getName()));
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Fixed pin  "+mappingInfo.getPin().getName()));
                   continue;
                }
                if (mappingInfo.isSelected()) {
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+',', commentRoot+"Mapped pin "+mappingInfo.getPin().getName()));
-
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Mapped pin "+mappingInfo.getPin().getName()));
                }
             } while(false);
          }

@@ -29,7 +29,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       MappingInfo firstMapping = mappingInfoSet.first();
       if (firstMapping.getMux() == MuxSelection.fixed) {
          // Fixed mapping for function
-         fChoices      = new String[] {signal.getPinMapping().first().getPin().getName()};
+         fChoices      = new String[] {signal.getPinMapping().first().getPin().getNameWithLocation()};
          fMappingInfos = null;
          return;
       }

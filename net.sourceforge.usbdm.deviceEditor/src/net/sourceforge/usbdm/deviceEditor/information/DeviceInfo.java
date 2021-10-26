@@ -679,7 +679,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
 
    /**
     * Create signal
-    * e.g. createSignal(FTM,0,6) = <i>Signal</i>(FTM, 0, 6)
+    * e.g. createSignal(FTM0_CH6,FTM,0,6) = <i>Signal</i>(FTM, 0, 6)
     * 
     * @param name          e.g. FTM0_CH6
     * @param baseName      e.g. FTM0_CH6 = FTM
@@ -1052,6 +1052,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
                "(ADC)([0-3])_((SE|DM|DP)\\d+(a|b)?)",
+               getDeviceFamily(),
+               WriterForAdc.class);
+         createPeripheralTemplateInformation(
+               "ADC", "$2", "$3",
+               "(PGA)([0-3])_((DM|DP))",
                getDeviceFamily(),
                WriterForAdc.class);
          createPeripheralTemplateInformation(

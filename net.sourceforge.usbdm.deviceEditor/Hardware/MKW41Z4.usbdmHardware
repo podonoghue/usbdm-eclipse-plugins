@@ -5,7 +5,7 @@
    Generated from MKW41Z4.csv
 -->
 
-<root version="1.2.0">
+<root version="1.3.0">
    <family name="MKW41Z4">
       <device name="FRDM_KW41Z"   manual="MKW41Z512RM" package="FRDM_KW41Z" />
       <device name="MKW21Z256VHT4" manual="MKW41Z512RM" package="QFN48" />
@@ -169,7 +169,7 @@
       <peripheral baseName="RCM"      instance=""         version="rcm_mkw41z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRcm" />
       </peripheral>
-      <peripheral baseName="RTC"      instance=""         version="rtc_osc">
+      <peripheral baseName="RTC"      instance=""         version="rtc_wps_mkl03z4">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForRtc" />
          <clock clockEnable="SIM->SCGC6 |= SIM_SCGC6_RTC_MASK;" clockDisable="SIM->SCGC6 &amp;= ~SIM_SCGC6_RTC_MASK;" />
          <irq num="RTC_Alarm_IRQn" />
