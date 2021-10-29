@@ -5,7 +5,7 @@ import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
- * Describes how a peripheral signal is mapped to a pin<br>
+ * Describes the set of peripheral signals that are mapped to a pin for a particular mux value<br>
  */
 public class MappingInfo extends ObservableModel {
    
@@ -42,6 +42,7 @@ public class MappingInfo extends ObservableModel {
    public MappingInfo(Pin pin, MuxSelection muxValue)  {
       fPin       = pin;
       fMuxValue  = muxValue;
+      addListener(pin);
    }
    
    /**
@@ -85,6 +86,7 @@ public class MappingInfo extends ObservableModel {
     */
    public void addSignal(Signal signal) {
       fSignals.add(signal);
+      addListener(signal);
    }
    
    
@@ -152,15 +154,6 @@ public class MappingInfo extends ObservableModel {
    }
 
    /**
-    * Indicates if the mapping has a conflict
-    * 
-    * @return 
-    */
-   public boolean isConflicted() {
-      return (fMessage!= null) && (fMessage.greaterThan(Status.Severity.OK));
-   }
-
-   /**
     * Set message to display
     * 
     * @return Message to display
@@ -192,6 +185,17 @@ public class MappingInfo extends ObservableModel {
     */
    public Status getMessage() {
       return fMessage;
+   }
+
+   /**
+    * Notifies associated signals that the pin properties have changed
+    * 
+    * @param pin  Pin with changes
+    */
+   public void pinPropertiesChanged(Pin pin) {
+      for (Signal signal:fSignals) {
+         signal.notifyListeners();
+      }
    }
 
 };

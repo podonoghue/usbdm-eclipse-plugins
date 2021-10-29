@@ -111,7 +111,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    public static final String DTD_FILE          = "_Hardware.dtd";
 
    /** Name space for C files */
-   public static final String NAME_SPACE        = "USBDM";
+   public static final String NAME_SPACE_USBDM_LIBRARY        = "USBDM";
+
+   /** Name space withing USBDM namespace for C variables representing peripheral signals mapped to pins*/
+   public static final String NAME_SPACE_SIGNALS  = "SIGNALS";
 
    /** How to handle existing files etc */
    public enum Mode {ignore, fail};
@@ -1554,6 +1557,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
+         pin.connectListeners();
       }
       // Every signal should have a reset entry implied by the pin information
       // except for signals with fixed pin mapping
@@ -1563,6 +1567,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                (signal.getPinMapping().first().getMux() != MuxSelection.fixed)) {
             throw new RuntimeException("No reset value for signal " + signal);
          }
+         signal.connectListeners();
       }
    }
 

@@ -1,8 +1,8 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 
 public enum MuxSelection {
-   fixed(-2,"F"),
-   unassigned(-1,"U"),
+   fixed(-2,"F"),       // Fixed (unchangeable) mapping
+   unassigned(-1,"U"),  // Not mapped to a pin
    mux0(0,"0"),
    mux1(1,"1"),
    mux2(2,"2"),

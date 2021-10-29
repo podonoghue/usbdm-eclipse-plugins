@@ -53,9 +53,9 @@ public class SectionEditor implements IEditor {
                @Override
                protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                   final TreeColumnInformation[] fColumnInformation = {
-                        new TreeColumnInformation("Property",    350, new NameColumnLabelProvider(),        null),
-                        new TreeColumnInformation("Value",       450, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
-                        new TreeColumnInformation("Description", 550, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Property",    350, new NameColumnLabelProvider(),           null),
+                        new TreeColumnInformation("Value",       450, new ValueColumnLabelProvider(),          new ValueColumnEditingSupport(viewer)),
+                        new TreeColumnInformation("Description", 550, new DescriptionColumnLabelProvider(),    new DescriptionColumnEditingSupport(viewer)),
                   };
                   return fColumnInformation;
                }

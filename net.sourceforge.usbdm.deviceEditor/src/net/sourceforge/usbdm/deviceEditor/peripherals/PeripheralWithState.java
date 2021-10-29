@@ -313,7 +313,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
                      classHandler = classHandler.replaceAll("%b", getBaseName());
                      classHandler = classHandler.replaceAll("%i", getInstance());
                      classHandler = classHandler.replaceAll("%c", className);
-                     handlerName  = DeviceInfo.NAME_SPACE+"::"+m.replaceAll(classHandler);
+                     handlerName  = DeviceInfo.NAME_SPACE_USBDM_LIBRARY+"::"+m.replaceAll(classHandler);
                      classMemberHandlerSet = true;
                      break;
                   case NotInstalled:

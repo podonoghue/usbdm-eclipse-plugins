@@ -1,10 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.information;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
@@ -74,24 +78,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Connect Signal as listener for changes on pin multiplexing
-    */
-   public void connectListeners() {
-      for (MappingInfo mappingInfo:fPinMappings) {
-         mappingInfo.addListener(this);
-      }
-   }
-   
-   /**
-    * Connect Signal as listener for changes on pin multiplexing
-    */
-   public void disconnectListeners() {
-      for (MappingInfo mappingInfo:fPinMappings) {
-         mappingInfo.removeListener(this);
-      }
-   }
-   
-   /**
     * Get name e.g. FTM0_6, GPIOA_4
     * 
     * @return name created
@@ -126,6 +112,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public boolean isPowerSignal() {
       return (fName.startsWith("VDD")) || (fName.startsWith("VSS")) ;
    }
+   
    /**
     * Add a pin that this signal may be mapped to
     * 
@@ -138,20 +125,19 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       }
       if (mapInfo.getMux() == MuxSelection.fixed) {
          if (!fPinMappings.isEmpty()) {
-            if (isPowerSignal()) {
-//               System.err.println("Multiple mappings for : "+fName);
-            }
-            else {
-               throw new RuntimeException("Can't add more pins to a fixed signal " + fName + ", " + mapInfo);
+            if (!isPowerSignal()) {
+               throw new RuntimeException("Can't add more pins to a signal with fixed pin mapping " + fName + ", " + mapInfo);
             }
          }
-         fPinMappings.add(mapInfo);
-         return;
       }
-      if (fPinMappings.isEmpty()) {
-         // Add disabled setting
-         fPinMappings.add(MappingInfo.UNASSIGNED_MAPPING);
-         fPinMappings.add(fResetMapping);
+      else {
+         if (fPinMappings.isEmpty()) {
+            // Add disabled setting
+            fPinMappings.add(MappingInfo.UNASSIGNED_MAPPING);
+            
+            // Add reset mapping
+            fPinMappings.add(fResetMapping);
+         }
       }
       fPinMappings.add(mapInfo);
    }
@@ -197,10 +183,10 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    public String toString() {
       StringBuffer sb = new StringBuffer();
       sb.append("Signal("+fName+")");
-      sb.append("\n  fPer   = "+fPeripheral);
-      sb.append("\n  fRes   = "+fResetMapping);
+      sb.append("\n  fPeripheral   = "+fPeripheral);
+      sb.append("\n  fResetMapping   = "+fResetMapping);
       for(MappingInfo mapping:fPinMappings) {
-         sb.append("\n  fPM(i) = "+mapping);
+         sb.append("\n  fPinMappings(i) = "+mapping);
       }
       return sb.toString();
    }
@@ -212,6 +198,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return
     */
    public boolean isAvailableInPackage() {
+      // Check all mappings looking for a valid one
       for (MappingInfo info:fPinMappings) {
          Pin pin = info.getPin();
          // Exclude disabled pin
@@ -223,11 +210,12 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
 
    /**
-    * Get current pin mapping for this signal
+    * Get current pin mapping information for this signal.
+    * If more than one pin is mapped it returns the mapping for the first pin found. 
     * 
-    * @return
+    * @return Pin mapping information for pin found or MappingInfo.UNASSIGNED_MAPPING
     */
-   public MappingInfo getMappedPin() {
+   public MappingInfo getFirstMappedPinInformation() {
       for (MappingInfo mappingInfo:fPinMappings) {
          if (mappingInfo.isSelected()) {
             return mappingInfo;
@@ -237,12 +225,67 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
    
    /**
+    * Get current pin mapping information for this signal
+    * 
+    * @return Set of mapped pins.  The set may be empty if no pins mapped.
+    */
+   public List<MappingInfo> getMappedPinInformation() {
+      ArrayList<MappingInfo> rv = new ArrayList<MappingInfo>();
+      for (MappingInfo mappingInfo:fPinMappings) {
+         if (mappingInfo.isSelected()) {
+            rv.add(mappingInfo);
+         }
+      }
+      return rv;
+   }
+   
+   /**
+    * Get current pin mapped for this signal
+    * 
+    * @return Mapped pin (may be Pin.UNASSIGNED_PIN)
+    */
+   public Pin getMappedPin() {
+      MappingInfo mappedPins = getFirstMappedPinInformation();
+      return mappedPins.getPin();
+   }
+   
+   /**
+    * Checks if this signal is mapped to more than one pin.
+    * 
+    * @return String describing conflict or null if no conflict
+    */
+   public Status checkMappingConflicted() {
+      StringBuilder sb = new StringBuilder();
+      int mappingsFound = 0;
+      
+      sb.append(getName() + " =>> (");
+      for (MappingInfo mappingInfo : fPinMappings) {
+         if (mappingInfo.isSelected()) {
+            if (mappingsFound>0) {
+               sb.append(", ");
+            }
+            sb.append(mappingInfo.getPin().getNameWithLocation());
+            mappingsFound++;
+         }
+      }
+      if (mappingsFound <= 1) {
+         return null;
+      }
+      sb.append(")");
+      return new Status(sb.toString(), "Signal '"+getName() + "' is mapped to multiple pins");
+   }
+   
+   /**
     * Map the function to a pin using the given mapping
     * 
     * @param mappingInfo
     */
    public void setMappedPin(MappingInfo mappingInfo) {
 //      System.err.println("Signal.setPin("+mappingInfo+")");
+//      Pin pin = mappingInfo.getPin();
+//      if (pin.isMappingConflicted() && pin == Pin.UNASSIGNED_PIN) {
+//         
+//      }
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
             continue;
@@ -250,13 +293,57 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          mapping.select(Origin.signal, false);
       }
       mappingInfo.select(Origin.signal, true);
+      
+      Pin pin = mappingInfo.getPin();
+      
+      Map<MuxSelection, MappingInfo> pinMapping = pin.getMappableSignals();
+      for (MuxSelection muxSel: pinMapping.keySet()) {
+         MappingInfo pinInfo = pinMapping.get(muxSel);
+         pinInfo.getPin().modelElementChanged(mappingInfo);
+      }
       notifyListeners();
    }
 
+   /**
+    * Connect listeners
+    * <li>Any pin mappable to this signal 
+    */
+   public void connectListeners() {
+      for (MappingInfo mappingInfo : fPinMappings) {
+         Pin pin = mappingInfo.getPin();
+         pin.addListener(this);
+//         // XXXX Delete me!
+//         if (fName.equalsIgnoreCase("GPIOA_4") || pin.getName().equalsIgnoreCase("GPIOA_4")) {
+//            System.err.println("Signal(GPIOA_4).connectListeners(Pin("+pin.getName()+"))");
+//         }
+      }
+   }
+   
+   /**
+    * Disconnect Signal as listener for changes on pin multiplexing
+    */
+   public void disconnectListeners() {
+   }
+   
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof MappingInfo) {
+         MappingInfo mappingInfo = (MappingInfo) model;
+         // XXX Delete me!
+         System.err.println("Signal("+fName+").modelElementChanged(MappingInfo("+mappingInfo.getPin()+"))");
+         
          notifyListeners();
+      }
+      if (model instanceof Pin) {
+         Pin pin = (Pin) model;
+         // XXX Delete me!
+         System.err.println("Signal("+fName+").modelElementChanged(Pin("+pin.getName()+"))");
+         notifyListeners();
+//         
+//         // If this pin is mapped notify
+//         if (pin.getMappedSignals().getSignals().contains(this)) {
+//            notifyListeners();
+//         }
       }
    }
 

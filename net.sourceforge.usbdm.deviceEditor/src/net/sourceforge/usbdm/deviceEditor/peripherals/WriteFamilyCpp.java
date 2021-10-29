@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.eclipse.core.resources.IFile;
@@ -49,27 +48,27 @@ public class WriteFamilyCpp {
     * ==========================================================================
     * ===================
     */
-   HashSet<String> aliases = null;
+//   HashSet<String> aliases = null;
 
-   /**
-    * Records aliases used
-    * 
-    * @param aliasName
-    *           Alias to record
-    * 
-    * @return true=> new (acceptable) alias
-    */
-   private boolean recordAlias(String aliasName) {
-      if (aliases == null) {
-         aliases = new HashSet<String>();
-      }
-      if (aliases.contains(aliasName)) {
-         return false;
-      }
-      aliases.add(aliasName);
-      return true;
-   }
-
+//   /**
+//    * Records aliases used
+//    * 
+//    * @param aliasName
+//    *           Alias to record
+//    * 
+//    * @return true=> new (acceptable) alias
+//    */
+//   private boolean recordAlias(String aliasName) {
+//      if (aliases == null) {
+//         aliases = new HashSet<String>();
+//      }
+//      if (aliases.contains(aliasName)) {
+//         return false;
+//      }
+//      aliases.add(aliasName);
+//      return true;
+//   }
+//
    /**
     * Write Peripheral Information Class<br>
     * 
@@ -116,7 +115,7 @@ public class WriteFamilyCpp {
     * @throws IOException
     */
    private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
 
       writer.openUsbdmDocumentationGroup();
 
@@ -183,43 +182,39 @@ public class WriteFamilyCpp {
     * 
     * @throws IOException
     */
-   private String getMappedSignals(Peripheral peripheral, MappingInfo mappedSignal, int fnIndex) throws IOException {
-      StringBuffer sb = null;
-
-      if (!mappedSignal.isSelected()) {// &&
-                                       // (mappedFunction.getMux()!=MuxSelection.mux1))
-                                       // {
-         return null;
-      }
-      String definition = peripheral.getDefinition(mappedSignal, fnIndex);
-      if (definition == null) {
-         return null;
-      }
-      String signalName = peripheral.getInstanceName(mappedSignal, fnIndex);
-      String locations = fDeviceInfo.getVariant().getPackage().getLocation(mappedSignal.getPin());
-      if ((locations != null) && (!locations.isEmpty())) {
-         for (String location : locations.split("/")) {
-            String aliasName = peripheral.getAliasName(signalName, location);
-            if (aliasName != null) {
-               String declaration = peripheral.getAliasDeclaration(aliasName, mappedSignal, fnIndex);
-               if (declaration != null) {
-                  if (sb == null) {
-                     sb = new StringBuffer();
-                  }
-                  if (!recordAlias(aliasName)) {
-                     // Comment out repeated aliases
-                     sb.append("//");
-                  }
-                  sb.append(declaration);
-               }
-            }
-         }
-      }
-      if (sb == null) {
-         return null;
-      }
-      return sb.toString();
-   }
+//   private String getSignalDeclaration(Peripheral peripheral, MappingInfo mappedSignal, int fnIndex) throws IOException {
+//      StringBuffer sb = null;
+//
+//      if (!mappedSignal.isSelected()) {// &&
+//                                       // (mappedFunction.getMux()!=MuxSelection.mux1))
+//                                       // {
+//         return null;
+//      }
+//      String definition = peripheral.getDefinition(mappedSignal, fnIndex);
+//      if (definition == null) {
+//         return null;
+//      }
+//      if (mappedSignal.getPin().isAvailableInPackage()) {
+//         String aliasName = peripheral.getCodeIdentifier(mappedSignal);
+//         if (aliasName != null) {
+//            String declaration = peripheral.getAliasDeclaration(aliasName, mappedSignal, fnIndex);
+//            if (declaration != null) {
+//               if (sb == null) {
+//                  sb = new StringBuffer();
+//               }
+//               if (!recordAlias(aliasName)) {
+//                  // Comment out repeated aliases
+//                  sb.append("//");
+//               }
+//               sb.append(declaration);
+//            }
+//         }
+//      }
+//      if (sb == null) {
+//         return null;
+//      }
+//      return sb.toString();
+//   }
 
    private class DocumentationGroups {
       DocumentUtilities fWriter;
@@ -283,8 +278,10 @@ public class WriteFamilyCpp {
     * are mapped to pins e.g.
     * 
     * <pre>
-    *    using adc_p53              = const USBDM::Adc1&lt;4&gt;;
-    *    using adc_p54              = const USBDM::Adc1&lt;5&gt;;
+    * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9   
+    * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39   
+    * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39   
+    * extern const USBDM::Ftm<b><i>1</b></i>::Channel&lt;<b><i>3</b></i>&gt    myFtmChannel; // p34
     * </pre>
     * 
     * @param writer
@@ -292,42 +289,25 @@ public class WriteFamilyCpp {
     * 
     * @throws Exception
     */
-   private void writeMappedSignals(DocumentUtilities writer) throws IOException {
+   private void writeSignalDeclarations(DocumentUtilities writer) throws IOException {
 
       writeIncludes(writer);
 
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
       writer.openUsbdmDocumentationGroup();
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_SIGNALS, "Namespace enclosing USBDM variables representing periperal signals mapped to pins");
+      DocumentationGroups documentationGroup = new DocumentationGroups(writer);
+      
+      // Prevent repeated use of same C identifier
+      HashSet<String> usedIdentifiers = new HashSet<String>();
 
-      DocumentationGroups startGroup = new DocumentationGroups(writer);
       for (String key : fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         for (Entry<String, Pin> pinEntry : fDeviceInfo.getPins().entrySet()) {
-            Pin pin = pinEntry.getValue();
-            Map<MuxSelection, MappingInfo> mappedSignals = pin.getMappableSignals();
-            if (mappedSignals == null) {
-               continue;
-            }
-            for (Entry<MuxSelection, MappingInfo> muxEntry : mappedSignals.entrySet()) {
-               if (muxEntry.getKey() == MuxSelection.unassigned) {
-                  continue;
-               }
-               MappingInfo mappedSignal = muxEntry.getValue();
-               for (int fnIndex = 0; fnIndex < mappedSignal.getSignals().size(); fnIndex++) {
-                  Signal function = mappedSignal.getSignals().get(fnIndex);
-                  if (function.getPeripheral() == peripheral) {
-                     String template = getMappedSignals(peripheral, mappedSignal, fnIndex);
-                     if (template != null) {
-                        startGroup.openGroup(peripheral);
-                        writer.write(template);
-                        writer.flush();
-                     }
-                  }
-               }
-            }
-         }
+         peripheral.writeDeclarations(writer, usedIdentifiers);
       }
-      startGroup.closeGroup();
+      
+      documentationGroup.closeGroup();
+      writer.writeCloseNamespace();
       writer.closeDocumentationGroup();
       writer.writeCloseNamespace();
       writer.flush();
@@ -365,9 +345,13 @@ public class WriteFamilyCpp {
 
    private final String DOCUMENTATION_OPEN = "/**\n" + " *\n" + " * @page PinSummary Pin Mapping\n";
 
-   private final String TABLE_OPEN = " *\n" + " * @section %s %s\n" + " *\n" + " *    Pin Name               |   Functions                                 |  Location                 |  Description  \n" + " *  ------------------------ | --------------------------------------------|---------------------------| ------------- \n";
+   private final String TABLE_OPEN = 
+         " *\n" + 
+         " * @section %s %s\n" + " *\n" + 
+         " *    Pin Name               |   Functions                                                     |  Location                 |  Description  \n" + 
+         " *  ------------------------ | --------------------------------------------------------------- | ------------------------- | ------------- \n";
 
-   private final String DOCUMENTATION_TEMPLATE = " *  %-20s     | %-40s    | %-21s     | %s       \n";
+   private final String DOCUMENTATION_TEMPLATE = " *  %-20s     | %-60s    | %-21s     | %s       \n";
 
    private final String TABLE_CLOSE = " *\n";
 
@@ -471,7 +455,7 @@ public class WriteFamilyCpp {
     */
    private void writePinMappingHeaderFile(Path filePath) throws IOException {
 
-      aliases = null;
+//      aliases = null;
 
       BufferedWriter headerFile = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8);
       DocumentUtilities writer = new DocumentUtilities(headerFile);
@@ -486,7 +470,7 @@ public class WriteFamilyCpp {
 
       writePeripheralInformationClasses(writer);
 
-      writeMappedSignals(writer);
+      writeSignalDeclarations(writer);
 
       writeDocumentation(writer);
 
@@ -511,7 +495,7 @@ public class WriteFamilyCpp {
       writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME + ".h");
       writer.write("\n");
 
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE, "Namespace enclosing USBDM classes");
+      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
       writer.openUsbdmDocumentationGroup();
       writePinMappingFunction(writer);
       writer.writeCppFilePostAmble();
@@ -561,7 +545,7 @@ public class WriteFamilyCpp {
    /**
     * Generate CPP files (pin_mapping.h, gpio.h) within an Eclipse C++ project
     * 
-    * @param project       Destination project 
+    * @param  project      Destination project 
     * @param  deviceInfo   Device information to print to CPP files  
     * @throws Exception 
     */

@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,21 +64,41 @@ public abstract class BaseModel implements Cloneable {
          }
      });
    }
-   
+
+   final List<BaseModel> fModelsToRefresh = Collections.synchronizedList(new ArrayList<BaseModel>());
+
    /**
     * Updates the model's presentation when one or more of its properties change
     */
-   public void update() {
+   public synchronized void update() {
       // Necessary to propagate error messages up the tree
 //      updateAncestors();
       final StructuredViewer viewer = getViewer();
-      Display.getDefault().asyncExec(new Runnable() {
-         public void run() {
-            if ((viewer != null) && (!viewer.getControl().isDisposed())) {
-               viewer.update(this, null);
+      final BaseModel origin = this;
+      
+      if (!fModelsToRefresh.contains(this)) {
+         fModelsToRefresh.add(this);
+         
+         Display.getDefault().asyncExec(new Runnable() {
+            public void run() {
+               if ((viewer != null) && (!viewer.getControl().isDisposed())) {
+                  fModelsToRefresh.remove(origin);
+                  BaseModel model = origin;
+                  while (model != null) {
+                     viewer.update(model, null);
+                     model = model.getParent();
+                  }
+//                  viewer.refresh();
+                  // XXX Delete me!
+                  System.err.println("BaseModel.update.run() : " + origin);
+               }
             }
-         }
-     });
+        });
+      }
+      else {
+         // XXX Delete me!
+         System.err.println("BaseModel.update.run() discarding : " + origin);
+      }
    }
    
    /**
@@ -324,19 +345,6 @@ public abstract class BaseModel implements Cloneable {
    }
 
    /**
-    * Set node message as error
-    * 
-    * @param status Status to set (may be null to clear status)
-    */
-   public void setStatus(String status) {
-      Status msg = null;
-      if ((status != null) && !status.isEmpty()) {
-         msg = new Status(status, Status.Severity.ERROR);
-      }
-      setStatus(msg);
-   }
-
-   /**
     * Set node message
     * 
     * @param message Message to set (may be null)
@@ -419,6 +427,10 @@ public abstract class BaseModel implements Cloneable {
       }
       Status message = getStatus();
       if (message != null) {
+         String hint = message.getHint();
+         if (hint != null) {
+            return hint;
+         }
          if (message.greaterThan(Status.Severity.WARNING)) {
             tip += (tip.isEmpty()?"":"\n")+message.getText();
          }

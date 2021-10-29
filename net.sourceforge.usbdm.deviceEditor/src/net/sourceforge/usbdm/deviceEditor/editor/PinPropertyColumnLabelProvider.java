@@ -17,14 +17,16 @@ public class PinPropertyColumnLabelProvider extends BaseLabelProvider {
    }
 
    Long getValue(BaseModel baseModel) {
-      if (!(baseModel instanceof PinModel)) {
-         return null;
+      if (baseModel instanceof PinModel) {
+         PinModel pinModel = (PinModel)baseModel;
+         if (!pinModel.canEdit()) {
+            return null;
+         }
+         return pinModel.getProperty(fMask,fOffset);
       }
-      if (!baseModel.canEdit()) {
-         return null;
-      }
-      PinModel pinModel = (PinModel)baseModel;
-      return pinModel.getProperty(fMask,fOffset);
+      return null;
+
+      
    }
 
    @Override

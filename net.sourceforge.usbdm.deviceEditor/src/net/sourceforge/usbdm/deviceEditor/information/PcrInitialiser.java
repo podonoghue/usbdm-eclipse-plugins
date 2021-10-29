@@ -27,7 +27,7 @@ public class PcrInitialiser {
     */
    public void addSignal(Signal signal, String pcrValue) {
 
-      MappingInfo mappingInfo = signal.getMappedPin();
+      MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
 
       Pin pin = mappingInfo.getPin();
       if (!pin.isAvailableInPackage()) {

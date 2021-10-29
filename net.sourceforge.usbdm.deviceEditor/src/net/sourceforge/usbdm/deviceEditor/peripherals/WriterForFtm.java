@@ -2,11 +2,13 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
@@ -33,19 +35,42 @@ public class WriterForFtm extends PeripheralWithState {
       return "PWM, Input capture and Output compare";
    }
 
-   @Override
-   public String getAliasName(String signalName, String alias) {
-      if (signalName.matches(".*CH\\d+")) {
-         return super.getAliasName(signalName, alias); 
-      }
-      return null;
-   }
+//   @Override
+//   public String getCodeIdentifier(MappingInfo mappingInfo) {
+////      if (signalName.matches(".*CH\\d+")) {
+//         return super.getCodeIdentifier(mappingInfo); 
+////      }
+////      return null;
+//   }
 
    @Override
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signal);
+   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+      
+      for (int index=0; index<fInfoTable.table.size(); index++) {
+         Signal signal = fInfoTable.table.get(index);
+         if (signal == null) {
+            continue;
+         }
+         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
+         Pin pin = pinMapping.getPin();
+         String ident = pin.getCodeIdentifier();
+         if (ident.isBlank()) {
+            continue;
+         }
+         ident = makeCIdentifier(ident);
+         boolean repeatedIdent = !usedNames.add(ident);
+         
+         String declaration = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", index);
+         
+         writeDeclaration(writer, pin.getPinUseDescription(), repeatedIdent, ident, declaration, pin.getLocation());
+      }
    }
+   
+//   @Override
+//   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
+//      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
+//      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signal);
+//   }
 
    @Override
    public int getSignalIndex(Signal signal) {

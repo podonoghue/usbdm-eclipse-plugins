@@ -4,6 +4,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
@@ -55,8 +57,9 @@ public final class DevicePinsModel extends TreeViewModel implements IPage {
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Peripheral.Signal", 300, new NameColumnLabelProvider(),        null),
-                           new TreeColumnInformation("Mux:Pin",           350, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Peripheral.Signal", 200, new NameColumnLabelProvider(),        null),
+                           new TreeColumnInformation("Mux:Pin",           200, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Code Identifier",   120, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
                      };
                      return fColumnInformation;

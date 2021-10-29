@@ -31,6 +31,7 @@ public class Status {
 
    private final Severity fSeverity;
    private final String   fText;
+   private final String   fHint;
    
    @Override
    public boolean equals(Object obj) {
@@ -63,8 +64,9 @@ public class Status {
     * @param message Message text
     */
    public Status(String message) {
-      this.fText = message;
+      this.fText     = message;
       this.fSeverity = Severity.ERROR;
+      this.fHint     = null;
    }
    
    /**
@@ -76,6 +78,30 @@ public class Status {
    public Status(String message, Severity severity) {
       this.fText  = message;
       this.fSeverity = severity;
+      this.fHint     = null;
+   }
+   
+   /**
+    * Creates a message with default ERROR severity
+    * 
+    * @param message Message text
+    */
+   public Status(String message, String hint) {
+      this.fText     = message;
+      this.fSeverity = Severity.ERROR;
+      this.fHint     = hint;
+   }
+   
+   /**
+    * Create a message with given severity level
+    * 
+    * @param message    Message text
+    * @param severity   Severity level
+    */
+   public Status(String message, Severity severity, String hint) {
+      this.fText  = message;
+      this.fSeverity = severity;
+      this.fHint     = hint;
    }
    
    /**
@@ -113,6 +139,14 @@ public class Status {
     */
    public String getSimpleText() {
       return fText;
+   }
+   /**
+    * Get hint text
+    * 
+    * @return Hint text or null if no hint set
+    */
+   public String getHint() {
+      return fHint;
    }
    /**
     * Returns severity level of message

@@ -6,6 +6,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
+import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.NameColumnLabelProvider;
@@ -73,16 +75,18 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Category.Pin",        170, new NameColumnLabelProvider(),             null),
-                           new TreeColumnInformation("Pin Use Description", 180, new DescriptionColumnLabelProvider(),      new DescriptionColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Mux:Signals",         150, new ValueColumnLabelProvider(),            new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Interrupt/DMA",       130, new PinInterruptDmaColumnLabelProvider(),  new PinInterruptDmaEditingSupport(viewer)),
-                           new TreeColumnInformation("LK",                   50, PinBooleanColumnLabelProvider.getLk(),     PinBooleanEditingSupport.getLk(viewer)),
-                           new TreeColumnInformation("DSE",                  50, PinBooleanColumnLabelProvider.getDse(),    PinBooleanEditingSupport.getDse(viewer)),
-                           new TreeColumnInformation("ODE",                  50, PinBooleanColumnLabelProvider.getOde(),    PinBooleanEditingSupport.getOde(viewer)),
-                           new TreeColumnInformation("PFE",                  50, PinBooleanColumnLabelProvider.getPfe(),    PinBooleanEditingSupport.getPfe(viewer)),
-                           new TreeColumnInformation("SRE",                  50, PinBooleanColumnLabelProvider.getSre(),    PinBooleanEditingSupport.getSre(viewer)),
-                           new TreeColumnInformation("Pull",                 80, new PinPullColumnLabelProvider(),          new PinPullEditingSupport(viewer)),
+                           new TreeColumnInformation("Category.Pin",        150, new NameColumnLabelProvider(),               null),
+                           new TreeColumnInformation("Code Identifier",     120, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Pin Use Description", 200, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Mux:Signals",         180, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer)),
+                           new TreeColumnInformation("Polarity",            100, PinBooleanColumnLabelProvider.getPolarity(), PinBooleanEditingSupport.getPolarity(viewer)),
+                           new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer)),
+                           new TreeColumnInformation("DSE",                  40, PinBooleanColumnLabelProvider.getDse(),      PinBooleanEditingSupport.getDse(viewer)),
+                           new TreeColumnInformation("ODE",                  40, PinBooleanColumnLabelProvider.getOde(),      PinBooleanEditingSupport.getOde(viewer)),
+                           new TreeColumnInformation("PFE",                  40, PinBooleanColumnLabelProvider.getPfe(),      PinBooleanEditingSupport.getPfe(viewer)),
+                           new TreeColumnInformation("SRE",                  40, PinBooleanColumnLabelProvider.getSre(),      PinBooleanEditingSupport.getSre(viewer)),
+                           new TreeColumnInformation("Pull",                 60, new PinPullColumnLabelProvider(),            new PinPullEditingSupport(viewer)),
                      };
                      return fColumnInformation;
                   }

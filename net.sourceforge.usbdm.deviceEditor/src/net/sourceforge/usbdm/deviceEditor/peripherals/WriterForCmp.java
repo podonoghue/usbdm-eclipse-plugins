@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -38,8 +39,21 @@ public class WriterForCmp extends PeripheralWithState {
       return NUMBER_OF_INPUTS+super.getSignalIndex(function, signalNames);
    }
 
-   static final String PIN_FORMAT   = "      %-16s = %-8s %s\n";
+   static final String PIN_FORMAT   = "      %-25s = %-8s %s\n";
    
+   /**
+    * Generate set of enum symbols for comparator inputs that are mapped to pins.
+    * 
+    * <pre>
+    *       Input_Ptc7       = 1,       //!< Mapped pin PTC7
+    *       Input_VrefOut    = 5,       //!< Fixed pin  VREF_OUT
+    *       Input_Bandgap    = 6,       //!< Fixed pin  BANDGAP
+    *       Input_CmpDac     = 7,       //!< Fixed pin  CMP_DAC
+    * </pre> 
+    * 
+    * @param documentUtilities
+    * @throws IOException
+    */
    void writeInputEnum(DocumentUtilities documentUtilities) throws IOException {
       String enumName    = "Input";
       String commentRoot = "//!< ";
@@ -56,11 +70,16 @@ public class WriterForCmp extends PeripheralWithState {
             if (signal == null) {
                continue;
             }
-            MappingInfo mappingInfo = signal.getMappedPin();
+            MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
+            Pin pin = mappingInfo.getPin();
             String pinName = enumName+"_"+prettyPinName(mappingInfo.getPin().getName());
+            String userPinName = pin.getCodeIdentifier().trim();
+            if (!userPinName.isBlank()) {
+               userPinName =  enumName+"_"+userPinName;
+            }
             int mapName = index;
             do {
-               if (!mappingInfo.getPin().isAvailableInPackage()) {
+               if (!pin.isAvailableInPackage()) {
                   // Discard unmapped signals on this package 
                   continue;
                }
@@ -70,11 +89,17 @@ public class WriterForCmp extends PeripheralWithState {
                }
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Fixed pin  "+mappingInfo.getPin().getName()));
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Fixed pin  "+pin.getName()));
+                  if (!userPinName.isBlank()) {
+                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", commentRoot+"Fixed pin  "+pin.getName()));
+                  }
                   continue;
                }
                if (mappingInfo.isSelected()) {
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Mapped pin "+mappingInfo.getPin().getName()));
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Mapped pin "+pin.getName()));
+                  if (!userPinName.isBlank()) {
+                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", commentRoot+"Mapped pin "+pin.getName()));
+                  }
                }
             } while(false);
          }

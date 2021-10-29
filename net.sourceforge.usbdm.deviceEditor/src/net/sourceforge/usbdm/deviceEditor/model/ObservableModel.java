@@ -7,8 +7,8 @@ import java.util.ArrayList;
  */
 public class ObservableModel {
 
-   private boolean fRefreshPending = false;
-
+   private boolean fRefreshPending  = false;
+   
    private ArrayList<IModelChangeListener> fListeners = new ArrayList<IModelChangeListener>();
 
    /**

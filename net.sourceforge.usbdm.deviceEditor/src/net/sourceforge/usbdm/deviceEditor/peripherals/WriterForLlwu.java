@@ -50,7 +50,7 @@ public class WriterForLlwu extends PeripheralWithState {
             if (signal == null) {
                continue;
             }
-            MappingInfo mappingInfo = signal.getMappedPin();
+            MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
             String originalPinName = mappingInfo.getPin().getName();
             String pinName = enumName+"_"+prettyPinName(originalPinName);
             String mapName = enumName+"_"+index;

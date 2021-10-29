@@ -7,14 +7,15 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 
-public class DescriptionColumnEditingSupport extends EditingSupport {
+public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    private TreeViewer viewer;
 
-   public DescriptionColumnEditingSupport(TreeViewer viewer) {
+   public CodeIdentifierColumnEditingSupport(TreeViewer viewer) {
       super(viewer);
       this.viewer = viewer;
    }
@@ -39,11 +40,11 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
    protected Object getValue(Object element) {
       if (element instanceof PinModel) {
          PinModel pinModel = (PinModel)element;
-         return pinModel.getPinUseDescription();
+         return pinModel.getCodeIdentifier();
       }
       if (element instanceof SignalModel) {
-         SignalModel signalModel = (SignalModel)element;
-         return signalModel.getSignal().getMappedPin().getPinUseDescription();
+         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
+         return pin.getCodeIdentifier();
       }
       return null;
    }
@@ -52,14 +53,17 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
    protected void setValue(Object element, Object value) {
       if (element instanceof PinModel) {
          PinModel pinModel = (PinModel)element;
-         pinModel.setPinUseDescription((String) value);
+         pinModel.setCodeIdentifier((String) value);
+         viewer.update(element, null);
       }
       if (element instanceof SignalModel) {
-         SignalModel signalModel = (SignalModel)element;
-         signalModel.getSignal().getMappedPin().setPinUseDescription((String) value);
+         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
+         if (pin != Pin.UNASSIGNED_PIN) {
+            pin.setCodeIdentifier((String) value);
+            viewer.update(element, null);
+         }
       }
-      viewer.update(element, null);
-      }
+   }
 
    public class StringCellEditor extends TextCellEditor {
 

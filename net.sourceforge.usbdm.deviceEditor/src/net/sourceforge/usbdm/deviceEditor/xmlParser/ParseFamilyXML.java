@@ -131,7 +131,8 @@ public class ParseFamilyXML extends XML_BaseParser {
          }
          Element element = (Element) node;
          if (element.getTagName()  == "placement") {
-            Pin pin           = fDeviceInfo.findPin(element.getAttribute("pin"));
+            String pinName = element.getAttribute("pin");
+            Pin pin           = fDeviceInfo.findPin(pinName);
             String         location      = element.getAttribute("location");
             DevicePackage  devicePackage = fDeviceInfo.findDevicePackage(packageName);
             devicePackage.addPin(pin, location);

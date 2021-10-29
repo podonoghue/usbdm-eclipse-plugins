@@ -54,10 +54,10 @@ public class PinListDialogue extends Dialog {
      Vector<Signal> table  = fPeripheral.getSignalTables().get(0).table;
      for (int pinIndex=0; pinIndex<table.size(); pinIndex++) {
         Signal entry = table.get(pinIndex);
-        if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+        if ((entry == null) || (entry.getFirstMappedPinInformation().getPin() == Pin.UNASSIGNED_PIN)) {
            continue;
         }
-        pins.add(String.format(PIN_TEMPLATE, entry.getName(), entry.getMappedPin().getPin().getName()));
+        pins.add(String.format(PIN_TEMPLATE, entry.getName(), entry.getFirstMappedPinInformation().getPin().getName()));
         signalIndexList.add(pinIndex);
      }
      fPinList         = pins.toArray(new String[pins.size()]);
@@ -87,7 +87,7 @@ public class PinListDialogue extends Dialog {
             if (i<initialSelections.length) {
                int signalIndex = Integer.parseInt(initialSelections[i]);
                Signal entry = pinTable.elementAt(signalIndex);
-               String item = String.format(PIN_TEMPLATE, entry.getName(), entry.getMappedPin().getPin().getName());
+               String item = String.format(PIN_TEMPLATE, entry.getName(), entry.getFirstMappedPinInformation().getPin().getName());
                int sel = fCombos[i].indexOf(item);
                if (sel > 0) {
                   fCombos[i].select(sel);

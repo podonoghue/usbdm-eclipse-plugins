@@ -10,6 +10,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Pin.PinIntDmaValue;
 import net.sourceforge.usbdm.deviceEditor.information.Pin.PinPullValue;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class PinModel extends SelectionModel implements IModelChangeListener {
 
@@ -22,7 +23,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    private final MappingInfo[] fMappingInfos;
 
    public PinModel(BaseModel parent, Pin pin) {
-      super(parent, pin.getNameWithLocation(), pin.getDescription());
+      super(parent, pin.getNameWithLocation(), pin.getPinUseDescription());
 
       fPin = pin;
       fPin.addListener(this);
@@ -62,12 +63,8 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
             fSelection = values.size()-1;
          }
       }
-
       fChoices      = values.toArray(new String[values.size()]);
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
-      
-      fPin.connectListeners();
-      fPin.setMuxSelection(currentMuxValue);
    }
 
    /**
@@ -91,7 +88,10 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    
    @Override
    public String getValueAsString() {
-      return fChoices[findValueIndex(fPin.getMappedSignal())];
+      if (fPin.checkMappingConflicted() != null) {
+         return "Conflict"; 
+      }
+      return fChoices[findValueIndex(fPin.getMappedSignals())];
    }
 
    @Override
@@ -103,7 +103,23 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
    @Override
    public void modelElementChanged(ObservableModel model) {
+      
+      // Update status
+      Status status = fPin.checkMappingConflicted();
+      if (status == null) {
+         for (Signal signal : fPin.getMappedSignals().getSignals()) {
+            status = signal.checkMappingConflicted();
+            if (status != null) {
+               break;
+            }
+         }
+      }
+      setStatus(status);
+      
       if (model instanceof Pin) {
+         // XXX Delete me!
+         Pin pin = (Pin)model;
+         System.err.println("PinModel("+fPin.getName()+").modelElementChanged(Pin("+pin.getName()+"))");
          update();
          checkConflicts();
       }
@@ -111,6 +127,14 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
    @Override
    public String getSimpleDescription() {
+//      if (fPin.isMappingConflicted()) {
+//         return "Conflict";
+//      }
+//      for (Signal signal : fPin.getMappedSignals().getSignals()) {
+//         if (signal.isMappingConflicted()) {
+//            return "Conflict";
+//         }
+//      }
       return getPinUseDescription();
    }
 
@@ -132,6 +156,24 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       fPin.setPinUseDescription(pinUseDescription);
    }
 
+   /**
+    * Get identifier to use in code generation
+    * 
+    * @return
+    */
+   public String getCodeIdentifier() {
+      return fPin.getCodeIdentifier();
+   }
+
+   /**
+    * Set identifier to use in code generation
+    * 
+    * @return
+    */
+   public void setCodeIdentifier(String pinUseDescription) {
+      fPin.setCodeIdentifier(pinUseDescription);
+   }
+
    @Override
    public boolean isUnassigned() {
       return (fPin.getMuxValue() == MuxSelection.unassigned);
@@ -144,7 +186,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     */
    @Override
    Status getStatus() {
-      Status rv = fPin.getMappedSignal().getMessage();
+      Status rv = fPin.getMappedSignals().getMessage();
       if (rv != null) {
          return rv;
       }
@@ -186,7 +228,18 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 
    @Override
    public String toString() {
-      return "PinModel("+fName+") => "+getValueAsString();
+      StringBuilder sb = new StringBuilder();
+      sb.append("PinModel("+fName+") => ");
+      if (fPin.checkMappingConflicted() != null) {
+         sb.append("** ");
+      }
+      for (MuxSelection muxSelection:fPin.getMappableSignals().keySet()) {
+         MappingInfo mappingInfo = fPin.getMappableSignals().get(muxSelection);
+         if (mappingInfo.isSelected()) {
+            sb.append(mappingInfo.getSignalList() + " ");
+         }
+      }
+      return sb.toString();
    }
 
    @Override

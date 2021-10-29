@@ -8,11 +8,22 @@ import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 
 public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLabelProvider {
 
+   String trueText;
+   String falseText;
+   
    @Override
    public abstract String getToolTipText(Object element);
 
    private PinBooleanColumnLabelProvider(long mask, long offset) {
       super(mask, offset);
+      this.trueText  = "1";
+      this.falseText = "0";
+   }
+
+   private PinBooleanColumnLabelProvider(long mask, long offset, String trueText, String falseText) {
+      super(mask, offset);
+      this.trueText  = trueText;
+      this.falseText = falseText;
    }
 
    @Override
@@ -21,7 +32,7 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
       if (value == null) {
          return null;
       }
-      return (value!=0)?"1":"0";
+      return (value!=0)?trueText:falseText;
    }
 
    @Override
@@ -34,6 +45,15 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
          return null;
       }
       return (value!=0)?checkedImage:uncheckedImage;
+   }
+
+   public static PinBooleanColumnLabelProvider getPolarity() {
+      return new PinBooleanColumnLabelProvider(Pin.PORT_POLARITY_MASK, Pin.PORT_POLARITY_SHIFT, "ActiveLow", "ActiveHigh") {
+         @Override
+         public String getToolTipText(Object element) {
+            return "Polarity if used as Gpio or part of a GpioField";
+         }
+      };
    }
 
    public static PinBooleanColumnLabelProvider getLk() {

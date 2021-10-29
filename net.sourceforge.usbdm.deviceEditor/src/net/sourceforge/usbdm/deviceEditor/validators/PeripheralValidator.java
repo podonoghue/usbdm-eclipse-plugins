@@ -162,7 +162,7 @@ public class PeripheralValidator extends Validator {
       Status unmappedSignals = null;
       for (int pinNum:requiredSignals) {
          Signal signal = table.get(pinNum);
-         if ((signal == null) || (signal.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+         if ((signal == null) || (signal.getFirstMappedPinInformation().getPin() == Pin.UNASSIGNED_PIN)) {
             unmappedSignals = UNMAPPED_PIN_STATUS;
             break;
          }

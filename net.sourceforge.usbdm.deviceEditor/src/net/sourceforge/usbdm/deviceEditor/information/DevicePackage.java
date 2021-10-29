@@ -35,7 +35,7 @@ public class DevicePackage {
     * @param location   Location on package
     */
    public void addPin(Pin pin, String location) {
-      fPins.put(pin.getName(), location);
+       fPins.put(pin.getName(), location);
    }
    
    /**
@@ -62,7 +62,7 @@ public class DevicePackage {
     * 
     * @param pin  Pin to look for
     * 
-    * @return  Pin location
+    * @return  Pin location or null if not found in this package
     */
    public String getLocation(Pin pin) {
       return fPins.get(pin.getName());

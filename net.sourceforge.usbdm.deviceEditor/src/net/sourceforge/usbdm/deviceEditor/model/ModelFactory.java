@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -222,94 +221,95 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * <li>Signals mapped to multiple pins
     */
    private void checkConflictsJob() {
-//      System.err.println("checkConflictsJob()");
-      testAndSetConflictCheckPending(false);
-
-      /** Used to check for multiple mappings to a single pin */ 
-      Map<String, List<MappingInfo>> mappedSignalsByPin      = new HashMap<String, List<MappingInfo>>();
-
-      /** Used to check for a signal being mapped to multiple pins */
-      Map<String, List<MappingInfo>> mappedPinsBySignal = new HashMap<String, List<MappingInfo>>();
-
-      for (MappingInfo mapping:fPinModel.getMappingInfos()) {
-         mapping.setMessage("");
-         if (!mapping.isSelected()) {
-            continue;
-         }
-         /*
-          * Check for multiple Signals => Pin
-          */
-         List<MappingInfo> signalsMappedToPin = addToMap(mappedSignalsByPin, mapping, mapping.getPin().getName());
-         if (signalsMappedToPin != null) {
-            // Signal previously mapped to this pin
-
-            // Check if any conflicts between new signal mapping and existing ones
-            // Note - Multiple signals may be mapped to the same pin without conflict 
-            // since some signals share a mapping.
-            // Need to check the signalLists not the signals
-            boolean conflicting = false;
-            StringBuffer sb = null;
-            for (MappingInfo other:signalsMappedToPin) {
-               // Check for conflicts
-               if (!mapping.getSignalList().equals(other.getSignalList())) {
-                  // Not shared port mapping
-                  conflicting = true;
-               }
-            }
-            if (conflicting) {
-               // Construct conflict message
-               for (MappingInfo other:signalsMappedToPin) {
-                  if (sb == null) {
-                     sb = new StringBuffer();
-                     sb.append("Error: (");
-                  }
-                  else {
-                     sb.append(", ");
-                  }
-                  sb.append(other.getSignalList());
-                  sb.append("@"+other.getMux().name());
-               }
-               sb.append(") =>> ");
-               sb.append(mapping.getPin().getName());
-               sb.append("\nPin mapped to multiple signals");
-               // Mark all conflicting nodes
-               for (MappingInfo other:signalsMappedToPin) {
-                  other.setMessage(sb.toString());
-               }
-            }
-         }
-         /*
-          * Check for Signal => multiple Pins
-          */
-         List<MappingInfo>  pinsMappedToSignal = addToMap(mappedPinsBySignal, mapping, mapping.getSignalList());
-//         System.err.println("checkConflictsJob(): " + mapping);
-         if (pinsMappedToSignal != null) {
-            // Pins previously mapped to this signal
-
-            // Construct conflict message
-            StringBuffer sb = null;
-            for (MappingInfo other:pinsMappedToSignal) {
-               if (sb == null) {
-                  sb = new StringBuffer();
-                  sb.append(mapping.getSignalList()+" =>> (");
-               }
-               else {
-                  sb.append(", ");
-               }
-               sb.append(other.getPin().getName());
-            }
-            // Multiple signals mapped to pin
-            sb.append(")");
-            sb.append("\nSignal mapped to multiple pins");
-            // Mark all conflicting nodes
-            for (MappingInfo other:pinsMappedToSignal) {
-               other.setMessage(sb.toString());
-            }
-         }
-      }
-      for (IPage model:fModels) {
-         model.updatePage();
-      }
+////      return;
+////      System.err.println("checkConflictsJob()");
+//      testAndSetConflictCheckPending(false);
+//
+//      /** Used to check for multiple mappings to a single pin */ 
+//      Map<String, List<MappingInfo>> mappedSignalsByPin      = new HashMap<String, List<MappingInfo>>();
+//
+//      /** Used to check for a signal being mapped to multiple pins */
+//      Map<String, List<MappingInfo>> mappedPinsBySignal = new HashMap<String, List<MappingInfo>>();
+//
+//      for (MappingInfo mapping:fPinModel.getMappingInfos()) {
+//         mapping.setMessage("");
+//         if (!mapping.isSelected()) {
+//            continue;
+//         }
+//         /*
+//          * Check for multiple Signals => Pin
+//          */
+//         List<MappingInfo> signalsMappedToPin = addToMap(mappedSignalsByPin, mapping, mapping.getPin().getName());
+//         if (signalsMappedToPin != null) {
+//            // Signal previously mapped to this pin
+//
+//            // Check if any conflicts between new signal mapping and existing ones
+//            // Note - Multiple signals may be mapped to the same pin without conflict 
+//            // since some signals share a mapping.
+//            // Need to check the signalLists not the signals
+//            boolean conflicting = false;
+//            StringBuffer sb = null;
+//            for (MappingInfo other:signalsMappedToPin) {
+//               // Check for conflicts
+//               if (!mapping.getSignalList().equals(other.getSignalList())) {
+//                  // Not shared port mapping
+//                  conflicting = true;
+//               }
+//            }
+//            if (conflicting) {
+//               // Construct conflict message
+//               for (MappingInfo other:signalsMappedToPin) {
+//                  if (sb == null) {
+//                     sb = new StringBuffer();
+//                     sb.append("Error: (");
+//                  }
+//                  else {
+//                     sb.append(", ");
+//                  }
+//                  sb.append(other.getSignalList());
+//                  sb.append("@"+other.getMux().name());
+//               }
+//               sb.append(") =>> ");
+//               sb.append(mapping.getPin().getName());
+//               sb.append("\nPin mapped to multiple signals");
+//               // Mark all conflicting nodes
+//               for (MappingInfo other:signalsMappedToPin) {
+//                  other.setMessage(sb.toString());
+//               }
+//            }
+//         }
+//         /*
+//          * Check for Signal => multiple Pins
+//          */
+//         List<MappingInfo>  pinsMappedToSignal = addToMap(mappedPinsBySignal, mapping, mapping.getSignalList());
+////         System.err.println("checkConflictsJob(): " + mapping);
+//         if (pinsMappedToSignal != null) {
+//            // Pins previously mapped to this signal
+//
+//            // Construct conflict message
+//            StringBuffer sb = null;
+//            for (MappingInfo other:pinsMappedToSignal) {
+//               if (sb == null) {
+//                  sb = new StringBuffer();
+//                  sb.append(mapping.getSignalList()+" =>> (");
+//               }
+//               else {
+//                  sb.append(", ");
+//               }
+//               sb.append(other.getPin().getName());
+//            }
+//            // Multiple signals mapped to pin
+//            sb.append(")");
+//            sb.append("\nSignal mapped to multiple pins");
+//            // Mark all conflicting nodes
+//            for (MappingInfo other:pinsMappedToSignal) {
+//               other.setMessage(sb.toString());
+//            }
+//         }
+//      }
+////      for (IPage model:fModels) {
+////         model.updatePage();
+////      }
    }
 
    /**
@@ -344,7 +344,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
       for (String key:fDeviceInfo.getSignals().keySet()) {
          Signal signal = fDeviceInfo.getSignals().get(key);
-         System.err.println(String.format("Signal: %-15s => %-15s", signal.getName(), signal.getMappedPin()));
+         System.err.println(String.format("Signal: %-15s => %-15s", signal.getName(), signal.getFirstMappedPinInformation()));
       }
    }
    

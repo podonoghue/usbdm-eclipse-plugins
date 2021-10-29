@@ -62,7 +62,7 @@ public class LcdValidate extends PeripheralValidator {
       int backPlaneValues[] = backplanesVar.getValues();
       for (int pinNum:backPlaneValues) {
          Signal entry = table.get(pinNum);
-         if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+         if ((entry == null) || (entry.getMappedPin() == Pin.UNASSIGNED_PIN)) {
             unmappedBackplanesMessage = UNMAPPED_PIN_STATUS;
             break;
          }
@@ -73,7 +73,7 @@ public class LcdValidate extends PeripheralValidator {
       int frontPlaneValues[] = frontplanesVar.getValues();
       for (int pinNum:frontPlaneValues) {
          Signal entry = table.get(pinNum);
-         if ((entry == null) || (entry.getMappedPin().getPin() == Pin.UNASSIGNED_PIN)) {
+         if ((entry == null) || (entry.getMappedPin() == Pin.UNASSIGNED_PIN)) {
             unmappedFrontplanesMessage = UNMAPPED_PIN_STATUS;
             break;
          }

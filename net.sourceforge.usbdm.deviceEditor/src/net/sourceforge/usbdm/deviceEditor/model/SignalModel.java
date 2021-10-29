@@ -1,12 +1,14 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 
 public class SignalModel extends SelectionModel implements IModelChangeListener {
@@ -19,21 +21,23 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    /** List of mapping info choices - Used to map selections to mappingInfo value for signal */
    private final MappingInfo[] fMappingInfos;
    
+   public Signal getSignal() {
+      return fSignal;
+   }
+   
    public SignalModel(BaseModel parent, Signal signal) {
       super(parent, signal.getName(), "");
 
       fSignal = signal;
-      setDescription(fSignal.getMappedPin().getPin().getPinUseDescription());
+      setDescription(fSignal.getFirstMappedPinInformation().getPin().getPinUseDescription());
 
-      TreeSet<MappingInfo> mappingInfoSet = signal.getPinMapping();
-      MappingInfo firstMapping = mappingInfoSet.first();
-      if (firstMapping.getMux() == MuxSelection.fixed) {
-         // Fixed mapping for function
-         fChoices      = new String[] {signal.getPinMapping().first().getPin().getNameWithLocation()};
-         fMappingInfos = null;
-         return;
-      }
-
+      TreeSet<MappingInfo> mappingInfoSet = fSignal.getPinMapping();
+//      MappingInfo firstMapping = mappingInfoSet.first();
+      //      if (firstMapping.getMux() == MuxSelection.fixed) {
+      //         // Fixed mapping for function
+      //         fChoices      = new String[] {fSignal.getPinMapping().first().getPin().getNameWithLocation()};
+      //         fMappingInfos = null;
+      //      }
       // Create list of values to choose from and corresponding mappingInfos
       ArrayList<String> values            = new ArrayList<String>();
       ArrayList<MappingInfo> mappingInfos = new ArrayList<MappingInfo>();
@@ -53,10 +57,8 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       }
       fChoices = values.toArray(new String[values.size()]);
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
-      
-      fSignal.addListener(this);
 
-      fSignal.connectListeners();
+      fSignal.addListener(this);
    }
    
    /**
@@ -80,11 +82,14 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    
    @Override
    public String getValueAsString() {
-      int index = fSignal.getMappedPin().getMux().ordinal();
+      if (fSignal.checkMappingConflicted() != null) {
+         return "Conflict"; 
+      }
+      int index = fSignal.getFirstMappedPinInformation().getMux().ordinal();
       if (index<0) {
          return "Unmapped";
       }
-      return fChoices[findValueIndex(fSignal.getMappedPin())];
+      return fChoices[findValueIndex(fSignal.getFirstMappedPinInformation())];
    }
 
    @Override
@@ -98,7 +103,29 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    
    @Override
    public void modelElementChanged(ObservableModel model) {
+
+      // Update status
+      Status status = fSignal.checkMappingConflicted();
+      if (status == null) {
+         for (MappingInfo mappingInfo: fSignal.getMappedPinInformation()) {
+            status = mappingInfo.getPin().checkMappingConflicted();
+            if (status != null) {
+               break;
+            }
+         }
+      }
+      setStatus(status);
+
       if (model instanceof Signal) {
+         // XXX Delete me!
+         Signal signal = (Signal)model;
+         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Signal("+signal.getName()+")");
+         update();
+      }
+      if (model instanceof Pin) {
+         // XXX Delete me!
+         Pin pin = (Pin)model;
+         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Pin("+pin.getName()+")");
          update();
       }
    }
@@ -116,7 +143,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    Status getStatus() {
       Status rv = null;
-      MappingInfo currentMapping = fSignal.getMappedPin();
+      MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
       if (currentMapping != null) {
          rv = currentMapping.getMessage();
       }
@@ -156,7 +183,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    public String getToolTip() {
       String tip = super.getToolTip();
       if (tip==null) {
-         MappingInfo currentMapping = fSignal.getMappedPin();
+         MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
          if ((currentMapping != null) && (currentMapping != MappingInfo.UNASSIGNED_MAPPING)) {
             tip = getPinListDescription();
          }
@@ -169,19 +196,17 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 
    @Override
    public String getSimpleDescription() {
-      MappingInfo currentMapping = fSignal.getMappedPin();
+      List<MappingInfo> currentMapping = fSignal.getMappedPinInformation();
       String description = null;
-      
+
       // Try to get description from currently mapped pin
-      if (currentMapping != null) {
-         if (currentMapping != MappingInfo.UNASSIGNED_MAPPING) {
-            description = currentMapping.getPin().getPinUseDescription();
-         }
-         else {
-            String pinListDescription = getPinListDescription();
-            if (pinListDescription != null) {
-               description = "[" + pinListDescription + "]";
-            }
+      if (!currentMapping.isEmpty()) {
+         description = currentMapping.get(0).getPin().getPinUseDescription();
+      }
+      else {
+         String pinListDescription = getPinListDescription();
+         if (pinListDescription != null) {
+            description = "[" + pinListDescription + "]";
          }
       }
       return description;
@@ -194,7 +219,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 
    @Override
    public boolean isUnassigned() {
-      MappingInfo currentMapping = fSignal.getMappedPin();
+      MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
       return ((currentMapping == null) || 
               (currentMapping.getMux() == MuxSelection.unassigned));
    }

@@ -3,6 +3,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -430,73 +431,93 @@ public abstract class Peripheral extends VariableProvider {
       String signal   = mappingInfo.getSignals().get(fnIndex).getSignalName();
       return getClassName().toLowerCase()+"_"+signal;
    }
+
+   /**
+    * Convert string to valid c identifier<br>
+    * If the string starts with a digit it is prefixed with X_<br>
+    * Other invalid characters are converted to '_'.
+    * 
+    * @param ident String to convert
+    * 
+    * @return Valid C identifier
+    */
+   String makeCIdentifier(String ident) {
+      if (ident.isBlank()) {
+         return "";
+      }
+      if (!Character.isJavaIdentifierStart(ident.charAt(0))) {
+         ident = "X_" + ident;
+      }
+      return ident.replaceAll("[^a-zA-Z0-9]", "_");
+   }
    
    /**
-    * Get alias name based on the given alias
+    *  Write declaration
+    *  
+    * @param writer        Where to write
+    * @param description   Comment describing declaration
+    * @param isRepeated    Comment out?
+    * @param ident         C identifier to use
+    * @param type          C Type to use
+    * @param pinLocation   Pin location (form commenting)
     * 
-    * @param signalName   Signal being mapped to alias
-    * @param alias        Base for alias name e.g. <b><i>p36</b></i>
-    * 
-    * @return Alias name e.g. Gpio_<b><i>p36</b></i> or <b><i>null</b></i> to suppress alias
+    * @throws IOException
     */
-   public String getAliasName(String signalName, String alias) {
-      String temp = getBaseName().toLowerCase();
-      return Character.toUpperCase(temp.charAt(0))+ temp.substring(1)+"_"+alias;
-   }
-   
-   /** 
-    * Get alias declaration for a simple signal e.g. 
-    * <pre>
-    * using <b><i>alias</b></i> = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
-    * </pre>
-    * @param alias          Name of alias e.g. ftm_D8
-    * @param mappingInfo    Mapping information (pin and signal)
-    * @param fnIndex        Index into list of signals mapped to pin
-    * 
-    * @return  String 
-    */
-   public String getAliasDeclaration(String alias, MappingInfo mappingInfo, int fnIndex) {
-     String declaration = getDeclaration(mappingInfo, fnIndex);
-     if (declaration == null) {
-        return null;
-     }
-     return String.format("using %-20s = %s\n", alias, declaration+";");
+   void writeDeclaration(DocumentUtilities writer, String description, boolean isRepeated, String ident, String type, String pinLocation) throws IOException {
+      writeDeclaration(writer, "", description, isRepeated, ident, type, pinLocation);
    }
 
-   /** 
-    * Get declaration as string e.g. 
-    * <pre>
-    * const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i> 
-    * const USBDM::Adc<b><i>0</i></b>Channel&lt;<b><i>19</i></b>>
-    * const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and signal)
-    * @param cppFile        Where to write
-    * @throws IOException 
-    */
-   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-      return null;
-   }
-
-   /** 
-    * Get a definition for a simple signal
-    * <pre>
-    * using gpio<b><i>A</b></i>_<b><i>0</b></i>   = const USBDM::Gpio<b><i>A</b></i>&lt;<b><i>0</b></i>&gt;</b></i>;
-    * using adc<b><i>0</i></b>_se<b><i>19</i></b> = const USBDM::Adc<b><i>0</i></b>&lt;<b><i>0</i></b>, <b><i>0</i></b>, <b><i>19</i></b>>;
-    * using adc<b><i>1</i></b>_se<b><i>17</i></b> = const USBDM::Adc<b><i>1</i></b>&lt;PORT<b><i>E</i></b>_CLOCK_MASK, PORT<b><i>E</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>24</i></b>]), <b><i>17</i></b>> ;
-    * using ftm<b><i>1</i></b>_ch<b><i>17</i></b> = const USBDM::Ftm<b><i>1</b></i>&lt;PORT<b><i>A</i></b>_CLOCK_MASK, PORT<b><i>A</i></b>_BasePtr+offsetof(PORT_Type,PCR[<b><i>0</i></b>]), <i><b>3</i></b>, <i><b>17</i></b>>;
-    * </pre>
-    * @param mappingInfo    Mapping information (pin and signal)
-    * @param fnIndex        Index into list of signals mapped to pin
+   /**
+    *  Write declaration
+    *  
+    * @param writer        Where to write
+    * @param error         Error message to precede declaration (empty to suppress) 
+    * @param description   Comment describing declaration
+    * @param isRepeated    Comment out?
+    * @param ident         C identifier to use
+    * @param type          C Type to use
+    * @param pinLocation   Pin location (form commenting)
     * 
-    * @return Definition as string
-    * 
-    * @throws IOException 
+    * @throws IOException
     */
-   public String getDefinition(MappingInfo mappingInfo, int fnIndex) throws IOException {
-      return getAliasDeclaration(getInstanceName(mappingInfo, fnIndex), mappingInfo, fnIndex);
+   void writeDeclaration(DocumentUtilities writer, String error, String description, boolean isRepeated, String ident, String type, String pinLocation) throws IOException {
+//      String typeIdent = Character.toUpperCase(ident.charAt(0))+ident.substring(1);
+      String varIdent  = Character.toLowerCase(ident.charAt(0))+ident.substring(1);
+      
+      writer.write("\n");
+      if (!description.isBlank()) {
+         writer.write("// " + description + "\n");
+      }
+      
+      if (!error.isBlank()) {
+         writer.write("#error \"" + error + "\"\n");
+      }
+      
+      if (!pinLocation.isBlank()) {
+         pinLocation = "// " + pinLocation;
+      }
+      
+//      writer.write(String.format("%susing %-30s = %-40s %s\n", isRepeated?"// ":"", typeIdent, type+";", pinLocation));
+      writer.write(String.format("%sextern %-50s %-30s  %s\n", isRepeated?"// ":"", type, varIdent+";", pinLocation));
    }
    
+   /**
+    * Write declarations for simple types associated with this peripheral e.g.
+    * <pre>
+    * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9   
+    * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39   
+    * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39   
+    * extern const USBDM::Ftm<b><i>1</b></i>::Channel&lt;<b><i>3</b></i>&gt    myFtmChannel; // p34
+    * </pre>
+    * 
+    * @param writer        Where to write declarations
+    * @param usedNames     Set used to prevent repeated C identifiers
+    * 
+    * @throws IOException
+    */
+   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+   }
+
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
     * Default implementation checks the size of the signal table
@@ -663,7 +684,7 @@ public abstract class Peripheral extends VariableProvider {
             pinMappingHeaderFile.write(String.format(indent+INVALID_TEMPLATE, index, "--", "--"));
             continue;
          }
-         MappingInfo mappingInfo = signal.getMappedPin();
+         MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
          MappingInfo mappedPin = null;
          do {
             if (!mappingInfo.getPin().isAvailableInPackage()) {
