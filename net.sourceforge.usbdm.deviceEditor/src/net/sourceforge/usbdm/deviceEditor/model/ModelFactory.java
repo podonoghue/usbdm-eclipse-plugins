@@ -90,37 +90,53 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    ArrayList<IPage> fModels = new ArrayList<IPage>();
 
    /**
-    * Create model organised by pin<br>
-    * Also updates fMappingInfos
-    * 
+    * Constructs model representing pins organised into categories (PORTA, Power, Misc.)
+    * <pre>
+    * Device Signals Model
+    *    +--- Category Model ...
+    *             +----Pin Model ...
+    * </pre> 
     * @return Model
     */
-   private DeviceSignalsModel createPinModel() {
+   private DeviceSignalsModel createPinViewPageModel() {
       return new DeviceSignalsModel(null, fDeviceInfo);
    }
 
    /**
-    * Create model organised by peripheral
+    * Constructs model representing all peripherals along with their associated signals
     * 
-    * @return Model
+    * <pre>
+    * Peripheral View Page Model<br>
+    *    +---- Peripheral Model...<br>
+    *             +-----Signal Model...
+    * </pre>
+    * 
+    * @param parent        Parent to attache models to
+    * @param fDeviceInfo   Device to obtain information from
     */
-   private DevicePinsModel createPeripheralModel() {
-      return new DevicePinsModel(null, fDeviceInfo);
+   private PeripheralViewPageModel createPeripheralViewPageModel() {
+      return new PeripheralViewPageModel(null, fDeviceInfo);
    }
    
    /**
-    * Create model for Device provided elements usually parameters
-    * 
-    * @return
+    * Creates a model for an editor page containing tabbed pages representing all peripherals and their parameters and signals
+    * <pre>
+    *     TabModel
+    *         +---- Peripheral (Tab) ...
+    *                   +---- Parameters (various) ...
+    *                   +---- Signals (Category Model)
+    *                            +----- Signal Model ...
+    * </pre>
+    * @return Model  Constructed model
     */
-   private TabModel createParameterModels() {
+   private TabModel createPeripheralParameterPageModel() {
       fParameterModels = new TabModel(
-            null, "Peripheral Parameters", 
-            "Interrupt handling and\ndefault settings used by defaultConfigure()");
+            null, "Peripheral Parameters", "Interrupt handling and\ndefault settings used by defaultConfigure()");
+      
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
-         Peripheral device = fDeviceInfo.getPeripherals().get(peripheralName);
-         if (device instanceof IModelEntryProvider) {
-            ((IModelEntryProvider) device).getModels(fParameterModels);
+         Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
+         if (peripheral instanceof IModelEntryProvider) {
+            ((IModelEntryProvider) peripheral).getModels(fParameterModels);
          }
       }
       return fParameterModels;
@@ -140,7 +156,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * The model for the first page of the editor<br>
     * This page does not get re-generated
     */
-   private DeviceInformationModel fPackageModel= null;
+   private DeviceInformationModel fDeviceInformationPageModel = null;
    
    /**
     * The model for the image page of the editor<br>
@@ -152,7 +168,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    private DeviceVariantInformation fCurrentDeviceVariant = null;
    
    /** Models representing all pins */
-   private DeviceSignalsModel fPinModel;
+   private DeviceSignalsModel fPinViewPageModel;
 
    /**
     * Sets conflict check as pending<br>
@@ -326,7 +342,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
 
       fDeviceInfo.addListener(this);
 
-      fPackageModel      = (DeviceInformationModel)fDeviceInfo.getModel(null);
+      fDeviceInformationPageModel      = (DeviceInformationModel)fDeviceInfo.getModel(null);
       
       fPackageImageModel = new PackageImageModel(this, null);
 
@@ -353,16 +369,16 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    void createModels() {
       for (IPage page:fModels) {
-         if ((page != null)&&(page != fPackageModel)) {
+         if ((page != null)&&(page != fDeviceInformationPageModel)) {
             page.getModel().removeListeners();
          }
       }
       fModels = new ArrayList<IPage>();
-      fModels.add(fPackageModel);
-      fModels.add(createPeripheralModel());
-      fPinModel = createPinModel();
-      fModels.add(fPinModel);
-      fModels.add(createParameterModels());
+      fModels.add(fDeviceInformationPageModel);
+      fModels.add(createPeripheralViewPageModel());
+      fPinViewPageModel = createPinViewPageModel();
+      fModels.add(fPinViewPageModel);
+      fModels.add(createPeripheralParameterPageModel());
       fModels.add(fPackageImageModel);
 
 //      report();

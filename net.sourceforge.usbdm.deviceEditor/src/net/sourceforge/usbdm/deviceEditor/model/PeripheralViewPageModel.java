@@ -16,25 +16,35 @@ import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 /**
- * Model describing the device pins organised by pin category
+ * Model representing all peripherals along with their associated signals
+ * 
+ * <pre>
+ * Peripheral View Page Model<br>
+ *    +---- Peripheral Model...<br>
+ *             +-----Signal Model...
+ * </pre>
  */
-public final class DevicePinsModel extends TreeViewModel implements IPage {
+public final class PeripheralViewPageModel extends TreeViewModel implements IPage {
 
    /**
-    * Constructor
-    * @param parent 
+    * Constructs model representing all peripherals along with their associated signals
     * 
-    * @param columnLabels  Labels to use for columns
-    * @param title 
-    * @param toolTip 
+    * <pre>
+    * Peripheral View Page Model<br>
+    *    +---- Peripheral Model...<br>
+    *             +-----Signal Model...
+    * </pre>
+    * 
+    * @param parent        Parent to attache models to
+    * @param fDeviceInfo   Device to obtain information from
     */
-   public DevicePinsModel(BaseModel parent, DeviceInfo fDeviceInfo) {
+   public PeripheralViewPageModel(BaseModel parent, DeviceInfo fDeviceInfo) {
       super(parent, "Peripheral View", "Pin mapping organized by peripheral");
 
       for (String pName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(pName);
          if (peripheral.hasMappableSignals()) {
-            new PeripheralModel(this, peripheral);
+            peripheral.createPeripheralSignalsModel(this);
          }
       }
    }
@@ -59,7 +69,7 @@ public final class DevicePinsModel extends TreeViewModel implements IPage {
                      final TreeColumnInformation[] fColumnInformation = {
                            new TreeColumnInformation("Peripheral.Signal", 200, new NameColumnLabelProvider(),        null),
                            new TreeColumnInformation("Mux:Pin",           200, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Code Identifier",   120, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Code Identifier",   200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
                      };
                      return fColumnInformation;

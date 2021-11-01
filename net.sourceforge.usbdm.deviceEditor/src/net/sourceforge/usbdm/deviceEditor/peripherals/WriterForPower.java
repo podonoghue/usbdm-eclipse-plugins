@@ -18,6 +18,7 @@ public class WriterForPower extends PeripheralWithState {
 
    public WriterForPower(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -46,11 +47,6 @@ public class WriterForPower extends PeripheralWithState {
          indexMap.put(signal.getName(), index);
       }
       return index;
-   }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
    }
 
    @Override

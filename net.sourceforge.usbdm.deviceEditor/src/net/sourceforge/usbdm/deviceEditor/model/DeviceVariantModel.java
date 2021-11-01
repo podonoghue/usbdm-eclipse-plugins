@@ -18,7 +18,7 @@ public class DeviceVariantModel extends SelectionModel implements IModelChangeLi
     * @param deviceInfo    Device information to construct node
     */
    public DeviceVariantModel(BaseModel parent, DeviceInfo deviceInfo) {
-      super(parent, "Variant", "");
+      super(parent, "Variant");
 
       fDeviceInfo = deviceInfo;
 

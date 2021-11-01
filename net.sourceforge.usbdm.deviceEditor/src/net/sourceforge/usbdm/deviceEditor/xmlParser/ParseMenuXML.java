@@ -1126,7 +1126,7 @@ public class ParseMenuXML extends XML_BaseParser {
          }
          return;
       }
-      fPeripheral.addSignals(parentModel, peripheral);
+      fPeripheral.addSignalsFromPeripheral(parentModel, peripheral);
    }
 
    /**

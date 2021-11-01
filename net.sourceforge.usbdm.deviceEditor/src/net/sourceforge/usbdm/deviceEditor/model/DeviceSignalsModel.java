@@ -28,7 +28,12 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.ModelFactory.PinCategory;
 
 /**
- * Model describing the device signals organised by peripheral
+ * Model representing pins organised into categories (PORTA, Power, Misc.)
+ * <pre>
+ * Device Signals Model
+ *    +--- Category Model ...
+ *             +----Pin Model ...
+ * </pre> 
  */
 public final class DeviceSignalsModel extends TreeViewModel implements IPage {
 
@@ -44,12 +49,14 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
    }
 
    /**
-    * Constructor
-    * @param parent 
-    * 
-    * @param columnLabels  Labels to use for columns
-    * @param title 
-    * @param toolTip 
+    * Constructs model representing pins organised into categories (PORTA, Power, Misc.)
+    * <pre>
+    * Device Signals Model
+    *    +--- Category Model ...
+    *             +----Pin Model ...
+    * </pre> 
+    * @param parent        Owning model
+    * @param fDeviceInfo   Device information needed to create models
     */
    public DeviceSignalsModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Pin View", "Pin mapping organized by pin");
@@ -76,7 +83,7 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
                            new TreeColumnInformation("Category.Pin",        150, new NameColumnLabelProvider(),               null),
-                           new TreeColumnInformation("Code Identifier",     120, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Code Identifier",     200, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Pin Use Description", 200, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Mux:Signals",         180, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer)),
@@ -97,6 +104,15 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
       };
    }
 
+   /**
+    * Create model representing pins organised into categories (PORTA, Power, Misc.)
+    * <pre>
+    * Device Signals Model
+    *    +--- Category Model ...
+    *             +----Pin Model ...
+    * </pre>             
+    * @param fDeviceInfo   Device information needed to create models
+    */
    private void createModels(DeviceInfo fDeviceInfo) {      
 
       fMappingInfos = new ArrayList<MappingInfo>();
@@ -122,11 +138,15 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
             }
          }
       }
+      // Construct the models within model categories (discarding empty categories)
       for (PinCategory pinCategory:categories) {
          if (pinCategory.getPins().isEmpty()) {
             continue;
          }
-         CategoryModel categoryModel = new CategoryModel(this, pinCategory.getName(), "");
+         // Construct category
+         CategoryModel categoryModel = new CategoryModel(this, pinCategory.getName());
+         
+         // Populate category with pin models
          for(Pin pinInformation:pinCategory.getPins()) {
             new PinModel(categoryModel, pinInformation);
             for (MappingInfo mappingInfo:pinInformation.getMappableSignals().values()) {

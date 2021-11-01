@@ -1,13 +1,9 @@
 package net.sourceforge.usbdm.deviceEditor.validators;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
-import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
 import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.peripherals.PeripheralWithState;
@@ -147,30 +143,6 @@ public class PeripheralValidator extends Validator {
       // Assume no external dependencies
    }
 
-   /**
-    * Checks if signals are mapped to pins<br>
-    * If not then a warning is attached to pins category
-    * 
-    * @param  requiredSignals Array of required signals as index into the signal table
-    * @param  table           Peripheral signal table to use
-    * 
-    * @throws Exception
-    */
-   protected void validateMappedPins(int requiredSignals[], Vector<Signal> table) throws Exception {
-
-      CategoryModel pinModel = getPeripheral().getPinModel();
-      Status unmappedSignals = null;
-      for (int pinNum:requiredSignals) {
-         Signal signal = table.get(pinNum);
-         if ((signal == null) || (signal.getFirstMappedPinInformation().getPin() == Pin.UNASSIGNED_PIN)) {
-            unmappedSignals = UNMAPPED_PIN_STATUS;
-            break;
-         }
-      }
-      pinModel.setStatus(unmappedSignals);
-      pinModel.update();
-   }
-   
    /**
     * Get parameter from peripheral configuration files
     * 

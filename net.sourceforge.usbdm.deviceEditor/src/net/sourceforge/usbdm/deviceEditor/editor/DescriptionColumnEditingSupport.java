@@ -7,8 +7,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class DescriptionColumnEditingSupport extends EditingSupport {
 
@@ -21,15 +24,22 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if ((element instanceof PinModel) || (element instanceof SignalModel)) {
+      if ((element instanceof PinModel) ||
+          (element instanceof SignalModel)) {
          return true;
       }
+      if ((element instanceof PeripheralSignalsModel) && 
+            !((PeripheralSignalsModel) element).getPeripheral().isSynthetic()) {
+           return true;
+        }
       return false;
    }
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof PinModel) || (element instanceof SignalModel)) {
+      if ((element instanceof PinModel) ||
+            (element instanceof SignalModel)||
+            (element instanceof PeripheralSignalsModel)) {
          return new StringCellEditor(viewer.getTree());
       }
       return null;
@@ -38,12 +48,16 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
    @Override
    protected Object getValue(Object element) {
       if (element instanceof PinModel) {
-         PinModel pinModel = (PinModel)element;
-         return pinModel.getPinUseDescription();
+         Pin pin = ((PinModel)element).getPin();
+         return pin.getUserDescription();
       }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
-         return signalModel.getSignal().getMappedPin().getPinUseDescription();
+         return signalModel.getSignal().getMappedPin().getUserDescription();
+      }
+      if (element instanceof PeripheralSignalsModel) {
+         PeripheralSignalsModel peripheralSignalsModel = ((PeripheralSignalsModel)element);
+         return peripheralSignalsModel.getPeripheral().getUserDescription();
       }
       return null;
    }
@@ -52,11 +66,15 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
    protected void setValue(Object element, Object value) {
       if (element instanceof PinModel) {
          PinModel pinModel = (PinModel)element;
-         pinModel.setPinUseDescription((String) value);
+         pinModel.getPin().setUserDescription((String) value);
       }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
-         signalModel.getSignal().getMappedPin().setPinUseDescription((String) value);
+         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
+      }
+      if (element instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+         peripheral.setUserDescription((String) value);
       }
       viewer.update(element, null);
       }

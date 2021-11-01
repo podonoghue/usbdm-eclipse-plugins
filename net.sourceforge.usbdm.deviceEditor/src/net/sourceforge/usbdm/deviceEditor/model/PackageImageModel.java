@@ -17,8 +17,9 @@ public class PackageImageModel extends BaseModel implements IEditorPage, IPage {
    private final ModelFactory fModelFactory;
 
    public PackageImageModel(ModelFactory modelFactory, BaseModel parent) {
-      super(parent, "Package", "Package Image");
+      super(parent, "Package");
       setToolTip("Image of chip or evaluation board");
+      setSimpleDescription("Package Image");
       fModelFactory = modelFactory;
    }
 

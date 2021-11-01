@@ -5,7 +5,8 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class SectionModel extends BaseModel {
 
    public SectionModel(BaseModel parent, String title, String toolTip) {
-      super(parent, title, toolTip);
+      super(parent, title);
+      setToolTip(toolTip);
    }
 
    @Override

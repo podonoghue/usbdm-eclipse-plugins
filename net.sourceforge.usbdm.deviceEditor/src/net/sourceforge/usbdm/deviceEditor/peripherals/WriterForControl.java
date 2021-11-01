@@ -18,6 +18,7 @@ public class WriterForControl extends PeripheralWithState {
 
    public WriterForControl(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -47,10 +48,4 @@ public class WriterForControl extends PeripheralWithState {
       }
       return index;
    }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
-   }
-   
 }

@@ -6,10 +6,21 @@ import org.eclipse.swt.widgets.Control;
 import net.sourceforge.usbdm.deviceEditor.editor.TabbedEditor;
 import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 
+/**
+ * Represents a model containing tabs.
+ * Used within a page.
+ * 
+ */
 public class TabModel extends BaseModel implements IPage {
 
+   /**
+    * 
+    * @param parent     Owning model
+    * @param title      Title for tab
+    * @param toolTip    Tool-tip for tab
+    */
    public TabModel(BaseModel parent, String title, String toolTip) {
-      super(parent, title, "");
+      super(parent, title);
       setToolTip(toolTip);
    }
 

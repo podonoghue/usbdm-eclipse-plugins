@@ -20,7 +20,7 @@ public class TreeViewModel extends BaseModel {
     * @param toolTip       Tool tip
     */
    public TreeViewModel(BaseModel parent, String title, String toolTip) {
-      super(parent, title, "");
+      super(parent, title);
       super.setToolTip(toolTip);
    }
 

@@ -23,7 +23,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    private final MappingInfo[] fMappingInfos;
 
    public PinModel(BaseModel parent, Pin pin) {
-      super(parent, pin.getNameWithLocation(), pin.getPinUseDescription());
+      super(parent, pin.getNameWithLocation());
 
       fPin = pin;
       fPin.addListener(this);
@@ -117,11 +117,11 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       setStatus(status);
       
       if (model instanceof Pin) {
-         // XXX Delete me!
-         Pin pin = (Pin)model;
-         System.err.println("PinModel("+fPin.getName()+").modelElementChanged(Pin("+pin.getName()+"))");
+//         // XXX Delete OK
+//         Pin pin = (Pin)model;
+//         System.err.println("PinModel("+fPin.getName()+").modelElementChanged(Pin("+pin.getName()+"))");
          update();
-         checkConflicts();
+//         checkConflicts();
       }
    }
 
@@ -135,45 +135,18 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
 //            return "Conflict";
 //         }
 //      }
-      return getPinUseDescription();
+      return fPin.getUserDescription();
    }
 
    /**
-    * Get user description of pin use
+    * Get associated pin
     * 
-    * @return
+    * @return Associated pin
     */
-   public String getPinUseDescription() {
-      return fPin.getPinUseDescription();
+   public Pin getPin() {
+      return fPin;
    }
-
-   /**
-    * Set user description of pin use
-    * 
-    * @return
-    */
-   public void setPinUseDescription(String pinUseDescription) {
-      fPin.setPinUseDescription(pinUseDescription);
-   }
-
-   /**
-    * Get identifier to use in code generation
-    * 
-    * @return
-    */
-   public String getCodeIdentifier() {
-      return fPin.getCodeIdentifier();
-   }
-
-   /**
-    * Set identifier to use in code generation
-    * 
-    * @return
-    */
-   public void setCodeIdentifier(String pinUseDescription) {
-      fPin.setCodeIdentifier(pinUseDescription);
-   }
-
+   
    @Override
    public boolean isUnassigned() {
       return (fPin.getMuxValue() == MuxSelection.unassigned);

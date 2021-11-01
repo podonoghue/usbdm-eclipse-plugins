@@ -7,7 +7,8 @@ public abstract class StringModel extends BaseModel {
    protected String fValue;
    
    public StringModel(BaseModel parent, String name, String description, String value) {
-      super(parent, name, description);
+      super(parent, name);
+      setSimpleDescription(description);
       fValue = value;
    }
 

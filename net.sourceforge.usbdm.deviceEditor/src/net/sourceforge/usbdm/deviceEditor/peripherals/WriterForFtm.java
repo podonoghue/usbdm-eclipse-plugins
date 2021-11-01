@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +43,9 @@ public class WriterForFtm extends PeripheralWithState {
 //   }
 
    @Override
-   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+   protected void writeDeclarations() {
+      
+      super.writeDeclarations();
       
       for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
@@ -58,11 +59,10 @@ public class WriterForFtm extends PeripheralWithState {
             continue;
          }
          ident = makeCIdentifier(ident);
-         boolean repeatedIdent = !usedNames.add(ident);
          
          String declaration = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", index);
          
-         writeDeclaration(writer, pin.getPinUseDescription(), repeatedIdent, ident, declaration, pin.getLocation());
+         writeVariableDeclaration("", pin.getUserDescription(), ident, declaration, pin.getLocation());
       }
    }
    

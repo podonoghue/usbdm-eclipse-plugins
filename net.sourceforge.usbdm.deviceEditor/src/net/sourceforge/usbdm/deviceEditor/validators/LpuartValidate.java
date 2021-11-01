@@ -47,7 +47,6 @@ public class LpuartValidate extends PeripheralValidator {
             txrxHandlerVar.setValue(true);
          }
       }
-      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
    }
    
    @Override

@@ -24,7 +24,7 @@ public abstract class VariableModel extends EditableModel implements IModelChang
     * @note Added as child of parent if not null
     */
    public VariableModel(BaseModel parent, Variable variable) {
-      super(parent, variable.getName(), variable.getDescription());
+      super(parent, variable.getName());
       fVariable = variable;
       fVariable.addListener(this);
    }

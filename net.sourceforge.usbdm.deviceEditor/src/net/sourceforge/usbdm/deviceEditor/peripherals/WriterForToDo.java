@@ -18,6 +18,7 @@ public class WriterForToDo extends Peripheral {
 
    public WriterForToDo(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -46,11 +47,6 @@ public class WriterForToDo extends Peripheral {
          indexMap.put(signal.getName(), index);
       }
       return index;
-   }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
    }
 
    @Override

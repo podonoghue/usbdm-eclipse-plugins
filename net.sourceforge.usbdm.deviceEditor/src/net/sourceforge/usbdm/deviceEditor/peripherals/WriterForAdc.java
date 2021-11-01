@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,9 +22,6 @@ public class WriterForAdc extends PeripheralWithState {
    /** Signals that use this writer */
    protected InfoTable fDpFunctions = new InfoTable("InfoDP");
 
-   /** Signals that use this writer */
-//   protected InfoTable fPgaFunctions = new InfoTable("InfoPGA");
-
    public WriterForAdc(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
    }
@@ -44,30 +40,12 @@ public class WriterForAdc extends PeripheralWithState {
       return String.format("const %s::%s<%d>;", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", signalIndex);
    }
 
-
-   void doit(DocumentUtilities writer, Signal signal, Pin pin, int signalIndex) throws IOException {
-//      MappingInfo pinMapping = signal.getMappedPin();
-//      Pin pin = pinMapping.getPin();
-      String ident = pin.getCodeIdentifier();
-      if (ident.isBlank()) {
-         return;
-      }
-      String declaration = String.format("const %s::%s<%d>;", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", signalIndex);
-      writer.write(String.format("using %-20s = %-40s // %-5s %s\n", ident, declaration, pin.getLocation(), "")); //pinMapping.getSignalList()));
-
-//      for (int signalIndex = 0; signalIndex<pinMapping.getSignals().size(); signalIndex++) {
-//         if (pinMapping.getSignals().get(signalIndex) != signal) {
-//            continue;
-//         }
-//         String declaration = getDeclaration(pinMapping, signalIndex);
-//         if (declaration != null) {
-//            writer.write(String.format("using %-20s = %-40s // %-5s %s\n", ident, declaration, pin.getLocation(), pinMapping.getSignalList()));
-//         }
-//      }
-   }
-   
    @Override
-   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+   protected void writeDeclarations() {
+      
+      super.writeDeclarations();
+      
+      // PGA channels appear as ADC channel #2
       final int PGA_INDEX = 2;
       
       // Differential channels (including Pga) - recognised by having the same code name for DP and DM 
@@ -80,28 +58,25 @@ public class WriterForAdc extends PeripheralWithState {
          Pin dpPin = dpSignal.getFirstMappedPinInformation().getPin();
          Pin dmPin = dmSignal.getFirstMappedPinInformation().getPin();
          String ident = dpPin.getCodeIdentifier();
-         String description = dpPin.getPinUseDescription();
-         
-         // Only considered a differential channel if DP and DM pins have same code identifier
-         if (ident.equalsIgnoreCase(dmPin.getCodeIdentifier())) {
-            String type;
-            if (index == PGA_INDEX) {
-               ident = ident+"Pga";
-               description = description + " (Programmable gain amplifier differential input)";
-               type = String.format("const %s::%s", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"PgaChannel");
-            }
-            else {
-               ident = ident+"Dif";
-               description = description + " (Differential input)";
-               type = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
-            }
-            ident = makeCIdentifier(ident);
-            boolean repeatedIdent = !usedNames.add(ident);
-            if (repeatedIdent) {
-               writer.write("// ");
-            }
-            writeDeclaration(writer, description, repeatedIdent, ident, type, dpPin.getLocation()+","+dmPin.getLocation());
+         String description = dpPin.getUserDescription();
+
+         // Only considered a differential channel if DP and DM pins have same non-blank code identifier
+         if (ident.isBlank() || !ident.equalsIgnoreCase(dmPin.getCodeIdentifier())) {
+            continue;
          }
+         String type;
+         if (index == PGA_INDEX) {
+            ident = ident+"Pga";
+            description = description + " (Programmable gain amplifier differential input)";
+            type = String.format("const %s::%s", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"PgaChannel");
+         }
+         else {
+            ident = ident+"Dif";
+            description = description + " (Differential input)";
+            type = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"DiffChannel", index);
+         }
+         ident = makeCIdentifier(ident);
+         writeVariableDeclaration("", description, ident, type, dpPin.getLocation()+","+dmPin.getLocation());
       }
       // Single-ended channels
       for (int index=0; index<fInfoTable.table.size(); index++) {
@@ -115,7 +90,7 @@ public class WriterForAdc extends PeripheralWithState {
          if (ident.isBlank()) {
             continue;
          }
-         String description = pin.getPinUseDescription();
+         String description = pin.getUserDescription();
          String type;
          if (index == PGA_INDEX) {
             ident = ident+"Pga";
@@ -126,41 +101,10 @@ public class WriterForAdc extends PeripheralWithState {
             type = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", index);
          }
          ident = makeCIdentifier(ident);
-         boolean repeatedIdent = !usedNames.add(ident);
-         writeDeclaration(writer, description, repeatedIdent, ident, type, pin.getLocation());
+         writeVariableDeclaration("", description, ident, type, pin.getLocation());
       }
    }
    
-//   @Override
-//   public String getCodeIdentifier(MappingInfo mappingInfo) {
-////      Pattern p = Pattern.compile(".*(SE|DM|DP)(\\d+)(a|b)?");
-////      Matcher m = p.matcher(signalName);
-////      if (!m.matches()) {
-////         throw new RuntimeException("Function " + signalName +" does not match expected pattern");
-////      }
-//      return super.getCodeIdentifier(mappingInfo);
-//   }
-
-//   @Override
-//   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-//      Signal signal = mappingInfo.getSignals().get(fnIndex);
-//      if (signal.getSignalName().matches("^SE(\\d+)(a|b)?$")) {
-//         // Single-ended channel
-//         int signalIndex = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-//         return String.format("const %s::%s<%d>;", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signalIndex);
-//      }
-//      else if (signal.getSignalName().matches("^DP(\\d+)(a|b)?$")) {
-//         // Differential channel
-//         int signalIndex = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-//         return String.format("const %s::%s<%d>;", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"DiffChannel", signalIndex);
-//      }
-//      else if (signal.getName().matches("^PGA(\\d+)_DP$")) {
-//         // Programmable gain amplifier
-//         return String.format("const %s::%s;", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"PgaChannel");
-//      }
-//      return null;
-//   }
-
    @Override
    public int getSignalIndex(Signal function) {
       final Pattern pUsual = Pattern.compile("^(SE|DM|DP)(\\d+)(a|b)?$");

@@ -379,26 +379,29 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    /**
     * Set sub-family name
     * 
-    * @param deviceSubfamily  Sub-family name e.g. MK20D5, MK22FA12
+    * @param deviceSubFamily  Sub-family name e.g. MK20D5, MK22FA12
     */
-   public void setDeviceSubFamily(String deviceSubfamily) {
-      fDeviceSubFamily = deviceSubfamily;
-
+   public void setDeviceSubFamily(String deviceSubFamily) {
+      if ((fDeviceSubFamily != null) && (fDeviceSubFamily.compareTo(deviceSubFamily) == 0)) {
+         return;
+      }
+      fDeviceSubFamily = deviceSubFamily;
+      
       if (fDeviceFamily == null) {
          // A bit crude
-         if (deviceSubfamily.startsWith("MKE")) {
+         if (deviceSubFamily.startsWith("MKE")) {
             fDeviceFamily = DeviceFamily.mke;
          }
-         else if (deviceSubfamily.startsWith("MKL")) {
+         else if (deviceSubFamily.startsWith("MKL")) {
             fDeviceFamily = DeviceFamily.mkl;
          }
-         else if (deviceSubfamily.startsWith("MKM")) {
+         else if (deviceSubFamily.startsWith("MKM")) {
             fDeviceFamily = DeviceFamily.mkm;
          }
-         else if (deviceSubfamily.startsWith("MKW")) {
+         else if (deviceSubFamily.startsWith("MKW")) {
             fDeviceFamily = DeviceFamily.mkw;
          }
-         else if (deviceSubfamily.startsWith("S32")) {
+         else if (deviceSubFamily.startsWith("S32")) {
             fDeviceFamily = DeviceFamily.s32k;
          }
          else {
@@ -423,6 +426,12 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param familyName  Target Device Family e.g. mk, mke, mkl, mkm, mkv
     */
    public void setDeviceFamily(DeviceFamily deviceFamily) {
+      if ((fDeviceFamily != null) && (fDeviceFamily.compareTo(deviceFamily) == 0)) {
+         return;
+      }
+      if (fDeviceFamily.compareTo(deviceFamily) == 0) {
+         return;
+      }
       fDeviceFamily = deviceFamily;
       setDirty(true);
    }
@@ -1385,6 +1394,9 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws UsbdmException if variantName does not name a valid variant
     */
    public void setVariantName(String variantName) throws UsbdmException {
+      if ((fVariantName != null) && (fVariantName.compareTo(variantName) == 0)) {
+         return;
+      }
       fVariantName = variantName;
       if (fVariantInformationTable != null) {
          fVariantInformation = fVariantInformationTable.get(fVariantName);
@@ -1667,6 +1679,8 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             else if (key.startsWith("/")) {
                // Shouldn't be any unmatched peripheral settings
                System.err.println("WARNING: Discarding unmatched peripheral settings "+key+"("+value+")");
+               // Indicate state will change opn save
+               setDirty(true);
             }
             else {
                // Load persistent value (parameter)
@@ -1897,7 +1911,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @param monitor
     * @throws Exception 
     */
-   public void generateCppFiles(IProject project, IProgressMonitor monitor) throws Exception {
+   public synchronized void generateCppFiles(IProject project, IProgressMonitor monitor) throws Exception {
       SubMonitor subMonitor = SubMonitor.convert(monitor, (fPeripheralsMap.size()+5)*100); 
 
       // Generate device header file
@@ -2035,6 +2049,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
    }
    
    /**
+    * Removes a variable.<br>
+    * If the variable doesn't exist it is ignored.
+    * 
+    * @param key       Key used to identify variable
+    */
+   public void removeVariableIfExists(String key) {
+      fVariables.remove(key);
+   }
+
+   /**
     * Removes a variable
     * 
     * @param key       Key used to identify variable
@@ -2042,10 +2066,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws Exception if variable is not present
     */
    public void removeVariable(String key) {
-    if (fVariables.remove(key) == null) {
-       throw new RuntimeException("Variable not present \'"+key+"\'");
-    }
- }
+      if (fVariables.remove(key) == null) {
+         throw new RuntimeException("Variable not present \'"+key+"\'");
+      }
+   }
 
    /**
     * Get value of variable

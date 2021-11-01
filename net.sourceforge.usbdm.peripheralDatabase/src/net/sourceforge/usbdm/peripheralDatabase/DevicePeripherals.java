@@ -83,6 +83,7 @@ public class DevicePeripherals extends ModeControl {
          SVD_XML_Parser.parseDocument(path, this);
          svdFilename = path.getFileName().toString();
       } catch (Exception e) {
+         e.printStackTrace();
          throw new UsbdmException("Failed to parse SVD file "+path, e);
       }
    }

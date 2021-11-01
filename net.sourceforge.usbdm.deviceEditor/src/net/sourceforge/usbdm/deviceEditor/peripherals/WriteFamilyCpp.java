@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -22,6 +23,7 @@ import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
+import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class WriteFamilyCpp {
 
@@ -40,9 +42,14 @@ public class WriteFamilyCpp {
    /** Base name for C++ files */
    private final static String HARDWARE_BASEFILENAME = "hardware";
 
-   /** Name of function to do pin mapping */
-   private static final String DO_PIN_MAPPING_FUNCTION = "mapAllPins";
-
+   /** Key for **/
+   private final static String HARDWARE_FILE_INCLUDES_FILE_KEY = "/HARDWARE_CPP/IncludeFiles";
+   
+   /** Key for **/
+   private final static String HARDWARE_FILE_DEFINITIONS_KEY = "/HARDWARE_CPP/Definitions";
+   
+   /** Key for **/
+   private final static String HARDWARE_FILE_INITILISATIONS_KEY = "/HARDWARE_CPP/PortInitialisations";
    /*
     * Macros
     * ==========================================================================
@@ -115,7 +122,7 @@ public class WriteFamilyCpp {
     * @throws IOException
     */
    private void writePeripheralInformationClasses(DocumentUtilities writer) throws IOException {
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
+      writer.writeOpenUsbdmNamespace();
 
       writer.openUsbdmDocumentationGroup();
 
@@ -260,87 +267,100 @@ public class WriteFamilyCpp {
     * @throws IOException
     */
    private void writeIncludes(DocumentUtilities writer) throws IOException {
+      writer.write("// GPIO definitions are needed generally\n");
       writer.writeHeaderFileInclude("gpio.h");
-      if (fDeviceInfo.getPeripherals().containsKey("ADC0") || fDeviceInfo.getPeripherals().containsKey("ADC1")) {
-         writer.writeHeaderFileInclude("adc.h");
-      }
-      if (fDeviceInfo.getPeripherals().containsKey("FTM0") || fDeviceInfo.getPeripherals().containsKey("FTM1")) {
-         writer.writeHeaderFileInclude("ftm.h");
-      }
-      if (fDeviceInfo.getPeripherals().containsKey("TPM0") | fDeviceInfo.getPeripherals().containsKey("TPM1")) {
-         writer.writeHeaderFileInclude("tpm.h");
-      }
       writer.write("\n");
    }
 
    /**
-    * Write declarations for simple peripheral signals (e.g. GPIO,ADC,PWM) that
-    * are mapped to pins e.g.
-    * 
+    * Create variables for peripheral declarations e.g.
     * <pre>
     * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9   
     * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39   
     * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39   
     * extern const USBDM::Ftm<b><i>1</b></i>::Channel&lt;<b><i>3</b></i>&gt    myFtmChannel; // p34
+    * extern const 
     * </pre>
-    * 
+    * These are included in the peripheral files.
+    *  
     * @param writer
     *           Where to write
     * 
     * @throws Exception
     */
-   private void writeSignalDeclarations(DocumentUtilities writer) throws IOException {
+   private void createSignalDeclarationVariables() throws IOException {
 
-      writeIncludes(writer);
-
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
-      writer.openUsbdmDocumentationGroup();
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_SIGNALS, "Namespace enclosing USBDM variables representing periperal signals mapped to pins");
-      DocumentationGroups documentationGroup = new DocumentationGroups(writer);
-      
-      // Prevent repeated use of same C identifier
+      // Prevent repeated use of the same C identifier
       HashSet<String> usedIdentifiers = new HashSet<String>();
 
+      // Contains peripheral include files needed to initialise the user objects in hardware.cpp
+      HashSet<String> hardwareIncludeFiles = new HashSet<String>();
+
+      // Contains the actual definitions for any user objects needed by peripherals in hardware.cpp
+      StringBuilder hardwareDefinitions = new StringBuilder();
+      
       for (String key : fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(key);
-         peripheral.writeDeclarations(writer, usedIdentifiers);
+         peripheral.createDeclarations(usedIdentifiers, hardwareIncludeFiles, hardwareDefinitions);
       }
       
-      documentationGroup.closeGroup();
-      writer.writeCloseNamespace();
-      writer.closeDocumentationGroup();
-      writer.writeCloseNamespace();
-      writer.flush();
+      if (hardwareIncludeFiles.isEmpty()) {
+         fDeviceInfo.removeVariable(HARDWARE_FILE_INCLUDES_FILE_KEY);
+      }
+      else {
+         StringBuilder sb = new StringBuilder();
+         Iterator<String> i = hardwareIncludeFiles.iterator();
+         while(i.hasNext()) {
+            sb.append("" + i.next() + "\n");
+         }
+         StringVariable hardwareIncludeFilesVar = new StringVariable("IncludeFiles", HARDWARE_FILE_INCLUDES_FILE_KEY, sb.toString());
+         hardwareIncludeFilesVar.setDerived(true);
+         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_INCLUDES_FILE_KEY, hardwareIncludeFilesVar);
+      }         
+
+      // Save actual definitions for any user objects needed by peripherals in hardware.cpp
+      if (hardwareDefinitions.toString().isBlank()) {
+         fDeviceInfo.removeVariable(HARDWARE_FILE_DEFINITIONS_KEY);
+      }
+      else {
+         StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions);
+         hardwareDefinitionsVar.setDerived(true);
+         fDeviceInfo.addOrReplaceVariable(HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitionsVar);
+      }
    }
 
    /**
-    * Write Central Pin Mapping function to CPP file
+    * Create central pin mapping statements in variable <b>/HARDWARE/portInit</b>
     * 
     * <pre>
-    * void mapAllPins() {
     *    enablePortClocks(PORTA_CLOCK_MASK|...);
     * 
     *    PORTA->GPCHR = 0x0000UL|PORT_GPCHR_GPWE(0x000CUL);
     *    ...
     *    PORTE->GPCHR = 0x0500UL|PORT_GPCHR_GPWE(0x0300UL);
-    * }
     * </pre>
-    * 
-    * @param writer     Where to write (CPP file)
+    * @return StringVariable containing statements
     * 
     * @throws Exception
     */
-   private void writePinMappingFunction(DocumentUtilities writer) throws Exception {
+   private StringVariable writePinMappingStatements() {
+      
+      StringBuilder sb = new StringBuilder();
+
       PcrInitialiser pcrInitialiser = new PcrInitialiser();
 
       for (String pinName : fDeviceInfo.getPins().keySet()) {
          Pin pin = fDeviceInfo.getPins().get(pinName);
          pcrInitialiser.addPin(pin);
       }
-      writer.write("/**\n" + " * Used to configure pin-mapping before 1st use of peripherals\n" + " */\n" + "void " + DO_PIN_MAPPING_FUNCTION + "() {\n");
-      writer.write(pcrInitialiser.getInitPortClocksStatement(""));
-      writer.write(pcrInitialiser.getPcrInitStatements(""));
-      writer.write("}\n");
+      sb.append(pcrInitialiser.getInitPortClocksStatement(""));
+      sb.append(pcrInitialiser.getPcrInitStatements(""));
+      
+      StringVariable portInitialisationVariable = new StringVariable("Port Initialisation", HARDWARE_FILE_INITILISATIONS_KEY);
+      portInitialisationVariable.setValue(sb.toString());
+      portInitialisationVariable.setDerived(true);
+      fDeviceInfo.addOrReplaceVariable(portInitialisationVariable.getKey(), portInitialisationVariable);
+      return portInitialisationVariable;
    }
 
    private final String DOCUMENTATION_OPEN = "/**\n" + " *\n" + " * @page PinSummary Pin Mapping\n";
@@ -381,7 +401,7 @@ public class WriteFamilyCpp {
             // Discard pins without package location
             continue;
          }
-         String useDescription = pin.getPinUseDescription();
+         String useDescription = pin.getUserDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -405,7 +425,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByLocation.get(pinName);
 
-         String useDescription = pin.getPinUseDescription();
+         String useDescription = pin.getUserDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -426,7 +446,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByFunction.get(pinName);
 
-         String useDescription = pin.getPinUseDescription();
+         String useDescription = pin.getUserDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -470,37 +490,14 @@ public class WriteFamilyCpp {
 
       writePeripheralInformationClasses(writer);
 
-      writeSignalDeclarations(writer);
+      writeIncludes(writer);
 
       writeDocumentation(writer);
 
       writer.writeHeaderFilePostamble(PIN_MAPPING_BASEFILENAME + ".h");
 
-      writer.close();
-   }
+      createSignalDeclarationVariables();
 
-   /**
-    * Write CPP file
-    * 
-    * @param path
-    *           Path to file for writing
-    * @throws Exception
-    */
-   private void writePinMappingCppFile(Path path) throws Exception {
-      BufferedWriter cppFile = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
-      DocumentUtilities writer = new DocumentUtilities(cppFile);
-
-      writer.writeCppFilePreamble(HARDWARE_BASEFILENAME + ".cpp", fDeviceInfo.getSourceFilename(), DeviceInfo.VERSION, "Pin initialisation for " + fDeviceInfo.getVariantName());
-
-      writer.writeHeaderFileInclude(HARDWARE_BASEFILENAME + ".h");
-      writer.write("\n");
-
-      writer.writeOpenNamespace(DeviceInfo.NAME_SPACE_USBDM_LIBRARY, "Namespace enclosing USBDM classes");
-      writer.openUsbdmDocumentationGroup();
-      writePinMappingFunction(writer);
-      writer.writeCppFilePostAmble();
-      writer.closeDocumentationGroup();
-      writer.writeCloseNamespace();
       writer.close();
    }
 
@@ -516,13 +513,13 @@ public class WriteFamilyCpp {
     *           Device information to print to CPP files
     * @throws Exception
     */
-   public void writeCppFiles(Path directory, String filename, DeviceInfo deviceInfo) throws Exception {
+   public void writeCppFiles(Path directory, String filename, DeviceInfo deviceInfo) throws IOException {
       if (!filename.isEmpty()) {
          filename = "-" + filename;
       }
       fDeviceInfo = deviceInfo;
       writePinMappingHeaderFile(directory.resolve("Project_Headers").resolve(PIN_MAPPING_BASEFILENAME + filename + ".h"));
-      writePinMappingCppFile(directory.resolve("Sources").resolve(HARDWARE_BASEFILENAME + filename + ".cpp"));
+      writePinMappingStatements();
    }
 
    /**
@@ -562,8 +559,8 @@ public class WriteFamilyCpp {
       
       writePinMappingHeaderFile(directory.resolve(pinMappingFile));
       subMonitor.worked(40);
-      
-      writePinMappingCppFile(directory.resolve(hardwareFile));
+
+      writePinMappingStatements();
       subMonitor.worked(40);
       
       try {

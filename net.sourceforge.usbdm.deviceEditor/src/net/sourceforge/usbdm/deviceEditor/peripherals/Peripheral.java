@@ -2,6 +2,7 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
@@ -18,8 +19,12 @@ import net.sourceforge.usbdm.deviceEditor.information.SignalTemplate;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
-import net.sourceforge.usbdm.deviceEditor.model.CategoryModel;
+import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.ObservableModelInterface;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
 import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
@@ -34,12 +39,17 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * <li>Clock register mask e.g. ADC0_CLOCK_REG
  * <li>Clock register e.g. SIM->SCGC6
  */
-public abstract class Peripheral extends VariableProvider {
+public abstract class Peripheral extends VariableProvider implements ObservableModelInterface {
    /** Name for default PCR value uses in Info classes */
    public static final String DEFAULT_PCR_VALUE_NAME = "defaultPcrValue";
 
+   private String fUserDescription;
+
    /** Device information */
    protected final DeviceInfo fDeviceInfo;
+   
+   /** Indicates the class representing this peripheral is const (May be placed in ROM) */
+   protected final boolean fIsConstType;
    
    /** Base name of C peripheral class e.g. Ftm */
    private final String fClassBaseName;
@@ -74,6 +84,29 @@ public abstract class Peripheral extends VariableProvider {
    /** Command to disable peripheral clock */
    private String fClockDisable;
 
+   private String fCodeIdentifier = "";
+   
+   private final ObservableModel fProxy;
+   
+   private final String PERIPHERAL_DECLARATIONS_KEY = makeKey("Declarations");
+
+   private boolean fIsSynthetic = false;
+   
+   /**
+    * Sets the peripheral as synthetic i.e. no hardware is associated
+    */
+   protected void setSynthetic() {
+      fIsSynthetic = true;
+   }
+   
+   protected static final String getCodeIndentifierKey(String name) {
+      return "$peripheral$"+name+"_codeIdentifier";
+   }
+
+   protected static final String getUserDescriptionKey(String name) {
+      return "$peripheral$"+name+"_userDescription";
+   }
+
    /**
     * Create peripheral
     * 
@@ -91,8 +124,33 @@ public abstract class Peripheral extends VariableProvider {
       fBaseName       = baseName;
       fInstance       = instance;
       fDeviceInfo     = deviceInfo;
-
+      fIsConstType    = true;
+      
       fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
+      fProxy = new ObservableModel();
+   }
+   
+   /**
+    * Create peripheral
+    * 
+    * @param baseName      Base name e.g. FTM3 => FTM
+    * @param instance      Instance e.g. FTM3 => 3
+    * @param writerBase    Description of peripheral
+    * @param template      The template associated with this peripheral 
+    * @param deviceInfo 
+    * @throws UsbdmException 
+    * @throws IOException 
+    */
+   protected Peripheral(String baseName, String instance, DeviceInfo deviceInfo, boolean isConstType) throws IOException, UsbdmException {
+      super(baseName+instance, deviceInfo);
+      
+      fBaseName       = baseName;
+      fInstance       = instance;
+      fDeviceInfo     = deviceInfo;
+      fIsConstType    = isConstType;
+      
+      fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
+      fProxy = new ObservableModel();
    }
    
    @Override
@@ -286,7 +344,7 @@ public abstract class Peripheral extends VariableProvider {
     * @throws IOException 
     * @throws UsbdmException 
     */
-   public void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
+   void writeXmlInformation(XmlDocumentUtilities documentUtilities) throws IOException, UsbdmException {
       documentUtilities.openTag("peripheral");
       documentUtilities.writeAttribute("baseName", fBaseName);
       documentUtilities.writeAttribute("instance", fInstance);
@@ -343,6 +401,14 @@ public abstract class Peripheral extends VariableProvider {
     * @param settings Settings object
     */
    public void loadSettings(Settings settings) {
+      String value = settings.get(getCodeIndentifierKey(getName()));
+      if (value != null) {
+         setCodeIdentifier(value);
+      }
+      value = settings.get(getUserDescriptionKey(getName()));
+      if (value != null) {
+         setUserDescription(value);
+      }
    }
 
    /**
@@ -351,6 +417,14 @@ public abstract class Peripheral extends VariableProvider {
     * @param settings Settings object
     */
    public void saveSettings(Settings settings) {
+      String value = getCodeIdentifier();
+      if ((value != null) && !value.isBlank()) {
+         settings.put(getCodeIndentifierKey(getName()), value);
+      }
+      value = getUserDescription();
+      if ((value != null) && !value.isBlank() && (!value.equals(getDescription()))) {
+         settings.put(getUserDescriptionKey(getName()), value);
+      }
    }
 
    /** 
@@ -406,21 +480,21 @@ public abstract class Peripheral extends VariableProvider {
    }
 
    /**
-    * Get description of peripheral
+    * Get description of peripheral e.g. <i><b>CMP Comparator</b></i>
     * 
     * @return
     */
    public String getDescription() {
       
       String description = getTitle();
-      if (description.length()>0) {
+      if ((description != null) && !description.isBlank()) {
          return getBaseName()+", " + description;
       }
       return getBaseName();
    }
 
    /**
-    * Get instance name for a simple signal e.g. <b><i>gpioA_0</b></i>
+    * Get instance name for a simple signal e.g. <i><b>gpioA_0</b></i>
     * 
     * @param mappingInfo    Mapping information (pin and signal)
     * @param fnIndex        Index into list of signals mapped to pin
@@ -434,90 +508,201 @@ public abstract class Peripheral extends VariableProvider {
 
    /**
     * Convert string to valid c identifier<br>
-    * If the string starts with a digit it is prefixed with X_<br>
+    * If the string starts with a non-character it is prefixed with X_<br>
     * Other invalid characters are converted to '_'.
     * 
-    * @param ident String to convert
+    * @param identifier String to convert
     * 
     * @return Valid C identifier
     */
-   String makeCIdentifier(String ident) {
-      if (ident.isBlank()) {
+   String makeCIdentifier(String identifier) {
+      if (identifier.isBlank()) {
          return "";
       }
-      if (!Character.isJavaIdentifierStart(ident.charAt(0))) {
-         ident = "X_" + ident;
+      identifier = identifier.replaceAll("[^a-zA-Z0-9]", "_");
+      if (!identifier.matches("^[a-zA-Z].*")) {
+         identifier = "X_" + identifier;
       }
-      return ident.replaceAll("[^a-zA-Z0-9]", "_");
+      return identifier;
    }
    
    /**
-    *  Write declaration
+    *  Write variable declaration
     *  
-    * @param writer        Where to write
-    * @param description   Comment describing declaration
-    * @param isRepeated    Comment out?
-    * @param ident         C identifier to use
-    * @param type          C Type to use
-    * @param pinLocation   Pin location (form commenting)
-    * 
-    * @throws IOException
+    *  <pre> {} = optional
+    *  {/// <i><b>description</b></i>}
+    *  {// <i><b>error</b></i>}
+    *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>; {// <i><b>trailingComment</b></i>}
+    *  </pre>
+    * @param sb               Where to write
+    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param description      Comment describing declaration
+    * @param isExtern         Whether to precede declaration with <i><b>extern</b></i>
+    * @param identifier       C identifier to use
+    * @param type             C Type to use
+    * @param trailingComment  Trailing comment
     */
-   void writeDeclaration(DocumentUtilities writer, String description, boolean isRepeated, String ident, String type, String pinLocation) throws IOException {
-      writeDeclaration(writer, "", description, isRepeated, ident, type, pinLocation);
-   }
-
-   /**
-    *  Write declaration
-    *  
-    * @param writer        Where to write
-    * @param error         Error message to precede declaration (empty to suppress) 
-    * @param description   Comment describing declaration
-    * @param isRepeated    Comment out?
-    * @param ident         C identifier to use
-    * @param type          C Type to use
-    * @param pinLocation   Pin location (form commenting)
-    * 
-    * @throws IOException
-    */
-   void writeDeclaration(DocumentUtilities writer, String error, String description, boolean isRepeated, String ident, String type, String pinLocation) throws IOException {
-//      String typeIdent = Character.toUpperCase(ident.charAt(0))+ident.substring(1);
-      String varIdent  = Character.toLowerCase(ident.charAt(0))+ident.substring(1);
+   protected void writeVariableDeclaration(String error, String description, String identifier, String type, String trailingComment) {
+      identifier = makeCIdentifier(identifier);
+      identifier = Character.toLowerCase(identifier.charAt(0))+identifier.substring(1);
       
-      writer.write("\n");
+      boolean isRepeated = !fUsedNames.add(identifier);
+      
+      fDeclarations.append("\n");
       if (!description.isBlank()) {
-         writer.write("// " + description + "\n");
+         fDeclarations.append("/// " + description + "\n");
       }
       
       if (!error.isBlank()) {
-         writer.write("#error \"" + error + "\"\n");
+         fDeclarations.append("#error \"" + error + "\"\n");
       }
       
-      if (!pinLocation.isBlank()) {
-         pinLocation = "// " + pinLocation;
+      if (!trailingComment.isBlank()) {
+         trailingComment = "// " + trailingComment;
       }
-      
-//      writer.write(String.format("%susing %-30s = %-40s %s\n", isRepeated?"// ":"", typeIdent, type+";", pinLocation));
-      writer.write(String.format("%sextern %-50s %-30s  %s\n", isRepeated?"// ":"", type, varIdent+";", pinLocation));
+      fDeclarations.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", "extern " + type, identifier+";", trailingComment));
+      if (error.isBlank()) {
+         fHardwareDefinitions.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", type, identifier+";", trailingComment));
+      }
    }
    
    /**
-    * Write declarations for simple types associated with this peripheral e.g.
-    * <pre>
-    * extern const USBDM::Adc<b><i>0</b></i>::Channel&lt;<b><i>3</b></i>&gt;    myAdcChannel; // p9   
-    * extern const USBDM::Gpio<b><i>B</b></i>&lt;<b><i>16</b></i>&gt;           myGpio;       // p39   
-    * extern const USBDM::Gpio<b><i>D</b></i>Field&lt;<b><i>14</b></i>,<b><i>12</b></i>&gt;   myGpioField;  // p39   
-    * extern const USBDM::Ftm<b><i>1</b></i>::Channel&lt;<b><i>3</b></i>&gt    myFtmChannel; // p34
-    * </pre>
-    * 
-    * @param writer        Where to write declarations
-    * @param usedNames     Set used to prevent repeated C identifiers
-    * 
-    * @throws IOException
+    *  Write type declaration
+    *  
+    *  <pre> {} = optional
+    *  {/// <i><b>description</b></i>} 
+    *  {// <i><b>error</b></i>}
+    *  using <i><b>identifier</b></i> = <i><b>type</b></i>; {// <i><b>trailingComment</b></i>}
+    *  </pre>
+    * @param error            Error message to precede declaration (empty to suppress) 
+    * @param description      Comment describing declaration
+    * @param identifier       C identifier to use
+    * @param type             C Type to use
+    * @param trailingComment  Trailing comment
     */
-   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+   protected void writeTypeDeclaration(String error, String description, String identifier, String type, String trailingComment) {
+      identifier = makeCIdentifier(identifier);
+      identifier = Character.toUpperCase(identifier.charAt(0))+identifier.substring(1);
+      boolean isRepeated = !fUsedNames.add(identifier);
+      
+      fDeclarations.append("\n");
+      if (!description.isBlank()) {
+         fDeclarations.append("/// " + description + "\n");
+      }
+      
+      if (!error.isBlank()) {
+         fDeclarations.append("#error \"" + error + "\"\n");
+      }
+      
+      if (!trailingComment.isBlank()) {
+         trailingComment = "// " + trailingComment;
+      }
+      fDeclarations.append(String.format("%susing %-30s = %-50s %s\n", isRepeated?"// ":"", identifier, type+";", trailingComment));
+   }
+   
+   /**
+    * Write declarations for this peripheral e.g.
+    * <pre>
+    * // UserDescription
+    * extern const <i><b>className</b></i> codeIdentifier;
+    * 
+    * // UserDescription
+    * using CodeIdentifier = const <i><b>className</b></i>;
+    * </pre>
+    * @param sb               Where to write
+    * @param className
+    */
+   protected void writeDefaultPeripheralDeclaration(String className) {
+      // Default action is to create a declaration for the device itself 
+      if (getCodeIdentifier().isBlank()) {
+         return;
+      }
+      String identifier = getCodeIdentifier();
+      String type       = (fIsConstType?"const ":"") + className;
+      
+      String description = getUserDescription();
+      if (description.isBlank()) {
+         description = getDescription();
+      }
+      writeTypeDeclaration("", description, identifier, type, "");
+      writeVariableDeclaration("", description, identifier, type, "");
    }
 
+   /**
+    * Write declarations for variables and types associated with this peripheral e.g.
+    * <pre>
+    * // An example peripheral
+    * using MyAdc = const <i><b>Adc1</b></i>;
+    * // An example peripheral
+    * extern const <i><b>Adc1</b></i> myAdc;
+    * 
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9   
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11 
+    * </pre>
+    * Default action is to create a declaration for the device itself.<br>
+    * Overridden in some peripherals to add declarations for signals
+    * 
+    * @param writer        Where to write declarations
+    */
+   protected void writeDeclarations() {
+      // Default action is to create a declaration for the device itself 
+      writeDefaultPeripheralDeclaration(getClassName());
+   }
+
+   // Used by by peripheral to record shared information when generating code
+   // Prevent re-use of C identifiers
+   Set<String>   fUsedNames            = null;
+   
+   // Collects definitions of user objects for hardware file
+   StringBuilder fHardwareDefinitions  = null;
+   
+   // Collects declarations of user objects for the include file for this peripheral
+   StringBuilder fDeclarations          = null;
+   
+   /**
+    * Creat declarations for variables and types associated with this peripheral e.g.
+    * <pre>
+    * // An example peripheral
+    * using MyAdc = const <i><b>Adc1</b></i>;
+    * // An example peripheral
+    * extern const <i><b>Adc1</b></i> myAdc;
+    * 
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>3</b></i>&gt;    myAdcChannel1; // p9   
+    * extern const <i><b>Adc1</b></i>::Channel&lt;<i><b>6</b></i>&gt;    myAdcChannel2; // p11 
+    * </pre>
+    * 
+    * @param usedIdentifiers        Set used to prevent repeated C identifiers
+    * @param hardwareIncludeFiles   Collects include files need for user declared objects
+    * @param hardwareDefinitions    Collects definitions of user objects
+    * @return 
+    */
+   final synchronized void createDeclarations(Set<String> usedIdentifiers, HashSet<String> hardwareIncludeFiles, StringBuilder hardwareDefinitions) {
+      
+      // Used by by peripheral to record shared information for hardware file
+      fUsedNames            = usedIdentifiers;
+      fHardwareDefinitions  = hardwareDefinitions;
+
+      // Collects declarations of user objects for the include file for this peripheral
+      fDeclarations         = new StringBuilder();
+            
+      writeDeclarations();
+      
+      
+      if (fDeclarations.toString().isBlank()) {
+         // No declarations for this peripheral
+         fDeviceInfo.removeVariableIfExists(PERIPHERAL_DECLARATIONS_KEY);
+      }
+      else {
+         // Need include file in hardware.cpp since created instance of type
+         hardwareIncludeFiles.add("#include \"" + getBaseName().toLowerCase()+".h\"");
+
+         // Create variable containing declarations for this peripheral
+         StringVariable declarationsVar = new StringVariable("Declarations", PERIPHERAL_DECLARATIONS_KEY, fDeclarations.toString());
+         declarationsVar.setDerived(true);
+         fDeviceInfo.addOrReplaceVariable(PERIPHERAL_DECLARATIONS_KEY, declarationsVar);
+      }
+   }
+   
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
     * Default implementation checks the size of the signal table
@@ -548,20 +733,20 @@ public abstract class Peripheral extends VariableProvider {
    }
 
    /**
-    * Write USBDM namespace level information associated with a peripheral to <b>pin_mapping.h</b><br>
+    * Write USBDM namespace level information associated with a peripheral to <i><b>pin_mapping.h</b></i><br>
     * This appears before the peripheral class at USBDM namespace level.
     * 
     * @param documentUtilities
     * @throws IOException
     * @throws Exception 
     */
-   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
+   void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
    }
 
    /**
-    * Writes definitions to be included in the information class describing the peripheral to <b>pin_mapping.h</b><br>
+    * Writes definitions to be included in the information class describing the peripheral to <i><b>pin_mapping.h</b></i><br>
     * 
-    * <b>Example:</b>
+    * <i><b>Example:</b></i>
     * <pre>
     *
     *    //! Number of IRQs for hardware
@@ -577,7 +762,7 @@ public abstract class Peripheral extends VariableProvider {
     * @throws IOException 
     * @throws Exception 
     */
-   public abstract void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException;
+   abstract void writeInfoConstants(DocumentUtilities pinMappingHeaderFile) throws IOException;
 
    /**
     * Write extra information within the class
@@ -585,7 +770,7 @@ public abstract class Peripheral extends VariableProvider {
     * @param documentUtilities
     * @throws IOException
     */
-   public void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
+   void writeExtraInfo(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
    
    /**
@@ -810,7 +995,7 @@ public abstract class Peripheral extends VariableProvider {
    }
 
    /**
-    * Indicate if the peripheral has some pins that <b>may be</b> mapped to a package location<br>
+    * Indicate if the peripheral has some pins that <i><b>may be</b></i> mapped to a package location<br>
     * Used to suppress peripherals that exist but are unusable in a particular package.
     * 
     * @return
@@ -882,7 +1067,7 @@ public abstract class Peripheral extends VariableProvider {
    /**
     * Search vector table for handler and replace with class static method name or user function name.<br>
     * By default, matches any handler starting with the peripheral name e.g. FTM0<br> 
-    * and replaces with class name e.g. <b>FTM0_IRQHandler</b> => <b>USBDM::Ftm0::irqHandler</b><br>
+    * and replaces with class name e.g. <i><b>FTM0_IRQHandler</b></i> => <i><b>Ftm0::irqHandler</b></i><br>
     * Uses class name to create handler name<br>
     * Overridden to do special replacement
     * 
@@ -924,11 +1109,8 @@ public abstract class Peripheral extends VariableProvider {
       return "USBDM::DEFAULT_PCR";
    }
 
-   /**
-    * Model representing the pins for this peripheral<br>
-    * @note may contain related pins e.g. RTC may contains OSC pins 
-    */
-   CategoryModel fPinModel = null;
+   // Indicates the peripheral has associated signals
+   boolean hasSignal = false;
    
    /**
     * Array of peripherals to obtain signals from
@@ -936,19 +1118,20 @@ public abstract class Peripheral extends VariableProvider {
    ArrayList<Peripheral> fSignalPeripherals;
    
    /**
-    * Create models representing the signals for this peripheral
+    * Create models representing the signals directly associated with this peripheral
     * 
     * @param parent     Parent model to contain pins created
-    * @param peripheral Peripheral to obtain signals from
     */
-   void createSignalModels(BaseModel parent, Peripheral peripheral) {
-      // Add signals from this peripheral
-      TreeMap<String, Signal> signals = peripheral.getSignals();
+   private void createMySignalModels(BaseModel parent) {
+      
+      TreeMap<String, Signal> signals = getSignals();
       if (signals == null) {
+         // No signals
          return;
       }
+      // Add signals from this peripheral
       for (String signalName:signals.keySet()) {
-         Signal signal = peripheral.fSignals.get(signalName);
+         Signal signal = fSignals.get(signalName);
          if (signal.isAvailableInPackage()) {
             new SignalModel(parent, signal);
          }
@@ -958,77 +1141,69 @@ public abstract class Peripheral extends VariableProvider {
    /**
     * Create models representing the signals for this peripheral
     * 
-    * @param parent     Parent model to contain pins created
+    * @param parent Parent model to contain pins created
     * 
     * @note May add related pins e.g. RTC may contains OSC pins 
     */
    public void createSignalModels(BaseModel parent) {
+
       // Add signals from this peripheral
-      createSignalModels(parent, this);
-      if (fSignalPeripherals == null) {
-         return;
-      }
-      for (Peripheral peripheral:fSignalPeripherals) {
+      createMySignalModels(parent);
+      
+      if (fSignalPeripherals != null) {
+         
          // Add signals from referenced peripherals
-         createSignalModels(parent, peripheral);
+         for (Peripheral peripheral:fSignalPeripherals) {
+            peripheral.createMySignalModels(parent);
+         }
       }
    }
 
    /**
-    * Create models representing the signals for this peripheral
+    * Create models representing the signals for this peripheral.<br>
+    * <i><b>May add related pins e.g. RTC may contains OSC pins</b></i> 
     * 
-    * @param parentModel 
+    * @param parent Model to attach PeripheralSignalsModel to
     * 
-    * @note May add related pins e.g. RTC may contains OSC pins 
-    * 
-    * @return Category model holding signals
+    * @return PeripheralSignalsModel containing signals or null if no signals are associated with this peripheral
     */
-   public void createSignalModel() {
-      if (fPinModel == null) {
-         return;
+   public BaseModel createPeripheralSignalsModel(BaseModel parent) {
+      if (!hasSignal) {
+         return null;
       }
-      fPinModel.removeChildren();
-      createSignalModels(fPinModel);
+      return new PeripheralSignalsModel(parent, this);
    }
 
    /**
-    * Add peripheral as source for signals for this peripheral
+    * Add peripheral as source for signals for this peripheral.
+    * Actual signal models are created later.
     * 
     * @param parentModel   Model to contain signal category
-    * @param peripheral    Peripheral to obtain signals from
-    * 
-    * @return Category model to hold signals when created
+    * @param peripheral    Peripheral to obtain signals from (may be this peripheral)
     */
-   public CategoryModel addSignals(BaseModel parentModel, Peripheral peripheral) {
-      if (fPinModel == null) {
-         fPinModel = new CategoryModel(parentModel, "Signals", "Signals for this peripheral");
+   public void addSignalsFromPeripheral(BaseModel parentModel, Peripheral peripheral) {
+      hasSignal = true;
+      if (peripheral == this) {
+         // Don't add me!
+         return;
       }
-      if (peripheral != this) {
-         if (fSignalPeripherals == null) {
-            fSignalPeripherals = new ArrayList<Peripheral>();
-         }
-         fSignalPeripherals.add(peripheral);
+      if (fSignalPeripherals == null) {
+         fSignalPeripherals = new ArrayList<Peripheral>();
       }
-      return fPinModel; 
+      fSignalPeripherals.add(peripheral);
    }
 
    /**
-    * Get model representing the pins for this peripheral<br>
-    * @note may contain related pins e.g. RTC may contains OSC pins 
+    * Validate the signal to pin mapping
     * 
-    * @return Category model
-    */
-   public CategoryModel getPinModel() {
-      return fPinModel;
-   }
-
-   /**
-    * Set model representing the pins for this peripheral<br>
+    * @param pinModels
     * 
-    * @param pinModel Category model
+    * @return Status Status if error or null if none
+    * 
+    * @throws Exception
     */
-   public void setPinModel(CategoryModel pinModel) {
-      fPinModel = pinModel;
+   public void validateMappedPins() {
+      return;
    }
 
    /**
@@ -1036,8 +1211,111 @@ public abstract class Peripheral extends VariableProvider {
     * 
     * @return true if not real hardware
     */
-   public boolean isSynthetic() {
-      return false;
+   public final boolean isSynthetic() {
+      return fIsSynthetic;
+   }
+
+   /**
+    * Get user identifier used for this peripheral in C code
+    * 
+    * @return User name
+    */
+   public String getCodeIdentifier() {
+      return fCodeIdentifier;
+   }
+
+   /**
+    * Set editor dirty via deviceInfo
+    */
+   protected void setDirty(boolean dirty) {
+      if (fDeviceInfo != null) {
+         fDeviceInfo.setDirty(dirty);
+      }
+   }
+   
+   /**
+    * Set user identifier used for this peripheral in C code
+    * 
+    * @param codeIdentifier User name
+    */
+   public void setCodeIdentifier(String codeIdentifier) {
+      if ((fCodeIdentifier != null) && (fCodeIdentifier.compareTo(codeIdentifier) == 0)) {
+         return;
+      }
+      fCodeIdentifier = codeIdentifier;
+      setDirty(true);
+      notifyListeners();
+   }
+
+   /**
+    * Get status of peripheral
+    * 
+    * @return
+    */
+   public Status getStatus() {
+      return null;
+   }
+
+   @Override
+   public void addListener(IModelChangeListener listener) {
+      fProxy.addListener(listener);      
+   }
+
+   @Override
+   public void removeAllListeners() {
+      fProxy.removeAllListeners();      
+   }
+
+   @Override
+   public void removeListener(IModelChangeListener listener) {
+      fProxy.removeListener(listener);
+   }
+
+   @Override
+   public void notifyListeners() {
+      fProxy.notifyListeners();
+   }
+
+   @Override
+   public void notifyStatusListeners() {
+      fProxy.notifyStatusListeners();
+   }
+
+   @Override
+   public void notifyStructureChangeListeners() {
+      fProxy.notifyStructureChangeListeners();
+   }
+
+   @Override
+   public boolean isRefreshPending() {
+      return fProxy.isRefreshPending();
+   }
+
+   @Override
+   public void setRefreshPending(boolean refreshPending) {
+      fProxy.setRefreshPending(refreshPending);
+   }
+
+   /** 
+    * Set description of pin use 
+    */
+   public void setUserDescription(String userDescription) {
+      if ((getUserDescription().compareTo(userDescription) == 0)) {
+         return;
+      }
+      fUserDescription = userDescription;
+      setDirty(true);
+      notifyListeners();
+   }
+
+   /** 
+    * Get user description of peripheral
+    */
+   public String getUserDescription() {
+      if (fUserDescription == null) {
+         return "";
+      }
+      return fUserDescription;
    }
 
 }

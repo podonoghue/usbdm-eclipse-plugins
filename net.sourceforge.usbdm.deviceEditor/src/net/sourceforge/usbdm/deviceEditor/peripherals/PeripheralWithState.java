@@ -5,22 +5,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.Variable;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
 import net.sourceforge.usbdm.deviceEditor.model.IModelChangeListener;
 import net.sourceforge.usbdm.deviceEditor.model.IModelEntryProvider;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
+import net.sourceforge.usbdm.deviceEditor.model.Status;
+import net.sourceforge.usbdm.deviceEditor.model.Status.Severity;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.ParseMenuXML.MenuData;
-import net.sourceforge.usbdm.cdt.utilties.ReplacementParser;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.TemplateInformation;
 import net.sourceforge.usbdm.deviceEditor.xmlParser.XmlDocumentUtilities;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -39,6 +44,9 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
 
    /** Map of parameters for peripheral */
    protected HashMap<String, String> fConstantMap = new HashMap<String,String>();
+
+   /** Status of the peripheral */
+   protected Status fStatus = null;
 
    protected PeripheralWithState(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
@@ -73,6 +81,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
    }
 
    @Override
+   public Status getStatus() {
+      return fStatus;
+   }
+   
+   @Override
    public BaseModel getModel(BaseModel parent) {
       return null;
    }
@@ -82,11 +95,11 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (fMenuData == null) {
          return;
       }
-      createSignalModel();
-      BaseModel model = fMenuData.getRootModel();
-      if (model != null) {
-         model.setParent(parent);
+      BaseModel rootModel = fMenuData.getRootModel();
+      if (rootModel != null) {
+         rootModel.setParent(parent);
       }
+      createPeripheralSignalsModel(rootModel);
    }
 
    @Override
@@ -494,6 +507,36 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          }
       }
       return sb.toString();
+   }
+   
+   /**
+    * Checks if signals are mapped to pins.
+    * 
+    * @param  requiredSignals Array of required signals as indices into the signal table
+    * @param  table           Peripheral signal table to use
+    * 
+    * @return Status Status if error or null if none
+    * 
+    * @throws Exception
+    */
+   protected void validateMappedPins(int requiredSignals[], Vector<Signal> table) {
+      
+      final Status UNMAPPED_PIN_STATUS = new Status("Not all common signals are mapped to pins", Severity.WARNING);
+
+      if (getCodeIdentifier().isBlank()) {
+         // Ignore incomplete pin mapping if peripheral has no user name
+         fStatus = null;
+         return;
+      }
+      Status status = null;
+      for (int pinNum:requiredSignals) {
+         Signal signal = table.get(pinNum);
+         if ((signal == null) || (signal.getFirstMappedPinInformation().getPin() == Pin.UNASSIGNED_PIN)) {
+            status = UNMAPPED_PIN_STATUS;
+            break;
+         }
+      }
+      fStatus = status;
    }
 
 }

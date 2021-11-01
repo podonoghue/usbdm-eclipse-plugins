@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
 import net.sourceforge.usbdm.deviceEditor.information.IrqVariable;
@@ -141,7 +140,11 @@ public class WriterForGpio extends PeripheralWithState {
    }
    
    @Override
-   void writeDeclarations(DocumentUtilities writer, Set<String> usedNames) throws IOException {
+   protected void writeDeclarations() {
+      
+      if (!getCodeIdentifier().isBlank()) {
+         writeDefaultPeripheralDeclaration("Port"+getInstance());
+      }
       
       // Information about each unique identifier in GPIO
       HashMap<String, GpioPinInformation> identifiers = new HashMap<String, GpioPinInformation>();
@@ -189,33 +192,28 @@ public class WriterForGpio extends PeripheralWithState {
          String polarity = gpioPinInformation.isActiveLow()?", "+DeviceInfo.NAME_SPACE_USBDM_LIBRARY+"::ActiveLow":"";
 
          mainIdentifier = makeCIdentifier(mainIdentifier);
-         boolean repeatedIdent = !usedNames.add(mainIdentifier);
          String type;
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
          
-         String mainDescription = pins.get(0).getPinUseDescription().split(";")[0].trim();
+         String mainDescription = pins.get(0).getUserDescription().split(";")[0].trim();
          
          if (bitNums.size()==1) {
             // Do Gpio
+            String pinComment = pins.get(0).getLocation() + comment;
             type = String.format("const %s::%s<%d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance(), bitNums.get(0), polarity);
-            writeDeclaration(writer, error, mainDescription, repeatedIdent, mainIdentifier, type, comment);
+            writeVariableDeclaration(error, mainDescription, mainIdentifier, type, pinComment);
          }
          else {
             // Do GpioField
-            type = String.format("const %s::%s<%d, %d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
-            
-            String fieldDescription = mainDescription;
-            if (!fieldDescription.isBlank()) {
-               fieldDescription = fieldDescription + " (Bit Field)";
-            }
-            writeDeclaration(writer, error, fieldDescription, repeatedIdent, mainIdentifier, type, comment);
-            
+
             // Do individual bits in bit-field
             // Only done if named
             for (int index=0; index<bitNums.size(); index++) {
                int bitNum = bitNums.get(index);
                Pin pin = pins.get(index);
+
+               String pinComment = pin.getLocation() + comment;
                
                String[] bitIdentifiers = pin.getCodeIdentifier().split(";");
                String   bitIdentifier  = (bitIdentifiers.length>1)?bitIdentifiers[1].trim():"";
@@ -231,7 +229,7 @@ public class WriterForGpio extends PeripheralWithState {
                   }
                }
 
-               String[] descriptions = pin.getPinUseDescription().split(";");
+               String[] descriptions = pin.getUserDescription().split(";");
                String   description  = ((descriptions.length>1)?descriptions[1]:descriptions[0]).trim();
                description = description + " (" + mainIdentifier + " bit #" + index + ")";
                
@@ -240,13 +238,24 @@ public class WriterForGpio extends PeripheralWithState {
                type = String.format("const %s::%s<%d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance(), bitNum, bitPolarity);
                if (bitIdentifier.startsWith("*")) {
                   // Use common identifier with suffix
-                  writeDeclaration(writer, description, repeatedIdent, mainIdentifier+"_"+(index), type, comment);
+                  writeVariableDeclaration("", description, mainIdentifier+"_"+(index), type, pinComment);
                }
                else {
                   bitIdentifier = makeCIdentifier(bitIdentifier);
-                  writeDeclaration(writer, description, !usedNames.add(bitIdentifier), bitIdentifier, type, comment);
+                  writeVariableDeclaration("", description, bitIdentifier, type, pinComment);
                }
             }
+            String fieldDescription = mainDescription;
+            if (!fieldDescription.isBlank()) {
+               fieldDescription = mainDescription + " (Bit Field)";
+            }
+            String fieldComment = pins.get(0).getLocation() + "-" + pins.get(pins.size()-1).getLocation();
+            fieldComment = fieldComment + comment;
+
+            type = String.format("const %s::%s<%d, %d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
+
+            writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
+            
          }
       }
    }

@@ -25,4 +25,11 @@ public class WriterForSpi extends PeripheralWithState {
       final String signalNames[] = {"SCK", "SIN|MISO", "SOUT|MOSI", "PCS0|PCS|SS|SS_b", "PCS1", "PCS2", "PCS3", "PCS4", "PCS5"};
       return getSignalIndex(function, signalNames);
    }
+   
+   @Override
+   public void validateMappedPins() {
+      
+      // Warn if MISO, MOSI and SCK signals not mapped
+      validateMappedPins(new int[]{0,1,2}, getSignalTables().get(0).table);
+   }
 }

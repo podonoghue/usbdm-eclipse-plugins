@@ -12,6 +12,7 @@ public class WriterForConsole extends PeripheralWithState {
 
    public WriterForConsole(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -21,10 +22,4 @@ public class WriterForConsole extends PeripheralWithState {
    
    public void writeInfoClass(DocumentUtilities pinMappingHeaderFile) throws IOException {
    }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
-   };
-   
 }

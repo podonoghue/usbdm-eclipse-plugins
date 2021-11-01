@@ -111,7 +111,7 @@ public class PinListVariable extends StringVariable {
 
    @Override
    public String isValid() {
-      return isValid(fValue);
+      return isValid(getPersistentValue());
    }
 
    /**

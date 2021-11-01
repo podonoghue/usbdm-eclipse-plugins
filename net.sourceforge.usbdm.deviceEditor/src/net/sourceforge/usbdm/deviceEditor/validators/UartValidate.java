@@ -47,8 +47,6 @@ public class UartValidate extends PeripheralValidator {
             txrxHandlerVar.setValue(true);
          }
       }
-      // Warn if Rx and Tx signals not mapped
-      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
    }
    
    @Override

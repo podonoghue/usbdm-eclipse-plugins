@@ -44,5 +44,9 @@ public class WriterForI2c extends PeripheralWithState {
       return "USBDM::I2C_DEFAULT_PCR";
    }
    
-   
+   @Override
+   public void validateMappedPins() {
+      // Warn if SCL and SDA signals not mapped
+      validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
+   }
 }

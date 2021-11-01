@@ -26,10 +26,14 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    }
    
    public SignalModel(BaseModel parent, Signal signal) {
-      super(parent, signal.getName(), "");
+      super(parent, signal.getName());
+
+//      if (getName().contains(watchedName)) {
+//         System.err.println("SignalModel(" + getName() + "):"+this.hashCode() + ", parent = " + parent + ": " + parent.hashCode() );
+//         System.err.flush();
+//      }         
 
       fSignal = signal;
-      setDescription(fSignal.getFirstMappedPinInformation().getPin().getPinUseDescription());
 
       TreeSet<MappingInfo> mappingInfoSet = fSignal.getPinMapping();
 //      MappingInfo firstMapping = mappingInfoSet.first();
@@ -117,15 +121,15 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       setStatus(status);
 
       if (model instanceof Signal) {
-         // XXX Delete me!
-         Signal signal = (Signal)model;
-         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Signal("+signal.getName()+")");
+         // XXX Delete OK
+//         Signal signal = (Signal)model;
+//         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Signal("+signal.getName()+")");
          update();
       }
       if (model instanceof Pin) {
-         // XXX Delete me!
-         Pin pin = (Pin)model;
-         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Pin("+pin.getName()+")");
+         // XXX Delete OK
+//         Pin pin = (Pin)model;
+//         System.err.println("SignalModel("+fSignal.getName()+").modelElementChanged(Pin("+pin.getName()+")");
          update();
       }
    }
@@ -201,7 +205,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 
       // Try to get description from currently mapped pin
       if (!currentMapping.isEmpty()) {
-         description = currentMapping.get(0).getPin().getPinUseDescription();
+         description = currentMapping.get(0).getPin().getUserDescription();
       }
       else {
          String pinListDescription = getPinListDescription();

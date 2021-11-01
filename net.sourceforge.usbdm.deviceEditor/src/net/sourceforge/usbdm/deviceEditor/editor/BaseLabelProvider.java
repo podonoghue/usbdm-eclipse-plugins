@@ -83,6 +83,7 @@ abstract class BaseLabelProvider extends StyledCellLabelProvider  implements ISt
          return new StyledString("");
       }
       BaseModel baseModel = (BaseModel) element;
+      
       String text = getText(baseModel);
       if ((text == null)||(text.length() == 0)) {
          return new StyledString("");

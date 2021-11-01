@@ -20,11 +20,7 @@ public class I2cValidate extends PeripheralValidator {
     */
    @Override
    public void validate(Variable variable) throws Exception {
-      
       super.validate(variable);
-      
-      // Warn if SCL and SDA signals not mapped
-      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
    }
    
    @Override

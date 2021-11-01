@@ -25,5 +25,11 @@ public class WriterForLpuart extends PeripheralWithState {
       final String signalNames[] = {"TX", "RX", "RTS(_b)?", "CTS(_b)?", "COL(_b)?"};
       return getSignalIndex(function, signalNames);
    }
+   
+   @Override
+   public void validateMappedPins() {
+      // Warn if TxD and RxD signals not mapped
+      validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
+   }
 
 }

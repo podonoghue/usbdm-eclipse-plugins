@@ -88,9 +88,6 @@ public class RtcValidate extends PeripheralValidator {
          osc_clockVar      =  getLongVariable("osc_clock");
          origin            = "RTCCLK";
          rtc_cr_osceVar.setToolTip("Enable 32kHz RTC oscillator");
-         
-         // Warn if SCL and SDA signals not mapped
-         validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
       }
       osc_input_freq = osc_input_freqVar.getValueAsLong();
 

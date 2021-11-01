@@ -17,9 +17,13 @@ import net.sourceforge.usbdm.deviceEditor.xmlParser.ListModel;
  */
 public abstract class BaseModel implements Cloneable {
    
+   static final String watchedName = "OSC"; 
+
    /** Factory owning these models */
    static private ModelFactory fFactory = null;
 
+   private String fDescription = null;
+   
    /** 
     * Set the Factory using these models 
     * 
@@ -71,34 +75,48 @@ public abstract class BaseModel implements Cloneable {
     * Updates the model's presentation when one or more of its properties change
     */
    public synchronized void update() {
-      // Necessary to propagate error messages up the tree
-//      updateAncestors();
-      final StructuredViewer viewer = getViewer();
-      final BaseModel origin = this;
-      
-      if (!fModelsToRefresh.contains(this)) {
-         fModelsToRefresh.add(this);
-         
+      BaseModel        origin = this;
+      //          XXX Delete OK
+//      if (origin.getName().contains(watchedName)) {
+//         System.err.println("BaseModel.update Scheduling : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
+//         System.err.flush();
+//      }         
+      StructuredViewer viewer = getViewer();
+
+      if (!fModelsToRefresh.contains(origin)) {
+         //          XXX Delete OK
+//         if (origin.getName().contains(watchedName)) {
+//            System.err.println("BaseModel.update Scheduling : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
+//            System.err.flush();
+//         }         
+         fModelsToRefresh.add(origin);
+
          Display.getDefault().asyncExec(new Runnable() {
             public void run() {
+               // XXX Delete OK
+//               if (origin.getName().contains(watchedName)) {
+//                  System.err.println("BaseModel.update.run()     : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
+//                  System.err.flush();
+//               }
+               fModelsToRefresh.remove(origin);
                if ((viewer != null) && (!viewer.getControl().isDisposed())) {
-                  fModelsToRefresh.remove(origin);
+                  //                  viewer.refresh();
                   BaseModel model = origin;
                   while (model != null) {
                      viewer.update(model, null);
                      model = model.getParent();
                   }
-//                  viewer.refresh();
-                  // XXX Delete me!
-                  System.err.println("BaseModel.update.run() : " + origin);
                }
             }
-        });
+         });
       }
-      else {
-         // XXX Delete me!
-         System.err.println("BaseModel.update.run() discarding : " + origin);
-      }
+      //      else {
+      //         if (origin.getName().contains(watchedName)) {
+      //            // XXX Delete OK
+      //            System.err.println("BaseModel.update.Discarding : " + origin + ":" + origin.hashCode() + ", " + origin.getDescription());
+      //            System.err.flush();
+      //         }
+      //      }
    }
    
    /**
@@ -124,9 +142,6 @@ public abstract class BaseModel implements Cloneable {
    /** Name of model */
    protected       String            fName;
    
-   /** Description of node */
-   protected       String            fDescription;
-   
    /** Parent node */
    protected BaseModel               fParent;
    
@@ -140,7 +155,7 @@ public abstract class BaseModel implements Cloneable {
    protected Status fMessage = null;
 
    /** Controls logging */
-   protected boolean fLogging = false;
+   protected final boolean fLogging = false;
 
    /** Index for indexed models */
    private int  fIndex;
@@ -154,13 +169,12 @@ public abstract class BaseModel implements Cloneable {
     * 
     * @note Added as child of parent if not null
     */
-   public BaseModel(BaseModel parent, String name, String description) {
+   public BaseModel(BaseModel parent, String name) {
       if (name == null) {
          name = "No name";
       }
       fParent      = parent;
       fName        = name;
-      fDescription = description;
       if (parent != null) {
          parent.addChild(this);
       }
@@ -268,7 +282,7 @@ public abstract class BaseModel implements Cloneable {
     * @return string
     */
    public String toString() {
-      return getClass().getSimpleName()+"("+fName+", "+fDescription+")";
+      return getClass().getSimpleName()+"("+fName+", "+getDescription()+")";
    }
 
    /**
@@ -281,21 +295,24 @@ public abstract class BaseModel implements Cloneable {
    }
    
    /**
-    * Set description text
-    * 
-    * @param description
-    */
-   public void setDescription(String description) {
-      fDescription = description;
-   }
-   
-   /**
     * Gets description of element
     * 
     * @return string
     */
    public String getSimpleDescription() {
+      if (fDescription == null) {
+         return "";
+      }
       return fDescription;
+   }
+   
+   /**
+    * Sets simple description of element
+    * 
+    * @return string
+    */
+   public void setSimpleDescription(String description) {
+      fDescription = description;
    }
    
    /**

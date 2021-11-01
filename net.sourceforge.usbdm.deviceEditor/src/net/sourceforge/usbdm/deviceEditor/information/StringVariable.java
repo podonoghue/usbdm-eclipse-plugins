@@ -6,8 +6,11 @@ import net.sourceforge.usbdm.deviceEditor.model.VariableModel;
 
 public class StringVariable extends Variable {
 
-   /** Value in user format */
-   protected String fValue = "Not assigned";
+   /** Value in user format - created as needed */
+   private StringBuilder fValue = null;
+   
+   /** Value in user format (cached) */
+   protected String fCachedValue = "Not initialised";
    
    /** Default value of variable */
    protected String fDefault;
@@ -25,15 +28,29 @@ public class StringVariable extends Variable {
    /**
     * Constructor
     * 
-    * @param name Name to display to user.
-    * @param key  Key for variable
+    * @param name    Name to display to user.
+    * @param key     Key for variable
+    * @param value   Value to use may be a StringBuilder otherwise value.toString() is used.
     */
-   public StringVariable(String name, String key, String value) {
+   public StringVariable(String name, String key, Object value) {
       super(name, key);
-      setValue(value);
-      setDefault(value);
+      setValueQuietly(value);
+      setDefault(value.toString());
    }
 
+   /**
+    * Adds additional text to the variable.
+    * 
+    * @param additionalText Text to append
+    */
+   public void append(Object additionalText) {
+      if (fValue == null) {
+         fValue = new StringBuilder(fCachedValue);
+      }
+      fValue.append(additionalText.toString());
+      fCachedValue = null;
+   }
+   
    @Override
    public String getSubstitutionValue() {
       return getValueAsString();
@@ -41,17 +58,17 @@ public class StringVariable extends Variable {
 
    @Override
    public String getValueAsString() {
-      return isEnabled()?fValue:fDefault;
+      return isEnabled()?getPersistentValue():fDefault;
    }
 
    @Override
    public boolean getValueAsBoolean() {
-      return Boolean.valueOf(fValue);
+      return Boolean.valueOf(getPersistentValue());
    }
 
    @Override
    public Object getDefault() {
-      return fValue;
+      return fDefault;
    }
    /**
     * Set value as String
@@ -61,11 +78,11 @@ public class StringVariable extends Variable {
     * @return True if variable actually changed value and listeners notified
     */
    public boolean setValue(String value) {
-      if (fValue == value) {
+      if (getPersistentValue() == value) {
          return false;
       }
       super.debugPrint("StringVariable["+this+"].setValue("+value+"), old "+value);
-      fValue = value;
+      setValueQuietly(value);
       notifyListeners();
       return true;
    }
@@ -85,24 +102,37 @@ public class StringVariable extends Variable {
       fDefault = value.toString();
    }
 
+   /**
+    * If value is a {@link StringBuilder} then it will be used as the internal representation otherwise value.ToString() will be used.
+    */
    @Override
    public void setValueQuietly(Object value) {
-      fValue = value.toString();
+      if (value instanceof StringBuilder) {
+         fValue = (StringBuilder)value;
+         fCachedValue = null;
+      }
+      else {
+         fValue = null;
+         fCachedValue = value.toString();
+      }
    }
 
    @Override
    public String getPersistentValue() {
-      return fValue;
+      if ((fCachedValue == null) && (fValue != null)) {
+         fCachedValue = fValue.toString();
+      }
+      return fCachedValue;
    }
 
    @Override
    public void setPersistentValue(String value) {
-      fValue = value.toString();
+      setValueQuietly(value);
    }
 
    @Override
    public boolean isDefault() {
-      return fValue.equals(fDefault);
+      return getPersistentValue().equals(fDefault);
    }
 
    @Override

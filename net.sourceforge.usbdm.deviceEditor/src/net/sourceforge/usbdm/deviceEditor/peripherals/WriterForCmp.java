@@ -76,6 +76,7 @@ public class WriterForCmp extends PeripheralWithState {
             String userPinName = pin.getCodeIdentifier().trim();
             if (!userPinName.isBlank()) {
                userPinName =  enumName+"_"+userPinName;
+               userPinName = makeCIdentifier(userPinName);
             }
             int mapName = index;
             do {
@@ -89,16 +90,18 @@ public class WriterForCmp extends PeripheralWithState {
                }
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Fixed pin  "+pin.getName()));
+                  String comment = commentRoot+"Fixed pin  "+pin.getName();
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
                   if (!userPinName.isBlank()) {
-                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", commentRoot+"Fixed pin  "+pin.getName()));
+                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
                   }
                   continue;
                }
                if (mappingInfo.isSelected()) {
-                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", commentRoot+"Mapped pin "+pin.getName()));
+                  String comment = commentRoot+"Mapped pin "+pin.getName();
+                  sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
                   if (!userPinName.isBlank()) {
-                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", commentRoot+"Mapped pin "+pin.getName()));
+                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
                   }
                }
             } while(false);

@@ -17,6 +17,7 @@ public class WriterForNull extends Peripheral {
 
    public WriterForNull(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
       System.err.println("NULL peripheral - " + getName());
    }
 
@@ -38,11 +39,6 @@ public class WriterForNull extends Peripheral {
    @Override
    public void addSignal(Signal signal) {
       System.err.println("WriterForNull: Adding signal "+signal.getName());
-   }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
    }
 
    @Override

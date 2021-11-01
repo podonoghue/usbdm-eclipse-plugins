@@ -9,7 +9,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
  */
 public abstract class EditableModel extends BaseModel {
 
-   /** USed to mark model as a constant i.e. can't be changed by editor */
+   /** Used to mark model as a constant i.e. can't be changed by editor */
    boolean fIsConstant = false;
    
    /**
@@ -17,12 +17,11 @@ public abstract class EditableModel extends BaseModel {
     * 
     * @param parent        Parent model
     * @param name          Display name
-    * @param description   Display description
     * 
     * @note Added as child of parent if not null
     */
-   public EditableModel(BaseModel parent, String name, String description) {
-      super(parent, name, description);
+   public EditableModel(BaseModel parent, String name) {
+      super(parent, name);
    }
    
    @Override

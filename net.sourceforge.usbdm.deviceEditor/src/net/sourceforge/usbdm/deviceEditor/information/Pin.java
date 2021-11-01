@@ -42,7 +42,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    private MuxSelection fResetMuxValue = MuxSelection.unassigned;
 
    /** User description of pin use */
-   private String fPinUseDescription = "";
+   private String fUserDescription = "";
 
    /** User identifier to use in code generation */
    private String fCodeIdentifier = "";
@@ -63,7 +63,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param fVariantName Name of the pin, usually the port name e.g. PTA1
     */
    Pin(DeviceInfo deviceInfo, String name) {
-      if (deviceInfo == null) {
+      if ((deviceInfo == null) && !"Unassigned".equals(name)) {
          System.err.print("deviceInfo is null!!");
       }
       fDeviceInfo = deviceInfo;
@@ -349,8 +349,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /** 
     * Set description of pin use 
     */
-   public void setPinUseDescription(String pinUseDescription) {
-      fPinUseDescription = pinUseDescription;
+   public void setUserDescription(String userDescription) {
+      if ((fUserDescription != null) && (fUserDescription.compareTo(userDescription) == 0)) {
+         return;
+      }
+      fUserDescription = userDescription;
 
       // Update watchers of active mapping
       MappingInfo mappingInfo = getMappedSignals();
@@ -363,21 +366,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /** 
     * Get description of pin use 
     */
-   public String getPinUseDescription() {
-      return fPinUseDescription;
+   public String getUserDescription() {
+      return fUserDescription;
    }
 
    /** 
     * Set identifier to use in code generation
     */
    public void setCodeIdentifier(String codeIdentifier) {
+      if ((fCodeIdentifier != null) && (fCodeIdentifier.compareTo(codeIdentifier) == 0)) {
+         return;
+      }
       fCodeIdentifier = codeIdentifier;
-
-      // Update watchers of active mapping
-//      MappingInfo mappingInfo = getMappedSignal();
-//      mappingInfo.pinPropertiesChanged(this);
-//      mappingInfo.notifyListeners();
-
       setDirty(true);
       notifyListeners();
    }
@@ -512,7 +512,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return "$signal$"+name+"_muxSetting";
    }
 
-   public static final String getDescriptionKey(String name) {
+   public static final String getUserDescriptionKey(String name) {
       return "$signal$"+name+"_descriptionSetting";
    }
 
@@ -539,9 +539,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (value != null) {
          setCodeIdentifier(value);
       }
-      value = settings.get(getDescriptionKey(fName));
+      value = settings.get(getUserDescriptionKey(fName));
       if (value != null) {
-         setPinUseDescription(value);
+         setUserDescription(value);
       }
       value = settings.get(getPCRKey(fName));
       if (value != null) {
@@ -558,9 +558,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if ((fMuxValue != MuxSelection.unassigned) && (fMuxValue != MuxSelection.fixed)) {
          settings.put(getMuxKey(fName), fMuxValue.name());
       }
-      String desc = getPinUseDescription();
+      String desc = getUserDescription();
       if ((desc != null) && !desc.isEmpty()) {
-         settings.put(getDescriptionKey(fName), desc);
+         settings.put(getUserDescriptionKey(fName), desc);
       }
       String ident = getCodeIdentifier();
       if ((ident != null) && !ident.isEmpty()) {
@@ -630,11 +630,11 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
             throw new RuntimeException("Impossible mapping");
          }
       }
-      if (model instanceof Pin) {
-         // XXX Delete me!
-         Pin pin = (Pin)model;
-         System.err.println("Pin("+fName+").modelElementChanged("+pin.getName()+")");
-      }
+//      if (model instanceof Pin) {
+//         // XXX Delete OK
+//         Pin pin = (Pin)model;
+//         System.err.println("Pin("+fName+").modelElementChanged("+pin.getName()+")");
+//      }
       //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
       notifyListeners();
    }

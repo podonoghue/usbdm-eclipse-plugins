@@ -48,8 +48,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /*
     * ======================================================================================================
     */
-   
-   
    /** Peripheral that signal belongs to */
    private final Peripheral fPeripheral;
 
@@ -328,22 +326,17 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof MappingInfo) {
-         MappingInfo mappingInfo = (MappingInfo) model;
-         // XXX Delete me!
-         System.err.println("Signal("+fName+").modelElementChanged(MappingInfo("+mappingInfo.getPin()+"))");
+//         MappingInfo mappingInfo = (MappingInfo) model;
+//         // XXX Delete OK
+//         System.err.println("Signal("+fName+").modelElementChanged(MappingInfo("+mappingInfo.getPin()+"))");
          
          notifyListeners();
       }
       if (model instanceof Pin) {
-         Pin pin = (Pin) model;
-         // XXX Delete me!
-         System.err.println("Signal("+fName+").modelElementChanged(Pin("+pin.getName()+"))");
+//         Pin pin = (Pin) model;
+//         // XXX Delete OK
+//         System.err.println("Signal("+fName+").modelElementChanged(Pin("+pin.getName()+"))");
          notifyListeners();
-//         
-//         // If this pin is mapped notify
-//         if (pin.getMappedSignals().getSignals().contains(this)) {
-//            notifyListeners();
-//         }
       }
    }
 

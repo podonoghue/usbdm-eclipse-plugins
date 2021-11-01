@@ -77,7 +77,7 @@ public class NumericListVariable extends StringVariable {
 
    @Override
    public String isValid() {
-      return isValid(fValue);
+      return isValid(getValueAsString());
    }
 
    /**

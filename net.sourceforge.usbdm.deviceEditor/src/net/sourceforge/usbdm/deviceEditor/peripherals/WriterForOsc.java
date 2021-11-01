@@ -43,6 +43,10 @@ public class WriterForOsc extends PeripheralWithState {
    public String getPcrValue(Signal y) {
       return "USBDM::XTAL_DEFAULT_PCR";
    }
-
    
+   @Override
+   public void validateMappedPins() {
+      // Warn if EXTAL and XTAL signals not mapped
+      validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
+   }
 }

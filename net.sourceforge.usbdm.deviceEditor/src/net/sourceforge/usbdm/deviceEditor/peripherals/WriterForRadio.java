@@ -18,6 +18,7 @@ public class WriterForRadio extends PeripheralWithState {
 
    public WriterForRadio(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -47,10 +48,4 @@ public class WriterForRadio extends PeripheralWithState {
       }
       return index;
    }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
-   }
-   
 }

@@ -8,7 +8,7 @@ import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
 
 /**
- * Class encapsulating the code for writing an instance of DigitalIO
+ * Class encapsulating the code for writing an instance of Shared
  */
 /**
  * @author podonoghue
@@ -18,6 +18,7 @@ public class WriterForShared extends PeripheralWithState {
 
    public WriterForShared(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      setSynthetic();
    }
 
    @Override
@@ -47,10 +48,4 @@ public class WriterForShared extends PeripheralWithState {
       }
       return index;
    }
-
-   @Override
-   public boolean isSynthetic() {
-      return true;
-   }
-   
 }

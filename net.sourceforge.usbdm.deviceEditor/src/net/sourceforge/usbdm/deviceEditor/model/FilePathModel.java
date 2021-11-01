@@ -51,11 +51,16 @@ public class FilePathModel extends EditableModel  implements CellEditorProvider{
     * @param modelFactory  Model factory associated with this model
     */
    public FilePathModel(BaseModel parent, ModelFactory modelFactory) {
-      super(parent, "Hardware", "Path to hardware description");
+      super(parent, "Hardware");
       
       fFactory = modelFactory;
    }
 
+   @Override
+   public String getSimpleDescription() {
+      return "Path to hardware description";
+   }
+   
    @Override
    public void setValueAsString(String value) {
       fFactory.setHardwareFile(value);

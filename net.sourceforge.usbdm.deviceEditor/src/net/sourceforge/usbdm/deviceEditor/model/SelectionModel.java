@@ -16,8 +16,8 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
    /** Current selection index */
    protected int fSelection = 0;
    
-   public SelectionModel(BaseModel parent, String name, String description) {
-      super(parent, name, description);
+   public SelectionModel(BaseModel parent, String name) {
+      super(parent, name);
    }
 
    /**

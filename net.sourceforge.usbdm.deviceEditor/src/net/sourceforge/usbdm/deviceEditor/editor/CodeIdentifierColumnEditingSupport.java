@@ -8,8 +8,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
+import net.sourceforge.usbdm.deviceEditor.peripherals.Peripheral;
 
 public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
@@ -22,7 +24,12 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if ((element instanceof PinModel) || (element instanceof SignalModel)) {
+      if ((element instanceof PinModel) ||
+            (element instanceof SignalModel)) {
+         return true;
+      }
+      if ((element instanceof PeripheralSignalsModel) && 
+            !((PeripheralSignalsModel) element).getPeripheral().isSynthetic()) {
          return true;
       }
       return false;
@@ -30,7 +37,9 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof PinModel) || (element instanceof SignalModel)) {
+      if ((element instanceof PinModel) ||
+            (element instanceof SignalModel) ||
+            (element instanceof PeripheralSignalsModel)) {
          return new StringCellEditor(viewer.getTree());
       }
       return null;
@@ -39,12 +48,16 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
    @Override
    protected Object getValue(Object element) {
       if (element instanceof PinModel) {
-         PinModel pinModel = (PinModel)element;
-         return pinModel.getCodeIdentifier();
+         Pin pin = ((PinModel)element).getPin();
+         return pin.getCodeIdentifier();
       }
       if (element instanceof SignalModel) {
          Pin pin = ((SignalModel)element).getSignal().getMappedPin();
          return pin.getCodeIdentifier();
+      }
+      if (element instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+         return peripheral.getCodeIdentifier();
       }
       return null;
    }
@@ -52,8 +65,8 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
    @Override
    protected void setValue(Object element, Object value) {
       if (element instanceof PinModel) {
-         PinModel pinModel = (PinModel)element;
-         pinModel.setCodeIdentifier((String) value);
+         Pin pin = ((PinModel)element).getPin();
+         pin.setCodeIdentifier((String) value);
          viewer.update(element, null);
       }
       if (element instanceof SignalModel) {
@@ -62,6 +75,11 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
             pin.setCodeIdentifier((String) value);
             viewer.update(element, null);
          }
+      }
+      if (element instanceof PeripheralSignalsModel) {
+         Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
+         peripheral.setCodeIdentifier((String) value);
+         viewer.update(element, null);
       }
    }
 

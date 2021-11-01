@@ -9,7 +9,8 @@ public class AliasPlaceholderModel extends BaseModel {
    private boolean fIsConstant = false;
    
    public AliasPlaceholderModel(BaseModel parent, String name, String description) {
-      super(parent, name, description);
+      super(parent, name);
+      setSimpleDescription(description);
    }
 
    @Override

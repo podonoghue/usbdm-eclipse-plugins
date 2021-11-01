@@ -6,7 +6,7 @@ import net.sourceforge.usbdm.deviceEditor.peripherals.VariableProvider;
 public class ListModel extends BaseModel {
 
    public ListModel(BaseModel parent, String name) {
-      super(parent, name, "");
+      super(parent, name);
    }
 
    @Override

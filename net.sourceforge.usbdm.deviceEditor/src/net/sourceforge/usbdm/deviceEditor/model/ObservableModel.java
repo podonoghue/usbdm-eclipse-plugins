@@ -5,17 +5,18 @@ import java.util.ArrayList;
 /**
  * Implements a change listener interface
  */
-public class ObservableModel {
+public class ObservableModel implements ObservableModelInterface {
 
    private boolean fRefreshPending  = false;
    
    private ArrayList<IModelChangeListener> fListeners = new ArrayList<IModelChangeListener>();
 
    /**
-    * Add the model change listener
+    * Add a model change listener to listen for changes
     * 
-    * @param listener
+    * @param listener Listener to add
     */
+   @Override
    public void addListener(IModelChangeListener listener) {
       if (!fListeners.contains(listener)) {
          fListeners.add(listener);
@@ -27,6 +28,7 @@ public class ObservableModel {
     * 
     * @param listener to remove
     */
+   @Override
    public void removeAllListeners() {
       // Done this way so clearing cloned variables doesn't affect original
       fListeners = new ArrayList<IModelChangeListener>();
@@ -37,6 +39,7 @@ public class ObservableModel {
     * 
     * @param listener to remove
     */
+   @Override
    public void removeListener(IModelChangeListener listener) {
       fListeners.remove(listener);
    }
@@ -45,6 +48,7 @@ public class ObservableModel {
     * Notify all listeners<br>
     * Clears RefreshPending
     */
+   @Override
    public void notifyListeners() {
       for (IModelChangeListener listener:fListeners) {
          listener.modelElementChanged(this);
@@ -56,6 +60,7 @@ public class ObservableModel {
     * Notify all listeners<br>
     * Clears RefreshPending
     */
+   @Override
    public void notifyStatusListeners() {
       for (IModelChangeListener listener:fListeners) {
          listener.elementStatusChanged(this);
@@ -67,12 +72,14 @@ public class ObservableModel {
     * Notify structure change listeners
     * 
     */
+   @Override
    public void notifyStructureChangeListeners() {
       for (IModelChangeListener listener:fListeners) {
          listener.modelStructureChanged(this);
       }
    }
 
+   @Override
    public boolean isRefreshPending() {
       return fRefreshPending;
    }
@@ -82,6 +89,7 @@ public class ObservableModel {
     * 
     * @param updatePending
     */
+   @Override
    public void setRefreshPending(boolean refreshPending) {
       fRefreshPending = refreshPending;
    }

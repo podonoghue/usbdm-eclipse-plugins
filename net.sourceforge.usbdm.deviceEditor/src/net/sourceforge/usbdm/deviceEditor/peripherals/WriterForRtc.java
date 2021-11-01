@@ -30,4 +30,11 @@ public class WriterForRtc extends PeripheralWithState {
    public int getPriority() {
       return 900;
    }
+   
+   @Override
+   public void validateMappedPins() {
+      
+      // Warn if EXTAL32 or XTAL32 are not mapped
+      validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
+   }
 }

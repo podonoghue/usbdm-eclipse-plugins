@@ -76,7 +76,7 @@ public class PcrInitialiser {
     * 
     * @throws Exception 
     */
-   public void addPin(Pin pin) throws Exception {
+   public void addPin(Pin pin) {
 
       if (!pin.isAvailableInPackage()) {
          // Discard unmapped signals on this package 

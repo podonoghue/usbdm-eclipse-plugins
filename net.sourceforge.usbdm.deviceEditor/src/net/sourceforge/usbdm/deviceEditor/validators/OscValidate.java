@@ -265,9 +265,6 @@ public class OscValidate extends PeripheralValidator {
             osc_div_erpsVar.enable(false);
          }
       }
-      
-      // Warn if EXTAL and XTAL signals not mapped
-      validateMappedPins(new int[]{0,1}, getPeripheral().getSignalTables().get(0).table);
    }
    
    @Override
