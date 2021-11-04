@@ -30,7 +30,7 @@ public class WriterForGpio extends PeripheralWithState {
       
       private final ArrayList<Integer> fListOfBits  = new ArrayList<Integer>();
       private final ArrayList<Pin>     fListOfPins  = new ArrayList<Pin>();
-      private final String  fFieldDescription;
+      private final String  fDescription;
       private boolean fConflictedPolarity    = false;
       private boolean fBitsAreConsecutive    = true;
       private int     fLastBitAdded;
@@ -42,12 +42,12 @@ public class WriterForGpio extends PeripheralWithState {
        * @param bitNum
        * @param isActiveLow
        */
-      public GpioPinInformation(int bitNum, Pin pin) {
+      public GpioPinInformation(int bitNum, String description, Pin pin) {
          fListOfBits.add(bitNum);
          fListOfPins.add(pin);
-         fPolarity         = pin.isActiveLow()?(1<<bitNum):0;
-         fLastBitAdded     = bitNum;
-         fFieldDescription  = pin.getFieldDescription();
+         fPolarity          = pin.isActiveLow()?(1<<bitNum):0;
+         fLastBitAdded      = bitNum;
+         fDescription       = description;
       }
       
       /**
@@ -129,8 +129,8 @@ public class WriterForGpio extends PeripheralWithState {
        * 
        * @return
        */
-      public String getFieldDescription() {
-         return fFieldDescription;
+      public String getDescription() {
+         return fDescription;
       }
    }
    
@@ -169,36 +169,49 @@ public class WriterForGpio extends PeripheralWithState {
       }
       
       // Information about each unique identifier in GPIO
-      HashMap<String, GpioPinInformation> identifiers = new HashMap<String, GpioPinInformation>();
+      HashMap<String, GpioPinInformation> variablesToCreate = new HashMap<String, GpioPinInformation>();
 
       // Collect the pins into fields and individual bits based on primary code identifier 
-      for (int index=0; index<fInfoTable.table.size(); index++) {
-         Signal signal = fInfoTable.table.get(index);
+      for (int infoTableIndex=0; infoTableIndex<fInfoTable.table.size(); infoTableIndex++) {
+         Signal signal = fInfoTable.table.get(infoTableIndex);
          if (signal == null) {
             continue;
          }
          MappingInfo pinMapping = signal.getFirstMappedPinInformation();
-         Pin pin = pinMapping.getPin();
-         String ident = pin.getPrimaryCodeIdentifier();
-         if (ident.isBlank()) {
+         if (pinMapping == MappingInfo.UNASSIGNED_MAPPING) {
             continue;
          }
-         ident = makeCVariableIdentifier(ident);
-         GpioPinInformation gpioPinInformation = identifiers.get(ident);
+         Pin pin = pinMapping.getPin();
          
-         if (gpioPinInformation == null) {
-            gpioPinInformation = new GpioPinInformation(index, pin);
-            identifiers.put(ident, gpioPinInformation);
-         }
-         else {
-            gpioPinInformation.addBit(index, pin);
+         String[] descriptions = pin.getUserDescription().split("/", -2);
+         String[] identifiers  = pin.getCodeIdentifier().split("/", -2);
+         for (int variableIndex=0; variableIndex<identifiers.length; variableIndex++) {
+            String identifier  = identifiers[variableIndex];
+            if (identifier.isBlank()) {
+               // Discard empty identifiers
+               continue;
+            }
+            String description = "";
+            if (descriptions.length>variableIndex) {
+               description = descriptions[variableIndex];
+            }
+            identifier = makeCVariableIdentifier(identifier);
+            GpioPinInformation gpioPinInformation = variablesToCreate.get(identifier);
+
+            if (gpioPinInformation == null) {
+               gpioPinInformation = new GpioPinInformation(infoTableIndex, description, pin);
+               variablesToCreate.put(identifier, gpioPinInformation);
+            }
+            else {
+               gpioPinInformation.addBit(infoTableIndex, pin);
+            }
          }
       }
       
       // Process the identifiers
-      for (String mainIdentifier :identifiers.keySet()) {
+      for (String mainIdentifier:variablesToCreate.keySet()) {
          
-         GpioPinInformation gpioPinInformation = identifiers.get(mainIdentifier);
+         GpioPinInformation gpioPinInformation = variablesToCreate.get(mainIdentifier);
          String comment = "";
          String error = "";
          if (!gpioPinInformation.areBitConsecutive()) {
@@ -209,42 +222,19 @@ public class WriterForGpio extends PeripheralWithState {
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
          if (bitNums.size()==1) {
-            // Do Gpio
+            // Do simple Gpio
             int bitNum = bitNums.get(0);
             Pin pin = pins.get(0);
             String pinTrailingComment = pin.getLocation() + comment;
             String polarity           = pin.isActiveLow()?", ActiveLow":"";
-            String pinDescription     = pin.getPinDescription();
+            String pinDescription     = gpioPinInformation.getDescription();
             
             String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
             writeVariableDeclaration(error, pinDescription, mainIdentifier, type, pinTrailingComment);
          }
          else {
             // Do GpioField
-
-            // Do individual bits in bit-field first
-            // Only done if named
-            for (int index=0; index<bitNums.size(); index++) {
-               int bitNum = bitNums.get(index);
-               Pin pin = pins.get(index);
-               String bitIdentifier = pin.getSecondaryCodeIdentifier();
-               if (bitIdentifier.isBlank()) {
-                  // No identifier for Gpio in GpioField - don't generate individual Gpio
-                  continue;
-               }
-               String pinTrailingComment = pin.getLocation() + comment;
-               String polarity           = pin.isActiveLow()?", ActiveLow":"";
-               String pinDescription = pin.getPinDescription();
-               pinDescription = pinDescription + " (" + mainIdentifier + " bit #" + index + ")";
-
-               String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
-               if (bitIdentifier.equals("*")) {
-                  // Use common identifier with suffix
-                  bitIdentifier = mainIdentifier+"_"+(index);
-               }
-               writeVariableDeclaration("", pinDescription, bitIdentifier, type, pinTrailingComment);
-            }
-            String fieldDescription = gpioPinInformation.getFieldDescription();
+            String fieldDescription = gpioPinInformation.getDescription();
             if (!fieldDescription.isBlank()) {
                fieldDescription = fieldDescription + " (Bit Field)";
             }

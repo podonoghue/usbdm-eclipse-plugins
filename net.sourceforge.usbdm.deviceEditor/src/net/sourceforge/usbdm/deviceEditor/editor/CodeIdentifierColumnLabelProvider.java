@@ -39,5 +39,19 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
    public Image getImage(BaseModel model) {
       return null;
    }
+
+   @Override
+   public String getToolTipText(Object element) {
+      if (element instanceof SignalModel) {
+         Signal signal = ((SignalModel)element).getSignal();
+         if (signal.getMappedPin() != Pin.UNASSIGNED_PIN) {
+            return "List of C identifiers separated by '/'";
+         }
+      }
+      if (element instanceof PinModel) {
+         return "List of C identifiers separated by '/'";
+      }
+      return super.getToolTipText(element);
+   }
    
 }

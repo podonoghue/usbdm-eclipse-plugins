@@ -2,7 +2,11 @@ package net.sourceforge.usbdm.deviceEditor.editor;
 
 import org.eclipse.swt.graphics.Image;
 
+import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.BaseModel;
+import net.sourceforge.usbdm.deviceEditor.model.PinModel;
+import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
 
 public class DescriptionColumnLabelProvider extends BaseLabelProvider {
 
@@ -18,6 +22,23 @@ public class DescriptionColumnLabelProvider extends BaseLabelProvider {
    @Override
    public Image getImage(BaseModel model) {
       return null;
+   }
+
+   @Override
+   public String getToolTipText(Object element) {
+      if (element instanceof SignalModel) {
+         Signal signal = ((SignalModel)element).getSignal();
+         if (signal.getMappedPin() != Pin.UNASSIGNED_PIN) {
+            return "List of C comments separated by '/'";
+         }
+         else {
+            return "Pins mappable to this signal (*indicates free pins)";
+         }
+      }
+      if (element instanceof PinModel) {
+         return "List of C comments separated by '/'";
+      }
+      return super.getToolTipText(element);
    }
    
 }
