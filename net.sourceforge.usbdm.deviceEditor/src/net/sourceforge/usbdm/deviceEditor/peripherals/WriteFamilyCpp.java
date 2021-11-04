@@ -305,7 +305,7 @@ public class WriteFamilyCpp {
       }
       
       if (hardwareIncludeFiles.isEmpty()) {
-         fDeviceInfo.removeVariable(HARDWARE_FILE_INCLUDES_FILE_KEY);
+         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_INCLUDES_FILE_KEY);
       }
       else {
          StringBuilder sb = new StringBuilder();
@@ -320,7 +320,7 @@ public class WriteFamilyCpp {
 
       // Save actual definitions for any user objects needed by peripherals in hardware.cpp
       if (hardwareDefinitions.toString().isBlank()) {
-         fDeviceInfo.removeVariable(HARDWARE_FILE_DEFINITIONS_KEY);
+         fDeviceInfo.removeVariableIfExists(HARDWARE_FILE_DEFINITIONS_KEY);
       }
       else {
          StringVariable hardwareDefinitionsVar = new StringVariable("Definitions", HARDWARE_FILE_DEFINITIONS_KEY, hardwareDefinitions);
@@ -401,7 +401,7 @@ public class WriteFamilyCpp {
             // Discard pins without package location
             continue;
          }
-         String useDescription = pin.getUserDescription();
+         String useDescription = pin.getPinDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -425,7 +425,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByLocation.get(pinName);
 
-         String useDescription = pin.getUserDescription();
+         String useDescription = pin.getPinDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -446,7 +446,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByFunction.get(pinName);
 
-         String useDescription = pin.getUserDescription();
+         String useDescription = pin.getPinDescription();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }

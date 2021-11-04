@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.ArrayList;
 
-import net.sourceforge.usbdm.deviceEditor.model.Status;
 import net.sourceforge.usbdm.deviceEditor.model.ObservableModel;
 
 /**
@@ -13,7 +12,7 @@ public class MappingInfo extends ObservableModel {
    public static enum Origin {pin, signal};
    
    /** List of peripheral signals that are mapped  by this selection */
-   private final ArrayList<Signal> fSignals = new ArrayList<Signal>();;
+   private final ArrayList<Signal> fSignals = new ArrayList<Signal>();
    
    /** Pin that signals are mapped to */
    private final Pin fPin;
@@ -24,13 +23,11 @@ public class MappingInfo extends ObservableModel {
    /** Indicates if the current mapping is selected */
    private boolean fSelected;
 
-   /** Message associated with mapping e.g. conflict etc*/
-   private Status fMessage = null;
-   
    private boolean fBusy = false;
    
    public boolean marked = false;
    
+   /** Indicate mapping does not correspond to a pin i.e. unassigned */
    public static MappingInfo UNASSIGNED_MAPPING = new MappingInfo(Pin.UNASSIGNED_PIN, MuxSelection.unassigned);
    /**
     * Associates a peripheral signal and a pin<br>
@@ -123,15 +120,14 @@ public class MappingInfo extends ObservableModel {
 //         System.err.println(toString() + " No Change");
          return;
       }
+      fSelected = selected;
       if (fBusy) {
          throw new RuntimeException("Loop!!!");
       }
-      fBusy = true;
-      setRefreshPending(true);
-      fSelected = selected;
-//      System.err.println(toString() + " Changed, " + (fSelected?"Selected":"Disabled" ));
-      notifyListeners();
-      fBusy = false;   
+      fPin.modelElementChanged(this);
+      for (Signal signal:getSignals()) {
+         signal.modelElementChanged(this);
+      }
    }
 
    /**
@@ -151,40 +147,6 @@ public class MappingInfo extends ObservableModel {
    @Override
    public int hashCode() {
       return fMuxValue.hashCode()^fPin.hashCode()^fSignals.hashCode();
-   }
-
-   /**
-    * Set message to display
-    * 
-    * @return Message to display
-    */
-   public void setMessage(String msg) {
-      Status message = null;
-      if (msg.isEmpty()) {
-         msg = null;
-      }
-      if (msg == null) {
-         if (fMessage == null) {
-            return;
-         }
-      }
-      else {
-         message = new Status(msg, Status.Severity.ERROR);
-         if (message.equals(fMessage)) {
-            return;
-         }
-      }
-      fMessage = message;
-      notifyStatusListeners();
-   }
-
-   /**
-    * Get current message
-    * 
-    * @return Message or null if none
-    */
-   public Status getMessage() {
-      return fMessage;
    }
 
    /**

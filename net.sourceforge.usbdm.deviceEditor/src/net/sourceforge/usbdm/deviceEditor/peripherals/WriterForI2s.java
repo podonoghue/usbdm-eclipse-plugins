@@ -13,6 +13,9 @@ public class WriterForI2s extends PeripheralWithState {
 
    public WriterForI2s(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override
@@ -22,7 +25,9 @@ public class WriterForI2s extends PeripheralWithState {
 
    @Override
    public int getSignalIndex(Signal function) {
-      String signalNames[] = {"MCLK", "RX_BCLK", "RX_FS", "TX_BCLK", "TX_FS", "TXD0", "TXD1", "RXD0", "RXD1"};
+      
+      String signalNames[] = {
+            "MCLK", "RX_BCLK", "RX_FS", "TX_BCLK", "TX_FS", "TXD0", "TXD1", "RXD0", "RXD1"};
       return getSignalIndex(function, signalNames);
    }
 }

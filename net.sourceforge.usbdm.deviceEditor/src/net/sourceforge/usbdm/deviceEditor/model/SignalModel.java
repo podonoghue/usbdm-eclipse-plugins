@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -63,6 +62,41 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
 
       fSignal.addListener(this);
+   }
+   
+   /**
+    * Gets pins that this signal may be mapped to.
+    * 
+    * @return String listing mappable pins
+    */
+   private String getAvailablePins() {
+      TreeSet<MappingInfo> mappingInfoSet = fSignal.getPinMapping();
+      
+      // Create list of values to choose from and corresponding mappingInfos
+      StringBuilder sb = new StringBuilder("[");
+      boolean isFirst = true;
+      for (MappingInfo mappingInfo:mappingInfoSet) {
+//         System.err.print("SignalModel.getAvailableSignals mappingInfo = (" + mappingInfo.hashCode() + ")" + mappingInfo + "\n");
+         Pin pin = mappingInfo.getPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
+            continue;
+         }
+         if (!pin.isAvailableInPackage()) {
+            // Discard pins without package location
+            continue;
+         }
+         if (!isFirst) {
+            sb.append("/");
+         }
+         isFirst = false;
+         sb.append(pin.getName());
+         if (pin.getMappedSignals() == MappingInfo.UNASSIGNED_MAPPING) {
+            // Pin is not currently mapped
+            sb.append("*");
+         }
+      }
+      sb.append("]");
+      return sb.toString();
    }
    
    /**
@@ -146,50 +180,20 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
     */
    @Override
    Status getStatus() {
-      Status rv = null;
-      MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
-      if (currentMapping != null) {
-         rv = currentMapping.getMessage();
-      }
+      Status rv = fSignal.getStatus();
       if (rv != null) {
          return rv;
       }
       return super.getStatus();
    }
 
-   protected String getPinListDescription() {
-      String tip = super.getToolTip();
-      if (tip==null) {
-         StringBuilder sb = new StringBuilder();
-         boolean isFirst = true;
-         for (String pin:getChoices()) {
-            if (pin.startsWith("U")) {
-               continue;
-            }
-            Matcher m = signalPattern.matcher(pin);
-            if (!m.matches()) {
-               continue;
-            }
-            if (!isFirst) {
-               sb.append("/");
-            }
-            isFirst = false;
-            sb.append(m.group(1));
-         }
-         if (sb.length()>0) {
-            tip = sb.toString();
-         }
-      }
-      return tip;
-   }
-   
    @Override
    public String getToolTip() {
       String tip = super.getToolTip();
       if (tip==null) {
          MappingInfo currentMapping = fSignal.getFirstMappedPinInformation();
          if ((currentMapping != null) && (currentMapping != MappingInfo.UNASSIGNED_MAPPING)) {
-            tip = getPinListDescription();
+            tip = getAvailablePins();
          }
          else {
             tip = "Select pin mapping";
@@ -208,9 +212,9 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
          description = currentMapping.get(0).getPin().getUserDescription();
       }
       else {
-         String pinListDescription = getPinListDescription();
+         String pinListDescription = getAvailablePins();
          if (pinListDescription != null) {
-            description = "[" + pinListDescription + "]";
+            description = pinListDescription;
          }
       }
       return description;

@@ -64,7 +64,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       try {
          fMenuData = ParseMenuXML.parsePeriperalFile(getPeripheralVersionName(), this);
       } catch (Exception e) {
-         System.err.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
+         System.out.println("Warning: Failed to load model "+getPeripheralVersionName()+" for peripheral " + getName() + ", Reason: " + e.getMessage());
       }
       return fMenuData;
 //      for (ParseMenuXML.ValidatorInformation v:fData.getValidators()) {
@@ -167,12 +167,12 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
     * 
     * @throws Exception
     */
-   public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
+   public void regenerateProjectFiles(StringBuilder actionRecord, ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
       if (fMenuData == null) {
          return;
       }
       Map<String, String> symbolMap = addTemplatesToSymbolMap(fDeviceInfo.getSimpleSymbolMap());
-      processProjectActions.process(project, fMenuData.getProjectActionList(), symbolMap, monitor);
+      processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, monitor);
    }
 
    /**

@@ -56,10 +56,6 @@ public class ObservableModel implements ObservableModelInterface {
       fRefreshPending = false;
    }
    
-   /**
-    * Notify all listeners<br>
-    * Clears RefreshPending
-    */
    @Override
    public void notifyStatusListeners() {
       for (IModelChangeListener listener:fListeners) {

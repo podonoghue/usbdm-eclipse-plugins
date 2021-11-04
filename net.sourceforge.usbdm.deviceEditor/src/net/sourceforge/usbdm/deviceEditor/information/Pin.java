@@ -1,4 +1,5 @@
 package net.sourceforge.usbdm.deviceEditor.information;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,14 +28,17 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /*
     * ==================================================================================
     */
+   /** Device info owning this pin */
+   private final DeviceInfo fDeviceInfo;
+
+   /** Name of the pin, usually the port name e.g. PTA1 */
+   private final String fName;
+
    /** Port instance e.g. PTA3 => A (only if has PCR) */
    private String fPortInstance = null;
 
    /** Pin instance e.g. PTA3 => 3 (only if has PCR) */
    private String fPortPin = null;
-
-   /** Name of the pin, usually the port name e.g. PTA1 */
-   private String fName;
 
    /** Map of signals mappable to this pin ordered by mux value */
    private Map<MuxSelection, MappingInfo> fMappableSignals = new TreeMap<MuxSelection, MappingInfo>();
@@ -44,18 +48,75 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    /** User description of pin use */
    private String fUserDescription = "";
 
+   /** User description of pin use */
+   private String[] fUserDescriptions = {"", ""};
+
    /** User identifier to use in code generation */
    private String fCodeIdentifier = "";
+   
+   /** User identifier to use in code generation */
+   private String[] fCodeIdentifiers =  {"", ""};
    
    /** Current multiplexor setting */
    private MuxSelection fMuxValue = MuxSelection.unassigned;
 
-   /** Device info owning this pin */
-   private DeviceInfo fDeviceInfo;
-
    /** PCR value (excluding MUX) */
    private long fProperties = 0;
 
+   /** Status indicating if multiple Signals are mapped to this pin */ 
+   private Status fStatus = null;
+
+   /** Status of associated signals i.e. if multiple the mapped signal is also mapped to another pin */ 
+   private Status fAssociatedStatus = null;
+
+   /** 
+    * Split a description or code identifier. <br>
+    * Semicolons may be escaped with '\' <br>
+    * Names are always non-null but may be empty<br>
+    * Example: <br>
+    * <pre>
+    *   "first;second"  => "first"         "second"       
+    *   "first\;first"  => "first;first"   ""             
+    *   "first"         => "first"         ""             
+    *   "first\;"       => "first;"        ""             
+    *   ";second"       => ""              "second"       
+    *   "\;first"       => ";first"        ""             
+    *   ""              => ""              ""             
+    * </pre>   
+    * 
+    * @param names Names to split
+    * @return  Array of split names
+    */
+   static String[] splitNames(String names) {
+      String[] res = {"", ""};
+      boolean escaped  = false;
+      boolean complete = false;
+      StringBuilder sb = new StringBuilder();
+      for (int index=0; index<names.length(); index++) {
+         char ch = names.charAt(index);
+         if (complete) {
+            res[1] = names.substring(index).trim();
+            break;
+         }
+         if (escaped) {
+            sb.append(ch);
+            continue;
+         }
+         escaped = false;
+         if (ch == '\\') {
+            escaped = true;
+            continue;
+         }
+         if (ch == ';') {
+            complete = true;
+            continue;
+         }
+         sb.append(ch);
+      }
+      res[0]   = sb.toString().trim();
+      return res;
+   }
+   
    /**
     * Create empty pin function for given pin
     * @param deviceInfo 
@@ -67,7 +128,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          System.err.print("deviceInfo is null!!");
       }
       fDeviceInfo = deviceInfo;
-      this.fName  = name;
+      fName  = name;
       Pattern p = Pattern.compile("^\\s*PT(.)(\\d*)\\s*$");
       Matcher m = p.matcher(name);
       if (m.matches()) {
@@ -132,30 +193,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
       return String.format("Port%sInfo", fPortInstance);
    }
-
-   //   /**
-   //    * Get PCR register address as integer e.g. PORTC_BasePtr+offsetof(PORT_Type,PCR[2])
-   //    * 
-   //    * @return
-   //    */
-   //   public String getPCRasInt() {
-   //      if (fPortInstance == null) {
-   //         return null;
-   //      }
-   //      return String.format("%s+offsetof(PORT_Type,PCR[%s])", getPORTBasePtr(), fPortPin);
-   //   }
-
-   //   /**
-   //    * Get clock mask e.g. PORTA_CLOCK_MASK
-   //    * 
-   //    * @return
-   //    */
-   //   public String getClockMask() {
-   //      if (fPortInstance == null) {
-   //         return null;
-   //      }
-   //      return String.format("PORT%s_CLOCK_MASK", fPortInstance);
-   //   }
 
    /**
     * Get GPIO base pointer e.g. GPIOA_BasePtr
@@ -231,15 +268,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
 
-//   /**
-//    * Get description of functions mapped to this pin
-//    * 
-//    * @return Description
-//    */
-//   public String getDescription() {
-//      return "";
-//   }
-//
    @Override
    public String toString() {
       StringBuffer sb = new StringBuffer();
@@ -259,6 +287,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @throws RuntimeException If pin already has default or new default not found as available pin mapping
     */
    public void setResetValue(MuxSelection mux) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       if ((fResetMuxValue != mux) && (fResetMuxValue != MuxSelection.unassigned)) {
          throw new RuntimeException("Pin "+fName+" already has reset value "+fResetMuxValue);
       }
@@ -282,6 +313,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @throws Exception if pin already has reset pin mapping or value not in available pin mappings
     */
    public void setResetSignals(DeviceInfo factory, final String resetSignals) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       for (MuxSelection muxValue:fMappableSignals.keySet()) {
          MappingInfo mappingInfo= fMappableSignals.get(muxValue);
          if (mappingInfo.getSignalList().equalsIgnoreCase(resetSignals) && (mappingInfo.getMux() != MuxSelection.unassigned)) {
@@ -292,45 +326,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if ((fResetMuxValue == MuxSelection.unassigned) && !resetSignals.equalsIgnoreCase("Disabled")) {
          throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
       }
-
-      //      // Disabled is not necessarily in list of mappings
-      //      // If necessary create mux0=disabled if free
-      //      if ((fResetMuxValue == MuxSelection.unassigned) && resetSignals.equalsIgnoreCase("Disabled")) {
-      //         if (fMappedSignals.get(MuxSelection.mux0) == null) {
-      //            factory.createMapping(Signal.DISABLED_SIGNAL, this, MuxSelection.mux0);
-      //            setResetValue(MuxSelection.mux0);
-      //         }
-      //      }
-      //      if (fResetMuxValue == MuxSelection.unassigned) {
-      //         throw new RuntimeException("Reset function "+resetSignals+" not found as option for pin " + fName);
-      //      }
    }
-
-   //   /**
-   //    * Get PCR initialisation string e.g. for <b><i>PTB4</b></i>
-   //    * <pre>
-   //    * "PORTB_CLOCK_MASK, PORTB_BasePtr,  GPIOB_BasePtr,  4, "
-   //    * OR
-   //    * "0, 0, 0, 0, "
-   //    * </pre>
-   //    * 
-   //    * @param pin The pin being configured
-   //    * 
-   //    * @return
-   //    * @throws Exception 
-   //    */
-   //   String getPCRInitString() throws Exception {
-   //      String portClockMask = getClockMask();
-   //      if (portClockMask == null) {
-   //         // No PCR - probably an analogue pin
-   //         return "0, 0, 0, 0, ";
-   //      }
-   //      String portAddress      = getPortBasePtr();
-   //      String gpioRegister     = getGpioBasePtr();
-   //      String gpioBitNum       = getGpioBitNum();
-   //
-   //      return String.format("%-17s %-15s %-15s %-4s", portClockMask+",", portAddress+",", gpioRegister+",", gpioBitNum+",");
-   //   }
 
    @Override
    public int compareTo(Pin o) {
@@ -350,10 +346,14 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * Set description of pin use 
     */
    public void setUserDescription(String userDescription) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       if ((fUserDescription != null) && (fUserDescription.compareTo(userDescription) == 0)) {
          return;
       }
-      fUserDescription = userDescription;
+      fUserDescription  = userDescription;
+      fUserDescriptions = splitNames(fUserDescription);
 
       // Update watchers of active mapping
       MappingInfo mappingInfo = getMappedSignals();
@@ -363,21 +363,52 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       notifyListeners();
    }
 
-   /** 
-    * Get description of pin use 
+   /**
+    * Get user description for pin.
+    * 
+    * @return
     */
-   public String getUserDescription() {
+   public String getUserDescription( ) {
       return fUserDescription;
+   }
+   
+   static final Pattern pattern = Pattern.compile("(.*[^\\\\]);?(.*)$");
+
+   /** 
+    * For GpioFields this is used as GpioField description. 
+    * 
+    * @return Description
+    */
+   public String getFieldDescription() {
+      return fUserDescriptions[0];
+   }
+
+   /** 
+    * Get description of pin. <br>
+    * For GpioFields this is used as the description for the individual bits.
+    * For other peripherals this is used as the description of the pins. 
+    * 
+    * @return Description
+    */
+   public String getPinDescription() {
+      if (fUserDescriptions[1].isBlank()) {
+         return fUserDescriptions[0];
+      }
+      return fUserDescriptions[1];
    }
 
    /** 
     * Set identifier to use in code generation
     */
    public void setCodeIdentifier(String codeIdentifier) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       if ((fCodeIdentifier != null) && (fCodeIdentifier.compareTo(codeIdentifier) == 0)) {
          return;
       }
       fCodeIdentifier = codeIdentifier;
+      fCodeIdentifiers = splitNames(codeIdentifier);
       setDirty(true);
       notifyListeners();
    }
@@ -389,10 +420,49 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return fCodeIdentifier;
    }
 
+   /** 
+    * Get primary C identifier for pin. Used to determine GpioField name<br>
+    * Example: <br>
+    * <pre>
+    *   gpioField         => gpioField
+    *   gpioField;gpioPin => gpioField
+    * </pre>   
+    */
+   public String getPrimaryCodeIdentifier() {
+      return fCodeIdentifiers[0];
+   }
+
+   /** 
+    * Get secondary C identifier for pin. Used to determine Gpio within GpioField. <br>
+    * Example: <br>
+    * <pre>
+    *   gpioField         => ""
+    *   gpioField;gpioPin => gpioPin
+    * </pre>   
+    */
+   public String getSecondaryCodeIdentifier() {
+      return fCodeIdentifiers[1];
+   }
+
+   /** 
+    * Get secondary or primary C identifier for pin (for other peripherals). <br>
+    * Example: <br>
+    * <pre>
+    *   gpioField         => gpioField
+    *   gpioField;gpioPin => gpioPin
+    * </pre>   
+    */
+   public String getSecondaryOrPrimaryCodeIdentifier() {
+      if (fCodeIdentifiers[1].isBlank()) {
+         return fCodeIdentifiers[0];
+      }
+      return fCodeIdentifiers[1];
+   }
+
    /**
-    * Get the currently mapped signal for this pin
+    * Get the currently mapped signal(s) for this pin.
     * 
-    * @return Mapped signal or <b>MappingInfo.DISABLED_MAPPING</b> if none
+    * @return Mapped signal or <b>MappingInfo.UNASSIGNED_MAPPING</b> if none
     */
    public MappingInfo getMappedSignals() {
       MappingInfo rv = fMappableSignals.get(fMuxValue);
@@ -400,15 +470,6 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          rv = MappingInfo.UNASSIGNED_MAPPING;
       }
       return rv;
-   }
-
-   /**
-    * Sets the signal mapped to this pin
-    * 
-    * @param mappingInfo
-    */
-   public void setMappedSignal(MappingInfo mappingInfo) {
-      setMuxSelection(mappingInfo.getMux());
    }
 
    /**
@@ -438,6 +499,58 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       return new Status(sb.toString(), "Multiple signals are mapped to pin '" + getName() + "'");
    }
    
+   /**
+    * Get status of this pin
+    * 
+    * @return Status 
+    */
+   Status getPinStatus() {
+      return fStatus;
+   }
+   
+   /**
+    * Get status of associated signals
+    * 
+    * @return
+    */
+   Status getAssociatedStatus() {
+      MappingInfo mappingInfo = getMappedSignals();
+      ArrayList<Signal> signals = mappingInfo.getSignals();
+      if (signals.isEmpty()) {
+         return null;
+      }
+      return signals.get(0).getSignalStatus();
+   }
+   
+   /**
+    * Get status of this pin and mapped signal
+    * 
+    * @return Status 
+    */
+   public Status getStatus() {
+      if (fStatus != null) {
+         // signal -> multiple pins
+         return fStatus;
+      }
+      fAssociatedStatus = getAssociatedStatus();
+      return fAssociatedStatus;
+   }
+   
+   /**
+    * Checks for a selected mux setting
+    * 
+    * @return Mux setting found or <b>MuxSelection.unassigned</b> if none
+    */
+   public MappingInfo findMappedSetting() {
+      for (MuxSelection muxKey : fMappableSignals.keySet()) {
+         MappingInfo mappingInfo = fMappableSignals.get(muxKey);
+         if (mappingInfo.isSelected()) {
+            return mappingInfo;
+         }
+      }
+      return MappingInfo.UNASSIGNED_MAPPING;
+   }
+   
    /** 
     * Set current pin multiplexor setting.
     * 
@@ -463,19 +576,18 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          return;
       }
       
-      // Add new selected mapping and signal listeners
+      // Update mux value
       fMuxValue = newMuxValue;
       for (MuxSelection muxKey : fMappableSignals.keySet()) {
          MappingInfo mappingInfo = fMappableSignals.get(muxKey);
-         if (mappingInfo.isSelected()) {
-            mappingInfo.select(Origin.pin, false);
-         }
-         if (muxKey == newMuxValue) {
+         if (muxKey == fMuxValue) {
             mappingInfo.select(Origin.pin, true);
+         }
+         else {
+            mappingInfo.select(Origin.pin, false);
          }
       }
       setDirty(true);
-//      notifyListeners();
    }
 
    /** 
@@ -505,6 +617,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
          fResetMuxValue = MuxSelection.fixed;
          setMuxSelection(MuxSelection.fixed);
       }
+      signal.addListener(this);
       return mapInfo;
    }
 
@@ -530,6 +643,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param settings Settings object
     */
    public void loadSettings(Settings settings) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       String value = settings.get(getMuxKey(fName));
       if (value != null) {
          MuxSelection muxValue = MuxSelection.valueOf(value);
@@ -555,6 +671,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param settings Settings object
     */
    public void saveSettings(Settings settings) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       if ((fMuxValue != MuxSelection.unassigned) && (fMuxValue != MuxSelection.fixed)) {
          settings.put(getMuxKey(fName), fMuxValue.name());
       }
@@ -580,66 +699,40 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       }
    }
    
-   /**
-    * Connect listeners
-    *  <li>Any signal mappable to this pin
-    */
-   public void connectListeners() {
-//      for (MuxSelection key : fMappableSignals.keySet()) {
-//         MappingInfo mappingInfo = fMappableSignals.get(key);
-//         for (Signal signal : mappingInfo.getSignals()) {
-//            signal.addListener(this);
-//            // XXXX Delete me!
-//            if (fName.equalsIgnoreCase("GPIOA_4")) {
-//               System.err.println("Pin(GPIOA_4).connectListeners(Signal("+signal.getName()+"))");
-//            }
-//         }
-//      }
-   }
-
-   /**
-    * Disconnect signals mapped to this pin as listeners for changes on this pin.
-    */
-   public void disconnectListeners() {
-      for (MuxSelection key : fMappableSignals.keySet()) {
-         MappingInfo mappingInfo = fMappableSignals.get(key);
-         for (Signal signal : mappingInfo.getSignals()) {
-            signal.removeListener(this);
-         }
-      }
-   }
-
    @Override
    public void modelElementChanged(ObservableModel model) {
       //      System.err.println("Pin["+fName+"].modelElementChanged("+model+")");
       if (model instanceof MappingInfo) {
-         MappingInfo mappingInfo = (MappingInfo) model;
-         if (mappingInfo.isSelected()) {
-            // Signal has been mapped to this pin
-            fMuxValue = mappingInfo.getMux();
-            setDirty(true);
+         boolean changed = false;
+
+         MuxSelection newMuxValue = findMappedSetting().getMux();
+         if (fMuxValue != newMuxValue) {
+            fMuxValue = newMuxValue;
+            changed = true;
          }
-         else {
-            // Pin may have been unmapped
-            if (fMuxValue == mappingInfo.getMux()) {
-               fMuxValue = MuxSelection.unassigned;
-               setDirty(true);
-            }
+         Status newStatus = checkMappingConflicted();
+         if (fStatus != newStatus) {
+            fStatus = newStatus;
+            changed = true;
          }
-         if (fMuxValue == null) {
-            throw new RuntimeException("Impossible mapping");
+         if (changed) {
+            notifyListeners();
          }
       }
-//      if (model instanceof Pin) {
-//         // XXX Delete OK
-//         Pin pin = (Pin)model;
-//         System.err.println("Pin("+fName+").modelElementChanged("+pin.getName()+")");
-//      }
+      if (model instanceof Signal) {
+         Status status = getAssociatedStatus();
+         if (fAssociatedStatus != status) {
+            fAssociatedStatus = status;
+            notifyListeners();
+         }
+      }
       //      System.err.println("Pin("+fName+").modelElementChanged("+fMuxValue+") - Changed");
-      notifyListeners();
    }
 
    public void setPort(Signal signal) throws Exception {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       Pattern p = Pattern.compile("^\\s*GPIO(.)_(\\d*)\\s*$");
       Matcher m = p.matcher(signal.getName());
       if (m.matches()) {
@@ -793,6 +886,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param value Function to set
     */
    public void setInterruptDmaSetting(PinIntDmaValue value) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       setProperty(PORT_PCR_IRQC_MASK, PORT_PCR_IRQC_SHIFT, value.getValue());
    }
 
@@ -876,6 +972,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param value Function to set
     */
    public void setPullSetting(PinPullValue value) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       setProperty(PORT_PCR_PULL_MASK, PORT_PCR_PULL_SHIFT, value.getValue());
    }
 
@@ -929,6 +1028,9 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @param properties PCR value (excluding MUX)
     */
    public boolean setProperties(long properties) {
+      if (this == UNASSIGNED_PIN) {
+         return false;
+      }
       properties &= PROPERTIES_MASK;
       if (fProperties == properties) {
          return false;
@@ -943,16 +1045,25 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
    }
 
    public boolean setProperty(long mask, long offset, long property) {
+      if (this == UNASSIGNED_PIN) {
+         return false;
+      }
       return setProperties((getProperties()&~mask)|((property<<offset)&mask));
    }
 
    @Override
    public void modelStructureChanged(ObservableModel model) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       notifyStructureChangeListeners();
    }
 
    @Override
    public void elementStatusChanged(ObservableModel model) {
+      if (this == UNASSIGNED_PIN) {
+         return;
+      }
       notifyStatusListeners();
    }
 

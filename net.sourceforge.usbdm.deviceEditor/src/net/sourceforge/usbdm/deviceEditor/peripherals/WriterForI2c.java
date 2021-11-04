@@ -13,6 +13,9 @@ public class WriterForI2c extends PeripheralWithState {
 
    public WriterForI2c(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override
@@ -23,12 +26,7 @@ public class WriterForI2c extends PeripheralWithState {
    @Override
    public int getSignalIndex(Signal signal) {
       String signalNames[] = {"SCL", "SDA", "4WSCLOUT", "4WSDAOUT", "SCLS", "SDAS", "HREQ"};
-      for (int signalName=0; signalName<signalNames.length; signalName++) {
-         if (signal.getSignalName().matches(signalNames[signalName])) {
-            return signalName;
-         }
-      }
-      throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
+      return getSignalIndex(signal, signalNames);
    }
 
 //   @Override

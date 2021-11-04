@@ -19,17 +19,17 @@ public class VariableProvider {
    /** Validators for variable changes */
    private final ArrayList<Validator>  fValidators = new ArrayList<Validator>();
 
+   
    protected final class KeyMaker implements IKeyMaker {
-      int Index;
       
-      public int getIndex() {
-         return Index;
-      }
-
-      public void setIndex(int index) {
-         this.Index = index;
-      }
-
+      /**
+       * Provides key prefixed by provider name if <b>name</b> is relative.<br>
+       * Otherwise the key is simply the <b>name</b>.
+       * <pre>
+       *    "path/clockSpeed"  => "/FTM2/path/clockSpeed"
+       *    "/path/clockSpeed" => "/path/clockSpeed"
+       * </pre>
+       */
       @Override
       public String makeKey(String name) {
          if (name.charAt(0) == '/') {

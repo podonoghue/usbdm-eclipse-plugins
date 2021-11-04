@@ -318,9 +318,8 @@ public class ParseFamilyCSV {
 
 	static final int PERIPHERAL_NAME_COL = 1;
 	static final int CLOCK_REG_COL       = 2;
-	static final int CLOCK_MASK_COL      = 3;
-	static final int CLOCK_SOURCE_COL    = 4;
-	static final int IRQ_NUM_COL         = 5;
+   static final int CLOCK_MASK_COL      = 3;
+	
 	static final int CLOCK_ENABLE_COL    = 2;
 	static final int CLOCK_DISABLE_COL   = 3;
 
@@ -376,6 +375,7 @@ public class ParseFamilyCSV {
 				}
 			}
 			else {
+			   // New format
 				clockEnable = clockEnable.replaceAll("\\%", peripheral.getName());
 				if (line.length > CLOCK_DISABLE_COL) {
 					clockDisable = line[CLOCK_DISABLE_COL];
@@ -502,7 +502,7 @@ public class ParseFamilyCSV {
 		PeripheralWithState peripheral = (PeripheralWithState) fDeviceInfo.findPeripheral(line[1], Mode.fail);
 		peripheral.addConstant(line[2], line[3]);
 	}
-
+	
 	/**
 	 * Parse preliminary information from file
 	 * 

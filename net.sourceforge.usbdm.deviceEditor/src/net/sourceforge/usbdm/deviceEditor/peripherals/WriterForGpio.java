@@ -28,12 +28,13 @@ public class WriterForGpio extends PeripheralWithState {
 
    class GpioPinInformation {
       
-      private ArrayList<Integer> fListOfBits  = new ArrayList<Integer>();
-      private ArrayList<Pin>     fListOfPins  = new ArrayList<Pin>();
-      private boolean fActiveLow             = false;
+      private final ArrayList<Integer> fListOfBits  = new ArrayList<Integer>();
+      private final ArrayList<Pin>     fListOfPins  = new ArrayList<Pin>();
+      private final String  fFieldDescription;
       private boolean fConflictedPolarity    = false;
       private boolean fBitsAreConsecutive    = true;
-      private int     fLastBitAdded          = 0;
+      private int     fLastBitAdded;
+      private int     fPolarity;
       
       /**
        * Constructor. Creates entry for first (only) bit.
@@ -44,8 +45,9 @@ public class WriterForGpio extends PeripheralWithState {
       public GpioPinInformation(int bitNum, Pin pin) {
          fListOfBits.add(bitNum);
          fListOfPins.add(pin);
-         fActiveLow     = pin.isActiveLow();
-         fLastBitAdded  = bitNum;
+         fPolarity         = pin.isActiveLow()?(1<<bitNum):0;
+         fLastBitAdded     = bitNum;
+         fFieldDescription  = pin.getFieldDescription();
       }
       
       /**
@@ -60,10 +62,12 @@ public class WriterForGpio extends PeripheralWithState {
          if (bitNum != (fLastBitAdded+1)) {
             fBitsAreConsecutive = false;
          }
-         fLastBitAdded = bitNum;
-         if (fActiveLow != pin.isActiveLow()) {
-            fConflictedPolarity = true;
-         }
+         fLastBitAdded  = bitNum;
+         fConflictedPolarity = 
+               fConflictedPolarity || 
+               (((fPolarity == 0) && pin.isActiveLow()) || 
+               ((fPolarity != 0) && !pin.isActiveLow()));
+         fPolarity     |= pin.isActiveLow()?(1<<bitNum):0;
       }
       
       /**
@@ -76,12 +80,21 @@ public class WriterForGpio extends PeripheralWithState {
       }
       
       /**
-       * Polarity of the first bit added.
+       * Check polarity of the given bit.
        * 
-       * @return
+       * @return true is active low
        */
-      public boolean isActiveLow() {
-         return fActiveLow;
+      public boolean isActiveLowBit(int bitNum) {
+         return (fPolarity & (1<<bitNum)) != 0;
+      }
+
+      /**
+       * Get polarity of field
+       * 
+       * @return Bitmask showing polarity of each bit in field
+       */
+      public int getFieldPolarity() {
+         return fPolarity>>fListOfBits.get(0);
       }
       
       /**
@@ -98,7 +111,7 @@ public class WriterForGpio extends PeripheralWithState {
        * 
        * @return
        */
-      public boolean isConflictedPolarity() {
+      public boolean isMixedPolarity() {
          return fConflictedPolarity;
       }
       
@@ -109,6 +122,15 @@ public class WriterForGpio extends PeripheralWithState {
        */
       public boolean areBitConsecutive() {
          return fBitsAreConsecutive;
+      }
+
+      /**
+       * Get field description (obtained from first pin added).
+       * 
+       * @return
+       */
+      public String getFieldDescription() {
+         return fFieldDescription;
       }
    }
    
@@ -149,7 +171,7 @@ public class WriterForGpio extends PeripheralWithState {
       // Information about each unique identifier in GPIO
       HashMap<String, GpioPinInformation> identifiers = new HashMap<String, GpioPinInformation>();
 
-      // Collect the pins into fields and individual bits based on code identifier 
+      // Collect the pins into fields and individual bits based on primary code identifier 
       for (int index=0; index<fInfoTable.table.size(); index++) {
          Signal signal = fInfoTable.table.get(index);
          if (signal == null) {
@@ -157,12 +179,11 @@ public class WriterForGpio extends PeripheralWithState {
          }
          MappingInfo pinMapping = signal.getFirstMappedPinInformation();
          Pin pin = pinMapping.getPin();
-         String ident = pin.getCodeIdentifier();
+         String ident = pin.getPrimaryCodeIdentifier();
          if (ident.isBlank()) {
             continue;
          }
-         // Only use stem for collecting
-         ident = ident.split(";")[0];
+         ident = makeCVariableIdentifier(ident);
          GpioPinInformation gpioPinInformation = identifiers.get(ident);
          
          if (gpioPinInformation == null) {
@@ -180,88 +201,75 @@ public class WriterForGpio extends PeripheralWithState {
          GpioPinInformation gpioPinInformation = identifiers.get(mainIdentifier);
          String comment = "";
          String error = "";
-         if (gpioPinInformation.isConflictedPolarity()) {
-            error = "Inconsistent polarity of pins in field - check Configure.usbdmProject";
-            comment = "<== Inconsistent polarity";
-         }
          if (!gpioPinInformation.areBitConsecutive()) {
             error = "Bits are not consecutive in field - check Configure.usbdmProject";
-            comment = "<== Missing bits";
+            comment = "<== Error: Missing bits";
          }
          
-         String polarity = gpioPinInformation.isActiveLow()?", "+DeviceInfo.NAME_SPACE_USBDM_LIBRARY+"::ActiveLow":"";
-
-         mainIdentifier = makeCIdentifier(mainIdentifier);
-         String type;
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
-         
-         String mainDescription = pins.get(0).getUserDescription().split(";")[0].trim();
-         
          if (bitNums.size()==1) {
             // Do Gpio
-            String pinComment = pins.get(0).getLocation() + comment;
-            type = String.format("const %s::%s<%d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance(), bitNums.get(0), polarity);
-            writeVariableDeclaration(error, mainDescription, mainIdentifier, type, pinComment);
+            int bitNum = bitNums.get(0);
+            Pin pin = pins.get(0);
+            String pinTrailingComment = pin.getLocation() + comment;
+            String polarity           = pin.isActiveLow()?", ActiveLow":"";
+            String pinDescription     = pin.getPinDescription();
+            
+            String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
+            writeVariableDeclaration(error, pinDescription, mainIdentifier, type, pinTrailingComment);
          }
          else {
             // Do GpioField
 
-            // Do individual bits in bit-field
+            // Do individual bits in bit-field first
             // Only done if named
             for (int index=0; index<bitNums.size(); index++) {
                int bitNum = bitNums.get(index);
                Pin pin = pins.get(index);
-
-               String pinComment = pin.getLocation() + comment;
-               
-               String[] bitIdentifiers = pin.getCodeIdentifier().split(";");
-               String   bitIdentifier  = (bitIdentifiers.length>1)?bitIdentifiers[1].trim():"";
-               
+               String bitIdentifier = pin.getSecondaryCodeIdentifier();
                if (bitIdentifier.isBlank()) {
-                  if (gpioPinInformation.isConflictedPolarity()) {
-                     // Force auto-generation of bits
-                     bitIdentifier = "*";
-                  }
-                  else {
-                     // No identifier for bit - don't generate individual Gpio
-                     continue;
-                  }
+                  // No identifier for Gpio in GpioField - don't generate individual Gpio
+                  continue;
                }
+               String pinTrailingComment = pin.getLocation() + comment;
+               String polarity           = pin.isActiveLow()?", ActiveLow":"";
+               String pinDescription = pin.getPinDescription();
+               pinDescription = pinDescription + " (" + mainIdentifier + " bit #" + index + ")";
 
-               String[] descriptions = pin.getUserDescription().split(";");
-               String   description  = ((descriptions.length>1)?descriptions[1]:descriptions[0]).trim();
-               description = description + " (" + mainIdentifier + " bit #" + index + ")";
-               
-               String bitPolarity = pin.isActiveLow()?", "+DeviceInfo.NAME_SPACE_USBDM_LIBRARY+"::ActiveLow":"";
-
-               type = String.format("const %s::%s<%d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance(), bitNum, bitPolarity);
-               if (bitIdentifier.startsWith("*")) {
+               String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);
+               if (bitIdentifier.equals("*")) {
                   // Use common identifier with suffix
-                  writeVariableDeclaration("", description, mainIdentifier+"_"+(index), type, pinComment);
+                  bitIdentifier = mainIdentifier+"_"+(index);
                }
-               else {
-                  bitIdentifier = makeCIdentifier(bitIdentifier);
-                  writeVariableDeclaration("", description, bitIdentifier, type, pinComment);
-               }
+               writeVariableDeclaration("", pinDescription, bitIdentifier, type, pinTrailingComment);
             }
-            String fieldDescription = mainDescription;
+            String fieldDescription = gpioPinInformation.getFieldDescription();
             if (!fieldDescription.isBlank()) {
-               fieldDescription = mainDescription + " (Bit Field)";
+               fieldDescription = fieldDescription + " (Bit Field)";
             }
             String fieldComment = pins.get(0).getLocation() + "-" + pins.get(pins.size()-1).getLocation();
             fieldComment = fieldComment + comment;
-
-            type = String.format("const %s::%s<%d, %d%s>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
+            final int fieldPolarity = gpioPinInformation.getFieldPolarity(); 
+            String polarity= "";
+            if (fieldPolarity != 0) {
+               if (gpioPinInformation.isMixedPolarity()) {
+                  // Use explicit bit-mask
+                  polarity = ", 0b" + Integer.toBinaryString(fieldPolarity);
+               }
+               else {
+                  polarity = ", ActiveLow";
+               }
+            }
+            String type = String.format("const %s<%d, %d%s>", getClassBaseName()+getInstance()+"Field", bitNums.get(bitNums.size()-1), bitNums.get(0), polarity);
 
             writeVariableDeclaration(error, fieldDescription, mainIdentifier, type, fieldComment.toString());
-            
          }
       }
    }
    
    @Override
-   public boolean needPCRTable() {
+   public boolean isPcrTableNeeded() {
       return false;
    }
 

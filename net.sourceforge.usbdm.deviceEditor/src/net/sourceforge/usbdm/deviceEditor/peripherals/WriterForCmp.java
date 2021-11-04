@@ -1,6 +1,7 @@
 package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,7 @@ import net.sourceforge.usbdm.jni.UsbdmException;
  */
 public class WriterForCmp extends PeripheralWithState {
 
+   // Number of inputs each comparator multiplexor has
    final int NUMBER_OF_INPUTS = 8;
    
    public WriterForCmp(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
@@ -45,20 +47,24 @@ public class WriterForCmp extends PeripheralWithState {
     * Generate set of enum symbols for comparator inputs that are mapped to pins.
     * 
     * <pre>
-    *       Input_Ptc7       = 1,       //!< Mapped pin PTC7
-    *       Input_VrefOut    = 5,       //!< Fixed pin  VREF_OUT
-    *       Input_Bandgap    = 6,       //!< Fixed pin  BANDGAP
-    *       Input_CmpDac     = 7,       //!< Fixed pin  CMP_DAC
+    *       Input_Ptc7       = 1,       ///< Mapped pin PTC7
+    *       Input_VrefOut    = 5,       ///< Fixed pin  VREF_OUT
+    *       Input_Bandgap    = 6,       ///< Fixed pin  BANDGAP
+    *       Input_CmpDac     = 7,       ///< Fixed pin  CMP_DAC
     * </pre> 
     * 
     * @param documentUtilities
     * @throws IOException
     */
-   void writeInputEnum(DocumentUtilities documentUtilities) throws IOException {
-      String enumName    = "Input";
-      String commentRoot = "//!< ";
-      ArrayList<InfoTable> signalTables = getSignalTables();
+   @Override
+   protected void writeDeclarations() {
+      super.writeDeclarations();
       
+      String enumName    = "Input";
+      String commentRoot = "///< ";
+      ArrayList<InfoTable> signalTables = getSignalTables();
+      HashSet<String> usedIdentifiers = new HashSet<String>();
+
       StringBuffer sb = new StringBuffer();
       for (InfoTable signalTable:signalTables) {
          int index = -1;
@@ -72,11 +78,10 @@ public class WriterForCmp extends PeripheralWithState {
             }
             MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
             Pin pin = mappingInfo.getPin();
-            String pinName = enumName+"_"+prettyPinName(mappingInfo.getPin().getName());
-            String userPinName = pin.getCodeIdentifier().trim();
+            String pinName = enumName+"_"+prettyPinName(pin.getName());
+            String userPinName = pin.getSecondaryOrPrimaryCodeIdentifier().trim();
             if (!userPinName.isBlank()) {
-               userPinName =  enumName+"_"+userPinName;
-               userPinName = makeCIdentifier(userPinName);
+               userPinName =  enumName+"_"+makeCTypeIdentifier(userPinName);
             }
             int mapName = index;
             do {
@@ -91,16 +96,32 @@ public class WriterForCmp extends PeripheralWithState {
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
                   String comment = commentRoot+"Fixed pin  "+pin.getName();
+                  boolean inUse = !usedIdentifiers.add(pinName);
+                  if (inUse) {
+                     pinName = "// "+pinName; 
+                  }
                   sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
                   if (!userPinName.isBlank()) {
+                     inUse = !usedIdentifiers.add(userPinName);
+                     if (inUse) {
+                        userPinName = "// "+userPinName; 
+                     }
                      sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
                   }
                   continue;
                }
                if (mappingInfo.isSelected()) {
                   String comment = commentRoot+"Mapped pin "+pin.getName();
+                  boolean inUse = !usedIdentifiers.add(pinName);
+                  if (inUse) {
+                     pinName = "// "+pinName; 
+                  }
                   sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
                   if (!userPinName.isBlank()) {
+                     inUse = !usedIdentifiers.add(userPinName);
+                     if (inUse) {
+                        userPinName = "// "+userPinName; 
+                     }
                      sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
                   }
                }
@@ -112,14 +133,5 @@ public class WriterForCmp extends PeripheralWithState {
          fDeviceInfo.addOrReplaceVariable(cmpInputsVar.getKey(), cmpInputsVar);
       }
    }
-   
-   @Override
-   public void writeNamespaceInfo(DocumentUtilities documentUtilities) throws IOException {
-      super.writeNamespaceInfo(documentUtilities);
-      
-      if (!needPCRTable()) {
-         return;
-      }
-      writeInputEnum(documentUtilities);
-   }
+
 }

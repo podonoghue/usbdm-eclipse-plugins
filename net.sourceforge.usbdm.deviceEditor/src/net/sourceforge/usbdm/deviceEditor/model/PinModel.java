@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
@@ -67,6 +66,31 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
       fMappingInfos = mappingInfos.toArray(new MappingInfo[mappingInfos.size()]);
    }
 
+   String getAvailableSignals() {
+      Map<MuxSelection, MappingInfo> mappingInfoMap = fPin.getMappableSignals();
+
+      StringBuilder sb = new StringBuilder("[");
+      boolean isFirst = true;
+      for (MuxSelection muxSelection:mappingInfoMap.keySet()) {
+         MappingInfo mappingInfo = mappingInfoMap.get(muxSelection);
+         // TODO Delete OK
+//         System.err.print("PinModel.getAvailableSignals mappingInfo = (" + mappingInfo.hashCode() + ")" + mappingInfo + "\n");
+         if (!isFirst) {
+            sb.append("/");
+         }
+         isFirst = false;
+         ArrayList<Signal> signals = mappingInfo.getSignals();
+         String signalList         = mappingInfo.getSignalList();
+         if (signals.get(0).getMappedPin() == Pin.UNASSIGNED_PIN) {
+            signalList = signalList.replaceAll("\\/", "*/") + "*";
+         }
+         sb.append(signalList);
+      }
+      sb.append("]");
+      
+      return sb.toString();
+   }
+   
    /**
     * Find selection index corresponding to mapping info from signal
     * 
@@ -97,7 +121,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    public void setValueAsString(String value) {
       super.setValueAsString(value);
-      fPin.setMappedSignal(fMappingInfos[fSelection]);
+      fPin.setMuxSelection(fMappingInfos[fSelection].getMux());
       checkConflicts();
    }
 
@@ -159,7 +183,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
     */
    @Override
    Status getStatus() {
-      Status rv = fPin.getMappedSignals().getMessage();
+      Status rv = fPin.getStatus();
       if (rv != null) {
          return rv;
       }
@@ -170,25 +194,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    public String getToolTip() {
       String tip = super.getToolTip();
       if (tip==null) {
-         StringBuilder sb = new StringBuilder();
-         boolean isFirst = true;
-         for (String pin:getChoices()) {
-            if (pin.startsWith("U")) {
-               continue;
-            }
-            Matcher m = pinPattern.matcher(pin);
-            if (!m.matches()) {
-               continue;
-            }
-            if (!isFirst) {
-               sb.append("/");
-            }
-            isFirst = false;
-            sb.append(m.group(1));
-         }
-         if (sb.length()>0) {
-            tip = sb.toString();
-         }
+         tip = getAvailableSignals();
       }
       return tip;
    }
@@ -196,7 +202,6 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    protected void removeMyListeners() {
       fPin.removeListener(this);
-      fPin.disconnectListeners();
    }
 
    @Override

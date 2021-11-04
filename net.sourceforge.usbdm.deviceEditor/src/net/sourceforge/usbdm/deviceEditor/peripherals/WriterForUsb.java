@@ -12,6 +12,9 @@ public class WriterForUsb extends PeripheralWithState {
 
    public WriterForUsb(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override

@@ -2,7 +2,6 @@ package net.sourceforge.usbdm.deviceEditor.information;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeSet;
 
 import net.sourceforge.usbdm.deviceEditor.information.MappingInfo.Origin;
@@ -57,12 +56,21 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    /** Name of signal e.g. FTM0_CH3 */
    private final String fName;
 
+   /** Indicates the signal is a power signal e.g. VDD, VSS */ 
+   private final boolean fIsPowerSignal;
+   
    /** Set of pin mappings for this signal */
    private TreeSet<MappingInfo> fPinMappings = new TreeSet<MappingInfo>(new PinMappingComparator());
 
    /** Reset mapping for this signal */
    private MappingInfo fResetMapping = MappingInfo.UNASSIGNED_MAPPING;
 
+   /** Status indicating if multiple pins are mapped to this signal */ 
+   private Status fStatus = null;
+
+   /** Status of associated signals i.e. if multiple the mapped pins is also mapped to another signal */ 
+   private Status fAssociatedStatus = null;
+   
    /**
     * 
     * @param name          Name of signal e.g. FTM0_CH3 
@@ -73,8 +81,20 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       fName       = name;
       fPeripheral = peripheral;
       fSignalName = signal;
+      
+      String t = signal.toUpperCase();
+      fIsPowerSignal = t.startsWith("VDD") || t.startsWith("VSS") || t.startsWith("VCC") || t.startsWith("GND");
    }
 
+   /**
+    * Indicates this signal is a power signal e.g. Vcc or Vdd
+    * 
+    * @return True if power signal
+    */
+   public boolean isPowerSignal() {
+      return fIsPowerSignal;
+   }
+   
    /**
     * Get name e.g. FTM0_6, GPIOA_4
     * 
@@ -107,10 +127,6 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       return fPeripheral;
    }
 
-   public boolean isPowerSignal() {
-      return (fName.startsWith("VDD")) || (fName.startsWith("VSS")) ;
-   }
-   
    /**
     * Add a pin that this signal may be mapped to
     * 
@@ -138,6 +154,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          }
       }
       fPinMappings.add(mapInfo);
+      mapInfo.getPin().addListener(this);
    }
 
    /**
@@ -253,6 +270,12 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
     * @return String describing conflict or null if no conflict
     */
    public Status checkMappingConflicted() {
+      
+      if (isPowerSignal()) {
+         // OK to map multiple pins to power
+         return null;
+      }
+      
       StringBuilder sb = new StringBuilder();
       int mappingsFound = 0;
       
@@ -274,16 +297,44 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    }
    
    /**
+    * Get status of this signal and mapped pin
+    * 
+    * @return Status 
+    */
+   Status getSignalStatus() {
+      return fStatus;
+   }
+   
+   /**
+    * Get status of associated pins
+    * 
+    * @return
+    */
+   Status getAssociatedStatus() {
+      Pin pin = getMappedPin();
+      return pin.getPinStatus();
+   }
+   
+   /**
+    * Get status of this signal and mapped pin
+    * 
+    * @return Status 
+    */
+   public Status getStatus() {
+   
+      if (fStatus != null) {
+         // signal -> multiple pins
+         return fStatus;
+      }
+      return getAssociatedStatus();
+   }
+   
+   /**
     * Map the function to a pin using the given mapping
     * 
-    * @param mappingInfo
+    * @param mappingInfo Mapping being selected for signal
     */
    public void setMappedPin(MappingInfo mappingInfo) {
-//      System.err.println("Signal.setPin("+mappingInfo+")");
-//      Pin pin = mappingInfo.getPin();
-//      if (pin.isMappingConflicted() && pin == Pin.UNASSIGNED_PIN) {
-//         
-//      }
       for (MappingInfo mapping:fPinMappings) {
          if (mapping == mappingInfo) {
             continue;
@@ -291,32 +342,9 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          mapping.select(Origin.signal, false);
       }
       mappingInfo.select(Origin.signal, true);
-      
-      Pin pin = mappingInfo.getPin();
-      
-      Map<MuxSelection, MappingInfo> pinMapping = pin.getMappableSignals();
-      for (MuxSelection muxSel: pinMapping.keySet()) {
-         MappingInfo pinInfo = pinMapping.get(muxSel);
-         pinInfo.getPin().modelElementChanged(mappingInfo);
-      }
       notifyListeners();
    }
 
-   /**
-    * Connect listeners
-    * <li>Any pin mappable to this signal 
-    */
-   public void connectListeners() {
-      for (MappingInfo mappingInfo : fPinMappings) {
-         Pin pin = mappingInfo.getPin();
-         pin.addListener(this);
-//         // XXXX Delete me!
-//         if (fName.equalsIgnoreCase("GPIOA_4") || pin.getName().equalsIgnoreCase("GPIOA_4")) {
-//            System.err.println("Signal(GPIOA_4).connectListeners(Pin("+pin.getName()+"))");
-//         }
-      }
-   }
-   
    /**
     * Disconnect Signal as listener for changes on pin multiplexing
     */
@@ -326,17 +354,18 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof MappingInfo) {
-//         MappingInfo mappingInfo = (MappingInfo) model;
-//         // XXX Delete OK
-//         System.err.println("Signal("+fName+").modelElementChanged(MappingInfo("+mappingInfo.getPin()+"))");
-         
-         notifyListeners();
+         Status newStatus = checkMappingConflicted();
+         if (fStatus != newStatus) {
+            fStatus = newStatus;
+            notifyListeners();
+         }
       }
       if (model instanceof Pin) {
-//         Pin pin = (Pin) model;
-//         // XXX Delete OK
-//         System.err.println("Signal("+fName+").modelElementChanged(Pin("+pin.getName()+"))");
-         notifyListeners();
+         Status status = getAssociatedStatus();
+         if (fAssociatedStatus != status) {
+            fAssociatedStatus = status;
+            notifyListeners();
+         }
       }
    }
 

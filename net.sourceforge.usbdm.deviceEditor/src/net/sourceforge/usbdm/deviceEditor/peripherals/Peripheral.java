@@ -40,16 +40,12 @@ import net.sourceforge.usbdm.peripheralDatabase.VectorTable;
  * <li>Clock register e.g. SIM->SCGC6
  */
 public abstract class Peripheral extends VariableProvider implements ObservableModelInterface {
+
    /** Name for default PCR value uses in Info classes */
    public static final String DEFAULT_PCR_VALUE_NAME = "defaultPcrValue";
 
-   private String fUserDescription;
-
    /** Device information */
    protected final DeviceInfo fDeviceInfo;
-   
-   /** Indicates the class representing this peripheral is const (May be placed in ROM) */
-   protected final boolean fIsConstType;
    
    /** Base name of C peripheral class e.g. Ftm */
    private final String fClassBaseName;
@@ -62,7 +58,19 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /** Hardware interrupt numbers */
    private final ArrayList<String> fIrqNums = new ArrayList<String>();
+
+   /** Key used for peripheral declarations in C code */
+   private final String PERIPHERAL_DECLARATIONS_KEY = makeKey("Declarations");
+
+   /** Key used to save/restore identifier used for code generation */
+   private final String CODE_IDENTIFIER_KEY  = "$peripheral$"+getName()+"_codeIdentifier";
    
+   /** Key used to save/restore user description */
+   private final String USER_DESCRIPTION_KEY = "$peripheral$"+getName()+"_userDescription";
+
+   /** User description of peripheral use */
+   private String fUserDescription;
+
    /** IRQ handler name */
    private String fIrqHandler;
    
@@ -72,6 +80,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Map of all signals on this peripheral */
    private TreeMap<String, Signal> fSignals = new TreeMap<String, Signal>(Signal.comparator);
    
+   /** Name for information table in generated code */
+   private static final String INFO_TABLE_NAME = "info";
+
    /** Information for signals that use this writer */
    protected InfoTable fInfoTable = new InfoTable(INFO_TABLE_NAME);
 
@@ -84,12 +95,16 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /** Command to disable peripheral clock */
    private String fClockDisable;
 
+   /** C identifier used for this peripheral */
    private String fCodeIdentifier = "";
    
+   /** Proxy used to support ObservableModel interface */
    private final ObservableModel fProxy;
    
-   private final String PERIPHERAL_DECLARATIONS_KEY = makeKey("Declarations");
-
+   /** Indicates the class representing this peripheral is const (May be placed in ROM) - default true */
+   private boolean fIsConstType = true;
+   
+   /** Indicates the peripheral as synthetic i.e. no hardware is associated - default false */
    private boolean fIsSynthetic = false;
    
    /**
@@ -99,14 +114,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       fIsSynthetic = true;
    }
    
-   protected static final String getCodeIndentifierKey(String name) {
-      return "$peripheral$"+name+"_codeIdentifier";
+   /**
+    * Sets the peripheral as a non-const variable i.e. cannot be placed in ROM 
+    */
+   protected void clearConstType() {
+      fIsConstType = false;
    }
-
-   protected static final String getUserDescriptionKey(String name) {
-      return "$peripheral$"+name+"_userDescription";
-   }
-
+   
    /**
     * Create peripheral
     * 
@@ -125,29 +139,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       fInstance       = instance;
       fDeviceInfo     = deviceInfo;
       fIsConstType    = true;
-      
-      fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
-      fProxy = new ObservableModel();
-   }
-   
-   /**
-    * Create peripheral
-    * 
-    * @param baseName      Base name e.g. FTM3 => FTM
-    * @param instance      Instance e.g. FTM3 => 3
-    * @param writerBase    Description of peripheral
-    * @param template      The template associated with this peripheral 
-    * @param deviceInfo 
-    * @throws UsbdmException 
-    * @throws IOException 
-    */
-   protected Peripheral(String baseName, String instance, DeviceInfo deviceInfo, boolean isConstType) throws IOException, UsbdmException {
-      super(baseName+instance, deviceInfo);
-      
-      fBaseName       = baseName;
-      fInstance       = instance;
-      fDeviceInfo     = deviceInfo;
-      fIsConstType    = isConstType;
       
       fClassBaseName = baseName.substring(0, 1).toUpperCase()+baseName.substring(1).toLowerCase();
       fProxy = new ObservableModel();
@@ -401,11 +392,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param settings Settings object
     */
    public void loadSettings(Settings settings) {
-      String value = settings.get(getCodeIndentifierKey(getName()));
+      String value = settings.get(CODE_IDENTIFIER_KEY);
       if (value != null) {
          setCodeIdentifier(value);
       }
-      value = settings.get(getUserDescriptionKey(getName()));
+      value = settings.get(USER_DESCRIPTION_KEY);
       if (value != null) {
          setUserDescription(value);
       }
@@ -419,11 +410,11 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    public void saveSettings(Settings settings) {
       String value = getCodeIdentifier();
       if ((value != null) && !value.isBlank()) {
-         settings.put(getCodeIndentifierKey(getName()), value);
+         settings.put(CODE_IDENTIFIER_KEY, value);
       }
       value = getUserDescription();
       if ((value != null) && !value.isBlank() && (!value.equals(getDescription()))) {
-         settings.put(getUserDescriptionKey(getName()), value);
+         settings.put(USER_DESCRIPTION_KEY, value);
       }
    }
 
@@ -442,8 +433,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
          return fName;
       }
    }
-   
-   static final String INFO_TABLE_NAME = "info";
    
    /**
     * Get name of documentation group e.g. "DigitalIO_Group"
@@ -507,9 +496,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    }
 
    /**
-    * Convert string to valid c identifier<br>
+    * Convert string to valid C identifier<br>
     * If the string starts with a non-character it is prefixed with X_<br>
-    * Other invalid characters are converted to '_'.
+    * Other invalid characters are converted to '_'.<br>
     * 
     * @param identifier String to convert
     * 
@@ -523,6 +512,44 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!identifier.matches("^[a-zA-Z].*")) {
          identifier = "X_" + identifier;
       }
+      return identifier;
+   }
+   
+   /**
+    * Convert string to valid C identifier<br>
+    * If the string starts with a non-character it is prefixed with X_<br>
+    * Other invalid characters are converted to '_'.<br>
+    * The 1st character is made uppercase.<br>
+    * 
+    * @param identifier String to convert
+    * 
+    * @return Valid C identifier
+    */
+   String makeCTypeIdentifier(String identifier) {
+      if (identifier.isBlank()) {
+         return "";
+      }
+      identifier = makeCIdentifier(identifier);
+      identifier = Character.toUpperCase(identifier.charAt(0))+identifier.substring(1);
+      return identifier;
+   }
+   
+   /**
+    * Convert string to valid C identifier<br>
+    * If the string starts with a non-character it is prefixed with X_<br>
+    * Other invalid characters are converted to '_'.<br>
+    * The 1st character is made lowercase.<br>
+    * 
+    * @param identifier String to convert
+    * 
+    * @return Valid C identifier
+    */
+   String makeCVariableIdentifier(String identifier) {
+      if (identifier.isBlank()) {
+         return "";
+      }
+      identifier = makeCIdentifier(identifier);
+      identifier = Character.toLowerCase(identifier.charAt(0))+identifier.substring(1);
       return identifier;
    }
    
@@ -543,14 +570,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param trailingComment  Trailing comment
     */
    protected void writeVariableDeclaration(String error, String description, String identifier, String type, String trailingComment) {
-      identifier = makeCIdentifier(identifier);
-      identifier = Character.toLowerCase(identifier.charAt(0))+identifier.substring(1);
-      
+      identifier = makeCVariableIdentifier(identifier);
       boolean isRepeated = !fUsedNames.add(identifier);
       
       fDeclarations.append("\n");
       if (!description.isBlank()) {
          fDeclarations.append("/// " + description + "\n");
+         if (error.isBlank()) {
+            fHardwareDefinitions.append("/// " + description + "\n");
+         }
       }
       
       if (!error.isBlank()) {
@@ -581,8 +609,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param trailingComment  Trailing comment
     */
    protected void writeTypeDeclaration(String error, String description, String identifier, String type, String trailingComment) {
-      identifier = makeCIdentifier(identifier);
-      identifier = Character.toUpperCase(identifier.charAt(0))+identifier.substring(1);
+      identifier = makeCTypeIdentifier(identifier);
       boolean isRepeated = !fUsedNames.add(identifier);
       
       fDeclarations.append("\n");
@@ -687,7 +714,6 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
             
       writeDeclarations();
       
-      
       if (fDeclarations.toString().isBlank()) {
          // No declarations for this peripheral
          fDeviceInfo.removeVariableIfExists(PERIPHERAL_DECLARATIONS_KEY);
@@ -705,12 +731,12 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    
    /**
     * Indicates if a PCR table is required in the Peripheral Information class<br>
-    * Default implementation checks the size of the signal table
+    * Default implementation checks the size of the signal table.
     * 
     * @return
     * @throws Exception 
     */
-   public boolean needPCRTable() {
+   public boolean isPcrTableNeeded() {
       // Assume required if signals are present
       return fInfoTable.table.size() > 0;
    }
@@ -931,7 +957,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     */
    protected void writeInfoTables(DocumentUtilities pinMappingHeaderFile) throws IOException {      
 
-      if (!needPCRTable()) {
+      if (!isPcrTableNeeded()) {
          return;
       }
       ArrayList<InfoTable> signalTables = getSignalTables();
@@ -1083,6 +1109,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     * @param signalNames   Array of regular expressions to match against
     * 
     * @return              Index of match
+    * 
     * @throws RuntimeException if not found
     */
    protected static int getSignalIndex(Signal signal, String[] signalNames) {

@@ -15,6 +15,9 @@ public class WriterForLcd extends PeripheralWithState {
 
    public WriterForLcd(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override

@@ -46,6 +46,7 @@ public class ProcessProjectActions {
     * @throws Exception
     */
    public void process(
+         final StringBuilder         actionRecord,
          final IProject              projectHandle, 
          final ProjectActionList     actionList,
          final Map<String,String>    variableMap, 
@@ -54,7 +55,7 @@ public class ProcessProjectActions {
       if (actionList == null) {
          return;
       }
-      System.err.println("ProcessProjectActions.process " + actionList.getId());
+      actionRecord.append("ProcessProjectActions.process " + actionList.getId() + "\n");
       final ApplyOptions applyOptions = new ApplyOptions(projectHandle);
 
       class MyVisitor implements ProjectActionList.Visitor {
@@ -85,7 +86,7 @@ public class ProcessProjectActions {
                   if (projectActionList.isDoOnceOnly()) {
                      if (previousActions.contains(projectActionList.getId())) {
                         // Don't repeat action
-                        System.err.println("ProcessProjectActions.process - not repeating action " + projectActionList.getId());
+                        actionRecord.append("ProcessProjectActions.process - not repeating action " + projectActionList.getId() + "\n");
                         return new Result(Status.PRUNE);
                      }
                      previousActions.add(projectActionList.getId());

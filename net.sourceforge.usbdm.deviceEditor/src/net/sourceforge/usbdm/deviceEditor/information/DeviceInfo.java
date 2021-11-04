@@ -1168,7 +1168,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                WriterForOsc.class);
          createPeripheralTemplateInformation(
                "$1", "$2", "$3",
-               "((?:L)?PIT)(\\d)?(.*)",
+               "((?:L)?PIT)(\\d)?_?(.*)",
                getDeviceFamily(),
                WriterForPit.class);
          createPeripheralTemplateInformation(
@@ -1569,7 +1569,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             // Unusual mapping - report
             System.err.println("Note: Pin "+pin.getName()+" reset mapping is non-zero = "+pin.getResetValue());
          }
-         pin.connectListeners();
       }
       // Every signal should have a reset entry implied by the pin information
       // except for signals with fixed pin mapping
@@ -1579,7 +1578,6 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
                (signal.getPinMapping().first().getMux() != MuxSelection.fixed)) {
             throw new RuntimeException("No reset value for signal " + signal);
          }
-         signal.connectListeners();
       }
    }
 
@@ -1611,7 +1609,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * @throws IOException 
     */
    public Settings getSettings(Path path) throws Exception {
-      System.err.println("DeviceInfo.getSettings(" + path.toAbsolutePath() + ")");
+      Activator.log("Loading settings from" + path.toAbsolutePath() + ")");
       fProjectSettingsPath = path;
       if (path.toFile().isFile()) {
          Settings settings = new Settings("USBDM");
@@ -1633,7 +1631,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
          }
       }
       if (!Files.isRegularFile(path)) {
-         System.err.println("Warning: failed to find file "+ name);
+         System.out.println("Warning: failed to find file "+ name);
          return null;
       }
       return path;
@@ -1893,15 +1891,16 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       generateVectorTable(variableMap, devicePeripherals, new NullProgressMonitor());
       FileUtility.refreshFile(folder.resolve(UsbdmConstants.PROJECT_VECTOR_CPP_PATH), variableMap);
       
+      StringBuilder actionRecord = new StringBuilder();
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
-      regenerateProjectFiles(processProjectActions, null, new NullProgressMonitor());
+      regenerateProjectFiles(actionRecord, processProjectActions, null, new NullProgressMonitor());
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
-            ((PeripheralWithState) p).regenerateProjectFiles(processProjectActions, null, new NullProgressMonitor());
+            ((PeripheralWithState) p).regenerateProjectFiles(actionRecord, processProjectActions, null, new NullProgressMonitor());
          }
       }
-
+      Activator.log(actionRecord.toString());
    }
 
    /**
@@ -1933,14 +1932,17 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       generateVectorTable(variableMap, devicePeripherals, subMonitor.newChild(10));
       FileUtility.refreshFile(project, UsbdmConstants.PROJECT_VECTOR_CPP_PATH, variableMap, subMonitor.newChild(10));
       
+      StringBuilder actionRecord = new StringBuilder();
+      actionRecord.append("Actions for regenerating project files\n\n");
       ProcessProjectActions processProjectActions = new ProcessProjectActions();
-      regenerateProjectFiles(processProjectActions, project, subMonitor.newChild(10));
+      regenerateProjectFiles(actionRecord, processProjectActions, project, subMonitor.newChild(10));
       for (String key:fPeripheralsMap.keySet()) {
          Peripheral p = fPeripheralsMap.get(key);
          if (p instanceof PeripheralWithState) {
-            ((PeripheralWithState) p).regenerateProjectFiles(processProjectActions, project, subMonitor.newChild(10));
+            ((PeripheralWithState) p).regenerateProjectFiles(actionRecord, processProjectActions, project, subMonitor.newChild(10));
          }
       }
+      Activator.log(actionRecord.toString());
    }
 
    /**
@@ -2182,13 +2184,18 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     * 
     * @throws Exception
     */
-   public void regenerateProjectFiles(ProcessProjectActions processProjectActions, IProject project, IProgressMonitor monitor) throws Exception {
+   public void regenerateProjectFiles(
+         StringBuilder         actionRecord,
+         ProcessProjectActions processProjectActions, 
+         IProject              project, 
+         IProgressMonitor      monitor) throws Exception {
+      
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
       if (fMenuData == null) {
          return;
       }
       Map<String, String> symbolMap = getSimpleSymbolMap();
-      processProjectActions.process(project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
+      processProjectActions.process(actionRecord, project, fMenuData.getProjectActionList(), symbolMap, subMonitor.newChild(100));
    }
 
    @Override
@@ -2218,7 +2225,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
        
       DevicePeripheralsFactory factory           = new DevicePeripheralsFactory();
       DevicePeripherals        devicePeripherals = factory.getDevicePeripherals(fDeviceSubFamily);
-      System.out.println("Device sub family = "+fDeviceSubFamily);
+//      System.out.println("Device sub family = "+fDeviceSubFamily);
       if (devicePeripherals == null) {
          throw new UsbdmException("Failed to create devicePeripherals from SVD for \'"+ fDeviceSubFamily + "\'");
       }

@@ -13,6 +13,9 @@ public class WriterForUart extends PeripheralWithState {
 
    public WriterForUart(String basename, String instance, DeviceInfo deviceInfo) throws IOException, UsbdmException {
       super(basename, instance, deviceInfo);
+      
+      // Instance has internal state
+      clearConstType();
    }
 
    @Override

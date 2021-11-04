@@ -34,44 +34,6 @@ public class WriterForFtm extends PeripheralWithState {
       return "PWM, Input capture and Output compare";
    }
 
-//   @Override
-//   public String getCodeIdentifier(MappingInfo mappingInfo) {
-////      if (signalName.matches(".*CH\\d+")) {
-//         return super.getCodeIdentifier(mappingInfo); 
-////      }
-////      return null;
-//   }
-
-   @Override
-   protected void writeDeclarations() {
-      
-      super.writeDeclarations();
-      
-      for (int index=0; index<fInfoTable.table.size(); index++) {
-         Signal signal = fInfoTable.table.get(index);
-         if (signal == null) {
-            continue;
-         }
-         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
-         Pin pin = pinMapping.getPin();
-         String ident = pin.getCodeIdentifier();
-         if (ident.isBlank()) {
-            continue;
-         }
-         ident = makeCIdentifier(ident);
-         
-         String declaration = String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE_USBDM_LIBRARY, getClassBaseName()+getInstance()+"::"+"Channel", index);
-         
-         writeVariableDeclaration("", pin.getUserDescription(), ident, declaration, pin.getLocation());
-      }
-   }
-   
-//   @Override
-//   protected String getDeclaration(MappingInfo mappingInfo, int fnIndex) {
-//      int signal = getSignalIndex(mappingInfo.getSignals().get(fnIndex));
-//      return String.format("const %s::%s<%d>", DeviceInfo.NAME_SPACE, getClassBaseName()+getInstance()+"::"+"Channel", signal);
-//   }
-
    @Override
    public int getSignalIndex(Signal signal) {
       Pattern p = Pattern.compile("CH(\\d+)");
@@ -101,10 +63,32 @@ public class WriterForFtm extends PeripheralWithState {
    }
 
    @Override
-   public boolean needPCRTable() {
+   protected void writeDeclarations() {
+      
+      super.writeDeclarations();
+      
+      for (int index=0; index<fInfoTable.table.size(); index++) {
+         Signal signal = fInfoTable.table.get(index);
+         if (signal == null) {
+            continue;
+         }
+         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
+         Pin pin = pinMapping.getPin();
+         String ident = pin.getSecondaryOrPrimaryCodeIdentifier();
+         if (ident.isBlank()) {
+            continue;
+         }
+         String declaration = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+         
+         writeVariableDeclaration("", pin.getPinDescription(), ident, declaration, pin.getLocation());
+      }
+   }
+   
+   @Override
+   public boolean isPcrTableNeeded() {
       boolean required = 
-           (fInfoTable.table.size() +
-            fQuadSignals.table.size() + 
+            super.isPcrTableNeeded() ||
+           (fQuadSignals.table.size() + 
             fFaultSignals.table.size()) > 0;
       return required;
    }
