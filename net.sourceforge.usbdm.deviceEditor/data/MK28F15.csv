@@ -9,6 +9,10 @@ Key,Pin,Pkg FRDM_K28F,Pkg BGA_169,Pkg WLCSP_210,Reset,ALT0,ALT1,ALT2,ALT3,ALT4,A
 Pin,TEMP_SENSOR,Internal,Internal,Internal,ADC0_SE26,,,,,,,,,
 Pin,BANDGAP,Internal,Internal,Internal,ADC0_SE27/CMP0_IN6/CMP1_IN6,,,,,,,,,
 Pin,CMP_DAC,Internal,Internal,Internal,CMP0_IN7/CMP1_IN7,,,,,,,,,
+Pin,PIT_CH0,Internal,Internal,Internal,PIT_CH0,,,,,,,,,
+Pin,PIT_CH1,Internal,Internal,Internal,PIT_CH1,,,,,,,,,
+Pin,PIT_CH2,Internal,Internal,Internal,PIT_CH2,,,,,,,,,
+Pin,PIT_CH3,Internal,Internal,Internal,PIT_CH3,,,,,,,,,
 Pin,ADC0_DM0,,L2,N13,ADC0_DM0,,,,,,,,,39
 Pin,ADC0_DM1,ADC0_DM1,L1,*,ADC0_DM1,,,,,,,,,49
 Pin,ADC0_DM3,,N2,P13,ADC0_DM3,,,,,,,,,41
@@ -302,3 +306,4 @@ Param,FTFE,pflash_sector_size,4096,,,,,,,,,,,
 Param,FTFE,dflash_sector_size,4096,,,,,,,,,,,
 Param,FTFE,pflash_phrase_size,8,,,,,,,,,,,
 Param,FTFE,dflash_phrase_size,8,,,,,,,,,,,
+Param,LLWU,device_list,LPTMR0/LPTMR1;CMP0;CMP1;;;RTC_Alarm;;RTC_Seconds,,,,,,,,,,,

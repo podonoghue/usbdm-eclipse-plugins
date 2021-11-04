@@ -227,6 +227,7 @@
       <peripheral baseName="LLWU"     instance=""         version="llwu_pe4_filt2_rst">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLlwu" />
          <irq num="LLWU_IRQn" />
+         <param key="device_list"   value="LPTMR0;CMP0;CMP1;CMP2;TSI;RTC_Alarm;;RTC_Seconds" />
       </peripheral>
       <peripheral baseName="LPTMR"    instance="0"        version="lptmr0">
          <handler class="net.sourceforge.usbdm.deviceEditor.peripherals.WriterForLptmr" />
@@ -386,6 +387,22 @@
          <mux sel="fixed"         signal="ADC1_DP0" />
          <mux sel="fixed"         signal="ADC0_SE3" />
          <mux sel="fixed"         signal="ADC1_SE0" />
+         <reset sel="fixed" />
+      </pin>
+      <pin name="PIT_CH0"      isFixed="true">
+         <mux sel="fixed"         signal="PIT_CH0" />
+         <reset sel="fixed" />
+      </pin>
+      <pin name="PIT_CH1"      isFixed="true">
+         <mux sel="fixed"         signal="PIT_CH1" />
+         <reset sel="fixed" />
+      </pin>
+      <pin name="PIT_CH2"      isFixed="true">
+         <mux sel="fixed"         signal="PIT_CH2" />
+         <reset sel="fixed" />
+      </pin>
+      <pin name="PIT_CH3"      isFixed="true">
+         <mux sel="fixed"         signal="PIT_CH3" />
          <reset sel="fixed" />
       </pin>
       <pin name="RESET_b"      isFixed="true">
@@ -855,6 +872,10 @@
          <placement pin="PGA0_DP"       location="p9" />
          <placement pin="PGA1_DM"       location="p12" />
          <placement pin="PGA1_DP"       location="p11" />
+         <placement pin="PIT_CH0"       location="Internal" />
+         <placement pin="PIT_CH1"       location="Internal" />
+         <placement pin="PIT_CH2"       location="Internal" />
+         <placement pin="PIT_CH3"       location="Internal" />
          <placement pin="PTA0"          location="p22" />
          <placement pin="PTA1"          location="p23" />
          <placement pin="PTA12"         location="p28" />
