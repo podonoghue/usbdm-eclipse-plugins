@@ -98,7 +98,7 @@ public class EnumeratedNumericOptionModelNode extends NumericOptionModelNode {
             return enumValue.getName();
          }
       }
-      System.err.println(String.format("getValueAsString() Didn't find (0x%X => %s) ", value, enumerationValues.get(0).getName()));
+//      System.err.println(String.format("getValueAsString() Didn't find (0x%X => %s) ", value, enumerationValues.get(0).getName()));
       return enumerationValues.get(0).getName();
    }
    
@@ -134,7 +134,7 @@ public class EnumeratedNumericOptionModelNode extends NumericOptionModelNode {
          super.setValue(enumerationValues.get(index).getValue());
          return;
       }
-      System.err.println("Failed to locate enumerated value n = '" + getName() + "', v = '" + name +"'");
+//      System.err.println("Failed to locate enumerated value n = '" + getName() + "', v = '" + name +"'");
    }
 
    /**

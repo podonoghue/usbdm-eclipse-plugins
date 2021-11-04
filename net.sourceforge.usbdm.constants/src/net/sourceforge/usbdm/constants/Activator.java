@@ -76,7 +76,6 @@ public class Activator extends AbstractUIPlugin {
       String resPathName = UsbdmSharedConstants.USBDM_RESOURCE_PATH_VAR;
       String kdsPathName = UsbdmSharedConstants.USBDM_KSDK_PATH;
 
-      Activator.log("loadUsbdmPaths()");
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
       UsbdmSharedSettings settings = UsbdmSharedSettings.getSharedSettings();

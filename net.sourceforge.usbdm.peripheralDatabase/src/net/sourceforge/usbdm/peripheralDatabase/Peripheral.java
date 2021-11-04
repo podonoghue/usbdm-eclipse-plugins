@@ -978,7 +978,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (!isMapFreescaleCommonNames()) {
          return name;
       }
-      // TODO Where Peripheral names are mapped
+      // TODO - Where Peripheral names are mapped
       if (freescalePeripheralNameMap == null) {
          freescalePeripheralNameMap = new HashMap<String, String>();
          freescalePeripheralNameMap.put("PTA", "GPIOA");

@@ -34,7 +34,7 @@ public class Activator extends AbstractUIPlugin {
    public void start(BundleContext context) throws Exception {
       super.start(context);
       plugin = this;
-      System.err.println(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      log(String.format("[%s, %s].start()", getBundle().getSymbolicName(), getBundle().getVersion()));
    }
 
    /*
@@ -45,7 +45,7 @@ public class Activator extends AbstractUIPlugin {
     */
    public void stop(BundleContext context) throws Exception {
       plugin = null;
-      System.err.println(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
+      log(String.format("[%s, %s].stop()", getBundle().getSymbolicName(), getBundle().getVersion()));
       super.stop(context);
    }
 

@@ -78,12 +78,12 @@ public class PllClockValidate extends MyValidator {
          System.err.print(String.format("(prdiv = %d, pllIn=%f) => ", mcg_prdiv, pllInFrequency));
          if (pllInFrequency>PLL_IN_MAXIMUM_FREQUENCY) {
             // Invalid as input to PLL
-            System.err.println("too high");
+//            System.err.println("too high");
             continue;
          }
          if (pllInFrequency<PLL_IN_MINIMUM_FREQUENCY) {
             // Invalid as input to PLL
-            System.err.println("too low");
+//            System.err.println("too low");
             break;
          }
          // Try each multiplier value
@@ -107,7 +107,7 @@ public class PllClockValidate extends MyValidator {
                break;
             }
          }
-         System.err.println();
+//         System.err.println();
          if (valid) {
             break;
          }

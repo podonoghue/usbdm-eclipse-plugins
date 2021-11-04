@@ -321,7 +321,7 @@ public class AnnotationParser {
 
    private void createSelection(String selectionName, String selectionValue) throws Exception {
       if (currentEnumValue == null) {
-         System.err.println("currentOption = "+currentOption.getName()+": "+currentOption.getDescription());
+//         System.err.println("currentOption = "+currentOption.getName()+": "+currentOption.getDescription());
          throw new Exception("selectionName may only be applied to an enumerated selection, found: " + currentOption.getClass().toString());
       }
       EnumeratedNumericOptionModelNode optionNode = (EnumeratedNumericOptionModelNode)currentOption;

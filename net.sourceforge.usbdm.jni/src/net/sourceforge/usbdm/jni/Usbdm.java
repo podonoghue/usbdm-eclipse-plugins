@@ -1681,8 +1681,8 @@ public class Usbdm {
             serial = utf16leCharsetDecoder.decode(buff).toString();
          }
       } catch (CharacterCodingException e) {
-         Activator.logError("Description contains illegal characters", e);
-         return "Description contains illegal characters";
+         Activator.logError("BDM Description contains illegal characters", e);
+         return "BDM Description contains illegal characters";
       }
       return serial;
    }
@@ -1743,7 +1743,7 @@ public class Usbdm {
          deviceDescription  = desc;
          deviceSerialNumber = ser;
          bdmInfo            = bdmI;
-//         Activator.logError("BdmInformation.USBDMDeviceInfo()");
+//         Activator.log("BdmInformation.USBDMDeviceInfo()");
       }
       public String toString() {
          return "  Description   = "+deviceDescription+";\n" +
@@ -1804,11 +1804,6 @@ public class Usbdm {
       }
       StringBuilder sb = new StringBuilder();
       try {
-         //String property = System.getProperty("java.library.path");
-         //StringTokenizer parser = new StringTokenizer(property, ":");
-         //while (parser.hasMoreTokens()) {
-         //    Activator.logError(parser.nextToken());
-         //    }
          String os    = System.getProperty("os.name");            
          String arch  = System.getProperty("os.arch");            
          String jvm   = System.getProperty("java.vm.name");
@@ -1858,7 +1853,7 @@ public class Usbdm {
             sb.append("Loading library name = " + libraryName + "\n");
             System.loadLibrary(libraryName);
          }
-         System.err.print(sb.toString());
+//         System.out.print(sb.toString());
          usbdmInit();
          libraryLoaded = true;
 //         Activator.log(sb.toString());
@@ -1875,7 +1870,7 @@ public class Usbdm {
 //            else {
 //               shell = new Shell(disp);
 //            }
-//            Activator.logError("Libary Path = "+System.getProperty("java.library.path"));
+//            Activator.log("Libary Path = "+System.getProperty("java.library.path"));
 //            libraryLoadFailed = true;
 //            MessageBox msgbox = new MessageBox(shell, SWT.OK);
 //            msgbox.setText("USBDM Error");
@@ -1888,9 +1883,9 @@ public class Usbdm {
 //               e1.printStackTrace();
 //            }
 //         }
-//         Activator.logError("USBDM Libraries failed to load");
-//         return;
-         throw new Exception(sb.toString(), e);
+         Exception excp = new Exception(sb.toString(), e);
+         Activator.logError("USBDM Libraries failed to load", new Exception(sb.toString(), excp));
+         throw new Exception(sb.toString(), excp);
       }
    }
    
@@ -1915,7 +1910,7 @@ public class Usbdm {
     * @throws CharacterCodingException 
     */
    public static ArrayList<USBDMDeviceInfo> getDeviceList() {
-      //      Activator.logError("Usbdm.getDeviceList()");
+      //      Activator.log("Usbdm.getDeviceList()");
 
       ArrayList<USBDMDeviceInfo> deviceList = new ArrayList<USBDMDeviceInfo>();
 
@@ -1929,7 +1924,7 @@ public class Usbdm {
          if (deviceCount == 0) {
             return deviceList;
          }
-         //         Activator.logError("Usbdm.findDevices(): Found  " + deviceCount + " devices");
+         //         Activator.log("Usbdm.findDevices(): Found  " + deviceCount + " devices");
          for (int deviceNum=0; deviceNum < deviceCount; deviceNum++) {
             String description = new String("Unresponsive device");
             String serialNum   = new String("Unknown");

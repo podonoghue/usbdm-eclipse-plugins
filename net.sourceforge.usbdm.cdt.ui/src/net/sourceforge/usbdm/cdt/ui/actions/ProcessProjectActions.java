@@ -36,7 +36,7 @@ public class ProcessProjectActions {
          final Map<String,String>    variableMap, 
          final IProgressMonitor      monitor) throws Exception {
 
-//      System.err.println("ProcessProjectActions.process("+device.getName()+") =============================================");
+//      System.out.println("ProcessProjectActions.process("+device.getName()+") =============================================");
       if (actionList == null) {
          return;
       }

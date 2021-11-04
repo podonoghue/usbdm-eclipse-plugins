@@ -17,7 +17,7 @@ public class UsbdmBuiltinSpecsDetector extends GCCBuiltinSpecsDetector implement
     * @see org.eclipse.cdt.managedbuilder.language.settings.providers.GCCBuiltinSpecsDetector#getToolchainId()
     */
    public String getToolchainId() {
-      System.err.println("UsbdmBuiltinSpecsDetector.getToolchainId() => id = \'" + toolChainId + "\'");
+//      System.out.println("UsbdmBuiltinSpecsDetector.getToolchainId() => id = \'" + toolChainId + "\'");
       return toolChainId;
    }
 
@@ -27,7 +27,7 @@ public class UsbdmBuiltinSpecsDetector extends GCCBuiltinSpecsDetector implement
    @Override
    protected String resolveCommand(String languageId) throws CoreException {
       String commandLine = super.resolveCommand(languageId);
-      System.err.println("UsbdmBuiltinSpecsDetector.resolveCommand() => commandLine = \'" + commandLine + "\'");
+//      System.out.println("UsbdmBuiltinSpecsDetector.resolveCommand() => commandLine = \'" + commandLine + "\'");
       return commandLine;
    }
 

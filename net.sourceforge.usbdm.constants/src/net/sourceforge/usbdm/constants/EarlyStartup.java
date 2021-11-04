@@ -15,7 +15,7 @@ public class EarlyStartup implements org.eclipse.ui.IStartup {
     * Clears any launch filter applied to USBDM
     */
    private void clearLaunchConfigFilter() {
-      System.err.println("net.sourceforge.usbdm.constants.EarlyStartup");
+      Activator.log("clearLaunchConfigFilter()");
       try {
          IPreferenceStore store = DebugUIPlugin.getDefault().getPreferenceStore();
          String filteredLaunchers = store.getString("org.eclipse.debug.ui.PREF_FILTER_TYPE_LIST");

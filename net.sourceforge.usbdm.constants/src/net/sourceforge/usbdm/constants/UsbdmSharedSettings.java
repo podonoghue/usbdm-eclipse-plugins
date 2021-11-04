@@ -197,7 +197,7 @@ public class UsbdmSharedSettings {
             sharedSettings = new DialogSettings(USBDM_COMMON_SETTINGS);
             try {
                sharedSettings.load(usbdmEclipseSettingsFile.toOSString());
-               Activator.log("UsbdmSharedSettings.getSharedSettings() - loaded settings from file \'"+usbdmEclipseSettingsFile.toOSString()+"\'\n");
+               Activator.log("Loaded settings from file \'"+usbdmEclipseSettingsFile.toOSString()+"\'\n");
             } catch (IOException e) {
                // Ignore as the file may not exist yet
                Activator.log("UsbdmSharedSettings.getSharedSettings() - file doesn't exist", e);

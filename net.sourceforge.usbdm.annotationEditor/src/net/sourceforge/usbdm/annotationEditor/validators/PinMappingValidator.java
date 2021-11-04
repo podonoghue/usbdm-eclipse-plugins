@@ -106,7 +106,7 @@ public class PinMappingValidator extends MyValidator {
       ArrayList<SelectionTag> functionSelectionNodes = new ArrayList<SelectionTag>();
       findActiveSelectionNodes(map_by_functionNode, functionSelectionNodes);
 
-      System.err.println("Collecting Selection Nodes");
+//      System.err.println("Collecting Selection Nodes");
       ArrayList<SelectionTag> activeSelectionNodes   = null;
       if (mapByPin) {
          activeSelectionNodes   = pinSelectionNodes;
@@ -126,12 +126,12 @@ public class PinMappingValidator extends MyValidator {
          NumericOptionModelNode targetSignalNode = getNumericModelNode(tag.signalName);
          if (targetSignalNode == null) {
             setValid(viewer, tag.controllingNode, new Message("Can't find referenced selection node "+tag.signalName));
-            System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
+//            System.err.println("PinMappingValidator.validate() Can't find referenced selection node "+tag.signalName);
             continue;
          }
          if (!(targetSignalNode instanceof EnumeratedNumericOptionModelNode)) {
             setValid(viewer, tag.controllingNode, new Message("Referenced selection node "+tag.signalName+ " has wrong type"+ ", class = " + targetSignalNode.getClass()));
-            System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
+//            System.err.println("PinMappingValidator.validate() Incorrect node class for node " + targetSignalNode.getName() + ", class = " + targetSignalNode.getClass());
             continue;
          }
          EnumeratedNumericOptionModelNode target = (EnumeratedNumericOptionModelNode) targetSignalNode;
@@ -166,7 +166,7 @@ public class PinMappingValidator extends MyValidator {
                boolean clash = false;
                for (SelectionTag tag:nodeToUpdate.forcingNodes) {
                   if (!nodeToUpdate.forcingNodes.get(0).signalValue.equals(tag.signalValue)) {
-                     System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
+//                     System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
                      clash = true;
                   }
                }
@@ -205,8 +205,8 @@ public class PinMappingValidator extends MyValidator {
 //                  gpioTag = null;
                   for (SelectionTag tag:nodeToUpdate.forcingNodes) {
                      if (!nodeToUpdate.forcingNodes.get(0).signalValue.equals(tag.signalValue)) {
-                        System.err.println(String.format("Conflict f=%s => t=%s", tag, targetNode.getName()));
-                        System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
+//                        System.err.println(String.format("Conflict f=%s => t=%s", tag, targetNode.getName()));
+//                        System.err.println(nodeToUpdate.forcingNodes.get(0).signalValue + "!=" + tag.signalValue);
                         clash = true;
                      }
 //                     if (tag.controllingNode.getName().matches("GPIO[A-Z]+_[0-9]+.*")) {
