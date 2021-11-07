@@ -848,10 +848,10 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       return rv;
    }
    
-   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  0                           },\n";
-   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, 0                           },\n";
-   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, 0                           },\n";
-   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %s     PORT_PCR_MUX(%d)|"+ DEFAULT_PCR_VALUE_NAME +"  },\n";
+   private static final String INVALID_TEMPLATE  = "         /* %3d: %-20s = %-30s */  { NoPortInfo, INVALID_PCR,  0                                },\n";
+   private static final String DUMMY_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, UNMAPPED_PCR, 0                                },\n";
+   private static final String FIXED_TEMPLATE    = "         /* %3d: %-20s = %-30s */  { NoPortInfo, FIXED_NO_PCR, 0                                },\n";
+   private static final String USED_TEMPLATE     = "         /* %3d: %-20s = %-30s */  { %-25s PORT_PCR_MUX(%d)|"+ DEFAULT_PCR_VALUE_NAME +"  },\n";
    private static final String HEADING_TEMPLATE  = "         //      %-20s   %-30s   %s\n";
 
    protected void writeInfoTable(DocumentUtilities pinMappingHeaderFile, InfoTable signalTable) throws IOException {
