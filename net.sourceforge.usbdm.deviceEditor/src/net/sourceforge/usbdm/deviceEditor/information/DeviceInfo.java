@@ -1656,6 +1656,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
             Pin pin = fPins.get(pinName);
             pin.loadSettings(settings);
          }
+         for (String signalName:fSignals.keySet()) {
+            Signal signal = fSignals.get(signalName);
+            signal.loadSettings(settings);
+         }
          for (String peripheralName:fPeripheralsMap.keySet()) {
             Peripheral peripheral =  fPeripheralsMap.get(peripheralName);
             peripheral.loadSettings(settings);
@@ -1754,6 +1758,10 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       } catch (Exception e) {
          Activator.logError(e.getMessage(), e);
       }
+      for (String pinName:fPins.keySet()) {
+         Pin pin = fPins.get(pinName);
+         pin.migrateSettings();;
+      }
       setDirty(false);
    }
 
@@ -1779,6 +1787,11 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
       for (String pinName:fPins.keySet()) {
          Pin pin = fPins.get(pinName);
          pin.saveSettings(settings);
+      }
+      // Save settings from signals e.g. signal descriptions and code identifiers
+      for (String signalName:fSignals.keySet()) {
+         Signal signal = fSignals.get(signalName);
+         signal.saveSettings(settings);
       }
       // Save custom items from peripherals
       for (String peripheralName:fPeripheralsMap.keySet()) {

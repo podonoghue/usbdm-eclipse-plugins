@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
+import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -24,8 +25,7 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if ((element instanceof PinModel) ||
-            (element instanceof SignalModel)) {
+      if (element instanceof SignalModel) {
          return true;
       }
       if ((element instanceof PeripheralSignalsModel) && 
@@ -47,13 +47,15 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof PinModel) {
-         Pin pin = ((PinModel)element).getPin();
-         return pin.getCodeIdentifier();
-      }
+//      if (element instanceof PinModel) {
+//         Pin pin = ((PinModel)element).getPin();
+//         return pin.getCodeIdentifier();
+//      }
       if (element instanceof SignalModel) {
-         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
-         return pin.getCodeIdentifier();
+         Signal signal = ((SignalModel) element).getSignal();
+         return signal.getCodeIdentifier();
+//         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
+//         return pin.getCodeIdentifier();
       }
       if (element instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();
@@ -70,11 +72,14 @@ public class CodeIdentifierColumnEditingSupport extends EditingSupport {
          viewer.update(element, null);
       }
       if (element instanceof SignalModel) {
-         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
-         if (pin != Pin.UNASSIGNED_PIN) {
-            pin.setCodeIdentifier((String) value);
-            viewer.update(element, null);
-         }
+         Signal signal = ((SignalModel) element).getSignal();
+         signal.setCodeIdentifier((String) value);
+         viewer.update(element, null);
+//         Pin pin = ((SignalModel)element).getSignal().getMappedPin();
+//         if (pin != Pin.UNASSIGNED_PIN) {
+//            pin.setCodeIdentifier((String) value);
+//            viewer.update(element, null);
+//         }
       }
       if (element instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();

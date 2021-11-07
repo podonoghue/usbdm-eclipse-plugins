@@ -1,7 +1,6 @@
 package net.sourceforge.usbdm.deviceEditor.model;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -204,20 +203,25 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
 
    @Override
    public String getSimpleDescription() {
-      List<MappingInfo> currentMapping = fSignal.getMappedPinInformation();
-      String description = null;
-
-      // Try to get description from currently mapped pin
-      if (!currentMapping.isEmpty()) {
-         description = currentMapping.get(0).getPin().getUserDescription();
-      }
-      else {
-         String pinListDescription = getAvailablePins();
-         if (pinListDescription != null) {
-            description = pinListDescription;
-         }
+      String description = fSignal.getUserDescription();
+      if (description.isBlank()) {
+         description = getAvailablePins();
       }
       return description;
+      
+//      List<MappingInfo> currentMapping = fSignal.getMappedPinInformation();
+//
+//      // Try to get description from currently mapped pin
+//      if (!currentMapping.isEmpty()) {
+//         description = currentMapping.get(0).getPin().getUserDescription();
+//      }
+//      else {
+//         String pinListDescription = getAvailablePins();
+//         if (pinListDescription != null) {
+//            description = pinListDescription;
+//         }
+//      }
+//      return description;
    }
 
    @Override

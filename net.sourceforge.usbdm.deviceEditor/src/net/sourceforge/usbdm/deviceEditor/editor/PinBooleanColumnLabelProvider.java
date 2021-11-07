@@ -47,15 +47,6 @@ public abstract class PinBooleanColumnLabelProvider extends PinPropertyColumnLab
       return (value!=0)?checkedImage:uncheckedImage;
    }
 
-   public static PinBooleanColumnLabelProvider getPolarity() {
-      return new PinBooleanColumnLabelProvider(Pin.PORT_POLARITY_MASK, Pin.PORT_POLARITY_SHIFT, "ActiveLow", "ActiveHigh") {
-         @Override
-         public String getToolTipText(Object element) {
-            return "Polarity if used as Gpio or part of a GpioField";
-         }
-      };
-   }
-
    public static PinBooleanColumnLabelProvider getLk() {
       return new PinBooleanColumnLabelProvider(Pin.PORT_PCR_LK_MASK, Pin.PORT_PCR_LK_SHIFT) {
          @Override

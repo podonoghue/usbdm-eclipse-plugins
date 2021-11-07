@@ -98,8 +98,8 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     * </pre> 
     * @return Model
     */
-   private DeviceSignalsModel createPinViewPageModel() {
-      return new DeviceSignalsModel(null, fDeviceInfo);
+   private PinViewPageModel createPinViewPageModel() {
+      return new PinViewPageModel(null, fDeviceInfo);
    }
 
    /**
@@ -131,7 +131,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
     */
    private TabModel createPeripheralParameterPageModel() {
       fParameterModels = new TabModel(
-            null, "Peripheral Parameters", "Interrupt handling and\ndefault settings used by defaultConfigure()");
+            null, "Peripheral Parameters", "Periperhal signal declarations\nInterrupt handling and\ndefault settings used by defaultConfigure()");
       
       for (String peripheralName:fDeviceInfo.getPeripherals().keySet()) {
          Peripheral peripheral = fDeviceInfo.getPeripherals().get(peripheralName);
@@ -168,7 +168,7 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
    private DeviceVariantInformation fCurrentDeviceVariant = null;
    
    /** Models representing all pins */
-   private DeviceSignalsModel fPinViewPageModel;
+   private PinViewPageModel fPinViewPageModel;
 
    /**
     * Sets conflict check as pending<br>
@@ -375,9 +375,9 @@ public class ModelFactory extends ObservableModel implements IModelChangeListene
       }
       fModels = new ArrayList<IPage>();
       fModels.add(fDeviceInformationPageModel);
-      fModels.add(createPeripheralViewPageModel());
       fPinViewPageModel = createPinViewPageModel();
       fModels.add(fPinViewPageModel);
+      fModels.add(createPeripheralViewPageModel());
       fModels.add(createPeripheralParameterPageModel());
       fModels.add(fPackageImageModel);
 

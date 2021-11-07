@@ -70,16 +70,14 @@ public class WriterForLlwu extends PeripheralWithState {
             if (signal == null) {
                continue;
             }
+            if (signal == Signal.DISABLED_SIGNAL) {
+               continue;
+            }
             MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
             Pin pin = mappingInfo.getPin();
             String pinName = enumName+"_"+prettyPinName(pin.getName());
             String mapName = enumName+"_"+index;
-            if (!mappingInfo.getPin().isAvailableInPackage()) {
-               // Discard unmapped signals on this package 
-               continue;
-            }
-            if (mappingInfo.getMux() == MuxSelection.unassigned) {
-               // Reset selection - ignore
+            if (pin == Pin.UNASSIGNED_PIN) {
                continue;
             }
             String comment = "";
@@ -94,25 +92,20 @@ public class WriterForLlwu extends PeripheralWithState {
                continue;
             }
             // Found fixed or mapped pin
-            boolean inUse = !usedIdentifiers.add(pinName);
-            if (inUse) {
-               pinName = "// "+pinName; 
-            }
             sb.append(String.format(PIN_FORMAT, pinName, mapName+',', comment));
             
-            String userPinName = pin.getSecondaryOrPrimaryCodeIdentifier();
-            if (!userPinName.isBlank()) {
-               userPinName = makeCTypeIdentifier(enumName+"_"+userPinName);
-
-               String userComment = pin.getPinDescription();
+            String cIdentifier = signal.getCodeIdentifier();
+            if (!cIdentifier.isBlank()) {
+               cIdentifier = makeCTypeIdentifier(enumName+"_"+cIdentifier);
+               String userComment = signal.getUserDescription();
                if (!userComment.isBlank()) {
                   comment = "///< " + userComment;
                }
-               inUse = !usedIdentifiers.add(userPinName);
+               boolean inUse = !usedIdentifiers.add(cIdentifier);
                if (inUse) {
-                  userPinName = "// "+userPinName; 
+                  cIdentifier = "// "+cIdentifier; 
                }
-               sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
+               sb.append(String.format(PIN_FORMAT, cIdentifier, mapName+",", comment));
             }
          }
       }

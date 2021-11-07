@@ -3,7 +3,6 @@ package net.sourceforge.usbdm.deviceEditor.peripherals;
 import java.io.IOException;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -38,15 +37,18 @@ public class WriterForPit extends PeripheralWithState {
          if (signal == null) {
             continue;
          }
-         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
-         Pin pin = pinMapping.getPin();
-         String ident = pin.getSecondaryOrPrimaryCodeIdentifier();
-         if (ident.isBlank()) {
+         String cIdentifier = signal.getCodeIdentifier();
+         if (cIdentifier.isBlank()) {
             continue;
          }
+         Pin pin = signal.getFirstMappedPinInformation().getPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
+            continue;
+         }
+         String description = signal.getUserDescription();
          String declaration = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          
-         writeVariableDeclaration("", pin.getPinDescription(), ident, declaration, pin.getLocation());
+         writeVariableDeclaration("", description, cIdentifier, declaration, pin.getLocation());
       }
    }
 

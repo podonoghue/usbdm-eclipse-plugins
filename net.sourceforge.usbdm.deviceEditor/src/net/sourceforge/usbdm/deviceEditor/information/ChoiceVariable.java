@@ -105,7 +105,7 @@ public class ChoiceVariable extends Variable {
    /**
     * Set value based on substitution value rather than user value.
     * 
-    * @param value Substitution value to search for. (Converted to string)
+    * @param fValue Substitution value to search for. (Converted to string)
     * 
     * @return True if variable actually changed value
     */

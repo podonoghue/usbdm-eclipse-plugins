@@ -21,12 +21,11 @@ public class CodeIdentifierColumnLabelProvider extends BaseLabelProvider {
 //      System.err.println("CodeIdentifierColumnLabelProvider::getText(" + baseModel.getName() + baseModel+")");
       if (baseModel instanceof SignalModel) {
          Signal signal = ((SignalModel) baseModel).getSignal();
-         Pin pin = signal.getMappedPin();
-         return pin.getCodeIdentifier();
+         return signal.getCodeIdentifier();
       }
       if (baseModel instanceof PinModel) {
          Pin pin = ((PinModel)baseModel).getPin();
-         return pin.getCodeIdentifier();
+         return pin.getMappedSignalsCodeIdentifiers();
       }
       if (baseModel instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)baseModel).getPeripheral();

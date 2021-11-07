@@ -45,7 +45,7 @@ public enum MuxSelection {
    /**
     * Gets a short name for the mux values e.g. R = reset
     * 
-    * @param value
+    * @param fValue
     * @param shortName
     */
    public String getShortName() {

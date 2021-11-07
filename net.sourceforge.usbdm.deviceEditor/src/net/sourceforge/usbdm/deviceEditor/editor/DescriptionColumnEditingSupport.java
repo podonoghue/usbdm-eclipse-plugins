@@ -7,7 +7,6 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.model.PeripheralSignalsModel;
 import net.sourceforge.usbdm.deviceEditor.model.PinModel;
 import net.sourceforge.usbdm.deviceEditor.model.SignalModel;
@@ -24,8 +23,7 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected boolean canEdit(Object element) {
-      if ((element instanceof PinModel) ||
-          (element instanceof SignalModel)) {
+      if ((element instanceof SignalModel)) {
          return true;
       }
       if ((element instanceof PeripheralSignalsModel) && 
@@ -37,8 +35,7 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected CellEditor getCellEditor(Object element) {
-      if ((element instanceof PinModel) ||
-            (element instanceof SignalModel)||
+      if ((element instanceof SignalModel)||
             (element instanceof PeripheralSignalsModel)) {
          return new StringCellEditor(viewer.getTree());
       }
@@ -47,13 +44,10 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
 
    @Override
    protected Object getValue(Object element) {
-      if (element instanceof PinModel) {
-         Pin pin = ((PinModel)element).getPin();
-         return pin.getUserDescription();
-      }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
-         return signalModel.getSignal().getMappedPin().getUserDescription();
+         return signalModel.getSignal().getUserDescription();
+//         return signalModel.getSignal().getMappedPin().getUserDescription();
       }
       if (element instanceof PeripheralSignalsModel) {
          PeripheralSignalsModel peripheralSignalsModel = ((PeripheralSignalsModel)element);
@@ -70,7 +64,8 @@ public class DescriptionColumnEditingSupport extends EditingSupport {
       }
       if (element instanceof SignalModel) {
          SignalModel signalModel = (SignalModel)element;
-         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
+         signalModel.getSignal().setUserDescription((String) value);
+//         signalModel.getSignal().getMappedPin().setUserDescription((String) value);
       }
       if (element instanceof PeripheralSignalsModel) {
          Peripheral peripheral = ((PeripheralSignalsModel)element).getPeripheral();

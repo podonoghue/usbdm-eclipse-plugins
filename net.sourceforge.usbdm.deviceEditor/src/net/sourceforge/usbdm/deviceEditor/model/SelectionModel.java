@@ -68,7 +68,7 @@ public abstract class SelectionModel extends EditableModel implements CellEditor
    /**
     * Finds the given choice in fChoices
     * 
-    * @param value Choice to look for
+    * @param fValue Choice to look for
     * 
     * @return Selection index or -1 if not found
     */

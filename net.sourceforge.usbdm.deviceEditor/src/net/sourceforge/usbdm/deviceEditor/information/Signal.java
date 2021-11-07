@@ -70,6 +70,46 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
 
    /** Status of associated signals i.e. if multiple the mapped pins is also mapped to another signal */ 
    private Status fAssociatedStatus = null;
+
+   /** User description of pin use */
+   private String fUserDescription = "";
+
+   /** User identifier to use in code generation */
+   private String fCodeIdentifier = "";
+   
+   /** Indicates whether GPIO signal is active-low */
+   private boolean fIsActiveLow = false;
+   
+   private static final String getUserDescriptionKey(String name) {
+      return "$signal$"+name+"_descriptionSetting";
+   }
+
+   private static final String getCodeIndentifierKey(String name) {
+      return "$signal$"+name+"_codeIdentifier";
+   }
+
+   private static final String getPolarityIndentifierKey(String name) {
+      return "$signal$"+name+"_polarity";
+   }
+
+   /**
+    * Checks whether the GPIO signal is active-low
+    *  
+    * @param isActiveLow
+    */
+   public boolean isActiveLow() {
+      return fIsActiveLow;
+   }
+   
+   /**
+    * Sets whether the GPIO signal is active-low
+    *  
+    * @param isActiveLow
+    */
+   public void setActiveLow(boolean isActiveLow) {
+      fIsActiveLow = isActiveLow;
+      setDirty(true);
+   }
    
    /**
     * 
@@ -84,6 +124,119 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
       
       String t = signal.toUpperCase();
       fIsPowerSignal = t.startsWith("VDD") || t.startsWith("VSS") || t.startsWith("VCC") || t.startsWith("GND");
+   }
+
+
+   /**
+    * Set editor dirty via deviceInfo
+    */
+   void setDirty(boolean dirty) {
+      if (fPeripheral != null) {
+         fPeripheral.setDirty(dirty);
+      }
+   }
+   
+   /** 
+    * Set identifier to use in code generation
+    */
+   public void setCodeIdentifier(String codeIdentifier) {
+      if (this == DISABLED_SIGNAL) {
+         return;
+      }
+      if ((fCodeIdentifier != null) && (fCodeIdentifier.compareTo(codeIdentifier) == 0)) {
+         return;
+      }
+      fCodeIdentifier = codeIdentifier;
+      setDirty(true);
+      notifyListeners();
+      getMappedPin().modelElementChanged(this);
+   }
+
+   /** 
+    * Get identifier to use in code generation
+    */
+   public String getCodeIdentifier() {
+      if (this == DISABLED_SIGNAL) {
+         return "DISABLED_SIGNAL!";
+      }
+      return fCodeIdentifier;
+   }
+   
+   /** 
+    * Set description of pin use 
+    */
+   public void setUserDescription(String userDescription) {
+      if (this == DISABLED_SIGNAL) {
+         return;
+      }
+      if ((fUserDescription != null) && (fUserDescription.compareTo(userDescription) == 0)) {
+         return;
+      }
+      fUserDescription  = userDescription;
+
+      // Update watchers of active mapping
+      for (MappingInfo mappingInfo: fPinMappings) {
+         if (mappingInfo.isSelected()) {
+            mappingInfo.notifyListeners();
+         }
+      }
+      setDirty(true);
+      notifyListeners();
+   }
+
+   /**
+    * Get user description for pin.
+    * 
+    * @return
+    */
+   public String getUserDescription( ) {
+      return fUserDescription;
+   }
+   
+   /**
+    * Load pin settings from settings object
+    * 
+    * @param settings Settings object
+    */
+   public void loadSettings(Settings settings) {
+      if (this == DISABLED_SIGNAL) {
+         return;
+      }
+      String value = settings.get(getCodeIndentifierKey(fName));
+      if (value != null) {
+         setCodeIdentifier(value);
+      }
+      value = settings.get(getUserDescriptionKey(fName));
+      if (value != null) {
+         setUserDescription(value);
+      }
+      value = settings.get(getPolarityIndentifierKey(fName));
+      if (value != null) {
+         setActiveLow(Boolean.parseBoolean(value));
+      }
+   }
+
+   /**
+    * Save signal settings to settings object
+    * 
+    * @param settings Settings object
+    */
+   public void saveSettings(Settings settings) {
+      if (this == DISABLED_SIGNAL) {
+         return;
+      }
+      String desc = getUserDescription();
+      if ((desc != null) && !desc.isEmpty()) {
+         settings.put(getUserDescriptionKey(fName), desc);
+      }
+      String ident = getCodeIdentifier();
+      if ((ident != null) && !ident.isEmpty()) {
+         settings.put(getCodeIndentifierKey(fName), ident);
+      }
+      Boolean polarity = isActiveLow();
+      if (polarity) {
+         settings.put(getPolarityIndentifierKey(fName), polarity.toString());
+      }
    }
 
    /**
@@ -342,6 +495,7 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
          mapping.select(Origin.signal, false);
       }
       mappingInfo.select(Origin.signal, true);
+      setDirty(true);
       notifyListeners();
    }
 
@@ -354,11 +508,8 @@ public class Signal extends ObservableModel implements Comparable<Signal>, IMode
    @Override
    public void modelElementChanged(ObservableModel model) {
       if (model instanceof MappingInfo) {
-         Status newStatus = checkMappingConflicted();
-         if (fStatus != newStatus) {
-            fStatus = newStatus;
-            notifyListeners();
-         }
+         fStatus = checkMappingConflicted();
+         notifyListeners();
       }
       if (model instanceof Pin) {
          Status status = getAssociatedStatus();

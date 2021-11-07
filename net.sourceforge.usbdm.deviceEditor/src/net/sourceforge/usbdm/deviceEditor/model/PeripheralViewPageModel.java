@@ -4,6 +4,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import net.sourceforge.usbdm.deviceEditor.editor.BooleanColumnLabelProvider;
+import net.sourceforge.usbdm.deviceEditor.editor.BooleanEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnEditingSupport;
 import net.sourceforge.usbdm.deviceEditor.editor.CodeIdentifierColumnLabelProvider;
 import net.sourceforge.usbdm.deviceEditor.editor.DescriptionColumnEditingSupport;
@@ -67,10 +69,11 @@ public final class PeripheralViewPageModel extends TreeViewModel implements IPag
                   @Override
                   protected TreeColumnInformation[] getColumnInformation(TreeViewer viewer) {
                      final TreeColumnInformation[] fColumnInformation = {
-                           new TreeColumnInformation("Peripheral.Signal", 200, new NameColumnLabelProvider(),        null),
-                           new TreeColumnInformation("Mux:Pin",           200, new ValueColumnLabelProvider(),       new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Code Identifier",   200, new CodeIdentifierColumnLabelProvider(), new CodeIdentifierColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(), new DescriptionColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Peripheral.Signal", 200, new NameColumnLabelProvider(),              null),
+                           new TreeColumnInformation("Mux:Pin",           200, new ValueColumnLabelProvider(),             new ValueColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Code Identifier",   200, new CodeIdentifierColumnLabelProvider(),    new CodeIdentifierColumnEditingSupport(viewer)),
+                           new TreeColumnInformation("Polarity",          100, BooleanColumnLabelProvider.getPolarity(),   BooleanEditingSupport.getPolarity(viewer)),
+                           new TreeColumnInformation("Description",       600, new DescriptionColumnLabelProvider(),       new DescriptionColumnEditingSupport(viewer)),
                      };
                      return fColumnInformation;
                   }

@@ -56,7 +56,7 @@ public class BooleanVariableModel extends VariableModel {
    /**
     * Set value as boolean
     * 
-    * @param value
+    * @param fValue
     */
    public void setBooleanValue(Boolean bValue) {
       getVariable().setValue(bValue);

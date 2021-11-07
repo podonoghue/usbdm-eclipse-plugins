@@ -401,7 +401,7 @@ public class WriteFamilyCpp {
             // Discard pins without package location
             continue;
          }
-         String useDescription = pin.getPinDescription();
+         String useDescription = pin.getMappedSignalsUserDescriptions();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -425,7 +425,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByLocation.get(pinName);
 
-         String useDescription = pin.getPinDescription();
+         String useDescription = pin.getMappedSignalsUserDescriptions();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
@@ -446,7 +446,7 @@ public class WriteFamilyCpp {
 
          Pin pin = pinsByFunction.get(pinName);
 
-         String useDescription = pin.getPinDescription();
+         String useDescription = pin.getMappedSignalsUserDescriptions();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }

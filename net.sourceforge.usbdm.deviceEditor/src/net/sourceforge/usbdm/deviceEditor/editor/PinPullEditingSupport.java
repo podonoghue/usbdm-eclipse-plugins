@@ -42,8 +42,8 @@ public class PinPullEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return null;
       }
-      PinModel pinModel = (PinModel) model;
-      return pinModel.getPullSetting().ordinal();
+      Pin pin = ((PinModel) model).getPin();
+      return pin.getPullSetting().ordinal();
    }
 
    @Override
@@ -51,8 +51,8 @@ public class PinPullEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return;
       }
-      PinModel pinModel = (PinModel) model;
-      pinModel.setPullSetting(Pin.PinPullValue.values()[(Integer)value]);
+      Pin pin = ((PinModel) model).getPin();
+      pin.setPullSetting(Pin.PinPullValue.values()[(Integer)value]);
       getViewer().update(model, null);
    }
 }

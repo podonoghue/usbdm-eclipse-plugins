@@ -43,10 +43,6 @@ public class PinBooleanEditingSupport extends PinPropertyEditingSupport {
       setValueAsLong(model, ((Boolean)value)?1L:0L);
    }
    
-   public static PinBooleanEditingSupport getPolarity(ColumnViewer viewer) {
-      return new PinBooleanEditingSupport(viewer, Pin.PORT_POLARITY_MASK, Pin.PORT_POLARITY_SHIFT);
-   }
-   
    public static PinBooleanEditingSupport getLk(ColumnViewer viewer) {
       return new PinBooleanEditingSupport(viewer, Pin.PORT_PCR_LK_MASK, Pin.PORT_PCR_LK_SHIFT);
    }

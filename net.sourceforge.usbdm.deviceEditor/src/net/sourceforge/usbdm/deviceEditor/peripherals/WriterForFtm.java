@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.usbdm.deviceEditor.information.DeviceInfo;
-import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
 import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.jni.UsbdmException;
@@ -72,15 +71,16 @@ public class WriterForFtm extends PeripheralWithState {
          if (signal == null) {
             continue;
          }
-         MappingInfo pinMapping = signal.getFirstMappedPinInformation();
-         Pin pin = pinMapping.getPin();
-         String ident = pin.getSecondaryOrPrimaryCodeIdentifier();
-         if (ident.isBlank()) {
+         Pin pin = signal.getFirstMappedPinInformation().getPin();
+         if (pin == Pin.UNASSIGNED_PIN) {
             continue;
          }
-         String declaration = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
-         
-         writeVariableDeclaration("", pin.getPinDescription(), ident, declaration, pin.getLocation());
+         String cIdentifier = signal.getCodeIdentifier();
+         if (cIdentifier.isBlank()) {
+            continue;
+         }
+         String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
+         writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());
       }
    }
    

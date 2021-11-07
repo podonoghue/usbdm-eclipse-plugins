@@ -35,7 +35,7 @@ import net.sourceforge.usbdm.deviceEditor.model.ModelFactory.PinCategory;
  *             +----Pin Model ...
  * </pre> 
  */
-public final class DeviceSignalsModel extends TreeViewModel implements IPage {
+public final class PinViewPageModel extends TreeViewModel implements IPage {
 
    /** List of all pin mapping entries to scan for mapping conflicts */
    private ArrayList<MappingInfo> fMappingInfos;
@@ -58,7 +58,7 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
     * @param parent        Owning model
     * @param fDeviceInfo   Device information needed to create models
     */
-   public DeviceSignalsModel(BaseModel parent, DeviceInfo deviceInfo) {
+   public PinViewPageModel(BaseModel parent, DeviceInfo deviceInfo) {
       super(parent, "Pin View", "Pin mapping organized by pin");
       createModels(deviceInfo);
    }
@@ -86,7 +86,6 @@ public final class DeviceSignalsModel extends TreeViewModel implements IPage {
                            new TreeColumnInformation("Code Identifier",     200, new CodeIdentifierColumnLabelProvider(),     new CodeIdentifierColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Pin Use Description", 200, new DescriptionColumnLabelProvider(),        new DescriptionColumnEditingSupport(viewer)),
                            new TreeColumnInformation("Mux:Signals",         180, new ValueColumnLabelProvider(),              new ValueColumnEditingSupport(viewer)),
-                           new TreeColumnInformation("Polarity",            100, PinBooleanColumnLabelProvider.getPolarity(), PinBooleanEditingSupport.getPolarity(viewer)),
                            new TreeColumnInformation("Interrupt/DMA",       120, new PinInterruptDmaColumnLabelProvider(),    new PinInterruptDmaEditingSupport(viewer)),
                            new TreeColumnInformation("LK",                   40, PinBooleanColumnLabelProvider.getLk(),       PinBooleanEditingSupport.getLk(viewer)),
                            new TreeColumnInformation("DSE",                  40, PinBooleanColumnLabelProvider.getDse(),      PinBooleanEditingSupport.getDse(viewer)),

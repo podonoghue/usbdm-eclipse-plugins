@@ -28,8 +28,9 @@ public class WriterForGpio extends PeripheralWithState {
 
    class GpioPinInformation {
       
-      private final ArrayList<Integer> fListOfBits  = new ArrayList<Integer>();
-      private final ArrayList<Pin>     fListOfPins  = new ArrayList<Pin>();
+      private final ArrayList<Integer> fListOfBits    = new ArrayList<Integer>();
+      private final ArrayList<Pin>     fListOfPins    = new ArrayList<Pin>();
+      private final ArrayList<Signal>  fListOfSignals = new ArrayList<Signal>();
       private final String  fDescription;
       private boolean fConflictedPolarity    = false;
       private boolean fBitsAreConsecutive    = true;
@@ -42,10 +43,11 @@ public class WriterForGpio extends PeripheralWithState {
        * @param bitNum
        * @param isActiveLow
        */
-      public GpioPinInformation(int bitNum, String description, Pin pin) {
+      public GpioPinInformation(int bitNum, String description, Signal signal, Pin pin) {
          fListOfBits.add(bitNum);
          fListOfPins.add(pin);
-         fPolarity          = pin.isActiveLow()?(1<<bitNum):0;
+         fListOfSignals.add(signal);
+         fPolarity          = signal.isActiveLow()?(1<<bitNum):0;
          fLastBitAdded      = bitNum;
          fDescription       = description;
       }
@@ -56,18 +58,19 @@ public class WriterForGpio extends PeripheralWithState {
        * @param bitNum
        * @param isActiveLow
        */
-      public void addBit(int bitNum, Pin pin) {
+      public void addBit(int bitNum, Signal signal, Pin pin) {
          fListOfBits.add(bitNum);
          fListOfPins.add(pin);
+         fListOfSignals.add(signal);
          if (bitNum != (fLastBitAdded+1)) {
             fBitsAreConsecutive = false;
          }
          fLastBitAdded  = bitNum;
          fConflictedPolarity = 
                fConflictedPolarity || 
-               (((fPolarity == 0) && pin.isActiveLow()) || 
-               ((fPolarity != 0) && !pin.isActiveLow()));
-         fPolarity     |= pin.isActiveLow()?(1<<bitNum):0;
+               (((fPolarity == 0) && signal.isActiveLow()) || 
+               ((fPolarity != 0) && !signal.isActiveLow()));
+         fPolarity     |= signal.isActiveLow()?(1<<bitNum):0;
       }
       
       /**
@@ -77,6 +80,24 @@ public class WriterForGpio extends PeripheralWithState {
        */
       public final ArrayList<Integer> getListOfBits() {
          return fListOfBits;
+      }
+      
+      /**
+       * Get list of pins associated with each bit
+       * 
+       * @return
+       */
+      public final ArrayList<Pin> getPins() {
+         return fListOfPins;
+      }
+      
+      /**
+       * Get list of signals associated with each bit
+       * 
+       * @return
+       */
+      public final ArrayList<Signal> getSignals() {
+         return fListOfSignals;
       }
       
       /**
@@ -95,15 +116,6 @@ public class WriterForGpio extends PeripheralWithState {
        */
       public int getFieldPolarity() {
          return fPolarity>>fListOfBits.get(0);
-      }
-      
-      /**
-       * Get list of pins associated with each bit
-       * 
-       * @return
-       */
-      public final ArrayList<Pin> getPins() {
-         return fListOfPins;
       }
       
       /**
@@ -134,33 +146,6 @@ public class WriterForGpio extends PeripheralWithState {
       }
    }
    
-   /**
-    * Get main text from description string
-    * 
-    * @param text
-    * 
-    * @return
-    */
-   String getMainText(String text) {
-      String[] texts = text.split(";");
-      return texts[0];
-   }
-   
-   /**
-    * Get minor text from description string
-    * 
-    * @param text
-    * 
-    * @return
-    */
-   String getMinorText(String text) {
-      String[] texts = text.split(";");
-      if (texts.length>0) {
-         return texts[1];
-      }
-      return texts[0];
-   }
-   
    @Override
    protected void writeDeclarations() {
       
@@ -183,8 +168,8 @@ public class WriterForGpio extends PeripheralWithState {
          }
          Pin pin = pinMapping.getPin();
          
-         String[] descriptions = pin.getUserDescription().split("/", -2);
-         String[] identifiers  = pin.getCodeIdentifier().split("/", -2);
+         String[] descriptions = signal.getUserDescription().split("/", -2);
+         String[] identifiers  = signal.getCodeIdentifier().split("/", -2);
          for (int variableIndex=0; variableIndex<identifiers.length; variableIndex++) {
             String identifier  = identifiers[variableIndex];
             if (identifier.isBlank()) {
@@ -199,11 +184,11 @@ public class WriterForGpio extends PeripheralWithState {
             GpioPinInformation gpioPinInformation = variablesToCreate.get(identifier);
 
             if (gpioPinInformation == null) {
-               gpioPinInformation = new GpioPinInformation(infoTableIndex, description, pin);
+               gpioPinInformation = new GpioPinInformation(infoTableIndex, description, signal, pin);
                variablesToCreate.put(identifier, gpioPinInformation);
             }
             else {
-               gpioPinInformation.addBit(infoTableIndex, pin);
+               gpioPinInformation.addBit(infoTableIndex, signal, pin);
             }
          }
       }
@@ -221,12 +206,14 @@ public class WriterForGpio extends PeripheralWithState {
          
          final ArrayList<Integer> bitNums = gpioPinInformation.getListOfBits();
          final ArrayList<Pin>     pins    = gpioPinInformation.getPins();
+         final ArrayList<Signal>  signals = gpioPinInformation.getSignals();
          if (bitNums.size()==1) {
             // Do simple Gpio
             int bitNum = bitNums.get(0);
-            Pin pin = pins.get(0);
+            Pin    pin    = pins.get(0);
+            Signal signal = signals.get(0);
             String pinTrailingComment = pin.getLocation() + comment;
-            String polarity           = pin.isActiveLow()?", ActiveLow":"";
+            String polarity           = signal.isActiveLow()?", ActiveLow":"";
             String pinDescription     = gpioPinInformation.getDescription();
             
             String type = String.format("const %s<%d%s>", getClassBaseName()+getInstance(), bitNum, polarity);

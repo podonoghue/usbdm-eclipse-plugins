@@ -42,8 +42,8 @@ public class PinInterruptDmaEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return null;
       }
-      PinModel pinModel = (PinModel) model;
-      return pinModel.getInterruptDmaSetting().ordinal();
+      Pin pin = ((PinModel) model).getPin();
+      return pin.getInterruptDmaSetting().ordinal();
    }
 
    @Override
@@ -51,8 +51,8 @@ public class PinInterruptDmaEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return;
       }
-      PinModel pinModel = (PinModel) model;
-      pinModel.setInterruptDmaSetting(Pin.PinIntDmaValue.values()[(Integer)value]);
+      Pin pin = ((PinModel) model).getPin();
+      pin.setInterruptDmaSetting(Pin.PinIntDmaValue.values()[(Integer)value]);
       getViewer().update(model, null);
    }
 }

@@ -1670,7 +1670,6 @@ public class ParseMenuXML extends XML_BaseParser {
     * 
     * @param name                Name of file
     * @param variableProvider    Provides the variables. New variables will be added to this provider
-    * @param peripheral          Peripheral associated with this document (if any)
     * 
     * @return Data from model
     * 

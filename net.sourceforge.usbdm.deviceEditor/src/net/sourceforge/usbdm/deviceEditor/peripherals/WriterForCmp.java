@@ -77,52 +77,54 @@ public class WriterForCmp extends PeripheralWithState {
                continue;
             }
             MappingInfo mappingInfo = signal.getFirstMappedPinInformation();
+            if (mappingInfo == MappingInfo.UNASSIGNED_MAPPING) {
+               continue;
+            }
             Pin pin = mappingInfo.getPin();
+            if (pin == Pin.UNASSIGNED_PIN) {
+               continue;
+            }
+            if (!pin.isAvailableInPackage()) {
+               continue;
+            }
+            String comment = pin.getName()+" ("+pin.getLocation()+")";
             String pinName = enumName+"_"+prettyPinName(pin.getName());
-            String userPinName = pin.getSecondaryOrPrimaryCodeIdentifier().trim();
-            if (!userPinName.isBlank()) {
-               userPinName =  enumName+"_"+makeCTypeIdentifier(userPinName);
+            String cIdentifier = signal.getCodeIdentifier().trim();
+            if (!cIdentifier.isBlank()) {
+               cIdentifier =  enumName+"_"+makeCTypeIdentifier(cIdentifier);
             }
             int mapName = index;
             do {
-               if (!pin.isAvailableInPackage()) {
-                  // Discard unmapped signals on this package 
-                  continue;
-               }
-               if (mappingInfo.getMux() == MuxSelection.unassigned) {
-                  // Reset selection - ignore
-                  continue;
-               }
                if (mappingInfo.getMux() == MuxSelection.fixed) {
                   // Fixed pin mapping
-                  String comment = commentRoot+"Fixed pin  "+pin.getName();
+                  comment = commentRoot+"Fixed pin  "+comment;
                   boolean inUse = !usedIdentifiers.add(pinName);
                   if (inUse) {
                      pinName = "// "+pinName; 
                   }
                   sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
-                  if (!userPinName.isBlank()) {
-                     inUse = !usedIdentifiers.add(userPinName);
+                  if (!cIdentifier.isBlank()) {
+                     inUse = !usedIdentifiers.add(cIdentifier);
                      if (inUse) {
-                        userPinName = "// "+userPinName; 
+                        cIdentifier = "// "+cIdentifier; 
                      }
-                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
+                     sb.append(String.format(PIN_FORMAT, cIdentifier, mapName+",", comment));
                   }
                   continue;
                }
                if (mappingInfo.isSelected()) {
-                  String comment = commentRoot+"Mapped pin "+pin.getName();
+                  comment = commentRoot+"Mapped pin "+comment;
                   boolean inUse = !usedIdentifiers.add(pinName);
                   if (inUse) {
                      pinName = "// "+pinName; 
                   }
                   sb.append(String.format(PIN_FORMAT, pinName, mapName+",", comment));
-                  if (!userPinName.isBlank()) {
-                     inUse = !usedIdentifiers.add(userPinName);
+                  if (!cIdentifier.isBlank()) {
+                     inUse = !usedIdentifiers.add(cIdentifier);
                      if (inUse) {
-                        userPinName = "// "+userPinName; 
+                        cIdentifier = "// "+cIdentifier; 
                      }
-                     sb.append(String.format(PIN_FORMAT, userPinName, mapName+",", comment));
+                     sb.append(String.format(PIN_FORMAT, cIdentifier, mapName+",", comment));
                   }
                }
             } while(false);

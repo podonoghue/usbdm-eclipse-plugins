@@ -46,8 +46,8 @@ public class PinPropertyEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return null;
       }
-      PinModel pinModel = (PinModel) model;
-      return pinModel.getProperty(fMask, fOffset);
+      Pin pin = ((PinModel) model).getPin();
+      return pin.getProperty(fMask, fOffset);
    }
 
    @Override
@@ -62,8 +62,8 @@ public class PinPropertyEditingSupport extends EditingSupport {
       if (!(model instanceof PinModel)) {
          return;
       }
-      PinModel pinModel = (PinModel) model;
-      pinModel.setProperty(fMask, fOffset, value.intValue());
+      Pin pin = ((PinModel) model).getPin();
+      pin.setProperty(fMask, fOffset, value.intValue());
       getViewer().update(model, null);
    }
    

@@ -561,17 +561,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *  {// <i><b>error</b></i>}
     *  {<i><b>extern</b></i>}<i><b> type identifier</b></i>; {// <i><b>trailingComment</b></i>}
     *  </pre>
-    * @param sb               Where to write
     * @param error            Error message to precede declaration (empty to suppress) 
     * @param description      Comment describing declaration
-    * @param isExtern         Whether to precede declaration with <i><b>extern</b></i>
-    * @param identifier       C identifier to use
-    * @param type             C Type to use
+    * @param cIdentifier      C identifier to use
+    * @param cType            C Type to use
     * @param trailingComment  Trailing comment
     */
-   protected void writeVariableDeclaration(String error, String description, String identifier, String type, String trailingComment) {
-      identifier = makeCVariableIdentifier(identifier);
-      boolean isRepeated = !fUsedNames.add(identifier);
+   protected void writeVariableDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
+      cIdentifier = makeCVariableIdentifier(cIdentifier);
+      boolean isRepeated = !fUsedNames.add(cIdentifier);
       
       fDeclarations.append("\n");
       if (!description.isBlank()) {
@@ -588,9 +586,9 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fDeclarations.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", "extern " + type, identifier+";", trailingComment));
+      fDeclarations.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", "extern " + cType, cIdentifier+";", trailingComment));
       if (error.isBlank()) {
-         fHardwareDefinitions.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", type, identifier+";", trailingComment));
+         fHardwareDefinitions.append(String.format("%s%-50s %-30s  %s\n", isRepeated?"// ":"", cType, cIdentifier+";", trailingComment));
       }
    }
    
@@ -604,13 +602,13 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
     *  </pre>
     * @param error            Error message to precede declaration (empty to suppress) 
     * @param description      Comment describing declaration
-    * @param identifier       C identifier to use
-    * @param type             C Type to use
+    * @param cIdentifier      C identifier to use
+    * @param cType            C Type to use
     * @param trailingComment  Trailing comment
     */
-   protected void writeTypeDeclaration(String error, String description, String identifier, String type, String trailingComment) {
-      identifier = makeCTypeIdentifier(identifier);
-      boolean isRepeated = !fUsedNames.add(identifier);
+   protected void writeTypeDeclaration(String error, String description, String cIdentifier, String cType, String trailingComment) {
+      cIdentifier = makeCTypeIdentifier(cIdentifier);
+      boolean isRepeated = !fUsedNames.add(cIdentifier);
       
       fDeclarations.append("\n");
       if (!description.isBlank()) {
@@ -624,7 +622,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (!trailingComment.isBlank()) {
          trailingComment = "// " + trailingComment;
       }
-      fDeclarations.append(String.format("%susing %-30s = %-50s %s\n", isRepeated?"// ":"", identifier, type+";", trailingComment));
+      fDeclarations.append(String.format("%susing %-30s = %-50s %s\n", isRepeated?"// ":"", cIdentifier, cType+";", trailingComment));
    }
    
    /**
@@ -644,15 +642,15 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
       if (getCodeIdentifier().isBlank()) {
          return;
       }
-      String identifier = getCodeIdentifier();
-      String type       = (fIsConstType?"const ":"") + className;
+      String cIdentifier = getCodeIdentifier();
+      String cType       = (fIsConstType?"const ":"") + className;
       
       String description = getUserDescription();
       if (description.isBlank()) {
          description = getDescription();
       }
-      writeTypeDeclaration("", description, identifier, type, "");
-      writeVariableDeclaration("", description, identifier, type, "");
+      writeTypeDeclaration("", description, cIdentifier, cType, "");
+      writeVariableDeclaration("", description, cIdentifier, cType, "");
    }
 
    /**
@@ -1254,7 +1252,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /**
     * Set editor dirty via deviceInfo
     */
-   protected void setDirty(boolean dirty) {
+   public void setDirty(boolean dirty) {
       if (fDeviceInfo != null) {
          fDeviceInfo.setDirty(dirty);
       }
