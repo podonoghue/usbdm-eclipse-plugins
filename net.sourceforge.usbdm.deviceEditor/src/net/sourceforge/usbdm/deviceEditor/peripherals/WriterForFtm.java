@@ -82,6 +82,29 @@ public class WriterForFtm extends PeripheralWithState {
          String type = String.format("const %s<%d>", getClassBaseName()+getInstance()+"::"+"Channel", index);
          writeVariableDeclaration("", signal.getUserDescription(), cIdentifier, type, pin.getLocation());
       }
+      
+      if (fQuadSignals.table.size() >= 2) {
+         do {
+         Signal signalPhaseA = fQuadSignals.table.get(0);
+         Signal signalPhaseB = fQuadSignals.table.get(1);
+         if ((signalPhaseA == null) || (signalPhaseB == null)) {
+            continue;
+         }
+         String cIdentifierPhaseA = signalPhaseA.getCodeIdentifier();
+         String cIdentifierPhaseB = signalPhaseA.getCodeIdentifier();
+         if (cIdentifierPhaseA.isBlank() || !(cIdentifierPhaseA.equals(cIdentifierPhaseB))) {
+            continue;
+         }
+         Pin pinPhaseA = signalPhaseA.getFirstMappedPinInformation().getPin();
+         Pin pinPhaseB = signalPhaseB.getFirstMappedPinInformation().getPin();
+         if ((pinPhaseA == Pin.UNASSIGNED_PIN) || (pinPhaseB == Pin.UNASSIGNED_PIN)) {
+            continue;
+         }
+         String cIdentifier = makeCIdentifier(cIdentifierPhaseA);
+         String type = String.format("const FtmQuadDecoder"+getInstance());
+         writeVariableDeclaration("", signalPhaseA.getUserDescription(), cIdentifier, type, pinPhaseA.getLocation()+", "+pinPhaseB.getLocation());
+         } while (false);
+      }
    }
    
    @Override
