@@ -86,14 +86,6 @@ class PeripheralsViewContentProvider implements ITreeContentProvider, IModelChan
       }
       if ((treeViewer != null) && (model != null)) {
          treeViewer.refresh(model, true);
-         //         ITreeSelection selection = (ITreeSelection) treeViewer.getSelection();
-         //         if (selection.getFirstElement() == model) {
-         //            PeripheralsInformationPanel panel = view.getInformationPanel();
-         //            if (panel != null) {
-         //               // TODO - Check if needed
-         ////               panel.updateContent();
-         //            }
-         //         }
       }
    }
 

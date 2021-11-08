@@ -83,30 +83,11 @@ public class IrqVariable extends BooleanVariable {
    }
 
    /* (non-Javadoc)
-    * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#setPersistentValue(java.lang.String)
-    */
-   @Override
-   public void setPersistentValue(String value) {
-//    System.err.println("IrqVariable.setPersistentValue(\'"+ value + "')");
-      // TODO Auto-generated method stub
-      super.setPersistentValue(value);
-   }
-
-   /* (non-Javadoc)
     * @see net.sourceforge.usbdm.deviceEditor.information.BooleanVariable#getPersistentValue()
     */
    @Override
    public String getPersistentValue() {
       return super.getValueAsBoolean()?"$"+Mode.ClassMethod.name():"$"+Mode.NotInstalled.name();
-   }
-
-   /* (non-Javadoc)
-    * @see java.lang.Object#clone()
-    */
-   @Override
-   protected Object clone() throws CloneNotSupportedException {
-      // TODO Auto-generated method stub
-      return super.clone();
    }
 
    @Override

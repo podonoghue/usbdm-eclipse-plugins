@@ -386,18 +386,12 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * @return
     */
    public String determineMappedSignalsUserDescriptions( ) {
-      MappingInfo mappingInfo = getMappedSignals();
       StringBuilder sb = new StringBuilder();
-      boolean doSeparator = false;
-      for (Signal signal:mappingInfo.getSignals()) {
-         if (signal.getUserDescription().isBlank()) {
-            continue;
+      for (MuxSelection muxSel:fMappableSignals.keySet()) {
+         MappingInfo mappinfo = fMappableSignals.get(muxSel);
+         if (mappinfo.isSelected()) {
+            sb.append(mappinfo.getMappedSignalsUserDescriptions());
          }
-         if (doSeparator) {
-            sb.append('/');
-         }
-         sb.append(signal.getUserDescription());
-         doSeparator = true;
       }
       return sb.toString();
    }

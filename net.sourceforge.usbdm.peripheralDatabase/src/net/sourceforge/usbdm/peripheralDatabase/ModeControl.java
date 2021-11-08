@@ -586,7 +586,7 @@ public class ModeControl {
    static String getMappedRegisterMacroName(String name) {
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
       if (mappedMacros.size() == 0) {
-         //TODO - Where register name MACROs are mapped
+         //TODO Where register name MACROs are mapped
          mappedMacros.add(new Pair(Pattern.compile("^(FTM[0-9]?)_CONTROLS([0-9]+)_Cn(.*)$"),       "$1_C$2$3"));  // e.g. FTM1_CONTROLS0_CnSC -> FTM1_C0SC
          mappedMacros.add(new Pair(Pattern.compile("^(TPM[0-9]?)_CONTROLS([0-9]+)_Cn(.*)$"),       "$1_C$2$3"));  // e.g. TPM1_CONTROLS0_CnSC -> TPM_C0SC
          mappedMacros.add(new Pair(Pattern.compile("^(FMC[0-9]?_.*)_(S[0-9]+.*)$"),                "$1$2"));      // e.g. FMC_TAGVDW0_S0 -> FMC_TAGVDW0S0
@@ -628,7 +628,7 @@ public class ModeControl {
    static String getStructNamefromName(String name) {
       final ArrayList<Pair> mappedNames = new ArrayList<Pair>();
       if (mappedNames.size() == 0) {
-         //TODO - Where structure names are mapped
+         //TODO Where structure names are mapped
          mappedNames.add(new Pair(Pattern.compile("(^FTM[0-9]*$)"),   "$1"));  // e.g. FTM0 etc. unchanged
          mappedNames.add(new Pair(Pattern.compile("(^TPM[0-9]*$)"),   "$1"));  // e.g. TPM0 etc. unchanged
          mappedNames.add(new Pair(Pattern.compile("(^EPORT[0-9]*$)"), "$1"));  // e.g. EPORT0 etc. unchanged

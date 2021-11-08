@@ -85,10 +85,6 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
 
    @Override
    public void modelElementChanged(ObservableModel observableModel) {
-//      if (getName().startsWith("OSC") && observableModel instanceof Signal) {
-//         // XXX Delete OK
-//         System.err.println("PeripheralSignalsModel(OSC...):"+hashCode()+".modelElementChanged(Signal("+((Signal)observableModel).getName()+"):"+observableModel.hashCode()+") => " + super.getStatus());
-//      }
       fPeripheral.validateMappedPins();
       setStatus(fPeripheral.getStatus());
       update();
@@ -104,7 +100,6 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
 
    @Override
    public void setValueAsString(String value) {
-      // TODO Auto-generated method stub
-      
+      // No data
    }
 }

@@ -66,7 +66,6 @@ public class DevicePeripheralSelectionDialogue extends TitleAreaDialog  {
    private Group             grpExternal             = null;
    private Text              txtFilePath             = null;
 
-   //TODO - make variable
    private TargetType targetType = TargetType.T_ARM;
    private String fDescription;
 

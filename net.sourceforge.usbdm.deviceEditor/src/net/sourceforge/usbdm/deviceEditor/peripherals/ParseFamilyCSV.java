@@ -132,7 +132,7 @@ public class ParseFamilyCSV {
 			}
 			Signal signal = fDeviceInfo.findOrCreateSignal(signalName);
 			if (signal != null) {
-				// TODO Log creating signals
+				// TODO Location to log creating signals
 				//            System.err.println("Added "+signalName+" to "+signal.getPeripheral());
 				signalList.add(signal);
 				if (signal != Signal.DISABLED_SIGNAL) {

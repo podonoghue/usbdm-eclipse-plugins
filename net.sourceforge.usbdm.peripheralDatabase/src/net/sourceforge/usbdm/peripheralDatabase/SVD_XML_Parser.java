@@ -311,7 +311,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
          }
          else if (element.getTagName() == BITRANGE_TAG) {
             String bitRange = element.getTextContent();
-            // TODO change to regex
+            // TODO Change to regex
             if ((bitRange.charAt(0) != '[')||(bitRange.charAt(bitRange.length()-1) != ']')) {
                throw new Exception("Illegal BITRANGE in FIELD', value = \'"+bitRange+"\'");
             }
@@ -499,7 +499,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             //TODO: Implement modifiedWriteValues
          }
          else if (element.getTagName() == WRITECONSTRAINT_TAG) {
-            //TODO: Implement modifiedWriteValues
+            //TODO: Implement writeConstraint
          }
          else if (element.getTagName() == READACTION_TAG) {
             //TODO: Implement readAction
@@ -509,7 +509,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
             parseFields(register, element);
          }
          else if (element.getTagName() == ALTERNATEREGISTER_TAG) {
-            //TODO: Implement ALTERNATEREGISTER_TAG
+            //TODO: Implement alternateRegister
          }
          else {
             throw new Exception(String.format("Unexpected field in <register>, p=%s, r=%s, v=%s", 
@@ -559,7 +559,7 @@ public class SVD_XML_Parser extends SVD_XML_BaseParser {
       }
       final ArrayList<Pair> mappedNames = new ArrayList<Pair>();
       if (mappedNames.size() == 0) {
-         //TODO - Where register names are mapped
+         //TODO Where register names are mapped
          mappedNames.add(new Pair(Pattern.compile("^TRNG0_(.*)$"),  "$1"));  // e.g. TRNG0_MCTL => MCTL
          mappedNames.add(new Pair(Pattern.compile("^CAU_(.*)$"),    "$1"));  // e.g. CAU_LDR_CASR => LDR_CASR
          mappedNames.add(new Pair(Pattern.compile("^LTC0_(.*)$"),   "$1"));  // e.g. 

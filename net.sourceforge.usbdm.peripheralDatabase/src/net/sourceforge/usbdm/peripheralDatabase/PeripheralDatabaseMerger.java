@@ -192,7 +192,7 @@ public class PeripheralDatabaseMerger {
          // Already derived - ignore
          return;
       }
-      // TODO - Where common peripherals are factored out
+      // TODO Where common peripherals are factored out
       ArrayList<Peripheral> peripheralList = peripheralMap.get(newPeripheral.getName());
       if (peripheralList == null) {
          // First peripheral of that name

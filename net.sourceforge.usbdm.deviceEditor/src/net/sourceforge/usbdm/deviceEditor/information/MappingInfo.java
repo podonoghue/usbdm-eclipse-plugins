@@ -52,7 +52,7 @@ public class MappingInfo extends ObservableModel {
    }
    
    /**
-    * Returns a list of mapped signals as a string e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
+    * Returns a list of peripheral signals mapped by this selection as a string e.g. <b><i>GPIOC_6/LLWU_P10</b></i>
     * 
     * @return List of mapped signals as string
     */
@@ -159,5 +159,27 @@ public class MappingInfo extends ObservableModel {
          signal.notifyListeners();
       }
    }
+   
+   /**
+    * Determine user description from associated signals.
+    * 
+    * @return
+    */
+   public String getMappedSignalsUserDescriptions( ) {
+      StringBuilder sb = new StringBuilder();
+      boolean doSeparator = false;
+      for (Signal signal:getSignals()) {
+         if (signal.getUserDescription().isBlank()) {
+            continue;
+         }
+         if (doSeparator) {
+            sb.append('/');
+         }
+         sb.append(signal.getUserDescription());
+         doSeparator = true;
+      }
+      return sb.toString();
+   }
+
 
 };

@@ -149,7 +149,7 @@ public class GdbDsfInterface extends GdbCommonInterface {
     */
    @Override
    public byte[] readMemory(long address, int byteCount, int accessWidth) throws Exception {
-
+      // There doesn't seem to be a mechanism for indicating the width of a write via GDB. Why??
       // TODO This is a horrible hack - damn you GDB!
       switch (accessWidth) {
       case 8:  

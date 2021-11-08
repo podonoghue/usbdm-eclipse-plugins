@@ -150,7 +150,7 @@ public class AdcValidate extends PeripheralValidator {
          break;
       case 1:
          /* 
-          * TODO - better method of clock selection
+          * TODO Implement better method of clock selection
           * ALTCLK2: Varies with device but assume irc48m if available else busClock/2
           */
          if (system_irc48m_clockVar != null) {

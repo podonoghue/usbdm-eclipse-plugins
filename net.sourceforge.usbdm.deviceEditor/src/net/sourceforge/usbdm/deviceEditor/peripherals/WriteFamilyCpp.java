@@ -7,10 +7,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -22,7 +25,6 @@ import net.sourceforge.usbdm.deviceEditor.information.MappingInfo;
 import net.sourceforge.usbdm.deviceEditor.information.MuxSelection;
 import net.sourceforge.usbdm.deviceEditor.information.PcrInitialiser;
 import net.sourceforge.usbdm.deviceEditor.information.Pin;
-import net.sourceforge.usbdm.deviceEditor.information.Signal;
 import net.sourceforge.usbdm.deviceEditor.information.StringVariable;
 
 public class WriteFamilyCpp {
@@ -368,10 +370,10 @@ public class WriteFamilyCpp {
    private final String TABLE_OPEN = 
          " *\n" + 
          " * @section %s %s\n" + " *\n" + 
-         " *    Pin Name               |   Functions                                                     |  Location                 |  Description  \n" + 
-         " *  ------------------------ | --------------------------------------------------------------- | ------------------------- | ------------- \n";
+         " *   Pin Name      |  Functions                                         |  Location       |  Description\n" + 
+         " *  -------------- | -------------------------------------------------- | --------------- | ----------------------------------------------------\n";
 
-   private final String DOCUMENTATION_TEMPLATE = " *  %-20s     | %-60s    | %-21s     | %s       \n";
+   private final String DOCUMENTATION_TEMPLATE = " *  %-14s | %-50s | %-15s | %s\n";
 
    private final String TABLE_CLOSE = " *\n";
 
@@ -387,78 +389,84 @@ public class WriteFamilyCpp {
     */
    private void writeDocumentation(DocumentUtilities writer) throws IOException {
 
-      Map<String, Pin> pinsByLocation = new TreeMap<String, Pin>(Signal.comparator);
-      Map<String, Pin> pinsByFunction = new TreeMap<String, Pin>(Signal.comparator);
-
+      ArrayList<MappingInfo> allMappingInfo = new ArrayList<MappingInfo>();
+      
       writer.write(DOCUMENTATION_OPEN);
 
+      // Write documentation in pin order and accumulate location and function(symbol) information
       writer.write(String.format(TABLE_OPEN, "PinsByPinName", "Pins by Pin Name"));
       for (String pinName : fDeviceInfo.getPins().keySet()) {
 
          Pin pin = fDeviceInfo.getPins().get(pinName);
-
          if (!pin.isAvailableInPackage()) {
             // Discard pins without package location
             continue;
          }
-         String useDescription = pin.getMappedSignalsUserDescriptions();
-         if (useDescription.isEmpty()) {
-            useDescription = "-";
-         }
          Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
-         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
-         String signalList;
-         if (mappedSignal == null) {
-            signalList = "-";
-         } else {
-            signalList = mappedSignal.getSignalList();
+         // Document enabled mappings
+         for (MuxSelection muxSelection:mappableSignals.keySet()) {
+            MappingInfo mappingInfo = mappableSignals.get(muxSelection);
+            if (!mappingInfo.isSelected()) {
+               continue;
+            }
+            String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
+            if (useDescription.isBlank()) {
+               useDescription = "-";
+            }
+            String signalList  = mappingInfo.getSignalList();
+            String pinLocation = pin.getLocation();
+            writer.write(String.format(DOCUMENTATION_TEMPLATE, pin.getName(), signalList, pinLocation, useDescription));
+            allMappingInfo.add(mappingInfo);
          }
-         writer.write(String.format(DOCUMENTATION_TEMPLATE, pin.getName(), signalList, pin.getLocation(), useDescription));
-         if ((pin.getLocation() != null) && !pin.getLocation().isEmpty()) {
-            pinsByLocation.put(pin.getLocation(), pin);
-         }
-         pinsByFunction.put(signalList, pin);
       }
       writer.write(TABLE_CLOSE);
+      
+      Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
+         final Pattern pattern = Pattern.compile("^p(\\d+)$"); 
+         
+         @Override
+         public int compare(MappingInfo o1, MappingInfo o2) {
+            Matcher matcher1 = pattern.matcher(o1.getPin().getLocation());
+            Matcher matcher2 = pattern.matcher(o2.getPin().getLocation());
+            if (!matcher1.matches() || !matcher2.matches()) {
+               return o1.getPin().getLocation().compareTo(o2.getPin().getLocation());
+            }
+            int i1 = Integer.parseInt(matcher1.group(1));
+            int i2 = Integer.parseInt(matcher2.group(1));
+            return i1-i2;
+         }
+      });
+      
       writer.write(String.format(TABLE_OPEN, "PinsByLocation", "Pins by Location"));
-      for (String pinName : pinsByLocation.keySet()) {
-
-         Pin pin = pinsByLocation.get(pinName);
-
-         String useDescription = pin.getMappedSignalsUserDescriptions();
+      for (MappingInfo mappingInfo : allMappingInfo) {
+         String pinName        = mappingInfo.getPin().getName();
+         String signalList     = mappingInfo.getSignalList();
+         String pinLocation    = mappingInfo.getPin().getLocation();
+         String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
-         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
-         String signalList;
-         if (mappedSignal == null) {
-            signalList = "-";
-         } else {
-            signalList = mappedSignal.getSignalList();
-         }
-         writer.write(String.format(DOCUMENTATION_TEMPLATE, pin.getName(), signalList, pin.getLocation(), useDescription));
-
+         writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signalList, pinLocation, useDescription));
       }
       writer.write(TABLE_CLOSE);
+      
+      Collections.sort(allMappingInfo, new Comparator<MappingInfo>() {
+         @Override
+         public int compare(MappingInfo o1, MappingInfo o2) {
+            return o1.getSignalList().compareTo(o2.getSignalList()); 
+         }
+      });
+      
       writer.write(String.format(TABLE_OPEN, "PinsByFunction", "Pins by Function"));
-      for (String pinName : pinsByFunction.keySet()) {
-
-         Pin pin = pinsByFunction.get(pinName);
-
-         String useDescription = pin.getMappedSignalsUserDescriptions();
+      for (MappingInfo mappingInfo : allMappingInfo) {
+         String pinName        = mappingInfo.getPin().getName();
+         String signalList     = mappingInfo.getSignalList();
+         String pinLocation    = mappingInfo.getPin().getLocation();
+         String useDescription = mappingInfo.getMappedSignalsUserDescriptions();
          if (useDescription.isEmpty()) {
             useDescription = "-";
          }
-         Map<MuxSelection, MappingInfo> mappableSignals = pin.getMappableSignals();
-         MappingInfo mappedSignal = mappableSignals.get(pin.getMuxValue());
-         String signalList;
-         if (mappedSignal == null) {
-            signalList = "-";
-         } else {
-            signalList = mappedSignal.getSignalList();
-         }
-         writer.write(String.format(DOCUMENTATION_TEMPLATE, pin.getName(), signalList, pin.getLocation(), useDescription));
+         writer.write(String.format(DOCUMENTATION_TEMPLATE, pinName, signalList, pinLocation, useDescription));
       }
       writer.write(TABLE_CLOSE);
       writer.write(DOCUMENTATION_CLOSE);
@@ -502,15 +510,13 @@ public class WriteFamilyCpp {
    }
 
    /**
-    * Generate CPP files (pin_mapping.h, gpio.h)<br>
+    * Generate CPP files (pin_mapping.h)<br>
     * Used for testing
     * 
-    * @param directory
-    *           Parent director
-    * @param filename
-    *           Filename to use as base of files written
-    * @param deviceInfo
-    *           Device information to print to CPP files
+    * @param directory         Parent director
+    * @param filename          Filename to use as base of files written
+    * @param deviceInfo        Device information to print to CPP files
+    * 
     * @throws Exception
     */
    public void writeCppFiles(Path directory, String filename, DeviceInfo deviceInfo) throws IOException {

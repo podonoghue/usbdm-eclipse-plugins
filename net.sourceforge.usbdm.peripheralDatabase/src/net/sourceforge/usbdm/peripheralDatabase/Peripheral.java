@@ -978,7 +978,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (!isMapFreescaleCommonNames()) {
          return name;
       }
-      // TODO - Where Peripheral names are mapped
+      // TODO Where Peripheral names are mapped
       if (freescalePeripheralNameMap == null) {
          freescalePeripheralNameMap = new HashMap<String, String>();
          freescalePeripheralNameMap.put("PTA", "GPIOA");
@@ -1033,7 +1033,7 @@ public class Peripheral extends ModeControl implements Cloneable {
       if (complexStructures.isEmpty()) {
          ArrayList<ComplexStructuresInformation> entry = null;
 
-         //TODO - Where complex structures are defined
+         //TODO Where complex structures are defined
          /**
           * Substitution applied to the register name macros <pre>
           * "@p" => Peripheral name + "_"
@@ -1340,7 +1340,7 @@ public class Peripheral extends ModeControl implements Cloneable {
    public static String getExcludedSimpleRegisterArrayPeripherals(String name) {
       final HashMap<String, String> excludedCommonRegisterPeripherals = new HashMap<String,  String>(200);
       if (excludedCommonRegisterPeripherals.isEmpty()) {
-         // TODO - Where to select peripherals and particular registers not to turn into arrays
+         // TODO Where to select peripherals and particular registers not to turn into arrays
          excludedCommonRegisterPeripherals.put("ITM",   "PID.*"); // PIDs are in a strange order
          excludedCommonRegisterPeripherals.put("DWT",   "PID.*");
          excludedCommonRegisterPeripherals.put("FPB",   "PID.*");

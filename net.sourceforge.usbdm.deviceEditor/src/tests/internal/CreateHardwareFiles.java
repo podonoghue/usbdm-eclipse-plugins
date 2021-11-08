@@ -19,7 +19,7 @@ public class CreateHardwareFiles {
    };
 
    /**
-    * Process each CSV input file XXX.csv to produce XXX.usbdmHardware file
+    * Process each CSV input file xxx.csv to produce xxx.usbdmHardware file
     * 
     * @param filepath      File to process
     * @param xmlDirectory  Directory for resulting file

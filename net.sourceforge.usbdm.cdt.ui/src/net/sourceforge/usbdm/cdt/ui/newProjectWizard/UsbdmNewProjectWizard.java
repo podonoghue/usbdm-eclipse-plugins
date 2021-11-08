@@ -436,7 +436,7 @@ public class UsbdmNewProjectWizard extends Wizard implements INewWizard, IRunnab
 
    /**
     *  Turn off Auto-build in workspace
-    *  TODO - should restore to original after project construction?
+    *  TODO Should this be restored to original after project construction?
     */
    void disableAutoBuild() {
       try {

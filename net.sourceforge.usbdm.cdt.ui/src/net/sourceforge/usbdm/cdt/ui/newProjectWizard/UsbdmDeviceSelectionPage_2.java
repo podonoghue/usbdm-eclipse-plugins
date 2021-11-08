@@ -257,7 +257,7 @@ public class UsbdmDeviceSelectionPage_2 extends WizardPage implements IUsbdmProj
          }
       }
       else {
-         // TODO - Change default device for testing
+         // TODO Change default device for testing
          fDeviceSelector.setDevice("FRDM_K20D5");
       }
 

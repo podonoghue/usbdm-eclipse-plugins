@@ -424,7 +424,7 @@ public class Field extends ModeControl implements Cloneable {
     * @return  Mapped name (unchanged if not mapped, null if to be deleted)
     */
    static String getMappedBitfieldMacroName(String name) {
-      // TODO - Where common names in macros are done
+      // TODO Where common names in macros are converted
       final ArrayList<Pair> mappedMacros = new ArrayList<Pair>();
 
       if (mappedMacros.size() == 0) {

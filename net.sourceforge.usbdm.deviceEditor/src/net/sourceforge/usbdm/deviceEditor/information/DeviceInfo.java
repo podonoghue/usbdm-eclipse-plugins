@@ -1022,7 +1022,7 @@ public class DeviceInfo extends ObservableModel implements IModelEntryProvider, 
     */
    public void initialiseTemplates() throws Exception {
       /*
-       *  TODO - Add peripheral types here 
+       *  TODO Add peripheral types here 
        */
       createPeripheralTemplateInformation(
             "GPIO", "$2", "$4",
