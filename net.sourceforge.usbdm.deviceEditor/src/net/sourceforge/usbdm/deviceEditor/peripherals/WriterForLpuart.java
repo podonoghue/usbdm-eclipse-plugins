@@ -31,6 +31,10 @@ public class WriterForLpuart extends PeripheralWithState {
    
    @Override
    public void validateMappedPins() {
+      super.validateMappedPins();
+      if (fStatus != null) {
+         return;
+      }
       // Warn if TxD and RxD signals not mapped
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
    }

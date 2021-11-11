@@ -120,7 +120,7 @@ public class SignalModel extends SelectionModel implements IModelChangeListener 
    @Override
    public String getValueAsString() {
       if (fSignal.checkMappingConflicted() != null) {
-         return "Conflict"; 
+         return "Multiple"; 
       }
       int index = fSignal.getFirstMappedPinInformation().getMux().ordinal();
       if (index<0) {

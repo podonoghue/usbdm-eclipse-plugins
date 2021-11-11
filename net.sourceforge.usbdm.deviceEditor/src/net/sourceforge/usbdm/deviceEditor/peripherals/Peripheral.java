@@ -1221,11 +1221,7 @@ public abstract class Peripheral extends VariableProvider implements ObservableM
    /**
     * Validate the signal to pin mapping
     * 
-    * @param pinModels
-    * 
     * @return Status Status if error or null if none
-    * 
-    * @throws Exception
     */
    public void validateMappedPins() {
       return;

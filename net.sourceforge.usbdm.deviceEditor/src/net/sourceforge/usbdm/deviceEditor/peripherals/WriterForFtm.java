@@ -34,34 +34,6 @@ public class WriterForFtm extends PeripheralWithState {
    }
 
    @Override
-   public int getSignalIndex(Signal signal) {
-      Pattern p = Pattern.compile("CH(\\d+)");
-      Matcher m = p.matcher(signal.getSignalName());
-      if (m.matches()) {
-         return Integer.parseInt(m.group(1));
-      }
-      final String quadNames[] = {"QD_PHA", "QD_PHB"};
-      for (int signalName=0; signalName<quadNames.length; signalName++) {
-         if (signal.getSignalName().matches(quadNames[signalName])) {
-            return signalName;
-         }
-      }
-      final String clockNames[] = {"CLKIN0", "CLKIN1"};
-      for (int signalName=0; signalName<clockNames.length; signalName++) {
-         if (signal.getSignalName().matches(clockNames[signalName])) {
-            return signalName;
-         }
-      }
-      final String faultNames[] = {"FLT0", "FLT1", "FLT2", "FLT3"};
-      for (int signalName=0; signalName<faultNames.length; signalName++) {
-         if (signal.getSignalName().matches(faultNames[signalName])) {
-            return signalName;
-         }
-      }
-      throw new RuntimeException("Signal does not match expected pattern " + signal.getSignalName());
-   }
-
-   @Override
    protected void writeDeclarations() {
       
       super.writeDeclarations();

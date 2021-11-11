@@ -33,7 +33,10 @@ public class WriterForRtc extends PeripheralWithState {
    
    @Override
    public void validateMappedPins() {
-      
+      super.validateMappedPins();
+      if (fStatus != null) {
+         return;
+      }
       // Warn if EXTAL32 or XTAL32 are not mapped
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
    }

@@ -111,7 +111,7 @@ public class PinModel extends SelectionModel implements IModelChangeListener {
    @Override
    public String getValueAsString() {
       if (fPin.checkMappingConflicted() != null) {
-         return "Conflict"; 
+         return "Multiple"; 
       }
       return fChoices[findValueIndex(fPin.getMappedSignals())];
    }

@@ -51,10 +51,6 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
       }
    }
    
-   static PeripheralSignalsModel getPeripheralModel() {
-      return null;
-   }
-   
    /**
     * Get peripheral associated with this model
     * 
@@ -74,18 +70,7 @@ public final class PeripheralSignalsModel extends EditableModel implements IMode
    }
 
    @Override
-   Status getStatus() {
-      Status status = super.getStatus();
-      // XXX Delete OK
-//      if (getName().startsWith("OSC") && (status != null)) {
-//         System.err.println("PeripheralSignalsModel(OSC...).getStatus() " + status);
-//      }
-      return status;
-   }
-
-   @Override
    public void modelElementChanged(ObservableModel observableModel) {
-      fPeripheral.validateMappedPins();
       setStatus(fPeripheral.getStatus());
       update();
    }

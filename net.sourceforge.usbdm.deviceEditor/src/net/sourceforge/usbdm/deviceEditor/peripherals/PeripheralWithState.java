@@ -351,6 +351,7 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
       if (observableModel instanceof Variable) {
          variableChanged((Variable)observableModel);
       }
+      
    }
 
    @Override
@@ -537,6 +538,27 @@ public abstract class PeripheralWithState extends Peripheral implements IModelEn
          }
       }
       fStatus = status;
+   }
+
+   @Override
+   public void validateMappedPins() {
+      super.validateMappedPins();
+      if (fStatus != null) {
+         return;
+      }
+      ArrayList<InfoTable> signalTables = getSignalTables();
+      for (InfoTable signalTable:signalTables) {
+         for (Signal signal:signalTable.table) {
+            if (signal == null) {
+               continue;
+            }
+            Status status = signal.getStatus();
+            if (status != null) {
+               fStatus = status;
+               return;
+            }
+         }
+      }
    }
 
 }

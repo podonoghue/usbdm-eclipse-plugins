@@ -46,6 +46,10 @@ public class WriterForOsc extends PeripheralWithState {
    
    @Override
    public void validateMappedPins() {
+      super.validateMappedPins();
+      if (fStatus != null) {
+         return;
+      }
       // Warn if EXTAL and XTAL signals not mapped
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
    }

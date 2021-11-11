@@ -44,6 +44,10 @@ public class WriterForI2c extends PeripheralWithState {
    
    @Override
    public void validateMappedPins() {
+      super.validateMappedPins();
+      if (fStatus != null) {
+         return;
+      }
       // Warn if SCL and SDA signals not mapped
       validateMappedPins(new int[]{0,1}, getSignalTables().get(0).table);
    }

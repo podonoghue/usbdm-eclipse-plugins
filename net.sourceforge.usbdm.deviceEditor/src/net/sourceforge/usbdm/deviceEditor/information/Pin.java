@@ -491,7 +491,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
       if (mappingsFound <= 1) {
          return null;
       }
-      sb.append(") =>> " + getName());
+      sb.append(")");
       return new Status(sb.toString(), Severity.WARNING, "Multiple signals are mapped to pin '" + getName() + "'");
    }
    
@@ -500,7 +500,7 @@ public class Pin extends ObservableModel implements Comparable<Pin>, IModelChang
     * 
     * @return Status 
     */
-   Status getPinStatus() {
+   public Status getPinStatus() {
       return fStatus;
    }
    

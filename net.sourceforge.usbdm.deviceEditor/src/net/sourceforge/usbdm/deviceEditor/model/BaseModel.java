@@ -178,7 +178,6 @@ public abstract class BaseModel implements Cloneable {
       if (parent != null) {
          parent.addChild(this);
       }
-//      fLogging = (fName.equalsIgnoreCase("FTM0") || ((fParent != null)&&fParent.fName.equalsIgnoreCase("FTM0")));
       if (fLogging) {
          System.err.println("Creating model "+name);
       }
@@ -324,7 +323,7 @@ public abstract class BaseModel implements Cloneable {
    public final String getDescription() {
       String description = getSimpleDescription();
       Status status = getStatus();
-      if ((status != null) && (status.greaterThan(Status.Severity.OK))) {
+      if ((status != null) && (status.greaterThan(Status.Severity.WARNING))) {
          if (status.greaterThan(Status.Severity.INFO)) {
             description = status.getText();
          }
@@ -377,20 +376,19 @@ public abstract class BaseModel implements Cloneable {
     * @return
     */
    Status getStatus() {
-      // Search children for error
-      Status rv = fMessage;
-      if (((rv == null) || rv.lessThan(Status.Severity.ERROR)) &&
-          (fChildren != null)) {
+      // Search children for status
+      Status returnStatus = fMessage;
+      if (((returnStatus == null) || returnStatus.lessThan(Status.Severity.ERROR)) && (fChildren != null)) {
          for (Object node:fChildren) {
             BaseModel child = (BaseModel) node;
-            Status m = child.getStatus();
-            if ((m != null) && m.greaterThan(Status.Severity.WARNING)) {
-               rv = m;
+            Status status = child.getStatus();
+            if ((status != null) && status.greaterThan(Status.Severity.WARNING)) {
+               returnStatus = status;
                break;
             }
          }
       }
-      return rv;
+      return returnStatus;
    }
    
    /** 
@@ -446,7 +444,7 @@ public abstract class BaseModel implements Cloneable {
       if (message != null) {
          String hint = message.getHint();
          if (hint != null) {
-            return hint;
+            tip+= hint;
          }
          if (message.greaterThan(Status.Severity.WARNING)) {
             tip += (tip.isEmpty()?"":"\n")+message.getText();
@@ -476,34 +474,6 @@ public abstract class BaseModel implements Cloneable {
    protected Status checkConflicts(Map<String, List<MappingInfo>> mappedNodes) {
       return null;
    }
-
-//   /**
-//    * Update the node given
-//    * 
-//    * @param element
-//    * @param properties
-//    */
-//   protected void viewerUpdate(BaseModel element, String[] properties) {
-//      if (element != null) {
-//         BaseModel root = getRoot();
-//         if (root != null) {
-//            root.viewerUpdate(element, properties);
-//         }
-//         if (getParent() != null) {
-//            root.viewerUpdate(getParent(), null);
-//         }
-//      }
-//   }
-
-//   /**
-//    * Refresh all views from the model from the root node
-//    */
-//   protected void refresh() {
-//      BaseModel root = getRoot();
-//      if (root != null) {
-//         getRoot().refresh();
-//      }
-//   }
 
    /**
     * Remove any listeners created by this model<br>
